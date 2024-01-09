@@ -32,7 +32,7 @@ public class CLIQUEGenericController : ControllerBase {
     }
 
 ///<summary>Returns a Clique problem object created from a given instance </summary>
-///<param name="problemInstance" example="{{1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}},3}">Clique problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)">Clique problem instance string.</param>
 ///<response code="200">Returns CLIQUE problem object</response>
 
     [ProducesResponseType(typeof(CLIQUE), 200)]
@@ -103,7 +103,7 @@ public class sipserReduceToVCController : ControllerBase {
     }
 
 ///<summary>Returns a reduction from Clique to Vertex Cover based on the given Clique instance  </summary>
-///<param name="problemInstance" example="{{1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}},3}">Clique problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)">Clique problem instance string.</param>
 ///<response code="200">Returns Sipser's Clique to Vertex Cover SipserReduction object</response>
 
     [ProducesResponseType(typeof(SipserReduction), 200)]
@@ -140,8 +140,8 @@ public class sipserReduceToVCController : ControllerBase {
     #pragma warning restore CS1591
 
 ///<summary>Returns a solution to the a Vertex Cover problem, wich has been reduced from Clique using Sipser's reduction  </summary>
-///<param name="problemFrom" example="{{1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}},3}">Clique problem instance string.</param>
-///<param name="problemTo" example="{{1,2,3,4},{{1,3}},1}">Vertex Cover problem instance string reduced from Clique instance.</param>
+///<param name="problemFrom" example="(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)">Clique problem instance string.</param>
+///<param name="problemTo" example="(({1,2,3,4},{{1,3}}),1)">Vertex Cover problem instance string reduced from Clique instance.</param>
 ///<param name="problemFromSolution" example=" {1,2,4}">Solution to Clique problem.</param>
 ///<response code="200">Returns solution to the reduced Vertex Cover instance</response>
     
@@ -228,7 +228,7 @@ public class CliqueBruteForceController : ControllerBase
 
     // Solve a instance given a certificate
 ///<summary>Returns a solution to a given Clique problem instance </summary>
-///<param name="problemInstance" example="{{1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}},3}">Clique problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)">Clique problem instance string.</param>
 ///<response code="200">Returns a solution string </response>
     
     [ProducesResponseType(typeof(string), 200)]
@@ -266,7 +266,7 @@ public class CliqueVerifierController : ControllerBase {
 
 ///<summary>Verifies if a given certificate is a solution to a given Clique problem</summary>
 ///<param name="certificate" example="{1,2,4}">certificate solution to Clique problem.</param>
-///<param name="problemInstance" example="{{1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}},3}">Clique problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)">Clique problem instance string.</param>
 ///<response code="200">Returns a boolean</response>
     
     [ProducesResponseType(typeof(Boolean), 200)]

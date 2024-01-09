@@ -98,7 +98,7 @@ abstract class DirectedGraph:Graph{
         _adjacencyMatrix = new Dictionary<string, List<KeyValuePair<string, Node>>>();
 
         string pattern;
-        pattern = @"{{(([\w!]+)+(,([\w!]+))*)},{(\(([\w!]+),([\w!]+)\)(,\(([\w!]+),([\w!]+)\))*)*},\d+}"; //checks for directed graph format
+        pattern = @"\(\({(([\w!]+)+(,([\w!]+))*)},{(\(([\w!]+),([\w!]+)\)(,\(([\w!]+),([\w!]+)\))*)*}\),\d+\)"; //checks for directed graph format
         Regex reg = new Regex(pattern);
         bool inputIsValid = reg.IsMatch(graphStr);
         if(inputIsValid){
@@ -130,7 +130,7 @@ abstract class DirectedGraph:Graph{
             }
             
             //end num
-             string endNumPatternOuter = @"},\d+}"; //gets the end section of the graph string
+             string endNumPatternOuter = @"\),\d+\)"; //gets the end section of the graph string
             MatchCollection numMatches = Regex.Matches(graphStr,endNumPatternOuter);
             string outerString = numMatches[0].ToString();
             string endNumPatternInner = @"\d+"; //parses out number from end section.
@@ -175,7 +175,7 @@ abstract class DirectedGraph:Graph{
         }
         edgeListStr = edgeListStr.TrimEnd(',',' ');
         //edgeListStr = edgeListStr.TrimEnd(' ');
-        string toStr = "{{"+nodeListStr+"}"+ ",{" + edgeListStr+"}"+","+_K+"}";
+        string toStr = "(({"+nodeListStr+"}"+ ",{" + edgeListStr+"}"+"),"+_K+")";
         return toStr;
     }  
 

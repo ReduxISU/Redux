@@ -130,7 +130,7 @@ class sipserReduction : IReduction<CLIQUE, VERTEXCOVER> {
         }
         edgesString = edgesString.Trim(',');
         int vertexKInt = (CLIQUEInstance.nodes.Count - CLIQUEInstance.K); //N - K where N is number of nodes of k-clique and K is the k of k-clique
-        string G = "{{" + nodesString + "},{" + edgesString + "}," + vertexKInt.ToString() + "}";
+        string G = "(({" + nodesString + "},{" + edgesString + "})," + vertexKInt.ToString() + ")";
 
         reducedVERTEXCOVER = new VERTEXCOVER(G);
         reductionTo = reducedVERTEXCOVER;

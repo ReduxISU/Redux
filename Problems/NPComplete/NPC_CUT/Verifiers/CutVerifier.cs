@@ -58,7 +58,7 @@ class CutVerifier : IVerifier {
         int counter = 0;
         foreach(var i in edgeList){
             string invertedString = new string(i.ToCharArray().Reverse().ToArray());
-            if ((edgeList.Count(x => x == i)) > 1 || edgeList.Contains(invertedString)) {
+            if (edgeList.Count(x => x == i) > 1 || edgeList.Contains(invertedString)) { //makes sure there are no duplicate edges
                 return false;
             }
             List<string> currentEdge = i.Split(",").ToList();
