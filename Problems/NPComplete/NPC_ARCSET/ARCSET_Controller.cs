@@ -30,7 +30,7 @@ public class ARCSETGenericController : ControllerBase {
     }
 
 ///<summary>Returns an Arc Set problem object created from a given instance </summary>
-///<param name="problemInstance" example="{{1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)},1}">Feedback Arc Set problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)">Feedback Arc Set problem instance string.</param>
 ///<response code="200">Returns ARCSET problem Object</response>
 
     [ProducesResponseType(typeof(ARCSET), 200)]
@@ -42,7 +42,7 @@ public class ARCSETGenericController : ControllerBase {
     }
 
 ///<summary>Returns a graph object used for dynamic visualization </summary>
-///<param name="problemInstance" example="{{1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)},1}">Feedback Arc Set problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)">Feedback Arc Set problem instance string.</param>
 ///<response code="200">Returns graph object</response>
 
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -57,7 +57,7 @@ public class ARCSETGenericController : ControllerBase {
     }
 
 ///<summary>Returns a graph object used for dynamic solved visualization </summary>
-///<param name="problemInstance" example="{{a0,a1,b0,b1,c0,c1,d0,d1,e0,e1},{(a0,a1),(a1,b0),(a1,c0),(a1,e0),(b0,b1),(b1,a0),(b1,e0),(c0,c1),(c1,a0),(c1,d0),(d0,d1),(d1,c0),(e0,e1),(e1,a0),(e1,b0)},3}">Feedback Arc Set problem instance string.</param>
+///<param name="problemInstance" example="(({a0,a1,b0,b1,c0,c1,d0,d1,e0,e1},{(a0,a1),(a1,b0),(a1,c0),(a1,e0),(b0,b1),(b1,a0),(b1,e0),(c0,c1),(c1,a0),(c1,d0),(d0,d1),(d1,c0),(e0,e1),(e1,a0),(e1,b0)}),3)">Feedback Arc Set problem instance string.</param>
 ///<param name="solution" example="{(a0,a1),(b0,b1),(c0,c1)}">Feedback Arc Set solution instance string.</param>
 
 ///<response code="200">Returns graph object</response>
@@ -108,7 +108,7 @@ public class AlexArcsetVerifierController : ControllerBase {
 
 ///<summary>Verifies if a given certificate is a solution to a given Feedback Arc Set problem</summary>
 ///<param name="certificate" example="{(2,4)}">certificate solution to Feedback Arc Set problem.</param>
-///<param name="problemInstance" example="{{1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)},1}">Feedback Arc Set problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)">Feedback Arc Set problem instance string.</param>
 ///<response code="200">Returns a boolean</response>
     
     [ProducesResponseType(typeof(Boolean), 200)]
@@ -186,7 +186,7 @@ public class ArcSetBruteForceController : ControllerBase {
     }
 
 ///<summary>Returns a solution to a given Feedback Arc Set problem instance </summary>
-///<param name="problemInstance" example="{{1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)},1}">Feedback Arc Set problem instance string.</param>
+///<param name="problemInstance" example="(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)">Feedback Arc Set problem instance string.</param>
 ///<response code="200">Returns a string </response>
     
     [ProducesResponseType(typeof(string), 200)]

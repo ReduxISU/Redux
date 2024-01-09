@@ -8,16 +8,19 @@ class API_Link{
     private string _source;
     private string _target;
     private string _attribute1;
+    private string _attribute2;
     public API_Link(){
         this._source = "DEFAULTSOURCE";
         this._target = "DEFAULTTARGET";
-        this._attribute1 = "DEFAULT";
+        this._attribute1 = "";
+        this._attribute2 = "";
     }
 
-    public API_Link(string s, string t, string a1=""){
+    public API_Link(string s, string t, string a1="", string a2=""){
         _source = s;
         _target = t;
         _attribute1 = a1;
+        _attribute2 = a2;
     }
     
     public string source{
@@ -36,6 +39,14 @@ class API_Link{
         }
         set{
             _attribute1 = value;
+        }
+    }
+    public string attribute2{
+        get{
+            return _attribute2;
+        }
+        set{
+            _attribute2 = value;
         }
     }
     

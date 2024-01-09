@@ -11,7 +11,7 @@ class CLIQUE : IProblem<CliqueBruteForce,CliqueVerifier> {
     private string _formalDefinition = "Clique = {<G, k> | G is an graph that has a set of k mutually adjacent nodes}";
     private string _problemDefinition = "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string _defaultInstance = "{{1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}},3}";
+    private string _defaultInstance = "(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)";
     private string _instance = string.Empty;
     private string _wikiName = "";
     private List<string> _nodes = new List<string>();

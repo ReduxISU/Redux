@@ -15,7 +15,7 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
     private readonly string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     private string[] _contributers = { "Daniel Igbokwe", "Alex Diviney" };
 
-    private string _defaultInstance = "{{a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}},3}";
+    private string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}}),3)";
 
     private string _instance  =  string.Empty;
 
@@ -127,7 +127,14 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
         }
     }
 
-   
+   public GraphColoringGraph graphColoringAsGraph {
+    get {
+        return _graphColoringAsGraph;
+    }
+    set {
+        _graphColoringAsGraph = value;
+    }
+   }
 
     
     public SortedSet<string> colors {
@@ -156,7 +163,7 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
     #region Constructors
       public GRAPHCOLORING() {
         _instance  = _defaultInstance;
-        _graphColoringAsGraph = new GraphColoringGraph(_instance);
+        _graphColoringAsGraph = new GraphColoringGraph(_instance, true);
         nodes = _graphColoringAsGraph.nodesStringList;
         edges  = _graphColoringAsGraph.edgesKVP;
         K = _graphColoringAsGraph.K;
@@ -166,7 +173,7 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
     }
     public GRAPHCOLORING(string GInput) {
         _instance  = GInput;
-        _graphColoringAsGraph = new GraphColoringGraph(_instance);
+        _graphColoringAsGraph = new GraphColoringGraph(_instance, true);
         nodes = _graphColoringAsGraph.nodesStringList;
         edges  = _graphColoringAsGraph.edgesKVP;
         K = _graphColoringAsGraph.K;
@@ -239,7 +246,7 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
 /// </remarks>
     public void parseProblem() {
 
-        string problem = "{{";
+        string problem = "(({";
 
         // Parse nodes
         for(int i = 0; i < nodes.Count - 1; i++){
@@ -255,7 +262,7 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
         }
         problem = problem.TrimEnd(',');
         // Parse k
-        problem +="}," +this._K + "}";
+        problem +="})," +this._K + ")";
         //this._defaultInstance = problem; //ALEX NOTE: We shouldn't ever update the defaultIntance. DEPRECATING
         this._instance  = problem;
 

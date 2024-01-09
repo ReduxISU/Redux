@@ -1,5 +1,6 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_KNAPSACK;
+using API.Tools.UtilCollection;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_KNAPSACK;
 
@@ -79,22 +80,25 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
     }
     public KNAPSACK reduce() {
         SUBSETSUM SUBSETSUMInstance = _reductionFrom;
-        KNAPSACK reducedKNAPSACK = new KNAPSACK();
+        KNAPSACK reducedKNAPSACK = new KNAPSACK
+        {
+            //We reduce by setting T from SUBSETSUM equal to both the minimum value and maxmimum weight constraints. 
+            W = SUBSETSUMInstance.T,
+            V = SUBSETSUMInstance.T 
+        };
 
-        //We reduce by setting T from SUBSETSUM equal to both the minimum value and maxmimum weight constraints. 
-        reducedKNAPSACK.W = SUBSETSUMInstance.T;
-        
         // We reduce the set of integers to a set of items by having each integer n equal (n,n) as an item. 
-        List<KeyValuePair<string, string>> Items = new List<KeyValuePair<string, string>>();
         List<string> integers = SUBSETSUMInstance.S;
+        UtilCollection items = new UtilCollection("{}");
         for(int i=0; i < SUBSETSUMInstance.S.Count; i++) {
-            KeyValuePair<string, string> item = new KeyValuePair<string, string>(integers[i], integers[i]);
-            Items.Add(item);
+            UtilCollection item = new UtilCollection($"({integers[i]},{integers[i]})");
+            items.Add(item);
             _gadgetMap[integers[i]] = integers[i];
         }
 
-        reducedKNAPSACK.items = Items;
+        reducedKNAPSACK.items = items;
 
+        reducedKNAPSACK.instance = $"({items},{reducedKNAPSACK.W},{reducedKNAPSACK.V})";
 
         reductionTo = reducedKNAPSACK;
         return reducedKNAPSACK;

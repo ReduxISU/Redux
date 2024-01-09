@@ -1,40 +1,42 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 using API.Problems.NPComplete.NPC_KNAPSACK.Verifiers;
+using API.Tools.UtilCollection;
 
 namespace API.Problems.NPComplete.NPC_KNAPSACK;
 
-class KNAPSACK : IProblem<GarrettKnapsackSolver, GarrettVerifier>{
+class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier>{
 
     // --- Fields ---
     private string _problemName = "Knapsack (Binary)";
 
-    private string _formalDefinition = "KNAPSACK = {<H, W> | H is a set of items (w,v) and there is a subset of items in H whose collective weight is less than or equal to W and whose collective value is optimized.}";
-    private string _problemDefinition = "The 0-1 KNAPSACK problem is given a knapsack with a maximum capacity W and a set of n items x_1, x_2,... x_n with weights w_1,w_2,... w_n and values v_1,v_2,... v_n optimize the combination of singular items that provide the most value while staying under W. ";
+    private string _formalDefinition = "KNAPSACK = {<H, W, V> | H is a set of items (w,v) and there is a subset of items in H whose collective weight is less than or equal to W and whose collective value is equal or greater than V.}";
+
+    private string _problemDefinition = "The 0-1 KNAPSACK decision problem is given a knapsack with a maximum capacity W and target value V and a set of n items x_1, x_2,... x_n with weights w_1,w_2,... w_n and values v_1,v_2,... v_n find the combination of singular items that provide greater than V value while staying under W. ";
 
     // How we want format
-    private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    private string _source = "";
+
     private string[] _contributers = { "Garret Stouffer", "Daniel Igbokwe"};
     
     private string _instance = string.Empty;
 
 
-    private string _defaultInstance = "{{10,20,30},{(10,60),(20,100),(30,120)},50}";
+    private static string _defaultInstance = "({(10,60),(20,100),(30,120)},50,220)";
  
 
     private string _wikiName = "Knapsack";
-    private List<string> _nodes =  new List<string>();
 
-    private List<KeyValuePair<string, string>> _items = new List<KeyValuePair<string, string>>();
-
+    public UtilCollection items { get; set; }
 
     private int _W = 0;
 
-    private KnapsackGraph _knapsackGraph;
+    public int V { get; set; }
 
 
-    private GarrettKnapsackSolver _defaultSolver = new GarrettKnapsackSolver();
-    private GarrettVerifier _defaultVerifier = new GarrettVerifier();
+    private KnapsackBruteForce _defaultSolver = new KnapsackBruteForce();
+    private KnapsackVerifier _defaultVerifier = new KnapsackVerifier();
 
     // --- Properties ---
     public string problemName {
@@ -93,31 +95,13 @@ class KNAPSACK : IProblem<GarrettKnapsackSolver, GarrettVerifier>{
             _W = value;
         }
     }
-
-          public List<string> nodes {
-        get {
-            return _nodes;
-        }
-        set {
-            _nodes = value;
-        }
-    }
-    public List<KeyValuePair<string, string>> items {
-        get {
-            return _items;
-        }
-        set {
-            _items = value;
-        }
-    }
-
     
-    public GarrettKnapsackSolver defaultSolver {
+    public KnapsackBruteForce defaultSolver {
         get {
             return _defaultSolver;
         }
     }
-    public GarrettVerifier defaultVerifier {
+    public KnapsackVerifier defaultVerifier {
         get {
             return _defaultVerifier;
         }
@@ -125,22 +109,18 @@ class KNAPSACK : IProblem<GarrettKnapsackSolver, GarrettVerifier>{
 
 
     // --- Methods Including Constructors ---
-    public KNAPSACK() {
-          
-        _knapsackGraph = new KnapsackGraph(_defaultInstance, true);
-        _instance  = _knapsackGraph.ToString();
-        nodes = _knapsackGraph.nodesStringList;
-        items  = _knapsackGraph.edgesKVP;
-        _W = _knapsackGraph.K;
-   
-     
+    public KNAPSACK() : this(_defaultInstance) {
+
     }
+
     public KNAPSACK(string HWVInput) {
-        _knapsackGraph = new KnapsackGraph(HWVInput, true);
-        _instance  = _knapsackGraph.ToString();
-        nodes = _knapsackGraph.nodesStringList;
-        items  = _knapsackGraph.edgesKVP;
-        _W = _knapsackGraph.K;
-       
+        UtilCollection collection = new UtilCollection(HWVInput);
+        instance = collection.ToString();
+        collection.assertPair(3);
+        items = collection[0];
+        items.assertUnordered();
+        W = int.Parse(collection[1].ToString());
+        V = int.Parse(collection[2].ToString());
+        foreach (UtilCollection item in items) item.assertPair();
     }
 }
