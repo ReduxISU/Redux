@@ -90,18 +90,18 @@ public class ARCSETGenericController : ControllerBase {
 [Route("[controller]")]
 [Tags("Feedback Arc Set")]
 #pragma warning disable CS1591
-public class AlexArcsetVerifierController : ControllerBase {
+public class ArcsetVerifierController : ControllerBase {
 #pragma warning restore CS1591
 
 
 ///<summary>Returns information about Alex's Feedback Arc Set verifier </summary>
 ///<response code="200">Returns Feedback Arc Set verifier object</response>
 
-    [ProducesResponseType(typeof(AlexArcsetVerifier), 200)]
+    [ProducesResponseType(typeof(ArcSetVerifier), 200)]
     [HttpGet("info")]
     public String getInstance(){
         var options = new JsonSerializerOptions{WriteIndented = true};
-        AlexArcsetVerifier verifier = new AlexArcsetVerifier();
+        ArcSetVerifier verifier = new ArcSetVerifier();
         string jsonString = JsonSerializer.Serialize(verifier,options);
         return jsonString;
     }    
@@ -116,7 +116,7 @@ public class AlexArcsetVerifierController : ControllerBase {
     public String getInstance([FromQuery]string certificate, [FromQuery]string problemInstance) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         ARCSET ARCSETProblem = new ARCSET(problemInstance);
-        AlexArcsetVerifier verifier = new AlexArcsetVerifier();
+        ArcSetVerifier verifier = new ArcSetVerifier();
         Boolean response = verifier.verify(ARCSETProblem,certificate);
         // Send back to API user
         string jsonString = JsonSerializer.Serialize(response.ToString(), options);
@@ -246,7 +246,7 @@ public class ARCSETDevController : ControllerBase {
     [HttpGet]
     public String getDefault() {
         ARCSET arcTest = new ARCSET();
-        AlexArcsetVerifier verifier = new AlexArcsetVerifier();
+        ArcSetVerifier verifier = new ArcSetVerifier();
         bool vOut = verifier.verify(arcTest, "(3,2),(4,1)");
         var options = new JsonSerializerOptions { WriteIndented = true };
         string printString2 = JsonSerializer.Serialize(vOut, options);

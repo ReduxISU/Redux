@@ -134,7 +134,7 @@ class ProblemGraph {
     public List<string> getConnectedProblems(string problemName){
         List<string> connectedNodes = new List<string>();
         Stack<string> stack = new Stack<string>();
-        HashSet<string> visited = new HashSet<string>();
+        HashSet<string> visited = new HashSet<string>{};
         stack.Push(problemName);
         while(stack.Count > 0) {
             string currentNode = stack.Pop();
@@ -150,10 +150,7 @@ class ProblemGraph {
                 visited.Add(currentNode);
             }
             foreach(KeyValuePair<string, List<string>> node in adjacentNodes){
-                if(problemName == currentNode){
-                    connectedNodes.Add(node.Key);
-                }
-                else if(!connectedNodes.Contains(node.Key)){
+                if(!connectedNodes.Contains(node.Key) && node.Key != problemName){
                     // connectedNodes.Add("*"+node.Key); //transitive
                     connectedNodes.Add(node.Key);
                 }
@@ -181,7 +178,7 @@ class ProblemGraph {
             string u = Q.Dequeue();
             Dictionary<string, List<string>> adjacentNodes = this.graph[u];
             foreach(KeyValuePair<string, List<string>> node in adjacentNodes){
-                if(!links.ContainsKey(node.Key)){
+                if(!links.ContainsKey(node.Key) && node.Key != startProblem && startProblem != node.Key){
                     links.Add(node.Key,u);
                     Q.Enqueue(node.Key);
                 }

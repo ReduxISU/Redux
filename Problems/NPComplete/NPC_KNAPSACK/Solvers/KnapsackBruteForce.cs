@@ -7,10 +7,10 @@ namespace API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 class KnapsackBruteForce : ISolver {
 
     // --- Fields ---
-    private string _solverName = "Knapsack brute force";
+    private string _solverName = "Knapsack Brute Force Solver";
     private string _solverDefinition = "This a brute force solver for the 0-1 Knapsack problem";
     private string _source = "";
-    private string[] _contributers = { "Russell Phillips"};
+    private string[] _contributors = { "Russell Phillips"};
 
 
     private string _complexity = "O(2^n)";
@@ -31,9 +31,9 @@ class KnapsackBruteForce : ISolver {
             return _source;
         }
     }
-     public string[] contributers{
+     public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string complexity {

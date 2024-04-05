@@ -5,9 +5,9 @@ class SubsetSumBruteForce : ISolver {
 
     // --- Fields ---
     private string _solverName = "Subset Sum Brute Force Solver";
-    private string _solverDefinition = "This is a generic solver for Subset Sum";
-    private string _source = "This person Caleb Eardley";
-    private string[] _contributers = { "Caleb Eardley, Garret Stouffer"};
+    private string _solverDefinition = "This is a brute force solver for Subset Sum";
+    private string _source = "";
+    private string[] _contributors = { "Caleb Eardley","Garret Stouffer"};
 
 
     // --- Properties ---
@@ -26,9 +26,9 @@ class SubsetSumBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

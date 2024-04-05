@@ -305,17 +305,17 @@ public class GareyJohnsonController : ControllerBase {
 [Route("[controller]")]
 [Tags("3 SAT")]
 #pragma warning disable CS1591
-public class KadensSimpleVerifierController : ControllerBase {
+public class SAT3VerifierController : ControllerBase {
 #pragma warning restore CS1591
 
 ///<summary>Returns information about Kadens Simple Verifier </summary>
-///<response code="200">Returns KadensSimple verifier Object</response>
+///<response code="200">Returns SAT3Verifier verifier Object</response>
 
-    [ProducesResponseType(typeof(KadensSimple), 200)]
+    [ProducesResponseType(typeof(SAT3Verifier), 200)]
     [HttpGet("info")]
     public String getInfo() {
         var options = new JsonSerializerOptions { WriteIndented = true };
-        KadensSimple verifier = new KadensSimple();
+        SAT3Verifier verifier = new SAT3Verifier();
 
         // Send back to API user
         string jsonString = JsonSerializer.Serialize(verifier, options);
@@ -334,7 +334,7 @@ public class KadensSimpleVerifierController : ControllerBase {
     public String getInstance([FromQuery]string certificate, [FromQuery]string problemInstance) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         SAT3 SAT3Problem = new SAT3(problemInstance);
-        KadensSimple verifier = new KadensSimple();
+        SAT3Verifier verifier = new SAT3Verifier();
 
         Boolean response = verifier.verify(SAT3Problem,certificate);
         // Send back to API user

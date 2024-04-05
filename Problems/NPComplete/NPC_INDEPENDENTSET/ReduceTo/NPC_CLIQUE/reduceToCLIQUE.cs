@@ -13,7 +13,7 @@ class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
     private string _reductionDefinition = @"This reduction converts an independent set problem into a clique problem, 
                                             by taking the complement of the graph, or inverting all the edges.";
     private string _source = "";
-    private string[] _contributers = {"Russell Phillips"};
+    private string[] _contributors = {"Russell Phillips"};
 
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
     private INDEPENDENTSET _reductionFrom;
@@ -38,9 +38,9 @@ class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

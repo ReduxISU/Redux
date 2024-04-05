@@ -19,7 +19,7 @@ class INDEPENDENTSET : IProblem<IndependentSetBruteForce,IndependentSetVerifier>
     private IndependentSetBruteForce _defaultSolver = new IndependentSetBruteForce();
     private IndependentSetVerifier _defaultVerifier = new IndependentSetVerifier();
     private IndependentSetGraph _independentSetAsGraph;
-    private string[] _contributers = { "Russell Phillips" };
+    private string[] _contributors = { "Russell Phillips" };
 
     // --- Properties ---
     public string problemName {
@@ -44,9 +44,9 @@ class INDEPENDENTSET : IProblem<IndependentSetBruteForce,IndependentSetVerifier>
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

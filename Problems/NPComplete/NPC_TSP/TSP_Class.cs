@@ -10,7 +10,7 @@ class TSP : IProblem<TSPBruteForce, TSPVerifier>{
     private string _problemName = "Traveling Sales Person";
     private string _formalDefinition = "TSP = {<G,k> | G is a weighted graph where there is a path through every vertex whose weights add up to less than k}";
     private string _problemDefinition = "";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string[] _contributors = {"Andrija Sevaljevic"};
     
     private string _source = "";
     private string _defaultInstance = "(({Narnia,Atlantis,Wakanda,Pocatello,Neverland},{{Narnia,Atlantis,30},{Narnia,Wakanda,55},{Narnia,Pocatello,80},{Narnia,Neverland,45},{Atlantis,Wakanda,65},{Atlantis,Pocatello,15},{Atlantis,Neverland,30},{Wakanda,Pocatello,40},{Wakanda,Neverland,90},{Pocatello,Neverland,25}}),200)";
@@ -50,9 +50,9 @@ class TSP : IProblem<TSPBruteForce, TSPVerifier>{
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

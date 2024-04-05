@@ -24,7 +24,7 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
                                             Then add directed edges from every 0 node 'u' to 1 node 'u'. ie. creates edges from <A,0> to <A,1>, <B,0> to <B,1> … <Z,0> to <Z,1>
                                             Now the algorithm has created an ARCSET instance (in other words, a Digraph). ";
     private string _source = "http://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf"; //Alex NOTE: Change later to real citation.
-    private string[] _contributers = { "Daniel Igbokwe","Caleb Eardley"};
+    private string[] _contributors = { "Daniel Igbokwe","Caleb Eardley"};
     private VERTEXCOVER _reductionFrom;
     private ARCSET _reductionTo;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
@@ -46,9 +46,9 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
             return _source;
         }
     }
-     public string[] contributers{
+     public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public Dictionary<Object,Object> gadgetMap {

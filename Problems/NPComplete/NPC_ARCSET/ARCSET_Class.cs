@@ -10,7 +10,7 @@ using API.Problems.NPComplete.NPC_ARCSET.Solvers;
 using API.Problems.NPComplete.NPC_ARCSET.Verifiers;
 namespace API.Problems.NPComplete.NPC_ARCSET;
 
-class ARCSET : IProblem<ArcSetBruteForce,AlexArcsetVerifier>{
+class ARCSET : IProblem<ArcSetBruteForce,ArcSetVerifier>{
 
     // --- Fields ---
     private string _problemName = "Feedback Arc Set";
@@ -31,9 +31,9 @@ class ARCSET : IProblem<ArcSetBruteForce,AlexArcsetVerifier>{
     private string _wikiName ="";
     private ArcsetGraph _arcsetAsGraph;
     private ArcSetBruteForce _defaultSolver = new ArcSetBruteForce();
-    private AlexArcsetVerifier _defaultVerifier = new  AlexArcsetVerifier(); //Verifier implements a Depth First Search. 
+    private ArcSetVerifier _defaultVerifier = new ArcSetVerifier(); //Verifier implements a Depth First Search. 
     
-    private string[] _contributers = { "Alex Diviney" };
+    private string[] _contributors = { "Alex Diviney" };
 
 
     // --- Properties ---
@@ -59,9 +59,9 @@ class ARCSET : IProblem<ArcSetBruteForce,AlexArcsetVerifier>{
         }
     }
     
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {
@@ -87,7 +87,7 @@ class ARCSET : IProblem<ArcSetBruteForce,AlexArcsetVerifier>{
             return _defaultSolver;
         }
     }
-    public AlexArcsetVerifier defaultVerifier {
+    public ArcSetVerifier defaultVerifier {
         get {
             return _defaultVerifier;
         }
@@ -104,12 +104,12 @@ class ARCSET : IProblem<ArcSetBruteForce,AlexArcsetVerifier>{
         string arcDefaultString = _defaultInstance;
         _arcsetAsGraph = new ArcsetGraph(_defaultInstance,true); //first value is the string input, second is a dummy boolean to utilize overloading.
         _instance = _arcsetAsGraph.ToString(); 
-        _defaultVerifier = new AlexArcsetVerifier();
+        _defaultVerifier = new ArcSetVerifier();
         
     }
     public ARCSET(string arcInput) {
         _arcsetAsGraph = new ArcsetGraph(arcInput,true); //first value is the string input, second is a dummy boolean to utilize overloading.
         _instance = _arcsetAsGraph.ToString();
-        _defaultVerifier = new AlexArcsetVerifier(); 
+        _defaultVerifier = new ArcSetVerifier(); 
     }
 }

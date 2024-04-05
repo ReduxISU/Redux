@@ -4,7 +4,7 @@ interface IReduction<T,U> {
     string reductionName{get;}
     string reductionDefinition{get;}
     string source {get;}
-    string[] contributers { get; }
+    string[] contributors { get; }
     Dictionary<Object,Object> gadgetMap {get;}
     T reductionFrom {get;}
     U reductionTo {get;}

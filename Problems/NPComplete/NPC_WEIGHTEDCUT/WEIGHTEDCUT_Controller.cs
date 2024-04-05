@@ -84,7 +84,6 @@ public class WEIGHTEDCUTGenericController : ControllerBase {
         API_UndirectedGraphJSON apiGraph = new API_UndirectedGraphJSON(aGraph.getNodeList,edgesWithoutWeight);
 
         List<string> parsedS = solution.Replace("{","").Replace("}","").Split(',').ToList();
-        Console.WriteLine(solution.Replace("{","").Replace("}",""));
         List<string> setS = new List<string>();
 
         for (int i = 0; i < apiGraph.nodes.Count; i++) {

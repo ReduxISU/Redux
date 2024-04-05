@@ -20,7 +20,7 @@ class DIRHAMILTONIAN : IProblem<DirectedHamiltonianBruteForce,DirectedHamiltonia
     private DirectedHamiltonianBruteForce _defaultSolver = new DirectedHamiltonianBruteForce();
     private DirectedHamiltonianVerifier _defaultVerifier = new DirectedHamiltonianVerifier();
     private DirectedHamiltonianGraph _directedHamiltonianAsGraph;
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
     // --- Properties ---
     public string problemName {
@@ -45,9 +45,9 @@ class DIRHAMILTONIAN : IProblem<DirectedHamiltonianBruteForce,DirectedHamiltonia
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

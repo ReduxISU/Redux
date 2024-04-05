@@ -7,9 +7,9 @@ class PartitionVerifier : IVerifier {
 
     // --- Fields ---
     private string _verifierName = "Partition Verifier";
-    private string _verifierDefinition = "This is a verifier for Partition";
-    private string _source = "Andrija Sevaljevic";
-    private string[] _contributers = { "Andrija Sevaljevic"};
+    private string _verifierDefinition = "This is a verifier for the Partition problem";
+    private string _source = "";
+    private string[] _contributors = { "Andrija Sevaljevic"};
 
     private string _certificate = "";
 
@@ -29,9 +29,9 @@ class PartitionVerifier : IVerifier {
             return _source;
         }
     }
- public string[] contributers{
+ public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
      public string certificate {
