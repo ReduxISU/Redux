@@ -15,7 +15,7 @@ class AlexNaiveSolver : ISolver {
                                         This solver has an approximation ratio of 1/2.";
     private string _source = "wikipedia: https://en.wikipedia.org/wiki/Feedback_arc_set";
 
-    private string[] _contributers = { "Alex Diviney"};
+    private string[] _contributors = { "Alex Diviney"};
 
 
     // --- Properties ---
@@ -35,9 +35,9 @@ class AlexNaiveSolver : ISolver {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

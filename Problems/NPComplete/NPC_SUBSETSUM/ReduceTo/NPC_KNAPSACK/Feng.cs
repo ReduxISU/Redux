@@ -10,7 +10,7 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
     private string _reductionName = "Feng's Knapsack Reduction";
     private string _reductionDefinition = "Fengs reduction converts positive integers in SUBSETSUM to items in KNAPSACK";
     private string _source = "Feng, Thomas http://cgm.cs.mcgill.ca/~avis/courses/360/2003/assignments/sol4.pdf";
-    private string[] _contributers = {"Garret Stouffer, Daniel Igbokwe"};
+    private string[] _contributors = {"Garret Stouffer, Daniel Igbokwe"};
   
     private string _complexity ="O(n)";
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
@@ -35,10 +35,10 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
             return _source;
         }
     }
-     public string[] contributers{
+     public string[] contributors{
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
     public Dictionary<Object,Object> gadgetMap {

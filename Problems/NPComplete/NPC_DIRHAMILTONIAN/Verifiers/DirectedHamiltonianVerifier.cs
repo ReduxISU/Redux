@@ -7,10 +7,10 @@ class DirectedHamiltonianVerifier : IVerifier
 {
 
     // --- Fields ---
-    private string _verifierName = "Hamiltonian Verifier";
-    private string _verifierDefinition = "This is a verifier for Undirected Hamiltonian Circut";
+    private string _verifierName = "Directed Hamiltonian Verifier";
+    private string _verifierDefinition = "This is a verifier for Directed Hamiltonian Circut";
     private string _source = " ";
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
 
     private string _certificate = "";
@@ -37,11 +37,11 @@ class DirectedHamiltonianVerifier : IVerifier
             return _source;
         }
     }
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
 

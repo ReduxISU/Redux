@@ -9,8 +9,8 @@ class Sat3BacktrackingSolver : ISolver {
     // --- Fields ---
     private string _solverName = "3SAT Backtracking Solver";
     private string _solverDefinition = "This is a O(n!) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find and exact assignment boolean assignment of variable to satisfy the broblem instance.";
-    private string _source = "David Lindeman";
-    private string[] _contributers = {"Kaden Marchetti, David Lindeman"};
+    private string _source = "";
+    private string[] _contributors = {"David Lindeman","Kaden Marchetti"};
 
 
     // --- Properties ---
@@ -30,9 +30,9 @@ class Sat3BacktrackingSolver : ISolver {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

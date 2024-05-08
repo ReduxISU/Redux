@@ -5,5 +5,5 @@ interface IVerifier {
     string verifierDefinition{get;}
     string source {get;}
     string certificate{get;}
-    string[] contributers{ get; }
+    string[] contributors{ get; }
 }

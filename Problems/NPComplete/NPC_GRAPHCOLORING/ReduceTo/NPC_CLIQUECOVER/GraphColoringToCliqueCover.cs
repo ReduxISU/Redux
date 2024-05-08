@@ -7,10 +7,10 @@ class CliqueCoverReduction : IReduction<GRAPHCOLORING, CLIQUECOVER>
 {
 
     // --- Fields ---
-    private string _reductionName = "CLIQUECOVER Reduction";
+    private string _reductionName = "Clique Cover Reduction";
     private string _reductionDefinition = "Karp's Reduction from Graph Coloring to Clique Cover";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
     private string _complexity = "";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
@@ -41,11 +41,11 @@ class CliqueCoverReduction : IReduction<GRAPHCOLORING, CLIQUECOVER>
             return _source;
         }
     }
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
     public Dictionary<Object, Object> gadgetMap

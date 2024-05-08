@@ -6,10 +6,10 @@ namespace API.Problems.NPComplete.NPC_HITTINGSET.Verifiers;
 class HittingSetVerifier : IVerifier {
 
     // --- Fields ---
-    private string _verifierName = "Generic Verifier";
-    private string _verifierDefinition = "This is a verifier for hitting set";
+    private string _verifierName = "Hitting Set Verifier";
+    private string _verifierDefinition = "This is a verifier for Hitting Set";
     private string _source = " ";
-    private string[] _contributers = {"Russell Phillips"};
+    private string[] _contributors = {"Russell Phillips"};
 
 
     private string _certificate =  "";
@@ -30,9 +30,9 @@ class HittingSetVerifier : IVerifier {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

@@ -9,8 +9,8 @@ class HittingSetBruteForce : ISolver {
     // --- Fields ---
     private string _solverName = "Hitting Set Brute Force";
     private string _solverDefinition = "This is a brute force solver for Hitting Set";
-    private string _source = "This person is Russell Phillips";
-    private string[] _contributers = {"Russell Phillips"};
+    private string _source = "";
+    private string[] _contributors = {"Russell Phillips"};
 
 
     // --- Properties ---
@@ -29,9 +29,9 @@ class HittingSetBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

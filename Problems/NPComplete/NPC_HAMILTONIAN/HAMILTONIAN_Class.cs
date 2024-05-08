@@ -20,7 +20,7 @@ class HAMILTONIAN : IProblem<HamiltonianBruteForce,HamiltonianVerifier> {
     private HamiltonianBruteForce _defaultSolver = new HamiltonianBruteForce();
     private HamiltonianVerifier _defaultVerifier = new HamiltonianVerifier();
     private HamiltonianGraph _hamiltonianAsGraph;
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
     // --- Properties ---
     public string problemName {
@@ -45,9 +45,9 @@ class HAMILTONIAN : IProblem<HamiltonianBruteForce,HamiltonianVerifier> {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

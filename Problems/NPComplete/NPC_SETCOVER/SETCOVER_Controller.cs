@@ -120,6 +120,47 @@ public class SetCoverBruteForceController : ControllerBase {
     }
 
 }
+
+[ApiController]
+[Route("[controller]")]
+[Tags("Set Cover")]
+#pragma warning disable CS1591
+public class HeuristicSolverController : ControllerBase {
+#pragma warning restore CS1591
+
+      // Return Generic Solver Class
+///<summary>Returns information about the Set Cover brute force solver </summary>
+///<response code="200">Returns HeuristicSolver solver object</response>
+
+    [ProducesResponseType(typeof(HeuristicSolver), 200)]
+    [HttpGet("info")]
+    public String getGeneric() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        HeuristicSolver solver = new HeuristicSolver();
+
+        // Send back to API user
+        string jsonString = JsonSerializer.Serialize(solver, options);
+        return jsonString;
+    }
+
+  // Solve a instance given a certificate
+///<summary>Returns a solution to a given Set Cover problem instance </summary>
+///<param name="problemInstance" example="{{1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3}">Set Cover problem instance string.</param>
+///<response code="200">Returns a solution string </response>
+
+    [ProducesResponseType(typeof(string), 200)]
+    [HttpGet("solve")]
+    public String solveInstance([FromQuery]string problemInstance) {
+        // Implement solver here
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        SETCOVER problem = new SETCOVER(problemInstance);
+        string solution = new HeuristicSolver().solve(problem);
+        
+        string jsonString = JsonSerializer.Serialize(solution, options);
+        return jsonString;
+    }
+
+}
     
 
 

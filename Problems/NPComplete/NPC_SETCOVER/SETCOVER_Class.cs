@@ -15,13 +15,13 @@ class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier> {
     private string _defaultInstance = "{{1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3}";
     private string _instance = string.Empty;
     private List<string> _universal = new List<string>();
-    private List<string> _subsets = new List<string>();
+    private List<List<string>> _subsets = new List<List<string>>();
 
     private string _wikiName = "";
     private int _K = 3;
     private SetCoverBruteForce _defaultSolver = new SetCoverBruteForce();
     private SetCoverVerifier _defaultVerifier = new SetCoverVerifier();
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
     // --- Properties ---
     public string problemName {
@@ -46,9 +46,9 @@ class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier> {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {
@@ -79,7 +79,7 @@ class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier> {
         }
     }
 
-    public List<string> subsets {
+    public List<List<string>> subsets {
         get {
             return _subsets;
         }
@@ -132,8 +132,7 @@ class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier> {
 
         return allElements;
     }
-    public List<string> getSubsets(string Ginput) {
-        // {{1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3}
+    public List<List<string>> getSubsets(string Ginput) {
         List<string> allSets = new List<string>();
         List<string> seperation = Ginput.Split("},{{").ToList();
         string sections = seperation[1];
@@ -141,7 +140,12 @@ class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier> {
         string sections2 = seperation2[0];
         allSets = sections2.Split("},{").ToList();
 
-        return allSets;      
+        List<List<string>> subsets = new List<List<string>>();
+        foreach(var i in allSets) {
+            subsets.Add(i.Split(',').ToList());
+        }
+
+        return subsets;      
     }
 
     public int getK(string Ginput) {

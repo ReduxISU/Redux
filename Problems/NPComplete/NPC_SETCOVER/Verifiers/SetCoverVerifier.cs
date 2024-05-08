@@ -9,7 +9,7 @@ class SetCoverVerifier : IVerifier {
     private string _verifierName = "Set Cover Verifier";
     private string _verifierDefinition = "This is a verifier for Set Cover";
     private string _source = " ";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string[] _contributors = {"Andrija Sevaljevic"};
 
 
     private string _certificate =  "";
@@ -30,9 +30,9 @@ class SetCoverVerifier : IVerifier {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

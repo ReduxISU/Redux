@@ -5,7 +5,7 @@ using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER;
 
-class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifierJanita>{
+class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifier>{
 
     // --- Fields ---
     private string _problemName = "Vertex Cover";
@@ -20,12 +20,12 @@ class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifierJanita>{
     private int _K = 3;
     private string _wikiName = "";
     private VertexCoverBruteForce _defaultSolver = new VertexCoverBruteForce();
-    private VCVerifierJanita _defaultVerifier = new VCVerifierJanita();
+    private VCVerifier _defaultVerifier = new VCVerifier();
 
     private VertexCoverGraph _VCAsGraph;
     private string _vertexCover = string.Empty;
 
-    private string[] _contributers = { "Janita Aamir", "Alex Diviney" };
+    private string[] _contributors = { "Janita Aamir", "Alex Diviney" };
 
 
     // --- Properties ---
@@ -106,15 +106,15 @@ class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifierJanita>{
             return _defaultSolver;
         }
     }
-    public VCVerifierJanita defaultVerifier {
+    public VCVerifier defaultVerifier {
         get {
             return _defaultVerifier;
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

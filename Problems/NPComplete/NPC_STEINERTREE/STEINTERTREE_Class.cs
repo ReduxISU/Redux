@@ -23,7 +23,7 @@ class STEINERTREE : IProblem<SteinerTreeBruteForce, SteinerTreeVerifier>
     private SteinerTreeBruteForce _defaultSolver = new SteinerTreeBruteForce();
     private SteinerTreeVerifier _defaultVerifier = new SteinerTreeVerifier();
     private SteinerGraph _steinerAsGraph;
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
     // --- Properties ---
     public string problemName
@@ -56,11 +56,11 @@ class STEINERTREE : IProblem<SteinerTreeBruteForce, SteinerTreeVerifier>
         }
     }
 
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance

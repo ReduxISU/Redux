@@ -7,6 +7,7 @@ using API.Problems.NPComplete.NPC_GRAPHCOLORING.Verifiers;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_SAT;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_CLIQUECOVER;
+using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_ExactCover;
 
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING;
@@ -79,16 +80,13 @@ public class GRAPHCOLORINGGenericController : ControllerBase
         for (int i = 0; i < apiGraph.nodes.Count; i++)
         {
             apiGraph.nodes[i].attribute1 = i.ToString();
-            List<string> parsing = solution.TrimStart('{').TrimStart('(').Split("):").ToList();
-            List<string> nodeColoring = parsing[0].Split(",").ToList();
+            List<string> parsing = solution.TrimStart('{').TrimStart('{').TrimEnd('}').TrimEnd('}').Split("},{").ToList();
 
-            foreach (var j in nodeColoring)
+            foreach (var j in parsing)
             {
-
-                if (j.Split(':')[0].Contains(apiGraph.nodes[i].name))
+                if (j.Split(',').ToList().Contains(apiGraph.nodes[i].name))
                 {
-                    apiGraph.nodes[i].attribute2 = j.Split(':')[1].ToString();
-                   
+                    apiGraph.nodes[i].attribute2 = parsing.IndexOf(j).ToString();  
                 }
             }
             
@@ -148,22 +146,22 @@ public class GraphColoringToCliqueCoverController : ControllerBase {
 [Route("[controller]")]
 [Tags("Graph Coloring")]
 #pragma warning disable CS1591
-public class IgbokweVerifierController : ControllerBase
+public class GraphColoringVerifierController : ControllerBase
 {
 #pragma warning restore CS1591
 
 
     //string testVerifyString = "{{a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}},3}";
 
-    ///<summary>Returns information about the Graph Coloring Igbokwe Verifier </summary>
-    ///<response code="200">Returns IgbokweVerifier Object</response>
+    ///<summary>Returns information about the Graph Coloring GraphColoring Verifier </summary>
+    ///<response code="200">Returns GraphColoringVerifier Object</response>
 
-    [ProducesResponseType(typeof(IgbokweVerifier), 200)]
+    [ProducesResponseType(typeof(GraphColoringVerifier), 200)]
     [HttpGet("info")]
     public String getGeneric()
     {
         var options = new JsonSerializerOptions { WriteIndented = true };
-        IgbokweVerifier verifier = new IgbokweVerifier();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
         string jsonString = JsonSerializer.Serialize(verifier, options);
         return jsonString;
     }
@@ -179,7 +177,7 @@ public class IgbokweVerifierController : ControllerBase
     public String getInstance([FromQuery]string certificate, [FromQuery]string problemInstance) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         GRAPHCOLORING GRAPHCOLORINGProblem = new GRAPHCOLORING(problemInstance);
-        IgbokweVerifier verifier = new IgbokweVerifier();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
         Boolean response = verifier.verify(GRAPHCOLORINGProblem, certificate);
         string jsonString = JsonSerializer.Serialize(response.ToString(), options);
         return jsonString;
@@ -192,20 +190,20 @@ public class IgbokweVerifierController : ControllerBase
 [Route("[controller]")]
 [Tags("Graph Coloring")]
 #pragma warning disable CS1591
-public class DanielBrelazSolverController : ControllerBase
+public class GraphColoringBruteForceController : ControllerBase
 {
 #pragma warning restore CS1591
 
 
     ///<summary>Returns information about the Graph Coloring Daniel Brelaz solver </summary>
-    ///<response code="200">Returns DanielBrelazSolver solver Object</response>
+    ///<response code="200">Returns GraphColoringBruteForce solver Object</response>
 
-    [ProducesResponseType(typeof(DanielBrelazSolver), 200)]
+    [ProducesResponseType(typeof(GraphColoringBruteForce), 200)]
     [HttpGet("info")]
     public String getGeneric()
     {
         var options = new JsonSerializerOptions { WriteIndented = true };
-        DanielBrelazSolver solver = new DanielBrelazSolver();
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
         string jsonString  = JsonSerializer.Serialize(solver, options);
         return jsonString; 
     }
@@ -221,7 +219,7 @@ public class DanielBrelazSolverController : ControllerBase
 
         var options = new JsonSerializerOptions { WriteIndented = true };
         GRAPHCOLORING GRAPHCOLORINGProblem = new GRAPHCOLORING(problemInstance);
-        DanielBrelazSolver solver = new DanielBrelazSolver();
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
         string solvedInstance = solver.solve(GRAPHCOLORINGProblem);
         string jsonString = JsonSerializer.Serialize(solvedInstance, options);
         return jsonString;
@@ -261,6 +259,47 @@ public class KarpReduceSATController : ControllerBase
     public String getReduce([FromQuery]string problemInstance){
         KarpReduceSAT reduction = new KarpReduceSAT(new GRAPHCOLORING(problemInstance));
         var options = new JsonSerializerOptions { WriteIndented = true };
+        string jsonString = JsonSerializer.Serialize(reduction, options);
+        return jsonString;
+    }
+
+}
+
+
+[ApiController]
+[Route("[controller]")]
+[Tags("Exact Cover")]
+
+
+#pragma warning disable CS1591
+
+public class KarpGraphColorToExactCoverController : ControllerBase {
+#pragma warning restore CS1591
+
+  
+///<summary>Returns a reduction object with info for Graph Coloring to CliqueCover Reduction </summary>
+///<response code="200">Returns CliqueCoverReduction object</response>
+
+    [ProducesResponseType(typeof(GraphColorToExactCoverReduction), 200)]
+    [HttpGet("info")]
+    public String getInfo() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        GRAPHCOLORING defaultGC = new GRAPHCOLORING();
+        GraphColorToExactCoverReduction reduction = new GraphColorToExactCoverReduction(defaultGC);
+        string jsonString = JsonSerializer.Serialize(reduction, options);
+        return jsonString;
+    }
+
+///<summary>Returns a reduction from Graph Coloring to CliqueCover based on the given Graph Coloring instance  </summary>
+///<param name="problemInstance" example="{{1,7,12,15} : 28}">Graph Coloring problem instance string.</param>
+///<response code="200">Returns Fengs's Graph Coloring to CliqueCover object</response>
+
+    [ProducesResponseType(typeof(GraphColorToExactCoverReduction), 200)]
+    [HttpGet("reduce")]
+    public String getReduce([FromQuery]string problemInstance) {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        GRAPHCOLORING defaultGC = new GRAPHCOLORING(problemInstance);
+        GraphColorToExactCoverReduction reduction = new GraphColorToExactCoverReduction(defaultGC);
         string jsonString = JsonSerializer.Serialize(reduction, options);
         return jsonString;
     }

@@ -11,7 +11,7 @@ class JOBSEQ : IProblem<JobSeqBruteForce,JobSeqVerifier> {
     private string _formalDefinition = "JobSeq = <T, D, P, K> is a vecter T of execution times, vector D of deadlines, vector P of penalties, and integer k where there exists a permutation pi of {1,2,3...,p} such that the sum of the penalties of every job that was not finished before the deadline is less than equal to k.";
     private string _problemDefinition = "Job sequencing is the task of deciding in what order to do a series of jobs. Each job has a length of time it takes, a deadline, and a penalty that is applied if the deadline is missed. The task is to find an ordering of the jobs that results in a penalty that is less than k.";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = {"Russell Phillips"};
+    private string[] _contributors = {"Russell Phillips"};
 
 
 
@@ -46,9 +46,9 @@ class JOBSEQ : IProblem<JobSeqBruteForce,JobSeqVerifier> {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

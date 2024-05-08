@@ -7,9 +7,9 @@ class PartitionBruteForce : ISolver {
 
     // --- Fields ---
     private string _solverName = "Partition Brute Force Solver";
-    private string _solverDefinition = "This is a brute force solver for Partition";
-    private string _source = "Andrija Sevaljevic";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string _solverDefinition = "This is a brute force solver for the Partition problem";
+    private string _source = "";
+    private string[] _contributors = {"Andrija Sevaljevic"};
 
 
     // --- Properties ---
@@ -28,9 +28,9 @@ class PartitionBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

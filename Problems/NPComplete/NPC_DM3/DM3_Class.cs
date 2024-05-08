@@ -16,7 +16,6 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
     private string _instance = string.Empty;
 
     private string _wikiName = "";
-    private List<List<List<string>>> _problem;
     private List<string> _X;
     private List<string> _Y;
     private List<string> _Z;
@@ -24,7 +23,7 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
     private ThreeDimensionalMatchingBruteForce _defaultSolver = new ThreeDimensionalMatchingBruteForce();
     private GenericVerifierDM3 _defaultVerifier = new GenericVerifierDM3();
 
-    private string[] _contributers = { "Caleb Eardley" };
+    private string[] _contributors = { "Caleb Eardley" };
 
 
     // --- Properties ---
@@ -55,9 +54,9 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {
@@ -79,7 +78,6 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
         }
         set {
             _X = value;
-            _problem[0][0]=_X;
         }
     }
     public List<string> Y {
@@ -88,7 +86,6 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
         }
         set {
             _Y = value;
-            _problem[0][1]=_Y;
         }
     }
     public List<string> Z {
@@ -97,7 +94,6 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
         }
         set {
             _Z = value;
-            _problem[0][2]=_Z;
         }
     }
     public List<List<string>> M {
@@ -106,12 +102,6 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
         }
         set {
             _M = value;
-            _problem[1]=_M;
-        }
-    }
-    public List<List<List<string>>> problem {
-        get {
-            return _problem;
         }
     }
     public ThreeDimensionalMatchingBruteForce defaultSolver {
@@ -129,21 +119,18 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3> {
     // --- Methods Including Constructors ---
     public DM3() {
         _instance = defaultInstance;
-        _problem = ParseProblem(_instance);
-        _X = _problem[0][0];
-        _Y = _problem[0][1];
-        _Z = _problem[0][2];
-        _M = _problem[1];
+        _X = ParseProblem(_instance,"X");
+        _Y = ParseProblem(_instance,"Y");
+        _Z = ParseProblem(_instance,"Z");
+        _M = ParseM(_instance);
     }
     public DM3(string instanceInput) {
         _instance = instanceInput;
-        _problem = ParseProblem(_instance);
-        _X = _problem[0][0];
-        _Y = _problem[0][1];
-        _Z = _problem[0][2];
-        _M = _problem[1];
+        _X = ParseProblem(_instance,"X");
+        _Y = ParseProblem(_instance,"Y");
+        _Z = ParseProblem(_instance,"Z");
+        _M = ParseM(_instance);
     }
-
 /*************************************************
 parseSet(List<string> Set,string instanceInput,int start), is meant to take one set inside of a string, and put it into an array
 it is refferenced in ParseProblem, The Set should be an empty List<string>, created by ParseProblem, instanceInput should be 
@@ -173,18 +160,25 @@ between ','s excluding spaces, and places those strings inside Set.
    ParseProblem(string instanceInput) takes the string representation of the 3-Dimensional Matching problem, and returns a 
    3 dimensional list, the first depths of list, contains two lists, one with the sets X,Y,and Z, and the other containing all the sets in M.
    ***************************************************/
-    public List<List<List<string>>> ParseProblem(string instanceInput) {
-        List<List<List<string>>> Problem = new List<List<List<string>>>(){new List<List<string>>(), new List<List<string>>()};
-        int setIndex = 0;
-        for(int i = 0; i< instanceInput.Length; i++){
-            if(instanceInput[i] == '{'){ // at each occurence of {parseSet is called to put each element in the set, divided by commas, into the Problem list.
-                List<string> Set = new List<string>();
-                parseSet(Set,instanceInput,i);
-                Problem[setIndex].Add(Set);
-            }
-            if(Problem[0].Count == 3){setIndex = 1;}
+    public List<string> ParseProblem(string instanceInput, string set) {
+        List<string> input = instanceInput.Replace("}{",",").Replace("{","").Replace("}","").Split(',').ToList();
+        int index = 0;
+        if(set == "Y") index = 1;
+        if(set == "Z") index = 2;
+        List<string> variables = new List<string>();
+        for(int i = index; i < input.Count(); i = i + 3) {
+            if(!variables.Contains(input[i])) variables.Add(input[i]);  
         }
-        return Problem;
+        return variables;
+    }
+    public List<List<string>> ParseM(string instanceInput) {
+        List<string> input = instanceInput.Replace("}{",",").Replace("{","").Replace("}","").Split(',').ToList();
+        List<List<string>> M = new List<List<string>>();
+        if(input.Count % 3 != 0) return M;
+        for(int i = 0; i < input.Count(); i = i + 3) {
+            M.Add(new List<string>{input[i], input[i + 1], input[i + 2]});
+        }
+        return M;
     }
 }
 

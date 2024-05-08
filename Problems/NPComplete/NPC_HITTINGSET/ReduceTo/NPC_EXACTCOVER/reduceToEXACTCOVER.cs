@@ -14,7 +14,7 @@ class ExactCoverReduction : IReduction<HITTINGSET, ExactCover>
     private string _reductionName = "Hitting set Reduction";
     private string _reductionDefinition = "Karp's Reduction from Hitting Set to Exact Cover";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = { "Russell Phillip" };
+    private string[] _contributors = { "Russell Phillip" };
 
     private string _complexity = "";
 
@@ -46,11 +46,11 @@ class ExactCoverReduction : IReduction<HITTINGSET, ExactCover>
             return _source;
         }
     }
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
 

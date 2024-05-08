@@ -4,5 +4,5 @@ interface ISolver {
     string solverName{get;}
     string solverDefinition{get;}
     string source {get;}
-    string[] contributers { get; }
+    string[] contributors { get; }
 }

@@ -13,10 +13,10 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
     #region Fields
 
     // --- Fields ---
-    private string _solverName = "Generic Solver";
+    private string _solverName = "SAT Brute Force Solver";
     private string _solverDefinition = "This is a simple brute force solver for SAT";
-    private string _source = "This person ____";
-    private string[] _contributers = { "Daniel Igbokwe, Show Pratoomratana"};
+    private string _source = "";
+    private string[] _contributors = { "Daniel Igbokwe, Show Pratoomratana"};
 
     private string _complexity = "";
 
@@ -41,9 +41,9 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string complexity {

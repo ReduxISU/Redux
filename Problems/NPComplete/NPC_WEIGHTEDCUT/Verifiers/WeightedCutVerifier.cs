@@ -6,10 +6,10 @@ namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Verifiers;
 class WeightedCutVerifier : IVerifier {
 
     // --- Fields ---
-    private string _verifierName = "Cut Verifier";
-    private string _verifierDefinition = "This is a verifier for the Cut problem";
-    private string _source = "Andrija Sevaljevic";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string _verifierName = "Weighted Cut Verifier";
+    private string _verifierDefinition = "This is a verifier for the Weighted Cut problem";
+    private string _source = "";
+    private string[] _contributors = {"Andrija Sevaljevic"};
 
 
     private string _certificate =  "";
@@ -30,9 +30,9 @@ class WeightedCutVerifier : IVerifier {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

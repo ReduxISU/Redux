@@ -18,7 +18,7 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier>{
     // How we want format
     private string _source = "";
 
-    private string[] _contributers = { "Garret Stouffer", "Daniel Igbokwe"};
+    private string[] _contributors = { "Garret Stouffer", "Daniel Igbokwe"};
     
     private string _instance = string.Empty;
 
@@ -66,9 +66,9 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier>{
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string instance {

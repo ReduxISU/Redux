@@ -3,17 +3,17 @@ using API.Interfaces.Graphs;
 namespace API.Problems.NPComplete.NPC_ARCSET.Verifiers;
 
 
-class AlexArcsetVerifier : IVerifier {
+class ArcSetVerifier : IVerifier {
 
     // --- Fields ---
-    private string _verifierName = "ARCSET Verifier";
+    private string _verifierName = "Arc Set Verifier";
     private string _verifierDefinition =  @"This Verifier takes in an arcset problem and a list of edges to remove from that problem. It removes those edges and then checks if the problem is still an instance of ARCSET
                                             ie. Does this input graph no longer have cycles after these input edges are removed? Returns true or false ";
     
     private string _source = "This verifier is essentially common knowledge, as it utilizes a widely recognized algorithm in computer science: The Depth First Search.";
 
     private string _certificate = "{(2,4)}"; //The certificate should be in the form of a set of directed edges
-    private string[] _contributers = {"Alex Diviney","Caleb Eardley"};
+    private string[] _contributors = {"Alex Diviney","Caleb Eardley"};
 
     // --- Properties ---
     public string verifierName {
@@ -31,10 +31,10 @@ class AlexArcsetVerifier : IVerifier {
             return _source;
         }
     }
-public string[] contributers{
+public string[] contributors{
 
         get{
-            return _contributers;
+            return _contributors;
         }
     }
       public string certificate {
@@ -45,7 +45,7 @@ public string[] contributers{
 
 
 
-    public AlexArcsetVerifier(){
+    public ArcSetVerifier(){
 
     }
 

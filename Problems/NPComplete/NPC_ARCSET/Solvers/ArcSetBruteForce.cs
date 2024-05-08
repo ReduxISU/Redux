@@ -6,11 +6,11 @@ namespace API.Problems.NPComplete.NPC_ARCSET.Solvers;
 class ArcSetBruteForce : ISolver {
 
     // --- Fields ---
-    private string _solverName = "Caleb's Bruteforce Arcset Solver";
-    private string _solverDefinition = @" This Solver is a bruteForce solver, which checks all combinations of k edges until a solution is found or its determined there is no solution";
+    private string _solverName = "Arc Set Brute Force Solver";
+    private string _solverDefinition = @" This Solver is a brute force solver, which checks all combinations of k edges until a solution is found or its determined there is no solution";
     private string _source = "wikipedia: https://en.wikipedia.org/wiki/Feedback_arc_set";
 
-    private string[] _contributers = { "Alex Diviney","Caleb Eardley"};
+    private string[] _contributors = { "Alex Diviney","Caleb Eardley"};
 
 
     // --- Properties ---
@@ -30,9 +30,9 @@ class ArcSetBruteForce : ISolver {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

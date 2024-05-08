@@ -1,6 +1,6 @@
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
-
+using System.Numerics;
 
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
@@ -9,8 +9,8 @@ class VertexCoverBruteForce : ISolver {
     // --- Fields ---
     private string _solverName = "Vertex Cover Brute Force Solver";
     private string _solverDefinition = "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.";
-    private string _source = "Caleb Eardley";
-    private string[] _contributers = { "Caleb Eardley"};
+    private string _source = "";
+    private string[] _contributors = { "Caleb Eardley"};
 
     private string _complexity = "";
 
@@ -30,9 +30,9 @@ class VertexCoverBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 
@@ -43,9 +43,9 @@ class VertexCoverBruteForce : ISolver {
 
 
 
-    private long factorial(long x){
-        long y = 1;
-        for(long i=1; i<=x; i++){
+    private BigInteger factorial(BigInteger x){
+        BigInteger y = 1;
+        for(BigInteger i=1; i<=x; i++){
             y *= i;
         }
         return y;
@@ -81,7 +81,7 @@ class VertexCoverBruteForce : ISolver {
         for(int i=0; i<G.K; i++){
             combination.Add(i);
         }
-        long reps = factorial(G.nodes.Count) / (factorial(G.K) * factorial(G.nodes.Count - G.K));
+        BigInteger reps = factorial(G.nodes.Count) / (factorial(G.K) * factorial(G.nodes.Count - G.K));
         for(int i=0; i<reps; i++){
             string certificate = indexListToCertificate(combination,G.nodes);
             if(G.defaultVerifier.Verify(G, certificate)){
