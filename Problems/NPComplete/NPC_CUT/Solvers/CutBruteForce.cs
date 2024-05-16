@@ -6,10 +6,10 @@ namespace API.Problems.NPComplete.NPC_CUT.Solvers;
 class CutBruteForce : ISolver {
 
     // --- Fields ---
-    private string _solverName = "Cut Brute Force";
+    private string _solverName = "Cut Brute Force Solver";
     private string _solverDefinition = "This is a brute force solver for the Cut problem";
-    private string _source = "Andrija Sevaljevic";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string _source = "";
+    private string[] _contributors = {"Andrija Sevaljevic"};
 
     // --- Properties ---
 
@@ -28,9 +28,9 @@ class CutBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 
@@ -44,14 +44,13 @@ public CutBruteForce() {
         }
         return y;
     }
+    //Function below turns index list into certificate
     private string indexListToCertificate(List<int> indecies, List<string> nodes){
-        // Console.WriteLine("indecies: ", indecies.ToString());
         string certificate = "";
         foreach(int i in indecies){
             certificate += nodes[i]+",";
         }
         certificate = certificate.TrimEnd(',');
-        // Console.WriteLine("returned statement: {"+certificate+"}");
         return "{" + certificate + "}"; 
     }
 
@@ -67,7 +66,7 @@ public CutBruteForce() {
         certificate = "{";
         foreach(var i in nodeList){
              foreach(var j in cut.nodes){
-                if (!nodeList.Contains(j)) {
+                if (!nodeList.Contains(j)) { 
                     KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i,j);
                     KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j,i);
                         if ((cut.edges.Contains(pairCheck1) || cut.edges.Contains(pairCheck2)) && !i.Equals(j)) { // checks if is being cut
@@ -82,7 +81,7 @@ public CutBruteForce() {
 
     }
 
-
+    // helper function to go through possible combinations
     private List<int> nextComb(List<int> combination, int size){
         for(int i=combination.Count-1; i>=0; i--){
             if(combination[i]+1 <= (i + size - combination.Count)){
@@ -96,7 +95,7 @@ public CutBruteForce() {
         return combination;
     }
     public string solve(CUT cut){
-        if(cut.K > cut.nodes.Count) {
+        if(cut.K > cut.edges.Count) { // impossible to do cut if not enough edges
             return "{}";
         }
         for(int i=0; i<cut.K; i++) {
@@ -107,7 +106,7 @@ public CutBruteForce() {
         long reps = factorial(cut.nodes.Count) / (factorial(i + 1) * factorial(cut.nodes.Count - i - 1));
         for(int k=0; k<reps; k++){
             string certificate = indexListToCertificate(combination, cut.nodes);
-            certificate = certificateToEdges(cut, certificate);
+            certificate = certificateToEdges(cut, certificate); // last two could be one function, but it is okay
             if(cut.defaultVerifier.verify(cut, certificate)) {
                 return certificate;
             }
@@ -115,8 +114,6 @@ public CutBruteForce() {
 
         }
         }
-        // Console.WriteLine(combination.ToString());
-        // Console.WriteLine("n={0} k={1} reps={2}, 5! = {3}",clique.nodes.Count,clique.K,reps,factorial(5));
         return "{}";
     }
 

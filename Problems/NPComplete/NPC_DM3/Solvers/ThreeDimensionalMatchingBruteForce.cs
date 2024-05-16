@@ -1,13 +1,14 @@
 using API.Interfaces;
+using System.Numerics;
 
 namespace API.Problems.NPComplete.NPC_DM3.Solvers;
 class ThreeDimensionalMatchingBruteForce : ISolver {
 
     // --- Fields ---
-    private string _solverName = "3 Dimensional Matching Brute Force Solver";
+    private string _solverName = "3-Dimensional Matching Brute Force Solver";
     private string _solverDefinition = "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.";
     private string _source = "This is a brute force solver which simply test all combinations of hyper edges.";
-    private string[] _contributers = { "Caleb Eardley"};
+    private string[] _contributors = { "Caleb Eardley"};
 
     // --- Properties ---
     public string solverName {
@@ -26,9 +27,9 @@ class ThreeDimensionalMatchingBruteForce : ISolver {
         }
     }
     
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---
@@ -37,9 +38,9 @@ class ThreeDimensionalMatchingBruteForce : ISolver {
     }
 
 
-    private long factorial(long x){
-    long y = 1;
-    for(long i=1; i<=x; i++){
+    private BigInteger factorial(long x){
+    BigInteger y = 1;
+    for(BigInteger i=1; i<=x; i++){
         y *= i;
     }
     return y;
@@ -73,7 +74,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver {
         for(int i=0; i<problem.X.Count(); i++){
             combination.Add(i);
         }
-        long reps = factorial(problem.M.Count) / (factorial(problem.X.Count()) * factorial(problem.M.Count - problem.X.Count()));
+        BigInteger reps = factorial(problem.M.Count()) / (factorial(problem.X.Count()) * factorial(problem.M.Count() - problem.X.Count()));
         for(int i=0; i<reps; i++){
             string certificate = indexListToCertificate(combination,problem.M);
             if(problem.defaultVerifier.verify(problem, certificate)){

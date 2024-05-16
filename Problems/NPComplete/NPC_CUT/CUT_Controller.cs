@@ -79,6 +79,15 @@ public class CUTGenericController : ControllerBase {
             apiGraph.links[i].attribute1 = edgeVal.ToString();
         }
 
+        List<string> parsedS = solution.TrimEnd().TrimStart().Replace("{","").Replace("}","").Split(',').ToList();
+
+        for (int i = 0; i < apiGraph.nodes.Count; i++) {
+            apiGraph.nodes[i].attribute1 = i.ToString();
+            if(parsedS.IndexOf(apiGraph.nodes[i].name) % 2 == 0) {
+                apiGraph.nodes[i].attribute2 = true.ToString();
+            }
+        }
+
         string jsonString = JsonSerializer.Serialize(apiGraph, options);
         return jsonString;
 

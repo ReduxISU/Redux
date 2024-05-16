@@ -8,8 +8,8 @@ class CutVerifier : IVerifier {
     // --- Fields ---
     private string _verifierName = "Cut Verifier";
     private string _verifierDefinition = "This is a verifier for the Cut problem";
-    private string _source = "Andrija Sevaljevic";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string _source = "";
+    private string[] _contributors = {"Andrija Sevaljevic"};
 
 
     private string _certificate =  "";
@@ -30,9 +30,9 @@ class CutVerifier : IVerifier {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 
@@ -58,7 +58,7 @@ class CutVerifier : IVerifier {
         int counter = 0;
         foreach(var i in edgeList){
             string invertedString = new string(i.ToCharArray().Reverse().ToArray());
-            if ((edgeList.Count(x => x == i)) > 1 || edgeList.Contains(invertedString)) {
+            if (edgeList.Count(x => x == i) > 1 || edgeList.Contains(invertedString)) { //makes sure there are no duplicate edges
                 return false;
             }
             List<string> currentEdge = i.Split(",").ToList();

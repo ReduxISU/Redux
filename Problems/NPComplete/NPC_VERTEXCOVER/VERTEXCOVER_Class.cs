@@ -5,7 +5,7 @@ using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER;
 
-class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifierJanita>{
+class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifier>{
 
     // --- Fields ---
     private string _problemName = "Vertex Cover";
@@ -13,19 +13,19 @@ class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifierJanita>{
     private string _problemDefinition = "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     //private string _defaultInstance = "{{a,b,c,d,e,f,g} : {{a,b} & {a,c} & {c,d} & {c,e} & {d,f} & {e,f} & {e,g}} : 3}";
-    private string _defaultInstance = "{{a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}},3}";
+    private string _defaultInstance = "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)";
     private string _instance = string.Empty;
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
     private int _K = 3;
     private string _wikiName = "";
     private VertexCoverBruteForce _defaultSolver = new VertexCoverBruteForce();
-    private VCVerifierJanita _defaultVerifier = new VCVerifierJanita();
+    private VCVerifier _defaultVerifier = new VCVerifier();
 
     private VertexCoverGraph _VCAsGraph;
     private string _vertexCover = string.Empty;
 
-    private string[] _contributers = { "Janita Aamir", "Alex Diviney" };
+    private string[] _contributors = { "Janita Aamir", "Alex Diviney" };
 
 
     // --- Properties ---
@@ -106,15 +106,15 @@ class VERTEXCOVER : IProblem<VertexCoverBruteForce,VCVerifierJanita>{
             return _defaultSolver;
         }
     }
-    public VCVerifierJanita defaultVerifier {
+    public VCVerifier defaultVerifier {
         get {
             return _defaultVerifier;
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

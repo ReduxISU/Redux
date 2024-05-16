@@ -3,13 +3,13 @@ using API.Interfaces.Graphs.GraphParser;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Verifiers;
 
-class VCVerifierJanita : IVerifier {
+class VCVerifier : IVerifier {
 
     // --- Fields ---
-    private string _verifierName = "Janita's Generic Verifier";
-    private string _verifierDefinition = "This verifier is a naive solver for Vertex Cover that does not have a clear origination. ";
-    private string _source = "No clear origination.";
-    private string[] _contributers = { "Janita Aamir","Alex Diviney"};
+    private string _verifierName = "Vertex Cover Verifier";
+    private string _verifierDefinition = "This is a Vertex Cover Verifier.";
+    private string _source = "";
+    private string[] _contributors = { "Janita Aamir","Alex Diviney"};
 
     private string _complexity = "";
 
@@ -31,9 +31,9 @@ class VCVerifierJanita : IVerifier {
             return _source;
         }
     }
- public string[] contributers{
+ public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
       public string certificate {
@@ -44,7 +44,7 @@ class VCVerifierJanita : IVerifier {
 
 
     // --- Methods Including Constructors ---
-    public VCVerifierJanita() {
+    public VCVerifier() {
         
     }
 

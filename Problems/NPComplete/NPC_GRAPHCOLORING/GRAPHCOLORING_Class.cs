@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_GRAPHCOLORING.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING;
 
-class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
+class GRAPHCOLORING : IProblem<GraphColoringBruteForce, GraphColoringVerifier>{
 
 
     #region Fields
@@ -13,9 +13,9 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
     private readonly string _problemDefinition = "An assignment of labels (e.g., colors) to the vertices of a graph such that no two adjacent vertices are of the same label. This is called a vertex coloring.";
 
     private readonly string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = { "Daniel Igbokwe", "Alex Diviney" };
+    private string[] _contributors = { "Daniel Igbokwe", "Alex Diviney" };
 
-    private string _defaultInstance = "{{a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}},3}";
+    private string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
 
     private string _instance  =  string.Empty;
 
@@ -31,8 +31,8 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
 
     private string _wikiName = "";
 
-    private DanielBrelazSolver _defaultSolver = new DanielBrelazSolver();
-    private IgbokweVerifier _defaultVerifier = new IgbokweVerifier();
+    private GraphColoringBruteForce _defaultSolver = new GraphColoringBruteForce();
+    private GraphColoringVerifier _defaultVerifier = new GraphColoringVerifier();
 
     private GraphColoringGraph _graphColoringAsGraph;
 
@@ -62,9 +62,9 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {
@@ -127,7 +127,14 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
         }
     }
 
-   
+   public GraphColoringGraph graphColoringAsGraph {
+    get {
+        return _graphColoringAsGraph;
+    }
+    set {
+        _graphColoringAsGraph = value;
+    }
+   }
 
     
     public SortedSet<string> colors {
@@ -139,12 +146,12 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
         }
     }
     
-    public DanielBrelazSolver defaultSolver {
+    public GraphColoringBruteForce defaultSolver {
         get {
             return _defaultSolver;
         }
     }
-    public IgbokweVerifier defaultVerifier {
+    public GraphColoringVerifier defaultVerifier {
         get {
             return _defaultVerifier;
         }
@@ -156,80 +163,23 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
     #region Constructors
       public GRAPHCOLORING() {
         _instance  = _defaultInstance;
-        _graphColoringAsGraph = new GraphColoringGraph(_instance);
+        _graphColoringAsGraph = new GraphColoringGraph(_instance, true);
         nodes = _graphColoringAsGraph.nodesStringList;
         edges  = _graphColoringAsGraph.edgesKVP;
         K = _graphColoringAsGraph.K;
-        setColors(K);
-        initializeDictionary();
-      
     }
     public GRAPHCOLORING(string GInput) {
         _instance  = GInput;
-        _graphColoringAsGraph = new GraphColoringGraph(_instance);
+        _graphColoringAsGraph = new GraphColoringGraph(_instance, true);
         nodes = _graphColoringAsGraph.nodesStringList;
         edges  = _graphColoringAsGraph.edgesKVP;
-        K = _graphColoringAsGraph.K;
-        setColors(K);
-        initializeDictionary();
-        
+        K = _graphColoringAsGraph.K; 
     }
 
     #endregion
 
 
     #region Methods
-    public List<string> getAdjNodes(string node){
-
-        List<string> adjNodes = new List<string>();
-
-        for(int i = 0; i < this._edges.Count; i++){
-
-            if(this._edges[i].Key.ToLower().Equals(node.ToLower())){
-
-                adjNodes.Add(this._edges[i].Value);
-            }
-
-        }
-
-        return adjNodes;
-    }
-
-
-    private void initializeDictionary(){
-
-        foreach(string node in this.nodes){
-            this.nodeColoring.Add(node, "-1");
-        }
-    }
-
-    public int getK(string Ginput) {
-
-        string strippedInput = Ginput.Replace("{", "").Replace("}", "").Replace(" ", "");
-
-        // [0] is nodes,  [1] is edges,  [2] is k.
-        string[] Gsections = strippedInput.Split(':');
-        return Int32.Parse(Gsections[2]);
-    } 
-
-    public string getNodeColor(string node) {
-        return this.nodeColoring[node];
-        
-    }
-
-    public void setColors(int K ){ 
-        for(int i = 0; i < K; i++){
-            this.colors.Add(i.ToString());
-        }
-    }
-
-    public Boolean validColor(string color){
-        return this.colors.Contains(color);
-    }
-
-
-
-
 /// <summary>
 /// This method sets the instance attribute of the graph and is called by a problem's constructor.
 /// </summary>
@@ -239,7 +189,7 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
 /// </remarks>
     public void parseProblem() {
 
-        string problem = "{{";
+        string problem = "(({";
 
         // Parse nodes
         for(int i = 0; i < nodes.Count - 1; i++){
@@ -255,7 +205,7 @@ class GRAPHCOLORING : IProblem<DanielBrelazSolver, IgbokweVerifier>{
         }
         problem = problem.TrimEnd(',');
         // Parse k
-        problem +="}," +this._K + "}";
+        problem +="})," +this._K + ")";
         //this._defaultInstance = problem; //ALEX NOTE: We shouldn't ever update the defaultIntance. DEPRECATING
         this._instance  = problem;
 

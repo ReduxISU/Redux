@@ -13,7 +13,7 @@ class sipserReduction : IReduction<CLIQUE, VERTEXCOVER> {
                                             This is done by first taking all possible edges in the original clique graph, and removing
                                             the edges that are actually in the clique graph from that set.";
     private string _source = "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.";
-    private string[] _contributers = {"Janita Aamir","Alex Diviney","Caleb Eardley"};
+    private string[] _contributors = {"Janita Aamir","Alex Diviney","Caleb Eardley"};
 
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
     private CLIQUE _reductionFrom;
@@ -38,9 +38,9 @@ class sipserReduction : IReduction<CLIQUE, VERTEXCOVER> {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 
@@ -130,7 +130,7 @@ class sipserReduction : IReduction<CLIQUE, VERTEXCOVER> {
         }
         edgesString = edgesString.Trim(',');
         int vertexKInt = (CLIQUEInstance.nodes.Count - CLIQUEInstance.K); //N - K where N is number of nodes of k-clique and K is the k of k-clique
-        string G = "{{" + nodesString + "},{" + edgesString + "}," + vertexKInt.ToString() + "}";
+        string G = "(({" + nodesString + "},{" + edgesString + "})," + vertexKInt.ToString() + ")";
 
         reducedVERTEXCOVER = new VERTEXCOVER(G);
         reductionTo = reducedVERTEXCOVER;

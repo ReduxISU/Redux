@@ -10,10 +10,10 @@ class CUT : IProblem<CutBruteForce, CutVerifier>{
     private string _problemName = "Cut";
     private string _formalDefinition = "Cut = {<G, k> | G is a graph with cut of size k}";
     private string _problemDefinition = "A cut in an undirected graph is a partition of the graph's vertices into two complementary sets S and T, and the size of the cut is the number of edges between S and T.";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string[] _contributors = {"Andrija Sevaljevic"};
     
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string _defaultInstance = "{{1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}},5}";
+    private string _defaultInstance = "(({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}}),5)";
     private string _instance = string.Empty;
     
     private List<string> _nodes = new List<string>();
@@ -23,11 +23,8 @@ class CUT : IProblem<CutBruteForce, CutVerifier>{
     private CutVerifier _defaultVerifier = new CutVerifier();
     private CutGraph _cutAsGraph;
     
-
-
     private string _wikiName = "";
-    //private List<List<string>> _clauses = new List<List<string>>();
-    //private List<string> _literals = new List<string>();
+  
 
     // --- Properties ---
     public string problemName {
@@ -52,9 +49,9 @@ class CUT : IProblem<CutBruteForce, CutVerifier>{
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

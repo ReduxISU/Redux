@@ -26,7 +26,7 @@ public class KNAPSACKGenericController : ControllerBase {
     }
 
 ///<summary>Returns a Knapsack problem object created from a given instance </summary>
-///<param name="problemInstance" example="{{10,20,30},{(10,60),(20,100),(30,120)},50}">Knapsack problem instance string.</param>
+///<param name="problemInstance" example="({(10,60),(20,100),(30,120)},50,220)">Knapsack problem instance string.</param>
 ///<response code="200">Returns Knapsack problem object</response>
 
     [ProducesResponseType(typeof(KNAPSACK), 200)]
@@ -41,22 +41,23 @@ public class KNAPSACKGenericController : ControllerBase {
 
 }
 
+
 [ApiController]
 [Route("[controller]")]
 [Tags("Knapsack")]
 
 #pragma warning disable CS1591
-public class GarrettVerifierController : ControllerBase {
+public class KnapsackVerifierController : ControllerBase {
 #pragma warning restore CS1591
 
 ///<summary>Returns information about the Knapsack generic Verifier </summary>
 ///<response code="200">Returns GarrettVerifier object</response>
 
-    [ProducesResponseType(typeof(GarrettVerifier), 200)]
+    [ProducesResponseType(typeof(KnapsackVerifier), 200)]
     [HttpGet("info")]
     public String getGeneric(){
         var options = new JsonSerializerOptions {WriteIndented = true};
-        GarrettVerifier verifier = new GarrettVerifier();
+        KnapsackVerifier verifier = new KnapsackVerifier();
         string jsonString  = JsonSerializer.Serialize(verifier, options);
         return jsonString; 
     }
@@ -71,7 +72,7 @@ public class GarrettVerifierController : ControllerBase {
     public String getInstance([FromQuery]string certificate, [FromQuery] string problemInstance){
         var options = new JsonSerializerOptions {WriteIndented = true};
         KNAPSACK KNAPSACKProblem = new KNAPSACK(problemInstance);
-        GarrettVerifier verifier = new GarrettVerifier();
+        KnapsackVerifier verifier = new KnapsackVerifier();
         Boolean response = verifier.verify(KNAPSACKProblem, certificate);
         string jsonString = JsonSerializer.Serialize(response.ToString(), options);
         return jsonString;
@@ -84,17 +85,17 @@ public class GarrettVerifierController : ControllerBase {
 [Tags("Knapsack")]
 
 #pragma warning disable CS1591
-public class GarrettKnapsackSolverController : ControllerBase {
+public class KnapsackBruteForceController : ControllerBase {
 #pragma warning restore CS1591
 
 ///<summary>Returns information about Garrett's Knapsack solver </summary>
 ///<response code="200">Returns GarrettKnapsackSolver solver bject</response>
 
-    [ProducesResponseType(typeof(GarrettKnapsackSolver), 200)]
+    [ProducesResponseType(typeof(KnapsackBruteForce), 200)]
     [HttpGet("info")]
     public String getGeneric(){
         var options = new JsonSerializerOptions {WriteIndented = true};
-        GarrettKnapsackSolver solver = new GarrettKnapsackSolver();
+        KnapsackBruteForce solver = new KnapsackBruteForce();
         string jsonString  = JsonSerializer.Serialize(solver, options);
         return jsonString; 
     }
@@ -109,7 +110,7 @@ public class GarrettKnapsackSolverController : ControllerBase {
          
         var options = new JsonSerializerOptions { WriteIndented = true };
         KNAPSACK KNAPSACKProblem = new KNAPSACK(problemInstance);
-        GarrettKnapsackSolver solver = new GarrettKnapsackSolver();
+        KnapsackBruteForce solver = new KnapsackBruteForce();
         string solvedInstance = solver.solve(KNAPSACKProblem);
         string jsonString = JsonSerializer.Serialize(solvedInstance, options);
         return jsonString;

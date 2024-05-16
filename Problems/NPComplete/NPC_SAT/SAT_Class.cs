@@ -6,7 +6,7 @@ using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SAT;
 
- class SAT : IProblem<SATBruteForceSolver, IgbokweSATVerifier> {
+ class SAT : IProblem<SATBruteForceSolver, SATVerifier> {
 
 
     #region Fields
@@ -16,9 +16,9 @@ namespace API.Problems.NPComplete.NPC_SAT;
     private string _formalDefinition = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
     private string _problemDefinition = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
     private string _source = ".";
-    private string[] _contributers = { "Daniel Igbokwe" };
+    private string[] _contributors = { "Daniel Igbokwe" };
 
-    private string _defaultInstance = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
+    private string _defaultInstance = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1) & (!x3 | x4 | !x2 | x1) & (!x4 | !x1) & (x4 | x3 | !x1)";
     private string _instance = string.Empty;
 
     private string _wikiName = "";
@@ -26,7 +26,7 @@ namespace API.Problems.NPComplete.NPC_SAT;
     private List<string> _literals = new List<string>();
    
     private SATBruteForceSolver _defaultSolver = new SATBruteForceSolver();
-    private IgbokweSATVerifier _defaultVerifier = new IgbokweSATVerifier();
+    private SATVerifier _defaultVerifier = new SATVerifier();
 
     #endregion
 
@@ -58,9 +58,9 @@ namespace API.Problems.NPComplete.NPC_SAT;
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {
@@ -104,7 +104,7 @@ namespace API.Problems.NPComplete.NPC_SAT;
         }
     }
 
-    public IgbokweSATVerifier defaultVerifier {
+    public SATVerifier defaultVerifier {
         get {
             return _defaultVerifier;
         }

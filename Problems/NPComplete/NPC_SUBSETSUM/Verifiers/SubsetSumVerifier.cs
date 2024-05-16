@@ -8,7 +8,7 @@ class SubsetSumVerifier : IVerifier {
     private string _verifierName = "Subset Sum Verifier";
     private string _verifierDefinition = "This is a verifier for Subset Summ";
     private string _source = " ";
-    private string[] _contributers = { "Garret Stouffer"};
+    private string[] _contributors = { "Garret Stouffer"};
 
     private string _certificate = "";
 
@@ -28,9 +28,9 @@ class SubsetSumVerifier : IVerifier {
             return _source;
         }
     }
- public string[] contributers{
+ public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
      public string certificate {

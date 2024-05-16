@@ -9,7 +9,7 @@ interface IProblem<T,U> where T : ISolver where U : IVerifier{
     string wikiName {get;}
     string defaultInstance{get;}
 
-    string[] contributers{ get; }
+    string[] contributors{ get; }
     T defaultSolver{get;}
     U defaultVerifier{get;}
 

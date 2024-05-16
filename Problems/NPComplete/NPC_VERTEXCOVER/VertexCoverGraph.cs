@@ -9,7 +9,7 @@ using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER;
 
-class VertexCoverGraph:UndirectedGraph{
+class VertexCoverGraph:UnweightedUndirectedGraph{
 
 
     public VertexCoverGraph() : base(){
@@ -127,7 +127,7 @@ class VertexCoverGraph:UndirectedGraph{
         }
         edgeListStr = edgeListStr.TrimEnd(',',' ');
         //edgeListStr = edgeListStr.TrimEnd(' ');
-        string toStr = "{{"+nodeListStr+"}"+ ",{" + edgeListStr+"}"+","+_K+"}";
+        string toStr = "(({"+nodeListStr+"}"+ ",{" + edgeListStr+"}"+"),"+_K+")";
         return toStr;
         //DirectedGraph reductionGraph = new DirectedGraph(newNodes,newEdges,_K);
        // return reductionGraph;
