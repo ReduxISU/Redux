@@ -1,0 +1,138 @@
+using API.Interfaces;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Solvers;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Verifiers;
+
+namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
+
+class {NAME_UPPERCASE} : IProblem<{NAME_PASCEL_CASE}Solver, {NAME_PASCEL_CASE}Verifier> {
+
+    // --- Fields ---
+    private string _problemName = "{NAME}";
+    private string _formalDefinition = "TODO";
+    private string _problemDefinition = "TODO";
+    private string _source = "TODO";
+    private string _defaultInstance = "TODO";
+    private string _instance = string.Empty;
+    private string _wikiName = "";
+    private {NAME_PASCEL_CASE}Solver _defaultSolver = new {NAME_PASCEL_CASE}Solver();
+    private {NAME_PASCEL_CASE}Verifier _defaultVerifier = new {NAME_PASCEL_CASE}Verifier();
+    private string[] _contributers = { "TODO" };
+
+    // TODO: implement properties if {NAME} is a graphing problem
+    // private List<string> _nodes = new List<string>();
+    // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
+    // private int _K ;
+    // private {NAME_PASCEL_CASE}Graph _{NAME_CAMEL_CASE}AsGraph;
+
+    // --- Properties ---
+    public string problemName {
+        get {
+            return _problemName;
+        }
+    }
+    public string formalDefinition {
+        get {
+            return _formalDefinition;
+        }
+    }
+    public string problemDefinition {
+        get {
+            return _problemDefinition;
+        }
+    }
+
+    public string source {
+        get {
+            return _source;
+        }
+    }
+
+    public string[] contributers{
+        get{
+            return _contributers;
+        }
+    }
+    public string defaultInstance {
+        get {
+            return _defaultInstance;
+        }
+    }
+    public string instance {
+        get {
+            return _instance;
+        }
+        set {
+            _instance = value;
+        }
+    }
+    public string wikiName {
+        get {
+            return _wikiName;
+        }
+    }
+
+    // TODO: implement properties if {NAME} is a graphing problem
+    // public List<string> nodes {
+    //     get {
+    //         return _nodes;
+    //     }
+    //     set {
+    //         _nodes = value;
+    //     }
+    // }
+    // public List<KeyValuePair<string, string>> edges {
+    //     get {
+    //         return _edges;
+    //     }
+    //     set {
+    //         _edges = value;
+    //     }
+    // }
+    // public int K {
+    //     get {
+    //         return _K;
+    //     }
+    //     set {
+    //         _K = value;
+    //     }
+    // }
+    // public {NAME_PASCEL_CASE}Graph {NAME_CAMEL_CASE}AsGraph {
+    //     get{
+    //         return _{NAME_CAMEL_CASE}AsGraph;
+    //     }
+    //     set{
+    //         _{NAME_CAMEL_CASE}AsGraph = value;
+    //     }
+    // }
+
+    public {NAME_PASCEL_CASE}Solver defaultSolver {
+        get {
+            return _defaultSolver;
+        }
+    }
+    public {NAME_PASCEL_CASE}Verifier defaultVerifier {
+        get {
+            return _defaultVerifier;
+        }
+    }
+
+    // --- Methods and Constructors ---
+    public {NAME_UPPERCASE}() {
+        _instance = defaultInstance;
+        // TODO: implement properties if {NAME} is a graphing problem
+        // _{NAME_CAMEL_CASE}AsGraph = new {NAME_PASCEL_CASE}Graph(_instance, true);
+        // nodes = _{NAME_CAMEL_CASE}AsGraph.nodesStringList;
+        // edges = _{NAME_CAMEL_CASE}AsGraph.edgesTuple;
+        //  _K = _{NAME_CAMEL_CASE}AsGraph.K;
+    }
+
+    public {NAME_UPPERCASE}(string instance) {
+        _instance = instance;
+        // TODO: implement properties if {NAME} is a graphing problem
+        // _{NAME_CAMEL_CASE}AsGraph = new {NAME_PASCEL_CASE}Graph(instance, true);
+        // nodes = _{NAME_CAMEL_CASE}AsGraph.nodesStringList;
+        // edges = _{NAME_CAMEL_CASE}AsGraph.edgesTuple;
+        //  _K = _{NAME_CAMEL_CASE}AsGraph.K;
+        // _instance = _{NAME_CAMEL_CASE}AsGraph.ToString();
+    }
+}
