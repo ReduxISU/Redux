@@ -9,7 +9,7 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
     private string _reductionName = "Karp's Integer Programming Reduction";
     private string _reductionDefinition = "Karps reduction maps each clause of a SAT problem into a row in a integer programming matrix.";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = { "Caleb Eardley"};
+    private string[] _contributors = { "Caleb Eardley"};
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 
     private SAT3 _reductionFrom;
@@ -32,9 +32,9 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public Dictionary<Object,Object> gadgetMap {

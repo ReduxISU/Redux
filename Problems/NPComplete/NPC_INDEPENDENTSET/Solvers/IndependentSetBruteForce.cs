@@ -8,8 +8,8 @@ class IndependentSetBruteForce : ISolver {
     // --- Fields ---
     private string _solverName = "Independent Set Brute Force";
     private string _solverDefinition = "This is a brute force solver for the NP-Complete Independent Set problem";
-    private string _source = "This person is Russell Phillips";
-    private string[] _contributers = {"Russell Phillips"};
+    private string _source = "";
+    private string[] _contributors = {"Russell Phillips"};
 
 
     // --- Properties ---
@@ -28,9 +28,9 @@ class IndependentSetBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

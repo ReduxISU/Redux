@@ -6,10 +6,10 @@ namespace API.Problems.NPComplete.NPC_CUT.Solvers;
 class CutBruteForce : ISolver {
 
     // --- Fields ---
-    private string _solverName = "Cut Brute Force";
+    private string _solverName = "Cut Brute Force Solver";
     private string _solverDefinition = "This is a brute force solver for the Cut problem";
-    private string _source = "Andrija Sevaljevic";
-    private string[] _contributers = {"Andrija Sevaljevic"};
+    private string _source = "";
+    private string[] _contributors = {"Andrija Sevaljevic"};
 
     // --- Properties ---
 
@@ -28,9 +28,9 @@ class CutBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

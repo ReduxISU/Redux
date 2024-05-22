@@ -10,7 +10,7 @@ class TSPVerifier : IVerifier
     private string _verifierName = "Traveling Sales Person Verifier";
     private string _verifierDefinition = "This is a verifier for the Traveling Sales Person problem";
     private string _source = " ";
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
 
     private string _certificate = "";
@@ -37,11 +37,11 @@ class TSPVerifier : IVerifier
             return _source;
         }
     }
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
 

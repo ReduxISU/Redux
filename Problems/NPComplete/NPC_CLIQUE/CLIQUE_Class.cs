@@ -20,7 +20,7 @@ class CLIQUE : IProblem<CliqueBruteForce,CliqueVerifier> {
     private CliqueBruteForce _defaultSolver = new CliqueBruteForce();
     private CliqueVerifier _defaultVerifier = new CliqueVerifier();
     private CliqueGraph _cliqueAsGraph;
-    private string[] _contributers = { "Kaden Marchetti", "Alex Diviney" };
+    private string[] _contributors = { "Kaden Marchetti", "Alex Diviney" };
 
     // --- Properties ---
     public string problemName {
@@ -45,9 +45,9 @@ class CLIQUE : IProblem<CliqueBruteForce,CliqueVerifier> {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

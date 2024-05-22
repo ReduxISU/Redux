@@ -7,10 +7,10 @@ class CliqueCoverVerifier : IVerifier
 {
 
     // --- Fields ---
-    private string _verifierName = "Generic Verifier";
-    private string _verifierDefinition = "This is a verifier for Clique";
+    private string _verifierName = "Clique Cover Verifier";
+    private string _verifierDefinition = "This is a verifier for the NP-Complete Clique Cover problem";
     private string _source = " ";
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
 
     private string _certificate = "";
@@ -37,11 +37,11 @@ class CliqueCoverVerifier : IVerifier
             return _source;
         }
     }
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
 

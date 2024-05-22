@@ -6,10 +6,10 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
 class CliqueVerifier : IVerifier {
 
     // --- Fields ---
-    private string _verifierName = "Generic Verifier";
+    private string _verifierName = "Clique Verifier";
     private string _verifierDefinition = "This is a verifier for Clique";
     private string _source = " ";
-    private string[] _contributers = {"Caleb Eardley", "Kaden Marchetti"};
+    private string[] _contributors = {"Caleb Eardley", "Kaden Marchetti"};
 
 
     private string _certificate =  "";
@@ -30,9 +30,9 @@ class CliqueVerifier : IVerifier {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

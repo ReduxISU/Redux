@@ -6,8 +6,8 @@ class IntegerProgrammingBruteForce : ISolver {
     // --- Fields ---
     private string _solverName = "Integer Programming Brute Force Solver";
     private string _solverDefinition = "This is a generic brute force solver for 0-1 Integer Programming";
-    private string _source = "This person Caleb Eardley";
-    private string[] _contributers = { "Caleb Eardley"};
+    private string _source = "";
+    private string[] _contributors = { "Caleb Eardley"};
 
     // --- Properties ---
     public string solverName {
@@ -25,9 +25,9 @@ class IntegerProgrammingBruteForce : ISolver {
             return _source;
         }
     }
-     public string[] contributers{
+     public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---

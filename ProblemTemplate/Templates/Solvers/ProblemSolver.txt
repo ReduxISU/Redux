@@ -1,0 +1,42 @@
+using API.Interfaces;
+
+namespace API.Problems.NPComplete.NPC_{PROBLEM}.Solvers;
+class {SOLVER_PASCEL_CASE} : ISolver {
+
+    // --- Fields ---
+    private string _solverName = "{SOLVER}";
+    private string _solverDefinition = "TODO";
+    private string _source = "TODO";
+    private string[] _contributers = { "TODO" };
+
+    // --- Properties ---
+    public string solverName {
+        get {
+            return _solverName;
+        }
+    }
+    public string solverDefinition {
+        get {
+            return _solverDefinition;
+        }
+    }
+    public string source {
+        get {
+            return _source;
+        }
+    }
+    
+    public string[] contributers{
+        get{
+            return _contributers;
+        }
+    }
+    
+    // --- Methods Including Constructors ---
+    public {SOLVER_PASCEL_CASE}() {}
+
+    public string solve({PROBLEM} problem){
+        // TODO: implement {SOLVER} for {PROBLEM}
+        return "{}";
+    }
+}

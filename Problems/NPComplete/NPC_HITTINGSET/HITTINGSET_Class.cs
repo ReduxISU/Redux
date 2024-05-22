@@ -15,7 +15,7 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier>
     private readonly string _problemDefinition = "Hitting set is the problem of finding a set where it shares exactly one element with each subset U_i. ";
 
     private readonly string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = { "Russell Phillips" };
+    private string[] _contributors = { "Russell Phillips" };
 
     private static string _defaultInstance = "({1,2,3,4},{{1,3},{2,3,4},{1,4}})";
 
@@ -58,9 +58,9 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier>
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

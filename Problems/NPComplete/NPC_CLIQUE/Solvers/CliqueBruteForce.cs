@@ -1,15 +1,16 @@
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using System.Numerics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 class CliqueBruteForce : ISolver {
 
     // --- Fields ---
-    private string _solverName = "Clique Brute Force";
+    private string _solverName = "Clique Brute Force Solver";
     private string _solverDefinition = "This is a brute force solver for the NP-Complete Clique problem";
-    private string _source = "This person Caleb Eardley";
-    private string[] _contributers = {"Caleb Eardley", "Kaden Marchetti"};
+    private string _source = "";
+    private string[] _contributors = {"Caleb Eardley", "Kaden Marchetti"};
 
 
     // --- Properties ---
@@ -28,18 +29,18 @@ class CliqueBruteForce : ISolver {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     // --- Methods Including Constructors ---
     public CliqueBruteForce() {
         
     }
-    private long factorial(long x){
-        long y = 1;
-        for(long i=1; i<=x; i++){
+    private BigInteger factorial(BigInteger x){
+        BigInteger y = 1;
+        for(BigInteger i=1; i<=x; i++){
             y *= i;
         }
         return y;
@@ -69,7 +70,7 @@ class CliqueBruteForce : ISolver {
         for(int i=0; i<clique.K; i++){
             combination.Add(i);
         }
-        long reps = factorial(clique.nodes.Count) / (factorial(clique.K) * factorial(clique.nodes.Count - clique.K));
+        BigInteger reps = factorial(clique.nodes.Count) / (factorial(clique.K) * factorial(clique.nodes.Count - clique.K));
         for(int i=0; i<reps; i++){
             string certificate = indexListToCertificate(combination,clique.nodes);
             if(clique.defaultVerifier.verify(clique, certificate)){

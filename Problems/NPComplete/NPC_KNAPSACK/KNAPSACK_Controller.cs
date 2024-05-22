@@ -47,7 +47,7 @@ public class KNAPSACKGenericController : ControllerBase {
 [Tags("Knapsack")]
 
 #pragma warning disable CS1591
-public class GarrettVerifierController : ControllerBase {
+public class KnapsackVerifierController : ControllerBase {
 #pragma warning restore CS1591
 
 ///<summary>Returns information about the Knapsack generic Verifier </summary>

@@ -3,10 +3,10 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_JOBSEQ.Verifiers;
 
 class JobSeqVerifier : IVerifier {
-    private string _verifierName = "Generic Verifier";
+    private string _verifierName = "Job Sequencing Verifier";
     private string _verifierDefinition = "This is a verifier for Job Sequencing";
     private string _source = " ";
-    private string[] _contributers = {"Russell Phillips"};
+    private string[] _contributors = {"Russell Phillips"};
 
 
     private string _certificate =  "";
@@ -27,9 +27,9 @@ class JobSeqVerifier : IVerifier {
             return _source;
         }
     }
-       public string[] contributers{
+       public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

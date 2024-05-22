@@ -11,7 +11,7 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce,SubsetSumVerifier> {
     private string _formalDefinition = "Subset Sum = <S, T> | S is a set of positive integers and there exists a subset of S, K where the sum of K's elements equals T";
     private string _problemDefinition = "The problem is to determine whether there exists a sum of elements that totals to the number T.";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = { "Garret Stouffer, Caleb Eardley"};
+    private string[] _contributors = { "Garret Stouffer, Caleb Eardley"};
 
     //{{10,20,30},{(10,60),(20,100),(30,120)},50}
     //{{}, {}, 28}
@@ -42,9 +42,9 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce,SubsetSumVerifier> {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
 

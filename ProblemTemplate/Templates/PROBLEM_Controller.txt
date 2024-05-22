@@ -1,0 +1,138 @@
+using Microsoft.AspNetCore.Mvc;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Verifiers;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Solvers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
+
+[ApiController]
+[Route("[controller]")]
+[Tags("{NAME}")]
+#pragma warning disable CS1591
+public class {NAME_UPPERCASE}GenericController : ControllerBase {
+#pragma warning restore CS1591
+
+    ///<summary>Returns a default {NAME} object.</summary>
+    [ProducesResponseType(typeof({NAME_UPPERCASE}), 200)]
+    [HttpGet]
+    public String getDefault() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string jsonString = JsonSerializer.Serialize(new {NAME_UPPERCASE}(), options);
+        return jsonString;
+    }
+
+    ///<summary>Returns a {NAME} object created from a given instance.</summary>
+    ///<param name="problemInstance" example="TODO">{NAME} problem instance string.</param>
+    ///<response code="200">Returns a {NAME_UPPERCASE} problem object.</response>
+    [ProducesResponseType(typeof({NAME_UPPERCASE}), 200)]
+    [HttpGet("instance")]
+    public String getInstance(string problemInstance) {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string jsonString = JsonSerializer.Serialize(new {NAME_UPPERCASE}(problemInstance), options);
+        return jsonString;
+    }
+
+    // TODO: implement visualize routes if {NAME} is a graphing problem
+    // ///<summary>Returns a graph object used for dynamic visualization.</summary>
+    // ///<param name="problemInstance" example="TODO">{NAME} problem instance string.</param>
+    // ///<response code="200">Returns a graph object.</response>
+    // [ApiExplorerSettings(IgnoreApi = true)]
+    // [HttpGet("visualize")]
+    // public String getVisualization([FromQuery] string problemInstance)
+    // {
+    //     var options = new JsonSerializerOptions { WriteIndented = true };
+    //     {NAME_UPPERCASE} {NAME_CAMEL_CASE} = new {NAME_UPPERCASE}(problemInstance);
+    //     {NAME_PASCEL_CASE}Graph aGraph = {NAME_CAMEL_CASE}.{NAME_CAMEL_CASE}AsGraph;
+    //     API_UndirectedGraphJSON apiGraph = new API_UndirectedGraphJSON(aGraph.getNodeList, aGraph.getEdgeList);
+    //     string jsonString = JsonSerializer.Serialize(apiGraph, options);
+    //     return jsonString;
+    // }
+    //
+    // ///<summary>Returns a graph object used for dynamic solved visualization.</summary>
+    // ///<param name="problemInstance" example="TODO">{NAME} problem instance string.</param>
+    // ///<param name="solution" example="TODO">{NAME} instance string.</param>
+    // ///<response code="200">Returns a graph object.</response>
+    // [ApiExplorerSettings(IgnoreApi = true)]
+    // [HttpGet("solvedVisualization")]
+    // public String getSolvedVisualization([FromQuery] string problemInstance, string solution)
+    // {
+    //     var options = new JsonSerializerOptions { WriteIndented = true };
+    //     {NAME_UPPERCASE} {NAME_CAMEL_CASE} = new {NAME_UPPERCASE}(problemInstance);
+    //     {NAME_PASCEL_CASE}Graph cGraph = {NAME_CAMEL_CASE}.graphColoringAsGraph;
+    //     API_UndirectedGraphJSON apiGraph = new API_UndirectedGraphJSON(cGraph.getNodeList, cGraph.getEdgeList);
+    //
+    //     // TODO: implement body of {NAME} "solvedVisualization" route
+    //
+    //     string jsonString = JsonSerializer.Serialize(apiGraph, options);
+    //     return jsonString;
+    // }
+}
+
+[ApiController]
+[Route("[controller]")]
+[Tags("{NAME}")]
+#pragma warning disable CS1591
+public class {NAME_PASCEL_CASE}VerifierController : ControllerBase {
+#pragma warning restore CS1591
+
+    ///<summary>Returns information about the {NAME} generic verifier.</summary>
+    ///<response code="200">Returns {NAME_PASCEL_CASE}Verifier object</response>
+    [ProducesResponseType(typeof({NAME_PASCEL_CASE}Verifier), 200)]
+    [HttpGet("info")]
+    public String getGeneric() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {NAME_PASCEL_CASE}Verifier verifier = new {NAME_PASCEL_CASE}Verifier();
+        string jsonString = JsonSerializer.Serialize(verifier, options);
+        return jsonString;
+    }
+
+    ///<summary>Verifies if a given certificate is a solution to a given {NAME}.</summary>
+    ///<param name="certificate" example="TODO">Certificate solution to the {NAME} problem.</param>
+    ///<param name="problemInstance" example="TODO">{NAME} problem instance string.</param>
+    ///<response code="200">Returns a boolean.</response>
+    [ProducesResponseType(typeof(Boolean), 200)]
+    [HttpGet("verify")]
+    public String solveInstance([FromQuery]string certificate, [FromQuery]string problemInstance) {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {NAME_UPPERCASE} {NAME_UPPERCASE}_Problem = new {NAME_UPPERCASE}(problemInstance);
+        {NAME_PASCEL_CASE}Verifier verifier = new {NAME_PASCEL_CASE}Verifier();
+        bool response = verifier.verify({NAME_UPPERCASE}_Problem,certificate);
+        string jsonString = JsonSerializer.Serialize(response.ToString(), options);
+        return jsonString;
+    }
+
+}
+
+[ApiController]
+[Route("[controller]")]
+[Tags("{NAME}")]
+#pragma warning disable CS1591
+public class {NAME_PASCEL_CASE}SolverController : ControllerBase {
+#pragma warning restore CS1591
+
+    ///<summary>Returns information about the {NAME} solver.</summary>
+    ///<response code="200">Returns {NAME_PASCEL_CASE}Solver solver Object.</response>
+    [ProducesResponseType(typeof({NAME_PASCEL_CASE}Solver), 200)]
+    [HttpGet("info")]
+    public String getGeneric() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {NAME_PASCEL_CASE}Solver solver = new {NAME_PASCEL_CASE}Solver();
+        string jsonString = JsonSerializer.Serialize(solver, options);
+        return jsonString;
+    }
+
+    ///<summary>Returns a solution to a given {NAME} problem instance.</summary>
+    ///<param name="problemInstance" example="TODO">{NAME} problem instance string.</param>
+    ///<response code="200">Returns solution string.</response>
+    [ProducesResponseType(typeof(string), 200)]
+    [HttpGet("solve")]
+    public String verifyInstance([FromQuery]string problemInstance) {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}(problemInstance);
+        string solution = problem.defaultSolver.solve(problem);
+        string jsonString = JsonSerializer.Serialize(solution, options);
+        return jsonString;
+    }
+}

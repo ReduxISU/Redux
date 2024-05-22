@@ -5,12 +5,12 @@ namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
 class GenericVerifier01INTP : IVerifier {
 
     // --- Fields ---
-    private string _verifierName = "Generic Verifier";
+    private string _verifierName = "0-1 Integer Programming Verifier";
     private string _verifierDefinition = "This is a verifier for 0-1 Integer Programming";
     private string _source = " ";
 
     private string _certificate = "";
-    private string[] _contributers = { "Author Unknown"};
+    private string[] _contributors = { "Author Unknown"};
 
 
     // --- Properties ---
@@ -30,9 +30,9 @@ class GenericVerifier01INTP : IVerifier {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
       public string certificate {

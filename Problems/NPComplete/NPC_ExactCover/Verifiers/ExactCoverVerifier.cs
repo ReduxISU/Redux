@@ -8,7 +8,7 @@ class ExactCoverVerifier : IVerifier {
     private string _verifierName = "Exact Cover Verifier";
     private string _verifierDefinition = "This is a verifier for Exact Cover";
     private string _source = " ";
-    private string[] _contributers = { "Caleb Eardley"};
+    private string[] _contributors = { "Caleb Eardley"};
 
     private string _certificate = "";
 
@@ -28,9 +28,9 @@ class ExactCoverVerifier : IVerifier {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
       public string certificate {

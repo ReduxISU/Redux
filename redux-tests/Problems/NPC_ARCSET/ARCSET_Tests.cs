@@ -69,7 +69,7 @@ public class ARCSET_Tests
     public void ARCSET_verify_falseoutput(){
 
         ARCSET testArc = new ARCSET();
-        AlexArcsetVerifier verifier = new AlexArcsetVerifier();
+        ArcSetVerifier verifier = new ArcSetVerifier();
         Assert.False(verifier.verify(testArc,"(3,2),(4,1)"));
     }
 
@@ -78,7 +78,7 @@ public class ARCSET_Tests
     [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","{(2,4)}")]
     public void ARCSET_verify_theory_true(string ARCSET_Instance, string testCertificate){
         ARCSET testArc = new ARCSET(ARCSET_Instance);
-        AlexArcsetVerifier verifier = new AlexArcsetVerifier();
+        ArcSetVerifier verifier = new ArcSetVerifier();
         bool isStillArcset = verifier.verify(testArc, testCertificate);
         Assert.True(isStillArcset);
     }
@@ -92,7 +92,7 @@ public class ARCSET_Tests
     [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","(4,2)")]
      public void ARCSET_verify_theory_false(string ARCSET_Instance, string testCertificate){
         ARCSET testArc = new ARCSET(ARCSET_Instance);
-        AlexArcsetVerifier verifier = new AlexArcsetVerifier();
+        ArcSetVerifier verifier = new ArcSetVerifier();
         bool isStillArcset = verifier.verify(testArc, testCertificate);
         Assert.False(isStillArcset);
     }

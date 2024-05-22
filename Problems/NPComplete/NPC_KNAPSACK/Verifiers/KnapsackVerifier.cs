@@ -10,9 +10,9 @@ class KnapsackVerifier : IVerifier
 
     // --- Fields ---
     private string _verifierName = "Knapsack Verifier";
-    private string _verifierDefinition = "This is a verifier for KNAPSACK. It checks that That the weight of the chosen items do not exceed the allowed weight and that the value of the items exceed the required value";
+    private string _verifierDefinition = "This is a verifier for Knapsack. It checks that that the weight of the chosen items do not exceed the allowed weight and that the value of the items exceed the required value";
     private string _source = "";
-    private string[] _contributers = { "Garret Stouffer", "Daniel Igbokwe", "Russell Phillips"};
+    private string[] _contributors = { "Garret Stouffer", "Daniel Igbokwe", "Russell Phillips"};
 
     private string _complexity = "O(n^2)";
 
@@ -41,11 +41,11 @@ class KnapsackVerifier : IVerifier
             return _source;
         }
     }
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
     public string complexity

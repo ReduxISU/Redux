@@ -53,7 +53,7 @@ public class VERTEXCOVER_Tests
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)","{e,b,c,d}}")] //five node connected graph, test four nodes
     public void VERTEXCOVER_verify_theory_true(string VERTEXCOVER_Instance, string testCertificate){
         VERTEXCOVER testVert = new VERTEXCOVER(VERTEXCOVER_Instance);
-        VCVerifierJanita verifier = testVert.defaultVerifier;
+        VCVerifier verifier = testVert.defaultVerifier;
         bool isValidCover = verifier.Verify(testVert, testCertificate);
         Assert.True(isValidCover);
     }
@@ -64,7 +64,7 @@ public class VERTEXCOVER_Tests
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)","{e,b}}")] //five node connected graph, test two nodes
      public void VERTEXCOVER_verify_theory_false(string VERTEXCOVER_Instance, string testCertificate){
         VERTEXCOVER testVert = new VERTEXCOVER(VERTEXCOVER_Instance);
-        VCVerifierJanita verifier = testVert.defaultVerifier;
+        VCVerifier verifier = testVert.defaultVerifier;
         bool isValidCover = verifier.Verify(testVert, testCertificate);
         Assert.False(isValidCover);
     }

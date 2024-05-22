@@ -7,10 +7,10 @@ class WeightedCutBruteForce : ISolver
 {
 
     // --- Fields ---
-    private string _solverName = "Cut Brute Force";
-    private string _solverDefinition = "This is a brute force solver for the Cut problem";
-    private string _source = "Andrija Sevaljevic";
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string _solverName = "Weighted Cut Brute Force";
+    private string _solverDefinition = "This is a brute force solver for the Weighted Cut problem";
+    private string _source = "";
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
     // --- Properties ---
 
@@ -35,11 +35,11 @@ class WeightedCutBruteForce : ISolver
             return _source;
         }
     }
-    public string[] contributers
+    public string[] contributors
     {
         get
         {
-            return _contributers;
+            return _contributors;
         }
     }
 

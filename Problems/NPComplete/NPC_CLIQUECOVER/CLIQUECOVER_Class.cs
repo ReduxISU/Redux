@@ -21,7 +21,7 @@ class CLIQUECOVER : IProblem<CliqueCoverBruteForce,CliqueCoverVerifier> {
     private CliqueCoverBruteForce _defaultSolver = new CliqueCoverBruteForce();
     private CliqueCoverVerifier _defaultVerifier = new CliqueCoverVerifier();
     private CliqueCoverGraph _cliqueCoverAsGraph;
-    private string[] _contributers = { "Andrija Sevaljevic" };
+    private string[] _contributors = { "Andrija Sevaljevic" };
 
     // --- Properties ---
     public string problemName {
@@ -46,9 +46,9 @@ class CLIQUECOVER : IProblem<CliqueCoverBruteForce,CliqueCoverVerifier> {
         }
     }
 
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {

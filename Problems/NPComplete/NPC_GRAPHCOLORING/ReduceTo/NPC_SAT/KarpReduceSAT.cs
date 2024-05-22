@@ -10,7 +10,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
     private string _reductionName = "Karp's SAT Reduction";
     private string _reductionDefinition = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
     private string _source = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
-    private string[] _contributers = {"Daniel Igbokwe"};
+    private string[] _contributors = {"Daniel Igbokwe"};
     // Dictionary<Object,List<string>> _gadgetMap = new Dictionary<object, List<string>>();
     
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
@@ -43,9 +43,9 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
         }
 
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string complexity

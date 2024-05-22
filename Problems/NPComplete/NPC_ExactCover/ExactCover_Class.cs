@@ -12,7 +12,7 @@ class ExactCover : IProblem<ExactCoverBruteForce,ExactCoverVerifier> {
     private string _formalDefinition = "Exact Cover = {<S, X> | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ";
     private string _problemDefinition = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
     private string _source = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    private string[] _contributers = { "Caleb Eardley", "Alex Diviney" };
+    private string[] _contributors = { "Caleb Eardley", "Alex Diviney" };
 
     
     private string _defaultInstance = "{{1,2,3},{2,3},{4,1} : {1,2,3,4}}";
@@ -51,9 +51,9 @@ class ExactCover : IProblem<ExactCoverBruteForce,ExactCoverVerifier> {
             return _source;
         }
     }
-    public string[] contributers{
+    public string[] contributors{
         get{
-            return _contributers;
+            return _contributors;
         }
     }
     public string defaultInstance {
@@ -119,7 +119,7 @@ class ExactCover : IProblem<ExactCoverBruteForce,ExactCoverVerifier> {
         _X = GetX(_instance);
     }
     public ExactCover(string instance) {
-         _instance = instance;
+        _instance = instance;
         _S = GetS(_instance);
         _X = GetX(_instance);
     }
