@@ -11,11 +11,11 @@ UtilCollection expects strings in the format that is typically used by Redux. A 
 ```
 {e_0,...,e_k}
 ```
-So a set may look something like \(\{a,b,c\}\). A list will be represented using parenthesis as follows:
+So a set may look something like \{a,b,c\}. A list will be represented using parenthesis as follows:
 ```
 (e_0,...,e_k)
 ```
-As such, an example of a list could look something like \((1,2,3)\). 
+As such, an example of a list could look something like (1,2,3). 
 
 As an example, the default instance of clique is:
 ```
@@ -81,7 +81,7 @@ Asserts that the collection has the same count or length as the argument. Works 
 
 The following code is how the knapsack problem uses the UtilCollections class to parse its problem instance.
 
-```
+```c#
     UtilCollection collection = new UtilCollection(HWVInput);
     instance = collection.ToString();
     collection.assertPair(3);
