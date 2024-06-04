@@ -117,13 +117,8 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCEL_CASE}Solver, {NAME_PASCEL_CASE}Ve
     }
 
     // --- Methods and Constructors ---
-    public {NAME_UPPERCASE}() {
-        _instance = defaultInstance;
-        // TODO: implement properties if {NAME} is a graphing problem
-        // _{NAME_CAMEL_CASE}AsGraph = new {NAME_PASCEL_CASE}Graph(_instance, true);
-        // nodes = _{NAME_CAMEL_CASE}AsGraph.nodesStringList;
-        // edges = _{NAME_CAMEL_CASE}AsGraph.edgesTuple;
-        //  _K = _{NAME_CAMEL_CASE}AsGraph.K;
+    public {NAME_UPPERCASE}() : this(_defaultInstance) {
+
     }
 
     public {NAME_UPPERCASE}(string instance) {
