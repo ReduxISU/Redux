@@ -2,7 +2,7 @@ Redux is an open source repository of problems, their solutions, verifiers, and 
 
 ## Documentation
 
-Documentation can be found in github [here](Documentation/index.md)
+Documentation can be found on github [here](Documentation/index.md)
 
 ## Deployment
 
