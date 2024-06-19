@@ -1,0 +1,32 @@
+// TODO: append this file's contents to {PROBLEM}_Controller.cs
+[ApiController]
+[Route("[controller]")]
+[Tags("{NAME}")]
+#pragma warning disable CS1591
+public class {SOLVER_PASCEL_CASE}Controller : ControllerBase {
+#pragma warning restore CS1591
+
+    ///<summary>Returns information about {SOLVER}.</summary>
+    ///<response code="200">Returns {SOLVER_PASCEL_CASE} solver Object.</response>
+    [ProducesResponseType(typeof({SOLVER_PASCEL_CASE}), 200)]
+    [HttpGet("info")]
+    public String getGeneric() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {SOLVER_PASCEL_CASE} solver = new {SOLVER_PASCEL_CASE}();
+        string jsonString = JsonSerializer.Serialize(solver, options);
+        return jsonString;
+    }
+
+    ///<summary>Returns a solution to a given {PROBLEM} problem instance.</summary>
+    ///<param name="problemInstance" example="TODO">{PROBLEM} problem instance string.</param>
+    ///<response code="200">Returns solution string.</response>
+    [ProducesResponseType(typeof(string), 200)]
+    [HttpGet("solve")]
+    public String solveInstance([FromQuery]string problemInstance) {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {PROBLEM} problem = new {PROBLEM}(problemInstance);
+        string solution = problem.defaultSolver.solve(problem);
+        string jsonString = JsonSerializer.Serialize(solution, options);
+        return jsonString;
+    }
+}

@@ -1,0 +1,34 @@
+// TODO: append this file's contents to {PROBLEM}_Controller.cs
+[ApiController]
+[Route("[controller]")]
+[Tags("{NAME}")]
+#pragma warning disable CS1591
+public class {VERIFIER_PASCEL_CASE}Controller : ControllerBase {
+#pragma warning restore CS1591
+
+    ///<summary>Returns information about {VERIFIER}.</summary>
+    ///<response code="200">Returns {VERIFIER_PASCEL_CASE} object</response>
+    [ProducesResponseType(typeof({VERIFIER_PASCEL_CASE}), 200)]
+    [HttpGet("info")]
+    public String getGeneric() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {VERIFIER_PASCEL_CASE} verifier = new {VERIFIER_PASCEL_CASE}();
+        string jsonString = JsonSerializer.Serialize(verifier, options);
+        return jsonString;
+    }
+
+    ///<summary>Verifies if a given certificate is a solution to a given {PROBLEM} problem.</summary>
+    ///<param name="certificate" example="TODO">Certificate solution to the {PROBLEM} problem.</param>
+    ///<param name="problemInstance" example="TODO">{PROBLEM} problem instance string.</param>
+    ///<response code="200">Returns a boolean.</response>
+    [ProducesResponseType(typeof(Boolean), 200)]
+    [HttpGet("verify")]
+    public String verifyInstance([FromQuery]string certificate, [FromQuery]string problemInstance) {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {PROBLEM} problem = new {PROBLEM}(problemInstance);
+        {VERIFIER_PASCEL_CASE} verifier = new {VERIFIER_PASCEL_CASE}();
+        bool response = verifier.verify(problem, certificate);
+        string jsonString = JsonSerializer.Serialize(response.ToString(), options);
+        return jsonString;
+    }
+}

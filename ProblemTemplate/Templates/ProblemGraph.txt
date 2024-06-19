@@ -1,0 +1,20 @@
+// TODO: implement graph class if {NAME} is a graphing problem
+// using System;
+// using System.Collections;
+// using System.Collections.Generic;
+// using System.Text.Json;
+// using System.Text.Json.Serialization;
+// using System.Text.RegularExpressions;
+// using API.Interfaces.Graphs;
+// namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
+//
+// class {NAME_PASCEL_CASE}Graph : UnweightedUndirectedGraph / WeightedUndirectedGraph / WeightedGraph / DirectedGraph
+// {
+//   public {NAME_PASCEL_CASE}Graph(string {NAME_CAMEL_CASE}Input) : base({NAME_CAMEL_CASE}Input) {
+//
+//   }
+//
+//   public {NAME_PASCEL_CASE}Graph(string {NAME_CAMEL_CASE}Input, bool decoy) : base({NAME_CAMEL_CASE}Input, decoy) {
+//
+//   }
+// }

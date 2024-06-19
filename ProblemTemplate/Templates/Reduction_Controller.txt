@@ -1,0 +1,51 @@
+// TODO: append this file's contents to {REDUCE_FROM}_Controller.cs
+[ApiController]
+[Route("[controller]")]
+[Tags("{NAME}")]
+#pragma warning disable CS1591
+public class {REDUCTION_PASCEL_CASE}Controller : ControllerBase {
+#pragma warning restore CS1591
+
+    ///<summary>Returns a reduction object with information for the {REDUCTION} reduction.</summary>
+    ///<response code="200">Returns {REDUCTION_PASCEL_CASE} object.</response>
+    [ProducesResponseType(typeof({REDUCTION_PASCEL_CASE}), 200)]
+    [HttpGet("info")]
+    public String getInfo() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {REDUCE_FROM} default{REDUCE_FROM} = new {REDUCE_FROM}();
+        {REDUCTION_PASCEL_CASE} reduction = new {REDUCTION_PASCEL_CASE}(default{REDUCE_FROM});
+        string jsonString = JsonSerializer.Serialize(reduction, options);
+        return jsonString;
+    }
+
+    ///<summary>Returns a reduction from {REDUCE_FROM} to {REDUCE_TO} based on the given {REDUCTION} instance.</summary>
+    ///<param name="problemInstance" example="TODO">{REDUCTION} problem instance string.</param>
+    ///<response code="200">Returns {REDUCTION_PASCEL_CASE} object.</response>
+    [ProducesResponseType(typeof({REDUCTION_PASCEL_CASE}), 200)]
+    [HttpGet("reduce")]
+    public String getReduce([FromQuery]string problemInstance) {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {REDUCE_FROM} default{REDUCE_FROM} = new {REDUCE_FROM}(problemInstance);
+        {REDUCTION_PASCEL_CASE} reduction = new {REDUCTION_PASCEL_CASE}(default{REDUCE_FROM});
+        string jsonString = JsonSerializer.Serialize(reduction, options);
+        return jsonString;
+    }
+
+    ///<summary>Returns a solution set to the {REDUCE_TO} problem, which has been reduced from {PROBLEM_FROM} using {REDUCTION} reduction.</summary>
+    ///<param name="problemFrom" example="TODO">{REDUCTION} problem instance string.</param>
+    ///<param name="problemTo" example="TODO">{PROBLEM_TO} problem instance string reduced from a {PROBLEM_FROM} instance.</param>
+    ///<param name="problemFromSolution" example="TODO">Solution to a {REDUCE_FROM} problem.</param>
+    ///<response code="200">Returns a solution to the reduced {REDUCE_TO} instance</response>
+    [ProducesResponseType(typeof(string), 200)]
+    [HttpGet("mapSolution")]
+    public String mapSolution([FromQuery]string problemFrom, string problemTo, string problemFromSolution){
+        Console.WriteLine(problemTo);
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        {REDUCE_FROM} from = new {REDUCE_FROM}(problemFrom);
+        {REDUCE_TO} to = new {REDUCE_FROM}(problemTo);
+        {REDUCTION_PASCEL_CASE} reduction = new {REDUCTION_PASCEL_CASE}(from);
+        string mappedSolution = reduction.mapSolutions(from, to, problemFromSolution);
+        string jsonString = JsonSerializer.Serialize(mappedSolution, options);
+        return jsonString;
+    }
+}

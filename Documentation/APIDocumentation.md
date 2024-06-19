@@ -1,0 +1,2 @@
+## API Documentation
+API documentation is done using SwaggerUI and can be found at \url{https://api.redux.portneuf.cose.isu.edu/swagger/index.html}, and can also be accessed locally when running the back end at \url{http://0.0.0.0:27000/swagger/index.html}. For API calls to be added to this documentation, they must include proper XML comments, as seen in section \ref{addingApiEndpoints}. From swaggerUI these endpoints can be tested by selecting a call and clicking the "Try it out" button. All problems should have example parameters pre-set.
