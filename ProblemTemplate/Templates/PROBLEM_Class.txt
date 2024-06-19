@@ -117,18 +117,40 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCEL_CASE}Solver, {NAME_PASCEL_CASE}Ve
     }
 
     // --- Methods and Constructors ---
-    public {NAME_UPPERCASE}() {
-        _instance = defaultInstance;
-        // TODO: implement properties if {NAME} is a graphing problem
-        // _{NAME_CAMEL_CASE}AsGraph = new {NAME_PASCEL_CASE}Graph(_instance, true);
-        // nodes = _{NAME_CAMEL_CASE}AsGraph.nodesStringList;
-        // edges = _{NAME_CAMEL_CASE}AsGraph.edgesTuple;
-        //  _K = _{NAME_CAMEL_CASE}AsGraph.K;
+    public {NAME_UPPERCASE}() : this(_defaultInstance) {
+
     }
 
     public {NAME_UPPERCASE}(string instance) {
         _instance = instance;
-        // TODO: implement properties if {NAME} is a graphing problem
+
+
+
+        // TODO: implement parsing of string instance of {NAME}. UtilCollections is a class meant to help with this step, see https://github.com/ReduxISU/Redux/blob/CSharpAPI/Documentation/UtilCollection.md for more information.
+        //
+        // UtilCollection Knapsack example:
+        // UtilCollection collection = new UtilCollection(HWVInput);
+        // instance = collection.ToString();
+        // collection.assertPair(3);
+        // items = collection[0];
+        // items.assertUnordered();
+        // W = int.Parse(collection[1].ToString());
+        // V = int.Parse(collection[2].ToString());
+        // foreach (UtilCollection item in items) item.assertPair();
+
+
+        // TODO: implement properties if {NAME} is a graphing problem without other variables 
+        // UtilCollection collection = new UtilCollection(instance);
+        // collection.assertPair();
+        // nodes = collection[0];
+        // edges = collection[1];
+        // for (UtilCollection item in collection)
+        // {
+        //     item.assertCount(2);
+        //     item.assertUnordered();
+        // }
+        //
+        // or non UtilCollection method 
         // _{NAME_CAMEL_CASE}AsGraph = new {NAME_PASCEL_CASE}Graph(instance, true);
         // nodes = _{NAME_CAMEL_CASE}AsGraph.nodesStringList;
         // edges = _{NAME_CAMEL_CASE}AsGraph.edgesTuple;

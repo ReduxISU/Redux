@@ -1,20 +1,14 @@
-Redux is an open source repository of problems, their solutions, verifiers, and reductions. The project has a particular emphasis on NP-Complete and NP-Hard problems
+## Running
+After cloning the repository to your machine, ensure that you have .Net 6 installed. If that is working correctly you should be able to run the back end locally using the command, 
 
-
-
-## Deployment
-
-This application can be deployed as its own standalone server. 
-
-Assuming you have dotnet installed, you can run the following: 
-
-````
-dotnet run 
-
-````
+```bash
+$ dotnet run
+```
 this will start a dotnet API server that will listen on port 27000
 
-
+When running properly, you should be able to access and test the API locally as seen in [apiDoc](./APIDocumentation.md).
+    
+## Docker
 This application can alternatively be deployed via a docker docker image. Assuming you have Docker installed, run the following:
 
 ````
