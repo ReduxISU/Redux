@@ -1,29 +1,5 @@
-Redux is an open source repository of problems, their solutions, verifiers, and reductions. The project has a particular emphasis on NP-Complete and NP-Hard problems
+Redux is a system designed to be an interactive, dynamic knowledgebase of computer science problems, reductions, and solution algorithms. Besides the backend knowledgebase and API, Redux also includes a (front end)[https://github.com/ReduxISU/Redux_GUI] with the ability to dynamically visualize these problems. The goals for Redux are to add functionality for the ease of crowd-sourced contribution of addition problems and visualizations, to add the ability to add and distinguish between problems other than NP-Complete problems, and to continue to expand the collection of problems, reductions, and solution algorithms.
 
 ## Documentation
 
 Documentation can be found on github [here](Documentation/index.md)
-
-## Deployment
-
-This application can be deployed as its own standalone server. 
-
-Assuming you have dotnet installed, you can run the following: 
-
-````
-dotnet run 
-
-````
-this will start a dotnet API server that will listen on port 27000
-
-
-This application can alternatively be deployed via a docker docker image. Assuming you have Docker installed, run the following:
-
-````
-
-docker build -t reduxapi .
-docker run -it --rm -p 27000:80 --name reduxapi reduxapi
-
-````
-This will start a local server via docker. Note that this server is using production binaries, so warnings will be distinct from using dotnet run, which is not converted to
-a binary only standalone image. 

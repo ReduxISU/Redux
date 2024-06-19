@@ -91,6 +91,7 @@ Asserts that the collection has the same count or length as the argument. Works 
 The following code is how the knapsack problem uses the UtilCollections class to parse its problem instance.
 
 ```c#
+public KNAPSACK(string HWVInput) {
     UtilCollection collection = new UtilCollection(HWVInput);
     instance = collection.ToString();
     collection.assertPair(3);
@@ -99,6 +100,7 @@ The following code is how the knapsack problem uses the UtilCollections class to
     W = int.Parse(collection[1].ToString());
     V = int.Parse(collection[2].ToString());
     foreach (UtilCollection item in items) item.assertPair();
+}
 ```
 
 Knapsack is defined as {<H, W, V> where H is a set of items (w,v) and there is a subset of items in H whose collective weight is less than or equal to W and whose collective value is equal or greater than V.} `collection.assertPair(3)` makes sure that the top level of the collection is a list with three elements, `H`, `W`, and `V`. We can then assign the first element of the collection to `items`, a field of the knapsack class. Since `W` and `V` are integers, we can parse them as so and assign them to the appropiate fields. The last line also asserts that each element in items is a pair, as described in the problem definition.
