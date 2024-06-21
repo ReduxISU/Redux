@@ -147,7 +147,7 @@ public class ExactCoverRecursiveController : ControllerBase {
     }
 
     ///<summary>Returns a solution to a given  Exact Cover problem instance </summary>
-    ///<param name="problemInstance" example="{{1,2,3},{2,3},{4,1} : {1,2,3,4}}"s>Exact Cover problem instance string.</param>
+    ///<param name="problemInstance" example="{{1,2,3},{2,3},{4,1} : {1,2,3,4}}">Exact Cover problem instance string.</param>
     ///<response code="200">Returns solution string </response>
     
     [ProducesResponseType(typeof(string), 200)]
@@ -185,7 +185,7 @@ public class DancingLinksController : ControllerBase {
     }
 
     ///<summary>Returns a solution to a given  Exact Cover problem instance </summary>
-    ///<param name="problemInstance" example="{{1,2,3},{2,3},{4,1} : {1,2,3,4}}"s>Exact Cover problem instance string.</param>
+    ///<param name="problemInstance" example="{{1,2,3},{2,3},{4,1} : {1,2,3,4}}">Exact Cover problem instance string.</param>
     ///<response code="200">Returns solution string </response>
     
     [ProducesResponseType(typeof(string), 200)]
@@ -215,12 +215,12 @@ public class KarpExactCoverToSubsetSumController : ControllerBase {
 ///<summary>Returns a reduction object with info for Graph Coloring to CliqueCover Reduction </summary>
 ///<response code="200">Returns CliqueCoverReduction object</response>
 
-    [ProducesResponseType(typeof(ExactCoverReduction), 200)]
+    [ProducesResponseType(typeof(SubsetSumReduction), 200)]
     [HttpGet("info")]
     public String getInfo() {
         var options = new JsonSerializerOptions { WriteIndented = true };
         ExactCover defaultExactCover = new ExactCover();
-        ExactCoverReduction reduction = new ExactCoverReduction(defaultExactCover);
+        SubsetSumReduction reduction = new SubsetSumReduction(defaultExactCover);
         string jsonString = JsonSerializer.Serialize(reduction, options);
         return jsonString;
     }
@@ -229,12 +229,12 @@ public class KarpExactCoverToSubsetSumController : ControllerBase {
 ///<param name="problemInstance" example="{{1,7,12,15} : 28}">Graph Coloring problem instance string.</param>
 ///<response code="200">Returns Fengs's Graph Coloring to CliqueCover object</response>
 
-    [ProducesResponseType(typeof(ExactCoverReduction), 200)]
+    [ProducesResponseType(typeof(SubsetSumReduction), 200)]
     [HttpGet("reduce")]
     public String getReduce([FromQuery]string problemInstance) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         ExactCover defaultExactCover = new ExactCover(problemInstance);
-        ExactCoverReduction reduction = new ExactCoverReduction(defaultExactCover);
+        SubsetSumReduction reduction = new SubsetSumReduction(defaultExactCover);
         string jsonString = JsonSerializer.Serialize(reduction, options);
         return jsonString;
     }

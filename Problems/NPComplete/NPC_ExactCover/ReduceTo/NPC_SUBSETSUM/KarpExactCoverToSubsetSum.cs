@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_SUBSETSUM;
 
 namespace API.Problems.NPComplete.NPC_ExactCover.ReduceTo.NPC_SUBSETSUM;
 
-class ExactCoverReduction : IReduction<ExactCover, SUBSETSUM>
+class SubsetSumReduction : IReduction<ExactCover, SUBSETSUM>
 {
 
     // --- Fields ---
@@ -86,7 +86,7 @@ class ExactCoverReduction : IReduction<ExactCover, SUBSETSUM>
 
 
     // --- Methods Including Constructors ---
-    public ExactCoverReduction(ExactCover from)
+    public SubsetSumReduction(ExactCover from)
     {
         _reductionFrom = from;
         _reductionTo = reduce();
