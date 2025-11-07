@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Problems.NPComplete.NPC_DEUTSCH.Verifiers;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCH;
 
@@ -11,13 +12,13 @@ class DEUTSCH : IProblem<ProblemSolver, ProblemVerifier> {
     public string formalDefinition {get;} = "TODO";
     public string problemDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
-    private static readonly string _defaultInstance = "{(0,1)}";
+    private static readonly string _defaultInstance = "(0,1)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
     public ProblemSolver defaultSolver {get;} = new ProblemSolver();
     public ProblemVerifier defaultVerifier {get;} = new ProblemVerifier();
-    public string[] contributers = { "TODO" };
+    public string[] contributors {get;} = { "ME", "You" };
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();
@@ -66,18 +67,22 @@ class DEUTSCH : IProblem<ProblemSolver, ProblemVerifier> {
 
     }
 
-    public DEUTSCH(string instance) {
-        _instance = instance;
+    public DEUTSCH(string input) {
+        instance = input;
 
 
 
         // TODO: implement parsing of string instance of {NAME}. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
         //
+
+
         StringParser parser = new("{(i, w) | i is int, w is int}");
+
         parser.parse(instance);
-        items = parser["i"];
-        I = int.Parse(parser["i"].ToString());
-        W = int.Parse(parser["w"].ToString());
+
+        // items = parser["i"];
+        int I = int.Parse(parser["i"].ToString());
+        int W = int.Parse(parser["w"].ToString());
 
 
     }

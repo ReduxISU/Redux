@@ -7,7 +7,7 @@ class ProblemSolver : ISolver<DEUTSCH> {
     public string solverName {get;} = "{SOLVER}";
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
-    public string[] contributers {get;} = { "TODO" };
+    public string[] contributors {get;} = { "ME", "You" };
 
     // --- Methods Including Constructors ---
     public ProblemSolver() {}

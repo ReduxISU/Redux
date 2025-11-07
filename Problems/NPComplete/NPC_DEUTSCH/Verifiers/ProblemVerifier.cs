@@ -8,7 +8,7 @@ class ProblemVerifier : IVerifier<DEUTSCH> {
     public string verifierName {get;} = "ProblemVerifier";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
-    private string[] _contributers = { "TODO" };
+    public string[] contributors {get;} = { "ME", "You" };
     private string _certificate =  "";
 
     public string certificate {
