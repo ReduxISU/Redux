@@ -1,7 +1,7 @@
 using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_{PROBLEM}.Solvers;
-class {SOLVER_PASCEL_CASE} : ISolver<{PROBLEM}> {
+namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
+class ProblemSolver : ISolver<DEUTSCH> {
 
     // --- Fields ---
     public string solverName {get;} = "{SOLVER}";
@@ -10,9 +10,9 @@ class {SOLVER_PASCEL_CASE} : ISolver<{PROBLEM}> {
     public string[] contributers {get;} = { "TODO" };
 
     // --- Methods Including Constructors ---
-    public {SOLVER_PASCEL_CASE}() {}
+    public ProblemSolver() {}
 
-    public string solve({PROBLEM} problem){
+    public string solve(DEUTSCH problem){
         // TODO: implement {SOLVER} for {PROBLEM}
         return "{}";
     }
