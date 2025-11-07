@@ -1,10 +1,10 @@
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Solvers;
-using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Verifiers;
+using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
+using API.Problems.NPComplete.NPC_DEUTSCH.Verifiers;
 
-namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
+namespace API.Problems.NPComplete.NPC_DEUTSCH;
 
-class {NAME_UPPERCASE} : IProblem<{NAME_PASCEL_CASE}Solver, {NAME_PASCEL_CASE}Verifier> {
+class DEUTSCH : IProblem<ProblemSolver, ProblemVerifier> {
 
     // --- Fields ---
     public string problemName {get;} = "{NAME}";
@@ -15,15 +15,15 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCEL_CASE}Solver, {NAME_PASCEL_CASE}Ve
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
-    public {NAME_PASCEL_CASE}Solver defaultSolver {get;} = new {NAME_PASCEL_CASE}Solver();
-    public {NAME_PASCEL_CASE}Verifier defaultVerifier {get;} = new {NAME_PASCEL_CASE}Verifier();
+    public ProblemSolver defaultSolver {get;} = new ProblemSolver();
+    public ProblemVerifier defaultVerifier {get;} = new ProblemVerifier();
     public string[] contributers = { "TODO" };
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();
     // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
     // private int _K ;
-    // private {NAME_PASCEL_CASE}Graph _{NAME_CAMEL_CASE}AsGraph;
+    // private ProblemGraph _{NAME_CAMEL_CASE}AsGraph;
 
     // --- Properties ---
 
@@ -52,7 +52,7 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCEL_CASE}Solver, {NAME_PASCEL_CASE}Ve
     //         _K = value;
     //     }
     // }
-    // public {NAME_PASCEL_CASE}Graph {NAME_CAMEL_CASE}AsGraph {
+    // public ProblemGraph {NAME_CAMEL_CASE}AsGraph {
     //     get{
     //         return _{NAME_CAMEL_CASE}AsGraph;
     //     }
