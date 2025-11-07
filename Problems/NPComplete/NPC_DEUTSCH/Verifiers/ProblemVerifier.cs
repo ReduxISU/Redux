@@ -1,11 +1,11 @@
 using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
+namespace API.Problems.NPComplete.NPC_DEUTSCH.Verifiers;
 
-class {VERIFIER_PASCEL_CASE} : IVerifier<{PROBLEM}> {
+class ProblemVerifier : IVerifier<DEUTSCH> {
 
     // --- Fields ---
-    public string verifierName {get;} = "{VERIFIER}";
+    public string verifierName {get;} = "ProblemVerifier";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
     private string[] _contributers = { "TODO" };
@@ -18,11 +18,11 @@ class {VERIFIER_PASCEL_CASE} : IVerifier<{PROBLEM}> {
     }
 
     // --- Methods Including Constructors ---
-    public {VERIFIER_PASCEL_CASE}Verifier() {
+    public ProblemVerifier() {
         
     }
 
-    public bool verify({PROBLEM} problem, string certificate){
+    public bool verify(DEUTSCH problem, string certificate){
         // TODO: implement {VERIFIER} for {PROBLEM}
         return true;
     }
