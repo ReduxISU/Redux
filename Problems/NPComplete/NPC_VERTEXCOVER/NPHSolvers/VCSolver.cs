@@ -4,8 +4,7 @@ using API.Interfaces.Graphs.GraphParser;
 
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.NPHSolvers;
-/*
-class VCSolverJanita /*: ISolver {
+class VCSolverJanita /*: ISolver */ {
 
     // --- Fields ---
     public string solverName {get;} = "Generic Solver";
@@ -100,8 +99,7 @@ class VCSolverJanita /*: ISolver {
         Dictionary<string, bool> solutionDict = new Dictionary<string, bool>();
         // GraphParser gParser = new GraphParser();
         VERTEXCOVER vertexcover = new VERTEXCOVER(problemInstance);
-        VertexCoverGraph vGraph = vertexcover.graph;
-        List<string> problemInstanceNodes = vGraph.nodesStringList;
+        List<string> problemInstanceNodes = vertexcover.graph.Nodes.ToList().Select(x => x.ToString()).ToList();
         // List<string> solvedNodes = gParser.getNodesFromNodeListString(solutionString);
         List<string> solvedNodes = GraphParser.parseNodeListWithStringFunctions(solutionString);
 
@@ -123,4 +121,3 @@ class VCSolverJanita /*: ISolver {
     }
 
 }
-*/

@@ -12,7 +12,6 @@
 
 
   <ItemGroup>
-    <Compile Remove="problems\Temp\**;redux-tests\**" />
     <PackageReference Include="SPADE" Version="0.1.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
       <Content Include="Problems\**" CopyToPublishDirectory="PreserveNewest" />

@@ -104,7 +104,7 @@ public class ProblemProvider : ControllerBase
     /// <summary>
     /// Gets info about a particular object
     /// </summary>
-    /// <param name="interface" example = "3SAT">the name of the object to get the info of</param>
+    /// <param name="interface" example = "SAT3">the name of the object to get the info of</param>
     /// <returns>an object instance</returns>
     [ProducesResponseType(typeof(object), 200)]
     [HttpGet("info")]

@@ -141,7 +141,7 @@ class UtilCollectionGraph : Graph
 
     public override string ToString()
     {
-        return @"({nodes},{edges})";
+        return $"({Nodes},{Edges})";
     }
 
 }
