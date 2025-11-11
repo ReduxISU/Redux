@@ -9,7 +9,7 @@ class SAT3Verifier : IVerifier<SAT3> {
     public string verifierName {get;} = "3SAT Verifier";
     public string verifierDefinition {get;} = "This is a verifier for 3SAT. It takes the certificate from " + 
                                          "the user and validates that every clause contains a true literal";
-    public string source {get;} = " ";
+    public string source {get;} = "";
     public string[] contributors {get;} = { "Kaden Marchetti"};
 
     private string _certificate = "";

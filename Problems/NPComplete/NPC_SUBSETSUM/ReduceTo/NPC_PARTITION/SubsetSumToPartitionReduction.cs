@@ -3,12 +3,13 @@ using API.Problems.NPComplete.NPC_PARTITION;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_PARTITION;
 
-class PartitionReduction : IReduction<SUBSETSUM, PARTITION> {
+class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
 
     // --- Fields ---
     public string reductionName {get;} = "PARTITION Reduction";
     public string reductionDefinition {get;} = "Karp's Reduction from Subset Sum to Partition";
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
   
     private string _complexity ="";
@@ -47,11 +48,13 @@ class PartitionReduction : IReduction<SUBSETSUM, PARTITION> {
 
 
     // --- Methods Including Constructors ---
-    public PartitionReduction(SUBSETSUM from) {
+    public SubsetSumToPartitionReduction(SUBSETSUM from) {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
+    public SubsetSumToPartitionReduction(string instance) : this(new SUBSETSUM(instance)) { }
+    public SubsetSumToPartitionReduction() : this(new SUBSETSUM()) { }
     public PARTITION reduce() {
         SUBSETSUM SUBSETSUMInstance = _reductionFrom;
         PARTITION reducedPARTITION = new PARTITION();
@@ -78,16 +81,8 @@ class PartitionReduction : IReduction<SUBSETSUM, PARTITION> {
         return reducedPARTITION;
     }
 
-    public string mapSolutions(SUBSETSUM problemFrom,PARTITION problemTo, string problemFromSolution){
-        if(!problemFrom.defaultVerifier.verify(problemFrom,problemFromSolution)){
-            return "Subset Sum Solution is incorect";
-        }
-
-        return problemTo.S[0];
-       
-
-
-
+    public string mapSolutions(string problemFromSolution)
+    {
+        return reductionTo.S[0];
     }
 }
-// return an instance of what you are reducing to

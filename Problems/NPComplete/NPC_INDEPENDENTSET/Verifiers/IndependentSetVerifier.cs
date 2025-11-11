@@ -8,7 +8,7 @@ class IndependentSetVerifier : IVerifier<INDEPENDENTSET> {
     // --- Fields ---
     public string verifierName {get;} = "Independent Verifier";
     public string verifierDefinition {get;} = "This is a verifier for Independent Set";
-    public string source {get;} = " ";
+    public string source {get;} = "";
     public string[] contributors {get;} = {"Russell Phillips"};
 
 

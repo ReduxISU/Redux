@@ -8,7 +8,7 @@ class CliqueVerifier : IVerifier<CLIQUE> {
     // --- Fields ---
     public string verifierName {get;} = "Clique Verifier";
     public string verifierDefinition {get;} = "This is a verifier for Clique";
-    public string source {get;} = " ";
+    public string source {get;} = "";
     public string[] contributors {get;} = {"Caleb Eardley", "Kaden Marchetti"};
 
 

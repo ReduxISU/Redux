@@ -1,11 +1,15 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Interfaces.Graphs.GraphParser;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_CLIQUE;
 using API.Problems.NPComplete.NPC_INDEPENDENTSET;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.ReduceTo.NPC_CLIQUE;
 
-class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
+class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
 
     // --- Fields ---
@@ -13,9 +17,10 @@ class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
     public string reductionDefinition {get;} = @"This reduction converts an independent set problem into a clique problem, 
                                             by taking the complement of the graph, or inverting all the edges.";
     public string source {get;} = "";
+    public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)#Relationship_to_other_graph_parameters";
     public string[] contributors {get;} = {"Russell Phillips"};
 
-    private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
+    public List<Gadget> gadgets { get; }
     private INDEPENDENTSET _reductionFrom;
     private CLIQUE _reductionTo;
 
@@ -23,14 +28,6 @@ class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
 
 
     // --- Properties ---
-    public Dictionary<Object,Object> gadgetMap {
-        get{
-            return _gadgetMap;
-        }
-        set{
-            _gadgetMap = value;
-        }
-    }
     public INDEPENDENTSET reductionFrom {
         get {
             return _reductionFrom;
@@ -49,11 +46,19 @@ class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
     }
 
     // --- Methods Including Constructors ---
-    public CliqueReduction(INDEPENDENTSET from) {
+    public reduceToCLIQUE(INDEPENDENTSET from)
+    {
+        gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
+
+    public reduceToCLIQUE(string from) : this(new INDEPENDENTSET(from))
+    {
+
+    }
+    public reduceToCLIQUE() : this(new INDEPENDENTSET()) { }
 
     /// <summary>
     /// Reduces a CLIQUE instance to a VERTEXCOVER instance.
@@ -69,15 +74,25 @@ class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
 
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
-        foreach(var i in INDPENDENTSETInstance.nodes){
-            foreach(var j in INDPENDENTSETInstance.nodes){
-                KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i,j);
-                KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j,i);
-                if(!(INDPENDENTSETInstance.edges.Contains(pairCheck1) || INDPENDENTSETInstance.edges.Contains(pairCheck2) || i.Equals(j) || edges.Contains(pairCheck1) || edges.Contains(pairCheck2))){
+        foreach (var i in INDPENDENTSETInstance.nodes)
+        {
+            foreach (var j in INDPENDENTSETInstance.nodes)
+            {
+                KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i, j);
+                KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j, i);
+                if (!(INDPENDENTSETInstance.edges.Contains(pairCheck1) || INDPENDENTSETInstance.edges.Contains(pairCheck2) || i.Equals(j) || edges.Contains(pairCheck1) || edges.Contains(pairCheck2)))
+                {
                     edges.Add(pairCheck1);
                 }
             }
         }
+
+        //set up gadgets
+        foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes)
+        {
+            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
+        }
+
         // --- Generate G string for new CLIQUE ---
         string nodesString = "";
         foreach (string nodes in INDPENDENTSETInstance.nodes) {
@@ -99,27 +114,9 @@ class CliqueReduction : IReduction<INDEPENDENTSET, CLIQUE> {
 
     }
 
-    public string mapSolutions(INDEPENDENTSET problemFrom, CLIQUE problemTo, string problemFromSolution){
-        //Check if the solution is correct
-        if(!problemFrom.defaultVerifier.verify(problemFrom,problemFromSolution)){
-            return "Indpendent Set solution is incorect " + problemFromSolution;
-        }
-
-        //Parse problemFromSolution into a list of nodes
-        List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
-
-        //Map solution
-        List<string> mappedSolutionList = new List<string>();
-        foreach(string node in problemFrom.nodes){
-            if(!solutionList.Contains(node)){
-                mappedSolutionList.Add(node);
-            }
-        }
-        string problemToSolution = "";
-        foreach(string node in mappedSolutionList){
-            problemToSolution += node + ',';
-        }
-        return '{' + problemToSolution.TrimEnd(',') + '}';
-
+    public string mapSolutions(string problemFromSolution)
+    {
+        return problemFromSolution;
     }
+
 }

@@ -7,7 +7,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
     // --- Fields ---
     public string solverName {get;} = "3-Dimensional Matching Brute Force Solver";
     public string solverDefinition {get;} = "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.";
-    public string source {get;} = "This is a brute force solver which simply test all combinations of hyper edges.";
+    public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
 
     // --- Methods Including Constructors ---

@@ -26,9 +26,9 @@ public class ProblemTemplate : ControllerBase
                 {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
                 {$"NPC_{problemNameUpper}/{problemNamePascel}Graph.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/ProblemGraph.txt"))},
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
-                {$"NPC_{problemNameUpper}/{problemNameUpper}_Controller.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Controller.txt"))},
                 {$"NPC_{problemNameUpper}/Solvers/{problemNamePascel}Solver.cs", GenerateSolverTemplate(problemName, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
                 {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascel}Verifier.cs", GenerateVerifierTemplate(problemName, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
+                {$"NPC_{problemNameUpper}/visualizations/{problemNamePascel}Visualization.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
             }
         );
 
@@ -50,7 +50,6 @@ public class ProblemTemplate : ControllerBase
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {$"NPC_{problemFrom}/ReduceTo/NPC_{problemTo}/{reductionNamePascel}.cs", GenerateReductionTemplate(problemFrom, problemTo, reductionName, System.IO.File.ReadAllText($"{templatePath}/ReduceTo/NPC_PROBLEM/Reduction.txt"))},
-                {$"NPC_{problemFrom}/{reductionNamePascel}_Controller.cs", GenerateReductionTemplate(problemFrom, problemTo, reductionName, System.IO.File.ReadAllText($"{templatePath}/Reduction_Controller.txt"))},
             }
         );
 
@@ -71,7 +70,6 @@ public class ProblemTemplate : ControllerBase
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {$"NPC_{problemName}/Solvers/{solverNamePascel}.cs", GenerateSolverTemplate(problemName, solverName, System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
-                {$"NPC_{problemName}/{solverNamePascel}_Controller.cs", GenerateSolverTemplate(problemName, solverName, System.IO.File.ReadAllText($"{templatePath}/Solver_Controller.txt"))},
             }
         );
 
@@ -92,7 +90,6 @@ public class ProblemTemplate : ControllerBase
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {$"NPC_{problemName}/Verifiers/{verifierNamePascel}.cs", GenerateVerifierTemplate(problemName, verifierName, System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
-                {$"NPC_{problemName}/{verifierNamePascel}_Controller.cs", GenerateVerifierTemplate(problemName, verifierName, System.IO.File.ReadAllText($"{templatePath}/Verifier_Controller.txt"))},
             }
         );
 

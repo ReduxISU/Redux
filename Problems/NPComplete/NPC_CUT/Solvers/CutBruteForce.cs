@@ -93,33 +93,6 @@ public CutBruteForce() {
         }
         return "{}";
     }
-
-    /// <summary>
-    /// Given Clique instance in string format and solution string, outputs a solution dictionary with 
-    /// true values mapped to nodes that are in the solution set else false. 
-    /// </summary>
-    /// <param name="problemInstance"></param>
-    /// <param name="solutionString"></param>
-    /// <returns></returns>
-   public Dictionary<KeyValuePair<string,string>, bool> getSolutionDict(string problemInstance, string solutionString){
-
-        Dictionary<KeyValuePair<string,string>, bool> solutionDict = new Dictionary<KeyValuePair<string,string>, bool>();
-        CUT cut = new CUT(problemInstance);
-        CutGraph cGraph = cut.cutAsGraph;
-        List<KeyValuePair<string, string>> problemInstanceEdges = cGraph.edgesKVP;
-        List<KeyValuePair<string, string>> solvedEdges = GraphParser.parseUndirectedEdgeListWithStringFunctions(solutionString);
-
-        foreach(var edge in solvedEdges){
-            problemInstanceEdges.Remove(edge);
-            solutionDict.Add(edge, true);
-       }
-        foreach(var edge in problemInstanceEdges){
-          
-                solutionDict.Add(edge, false);
-        }
-
-        return solutionDict;
-    }
 }
 
    

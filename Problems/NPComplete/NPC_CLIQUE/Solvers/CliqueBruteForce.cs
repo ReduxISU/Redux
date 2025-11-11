@@ -94,8 +94,7 @@ class CliqueBruteForce : ISolver<CLIQUE> {
         Dictionary<string, bool> solutionDict = new Dictionary<string, bool>();
         GraphParser gParser = new GraphParser();
         CLIQUE clique = new CLIQUE(problemInstance);
-        CliqueGraph cGraph = clique.cliqueAsGraph;
-        List<string> problemInstanceNodes = cGraph.nodesStringList;
+        List<string> problemInstanceNodes = clique.nodes;
         List<string> solvedNodes = gParser.getNodesFromNodeListString(solutionString);
         
         // Remove solvedNodes from instanceNodes

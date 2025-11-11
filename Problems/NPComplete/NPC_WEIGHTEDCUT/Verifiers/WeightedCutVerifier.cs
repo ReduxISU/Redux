@@ -1,5 +1,8 @@
+using System.Collections;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
+using Microsoft.AspNetCore.Localization;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Verifiers;
 
@@ -22,28 +25,22 @@ class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
 
 
     // --- Methods Including Constructors ---
-    public WeightedCutVerifier() {
+    public WeightedCutVerifier() { }
         
-    }
-    private List<string> parseCertificate(string certificate){
-
-        List<string> edgeList = certificate.Replace("{{", "").Replace("}}","").Replace(" ","").Split("},{").ToList();
-        return edgeList;
-    }
     public bool verify(WEIGHTEDCUT problem, string certificate){
 
         if(certificate == "{}") {
             return false;
         }
-        
-        List<string> edgeList = parseCertificate(certificate); 
+
+        UtilCollection edgeList = new(certificate);
         int counter = 0;
-        foreach(var i in edgeList){
-            List<string> currentEdge = i.Split(",").ToList();
-            string source = currentEdge[0];
-            string destination = currentEdge[1];
-            int weight = Int32.Parse(currentEdge[2]);
-            if ((problem.edges.Contains((source,destination,weight)) || problem.edges.Contains((destination,source,weight))) && !currentEdge[1].Equals(currentEdge[0])) { //Checks if edge exists, then adds to cut
+        foreach(UtilCollection i in edgeList){
+            List<UtilCollection> cast = i[0].ToList();
+            string source = cast[0].ToString();
+            string destination = cast[1].ToString();
+            int weight = Int32.Parse(i[1].ToString());
+            if ((problem.edges.Contains((source,destination,weight)) || problem.edges.Contains((destination,source,weight))) && !cast[0].Equals(cast[1])) { //Checks if edge exists, then adds to cut
                 counter += weight;
             }
             

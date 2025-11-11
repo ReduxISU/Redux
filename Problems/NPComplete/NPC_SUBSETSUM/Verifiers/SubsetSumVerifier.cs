@@ -7,7 +7,7 @@ class SubsetSumVerifier : IVerifier<SUBSETSUM> {
     // --- Fields ---
     public string verifierName {get;} = "Subset Sum Verifier";
     public string verifierDefinition {get;} = "This is a verifier for Subset Summ";
-    public string source {get;} = " ";
+    public string source {get;} = "";
     public string[] contributors {get;} = { "Garret Stouffer"};
 
     private string _certificate = "";

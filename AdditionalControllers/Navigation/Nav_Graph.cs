@@ -131,40 +131,45 @@ class ProblemGraph {
         return edges;
     }
 
-    public List<string> getConnectedProblems(string problemName){
-        List<string> connectedNodes = new List<string>();
-        Stack<string> stack = new Stack<string>();
-        HashSet<string> visited = new HashSet<string>{};
-        stack.Push(problemName);
-        while(stack.Count > 0) {
-            string currentNode = stack.Pop();
+    public List<string> getConnectedProblems(string problemName)
+{
+    List<string> connectedNodes = new List<string>();
+    Queue<string> queue = new Queue<string>();
+    HashSet<string> visited = new HashSet<string>();
 
-            Dictionary<string, List<string>> adjacentNodes = this.graph[currentNode];
+    queue.Enqueue(problemName);
 
-            // Console.WriteLine(currentNode);
-            // var options = new JsonSerializerOptions { WriteIndented = true };
-            // Console.WriteLine(JsonSerializer.Serialize(nodes,options));
-            // Console.WriteLine("-------------------------------");
-               // add node to visited
-            if(!visited.Contains(currentNode)){ 
-                visited.Add(currentNode);
-            }
-            foreach(KeyValuePair<string, List<string>> node in adjacentNodes){
-                if(!connectedNodes.Contains(node.Key) && node.Key != problemName){
-                    // connectedNodes.Add("*"+node.Key); //transitive
-                    connectedNodes.Add(node.Key);
-                }
+    while (queue.Count > 0)
+    {
+        string currentNode = queue.Dequeue();
 
-                if(!visited.Contains(node.Key)){
-                    stack.Push(node.Key);
+        if (visited.Contains(currentNode))
+            continue;
+
+        visited.Add(currentNode);
+
+        if (this.graph.TryGetValue(currentNode, out var adjacentNodes))
+        {
+            foreach (var node in adjacentNodes.Keys)
+            {
+                if (!visited.Contains(node) && node != problemName)
+                {
+                    connectedNodes.Add(node);
+                    queue.Enqueue(node);
                 }
             }
         }
-        for(int i=0; i<connectedNodes.Count; i++){
-            connectedNodes[i] = connectedNodes[i].ToUpper();
-        }
-        return connectedNodes;
     }
+
+    // Convert all results to uppercase
+    for (int i = 0; i < connectedNodes.Count; i++)
+    {
+        connectedNodes[i] = connectedNodes[i].ToUpper();
+    }
+
+    return connectedNodes;
+}
+
 
     public List<List<string>> getReductionPath(string startProblem, string endProblem){
         if(endProblem.Contains("*")){

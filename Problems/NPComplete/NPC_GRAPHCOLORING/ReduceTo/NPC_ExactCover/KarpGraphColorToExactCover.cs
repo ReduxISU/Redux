@@ -1,23 +1,24 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
-using API.Problems.NPComplete.NPC_ExactCover;
+using API.Problems.NPComplete.NPC_EXACTCOVER;
 
-namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_ExactCover;
+namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_EXACTCOVER;
 
-class GraphColorToExactCoverReduction : IReduction<GRAPHCOLORING, ExactCover>
+class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
 {
 
     // --- Fields ---
     public string reductionName {get;} = "Exact Cover Reduction";
     public string reductionDefinition {get;} = "Karp's Reduction from Exact Cover to Subset Sum";
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
     private string _complexity = "";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private GRAPHCOLORING _reductionFrom;
-    private ExactCover _reductionTo;
+    private EXACTCOVER _reductionTo;
 
 
     // --- Properties ---
@@ -43,7 +44,7 @@ class GraphColorToExactCoverReduction : IReduction<GRAPHCOLORING, ExactCover>
             _reductionFrom = value;
         }
     }
-    public ExactCover reductionTo
+    public EXACTCOVER reductionTo
     {
         get
         {
@@ -58,16 +59,18 @@ class GraphColorToExactCoverReduction : IReduction<GRAPHCOLORING, ExactCover>
 
 
     // --- Methods Including Constructors ---
-    public GraphColorToExactCoverReduction(GRAPHCOLORING from)
+    public KarpGraphColorToExactCover(GRAPHCOLORING from)
     {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
-    public ExactCover reduce()
+    public KarpGraphColorToExactCover(string instance) : this(new GRAPHCOLORING(instance)) { }
+    public KarpGraphColorToExactCover() : this(new GRAPHCOLORING()) { }
+    public EXACTCOVER reduce()
     {
         GRAPHCOLORING GRAPHCOLORINGInstance = _reductionFrom;
-        ExactCover reducedExactCover = new ExactCover();
+        EXACTCOVER reducedExactCover = new EXACTCOVER();
 
         List<string> universalSet = new List<string>();
         List<List<string>> subsets = new List<List<string>>();
@@ -168,18 +171,9 @@ class GraphColorToExactCoverReduction : IReduction<GRAPHCOLORING, ExactCover>
         return reducedExactCover;
     }
 
-    public string mapSolutions(GRAPHCOLORING reductionFrom, ExactCover problemTo, string reductionFromSolution)
+    public string mapSolutions(string reductionFromSolution)
     {
-        if (!reductionFrom.defaultVerifier.verify(reductionFrom, reductionFromSolution))
-        {
-            return "Solution is incorect";
-        }
-
-        return false.ToString();
-
-
-
-
+        return "";
     }
 
 }

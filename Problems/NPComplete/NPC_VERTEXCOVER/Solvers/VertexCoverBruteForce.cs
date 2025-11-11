@@ -80,8 +80,7 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
         Dictionary<string, bool> solutionDict = new Dictionary<string, bool>();
         // GraphParser gParser = new GraphParser();
         VERTEXCOVER vertexcover = new VERTEXCOVER(problemInstance);
-        VertexCoverGraph vGraph = vertexcover.graph;
-        List<string> problemInstanceNodes = vGraph.nodesStringList;
+        List<string> problemInstanceNodes = vertexcover.nodes;
         // List<string> solvedNodes = gParser.getNodesFromNodeListString(solutionString);
         List<string> solvedNodes = GraphParser.parseNodeListWithStringFunctions(solutionString);
 
