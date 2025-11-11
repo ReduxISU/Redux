@@ -2,13 +2,13 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCH.Verifiers;
 
-class ProblemVerifier : IVerifier<DEUTSCH> {
+class DeutschVerifier : IVerifier<DEUTSCH> {
 
     // --- Fields ---
     public string verifierName {get;} = "ProblemVerifier";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
-    public string[] contributors {get;} = { "ME", "You" };
+    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
     private string _certificate =  "";
 
     public string certificate {
@@ -18,7 +18,7 @@ class ProblemVerifier : IVerifier<DEUTSCH> {
     }
 
     // --- Methods Including Constructors ---
-    public ProblemVerifier() {
+    public DeutschVerifier() {
         
     }
 
