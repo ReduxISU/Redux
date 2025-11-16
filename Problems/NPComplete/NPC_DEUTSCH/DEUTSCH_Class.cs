@@ -30,29 +30,20 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualiza
 
     }
 
-    static bool f0(bool x) {
-        return false;
-    }
-    static bool f1(bool x) {
-        return x;
-    }
-    static bool f2(bool x) {
-        return !x;
-    }
+    private bool[] _funcValues = new bool[2]{ false, false };
 
-    static bool f3(bool x)
-    {
-        return true;
-    }
-
-    private Func<bool, bool> _f = f0;
-
-
-    
-    [JsonIgnore] public Func<bool, bool> FUNC {
+    public bool[] funcValues {
         get {
-            return _f;
+            return _funcValues;
         }
+        set {
+            _funcValues = value;
+        }
+    }
+
+    public bool Func(bool x)
+    {
+        return x ? funcValues[1] : funcValues[0];        
     }
 
     public DEUTSCH(string input)
@@ -68,23 +59,6 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualiza
         int W = int.Parse(parser["w"].ToString());
 
         // determine which function to use
-
-        _f = f0;
-        if (I == 0 && W == 0)
-        {
-            _f = f0;
-        }
-        else if (I == 0 && W != 0)
-        {
-            _f = f1;
-        }
-        else if (I != 0 && W == 0)
-        {
-            _f = f2;
-        }
-        else if (I != 0 && W != 0)
-        {
-            _f = f3;
-        }
+        funcValues = new bool[2]{ I != 0, W != 0 };;
     }
 }

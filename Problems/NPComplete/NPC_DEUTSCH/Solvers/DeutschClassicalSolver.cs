@@ -12,9 +12,9 @@ class DeutschClassicalSolver : ISolver<DEUTSCH> {
     // --- Methods Including Constructors ---
     public DeutschClassicalSolver() {}
 
-    public string solve(DEUTSCH problem){
-       if (problem.FUNC(false) == problem.FUNC(true))
-           return "constant";
+    public string solve(DEUTSCH problem) {
+        if (problem.Func(false) == problem.Func(true))
+            return "constant";
         return "balanced";
     }
 }
