@@ -6,8 +6,8 @@ namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Verifiers;
 class HamiltonianVerifier : IVerifier<HAMILTONIAN> {
 
     // --- Fields ---
-    public string verifierName {get;} = "Hamiltonian Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for Undirected Hamiltonian Circut";
+    public string verifierName {get;} = "Hamiltonian Path Verifier";
+    public string verifierDefinition {get;} = "This is a verifier for Hamiltonian Path";
     public string source {get;} = " ";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 

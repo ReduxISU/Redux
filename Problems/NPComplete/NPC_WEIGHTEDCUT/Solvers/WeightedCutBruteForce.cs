@@ -65,7 +65,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
                                 weight = edge.weight;
                             }
                         }
-                        certificate += "{" + i + "," + j + "," + weight + "},"; // adds edge
+                        certificate += "({" + i + "," + j + "}," + weight + "),"; // adds edge
                     }
                     else if (edgeFound2 && !i.Equals(j))
                     { // checks if edge exists
@@ -74,7 +74,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
                                 weight = edge.weight;
                             }
                         }
-                        certificate += "{" + i + "," + j+ "," + weight + "},"; // adds edge
+                        certificate += "({" + i + "," + j + "}," + weight + "),"; // adds edge
                     }
                 }
             }

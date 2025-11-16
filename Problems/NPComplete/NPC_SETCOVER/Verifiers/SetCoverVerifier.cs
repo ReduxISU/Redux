@@ -8,7 +8,7 @@ class SetCoverVerifier : IVerifier<SETCOVER> {
     // --- Fields ---
     public string verifierName {get;} = "Set Cover Verifier";
     public string verifierDefinition {get;} = "This is a verifier for Set Cover";
-    public string source {get;} = " ";
+    public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
 
 

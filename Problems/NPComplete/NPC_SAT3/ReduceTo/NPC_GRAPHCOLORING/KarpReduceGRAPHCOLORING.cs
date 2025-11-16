@@ -1,19 +1,19 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
-
+using API.Problems.NPComplete.NPC_SAT;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_GRAPHCOLORING;
 
-class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
+class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING>
 {
 
 
     #region Fields
-    public string reductionName {get;} = "Karps's Graph Coloring Reduction";
-    public string reductionDefinition {get;} = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
-    public string source {get;} = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
-    public string[] contributors {get;} = { "Daniel Igbokwe"};
-    private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
+    public string reductionName { get; } = "Karps's Graph Coloring Reduction";
+    public string reductionDefinition { get; } = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
+    public string source { get; } = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
+    public string[] contributors { get; } = { "Daniel Igbokwe" };
+    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private SAT3 _reductionFrom;
     private GRAPHCOLORING _reductionTo;
@@ -34,11 +34,14 @@ class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
             _complexity = value;
         }
     }
-    public Dictionary<Object,Object> gadgetMap {
-        get{
+    public Dictionary<Object, Object> gadgetMap
+    {
+        get
+        {
             return _gadgetMap;
         }
-        set{
+        set
+        {
             _gadgetMap = value;
         }
     }
@@ -70,13 +73,14 @@ class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
     #endregion
 
     #region Constructors
-    public KarpReduction(SAT3 from)
+    public KarpReduceGRAPHCOLORING(SAT3 from)
     {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
-
+    public KarpReduceGRAPHCOLORING(string instance) : this(new SAT3(instance)) { }
+    public KarpReduceGRAPHCOLORING() : this(new SAT3()) { }
 
     # endregion
 
@@ -252,7 +256,7 @@ class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
 
         }
 
-        
+
 
         // for (int i = 0; i < edges.Count; i++){
         //     for (int j = 0; j < edges.Count; j++){
@@ -268,7 +272,7 @@ class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
         // if an instance has {a,b} then the KVP list should have {a,b} && {b, a}
 
 
-        
+
 
         // Set GRAPHCOLORING edges 
         reducedGRAPHCOLORING.edges = edges;
@@ -289,8 +293,10 @@ class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
     public void addEdge(string x, string y, List<KeyValuePair<string, string>> edges, List<string> instanceEdges)
     {
 
-        foreach(var elem in edges){
-            if(elem.Key.Equals(y) && elem.Value.Equals(x)){
+        foreach (var elem in edges)
+        {
+            if (elem.Key.Equals(y) && elem.Value.Equals(x))
+            {
                 // Console.WriteLine("This is this the key: "+ y + " This is the val: "+x + "\n");
                 return;
             }
@@ -300,99 +306,116 @@ class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
 
 
         KeyValuePair<string, string> fullEdge = new KeyValuePair<string, string>(x, y);
-          KeyValuePair<string, string> reverseEdge = new KeyValuePair<string, string>(y, x);
+        KeyValuePair<string, string> reverseEdge = new KeyValuePair<string, string>(y, x);
 
 
         //  Console.WriteLine("This is allowed edge the key: "+ x + " This is allowed the val: "+y+ "\n");
         edges.Add(fullEdge);
-         edges.Add(reverseEdge);
+        edges.Add(reverseEdge);
 
-      
+
     }
 
-    public string mapSolutions(SAT3 problemFrom, GRAPHCOLORING problemTo, string problemFromSolution){
+    public string mapSolutions(string problemFromSolution)
+    {
         //Check if the colution is correct
-        if(!problemFrom.defaultVerifier.verify(problemFrom,problemFromSolution)){
+        if (!reductionFrom.defaultVerifier.verify(reductionFrom, problemFromSolution))
+        {
             return "Solution is inccorect";
         }
 
         //Parse problemFromSolution into a list of nodes
-        List<string> solutionList = problemFromSolution.Replace(" ","").Replace("(","").Replace(")","").Split(",").ToList();
-        for(int i=0; i<solutionList.Count; i++){
+        List<string> solutionList = problemFromSolution.Replace(" ", "").Replace("(", "").Replace(")", "").Split(",").ToList();
+        for (int i = 0; i < solutionList.Count; i++)
+        {
             string[] tempSplit = solutionList[i].Split(":");
-            if(tempSplit[1] == "False"){
-                solutionList[i] = "!"+tempSplit[0];
+            if (tempSplit[1] == "False")
+            {
+                solutionList[i] = "!" + tempSplit[0];
             }
-            else if(tempSplit[1] == "True"){
+            else if (tempSplit[1] == "True")
+            {
                 solutionList[i] = tempSplit[0];
             }
-            else{solutionList[i] = "";}
-            
+            else { solutionList[i] = ""; }
+
         }
         solutionList.RemoveAll(x => string.IsNullOrEmpty(x));
 
         //Map solution
         List<string> mappedSolutionList = new List<string>();
         List<string> variables = new List<string>();
-        foreach(string literal in problemFrom.literals){
-            if(!variables.Contains(literal.Replace("!",""))){
-                variables.Add(literal.Replace("!",""));
+        foreach (string literal in reductionFrom.literals)
+        {
+            if (!variables.Contains(literal.Replace("!", "")))
+            {
+                variables.Add(literal.Replace("!", ""));
             }
         }
         mappedSolutionList.Add("F:0");
         mappedSolutionList.Add("T:1");
         mappedSolutionList.Add("B:2");
-        foreach(string variable in variables){
-            if(solutionList.Contains(variable)){
-                mappedSolutionList.Add(string.Format("{0}:1",variable));
-                mappedSolutionList.Add(string.Format("!{0}:0",variable));
+        foreach (string variable in variables)
+        {
+            if (solutionList.Contains(variable))
+            {
+                mappedSolutionList.Add(string.Format("{0}:1", variable));
+                mappedSolutionList.Add(string.Format("!{0}:0", variable));
             }
-            else{
-                mappedSolutionList.Add(string.Format("{0}:0",variable));
-                mappedSolutionList.Add(string.Format("!{0}:1",variable));
+            else
+            {
+                mappedSolutionList.Add(string.Format("{0}:0", variable));
+                mappedSolutionList.Add(string.Format("!{0}:1", variable));
             }
         }
-        for(int i=0; i<problemFrom.clauses.Count; i++){
-            string l0,l1,l2;
-            l0 = problemFrom.clauses[i][0];
-            l1 = problemFrom.clauses[i][1];
-            l2 = problemFrom.clauses[i][2];
+        for (int i = 0; i < reductionFrom.clauses.Count; i++)
+        {
+            string l0, l1, l2;
+            l0 = reductionFrom.clauses[i][0];
+            l1 = reductionFrom.clauses[i][1];
+            l2 = reductionFrom.clauses[i][2];
             int N0, N1, N2, N3, N4, N5;
 
-            if(solutionList.Contains(l0) || solutionList.Contains(l1)){
-                if(solutionList.Contains(l0)){
+            if (solutionList.Contains(l0) || solutionList.Contains(l1))
+            {
+                if (solutionList.Contains(l0))
+                {
                     N0 = 0;
                     N1 = 2;
                 }
-                else{
+                else
+                {
                     N0 = 2;
                     N1 = 0;
                 }
                 N2 = 1;
                 N3 = 0;
                 N4 = 2;
-            }else{
-                
+            }
+            else
+            {
+
                 N2 = 0;
             }
-            N0=1;
-            N1=1;
-            N2=1;
-            N3=1;
-            N4=1;
-            N5=1;
+            N0 = 1;
+            N1 = 1;
+            N2 = 1;
+            N3 = 1;
+            N4 = 1;
+            N5 = 1;
 
-            mappedSolutionList.Add(string.Format("C{0}N0:{1}",i,N0));
-            mappedSolutionList.Add(string.Format("C{0}N1:{1}",i,N1));
-            mappedSolutionList.Add(string.Format("C{0}N2:{1}",i,N2));
-            mappedSolutionList.Add(string.Format("C{0}N3:{1}",i,N3));
-            mappedSolutionList.Add(string.Format("C{0}N4:{1}",i,N4));
-            mappedSolutionList.Add(string.Format("C{0}N5:{1}",i,N5));
+            mappedSolutionList.Add(string.Format("C{0}N0:{1}", i, N0));
+            mappedSolutionList.Add(string.Format("C{0}N1:{1}", i, N1));
+            mappedSolutionList.Add(string.Format("C{0}N2:{1}", i, N2));
+            mappedSolutionList.Add(string.Format("C{0}N3:{1}", i, N3));
+            mappedSolutionList.Add(string.Format("C{0}N4:{1}", i, N4));
+            mappedSolutionList.Add(string.Format("C{0}N5:{1}", i, N5));
         }
 
 
         string problemToSolution = "";
-        foreach(string node in mappedSolutionList){
+        foreach (string node in mappedSolutionList)
+        {
             problemToSolution += node + ',';
         }
         return "{(" + problemToSolution.TrimEnd(',') + "):3}";
@@ -400,7 +423,5 @@ class KarpReduction : IReduction<SAT3, GRAPHCOLORING>
 }
 
     #endregion
-
-
 
 

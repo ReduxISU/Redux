@@ -156,7 +156,7 @@ public List<string> getNodesFromNodeListString(string input){
     public static List<string> parseNodeListWithStringFunctions(string input){
         List<string> retList = new List<string>();
         try{
-            retList = input.Replace("{","").Replace("}","").Replace(" ","").Split(",").ToList();
+            retList = input.Replace("{","").Replace("}","").Split(",").ToList();
             return retList;
         }
         catch(Exception e){
@@ -186,7 +186,7 @@ public List<string> getNodesFromNodeListString(string input){
     public static List<KeyValuePair<string, string>> parseUndirectedEdgeListWithStringFunctions(string input){
             List<KeyValuePair<string, string>> retList = new List<KeyValuePair<string, string>>();
             try{
-                List<string> sList = input.Replace("{{", "").Replace("}}","").Replace(" ","").Split("},{").ToList();
+                List<string> sList = input.Replace("{{", "").Replace("}}","").Split("},{").ToList();
                 foreach(string s in sList){
                     List<string> currentEdge = s.Split(",").ToList();
                     string k = currentEdge[0];

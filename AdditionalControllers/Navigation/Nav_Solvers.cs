@@ -122,9 +122,9 @@ public class Problem_SolversRefactorController : ControllerBase {
              // Note -Caleb- the following is a temp solution to solve 3SAT using a clique solver remove, when
              // this is implemented to work for all problems
 
-             if(chosenProblem == "SAT3"){
-                subFilesList.Add("CliqueBruteForce - via SipserReduceToCliqueStandard");
-             }
+            //  if(chosenProblem == "SAT3"){
+            //     subFilesList.Add("CliqueBruteForce - via SipserReduceToCliqueStandard");
+            //  }
 
              jsonString = JsonSerializer.Serialize(subFilesList, options);
 

@@ -6,8 +6,8 @@ namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Solvers;
 class HamiltonianBruteForce : ISolver<HAMILTONIAN> {
 
     // --- Fields ---
-    public string solverName {get;} = "Hamiltonian Brute Force Solver";
-    public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Hamiltonian problem";
+    public string solverName {get;} = "Hamiltonian Path Brute Force Solver";
+    public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Hamiltonian Path problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 

@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Solvers;
 using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Verifiers;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Visualizers;
 
 namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
 
@@ -8,15 +9,18 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCEL_CASE}Solver, {NAME_PASCEL_CASE}Ve
 
     // --- Fields ---
     public string problemName {get;} = "{NAME}";
+    public string problemLink {get;} = "TODO";
     public string formalDefinition {get;} = "TODO";
     public string problemDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
+    public string sourceLink {get;} = "TODO";
     private static readonly string _defaultInstance = "TODO";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
     public {NAME_PASCEL_CASE}Solver defaultSolver {get;} = new {NAME_PASCEL_CASE}Solver();
     public {NAME_PASCEL_CASE}Verifier defaultVerifier {get;} = new {NAME_PASCEL_CASE}Verifier();
+    public {NAME_PASCEL_CASE}Visualization defaultVisualization {get;} = new {NAME_PASCEL_CASE}Visualization();
     public string[] contributers = { "TODO" };
 
     // TODO: implement properties if {NAME} is a graphing problem

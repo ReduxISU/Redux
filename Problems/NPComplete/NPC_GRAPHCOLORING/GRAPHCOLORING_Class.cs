@@ -1,19 +1,22 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.Verifiers;
+using API.Problems.NPComplete.NPC_GRAPHCOLORING.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING;
 
-class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifier, GraphColoringGraph> {
+class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifier, GraphColoringDefaultVisualization, UtilCollectionGraph> {
 
 
     #region Fields
     public string problemName {get;} = "Graph Coloring";
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Graph_coloring";
     public string formalDefinition {get;} = "GRAPHCOLORING = {<G,k> | G is a graph that has a k-coloring}";
     public string problemDefinition {get;} = "An assignment of labels (e.g., colors) to the vertices of a graph such that no two adjacent vertices are of the same label. This is called a vertex coloring.";
 
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Daniel Igbokwe", "Alex Diviney" };
 
     private static string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
@@ -36,8 +39,8 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
     public GraphColoringBruteForce defaultSolver {get;} = new GraphColoringBruteForce();
     public GraphColoringVerifier defaultVerifier {get;} = new GraphColoringVerifier();
 
-    private GraphColoringGraph _graphColoringAsGraph;
-    public GraphColoringGraph graph {get => _graphColoringAsGraph;}
+    public GraphColoringDefaultVisualization defaultVisualization { get; } = new GraphColoringDefaultVisualization();
+    public UtilCollectionGraph graph { get; }
 
     #endregion
 
@@ -82,16 +85,6 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
         }
     }
 
-   public GraphColoringGraph graphColoringAsGraph {
-    get {
-        return _graphColoringAsGraph;
-    }
-    set {
-        _graphColoringAsGraph = value;
-    }
-   }
-
-    
     public SortedSet<string> colors {
         get {
             return _colors;
@@ -121,7 +114,7 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
         }).ToList();
         _K = int.Parse(graphcoloring["K"].ToString());
 
-        _graphColoringAsGraph = new GraphColoringGraph(nodes, edges, _K);
+        graph = new UtilCollectionGraph(graphcoloring["N"], graphcoloring["E"]);
     }
 
     #endregion

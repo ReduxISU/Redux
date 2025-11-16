@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_JOBSEQ.Verifiers;
 class JobSeqVerifier : IVerifier<JOBSEQ> {
     public string verifierName {get;} = "Job Sequencing Verifier";
     public string verifierDefinition {get;} = "This is a verifier for Job Sequencing";
-    public string source {get;} = " ";
+    public string source {get;} = "";
     public string[] contributors {get;} = {"Russell Phillips"};
 
 

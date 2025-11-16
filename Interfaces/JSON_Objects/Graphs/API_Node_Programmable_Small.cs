@@ -8,9 +8,6 @@ namespace API.Interfaces.JSON_Objects.Graphs;
 
 class API_Node_Programmable_Small{
     private string _name;
-    private string _attribute1;
-    private string _attribute2;
-    private string _attribute3;
     private string _color;
     private string _outline;
     private string _delay;
@@ -18,20 +15,14 @@ class API_Node_Programmable_Small{
 
     public API_Node_Programmable_Small(){
         this._name = "APINODE";
-        this._attribute1 = "";
-        this._attribute2 = "";
-        this._attribute3 = "";
         this._color = "";
         this._outline = "";
         this._delay = "";
         this._dashed = "";
     }
 
-    public API_Node_Programmable_Small(string nm,string attr1="",string attr2="", string attr3="", string color="", string outline="", string delay="", string dashed="") {
+    public API_Node_Programmable_Small(string nm, string color="", string outline="", string delay="", string dashed="") {
         _name = nm;
-        _attribute1 = attr1;
-        _attribute2 = attr2;
-        _attribute3 = attr3;
         _color = color;
         _outline = outline;
         _delay = delay;
@@ -39,35 +30,11 @@ class API_Node_Programmable_Small{
     }
     
     public string name{
-        get{
+        get
+        {
             return _name;
         }
     }
-    public string attribute1{
-        get{
-            return _attribute1;
-        }
-        set{
-        _attribute1 = value;
-        }
-    }
-    public string attribute2{
-        get{
-            return _attribute2;
-        }
-        set{
-            _attribute2 = value;
-        }
-    }
-    public string attribute3{
-        get{
-            return _attribute3;
-        }
-        set{
-            _attribute3 = value;
-        }
-    }
-
     public string color{
         get{
             return _color;
@@ -95,12 +62,23 @@ class API_Node_Programmable_Small{
         }
     }
 
-    public string dashed{
-        get{
+    public string dashed
+    {
+        get
+        {
             return _dashed;
         }
-        set{
+        set
+        {
             _dashed = value;
+        }
+    }
+    
+    public string id
+    {
+        get
+        {
+            return name;
         }
     }
     

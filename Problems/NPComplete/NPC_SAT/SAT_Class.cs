@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.DummyClasses;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
@@ -6,19 +7,22 @@ using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SAT;
 
- class SAT : IProblem<SATBruteForceSolver, SATVerifier> {
+ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
 
 
     #region Fields
 
     // --- Fields ---
     public string problemName {get;} = "SAT";
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Boolean_satisfiability_problem";
     public string formalDefinition {get;} = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
     public string problemDefinition {get;} = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
-    public string source {get;} = ".";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Daniel Igbokwe" };
 
-    public string defaultInstance {get;} = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1) & (!x3 | x4 | !x2 | x1) & (!x4 | !x1) & (x4 | x3 | !x1)";
+    public static string _defaultInstance { get; } = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1) & (!x3 | x4 | !x2 | x1) & (!x4 | !x1) & (x4 | x3 | !x1)";
+    public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
 
     public string wikiName {get;} = "";
@@ -26,7 +30,8 @@ namespace API.Problems.NPComplete.NPC_SAT;
     private List<string> _literals = new List<string>();
    
     public SATBruteForceSolver defaultSolver {get;} = new SATBruteForceSolver();
-    public SATVerifier defaultVerifier {get;} = new SATVerifier();
+    public SATVerifier defaultVerifier { get; } = new SATVerifier();
+    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
 
     #endregion
 

@@ -1,10 +1,12 @@
 using API.Interfaces;
+using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_NODESET;
 using API.Problems.NPComplete.NPC_VERTEXCOVER;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_NODESET;
 
-class VertexCoverReduction : IReduction<VERTEXCOVER, NODESET>
+class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
 {
 
     // --- Fields ---
@@ -14,24 +16,12 @@ class VertexCoverReduction : IReduction<VERTEXCOVER, NODESET>
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
     private string _complexity = "";
-    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
-
+    public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;
     private NODESET _reductionTo;
 
 
     // --- Properties ---
-    public Dictionary<Object, Object> gadgetMap
-    {
-        get
-        {
-            return _gadgetMap;
-        }
-        set
-        {
-            _gadgetMap = value;
-        }
-    }
     public VERTEXCOVER reductionFrom
     {
         get
@@ -58,12 +48,15 @@ class VertexCoverReduction : IReduction<VERTEXCOVER, NODESET>
 
 
     // --- Methods Including Constructors ---
-    public VertexCoverReduction(VERTEXCOVER from)
+    public KarpVertexCoverToNodeSet(VERTEXCOVER from)
     {
+        gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
+    public KarpVertexCoverToNodeSet(string instance) : this(new VERTEXCOVER(instance)) { }
+    public KarpVertexCoverToNodeSet() : this(new VERTEXCOVER()) { }
     public NODESET reduce()
     {
         VERTEXCOVER VERTEXCOVERInstance = _reductionFrom;
@@ -74,6 +67,12 @@ class VertexCoverReduction : IReduction<VERTEXCOVER, NODESET>
         {
             instance += node + ',';
         }
+
+        foreach (UtilCollection node in VERTEXCOVERInstance.graph.Nodes)
+        {
+            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
+        }
+        // --- Generate G string for new CLIQUE ---
 
         instance = instance.TrimEnd(',') + "},{(";
         foreach (var node in reductionFrom.nodes)
@@ -100,18 +99,9 @@ class VertexCoverReduction : IReduction<VERTEXCOVER, NODESET>
         return reducedNODESET;
     }
 
-    public string mapSolutions(VERTEXCOVER problemFrom, NODESET problemTo, string problemFromSolution)
+    public string mapSolutions(string problemFromSolution)
     {
-        if (true)
-        {
-            return "Solution is incorect";
-        }
-
-        return false.ToString();
-
-
-
-
+        return "";
     }
 }
 // return an instance of what you are reducing to

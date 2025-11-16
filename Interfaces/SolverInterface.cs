@@ -1,3 +1,7 @@
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.JSON_Objects.Graphs;
+using API.Tools;
+
 namespace API.Interfaces;
 
 interface ISolver {
@@ -7,6 +11,11 @@ interface ISolver {
     string[] contributors { get; }
 
     string solve(string problem);
+
+    List<string> GetSteps(string instance)
+    {
+        return new List<string>();
+    }
 }
 
 interface ISolver<T> : ISolver where T : IProblem {
@@ -17,4 +26,15 @@ interface ISolver<T> : ISolver where T : IProblem {
         return solve((T)Activator.CreateInstance(typeof(T), problem));
     }
     string solve(T problem);
+
+
+    List<string> ISolver.GetSteps(string instance)
+    {
+        return GetSteps((T)Activator.CreateInstance(typeof(T), instance));
+    }
+
+    List<string> GetSteps(T problem)
+    {
+        return new List<string>();
+    }
 }

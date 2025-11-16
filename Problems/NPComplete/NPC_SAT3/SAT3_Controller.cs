@@ -13,6 +13,7 @@ using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_INTPROGRAMMING01;
 
 namespace API.Problems.NPComplete.NPC_SAT3;
 
+
 [ApiController]
 [Route("[controller]")]
 [Tags("3 SAT")]
@@ -23,12 +24,12 @@ public class SipserReduceToCliqueStandardController : ControllerBase {
 ///<summary>Returns a reduction object with info for Sipser's 3SAT to Clique reduction </summary>
 ///<response code="200">Returns SipserReduction object</response>
 
-    [ProducesResponseType(typeof(SipserReduction), 200)]
+    [ProducesResponseType(typeof(SipserReduceToCliqueStandard), 200)]
     [HttpGet("info")]
     public String getInfo() {
         var options = new JsonSerializerOptions { WriteIndented = true };
         SAT3 defaultSAT3 = new SAT3();
-        SipserReduction reduction = new SipserReduction(defaultSAT3);
+        SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(defaultSAT3);
         string jsonString = JsonSerializer.Serialize(reduction, options);
         return jsonString;
     }
@@ -37,32 +38,15 @@ public class SipserReduceToCliqueStandardController : ControllerBase {
 ///<param name="problemInstance" example="(x1|!x2|x3)&amp;(!x1|x3|x1)&amp;(x2|!x3|x1)">3SAT problem instance string.</param>
 ///<response code="200">Returns Sipser's 3SAT to Clique SipserReduction object</response>
 
-    [ProducesResponseType(typeof(SipserReduction), 200)]
+    [ProducesResponseType(typeof(SipserReduceToCliqueStandard), 200)]
     [HttpPost("reduce")]
     public String getReduce([FromBody]string problemInstance) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         SAT3 defaultSAT3 = new SAT3(problemInstance);
-        SipserReduction reduction = new SipserReduction(defaultSAT3);
+        SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(defaultSAT3);
         string jsonString = JsonSerializer.Serialize(reduction, options);
         return jsonString;
     }
-
-    [ApiExplorerSettings(IgnoreApi = true)]
-    [HttpGet("solvedVisualization")]
-    #pragma warning disable CS1591
-    public String getSolvedVisualization([FromQuery]string problemInstance, string solution) {
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        SAT3 defaultSAT3 = new SAT3(problemInstance);
-        Sat3BacktrackingSolver solver = defaultSAT3.defaultSolver;
-        SipserReduction reduction = new SipserReduction(defaultSAT3);
-        SipserClique reducedClique = reduction.reduce();
-        //Turn string into solution dictionary
-        List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(solution);
-        SipserClique sClique = reduction.solutionMappedToClusterNodes(reducedClique,solutionList);
-        string jsonString = JsonSerializer.Serialize(sClique.clusterNodes, options);
-        return jsonString;
-    }
-    #pragma warning disable CS1591
 
 
 
@@ -81,8 +65,8 @@ public class SipserReduceToCliqueStandardController : ControllerBase {
         var options = new JsonSerializerOptions { WriteIndented = true };
         SAT3 sat3 = new SAT3(problemFrom);
         SipserClique clique = new SipserClique(problemTo);
-        SipserReduction reduction = new SipserReduction(sat3);
-        string mappedSolution = reduction.mapSolutions(sat3,clique,problemFromSolution);
+        SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
+        string mappedSolution = reduction.mapSolutions(problemFromSolution);
         string jsonString = JsonSerializer.Serialize(mappedSolution, options);
         return jsonString;
     }
@@ -102,13 +86,14 @@ public class SipserReduceToCliqueStandardController : ControllerBase {
         var options = new JsonSerializerOptions { WriteIndented = true };
         SAT3 sat3 = new SAT3(problemFrom);
         SipserClique clique = new SipserClique(problemTo);
-        SipserReduction reduction = new SipserReduction(sat3);
+        SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
         string mappedSolution = reduction.reverseMapSolutions(sat3,clique,problemToSolution);
         string jsonString = JsonSerializer.Serialize(mappedSolution, options);
         return jsonString;
     }
 
 }
+
 
 [ApiController]
 [Route("[controller]")]
@@ -120,13 +105,13 @@ public class KarpReduceGRAPHCOLORINGController : ControllerBase {
 ///<summary>Returns a reduction object with info for Karps's 3SAT to Graph Coloring reduction </summary>
 ///<response code="200">Returns KarpReduction object</response>
 
-    [ProducesResponseType(typeof(KarpReduction), 200)]
+    [ProducesResponseType(typeof(KarpReduceGRAPHCOLORING), 200)]
     [HttpGet("info")]
     public String getInfo(){
 
         var options = new JsonSerializerOptions { WriteIndented = true };
         SAT3 defaultSAT3 = new SAT3();
-        KarpReduction reduction = new KarpReduction(defaultSAT3);
+        KarpReduceGRAPHCOLORING reduction = new KarpReduceGRAPHCOLORING(defaultSAT3);
         string jsonString = JsonSerializer.Serialize(reduction, options);
         return jsonString;
     }
@@ -135,11 +120,11 @@ public class KarpReduceGRAPHCOLORINGController : ControllerBase {
 ///<param name="problemInstance" example="(x1|!x2|x3)&amp;(!x1|x3|x1)&amp;(x2|!x3|x1)">3SAT problem instance string.</param>
 ///<response code="200">Returns Karp's 3SAT to Graph Coloring KarpReduction object</response>
 
-    [ProducesResponseType(typeof(KarpReduction), 200)]
+    [ProducesResponseType(typeof(KarpReduceGRAPHCOLORING), 200)]
     [HttpPost("reduce")]
     public String getReduce([FromBody]string problemInstance){
          
-        KarpReduction reduction = new KarpReduction(new SAT3(problemInstance));
+        KarpReduceGRAPHCOLORING reduction = new KarpReduceGRAPHCOLORING(new SAT3(problemInstance));
         var options = new JsonSerializerOptions { WriteIndented = true };
         string jsonString = JsonSerializer.Serialize(reduction, options);
         return jsonString;
@@ -155,14 +140,13 @@ public class KarpReduceGRAPHCOLORINGController : ControllerBase {
         var options = new JsonSerializerOptions { WriteIndented = true };
         SAT3 sat3 = new SAT3(problemFrom);
         GRAPHCOLORING graphColoring = new GRAPHCOLORING(problemTo);
-        KarpReduction reduction = new KarpReduction(sat3);
-        string mappedSolution = reduction.mapSolutions(sat3,graphColoring,problemFromSolution);
+        KarpReduceGRAPHCOLORING reduction = new KarpReduceGRAPHCOLORING(sat3);
+        string mappedSolution = reduction.mapSolutions(problemFromSolution);
         string jsonString = JsonSerializer.Serialize(mappedSolution, options);
         return jsonString;
     }
     #pragma warning restore CS1591
 }
-
 
 [ApiController]
 [Route("[controller]")]
@@ -215,7 +199,7 @@ public class KarpIntProgStandardController : ControllerBase {
         SAT3 sat3 = new SAT3(problemFrom);
         INTPROGRAMMING01 intProg = new INTPROGRAMMING01(problemTo);
         KarpIntProgStandard reduction = new KarpIntProgStandard(sat3);
-        string mappedSolution = reduction.mapSolutions(sat3,intProg,problemFromSolution);
+        string mappedSolution = reduction.mapSolutions(problemFromSolution);
         string jsonString = JsonSerializer.Serialize(mappedSolution, options);
         return jsonString;
     }
@@ -272,7 +256,7 @@ public class GareyJohnsonController : ControllerBase {
         SAT3 sat3 = new SAT3(problemFrom);
         DM3 dm3 = new DM3(problemTo);
         GareyJohnson reduction = new GareyJohnson(sat3);
-        string mappedSolution = reduction.mapSolutions(sat3,dm3,problemFromSolution);
+        string mappedSolution = reduction.mapSolutions(problemFromSolution);
         string jsonString = JsonSerializer.Serialize(mappedSolution, options);
         return jsonString;
     }

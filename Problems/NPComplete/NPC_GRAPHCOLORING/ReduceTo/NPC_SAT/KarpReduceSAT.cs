@@ -10,10 +10,10 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
     public string reductionName {get;} = "Karp's SAT Reduction";
     public string reductionDefinition {get;} = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
     public string source {get;} = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
+    public string sourceLink {get;} = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
     public string[] contributors {get;} = {"Daniel Igbokwe"};
     // Dictionary<Object,List<string>> _gadgetMap = new Dictionary<object, List<string>>();
     
-    private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
     private GRAPHCOLORING _reductionFrom;
     private SAT _reductionTo;
     private string _complexity = "O(n^2)";
@@ -34,14 +34,6 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
         }
     }
 
-    public Dictionary<Object,Object> gadgetMap {
-        get{
-            return _gadgetMap;
-        }
-        set{
-            _gadgetMap = value;
-        }
-    }
     public GRAPHCOLORING reductionFrom
     {
         get
@@ -76,6 +68,8 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
         _reductionFrom = from;
         _reductionTo = reduce();
     }
+    public KarpReduceSAT(string instance) : this(new GRAPHCOLORING(instance)) { }
+    public KarpReduceSAT() : this(new GRAPHCOLORING()) { }
     #endregion
 
 
@@ -108,7 +102,6 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
             reducedNodeClauses.Add(clause.Trim());
             
             // add to gadget dictionary 
-            _gadgetMap[node] = gadgetNodes;
             
 
             for (int i = 0; i < _reductionFrom.K; i++)
@@ -183,8 +176,9 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
 
     }
 
-    public string mapSolutions(GRAPHCOLORING problemFrom, SAT problemTo, string problemFromSolution){
-        return "No mapping currently implemented.";
+    public string mapSolutions(string problemFromSolution)
+    {
+        return "";
     }
     #endregion
 

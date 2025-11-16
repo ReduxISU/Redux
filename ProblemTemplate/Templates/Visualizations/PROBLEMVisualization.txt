@@ -1,0 +1,32 @@
+using API.Interfaces;
+using API.Interfaces.JSON_Objects;
+using API.Problems.NPComplete.{NAME_UPPERCASE};
+
+namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Visualizers
+
+class {NAME_PASCEL_CASE}Visualization : IVisualization<{NAME_UPPERCASE}>
+{
+    public string visualizationName { get; } = "TODO";
+    public string visualizationDefinition { get; } = "TODO";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "TODO" };
+    public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
+
+    // --- Methods Including Constructors ---
+    public {NAME_PASCEL_CASE}Visualization()
+    {
+
+    }
+    public API_JSON visualize({NAME_UPPERCASE} instance)
+    {
+        //TODO: implement visualization
+        
+        //if graph problem below should be fine
+        return {NAME_UPPERCASE}.graph.ToAPIGraph();
+    }
+
+    public API_JSON SolvedVisualization({NAME_UPPERCASE} instance, string solution)
+    {
+        //TODO: implement SolvedVisualization (remove method if not implemented)
+    }
+}

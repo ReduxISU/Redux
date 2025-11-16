@@ -1,57 +1,119 @@
 using API.Interfaces;
+using System.Linq;
 using API.Interfaces.Graphs.GraphParser;
+using SPADE;
+using System.Runtime.ConstrainedExecution;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Verifiers;
 
-class NodeSetVerifier : IVerifier<NODESET> {
+class NodeSetVerifier : IVerifier<NODESET>
+{
 
     // --- Fields ---
-    public string verifierName {get;} = "Node Set Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for the Node Set problem";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"Andrija Sevaljevic"};
+    public string verifierName { get; } = "Node Set Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for the Node Set problem";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 
-    private string _certificate =  "";
+    private string _certificate = "";
 
-      public string certificate {
-        get {
+    public string certificate
+    {
+        get
+        {
             return _certificate;
         }
     }
 
 
     // --- Methods Including Constructors ---
-    public NodeSetVerifier() {
-        
-    }
-    
-    public string toEdges(string certificate, NODESET problem) {
-        List<string> nodes = certificate.Replace("{","").Replace("}","").Split(',').ToList();
-        string certificateEdges = "{";
-        foreach(var i in problem.edges) {
-            if(nodes.Contains(i.Key) || nodes.Contains(i.Value)) {
-                certificateEdges += "(" + i.Key + ',' + i.Value + "),";
-            }
-        }
-        return certificateEdges.TrimEnd(',') + '}';
+    public NodeSetVerifier()
+    {
+
     }
 
-    public bool verify(NODESET problem, string certificate){
-        
-        NodeSetGraph graph = problem.nodeSetAsGraph; 
-        string userInput = toEdges(certificate, problem);
+    public UtilCollection toEdges(string certificate, NODESET problem)
+    {
+        UtilCollection edges = new("{}");
+        UtilCollection cert = new(certificate);
+        foreach (UtilCollection node in cert)
+        {
+            foreach (UtilCollection edge in problem.graph.Edges)
+            {
+                if (edge[0].Equals(node) || edge[1].Equals(node))
+                {
+                    edges.Add(edge);
+                }
+            }
+        }
+        return edges;
+    }
+
+    private bool isACyclical(UtilCollectionGraph graph)
+    {
+        Dictionary<UtilCollection, HashSet<UtilCollection>> reachability = new();
+        foreach (UtilCollection node in graph.Nodes)
+        {
+            HashSet<UtilCollection> neighbour = new();
+            foreach (UtilCollection edge in graph.Edges)
+            {
+                if (edge[0].Equals(node))
+                {
+                    neighbour.Add(edge[1]);
+                }
+            }
+            reachability.Add(node, neighbour);
+        }
+
+
+        bool updated = true; //update reachable nodes until no changes happen
+
+        while (updated)
+        {
+            Dictionary<UtilCollection, HashSet<UtilCollection>> oldReachability = reachability.ToDictionary(
+                kvp => kvp.Key,
+                kvp => new HashSet<UtilCollection>(kvp.Value)
+            );
+            updated = false;
+
+            foreach (KeyValuePair<UtilCollection, HashSet<UtilCollection>> entry in oldReachability)
+            {
+                foreach (UtilCollection targetNode in entry.Value)
+                {
+                    foreach (UtilCollection newReachable in oldReachability[targetNode])
+                    {
+                        if (newReachable.Equals(entry.Key)) return false;
+
+                        if (!entry.Value.Contains(newReachable))
+                        {
+                            updated = true;
+                            reachability[entry.Key].Add(newReachable);
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+    public bool verify(NODESET problem, string certificate)
+    {
+        UtilCollectionGraph graph = problem.graph;
+
+        UtilCollection cert = new(certificate);
+
+        UtilCollection edgesToRemove = toEdges(certificate, problem);
 
         //Checks if certificate matches k-value;
-        graph.processCertificate(userInput);
-        bool isACyclical = true;
-        for(int i=0; i<graph.getNodeList.Count; i++){
-            if(graph.isCyclical(i)){
-                isACyclical = false;
-            }
+        if (cert.Count() > problem.K)
+        {
+            return false;
         }
-        graph.reverseCertificate(userInput);
-        //when userInput is removed from graph is it no longer Cyclical? 
-        return isACyclical;
+        graph = graph.removeEdges(edgesToRemove);
+
+        return isACyclical(graph);
     }
 }

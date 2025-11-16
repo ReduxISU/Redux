@@ -31,12 +31,6 @@ public NodeSetBruteForce() {
         return "{" + certificate + "}"; 
     }
 
-    private List<string> parseCertificate(string certificate){
-
-        List<string> nodeList = GraphParser.parseNodeListWithStringFunctions(certificate);
-        return nodeList;
-    }
-
     // helper function to go through possible combinations
     private List<int> nextComb(List<int> combination, int size){
         for(int i=combination.Count-1; i>=0; i--){

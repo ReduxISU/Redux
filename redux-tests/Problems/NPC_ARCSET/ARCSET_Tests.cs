@@ -6,6 +6,8 @@ using API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_ARCSET;
 using API.Problems.NPComplete.NPC_ARCSET.Verifiers;
 using API.Problems.NPComplete.NPC_ARCSET.Solvers;
 using API.Problems.NPComplete.NPC_VERTEXCOVER;
+using API.Interfaces;
+using SPADE;
 namespace redux_tests;
 
 #pragma warning disable CS1591
@@ -25,11 +27,11 @@ public class ARCSET_Tests
     [Fact]
     public void ARCSETGraph_Default_Instantiation_Test(){
 
-        string testValue = "";
         ARCSET testingArc = new ARCSET();
-        ArcsetGraph testGraph = testingArc.directedGraph;
-        Assert.Equal(testingArc.instance, testGraph.ToString()); //Tests that the arcset instance string is equal to its generated graph string
-        Assert.Equal(testingArc.defaultInstance, testGraph.ToString()); //Bonus test that ensures the default instance and the current instance are the same. 
+        UtilCollectionGraph testGraph = testingArc.graph;
+        Assert.Equal(testingArc.instance, "(" + testGraph.ToString() + ",1)"); //Tests that the arcset instance string is equal to its generated graph string plus the rest of the problem
+        Assert.Equal(1, testingArc.K);
+        Assert.Equal(testingArc.defaultInstance, "(" + testGraph.ToString() + ",1)"); //Bonus test that ensures the default instance and the current instance are the same. 
         Assert.Equal( "(({1,2,3,4},{(1,2),(2,4),(3,2),(4,1),(4,3)}),1)",testingArc.defaultInstance); //tests default instance
     }
 
@@ -38,43 +40,21 @@ public class ARCSET_Tests
 
         string testValue = "";
         ARCSET testingArc = new ARCSET("(({1,2,3,4,5},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)");
-        ArcsetGraph testGraph = testingArc.directedGraph;
-        Assert.Equal(testingArc.instance, testGraph.ToString()); //Tests that the arcset instance string is equal to its generated graph string
-        Assert.Equal("(({1,2,3,4,5},{(1,2),(2,4),(3,2),(4,1),(4,3)}),1)",testingArc.instance); //
+        UtilCollectionGraph testGraph = testingArc.graph;
+        Assert.Equal(testingArc.instance, "(" + testGraph.ToString() + ",1)"); //Tests that the arcset instance string is equal to its generated graph string, plus the rest of the problem
+        Assert.Equal(1, testingArc.K);  //test that it parsed the K value correctly
+        Assert.Equal("(({1,2,3,4,5},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)", testingArc.instance); //
     }
-
-    [Fact]
-    //This test tests a basic DFS, but we also need searches that show how the dfs picks order of nodes to travel down. 
-    public void ARCSETGraph_DFS(){
-        string testValue = "";
-        ARCSET testingArc = new ARCSET("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)");
-        ArcsetGraph testingGraph = testingArc.directedGraph;
-        List<Edge> eList = testingGraph.DFS();
-        Node edge1_node1 = new Node("4");
-        Node edge1_node2 = new Node("1");
-        Edge testEdge1 = new Edge(edge1_node1,edge1_node2 );
-
-        //We know that this test will pass because the starting position of the dfs is the first node in node list, and there are no choices for the dfs to choose left or right.
-        //More sophisticated tests will test how the dfs makes a choice between two paths. 
-        Assert.Equal(testEdge1.directedString(), eList[1].directedString());
-
-        Node edge2_node1 = new Node("3");
-        Node edge2_node2 = new Node("2");
-        Edge testEdge2 = new Edge(edge2_node1, edge2_node2);
-        Assert.Equal(testEdge2.directedString(), eList[0].directedString());
-    }
-
 
     [Fact]
     public void ARCSET_verify_falseoutput(){
 
         ARCSET testArc = new ARCSET();
         ArcSetVerifier verifier = new ArcSetVerifier();
-        Assert.False(verifier.verify(testArc,"(3,2),(4,1)"));
+        Assert.False(verifier.verify(testArc,"{(3,2),(4,1)}"));
     }
 
     [Theory] //tests with default graph string Certificates of this test represent junk or empty data. 
-    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","(2,4)")]
     [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","{(2,4)}")]
     public void ARCSET_verify_theory_true(string ARCSET_Instance, string testCertificate){
         ARCSET testArc = new ARCSET(ARCSET_Instance);
@@ -84,12 +64,12 @@ public class ARCSET_Tests
     }
 
     [Theory] //tests with default graph string and various certificates, this shows that certificates can be accepted in many formats. (false case)
-    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","(3,2),(4,1)")]
-    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","(4,1),(1,2)")]
-    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","(3,2) (4,1)")]
+    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","{(3,2),(4,1)}")]
+    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","{(4,1),(1,2)}")]
+    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","{(3,2) (4,1)}")]
     [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","{(4,1),(3,2)}")]
     [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)"," ")]
-    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","(4,2)")]
+    [InlineData("(({1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)","{(4,2)}")]
      public void ARCSET_verify_theory_false(string ARCSET_Instance, string testCertificate){
         ARCSET testArc = new ARCSET(ARCSET_Instance);
         ArcSetVerifier verifier = new ArcSetVerifier();
@@ -115,7 +95,7 @@ public class ARCSET_Tests
         LawlerKarp reduction = new LawlerKarp(testVCover);
         ARCSET reducedToArcsetInstance = reduction.reduce();
         string arcInstance = reducedToArcsetInstance.instance;
-        Assert.Equal(expectedArcsetInstance, arcInstance);
+        Assert.Equal(new UtilCollection(expectedArcsetInstance), new UtilCollection(arcInstance));
     }
 
 }

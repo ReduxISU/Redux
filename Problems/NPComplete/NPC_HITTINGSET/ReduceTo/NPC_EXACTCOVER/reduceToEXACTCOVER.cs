@@ -1,42 +1,29 @@
 using System.ComponentModel;
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_CLIQUECOVER;
-using API.Problems.NPComplete.NPC_ExactCover;
+using API.Problems.NPComplete.NPC_EXACTCOVER;
 using SPADE;
 using Microsoft.Net.Http.Headers;
 
 namespace API.Problems.NPComplete.NPC_HITTINGSET.ReduceTo.NPC_EXACTCOVER;
 
-class ExactCoverReduction : IReduction<HITTINGSET, ExactCover>
+class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
 {
 
     // --- Fields ---
-    public string reductionName {get;} = "Hitting set Reduction";
-    public string reductionDefinition {get;} = "Karp's Reduction from Hitting Set to Exact Cover";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    public string[] contributors {get;} = { "Russell Phillip" };
+    public string reductionName { get; } = "Hitting Set Reduction";
+    public string reductionDefinition { get; } = "Karp's Reduction from Hitting Set to Exact Cover";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+    public string[] contributors { get; } = { "Russell Phillip" };
 
     private string _complexity = "";
 
-    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private HITTINGSET _reductionFrom;
-    private ExactCover _reductionTo;
+    private EXACTCOVER _reductionTo;
 
 
     // --- Properties ---
-
-    public Dictionary<Object, Object> gadgetMap
-    {
-        get
-        {
-            return _gadgetMap;
-        }
-        set
-        {
-            _gadgetMap = value;
-        }
-    }
     public HITTINGSET reductionFrom
     {
         get
@@ -48,7 +35,7 @@ class ExactCoverReduction : IReduction<HITTINGSET, ExactCover>
             _reductionFrom = value;
         }
     }
-    public ExactCover reductionTo
+    public EXACTCOVER reductionTo
     {
         get
         {
@@ -63,16 +50,18 @@ class ExactCoverReduction : IReduction<HITTINGSET, ExactCover>
 
 
     // --- Methods Including Constructors ---
-    public ExactCoverReduction(HITTINGSET from)
+    public reduceToEXACTCOVER(HITTINGSET from)
     {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
-    public ExactCover reduce()
+    public reduceToEXACTCOVER(string instance) : this(new HITTINGSET(instance)) { }
+    public reduceToEXACTCOVER() : this(new HITTINGSET()) { }
+    public EXACTCOVER reduce()
     {
         UtilCollection universal = new UtilCollection("{}");
-        Dictionary<UtilCollection,int> setsToElement = new Dictionary<UtilCollection,int>();
+        Dictionary<UtilCollection, int> setsToElement = new Dictionary<UtilCollection, int>();
         int elementNum = 1;
         foreach (UtilCollection set in _reductionFrom.subSets)
         {
@@ -95,21 +84,14 @@ class ExactCoverReduction : IReduction<HITTINGSET, ExactCover>
             subsets.Add(newSubset);
         }
 
-        ExactCover reductionTo = new ExactCover($"{{{subsets} : {universal}}}");
+        string input = "(" + universal.ToString() + "," + subsets.ToString() + ")";
+        reductionTo = new EXACTCOVER(input);
+
         return reductionTo;
     }
 
-    public string mapSolutions(HITTINGSET problemFrom, ExactCover problemTo, string problemFromSolution)
+    public string mapSolutions(string problemFromSolution)
     {
-        if (!problemFrom.defaultVerifier.verify(problemFrom, problemFromSolution))
-        {
-            return "Solution is incorect";
-        }
-
-        return false.ToString();
-
-
-
-
+        return "";
     }
 }

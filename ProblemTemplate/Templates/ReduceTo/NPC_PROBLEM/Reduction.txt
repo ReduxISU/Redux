@@ -10,21 +10,13 @@ class {REDUCTION_PASCEL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
     public string reductionDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
     private string[] _contributers = { "TODO" };
-    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private {REDUCE_FROM} _reductionFrom;
     private {REDUCE_TO} _reductionTo;
 
 
     // --- Properties ---
-    public Dictionary<Object, Object> gadgetMap {
-        get{
-            return _gadgetMap;
-        }
-        set{
-            _gadgetMap = value;
-        }
-    }
+    public List<Gadget> gadgets { get; set; }
     public {REDUCE_FROM} reductionFrom {
         get {
             return _reductionFrom;
@@ -47,6 +39,8 @@ class {REDUCTION_PASCEL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
         _reductionFrom = from;
         _reductionTo = reduce();
     }
+    public {REDUCTION_PASCEL_CASE}(string instance) : this(new {REDUCE_FROM}(instance)) { }
+    public {REDUCTION_PASCEL_CASE() : this(new {REDUCE_FROM}()) { }
 
     public {REDUCE_TO} reduce() {
         {REDUCE_FROM} {REDUCE_FROM}Instance = _reductionFrom;

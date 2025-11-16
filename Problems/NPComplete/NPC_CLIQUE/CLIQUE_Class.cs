@@ -1,17 +1,20 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 using API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
+using API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE;
 
-class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueGraph> {
+class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,cliqueDefaultVisualization,UtilCollectionGraph> {
 
     // --- Fields ---
     public string problemName {get;} = "Clique";
+    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Clique";
     public string formalDefinition {get;} = "Clique = {<G, k> | G is an graph that has a set of k mutually adjacent nodes}";
     public string problemDefinition {get;} = "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     private static string _defaultInstance = "(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)"; 
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
@@ -20,9 +23,9 @@ class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueGraph> {
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
     private int _K ;
     public CliqueBruteForce defaultSolver {get;} = new CliqueBruteForce();
-    public CliqueVerifier defaultVerifier {get;} = new CliqueVerifier();
-    private CliqueGraph _cliqueAsGraph;
-    public CliqueGraph graph {get => _cliqueAsGraph;}
+    public CliqueVerifier defaultVerifier { get; } = new CliqueVerifier();
+    public cliqueDefaultVisualization defaultVisualization { get; } = new cliqueDefaultVisualization();
+    public UtilCollectionGraph graph { get; set; }
     public string[] contributors {get;} = { "Kaden Marchetti", "Alex Diviney" };
 
     // --- Properties ---
@@ -52,15 +55,6 @@ class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueGraph> {
         }
     }
 
-    public CliqueGraph cliqueAsGraph {
-        get{
-            return _cliqueAsGraph;
-        }
-        set{
-            _cliqueAsGraph = value;
-        }
-    }
-
     // --- Methods Including Constructors ---
     public CLIQUE() : this(_defaultInstance) {
 
@@ -79,7 +73,7 @@ class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueGraph> {
         _K = int.Parse(cliqueGraph["K"].ToString());
 
 
-        _cliqueAsGraph = new CliqueGraph(nodes, edges, _K);
+        graph = new UtilCollectionGraph(cliqueGraph["N"], cliqueGraph["E"]);
     }
 
 }

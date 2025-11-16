@@ -4,13 +4,14 @@ using API.Problems.NPComplete.NPC_SAT3;
 
 namespace API.Problems.NPComplete.NPC_SAT.ReduceTo.NPC_SAT3;
 
-class SATReduction : IReduction<SAT, SAT3>
+class KarpSATToSAT3 : IReduction<SAT, SAT3>
 {
 
     // --- Fields ---
     public string reductionName {get;} = "Karp's SAT3 Reduction";
     public string reductionDefinition {get;} = "Karp's Reduction from SAT to SAT3";
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
     private string _complexity = "";
@@ -58,12 +59,14 @@ class SATReduction : IReduction<SAT, SAT3>
 
 
     // --- Methods Including Constructors ---
-    public SATReduction(SAT from)
+    public KarpSATToSAT3(SAT from)
     {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
+    public KarpSATToSAT3(string instance) : this(new SAT(instance)) { }
+    public KarpSATToSAT3() : this(new SAT()) { }
     public SAT3 reduce()
     {
         SAT SATInstance = _reductionFrom;
@@ -149,18 +152,9 @@ class SATReduction : IReduction<SAT, SAT3>
     }
 
 
-    public string mapSolutions(SAT reductionFrom, SAT3 problemTo, string reductionFromSolution)
+    public string mapSolutions(string reductionFromSolution)
     {
-        if (!reductionFrom.defaultVerifier.verify(reductionFrom, reductionFromSolution))
-        {
-            return "Solution is incorect";
-        }
-
-        return false.ToString();
-
-
-
-
+        return "";
     }
 
 }

@@ -1,19 +1,24 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_TSP.Solvers;
 using API.Problems.NPComplete.NPC_TSP.Verifiers;
+using API.Problems.NPComplete.NPC_TSP.Visualizations;
+using SPADE;
+
 
 namespace API.Problems.NPComplete.NPC_TSP;
 
-class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPGraph> {
+class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
-    public string problemName {get;} = "Traveling Sales Person";
+    public string problemName {get;} = "Traveling Salesperson";
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Travelling_salesman_problem";
     public string formalDefinition {get;} = "TSP = {<G,k> | G is a weighted graph where there is a path through every vertex whose weights add up to less than k}";
     public string problemDefinition {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
     
     public string source {get;} = "";
-    public string defaultInstance {get;} = "(({Narnia,Atlantis,Wakanda,Pocatello,Neverland},{{Narnia,Atlantis,30},{Narnia,Wakanda,55},{Narnia,Pocatello,80},{Narnia,Neverland,45},{Atlantis,Wakanda,65},{Atlantis,Pocatello,15},{Atlantis,Neverland,30},{Wakanda,Pocatello,40},{Wakanda,Neverland,90},{Pocatello,Neverland,25}}),200)";
+    private static string _defaultInstance { get; } = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
+    public string defaultInstance { get; } = _defaultInstance;
                                       
     public string instance {get;set;} = string.Empty;
     
@@ -21,9 +26,9 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPGraph> {
     private List<(string source, string target, int weight)> _edges = new List<(string source, string destination, int weight)>();
     private int _K;
     public TSPBruteForce defaultSolver {get;} = new TSPBruteForce();
-    public TSPVerifier defaultVerifier {get;} = new TSPVerifier();
-    private TSPGraph _tspAsGraph;
-    public TSPGraph graph {get => _tspAsGraph;}
+    public TSPVerifier defaultVerifier { get; } = new TSPVerifier();
+    public TSPDefaultVisualization defaultVisualization { get; } = new TSPDefaultVisualization();
+    public UtilCollectionGraph graph { get; set; }
     
     public string wikiName {get;} = "";
   
@@ -55,75 +60,25 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPGraph> {
         }
     }
 
-    public TSPGraph tspAsGraph {
-        get{
-            return _tspAsGraph;
-        }
-    }
-
     // --- Methods Including Constructors ---
-    public TSP() {
-        instance = defaultInstance;
-        _tspAsGraph = new TSPGraph(instance,true);
-        nodes = _tspAsGraph.nodesStringList;
-        edges = _tspAsGraph.edgesTuple;
-         _K = _tspAsGraph.K;
-
-
-    }
-    public TSP(string GInput) {
-        _tspAsGraph = new TSPGraph(GInput, true);
-        nodes = _tspAsGraph.nodesStringList;
-        edges = _tspAsGraph.edgesTuple;
-        _K = _tspAsGraph.K;
-        instance = _tspAsGraph.ToString();
+     public TSP() : this(_defaultInstance) {
+        
     }
 
+    public TSP(string GInput)
+    {
+        instance = GInput;
 
-    public List<string> getNodes(string Ginput) {
+        StringParser tsp = new("{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}");
+        tsp.parse(GInput);
+        nodes = tsp["N"].ToList().Select(node => node.ToString()).ToList();
+        edges = tsp["E"].ToList().Select(edge =>
+        {
+            List<UtilCollection> cast = edge[0].ToList();
+            return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
+        }).ToList();
+        _K = int.Parse(tsp["K"].ToString());
 
-        List<string> allGNodes = new List<string>();
-        string strippedInput = Ginput.Replace("{", "").Replace("}", "").Replace(" ", "").Replace("(", "").Replace(")","");
-        
-        // [0] is nodes,  [1] is edges,  [2] is k.
-        string[] Gsections = strippedInput.Split(':');
-        string[] Gnodes = Gsections[0].Split(',');
-        
-        foreach(string node in Gnodes) {
-            allGNodes.Add(node);
-        }
-
-        return allGNodes;
+        graph = new UtilCollectionGraph(tsp["N"], tsp["E"]);
     }
-    public List<KeyValuePair<string, string>> getEdges(string Ginput) {
-
-        List<KeyValuePair<string, string>> allGEdges = new List<KeyValuePair<string, string>>();
-
-        string strippedInput = Ginput.Replace("{", "").Replace("}", "").Replace(" ", "").Replace("(", "").Replace(")","");
-        
-        // [0] is nodes,  [1] is edges,  [2] is k.
-        string[] Gsections = strippedInput.Split(':');
-        string[] Gedges = Gsections[1].Split('&');
-        
-        foreach (string edge in Gedges) {
-            string[] fromTo = edge.Split(',');
-            string nodeFrom = fromTo[0];
-            string nodeTo = fromTo[1];
-            
-            KeyValuePair<string,string> fullEdge = new KeyValuePair<string,string>(nodeFrom, nodeTo);
-            allGEdges.Add(fullEdge);
-        }
-
-        return allGEdges;
-    }
-
-    public int getK(string Ginput) {
-        string strippedInput = Ginput.Replace("{", "").Replace("}", "").Replace(" ", "").Replace("(", "").Replace(")","");
-        
-        // [0] is nodes,  [1] is edges,  [2] is k.
-        string[] Gsections = strippedInput.Split(':');
-        return Int32.Parse(Gsections[2]);
-    }
-
-
 }
