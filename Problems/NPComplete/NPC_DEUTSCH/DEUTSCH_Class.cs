@@ -6,6 +6,8 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCH;
 
+using System.Text.Json.Serialization;
+
 class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualization> {
 
     // --- Fields ---
@@ -45,7 +47,9 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualiza
 
     private Func<bool, bool> _f = f0;
 
-    public Func<bool, bool> FUNC {
+
+    
+    [JsonIgnore] public Func<bool, bool> FUNC {
         get {
             return _f;
         }
