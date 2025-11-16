@@ -14,7 +14,7 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaSolver, DeutschJozsaVerifier, DummyVis
     public string problemDefinition { get; } = "Deutsch-Jozsa's algorithm solves the parity problem. It is represented by an ordered list......"; // plaintext description of the problem
     public string source { get; } = "todo"; // Academic paper proper citation
     public string sourceLink { get; } = "todo"; // Link to the academic paper
-    private static readonly string _defaultInstance = "{2,(1, 1, 1, 1)}";
+    private static readonly string _defaultInstance = "(2,(1, 1, 1, 1))";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
@@ -84,6 +84,7 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaSolver, DeutschJozsaVerifier, DummyVis
         parser.parse(instance);
 
         // items = parser["i"];
+
         int n = int.Parse(parser["n"].ToString());
         SPADE.UtilCollection bitslist = parser["S"];
         Console.WriteLine(bitslist);
