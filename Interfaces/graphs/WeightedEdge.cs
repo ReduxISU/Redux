@@ -60,8 +60,13 @@ public string undirectedString(){
 public string directedString(){
     return "("+source.name+","+_target.name+")";
 }
-public int CompareTo(WeightedEdge other)
+public int CompareTo(WeightedEdge? other)
     {
+        if (other is null) {
+            // Convention: non-null > null
+            return 1;
+        }
+
         int compare =  this.toKVP().Key.CompareTo(other.toKVP().Key);
         if(compare == 0){
             compare = this.toKVP().Value.CompareTo(other.toKVP().Value);
