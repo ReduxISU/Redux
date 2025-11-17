@@ -6,7 +6,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCH;
 
-class DEUTSCH : IProblem<DeutschSolver, DeutschVerifier, DummyVisualization> {
+using System.Text.Json.Serialization;
+
+class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualization> {
 
     // --- Fields ---
     public string problemName {get;} = "Deutsch"; // Name as it appears in the dropdown selection panel
@@ -18,66 +20,35 @@ class DEUTSCH : IProblem<DeutschSolver, DeutschVerifier, DummyVisualization> {
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public DeutschSolver defaultSolver {get;} = new DeutschSolver();
+    public DeutschClassicalSolver defaultSolver {get;} = new DeutschClassicalSolver();
     public DeutschVerifier defaultVerifier { get; } = new DeutschVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
-
-    // TODO: implement properties if {NAME} is a graphing problem
-    // private List<string> _nodes = new List<string>();
-    // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
-    // private int _K ;
-    // private ProblemGraph _{NAME_CAMEL_CASE}AsGraph;
-
-    // --- Properties ---
-
-    // TODO: implement properties if {NAME} is a graphing problem
-    // public List<string> nodes {
-    //     get {
-    //         return _nodes;
-    //     }
-    //     set {
-    //         _nodes = value;
-    //     }
-    // }
-    // public List<KeyValuePair<string, string>> edges {
-    //     get {
-    //         return _edges;
-    //     }
-    //     set {
-    //         _edges = value;
-    //     }
-    // }
-    // public int K {
-    //     get {
-    //         return _K;
-    //     }
-    //     set {
-    //         _K = value;
-    //     }
-    // }
-    // public ProblemGraph {NAME_CAMEL_CASE}AsGraph {
-    //     get{
-    //         return _{NAME_CAMEL_CASE}AsGraph;
-    //     }
-    //     set{
-    //         _{NAME_CAMEL_CASE}AsGraph = value;
-    //     }
-    // }
+    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
 
     // --- Methods and Constructors ---
     public DEUTSCH() : this(_defaultInstance) {
 
     }
 
-    public DEUTSCH(string input) {
+    private bool[] _funcValues = new bool[2]{ false, false };
+
+    public bool[] funcValues {
+        get {
+            return _funcValues;
+        }
+        set {
+            _funcValues = value;
+        }
+    }
+
+    public bool Func(bool x)
+    {
+        return x ? funcValues[1] : funcValues[0];        
+    }
+
+    public DEUTSCH(string input)
+    {
         instance = input;
-
-
-
-        // TODO: implement parsing of string instance of {NAME}. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
-        //
-
 
         StringParser parser = new("{(i, w) | i is int, w is int}");
 
@@ -87,10 +58,7 @@ class DEUTSCH : IProblem<DeutschSolver, DeutschVerifier, DummyVisualization> {
         int I = int.Parse(parser["i"].ToString());
         int W = int.Parse(parser["w"].ToString());
 
-        // This parsing is left over from the template, but we're pretty sure it works for extracting the values from the input
-        // Good luck solver team :) - problems team
-
-
+        // determine which function to use
+        funcValues = new bool[2]{ I != 0, W != 0 };;
     }
-
 }
