@@ -169,7 +169,7 @@ public class Problem_ReductionsRefactorController : ControllerBase {
         jsonString = JsonSerializer.Serialize(subdirsNoPrefix, options);
  
         }
-        catch (System.IO.DirectoryNotFoundException dirNotFoundException){
+        catch (System.IO.DirectoryNotFoundException){
             //Console.WriteLine(NO_REDUCTIONS_ERROR + " directory not found, exception was thrown in Nav_Reductions.cs");
                         jsonString = NO_REDUCTIONS_ERROR;
             //Console.WriteLine(dirNotFoundException.StackTrace);
@@ -273,7 +273,7 @@ public class PossibleReductionsRefactorController : ControllerBase {
             jsonString = JsonSerializer.Serialize(subFilesList, options);
 
         }
-        catch(System.IO.DirectoryNotFoundException notFoundEx){
+        catch(System.IO.DirectoryNotFoundException){
             Console.WriteLine(NOT_FOUND_ERR_REDUCTION);
             jsonString = JsonSerializer.Serialize(NOT_FOUND_ERR_REDUCTION, options);
         }
