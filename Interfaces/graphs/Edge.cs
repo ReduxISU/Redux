@@ -58,9 +58,14 @@ public string undirectedString(){
 public string directedString(){
     return "("+source.name+","+_target.name+")";
 }
-public int CompareTo(Edge other)
+public int CompareTo(Edge? other)
     {
-        int compare =  this.toKVP().Key.CompareTo(other.toKVP().Key);
+        if (other is null) {
+             // Convention: this instance is greater than null
+             return 1;
+        }
+
+        int compare = this.toKVP().Key.CompareTo(other.toKVP().Key);
         if(compare == 0){
             compare = this.toKVP().Value.CompareTo(other.toKVP().Value);
         }
