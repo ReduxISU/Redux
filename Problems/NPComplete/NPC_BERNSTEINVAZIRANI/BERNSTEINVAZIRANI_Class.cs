@@ -3,10 +3,11 @@ using API.DummyClasses;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Verifiers;
 using SPADE;
+using System.Reflection;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 
-class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniSolver, BernsteinVaziraniVerifier, DummyVisualization> {
+class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniVerifier, DummyVisualization> {
 
     // --- Fields ---
     public string problemName {get;} = "Bernstein Vazirani"; // Name as it appears in the dropdown selection panel
@@ -14,85 +15,80 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniSolver, BernsteinVaziraniVer
     public string problemDefinition { get; } = "Bernstein Vazirani's algorithm solves the parity problem. It is represented by an ordered list......"; // plaintext description of the problem
     public string source { get; } = "todo"; // Academic paper proper citation
     public string sourceLink { get; } = "todo"; // Link to the academic paper
-    private static readonly string _defaultInstance = "(2,(1, 1, 1, 1))";
+    private static readonly string _defaultInstance = "(3,(0,1,0,1,1,0,1,0))"; // s=101
+
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public BernsteinVaziraniSolver defaultSolver {get;} = new BernsteinVaziraniSolver();
+    public BernsteinVaziraniClassicalSolver defaultSolver {get;} = new BernsteinVaziraniClassicalSolver();
     public BernsteinVaziraniVerifier defaultVerifier { get; } = new BernsteinVaziraniVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
-
-    // TODO: implement properties if {NAME} is a graphing problem
-    // private List<string> _nodes = new List<string>();
-    // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
-    // private int _K ;
-    // private ProblemGraph _{NAME_CAMEL_CASE}AsGraph;
-
-    // --- Properties ---
-
-    // TODO: implement properties if {NAME} is a graphing problem
-    // public List<string> nodes {
-    //     get {
-    //         return _nodes;
-    //     }
-    //     set {
-    //         _nodes = value;
-    //     }
-    // }
-    // public List<KeyValuePair<string, string>> edges {
-    //     get {
-    //         return _edges;
-    //     }
-    //     set {
-    //         _edges = value;
-    //     }
-    // }
-    // public int K {
-    //     get {
-    //         return _K;
-    //     }
-    //     set {
-    //         _K = value;
-    //     }
-    // }
-    // public ProblemGraph {NAME_CAMEL_CASE}AsGraph {
-    //     get{
-    //         return _{NAME_CAMEL_CASE}AsGraph;
-    //     }
-    //     set{
-    //         _{NAME_CAMEL_CASE}AsGraph = value;
-    //     }
-    // }
+    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
 
     // --- Methods and Constructors ---
     public BERNSTEINVAZIRANI() : this(_defaultInstance) {
+    }
 
+    private List<bool> _funcValues = new List<bool>{false, true};
+    
+    public List<bool> funcValues {
+        get {
+            return _funcValues;
+        }
+        set {
+            _funcValues = value;
+        }
+    }
+
+    private int nbits = 1;
+    public int NBits {
+        get {
+            return nbits;
+        }
+        set {
+            nbits = value;
+        }
+    }
+
+    public bool Func(int x)
+    {
+        if (x < 0 || x >= funcValues.Count) {
+            // XXX deal with error?
+            Console.WriteLine($"{this.GetType().Name}:{MethodBase.GetCurrentMethod()?.Name}: input {x} out of range for function values array of length {funcValues.Count}");
+            return false;
+        }
+        return funcValues[x];
     }
 
     public BERNSTEINVAZIRANI(string input) {
         instance = input;
 
-
-
-        // TODO: implement parsing of string instance of {NAME}. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
-        //
-
-
         StringParser parser = new("{(n, S) | n is int, S is list}");
-
+        Console.WriteLine($"Parsing instance: {instance}");
         parser.parse(instance);
 
-        // items = parser["i"];
-
         int n = int.Parse(parser["n"].ToString());
-        SPADE.UtilCollection bitslist = parser["S"];
-        Console.WriteLine(bitslist);
+        UtilCollection bitslist = parser["S"];
 
-        // This parsing is left over from the template, but we're pretty sure it works for extracting the values from the input
-        // Good luck solver team :) - problems team
+        var fvalues = new List<bool>();
+        bitslist.ToList().ForEach(x => {
+            if (x.ToString() == "0") {
+                fvalues.Add(false);
+            } else if (x.ToString() == "1") {
+                fvalues.Add(true);
+            } else {
+                Console.WriteLine($"{this.GetType().Name}:{MethodBase.GetCurrentMethod()?.Name}: encountered non-bit value {x.ToString()} in function values list");
+                // XXX how do deal with error?
+            }
+        });
 
+        if (fvalues.Count != Math.Pow(2, n)) {
+            Console.WriteLine($"{this.GetType().Name}:{MethodBase.GetCurrentMethod()?.Name}: wrong length of function value list (should be {Math.Pow(2, n)}, got {fvalues.Count})");
+            // XXX the array is the wrong size... how to deal with error?
+            return;
+        }
 
+        nbits = n;
+        funcValues = fvalues;
     }
-
 }
