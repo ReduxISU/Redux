@@ -8,7 +8,8 @@ namespace API.Problems.NPComplete.NPC_DEUTSCH;
 
 using System.Text.Json.Serialization;
 
-class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualization> {
+class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, DummyVisualization>
+{
 
     // --- Fields ---
     public string problemName {get;} = "Deutsch"; // Name as it appears in the dropdown selection panel
@@ -21,7 +22,7 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualiza
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public DeutschClassicalSolver defaultSolver {get;} = new DeutschClassicalSolver();
-    public DeutschVerifier defaultVerifier { get; } = new DeutschVerifier();
+    public DeutschClassicalVerifier defaultVerifier { get; } = new DeutschClassicalVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
 
