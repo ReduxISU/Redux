@@ -1,7 +1,6 @@
 using Xunit;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Verifiers;
-using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 
 namespace redux_tests;
 #pragma warning disable CS1591
