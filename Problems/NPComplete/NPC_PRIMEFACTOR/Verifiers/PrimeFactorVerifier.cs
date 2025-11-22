@@ -1,14 +1,14 @@
 using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_DEUTSCH.Verifiers;
+namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 
-class DeutschVerifier : IVerifier<DEUTSCH> {
+class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
 
     // --- Fields ---
     public string verifierName {get;} = "ProblemVerifier";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public string[] contributors {get;} = { "Paul Gilbreath", "Alex Svancara" };
     private string _certificate =  "";
 
     public string certificate {
@@ -18,11 +18,11 @@ class DeutschVerifier : IVerifier<DEUTSCH> {
     }
 
     // --- Methods Including Constructors ---
-    public DeutschVerifier() {
+    public PrimeFactorVerifier() {
         
     }
 
-    public bool verify(DEUTSCH problem, string certificate){
+    public bool verify(PRIMEFACTOR problem, string certificate){
         // TODO: implement {VERIFIER} for {PROBLEM}
         return true;
     }

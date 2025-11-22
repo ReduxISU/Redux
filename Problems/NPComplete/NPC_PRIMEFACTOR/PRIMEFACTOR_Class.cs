@@ -1,27 +1,28 @@
 using API.Interfaces;
 using API.DummyClasses;
-using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
-using API.Problems.NPComplete.NPC_DEUTSCH.Verifiers;
+using API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
+using API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 using SPADE;
 
-namespace API.Problems.NPComplete.NPC_DEUTSCH;
+namespace API.Problems.NPComplete.NPC_PRIMEFACTOR;
 
-class DEUTSCH : IProblem<DeutschSolver, DeutschVerifier, DummyVisualization> {
+class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, DummyVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Deutsch"; // Name as it appears in the dropdown selection panel
-    public string formalDefinition {get;} =  "Deutsch = {<i, w> | i is int, w is int}"; // Mathematical description of the problem (todo later)
-    public string problemDefinition { get; } = "Deutsch's algorithm solves the parity problem for the special case that n=1. It is represented by an ordered list......"; // plaintext description of the problem
-    public string source { get; } = "todo"; // Academic paper proper citation
-    public string sourceLink { get; } = "https://royalsocietypublishing.org/doi/10.1098/rspa.1985.0070"; // Link to the academic paper
-    private static readonly string _defaultInstance = "(0,1)";
+    public string problemName { get; } = "Prime Factorization"; // Name as it appears in the dropdown selection panel
+    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic";
+    public string formalDefinition {get;} =  "Prime Factorization = {<i> | i is int}"; // Mathematical description of the problem (todo later)
+    public string problemDefinition { get; } = "The prime factorization algorithm solves the decomposition of a positive integer into a product of prime integers."; // plaintext description of the problem
+    public string source { get; } = "Gauss, Carl Friedrich (1801), Disquisitiones Arithmeticae (in Latin), Leipzig: Gerh. Fleischer"; // Academic paper proper citation
+    public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
+    private static readonly string _defaultInstance = "123456";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
-    public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public DeutschSolver defaultSolver {get;} = new DeutschSolver();
-    public DeutschVerifier defaultVerifier { get; } = new DeutschVerifier();
+    public string wikiName {get;} = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
+    public PrimeFactorSolver defaultSolver {get;} = new PrimeFactorSolver();
+    public PrimeFactorVerifier defaultVerifier { get; } = new PrimeFactorVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public string[] contributors {get;} = { "Paul Gilbreath", "Alex Svancara" };
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();
@@ -66,11 +67,11 @@ class DEUTSCH : IProblem<DeutschSolver, DeutschVerifier, DummyVisualization> {
     // }
 
     // --- Methods and Constructors ---
-    public DEUTSCH() : this(_defaultInstance) {
+    public PRIMEFACTOR() : this(_defaultInstance) {
 
     }
 
-    public DEUTSCH(string input) {
+    public PRIMEFACTOR(string input) {
         instance = input;
 
 
@@ -79,13 +80,12 @@ class DEUTSCH : IProblem<DeutschSolver, DeutschVerifier, DummyVisualization> {
         //
 
 
-        StringParser parser = new("{(i, w) | i is int, w is int}");
+        StringParser parser = new("{ i | i is int}");
 
         parser.parse(instance);
 
         // items = parser["i"];
         int I = int.Parse(parser["i"].ToString());
-        int W = int.Parse(parser["w"].ToString());
 
         // This parsing is left over from the template, but we're pretty sure it works for extracting the values from the input
         // Good luck solver team :) - problems team
