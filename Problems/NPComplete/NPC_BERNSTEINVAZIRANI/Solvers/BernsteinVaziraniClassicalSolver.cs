@@ -8,6 +8,7 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
     public string solverDefinition {get;} = "This is a classical solver for the Bernstein-Vazirani problem which runs in O(n) time.";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Jason L. Wright" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public BernsteinVaziraniClassicalSolver() {}

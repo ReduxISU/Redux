@@ -8,13 +8,21 @@ class DeutschClassicalSolver : ISolver<DEUTSCH> {
     public string solverDefinition {get;} = "This is a classical solver for the Deutsch Problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Jason L. Wright" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public DeutschClassicalSolver() {}
 
     public string solve(DEUTSCH problem) {
-        if (problem.Func(false) == problem.Func(true))
-            return "constant";
-        return "balanced";
+        for (; ; )
+        {
+            Console.WriteLine("Solving...");
+            Thread.Sleep(new TimeSpan(0, 0, 1));
+            if (timerHasExpired)
+                return "timeout";
+        }
+        //if (problem.Func(false) == problem.Func(true))
+        //    return "constant";
+        //return "balanced";
     }
 }

@@ -12,6 +12,7 @@ class CliqueBruteForce : ISolver<CLIQUE> {
     public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Clique problem";
     public string source {get;} = "";
     public string[] contributors {get;} = {"Caleb Eardley", "Kaden Marchetti"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public CliqueBruteForce() {

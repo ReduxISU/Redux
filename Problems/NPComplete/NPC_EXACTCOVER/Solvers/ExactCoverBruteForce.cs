@@ -8,6 +8,7 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER> {
     public string solverDefinition {get;} = "This is a generic brute force solver for Exact Cover";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public ExactCoverBruteForce() {

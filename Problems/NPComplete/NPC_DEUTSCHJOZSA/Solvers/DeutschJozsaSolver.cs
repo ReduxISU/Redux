@@ -8,6 +8,7 @@ class DeutschJozsaSolver : ISolver<DEUTSCHJOZSA> {
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public DeutschJozsaSolver() {}
