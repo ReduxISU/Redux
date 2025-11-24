@@ -118,7 +118,10 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
         // Loop through all combinations. The total number of binary choices you can make is 2^(number of items). E.G. 3 variables is 2^3.
         for (int currentCombination = 0; currentCombination < Math.Pow(2, literals.Count); currentCombination++){
             int trueClauses = 0;
-                foreach (List<string> currentClause in clause){
+            if (timerHasExpired)
+                return "timeout";
+
+            foreach (List<string> currentClause in clause){
                     // change the T/F values of the literals. Starts with at least 1 being true by incrementing at the start.
                     literalDict = increment(literalDict); 
                     bool currentEvaluation = evaluate(literalDict, currentClause);
