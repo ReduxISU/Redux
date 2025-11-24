@@ -14,15 +14,8 @@ class DeutschClassicalSolver : ISolver<DEUTSCH> {
     public DeutschClassicalSolver() {}
 
     public string solve(DEUTSCH problem) {
-        for (; ; )
-        {
-            Console.WriteLine("Solving...");
-            Thread.Sleep(new TimeSpan(0, 0, 1));
-            if (timerHasExpired)
-                return "timeout";
-        }
-        //if (problem.Func(false) == problem.Func(true))
-        //    return "constant";
-        //return "balanced";
+        if (problem.Func(false) == problem.Func(true))
+            return "constant";
+        return "balanced";
     }
 }
