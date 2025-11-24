@@ -40,17 +40,15 @@ interface ISolver<T> : ISolver where T : IProblem {
             throw new ArgumentException($"Could not create problem instance for {problem}.");
 
         string result = "no solution found";
-        Thread thread = new Thread(() =>
-        {
-            result = solve(problem);
-        });
+        Thread thread = new Thread(() => result = solve(problemInstance));
 
         // start the thread
         ResetTimer();
         thread.Start();
 
-        // after N sections w/out finishing, tell the thread it's time
+        // after 5 seconds w/out finishing, tell the thread it's time
         // is up and wait for it to finish up.
+        // XXX make the solution time configurable
         if (thread.Join(new TimeSpan(0, 0, 5)) == false)
         {
             TimerExpired();
