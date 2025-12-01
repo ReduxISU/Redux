@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
 
-class DEUTSCHJOZSA : IProblem<DeutschJozsaSolver, DeutschJozsaVerifier, DummyVisualization> {
+class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier, DummyVisualization> {
 
     // --- Fields ---
     public string problemName {get;} = "Deutsch Jozsa"; // Name as it appears in the dropdown selection panel
@@ -18,80 +18,45 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaSolver, DeutschJozsaVerifier, DummyVis
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public DeutschJozsaSolver defaultSolver {get;} = new DeutschJozsaSolver();
+    public DeutschJozsaClassicalSolver defaultSolver {get;} = new DeutschJozsaClassicalSolver();
     public DeutschJozsaVerifier defaultVerifier { get; } = new DeutschJozsaVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
-
-    // TODO: implement properties if {NAME} is a graphing problem
-    // private List<string> _nodes = new List<string>();
-    // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
-    // private int _K ;
-    // private ProblemGraph _{NAME_CAMEL_CASE}AsGraph;
-
-    // --- Properties ---
-
-    // TODO: implement properties if {NAME} is a graphing problem
-    // public List<string> nodes {
-    //     get {
-    //         return _nodes;
-    //     }
-    //     set {
-    //         _nodes = value;
-    //     }
-    // }
-    // public List<KeyValuePair<string, string>> edges {
-    //     get {
-    //         return _edges;
-    //     }
-    //     set {
-    //         _edges = value;
-    //     }
-    // }
-    // public int K {
-    //     get {
-    //         return _K;
-    //     }
-    //     set {
-    //         _K = value;
-    //     }
-    // }
-    // public ProblemGraph {NAME_CAMEL_CASE}AsGraph {
-    //     get{
-    //         return _{NAME_CAMEL_CASE}AsGraph;
-    //     }
-    //     set{
-    //         _{NAME_CAMEL_CASE}AsGraph = value;
-    //     }
-    // }
+    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "George Lake" };
+    
+    public int n { get; set; }
+    public List<int> w {get; set; } = new List<int>();
 
     // --- Methods and Constructors ---
-    public DEUTSCHJOZSA() : this(_defaultInstance) {
-
-    }
+    public DEUTSCHJOZSA() : this(_defaultInstance) {}
 
     public DEUTSCHJOZSA(string input) {
         instance = input;
 
-
-
-        // TODO: implement parsing of string instance of {NAME}. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
-        //
-
-
+        // use SPADE parser to extract n and the list S
         StringParser parser = new("{(n, S) | n is int, S is list}");
-
+        Console.WriteLine($"Parsing instance: {instance}");
         parser.parse(instance);
-
-        // items = parser["i"];
-
-        int n = int.Parse(parser["n"].ToString());
+        n = int.Parse(parser["n"].ToString());
         SPADE.UtilCollection bitslist = parser["S"];
-        Console.WriteLine(bitslist);
+        // Console.WriteLine(bitslist);
+
+        // Convert to C# list
+        w = new List<int>();
+        foreach (var bit in bitslist)
+        {
+            w.Add(int.Parse(bit.ToString()));
+        }
+
+        // --- Validation -----------------------------------------
+        int expectedSize = (int)Math.Pow(2, n);
+        if (w.Count != expectedSize)
+        {
+            throw new ArgumentException($"Invalid instance: n is {n}, which requires {expectedSize} bits in the list, but {w.Count} were given.");
+        }
 
         // This parsing is left over from the template, but we're pretty sure it works for extracting the values from the input
         // Good luck solver team :) - problems team
-
+        // It worked good! -GL
 
     }
 
