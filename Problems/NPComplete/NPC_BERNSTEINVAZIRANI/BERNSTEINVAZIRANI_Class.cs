@@ -7,7 +7,8 @@ using System.Reflection;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 
-class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniVerifier, DummyVisualization> {
+class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, DummyVisualization>
+{
 
     // --- Fields ---
     public string problemName {get;} = "Bernstein Vazirani"; // Name as it appears in the dropdown selection panel
@@ -21,7 +22,7 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public BernsteinVaziraniClassicalSolver defaultSolver {get;} = new BernsteinVaziraniClassicalSolver();
-    public BernsteinVaziraniVerifier defaultVerifier { get; } = new BernsteinVaziraniVerifier();
+    public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
 
@@ -64,7 +65,6 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
         instance = input;
 
         StringParser parser = new("{(n, S) | n is int, S is list}");
-        Console.WriteLine($"Parsing instance: {instance}");
         parser.parse(instance);
 
         int n = int.Parse(parser["n"].ToString());
