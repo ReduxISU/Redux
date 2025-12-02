@@ -18,8 +18,8 @@ class SIMON : IProblem<SIMONSOLVER, SIMONVERIFIER, DummyVisualization> {
     private static readonly string _defaultInstance = "(3, 2, (00, 01, 10, 11, 01, 00, 11, 10))"; 
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public SIMONSOLVER defaultSolver {get;} = new SIMONSOLVER();
-    public SIMONVERIFIER defaultVerifier { get; } = new SIMONVERIFIER();
+    public SIMONSolver defaultSolver {get;} = new SIMONSolver();
+    public SIMONVerifier defaultVerifier { get; } = new SIMONVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
 
@@ -87,6 +87,7 @@ class SIMON : IProblem<SIMONSOLVER, SIMONVERIFIER, DummyVisualization> {
 
         int n = int.Parse(parser["n"].ToString());
         int m = int.Parse(parser["m"].ToString());
+        SPADE.UtilCollection bitslist = parser["S"];
         Console.WriteLine(bitslist);
 
         // This parsing is left over from the template, but we're pretty sure it works for extracting the values from the input
