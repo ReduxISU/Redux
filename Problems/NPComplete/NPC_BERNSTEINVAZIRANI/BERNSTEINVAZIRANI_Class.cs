@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 
-class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, DummyVisualization>
+class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, BernsteinVaziraniDefaultVisualization>
 {
 
     // --- Fields ---
@@ -23,7 +23,7 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public BernsteinVaziraniClassicalSolver defaultSolver {get;} = new BernsteinVaziraniClassicalSolver();
     public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
 
     // --- Methods and Constructors ---
