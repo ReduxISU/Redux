@@ -23,11 +23,11 @@ class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH>
         
         //if graph problem below should be fine
         // return UNSTRUCTUREDSEARCH.graph.ToAPIGraph();
-        return {};
+        return null;
     }
 
-    public API_JSON SolvedVisualization(UNSTRUCTUREDSEARCH instance, string solution)
-    {
-        //TODO: implement SolvedVisualization (remove method if not implemented)
-    }
+    // public API_JSON SolvedVisualization(UNSTRUCTUREDSEARCH instance, string solution)
+    // {
+    //     //TODO: implement SolvedVisualization (remove method if not implemented)
+    // }
 }
