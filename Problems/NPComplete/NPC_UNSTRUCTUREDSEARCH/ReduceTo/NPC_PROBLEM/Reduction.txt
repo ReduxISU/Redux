@@ -1,0 +1,64 @@
+using API.Interfaces;
+using API.Problems.NPComplete.NPC_{REDUCE_TO};
+
+namespace API.Problems.NPComplete.NPC_{REDUCE_FROM}.ReduceTo.NPC_{REDUCE_TO};
+
+class {REDUCTION_PASCEL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
+
+    // --- Fields ---
+    public string reductionName {get;} = "{REDUCTION}";
+    public string reductionDefinition {get;} = "TODO";
+    public string source {get;} = "TODO";
+    private string[] _contributers = { "TODO" };
+
+    private {REDUCE_FROM} _reductionFrom;
+    private {REDUCE_TO} _reductionTo;
+
+
+    // --- Properties ---
+    public List<Gadget> gadgets { get; set; }
+    public {REDUCE_FROM} reductionFrom {
+        get {
+            return _reductionFrom;
+        }
+        set {
+            _reductionFrom = value;
+        }
+    }
+    public {REDUCE_TO} reductionTo {
+        get {
+            return _reductionTo;
+        }
+        set {
+            _reductionTo = value;
+        }
+    }
+
+    // --- Methods Including Constructors ---
+    public {REDUCTION_PASCEL_CASE}({REDUCE_FROM} from) {
+        _reductionFrom = from;
+        _reductionTo = reduce();
+    }
+    public {REDUCTION_PASCEL_CASE}(string instance) : this(new {REDUCE_FROM}(instance)) { }
+    public {REDUCTION_PASCEL_CASE() : this(new {REDUCE_FROM}()) { }
+
+    public {REDUCE_TO} reduce() {
+        {REDUCE_FROM} {REDUCE_FROM}Instance = _reductionFrom;
+        {REDUCE_TO} {REDUCE_TO}Instance = new {REDUCE_TO}();
+        
+        // TODO: implement reduction {REDUCTION} from {REDUCE_FROM} to {REDUCE_TO}
+
+        return {REDUCE_TO}Instance;
+    }
+
+    public string mapSolutions({REDUCE_FROM} problemFrom, {REDUCE_TO} problemTo, string problemFromSolution){
+        // Verifies that the specified solution is valid for {REDUCE_FROM}
+        if(!problemFrom.defaultVerifier.verify(problemFrom, problemFromSolution)) {
+            return "Solution is incorrect";
+        }
+
+        // TODO: implement reduction mapped solution {REDUCTION} from {REDUCE_FROM} to {REDUCE_TO}
+
+        return "TODO";
+    }
+}
