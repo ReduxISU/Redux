@@ -76,8 +76,10 @@ public class NPC_ProblemsController : ControllerBase {
                             .ToArray();
 
         ArrayList jsonedList = new ArrayList();
-        foreach(string problemInstance in subdirs){
-        string jsonPair = $"{{\"{objectPrefix}\" : \"{problemInstance}\"}}";
+        foreach(var problemInstance in subdirs){
+            if (problemInstance is null)
+                continue;
+            string jsonPair = $"{{\"{objectPrefix}\" : \"{problemInstance}\"}}";
             jsonedList.Add(jsonPair);
         }
         
@@ -111,7 +113,9 @@ public class NPC_ProblemsRefactorController : ControllerBase {
                         .ToArray();
 
         ArrayList subdirsNoPrefix = new ArrayList();
-        foreach(string problemDirName in subdirs){
+        foreach(var problemDirName in subdirs){
+            if (problemDirName is null)
+                continue;
             string[] splitStr = problemDirName.Split('_');
             string newName = splitStr[1];
             subdirsNoPrefix.Add(newName);
@@ -143,8 +147,10 @@ public class NPC_ProblemsRefactorController : ControllerBase {
                             .ToArray();
 
         ArrayList jsonedList = new ArrayList();
-        foreach(string problemInstance in subdirs){
-        string jsonPair = $"{{\"{objectPrefix}\" : \"{problemInstance}\"}}";
+        foreach(var problemInstance in subdirs){
+            if (problemInstance is null)
+                continue;
+            string jsonPair = $"{{\"{objectPrefix}\" : \"{problemInstance}\"}}";
             jsonedList.Add(jsonPair);
         }
         

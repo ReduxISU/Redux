@@ -160,7 +160,9 @@ public class Problem_ReductionsRefactorController : ControllerBase {
                             .ToArray();
 
         ArrayList subdirsNoPrefix = new ArrayList();
-        foreach(string problemDirName in subdirs){
+        foreach(var problemDirName in subdirs){
+            if (problemDirName is null)
+                continue;
             string[] splitStr = problemDirName.Split('_');
             string newName = splitStr[1];
             subdirsNoPrefix.Add(newName);
@@ -169,7 +171,7 @@ public class Problem_ReductionsRefactorController : ControllerBase {
         jsonString = JsonSerializer.Serialize(subdirsNoPrefix, options);
  
         }
-        catch (System.IO.DirectoryNotFoundException dirNotFoundException){
+        catch (System.IO.DirectoryNotFoundException){
             //Console.WriteLine(NO_REDUCTIONS_ERROR + " directory not found, exception was thrown in Nav_Reductions.cs");
                         jsonString = NO_REDUCTIONS_ERROR;
             //Console.WriteLine(dirNotFoundException.StackTrace);
@@ -265,15 +267,17 @@ public class PossibleReductionsRefactorController : ControllerBase {
                                 .ToArray();
 
             ArrayList subFilesList = new ArrayList();
-            foreach (string file in subfiles)
+            foreach (var file in subfiles)
             {
+                if (file is null)
+                    continue;
                 string fileNoExt = file.Split('.')[0];
                 subFilesList.Add(fileNoExt);
             }
             jsonString = JsonSerializer.Serialize(subFilesList, options);
 
         }
-        catch(System.IO.DirectoryNotFoundException notFoundEx){
+        catch(System.IO.DirectoryNotFoundException){
             Console.WriteLine(NOT_FOUND_ERR_REDUCTION);
             jsonString = JsonSerializer.Serialize(NOT_FOUND_ERR_REDUCTION, options);
         }
