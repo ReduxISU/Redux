@@ -12,11 +12,11 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     // --- Fields ---
     public string problemName {get;} = "Unstructured Search";
     public string problemLink {get;} = "TODO";
-    public string formalDefinition {get;} = "Unstructured Search = {(x, y) | x is int, y is {int}}";
+    public string formalDefinition {get;} = "Unstructured Search = {(x, y) | x is int, y is int}";
     public string problemDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
     public string sourceLink {get;} = "TODO";
-    private static readonly string _defaultInstance = "(3,(0,1,2,3,6,8,5,9))";
+    private static readonly string _defaultInstance = "(0, 1, 0, 0)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
@@ -86,21 +86,13 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
         // int X = int.Parse(parser["x"].ToString());
         // var Y = parser["y"].AsList().Select(v => (int)v).ToList();
         
-        StringParser parser = new("{(x, y) | x is int, y is {int}}");
+        StringParser parser = new("{(x, y) | x is int, y is int}");
 
         parser.parse(instance);
 
         // Parse x
-        int X = int.Parse(parser["x"].ToString());
-
-        // Parse y
-        var yCollection = (UtilCollection)parser["y"];
-        List<int> Y = new();
-
-        foreach (var item in yCollection)
-        {
-            Y.Add(int.Parse(item.ToString()));
-        }
+        int x = int.Parse(parser["i"].ToString());
+        int y = int.Parse(parser["w"].ToString());
 
         //
         // Or a unidirected unweighted graph example using SPADE
