@@ -8,7 +8,7 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
     public string[] contributors {get;} = { "Alex Svancara" };
-
+    public bool timerHasExpired { get; set; }
     // --- Methods Including Constructors ---
     public UnstructuredSearchSolver() {}
 

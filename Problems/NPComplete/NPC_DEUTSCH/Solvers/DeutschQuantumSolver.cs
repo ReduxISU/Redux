@@ -18,9 +18,10 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
 
     // Configuration: Change this to switch between servers
     private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
+    public bool timerHasExpired { get; set; }
 
     // --- Constructors ---
-    
+
     /// <summary>
     /// Creates a new DeutschQuantumSolver using the ISU AWS server by default
     /// </summary>
