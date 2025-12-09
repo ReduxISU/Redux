@@ -8,13 +8,13 @@
 // using API.Interfaces.Graphs;
 // namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
 //
-// class {NAME_PASCEL_CASE}Graph : UnweightedUndirectedGraph / WeightedUndirectedGraph / WeightedGraph / DirectedGraph
+// class {NAME_PASCAL_CASE}Graph : UnweightedUndirectedGraph / WeightedUndirectedGraph / WeightedGraph / DirectedGraph
 // {
-//   public {NAME_PASCEL_CASE}Graph(string {NAME_CAMEL_CASE}Input) : base({NAME_CAMEL_CASE}Input) {
+//   public {NAME_PASCAL_CASE}Graph(string {NAME_CAMEL_CASE}Input) : base({NAME_CAMEL_CASE}Input) {
 //
 //   }
 //
-//   public {NAME_PASCEL_CASE}Graph(string {NAME_CAMEL_CASE}Input, bool decoy) : base({NAME_CAMEL_CASE}Input, decoy) {
+//   public {NAME_PASCAL_CASE}Graph(string {NAME_CAMEL_CASE}Input, bool decoy) : base({NAME_CAMEL_CASE}Input, decoy) {
 //
 //   }
 // }
