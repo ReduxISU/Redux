@@ -17,7 +17,7 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public string problemDefinition { get; } = "The Bernstein-Vazirani problem asks for the identification of an unknown bit string s that defines a linear Boolean function f(x)= s*x (mod 2). The task is to determine the hidden string s using as few queries as possible"; // plaintext description of the problem
     public string source { get; } = "Bernstein, Ethan, and Umesh, Vazirani. Quantum complexity theory. Proceedings of the twenty-fifth annual ACM symposium on Theory of computing. 1993."; // Academic paper proper citation
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/167088.167097"; // Link to the academic paper
-    private static readonly string _defaultInstance = "(2,(1, 1, 1, 1))";
+    private static readonly string _defaultInstance = "(3,(0,1,0,1,1,0,1,0))";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
