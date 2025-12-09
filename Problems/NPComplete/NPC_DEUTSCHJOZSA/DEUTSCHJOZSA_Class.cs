@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
 
-class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier, DummyVisualization> {
+class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier, DeutschJozsaDefaultVisualization> {
 
     // --- Fields ---
     public string problemName {get;} = "Deutsch Jozsa"; // Name as it appears in the dropdown selection panel
@@ -20,7 +20,7 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public DeutschJozsaClassicalSolver defaultSolver {get;} = new DeutschJozsaClassicalSolver();
     public DeutschJozsaVerifier defaultVerifier { get; } = new DeutschJozsaVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public DeutschJozsaDefaultVisualization defaultVisualization { get; } = new DeutschJozsaDefaultVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "George Lake" };
     
     public int n { get; set; }
