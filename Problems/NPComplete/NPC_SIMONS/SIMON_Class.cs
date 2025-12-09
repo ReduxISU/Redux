@@ -6,7 +6,8 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SIMON;
 
-class SIMON : IProblem<SIMONSOLVER, SIMONVERIFIER, DummyVisualization> {
+class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization>
+{
 
     // --- Fields ---
     public string problemName {get;} = "Simon's Algorithm"; // Name as it appears in the dropdown selection panel
@@ -15,11 +16,12 @@ class SIMON : IProblem<SIMONSOLVER, SIMONVERIFIER, DummyVisualization> {
     public string problemDefinition { get; } = "Simon's problem is defined by a black-box function f: {0,1}^n -> {0,1}^m. For this function the following is promised: f(x) = f(y) if and only if x = y or x = y ⊕ s for some secret string s ∈ {0,1}^n. The goal is to find the string s"; // plaintext description of the problem
     public string source { get; } = "Simon, Daniel R. On the power of quantum computation. SIAM journal on computing, 1997, 26. Jg., Nr. 5, S. 1474-1483."; // Academic paper proper citation
     public string sourceLink { get; } = "https://epubs.siam.org/doi/abs/10.1137/S0097539796298637?casa_token=q1_RWPmvpQ0AAAAA:vmai1NwqSJEUGwydbsrdvH1tsKxcE_MoWfiTwQda9yJKhC0prizshyidP4VcDZK8n5CuqoeaqlQ"; // Link to the academic paper
-    private static readonly string _defaultInstance = "(00, 01, 10, 11, 01, 00, 11, 10)"; 
+    private static readonly string _defaultInstance = "(00, 01, 10, 11, 01, 00, 11, 10)";
+    public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public SIMONSolver defaultSolver {get;} = new SIMONSolver();
-    public SIMONVerifier defaultVerifier { get; } = new SIMONVerifier();
+    public SimonSolver defaultSolver { get; } = new SimonSolver();
+    public SimonVerifier defaultVerifier { get; } = new SimonVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
 

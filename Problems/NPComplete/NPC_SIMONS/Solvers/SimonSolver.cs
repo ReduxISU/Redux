@@ -2,7 +2,8 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_SIMON.Solvers;
 
-class SIMONSolver : ISolver<SIMON> {
+class SimonSolver : ISolver<SIMON>
+{
 
     // --- Fields ---
     public string solverName {get;} = "ProblemSolver";
@@ -11,7 +12,7 @@ class SIMONSolver : ISolver<SIMON> {
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
 
     // --- Methods Including Constructors ---
-    public SIMONSolver() {}
+    public SimonSolver() { }
 
     public string solve(SIMON problem){
         // TODO: implement {SOLVER} for {PROBLEM}
