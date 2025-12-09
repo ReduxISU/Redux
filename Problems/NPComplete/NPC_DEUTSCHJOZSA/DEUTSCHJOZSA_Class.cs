@@ -10,10 +10,11 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
 
     // --- Fields ---
     public string problemName {get;} = "Deutsch Jozsa"; // Name as it appears in the dropdown selection panel
+    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Deutsch%E2%80%93Jozsa_algorithm"; // Link to the Wikipedia page for the problem
     public string formalDefinition {get;} =  "Deutsch Jozsa = {(n, <w_1, w_2, ... , w_(2^n - 1), w_(2^n)> | n is int, w_i is bit (0 or 1)}"; // Mathematical description of the problem (todo later)
-    public string problemDefinition { get; } = "Deutsch-Jozsa's algorithm solves the parity problem. It is represented by an ordered list......"; // plaintext description of the problem
-    public string source { get; } = "todo"; // Academic paper proper citation
-    public string sourceLink { get; } = "todo"; // Link to the academic paper
+    public string problemDefinition { get; } = "Deutsch-Jozsa's algorithm solves the general case of the parity problem and therefore determines whether a function f: {0,1}^n -> {0,1} is constant or balanced. It is represented by an ordered list of values, which show the functions output for the 2^n possible inputs."; // plaintext description of the problem
+    public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558"; // Academic paper proper citation
+    public string sourceLink { get; } = "https://royalsocietypublishing.org/doi/10.1098/rspa.1992.0167"; // Link to the academic paper
     private static readonly string _defaultInstance = "(2,(1, 1, 1, 1))";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
