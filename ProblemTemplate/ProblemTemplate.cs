@@ -18,17 +18,17 @@ public class ProblemTemplate : ControllerBase
     public ActionResult DownloadProblemTemplate([FromQuery] string problemName)
     {
         string problemNameUpper = ToUpperCase(problemName);
-        string problemNamePascel = ToPascelCase(problemName);
+        string problemNamePascal = ToPascalCase(problemName);
         string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
-                {$"NPC_{problemNameUpper}/{problemNamePascel}Graph.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/ProblemGraph.txt"))},
+                {$"NPC_{problemNameUpper}/{problemNamePascal}Graph.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/ProblemGraph.txt"))},
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
-                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascel}Solver.cs", GenerateSolverTemplate(problemName, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
-                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascel}Verifier.cs", GenerateVerifierTemplate(problemName, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
-                {$"NPC_{problemNameUpper}/visualizations/{problemNamePascel}Visualization.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
+                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemName, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
+                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemName, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
+                {$"NPC_{problemNameUpper}/visualizations/{problemNamePascal}Visualization.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
             }
         );
 
@@ -44,12 +44,12 @@ public class ProblemTemplate : ControllerBase
     [HttpGet("reduction")]
     public ActionResult DownloadReductionTemplate([FromQuery] string problemFrom, [FromQuery] string problemTo, [FromQuery] string reductionName)
     {
-        string reductionNamePascel = ToPascelCase(reductionName);
+        string reductionNamePascal = ToPascalCase(reductionName);
         string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
-                {$"NPC_{problemFrom}/ReduceTo/NPC_{problemTo}/{reductionNamePascel}.cs", GenerateReductionTemplate(problemFrom, problemTo, reductionName, System.IO.File.ReadAllText($"{templatePath}/ReduceTo/NPC_PROBLEM/Reduction.txt"))},
+                {$"NPC_{problemFrom}/ReduceTo/NPC_{problemTo}/{reductionNamePascal}.cs", GenerateReductionTemplate(problemFrom, problemTo, reductionName, System.IO.File.ReadAllText($"{templatePath}/ReduceTo/NPC_PROBLEM/Reduction.txt"))},
             }
         );
 
@@ -64,12 +64,12 @@ public class ProblemTemplate : ControllerBase
     [HttpGet("solver")]
     public ActionResult DownloadSolverTemplate([FromQuery] string problemName, [FromQuery] string solverName)
     {
-        string solverNamePascel = ToPascelCase(solverName);
+        string solverNamePascal = ToPascalCase(solverName);
         string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
-                {$"NPC_{problemName}/Solvers/{solverNamePascel}.cs", GenerateSolverTemplate(problemName, solverName, System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
+                {$"NPC_{problemName}/Solvers/{solverNamePascal}.cs", GenerateSolverTemplate(problemName, solverName, System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
             }
         );
 
@@ -84,12 +84,12 @@ public class ProblemTemplate : ControllerBase
     [HttpGet("verifier")]
     public ActionResult DownloadVerifierTemplate([FromQuery] string problemName, [FromQuery] string verifierName)
     {
-        string verifierNamePascel = ToPascelCase(verifierName);
+        string verifierNamePascal = ToPascalCase(verifierName);
         string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
-                {$"NPC_{problemName}/Verifiers/{verifierNamePascel}.cs", GenerateVerifierTemplate(problemName, verifierName, System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
+                {$"NPC_{problemName}/Verifiers/{verifierNamePascal}.cs", GenerateVerifierTemplate(problemName, verifierName, System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
             }
         );
 
@@ -105,7 +105,7 @@ public class ProblemTemplate : ControllerBase
 
         return template
             .Replace("{NAME_UPPERCASE}", ToUpperCase(problemName))
-            .Replace("{NAME_PASCEL_CASE}", ToPascelCase(problemName))
+            .Replace("{NAME_PASCAL_CASE}", ToPascalCase(problemName))
             .Replace("{NAME_CAMEL_CASE}", ToCamelCase(problemName))
             .Replace("{NAME}", problemName);
     }
@@ -124,7 +124,7 @@ public class ProblemTemplate : ControllerBase
         return template
             .Replace("{PROBLEM}", problemName)
             .Replace("{SOLVER}", solverName)
-            .Replace("{SOLVER_PASCEL_CASE}", ToPascelCase(solverName));
+            .Replace("{SOLVER_PASCAL_CASE}", ToPascalCase(solverName));
     }
 
     static string GenerateVerifierTemplate(string problemName, string verifierName, string template)
@@ -141,7 +141,7 @@ public class ProblemTemplate : ControllerBase
         return template
             .Replace("{PROBLEM}", problemName)
             .Replace("{VERIFIER}", verifierName)
-            .Replace("{VERIFIER_PASCEL_CASE}", ToPascelCase(verifierName));
+            .Replace("{VERIFIER_PASCAL_CASE}", ToPascalCase(verifierName));
     }
 
     static string GenerateReductionTemplate(string problemFrom, string problemTo, string reductionName, string template)
@@ -162,7 +162,7 @@ public class ProblemTemplate : ControllerBase
         return template
             .Replace("{REDUCE_FROM}", problemFrom)
             .Replace("{REDUCE_TO}", problemTo)
-            .Replace("{REDUCTION_PASCEL_CASE}", ToPascelCase(reductionName))
+            .Replace("{REDUCTION_PASCAL_CASE}", ToPascalCase(reductionName))
             .Replace("{REDUCTION}", reductionName);
     }
 
@@ -195,14 +195,14 @@ public class ProblemTemplate : ControllerBase
        ).ToArray());
     }
 
-    static string ToPascelCase(string name)
+    static string ToPascalCase(string name)
     {
         return FirstToUpper(RemoveInvalidIdentifierChars(Regex.Replace(name, " [a-z]", m => m.Value.ToUpper()[1..])));
     }
 
     static string ToCamelCase(string name)
     {
-        return FirstToLower(ToPascelCase(name));
+        return FirstToLower(ToPascalCase(name));
     }
 
     static string ToUpperCase(string s)
