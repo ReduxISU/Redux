@@ -25,47 +25,19 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     public UnstructuredSearchVisualization defaultVisualization {get;} = new UnstructuredSearchVisualization();
     public string[] contributors { get; }= { "Alex Svancara" };
 
-    // TODO: implement properties if {NAME} is a graphing problem
-    // private List<string> _nodes = new List<string>();
-    // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
-    // private int _K ;
-    // private {NAME_PASCEL_CASE}Graph _{NAME_CAMEL_CASE}AsGraph;
+    private List<int> _funcValues = new List<int>();
 
-    // --- Properties ---
-
-    // TODO: implement properties if {NAME} is a graphing problem
-    // public List<string> nodes {
-    //     get {
-    //         return _nodes;
-    //     }
-    //     set {
-    //         _nodes = value;
-    //     }
-    // }
-    // public List<KeyValuePair<string, string>> edges {
-    //     get {
-    //         return _edges;
-    //     }
-    //     set {
-    //         _edges = value;
-    //     }
-    // }
-    // public int K {
-    //     get {
-    //         return _K;
-    //     }
-    //     set {
-    //         _K = value;
-    //     }
-    // }
-    // public {NAME_PASCEL_CASE}Graph {NAME_CAMEL_CASE}AsGraph {
-    //     get{
-    //         return _{NAME_CAMEL_CASE}AsGraph;
-    //     }
-    //     set{
-    //         _{NAME_CAMEL_CASE}AsGraph = value;
-    //     }
-    // }
+    public List<int> funcValues
+    {
+        get
+        {
+            return _funcValues;
+        }
+        set
+        {
+            _funcValues = value;
+        }
+    }
 
     // --- Methods and Constructors ---
     public UNSTRUCTUREDSEARCH() : this(_defaultInstance) {
@@ -75,32 +47,15 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     public UNSTRUCTUREDSEARCH(string input) {
         instance = input;
 
-
-
-        // TODO: implement parsing of string instance of {NAME}. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
-        //
-        // StringParser parser = new("{(x, y) | x is int, y is {int}}");
-
-        // parser.parse(instance);
-
-        // int X = int.Parse(parser["x"].ToString());
-        // var Y = parser["y"].AsList().Select(v => (int)v).ToList();
-        
-        StringParser parser = new("{(x, y) | x is int, y is int}");
+        StringParser parser = new("{y | y is list}");
 
         parser.parse(instance);
 
-        // Parse x
-        int x = int.Parse(parser["i"].ToString());
-        int y = int.Parse(parser["w"].ToString());
-
-        //
-        // Or a unidirected unweighted graph example using SPADE
-        // 
-        // StringParser parser = new("{(N,E) | N is set, E subset N unorderdcross N}");
-        // parser.parse(instance);
-        // edges = parser["E"];
-        // nodes = parser["N"];
-
+        UtilCollection bitslist = parser["y"];
+        funcValues = new List<int>();
+        foreach (var bit in bitslist)
+        {
+            funcValues.Add(int.Parse(bit.ToString()!));
+        }
     }
 }
