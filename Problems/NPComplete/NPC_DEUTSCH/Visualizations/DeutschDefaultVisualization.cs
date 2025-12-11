@@ -6,8 +6,8 @@ using System.Text.Json;
 
 class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 {
-    public string visualizationName { get; } = "Deutsch problem visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for the Deutsch problem";
+    public string visualizationName { get; } = "Deutsch quantum visualization";
+    public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner" };
     public string visualizationType { get; } = "Quantum Circuit";
