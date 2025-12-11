@@ -25,6 +25,20 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     public UnstructuredSearchVisualization defaultVisualization {get;} = new UnstructuredSearchVisualization();
     public string[] contributors { get; }= { "Alex Svancara" };
 
+    private string _circuit = "";
+
+    public string circuit
+    {
+        get
+        {
+            return _circuit;
+        }
+        set
+        {
+            _circuit = value;
+        }
+    }
+
     private List<int> _funcValues = new List<int>();
 
     public List<int> funcValues

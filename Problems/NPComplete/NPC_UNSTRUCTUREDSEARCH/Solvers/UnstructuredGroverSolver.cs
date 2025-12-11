@@ -33,6 +33,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
     }
 
     public string solve(UNSTRUCTUREDSEARCH problem){
+        Console.WriteLine("solving...");
         // We have to convert the function values into a SAT problem
         int nbits = PowerOfTwo(problem.funcValues.Count);
         var exprs = new List<string>();
@@ -56,7 +57,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         }
 
         var satproblem = String.Join(" | ",exprs);
-        var solution = ReverseString(SolveAsSat(satproblem));
+        var solution = ReverseString(SolveAsSat(problem, satproblem));
         return Convert.ToInt32(solution, 2).ToString();
     }
 
@@ -76,7 +77,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         }
     }
 
-    private string SolveAsSat(string problemInstance)
+    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance)
     {
         try
         {
@@ -92,6 +93,10 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
+            if (root.TryGetProperty("qasm", out JsonElement circuitElement))
+            {
+                problem.circuit = circuitElement.GetString() ?? "";
+            }
             if (root.TryGetProperty("answer_bitstring", out JsonElement answerElement))
             {
                 return answerElement.GetString() ?? "No answer found";
