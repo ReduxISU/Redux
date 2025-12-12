@@ -1,14 +1,14 @@
 using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
+namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 
-class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
+class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
 
     // --- Fields ---
-    public string verifierName {get;} = "{VERIFIER}";
+    public string verifierName {get;} = "ProblemVerifier";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
-    private string[] _contributers = { "TODO" };
+    public string[] contributors {get;} = { "Paul Gilbreath", "Alex Svancara" };
     private string _certificate =  "";
 
     public string certificate {
@@ -18,11 +18,11 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
     }
 
     // --- Methods Including Constructors ---
-    public {VERIFIER_PASCAL_CASE}Verifier() {
+    public PrimeFactorVerifier() {
         
     }
 
-    public bool verify({PROBLEM} problem, string certificate){
+    public bool verify(PRIMEFACTOR problem, string certificate){
         // TODO: implement {VERIFIER} for {PROBLEM}
         return true;
     }

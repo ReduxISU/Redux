@@ -3,7 +3,7 @@ using API.Problems.NPComplete.NPC_{REDUCE_TO};
 
 namespace API.Problems.NPComplete.NPC_{REDUCE_FROM}.ReduceTo.NPC_{REDUCE_TO};
 
-class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
+class {REDUCTION_PASCEL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
 
     // --- Fields ---
     public string reductionName {get;} = "{REDUCTION}";
@@ -35,12 +35,12 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
     }
 
     // --- Methods Including Constructors ---
-    public {REDUCTION_PASCAL_CASE}({REDUCE_FROM} from) {
+    public {REDUCTION_PASCEL_CASE}({REDUCE_FROM} from) {
         _reductionFrom = from;
         _reductionTo = reduce();
     }
-    public {REDUCTION_PASCAL_CASE}(string instance) : this(new {REDUCE_FROM}(instance)) { }
-    public {REDUCTION_PASCAL_CASE() : this(new {REDUCE_FROM}()) { }
+    public {REDUCTION_PASCEL_CASE}(string instance) : this(new {REDUCE_FROM}(instance)) { }
+    public {REDUCTION_PASCEL_CASE() : this(new {REDUCE_FROM}()) { }
 
     public {REDUCE_TO} reduce() {
         {REDUCE_FROM} {REDUCE_FROM}Instance = _reductionFrom;

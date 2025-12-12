@@ -7,23 +7,23 @@ using System.Reflection;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 
-class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, DummyVisualization>
+class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, BernsteinVaziraniDefaultVisualization>
 {
 
     // --- Fields ---
     public string problemName {get;} = "Bernstein Vazirani"; // Name as it appears in the dropdown selection panel
+    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Bernstein%E2%80%93Vazirani_algorithm"; // Link to the Wikipedia page for the problem
     public string formalDefinition {get;} =  "Bernstein Vazirani = {(n, <w_1, w_2, ... , w_(2^n - 1), w_(2^n)> | n is int, w_i is bit (0 or 1)}"; // Mathematical description of the problem (todo later)
-    public string problemDefinition { get; } = "Bernstein Vazirani's algorithm solves the parity problem. It is represented by an ordered list......"; // plaintext description of the problem
-    public string source { get; } = "todo"; // Academic paper proper citation
-    public string sourceLink { get; } = "todo"; // Link to the academic paper
-    private static readonly string _defaultInstance = "(3,(0,1,0,1,1,0,1,0))"; // s=101
-
+    public string problemDefinition { get; } = "The Bernstein-Vazirani problem asks for the identification of an unknown bit string s that defines a linear Boolean function f(x)= s*x (mod 2). The task is to determine the hidden string s using as few queries as possible"; // plaintext description of the problem
+    public string source { get; } = "Bernstein, Ethan, and Umesh, Vazirani. Quantum complexity theory. Proceedings of the twenty-fifth annual ACM symposium on Theory of computing. 1993."; // Academic paper proper citation
+    public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/167088.167097"; // Link to the academic paper
+    private static readonly string _defaultInstance = "(3,(0,1,0,1,1,0,1,0))";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public BernsteinVaziraniClassicalSolver defaultSolver {get;} = new BernsteinVaziraniClassicalSolver();
     public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
 
     // --- Methods and Constructors ---
