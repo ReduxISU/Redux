@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_DEUTSCH;
 
 class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 {
-    public string visualizationName { get; } = "Deutsch problem visualization";
+    public string visualizationName { get; } = "Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "This is a default visualization for the Deutsch problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright" };
