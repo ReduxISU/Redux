@@ -7,7 +7,8 @@ namespace redux_tests;
 
 public class DEUTSCH_tests {
     [Fact]
-    public void BERNSTEINVAZIRANI_Default_Instantiation() {
+    public void DEUTSCH_Default_Instantiation()
+    {
         var problem = new DEUTSCH();
         Assert.Equal("(0,1)", problem.instance);
         Assert.Equal("(0,1)", problem.defaultInstance);
@@ -42,7 +43,8 @@ public class DEUTSCH_tests {
     [InlineData("(1,1)", "constant")]
     [InlineData("(0,1)", "balanced")]
     [InlineData("(1,0)", "balanced")]
-    public void BERNSTEINVAZIRANI_solver(string instance, string certificate) {
+    public void DEUTSCH_solver(string instance, string certificate)
+    {
         var problem = new DEUTSCH(instance);
         var solver = problem.defaultSolver;
         string solvedString = solver.solve(problem);
