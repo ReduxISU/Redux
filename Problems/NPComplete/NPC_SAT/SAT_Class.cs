@@ -3,8 +3,6 @@ using API.DummyClasses;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
-
-
 namespace API.Problems.NPComplete.NPC_SAT;
 
  class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
@@ -28,7 +26,21 @@ namespace API.Problems.NPComplete.NPC_SAT;
     public string wikiName {get;} = "";
     private List<List<string>> _clauses = new List<List<string>>();
     private List<string> _literals = new List<string>();
-   
+
+    private string _circuit = "";
+
+    public string circuit
+    {
+        get
+        {
+            return _circuit;
+        }
+        set
+        {
+            _circuit = value;
+        }
+    }
+
     public SATBruteForceSolver defaultSolver {get;} = new SATBruteForceSolver();
     public SATVerifier defaultVerifier { get; } = new SATVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
@@ -125,4 +137,3 @@ namespace API.Problems.NPComplete.NPC_SAT;
     #endregion
         
 }
-
