@@ -8,8 +8,8 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
 
     // --- Fields ---
     public string solverName { get; } = "Unstructured search solver using Grover's quantum algorithm";
-    public string solverDefinition {get;} = "TODO";
-    public string source {get;} = "TODO";
+    public string solverDefinition { get; } = "This solver represents f(x) has a boolean circuit and then use Grover's algorithm to locate x such that f(x) = 1.";
+    public string source { get; } = "Grover L.K.: A fast quantum mechanical algorithm for database search, Proceedings, 28th Annual ACM Symposium on the Theory of Computing, (May 1996) p. 212.";
     public string[] contributors { get; } = { "Jason L. Wright" };
 
     private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
@@ -32,8 +32,8 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         throw new ArithmeticException("not a power of two");
     }
 
-    public string solve(UNSTRUCTUREDSEARCH problem){
-        Console.WriteLine("solving...");
+    public string solve(UNSTRUCTUREDSEARCH problem)
+    {
         // We have to convert the function values into a SAT problem
         int nbits = PowerOfTwo(problem.funcValues.Count);
         var exprs = new List<string>();

@@ -5,8 +5,8 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
 
     // --- Fields ---
     public string solverName { get; } = "Clasical unstructured search solver";
-    public string solverDefinition {get;} = "TODO";
-    public string source {get;} = "TODO";
+    public string solverDefinition { get; } = "This solver simply loops through all possible x until one f(x) = 1.";
+    public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
 
     // --- Methods Including Constructors ---

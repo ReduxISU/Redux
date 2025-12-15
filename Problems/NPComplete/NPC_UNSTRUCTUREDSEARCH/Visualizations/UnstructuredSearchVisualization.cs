@@ -9,16 +9,15 @@ namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Visualizers;
 
 class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH>
 {
-    public string visualizationName { get; } = "TODO";
-    public string visualizationDefinition { get; } = "TODO";
-    public string source { get; } = "";
+    public string visualizationName { get; } = "Unstructured Search Quantum Circuit";
+    public string visualizationDefinition { get; } = "This visualization builds a quantum circuit";
+    public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
     public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
-    public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
+    public string visualizationType { get; } = "Quantum Circuit";
 
     // --- Methods Including Constructors ---
     public UnstructuredSearchVisualization()
     {
-        Console.WriteLine("defult vis constructor");
     }
     public API_JSON visualize(UNSTRUCTUREDSEARCH instance)
     {
