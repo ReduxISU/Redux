@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR;
 
-class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, DummyVisualization> {
+class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, ShorsDefaultVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Prime Factorization"; // Name as it appears in the dropdown selection panel
@@ -21,7 +21,7 @@ class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, DummyVisual
     public string wikiName {get;} = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
     public PrimeFactorSolver defaultSolver {get;} = new PrimeFactorSolver();
     public PrimeFactorVerifier defaultVerifier { get; } = new PrimeFactorVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
     public string[] contributors {get;} = { "Paul Gilbreath", "Alex Svancara" };
 
     // TODO: implement properties if {NAME} is a graphing problem
