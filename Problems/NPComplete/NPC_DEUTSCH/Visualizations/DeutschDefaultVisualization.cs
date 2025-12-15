@@ -6,12 +6,12 @@ using System.Text.Json;
 
 class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 {
-    public string visualizationName { get; } = "Quantum Circuit (Q)";
+    public string visualizationName { get; } = "Deutsch Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
 
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner" };
-    public string visualizationType { get; } = "Quantum Circuit";
+    public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner, Andreas Kramer" };
+    public string visualizationType { get; } = "Quantum Circuit Q";
 
     // --- Methods Including Constructors ---
     public DeutschDefaultVisualization()
@@ -20,14 +20,22 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
     }
     public API_JSON visualize(DEUTSCH instance)
     {
-        return new API_QUANTUMCIRCUIT();
+        return new API_QUANTUMCIRCUIT
+        {
+            format = QuantumCircuitFormat.QASM,
+            qasm = "",
+            solution = ""
+        };
 
     }
 
     public API_JSON SolvedVisualization(DEUTSCH instance, string solution)
     {
-        var qc = new API_QUANTUMCIRCUIT();
-        qc.solution = solution;
+        var qc = new API_QUANTUMCIRCUIT
+        {
+            solution = solution,
+            format = QuantumCircuitFormat.QASM
+        };
 
         try
         {
@@ -46,13 +54,13 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 
             if (root.TryGetProperty("qasm", out JsonElement qasmElement))
             {
-                qc.circuit = qasmElement.GetString() ?? "";
+                qc.qasm = qasmElement.GetString() ?? "";
             }
         }
         catch (Exception)
         {
             // If API call fails, leave circuit empty
-            qc.circuit = "";
+            qc.qasm = "";
         }
 
         return qc;

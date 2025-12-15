@@ -4,28 +4,29 @@ using System.Linq;
 using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_DEUTSCH;
+using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
 using API.Tools;
 
-class DeutschD3Visualization : IVisualization<DEUTSCH>
+class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
 {
-    public string visualizationName { get; } = "Deutsch Quantum Circuit (D3)";
-    public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
+    public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (D3)";
+    public string visualizationDefinition { get; } =
+        "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andreas Kramer" };
     public string visualizationType { get; } = "Quantum Circuit D3";
 
-    public DeutschD3Visualization() { }
+    public DeutschJozsaD3Visualization() { }
 
     private sealed class D3GateOp
     {
         public string id { get; set; } = "";
-        public string type { get; set; } = "";          // "h", "x", "cx", "m", "oracle", ...
+        public string type { get; set; } = "";
         public string[] targets { get; set; } = Array.Empty<string>();
-        public string[]? classical { get; set; }        // only for measurement
-        public double[]? @params { get; set; }          // for rz/ry/rx/u3 etc. later
-        public string? label { get; set; }              // used by oracle/block
-        public double time { get; set; }                // assigned by scheduler (offset for measurements)
+        public string[]? classical { get; set; }
+        public double[]? @params { get; set; }
+        public string? label { get; set; }
+        public double time { get; set; }
     }
 
     private sealed class D3Payload
@@ -33,41 +34,40 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         public string[] qubits { get; set; } = Array.Empty<string>();
         public string[] classical { get; set; } = Array.Empty<string>();
         public List<D3GateOp> gates { get; set; } = new();
-        public List<D3Overlay> overlays { get; set; } = new();    
+        public List<D3Overlay> overlays { get; set; } = new();
         public Dictionary<string, object?> metadata { get; set; } = new();
     }
 
     private sealed class D3Overlay
     {
         public string id { get; set; } = "";
-        public string type { get; set; } = "stage";     // e.g. "oracle", "stage"
-        public string label { get; set; } = "";         
+        public string type { get; set; } = "stage";
+        public string label { get; set; } = "";
         public int timeStart { get; set; }
-        public int timeEnd { get; set; }                
-        public string[] targets { get; set; } = Array.Empty<string>(); // optional
+        public int timeEnd { get; set; }
+        public string[] targets { get; set; } = Array.Empty<string>();
     }
 
-
-    public API_JSON visualize(DEUTSCH instance)
+    public API_JSON visualize(DEUTSCHJOZSA instance)
     {
         return BuildVisualization(instance, solution: null);
     }
 
-    public API_JSON SolvedVisualization(DEUTSCH instance, string solution)
+    public API_JSON SolvedVisualization(DEUTSCHJOZSA instance, string solution)
     {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(DEUTSCH instance, string? solution)
+    private API_JSON BuildVisualization(DEUTSCHJOZSA instance, string? solution)
     {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 
         try
         {
-            bool[] requestBody = instance.funcValues;
+            bool[] requestBody = instance.w.Select(v => v != 0).ToArray();
             var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
-            string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
+            string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;
 
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
@@ -84,7 +84,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         }
         catch
         {
-            // fallback to static payload in circuitJson
+            // fall back to the static payload
         }
 
         JsonElement d3Element;
@@ -98,17 +98,12 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
             solution = finalSolution,
             format = QuantumCircuitFormat.D3,
             d3 = d3Element,
-
-            // Optional: carry metadata at top level too
             metadata = new Dictionary<string, object?>
             {
-                ["oracleType"] = answerFromApi
-                    ?? ((instance.funcValues[0] == instance.funcValues[1]) ? "constant" : "balanced")
-            },
+                ["oracleType"] = answerFromApi ?? (IsConstant(instance) ? "constant" : "balanced")
+            }
         };
     }
-
-    // QASM -> ops -> ASAP schedule
 
     private sealed class Op
     {
@@ -119,7 +114,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         public double[]? Params { get; init; }
     }
 
-    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCH instance, string? solution)
+    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCHJOZSA instance, string? solution)
     {
         var qubits = new List<string>();
         var classical = new List<string>();
@@ -179,7 +174,6 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
                 continue;
             }
 
-            // Generic "gate args;" lines
             if (line.Contains(' '))
             {
                 string noSemi = line.TrimEnd(';');
@@ -189,7 +183,6 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
                 string gateToken = tokens[0].Trim();
                 string argsPart = tokens[1].Trim();
 
-                // Parse parameters if gateToken like "rz(0.5)" or "u3(a,b,c)"
                 string gateType = gateToken;
                 double[]? gateParams = null;
 
@@ -206,7 +199,6 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
                                           .Select(s => s.Trim())
                                           .ToArray();
 
-                        // Best effort parse: numeric parameters (for your D3 label rendering)
                         var parsed = new List<double>();
                         foreach (var p in parts)
                         {
@@ -235,81 +227,77 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
             }
         }
 
-        // Schedule for same-column gates
         List<D3GateOp> gates = ScheduleOpsAsap(ops);
 
-        // Build payload
         var payload = new D3Payload
         {
-            qubits = qubits.Count > 0 ? qubits.ToArray() : new[] { "q0", "q1" },
-            classical = classical.Count > 0 ? classical.ToArray() : new[] { "c0" },
+            qubits = qubits.Count > 0 ? qubits.ToArray() : BuildDefaultQubits(instance),
+            classical = classical.Count > 0 ? classical.ToArray() : BuildDefaultClassical(instance),
             gates = gates,
             metadata = new Dictionary<string, object?>
             {
                 ["solution"] = solution,
-                ["oracleType"] = answer ?? ((instance.funcValues[0] == instance.funcValues[1]) ? "constant" : "balanced")
+                ["oracleType"] = answer ?? (IsConstant(instance) ? "constant" : "balanced")
             }
         };
 
-        var uf = DetectDeutschOracleStage(payload);
+        var uf = DetectDeutschJozsaOracleStage(payload);
         if (uf != null)
             payload.overlays.Add(uf);
 
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static D3Overlay? DetectDeutschOracleStage(D3Payload payload)
+    private static D3Overlay? DetectDeutschJozsaOracleStage(D3Payload payload)
     {
-        // Expect q0,q1 exist, but don’t hard-fail if naming differs
         var qubits = payload.qubits ?? Array.Empty<string>();
         if (qubits.Length < 2) return null;
 
-        string q0 = qubits[0];
-        string q1 = qubits[1];
+        // Assume last qubit is ancilla; others are data qubits
+        var dataQubits = qubits.Take(qubits.Length - 1).ToArray();
+        if (dataQubits.Length == 0) return null;
 
-        // Helper predicates
-        static bool IsHOn(D3GateOp g, string q) =>
+        bool IsHOn(D3GateOp g, string q) =>
             string.Equals(g.type, "h", StringComparison.OrdinalIgnoreCase) &&
-            g.targets != null && g.targets.Length == 1 &&
+            g.targets != null &&
+            g.targets.Length == 1 &&
             string.Equals(g.targets[0], q, StringComparison.Ordinal);
 
-        // 1) Find all times that have H on q0 and H on q1
-        var timesWithHq0 = payload.gates.Where(g => IsHOn(g, q0)).Select(g => g.time).ToHashSet();
-        var timesWithHq1 = payload.gates.Where(g => IsHOn(g, q1)).Select(g => g.time).ToHashSet();
+        // Find earliest layer where all data qubits get H (ignore ancilla H)
+        var hByTime = payload.gates
+            .Where(g => g.targets != null &&
+                        g.targets.Length == 1 &&
+                        dataQubits.Contains(g.targets[0]) &&
+                        IsHOn(g, g.targets[0]))
+            .GroupBy(g => g.time)
+            .OrderBy(g => g.Key);
 
-        var prepTimes = timesWithHq0.Intersect(timesWithHq1).OrderBy(t => t).ToList();
-        if (prepTimes.Count == 0) return null;
+        double? tPrep = hByTime
+            .FirstOrDefault(grp => grp.Select(g => g.targets[0]).Distinct().Count() == dataQubits.Length)?
+            .Key;
 
-        // Choose the last "prep H layer" that happens before the final measurement
-        // In Deutsch, it’s typically the only shared-H layer before the oracle.
-        double tPrep = prepTimes.Last();
+        if (tPrep == null) return null;
 
-        // 2) Find the next H on q0 AFTER tPrep (post-oracle H)
-        double? tPost = payload.gates
-            .Where(g => IsHOn(g, q0) && g.time > tPrep)
-            .Select(g => (double?)g.time)
-            .OrderBy(t => t)
-            .FirstOrDefault();
+        // Next layer after tPrep where all data qubits get H again
+        double? tPost = hByTime
+            .FirstOrDefault(grp => grp.Key > tPrep &&
+                                   grp.Select(g => g.targets[0]).Distinct().Count() == dataQubits.Length)?
+            .Key;
 
         if (tPost == null) return null;
 
-        // 3) Oracle region is strictly between (tPrep, tPost)
-        double tStart = tPrep + 1;
+        double tStart = tPrep.Value + 1;
         double tEnd = tPost.Value - 1;
 
         if (tEnd < tStart)
         {
-            // Sometimes the oracle collapses to exactly one column and your schedule might put post-H immediately next.
-            // In that case, treat oracle as the single column tPrep+1 if it exists.
-            double candidate = tPrep + 1;
+            double candidate = tPrep.Value + 1;
             bool exists = payload.gates.Any(g => Math.Abs(g.time - candidate) < 1e-9);
             if (!exists) return null;
-
             tStart = candidate;
             tEnd = candidate;
         }
 
-        // Only create overlay if there is at least one gate in the region
         bool hasOracleOps = payload.gates.Any(g => g.time >= tStart && g.time <= tEnd);
         if (!hasOracleOps) return null;
 
@@ -320,10 +308,9 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
             label = "U_f",
             timeStart = (int)Math.Round(tStart),
             timeEnd = (int)Math.Round(tEnd),
-            targets = new[] { q0, q1 }
+            targets = qubits.ToArray()
         };
     }
-
 
     private static List<D3GateOp> ScheduleOpsAsap(List<Op> ops)
     {
@@ -359,11 +346,10 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
 
             foreach (var r in resources) layerUsed.Add(r);
 
-            // Emit typed gate (no anonymous objects)
             gates.Add(new D3GateOp
             {
                 id = op.Id,
-                type = op.Type,                
+                type = op.Type,
                 targets = op.Targets,
                 classical = (op.Type == "m") ? (op.Classical ?? Array.Empty<string>()) : null,
                 @params = (op.Params != null && op.Params.Length > 0) ? op.Params : null,
@@ -391,7 +377,6 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         }
     }
 
-
     private static string NormalizeQubit(string qasmRef)
     {
         string trimmed = qasmRef.Trim();
@@ -409,10 +394,56 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         return trimmed.TrimEnd(';');
     }
 
-    private string BuildStaticD3Payload(DEUTSCH instance, string? solution)
+    private string BuildStaticD3Payload(DEUTSCHJOZSA instance, string? solution)
     {
-        bool[] f = instance.funcValues;
-        bool isConstant = (f[0] == f[1]);
+        int dataCount = Math.Max(1, instance.n);
+        string[] qubits = BuildDefaultQubits(instance);
+        string[] classical = BuildDefaultClassical(instance);
+
+        var gates = new List<object>();
+        // Ancilla assumed to be last qubit
+        string ancilla = qubits.Last();
+
+        // X on ancilla
+        gates.Add(new { id = "x0", type = "x", targets = new[] { ancilla }, time = 0 });
+
+        // H on all qubits (data + ancilla)
+        for (int i = 0; i < qubits.Length; i++)
+        {
+            gates.Add(new { id = $"h{i}", type = "h", targets = new[] { qubits[i] }, time = 1 });
+        }
+
+        // Placeholder oracle column
+        int oracleTime = 2;
+        if (IsConstant(instance))
+        {
+            gates.Add(new { id = "oracle_const", type = "i", targets = new[] { ancilla }, label = "U_f", time = oracleTime });
+        }
+        else
+        {
+            gates.Add(new { id = "oracle_bal", type = "cx", targets = new[] { qubits[0], ancilla }, label = "U_f", time = oracleTime });
+        }
+
+        // H on data qubits
+        int postHTime = 3;
+        for (int i = 0; i < dataCount; i++)
+        {
+            gates.Add(new { id = $"h_post_{i}", type = "h", targets = new[] { qubits[i] }, time = postHTime });
+        }
+
+        // Measure data qubits
+        int measureTime = 4;
+        for (int i = 0; i < dataCount; i++)
+        {
+            gates.Add(new
+            {
+                id = $"m{i}",
+                type = "m",
+                targets = new[] { qubits[i] },
+                classical = new[] { classical[i] },
+                time = measureTime + i * 0.01
+            });
+        }
 
         var overlays = new[]
         {
@@ -420,47 +451,51 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
             {
                 type = "oracle",
                 label = "U_f",
-                timeStart = 2,
-                timeEnd = 2,
-                targets = new[] { "q0", "q1" }
+                timeStart = oracleTime,
+                timeEnd = oracleTime,
+                targets = qubits
             }
         };
 
         var payload = new
         {
-            qubits = new[] { "q0", "q1" },
-            classical = new[] { "c0" },
-            gates = new object[]
-            {
-                new { id = "x0",  type = "x",  targets = new[] { "q1" },            time = 0 },
-
-                // same-column H gates
-                new { id = "h0",  type = "h",  targets = new[] { "q0" },            time = 1 },
-                new { id = "h1",  type = "h",  targets = new[] { "q1" },            time = 1 },
-
-                isConstant
-                    ? new { id = "x1",  type = "x",  targets = new[] { "q1" },       time = 2 }
-                    : new { id = "cx1", type = "cx", targets = new[] { "q0", "q1" }, time = 2 },
-
-                new { id = "h2",  type = "h",  targets = new[] { "q0" },            time = 3 },
-
-                new
-                {
-                    id = "m0",
-                    type = "m",
-                    targets = new[] { "q0" },
-                    classical = new[] { "c0" },
-                    time = 4
-                }
-            },
+            qubits,
+            classical,
+            gates,
             overlays,
             metadata = new
             {
                 solution,
-                oracleType = isConstant ? "constant" : "balanced"
+                oracleType = IsConstant(instance) ? "constant" : "balanced"
             }
         };
 
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private static bool IsConstant(DEUTSCHJOZSA instance)
+    {
+        if (instance.w.Count == 0) return true;
+        int first = instance.w[0];
+        return instance.w.All(v => v == first);
+    }
+
+    private static string[] BuildDefaultQubits(DEUTSCHJOZSA instance)
+    {
+        int dataCount = Math.Max(1, instance.n);
+        var qubits = new List<string>();
+        for (int i = 0; i < dataCount; i++)
+            qubits.Add($"q{i}");
+        qubits.Add($"q{dataCount}"); // ancilla
+        return qubits.ToArray();
+    }
+
+    private static string[] BuildDefaultClassical(DEUTSCHJOZSA instance)
+    {
+        int dataCount = Math.Max(1, instance.n);
+        var classical = new List<string>();
+        for (int i = 0; i < dataCount; i++)
+            classical.Add($"c{i}");
+        return classical.ToArray();
     }
 }
