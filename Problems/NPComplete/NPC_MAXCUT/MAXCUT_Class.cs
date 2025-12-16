@@ -82,10 +82,10 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
         // graph = new UtilCollectionGraph(maxcut["N"], maxcut["E"]);
 
         // Alternative working (but with errors) parser
-        // StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
+        StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
 
         // Attempt to fix the parser to be more accurate (WIP)
-        StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is subset N cross N, w is int}}");
+        // StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is subset N cross N, w is int}}");
         // StringParser maxCut = new("{(N,E) | N is set, E is set");
         // StringParser EParse = new("E ");
         // Instance (for help with fixing above) "({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})";
