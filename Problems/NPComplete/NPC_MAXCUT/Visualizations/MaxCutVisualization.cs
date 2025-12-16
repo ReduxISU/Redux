@@ -4,36 +4,36 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
 
-namespace API.Problems.NPComplete.NPC_CUT.Visualizations;
+namespace API.Problems.NPComplete.NPC_MAXCUT.Visualizations;
 
-class CutDefaultVisualization : IVisualization<CUT>
+class MaxCutVisualization : IVisualization<MAXCUTCUT>
 {
 
     // --- Fields ---
-    public string visualizationName { get; } = " Cut Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for Cut";
-    public string source { get; } = "";
-    public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public string visualizationType { get; } = "Graph D3";
+    public string visualizationName { get; } = " Max Cut Visualization";
+    public string visualizationDefinition { get; } = "TODO";
+    public string source { get; } = "TODO";
+    public string[] contributors { get; } = { "Max Gruenwoldt" };
+    public string visualizationType { get; } = "TODO";
 
     // --- Methods Including Constructors ---
-    public CutDefaultVisualization()
+    public MaxCutVisualization()
     {
 
     }
-    public API_JSON visualize(CUT cut)
+    public API_JSON visualize(MAXCUT maxcut)
     {
-        return cut.graph.ToAPIGraph();
+        return maxcut.graph.ToAPIGraph();
     }
 
-    public API_JSON SolvedVisualization(CUT cut, string solution)
+    public API_JSON SolvedVisualization(MAXCUT maxcut, string solution)
     {
         List<KeyValuePair<string, string>> solutionEdges = GraphParser.parseUndirectedEdgeListWithStringFunctions(solution);
         // removing duplicate edges since visualization cares about first edge only
         for (int i = solutionEdges.Count - 1; i >= 0; i--)
             if (i % 2 == 1) solutionEdges.RemoveAt(i);
 
-        API_GraphJSON apiGraph = cut.graph.ToAPIGraph();
+        API_GraphJSON apiGraph = maxcut.graph.ToAPIGraph();
 
         foreach (var edge in solutionEdges)
         {

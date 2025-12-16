@@ -23,7 +23,7 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization>
     public SimonSolver defaultSolver { get; } = new SimonSolver();
     public SimonVerifier defaultVerifier { get; } = new SimonVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public string[] contributors {get;} = { "Eric Hill", "Max Gruenwoldt"};
 
     private int[] _funcValues = new int[2] { 0, 1 };
 
