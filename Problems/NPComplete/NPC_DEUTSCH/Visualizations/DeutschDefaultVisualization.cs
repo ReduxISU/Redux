@@ -6,7 +6,7 @@ using System.Text.Json;
 
 class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 {
-    public string visualizationName { get; } = "Deutsch Quantum Circuit (Q.js)";
+    public string visualizationName { get; } = "Deutsch Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
 
     public string source { get; } = "";
