@@ -22,7 +22,7 @@ class MaxCutVerifier : IVerifier<MAXCUT> {
 
 
     // --- Methods Including Constructors ---
-    public string CutVerifier() {
+    public string MaxCutVerifier() {
         return "Placeholder";
     }
 
