@@ -15,7 +15,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
     public string solverName { get; } = "Shor's Quantum API Solver";
     public string solverDefinition { get; } = 
         "Calls external quantum computing API to solve prime factorization using Shor's algorithm. " +
-        "Shor's algorithm uses quantum Fourier transform to efficiently find the period of a " +
+        "Shor's algorithm uses quantum phase estimation to efficiently find the period of a " +
         "modular exponential function, which can then be used to determine the prime factors of a " +
         "composite number through classical number theory operations like the greatest common divisor.";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
