@@ -13,7 +13,7 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Maximum_cut";
     public string formalDefinition {get;} = "Max Cut = {<G> | G is a graph}";
     public string problemDefinition {get;} = "A maximum cut in an undirected (possibly weighted) graph is a partition of the graphs vertices into two complementary sets S and T such that the total number (or total weight) of edges between S and T is maximized. The goal of the Max Cut problem is to find such a partition.";
-    public string[] contributors {get;} = {"Max Gruenwoldt"};
+    public string[] contributors {get;} = {"Max Gruenwoldt", "Eric Hill"};
     
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
