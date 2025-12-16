@@ -10,7 +10,7 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
     public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
 
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner, Andreas Kramer" };
+    public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner, Courtney Bodily, Andreas Kramer, Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
 
     // --- Methods Including Constructors ---

@@ -13,7 +13,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
     public string visualizationDefinition { get; } =
         "Constructs a quantum circuit to recover the secret bit string with a single oracle query.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Andreas Kramer" };
+    public string[] contributors { get; } = { "Andreas Kramer, Courtney Bodily, Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";
 
     public BernsteinVaziraniD3Visualization() { }

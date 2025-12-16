@@ -12,7 +12,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
     public string visualizationName { get; } = "Deutsch Quantum Circuit (D3)";
     public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Andreas Kramer" };
+    public string[] contributors { get; } = { "Andreas Kramer, Courtney Bodily, Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";
 
     public DeutschD3Visualization() { }

@@ -9,7 +9,7 @@ class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI>
     public string visualizationName { get; } = "Bernstein-Vazirani problem visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for the Bernstein-Vazirani problem";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Courtney Bodily, Andreas Kramer, Grant Gardner" };
+    public string[] contributors { get; } = { "Courtney Bodily, Andreas Kramer, Rakesh Itani, Grant Gardner" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
 
     // --- Methods Including Constructors ---
