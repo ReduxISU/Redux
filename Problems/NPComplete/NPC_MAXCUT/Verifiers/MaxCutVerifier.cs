@@ -22,8 +22,7 @@ class MaxCutVerifier : IVerifier<MAXCUT> {
 
 
     // --- Methods Including Constructors ---
-    public string MaxCutVerifier() {
-        return "Placeholder";
+    public MaxCutVerifier() {
     }
 
     public bool verify(MAXCUT problem, string certificate){
