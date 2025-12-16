@@ -6,7 +6,7 @@ using API.Interfaces.JSON_Objects;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Visualizations;
 
-class MaxCutVisualization : IVisualization<MAXCUTCUT>
+class MaxCutVisualization : IVisualization<MAXCUT>
 {
 
     // --- Fields ---
