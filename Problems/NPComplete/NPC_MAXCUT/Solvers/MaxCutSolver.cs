@@ -13,8 +13,8 @@ class MaxCutSolver : ISolver<MAXCUT> {
 
     public MaxCutSolver() { }
 
-    public int solve(MAXCUT maxcut){
-        return -1;
+    public string solve(MAXCUT maxcut){
+        return "TODO";
     }
 }
 
