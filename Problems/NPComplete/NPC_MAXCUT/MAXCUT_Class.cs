@@ -81,17 +81,24 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
         // }).ToList();
         // graph = new UtilCollectionGraph(maxcut["N"], maxcut["E"]);
 
-        StringParser weightedCut = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
-        // StringParser weightedCut = new("{(N,E) | N is set, E subset {(e, w) | e subset {(j,k) | j is N unorderedcross N, k is N unorderedcross N}, w is int}}");
+        // Alternative working (but with errors) parser
+        // StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
+
+        // Attempt to fix the parser to be more accurate (WIP)
+        StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is subset N cross N, w is int}}");
+        // StringParser maxCut = new("{(N,E) | N is set, E is set");
+        // StringParser EParse = new("E ");
+        // Instance (for help with fixing above) "({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})";
         Console.WriteLine($"Parsing instance: {instance}");
-        weightedCut.parse(GInput);
-        nodes = weightedCut["N"].ToList().Select(node => node.ToString()).ToList();
-        Console.WriteLine($"Parsed Nodes:");
-        foreach (var node in nodes)
-        {
-            Console.WriteLine($"{node}");
-        }
-        edges = weightedCut["E"].ToList().Select(edge =>
+        //maxCut.parse(GInput);
+        maxCut.parse(instance);
+        nodes = maxCut["N"].ToList().Select(node => node.ToString()).ToList();
+        Console.WriteLine($"Parsed Nodes: {string.Join(", ", nodes)}");
+        // foreach (var node in nodes)
+        // {
+        //     Console.WriteLine($"{node}");
+        // }
+        edges = maxCut["E"].ToList().Select(edge =>
         {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
@@ -101,8 +108,8 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
         {
             Console.WriteLine($"{edge}");
         }
-        // _K = int.Parse(weightedCut["K"].ToString());
+        // _K = int.Parse(maxCut["K"].ToString());
 
-        graph = new UtilCollectionGraph(weightedCut["N"], weightedCut["E"]);
+        graph = new UtilCollectionGraph(maxCut["N"], maxCut["E"]);
     }
 }
