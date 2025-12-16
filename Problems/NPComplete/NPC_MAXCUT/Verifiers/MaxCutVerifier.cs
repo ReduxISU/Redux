@@ -9,7 +9,7 @@ class MaxCutVerifier : IVerifier<MAXCUT> {
     public string verifierName {get;} = "Max Cut Verifier";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
-    public string[] contributors {get;} = {"Max Gruenwoldt"};
+    public string[] contributors {get;} = {"Max Gruenwoldt", "Eric Hill"};
 
 
     private string _certificate =  "";
