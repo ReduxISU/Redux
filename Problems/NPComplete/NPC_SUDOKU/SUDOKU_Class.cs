@@ -63,8 +63,8 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
 
         // Parser is not currently working, I wasn't sure how to get SPADE to handle a list of lists/tuples or a set of lists/tuples.
 
-        StringParser parser = new("{N | N is set}");
-        // StringParser parser = new("{N | N is set | (x, y, z) | x is int, y is int, z is int}");
+        // StringParser parser = new("{N | N is set}");
+        StringParser parser = new("{N | N subset {(x, y, z) | x is int, y is int, z is int }}");
 
         // parser.parse(instance);
 
