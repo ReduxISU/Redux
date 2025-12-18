@@ -1,4 +1,4 @@
-# Steps to run/edit the project locally
+# Steps to run a local instance of the project
 
 ## Initial setup:
 
