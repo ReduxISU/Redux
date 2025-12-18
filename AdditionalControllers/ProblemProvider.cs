@@ -128,6 +128,22 @@ public class ProblemProvider : ControllerBase
         return Newtonsoft.Json.JsonConvert.SerializeObject(ProblemInstance(problem, problemInstance));
     }
 
+    private static bool IsEmptyVisualization(API_JSON item)
+    {
+        if (item is API_empty) return true;
+
+        if (item is API_QUANTUMCIRCUIT circuit)
+        {
+            bool hasSolution = !string.IsNullOrWhiteSpace(circuit.solution);
+            bool hasQasm = !string.IsNullOrWhiteSpace(circuit.qasm);
+            bool hasD3 = circuit.d3.HasValue && circuit.d3.Value.ValueKind != JsonValueKind.Undefined && circuit.d3.Value.ValueKind != JsonValueKind.Null;
+
+            return !(hasSolution || hasQasm || hasD3);
+        }
+
+        return false;
+    }
+
     private string getVisualize(IVisualization visualization, List<string> steps, string solution, string instance)
     {
         var options = new JsonSerializerOptions
@@ -140,9 +156,15 @@ public class ProblemProvider : ControllerBase
         List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps);
         API_JSON solutionJson = visualization.SolvedVisualization(instance, solution);
 
-        List<API_JSON> list = new List<API_JSON> { visual };
-        list.AddRange(apiSteps);
-        if (solution.GetType() != typeof(API_empty)) list.Add(solutionJson);
+        List<API_JSON> list = new List<API_JSON>();
+
+        if (!IsEmptyVisualization(visual))
+            list.Add(visual);
+
+        list.AddRange(apiSteps.Where(step => !IsEmptyVisualization(step)));
+
+        if (!IsEmptyVisualization(solutionJson))
+            list.Add(solutionJson);
 
         return JsonSerializer.Serialize(list, options);
     }

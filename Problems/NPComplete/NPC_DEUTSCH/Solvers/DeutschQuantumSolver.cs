@@ -11,7 +11,7 @@ namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 class DeutschQuantumSolver : ISolver<DEUTSCH> {
 
     // --- Fields ---
-    public string solverName { get; } = "Deutsch quantum solver";
+    public string solverName { get; } = "Deutsch Problem Quantum API Solver";
     public string solverDefinition { get; } = "This solver constructs a quantum circuit for f(x) and then uses phase kickback to determine whether the oracle is constant or balanced with a single invocation of a quantum simulator (qiskit)";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
     public string[] contributors {get;} = { "Grant Gardner" };
