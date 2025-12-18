@@ -12,7 +12,7 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization>
     // --- Fields ---
     public string problemName {get;} = "Simon's Algorithm"; // Name as it appears in the dropdown selection panel
     public string problemLink {get;} = "https://en.wikipedia.org/wiki/Simon%27s_problem"; // Link to the Wikipedia page for the problem
-    public string formalDefinition {get;} =  "Simon = {(<w_1, w_2, ... , w_(2^n - 1), w_(2^n)> | w_i is bit string of length m, with n being the input dimension and m being the output dimension of the function}"; // Mathematical description of the problem (todo later)
+    public string formalDefinition {get;} =  "Simon = {(<w_1, w_2, ... , w_(2^n - 1), w_(2^n)> | w_i is bit string of length m converted to int, with n being the input dimension and m being the output dimension of the function}"; // Mathematical description of the problem (todo later)
     public string problemDefinition { get; } = "Simon's problem is defined by a black-box function f: {0,1}^n -> {0,1}^m. For this function the following is promised: f(x) = f(y) if and only if x = y or x = y ⊕ s for some secret string s ∈ {0,1}^n. The goal is to find the string s"; // plaintext description of the problem
     public string source { get; } = "Simon, Daniel R. On the power of quantum computation. SIAM journal on computing, 1997, 26. Jg., Nr. 5, S. 1474-1483."; // Academic paper proper citation
     public string sourceLink { get; } = "https://epubs.siam.org/doi/abs/10.1137/S0097539796298637?casa_token=q1_RWPmvpQ0AAAAA:vmai1NwqSJEUGwydbsrdvH1tsKxcE_MoWfiTwQda9yJKhC0prizshyidP4VcDZK8n5CuqoeaqlQ"; // Link to the academic paper
@@ -23,7 +23,7 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization>
     public SimonSolver defaultSolver { get; } = new SimonSolver();
     public SimonVerifier defaultVerifier { get; } = new SimonVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public string[] contributors {get;} = { "Eric Hill", "Max Gruenwoldt"};
 
     private int[] _funcValues = new int[2] { 0, 1 };
 
