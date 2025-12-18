@@ -32,7 +32,7 @@
 
 3. Access webpage at the following link
 
-    http://localhost:3000/aboutus
+    http://localhost:3000/
 
 4. Access Swagger API at the following link:
 
