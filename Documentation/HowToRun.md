@@ -20,7 +20,7 @@
 
     ```npm install next react react-dom```
 
-## Each runtime (run these in separate terminals):
+## Each runtime (run these in concurrently separate terminals):
 
 1. Run backend (in Redux file structure) (may or may not need to run as admin):
 
