@@ -7,7 +7,7 @@ using System.Text.Json;
 class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI>
 {
     public string visualizationName { get; } = "Bernstein-Vazirani Quantum Circuit (Q)";
-    public string visualizationDefinition { get; } = "This is a default visualization for the Bernstein-Vazirani problem";
+    public string visualizationDefinition { get; } = "Requests QASM for the Bernstein-Vazirani circuit (Hadamards, oracle, measure data qubits) to show how one query recovers the hidden bit string for Q.js rendering.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Courtney Bodily, Andreas Kramer, Rakesh Itani, Grant Gardner" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";

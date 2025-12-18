@@ -10,8 +10,8 @@ using API.Tools;
 class DeutschD3Visualization : IVisualization<DEUTSCH>
 {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (D3)";
-    public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
-    public string source { get; } = "";
+    public string visualizationDefinition { get; } = "Builds a two-qubit Deutsch circuit, highlights the oracle block, and illustrates how interference distinguishes constant vs. balanced functions in one query using D3.js.";
+    public string source { get; } = "https://d3js.org/";
     public string[] contributors { get; } = { "Andreas Kramer, Courtney Bodily, Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";
 

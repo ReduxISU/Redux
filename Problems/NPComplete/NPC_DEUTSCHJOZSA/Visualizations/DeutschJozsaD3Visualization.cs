@@ -11,7 +11,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
 {
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
-        "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
+        "Builds an n-qubit Deutsch-Jozsa circuit with Hadamard prep, highlights the oracle, and shows how one query distinguishes constant vs. balanced functions via interference using D3.js.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andreas Kramer, Courtney Bodily, Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";

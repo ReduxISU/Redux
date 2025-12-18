@@ -7,7 +7,7 @@ using System.Text.Json;
 class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (Q)";
-    public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent the oracle and then simulates the circuit to find the solution.";
+    public string visualizationDefinition { get; } = "Requests the QASM for the two-qubit Deutsch circuit, showing the oracle call and measurement that separates constant vs. balanced functions in one query for Q.js rendering.";
 
     public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner, Courtney Bodily, Andreas Kramer, Rakesh Itani" };
