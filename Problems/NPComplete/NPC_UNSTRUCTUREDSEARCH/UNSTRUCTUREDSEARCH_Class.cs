@@ -11,11 +11,11 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
 
     // --- Fields ---
     public string problemName {get;} = "Unstructured Search";
-    public string problemLink {get;} = "TODO";
+    public string problemLink {get;} = "https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms/grover-algorithm/unstructured-search";
     public string formalDefinition {get;} = "Unstructured Search = {(x, y) | x is int, y is int}";
-    public string problemDefinition {get;} = "TODO";
-    public string source {get;} = "TODO";
-    public string sourceLink {get;} = "TODO";
+    public string problemDefinition {get;} = "Input: a function f:Σn→Σf:Σn→Σ; Output: a string x∈Σnx∈Σn satisfying f(x)=1,f(x)=1, or \"no solution\" if no such string xx exists";
+    public string source {get;} = "Grover, L. K. (1996). A fast quantum mechanical algorithm for database search. In Proceedings of the twenty-eighth annual ACM symposium on Theory of computing (pp. 212-219).";
+    public string sourceLink {get;} = "https://dl.acm.org/doi/pdf/10.1145/237814.237866";
     private static readonly string _defaultInstance = "(0, 1, 0, 0)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
