@@ -10,7 +10,7 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
     public string visualizationDefinition { get; } = "Requests the QASM for the two-qubit Deutsch circuit, showing the oracle call and measurement that separates constant vs. balanced functions in one query for Q.js rendering.";
 
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner, Courtney Bodily, Andreas Kramer, Rakesh Itani" };
+    public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner", "Courtney Bodily", "Andreas Kramer", "Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
 
     // --- Methods Including Constructors ---

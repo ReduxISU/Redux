@@ -9,7 +9,7 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests the QASM for the Deutsch-Jozsa circuit (data qubits plus ancilla), showing the oracle and measurements that separate constant vs. balanced functions in one query for Q.js.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Courtney Bodily, Andreas Kramer, Rakesh Itani, Grant Gardner" };
+    public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
 
     // --- Methods Including Constructors ---
