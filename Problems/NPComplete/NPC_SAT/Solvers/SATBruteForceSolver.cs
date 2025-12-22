@@ -16,7 +16,7 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
     public string solverName {get;} = "SAT Brute Force Solver";
     public string solverDefinition {get;} = "This is a simple brute force solver for SAT";
     public string source {get;} = "";
-    public string[] contributors {get;} = { "Daniel Igbokwe, Show Pratoomratana"};
+    public string[] contributors {get;} = { "Daniel Igbokwe", "Show Pratoomratana"};
 
     #endregion
 

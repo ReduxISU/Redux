@@ -8,20 +8,22 @@ namespace API.Problems.NPComplete.NPC_DEUTSCH;
 
 using System.Text.Json.Serialization;
 
-class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschVerifier, DummyVisualization> {
+class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, DummyVisualization>
+{
 
     // --- Fields ---
     public string problemName {get;} = "Deutsch"; // Name as it appears in the dropdown selection panel
-    public string formalDefinition {get;} =  "Deutsch = {<i, w> | i is int, w is int}"; // Mathematical description of the problem (todo later)
-    public string problemDefinition { get; } = "Deutsch's algorithm solves the parity problem for the special case that n=1. It is represented by an ordered list......"; // plaintext description of the problem
-    public string source { get; } = "todo"; // Academic paper proper citation
+    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Deutsch%E2%80%93Jozsa_algorithm#Deutsch's_algorithm"; // Link to the Wikipedia page for the problem
+    public string formalDefinition {get;} =  "Deutsch = {<i, w> | i is bit (0 or 1), w is bit (0 or 1)}"; // Mathematical description of the problem (todo later)
+    public string problemDefinition { get; } = "Deutsch's algorithm determines whether a given function f: {0,1} -> {0,1} is constant or balanced. The problem has four possible input functions and is represented to the ordered list of outputs, i.e. (f(0), f(1))."; // plaintext description of the problem
+    public string source { get; } = "Deutsch, David. 1985. Quantum theory, the Church-Turing principle and the universal quantum computer. Proc. R. Soc. Lond. A40097-117"; // Academic paper proper citation
     public string sourceLink { get; } = "https://royalsocietypublishing.org/doi/10.1098/rspa.1985.0070"; // Link to the academic paper
     private static readonly string _defaultInstance = "(0,1)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public DeutschClassicalSolver defaultSolver {get;} = new DeutschClassicalSolver();
-    public DeutschVerifier defaultVerifier { get; } = new DeutschVerifier();
+    public DeutschClassicalVerifier defaultVerifier { get; } = new DeutschClassicalVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
 

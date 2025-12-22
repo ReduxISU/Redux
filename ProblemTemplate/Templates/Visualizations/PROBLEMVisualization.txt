@@ -4,7 +4,7 @@ using API.Problems.NPComplete.{NAME_UPPERCASE};
 
 namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Visualizers
 
-class {NAME_PASCEL_CASE}Visualization : IVisualization<{NAME_UPPERCASE}>
+class {NAME_PASCAL_CASE}Visualization : IVisualization<{NAME_UPPERCASE}>
 {
     public string visualizationName { get; } = "TODO";
     public string visualizationDefinition { get; } = "TODO";
@@ -13,7 +13,7 @@ class {NAME_PASCEL_CASE}Visualization : IVisualization<{NAME_UPPERCASE}>
     public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
 
     // --- Methods Including Constructors ---
-    public {NAME_PASCEL_CASE}Visualization()
+    public {NAME_PASCAL_CASE}Visualization()
     {
 
     }

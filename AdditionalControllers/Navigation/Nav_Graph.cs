@@ -53,7 +53,9 @@ class ProblemGraph {
     
         if(problems != null){
 
-            foreach(string? problem in problems ){
+            foreach(var problem in problems ){
+                if (problem == null)
+                    continue;
                 // Console.WriteLine("ProblemNode:  "+problem);
                 string[] splitStr = problem.Split('_');
                 this.graph.Add(splitStr[1].ToLower(), parseReducesTo(problem));
@@ -277,44 +279,45 @@ class ProblemGraph {
 
         try{
 
-                 subdirs = Directory.GetDirectories(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + chosenProblem + "/ReduceTo")
-                            .Select(Path.GetFileName)
-                            .ToArray();
+            subdirs = Directory.GetDirectories(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + chosenProblem + "/ReduceTo")
+                      .Select(Path.GetFileName)
+                      .ToArray();
 
-        
-
-            foreach(string problemDirName in subdirs) {
-
+            foreach(var problemDirName in subdirs) {
+                if (problemDirName is null)
+                    continue;
                 string[] splitStr = problemDirName.Split('_');
                 string newName = splitStr[1];
                 subdirsNoPrefix.Add(newName);
            }
            
 
-        }  catch (System.IO.DirectoryNotFoundException dirNotFoundException){
-           // Console.WriteLine( " directory not found, exception was thrown in Nav_Reductions.cs");
-            // Console.WriteLine(dirNotFoundException.StackTrace);
+        }  catch (System.IO.DirectoryNotFoundException){
 
         } finally{
 
         }
 
         for(int i = 0; i < subdirs.Length; i++){
-            string problemName = subdirsNoPrefix[i].ToString();
+            var subdirObject = subdirsNoPrefix[i];
+            if (subdirObject is null)
+                continue;
+            var problemName = subdirObject.ToString();
+            if (problemName is null)
+                continue;
 
-                string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + chosenProblem + "/ReduceTo/" + subdirs[i])
-                            .Select(Path.GetFileName)
-                            .ToArray();
+            string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + chosenProblem + "/ReduceTo/" + subdirs[i])
+                                 .Select(Path.GetFileName)
+                                 .ToArray();
 
-                // string reductionMethods = "";
-                // foreach(string? method in subfiles){
-                //     reductionMethods += method+", "; 
-                // }
-                dict.Add(problemName.ToLower(), subfiles.ToList());
-
-                // reductionMethods = reductionMethods.TrimEnd(',').Trim();
-                // problemsReducedTo.Add(new ProblemNode(subdirsNoPrefix[i].ToString(), reductionMethods));
-
+            // safely any nulls
+            List<string> subfilesList = new List<string>();
+            foreach (var file in subfiles) {
+                if (file is null)
+                    continue;
+                subfilesList.Add(file);
+            }
+            dict.Add(problemName.ToLower(), subfilesList);
         }
            
 

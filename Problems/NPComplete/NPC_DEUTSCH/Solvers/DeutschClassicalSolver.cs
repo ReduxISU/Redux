@@ -5,7 +5,7 @@ class DeutschClassicalSolver : ISolver<DEUTSCH> {
 
     // --- Fields ---
     public string solverName {get;} = "Deutsch Problem Classical Solver";
-    public string solverDefinition {get;} = "This is a classical solver for the Deutsch Problem";
+    public string solverDefinition { get; } = "This is a classical solver for the Deutsch Problem which simply tries both inputs to f(x) and computes whether they are the same (constant) or different (balanced)";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Jason L. Wright" };
 
