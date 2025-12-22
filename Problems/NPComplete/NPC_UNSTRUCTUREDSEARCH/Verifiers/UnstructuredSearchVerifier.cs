@@ -6,8 +6,8 @@ class UnstructuredSearchVerifier : IVerifier<UNSTRUCTUREDSEARCH> {
 
     // --- Fields ---
     public string verifierName { get; } = "Unstructured search verifier";
-    public string verifierDefinition {get;} = "TODO";
-    public string source {get;} = " ";
+    public string verifierDefinition { get; } = "This verifier simply checks that the certificate provided results in f(x) != 0 for the unstructured search problem.";
+    public string source { get; } = "Grover, L. K. (1996). A fast quantum mechanical algorithm for database search. In Proceedings of the twenty-eighth annual ACM symposium on Theory of computing (pp. 212-219).";
     public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
     private string _certificate =  "";
 

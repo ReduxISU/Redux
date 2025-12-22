@@ -8,7 +8,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
     // --- Fields ---
     public string solverName {get;} = "Deutsch Jozsa Problem - Classical Solver";
     public string solverDefinition {get;} = "This is a classical solver for the Deutsch Jozsa Problem";
-    public string source {get;} = "TODO";
+    public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558";
     public string[] contributors {get;} = { "George Lake", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
 
     // --- Methods Including Constructors ---

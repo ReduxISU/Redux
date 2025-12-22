@@ -13,7 +13,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
     public string visualizationDefinition { get; } =
         "Builds an n-qubit Deutsch-Jozsa circuit with Hadamard prep, highlights the oracle, and shows how one query distinguishes constant vs. balanced functions via interference using D3.js.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Andreas Kramer, Courtney Bodily, Rakesh Itani" };
+    public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";
 
     public DeutschJozsaD3Visualization() { }
