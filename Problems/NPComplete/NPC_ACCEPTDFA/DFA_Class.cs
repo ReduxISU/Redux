@@ -5,7 +5,10 @@ using API.Problems.NPComplete.NPC_ACCEPTDFA.Verifiers;
 using API.Problems.NPComplete.NPC_ACCEPTDFA.Visualizations;
 using SPADE;
 using Xunit;
+using System.Linq;
+using System.Collections.Generic;
 
+// This is For DFA //
 public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>
 {
     // ----- Fields ----- //
@@ -15,95 +18,114 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
     public string problemDefinition { get; } = "Acceptance Problem of a DFA is a problem that aims to see if a string input will be accepted by a particular Deterministic Finite Automata model.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
-    private static readonly string _defaultInstance = " {({1,2,3},{a,b},{{1,2,a},{1,3,b}}, 1, {3}), b}";
+
+    // ✅ Updated default instance: edges use {} instead of ()
+    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3)},1,{3}),b)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+
     public string wikiName { get; } = "N/A";
     public DFASolver defaultSolver { get; } = new DFASolver();
     public DFAVerifier defaultVerifier { get; } = new DFAVerifier();
     public DFAVisualization defaultVisualization { get; } = new DFAVisualization();
     public string[] contributors { get; } = { "Michael Trosper" };
 
+    // Edge Structure //
+    public record DFAEdge(string From, char Symbol, string To);
+
     // ----- Internal Graph ----- //
     internal UtilCollectionGraph graph { get; set; }
 
     // ----- Explicit Interface Implementation ----- //
-    UtilCollectionGraph IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>.graph
-    {
-        get => graph;
-    }
+    UtilCollectionGraph IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>.graph => graph;
 
     // ----- Graphing Elements ----- //
-    private List<string> _nodes = new List<string>();
-    private List<char> _alphabet = new List<char>();
-    private List<Tuple<string, string, char>> _edges = new List<Tuple<string, string, char>>();
+    private List<string> _nodes = new();
+    private List<char> _alphabet = new();
+    private List<DFAEdge> _edges = new();
     private string _startState;
-    private List<string> _acceptStates = new List<string>();
+    private List<string> _acceptStates = new();
     private string _inputString;
-    public List<string> nodes
-    {
-        get => _nodes;
-        set => _nodes = value;
-    }
-    public List<char> alphabet
-    {
-        get => _alphabet;
-        set => _alphabet = value;
-    }
-    public List<Tuple<string, string, char>> edges
-    {
-        get => _edges;
-        set => _edges = value;
-    }
-    public string startState 
-    {
-        get => _startState;
-        set => _startState = value;
-    }
-    public List<string> acceptStates
-    {
-        get => _acceptStates;
-        set => _acceptStates = value;
-    }
-    public string inputString
-    {
-        get => _inputString;
-        set => _inputString = value;
-    }
 
-    /*
-    private Graph _dFAAsGraph;
-    public Graph dFAAsGraph
-    {
-        get => _dFAAsGraph;
-        set => _dFAAsGraph = value;
-    }
-    */
+    public List<string> nodes { get => _nodes; set => _nodes = value; }
+    public List<char> alphabet { get => _alphabet; set => _alphabet = value; }
+    public List<DFAEdge> edges { get => _edges; set => _edges = value; }
+    public string startState { get => _startState; set => _startState = value; }
+    public List<string> acceptStates { get => _acceptStates; set => _acceptStates = value; }
+    public string inputString { get => _inputString; set => _inputString = value; }
 
-    // ----- Methods and Constructors ----- //
+    // ----- Constructors ----- //
     public DFA() : this(_defaultInstance) { }
 
     public DFA(string instance)
     {
         this.instance = instance;
 
-        // TODO: implement parsing of string instance of DFA. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
-        StringParser DFA_Graph = new("{((N,A,E,S,F),I) | N is set, A is a set, E subset (N unorderedcross N unorderedcross A), F is a set}");
+        // ---- SPADE grammar: edges as ordered triples (cross) ----
+        StringParser DFA_Graph = new(
+            "{((N,A,E,S,F),I) | " +
+            "N is set, " +
+            "A is set, " +
+            "E is N cross A cross N, " +
+            "S is string, " +
+            "F is set, " +
+            "I is string" +
+            "}"
+        );
+
+        // ---- Parse the instance ----
         DFA_Graph.parse(instance);
 
-        // DFA Components //
-        nodes = DFA_Graph["N"].ToList().Select(node => node.ToString()).ToList();
-        alphabet = DFA_Graph["A"].ToList().Select(character => (character.ToString()[0])).ToList();
-        edges = DFA_Graph["E"].ToList().Select(edge =>
-        {
-            List<UtilCollection> cast = edge.ToList();
-            return new Tuple<string, string, char>(cast[0].ToString(), cast[1].ToString(), char.Parse(cast[2].ToString()));
-        }).ToList();
-        startState = DFA_Graph["S"].ToString();
-        acceptStates = DFA_Graph["F"].ToList().Select(node => node.ToString()).ToList();
-        inputString = DFA_Graph["I"].ToString();
+        // ---- Retrieve components with null checks ----
+        UtilCollection N = DFA_Graph["N"] ?? throw new InvalidOperationException("Failed to parse N (nodes).");
+        UtilCollection A = DFA_Graph["A"] ?? throw new InvalidOperationException("Failed to parse A (alphabet).");
+        UtilCollection E = DFA_Graph["E"] ?? throw new InvalidOperationException("Failed to parse E (edges).");
+        UtilCollection S = DFA_Graph["S"] ?? throw new InvalidOperationException("Failed to parse S (start state).");
+        UtilCollection F = DFA_Graph["F"] ?? throw new InvalidOperationException("Failed to parse F (accept states).");
+        UtilCollection I = DFA_Graph["I"] ?? throw new InvalidOperationException("Failed to parse I (input string).");
 
-        // Might Need To Adjust Since Edges are Not Just (Node X Node) Like In Other Examples //
-        graph = new UtilCollectionGraph(DFA_Graph["N"], DFA_Graph["E"]);
+        // ---- Convert nodes and alphabet ----
+        nodes = N.ToList().Select(x => x.ToString()).ToList();
+        alphabet = A.ToList().Select(x => x.ToString()[0]).ToList();
+
+        // ---- Parse and validate edges ----
+        edges = new List<DFAEdge>();
+        foreach (var e in E.ToList())
+        {
+            if (e is UtilCollection tuple && tuple.Count() == 3)
+            {
+                string from = tuple[0].ToString();
+                char symbol = tuple[1].ToString()[0];
+                string to = tuple[2].ToString();
+
+                // Validate edge
+                if (!nodes.Contains(from))
+                    throw new InvalidOperationException($"Edge From node '{from}' not in N.");
+                if (!alphabet.Contains(symbol))
+                    throw new InvalidOperationException($"Edge Symbol '{symbol}' not in A.");
+                if (!nodes.Contains(to))
+                    throw new InvalidOperationException($"Edge To node '{to}' not in N.");
+
+                edges.Add(new DFAEdge(from, symbol, to));
+            }
+            else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
+        }
+
+        // ---- Parse remaining components ----
+        startState = S.ToString();
+        if (!nodes.Contains(startState))
+            throw new InvalidOperationException($"Start state '{startState}' not in N.");
+
+        acceptStates = F.ToList().Select(x => x.ToString()).ToList();
+        foreach (var f in acceptStates)
+        {
+            if (!nodes.Contains(f))
+                throw new InvalidOperationException($"Accept state '{f}' not in N.");
+        }
+
+        inputString = I.ToString();
+
+        // ---- Build internal graph ----
+        graph = new UtilCollectionGraph(N, E);
     }
 }

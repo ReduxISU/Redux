@@ -19,40 +19,47 @@ public class DFASolver : ISolver<DFA>
 
     public string solve(DFA problem)
     {
-        // TODO: implement DFA Solver for DFA
-        // Input / Result Strings //
         string inputString = problem.inputString;
-        string outputString = "";
-        // State the DFA Is Analyzing //
         string currentNode = problem.startState;
-        // Saved Sequence of States //
-        List<string> nodePath = new List<string>();
-        nodePath.Add(currentNode);
-     
-        // Check Each Character In the Input //
+        List<string> nodePath = new List<string> { currentNode };
+
         foreach (char character in inputString)
         {
-            // See If An Edge Exists That Can Be Used //
-            foreach (Tuple<string,string, char> edge in problem.edges)
+            // Check if character is in alphabet
+            if (!problem.alphabet.Contains(character))
             {
-                // If Edge Exists, Move To Next Node //
-                if (edge.Item3 == character && edge.Item1.Equals(currentNode)) { currentNode = edge.Item2; nodePath.Add(edge.Item2); }
-                // If Character Is Outside Alphabet, Flag It and Return //
-                if (!problem.alphabet.Contains(character) || !problem.alphabet.Contains(edge.Item3))
-                { return "No Solution: The input string or DFA contains an edge with a value not inside the alphabet"; }
+                // Skip or fail gracefully
+                return $"No Solution: Input contains character '{character}' not in DFA alphabet";
+            }
+
+            // Follow the edge
+            bool foundEdge = false;
+            foreach (var edge in problem.edges)
+            {
+                if (edge.From == currentNode && edge.Symbol == character)
+                {
+                    currentNode = edge.To;
+                    nodePath.Add(currentNode);
+                    foundEdge = true;
+                    break;
+                }
+            }
+
+            // If no edge exists, DFA cannot continue
+            if (!foundEdge)
+            {
+                return "No Solution Exists: DFA cannot transition with this character";
             }
         }
-        // If We End On an Accept State //
+
+        // Check if the last state is accepting
         if (problem.acceptStates.Contains(currentNode))
         {
-            outputString += "The sequence of states to accept is: ";
-            foreach(string node in nodePath)
-            {
-                outputString += $"{node}, ";
-            }
-            return outputString;
+            return "The sequence of states to accept is: " + string.Join(", ", nodePath);
         }
-        // If We Land On a Garbage State //
-        else { return "No Solution Exists"; }
+        else
+        {
+            return "No Solution Exists: The DFA ended in a non-accepting state";
+        }
     }
 }
