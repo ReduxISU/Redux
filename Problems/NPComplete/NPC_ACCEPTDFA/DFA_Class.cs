@@ -23,7 +23,6 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
     private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3)},1,{3}),b)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-
     public string wikiName { get; } = "N/A";
     public DFASolver defaultSolver { get; } = new DFASolver();
     public DFAVerifier defaultVerifier { get; } = new DFAVerifier();
