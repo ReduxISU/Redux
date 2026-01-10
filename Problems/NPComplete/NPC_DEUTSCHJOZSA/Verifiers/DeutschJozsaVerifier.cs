@@ -1,14 +1,15 @@
 using API.Interfaces;
+using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Verifiers;
 
 class DeutschJozsaVerifier : IVerifier<DEUTSCHJOZSA> {
 
     // --- Fields ---
-    public string verifierName {get;} = "ProblemVerifier";
-    public string verifierDefinition {get;} = "TODO";
-    public string source {get;} = " ";
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public string verifierName { get; } = "Deutsch Jozsa Verifier";
+    public string verifierDefinition { get; } = "This verifier uses the classical solver to verify the solution to the Deutsch-Jozsa problem.";
+    public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558";
+    public string[] contributors { get; } = { "Jason L. Wright", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
     private string _certificate =  "";
 
     public string certificate {
@@ -18,12 +19,12 @@ class DeutschJozsaVerifier : IVerifier<DEUTSCHJOZSA> {
     }
 
     // --- Methods Including Constructors ---
-    public DeutschJozsaVerifier() {
-        
+    public DeutschJozsaVerifier()
+    {
     }
 
     public bool verify(DEUTSCHJOZSA problem, string certificate){
-        // TODO: implement {VERIFIER} for {PROBLEM}
-        return true;
+        var solver = new DeutschJozsaClassicalSolver();
+        return solver.solve(problem) == certificate && (certificate is "constant" or "balanced");
     }
 }
