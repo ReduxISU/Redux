@@ -11,55 +11,55 @@ public class DEUTSCHJOZSA_tests {
     public void DEUTSCH_Default_Instantiation()
     {
         var problem = new DEUTSCHJOZSA();
-        Assert.Equal("(2,(1, 1, 1, 1))", problem.instance);
-        Assert.Equal("(2,(1, 1, 1, 1))", problem.defaultInstance);
+        Assert.Equal("(1, 1, 1, 1)", problem.instance);
+        Assert.Equal("(1, 1, 1, 1)", problem.defaultInstance);
     } 
 
     [Fact]
     public void DEUTSCH_Custom_Instantiation() {
-        string instance = "(2,(0,0,1,1))";
+        string instance = "(0,0,1,1)";
         var problem = new DEUTSCHJOZSA(instance);
         Assert.Equal(instance, problem.instance);
     }
 
-    // XXX The verifier tests require PR #95 to be merged first
-    // [Theory] //tests verifier
-    // [InlineData("(1,(0,0))", "constant", true)]
-    // [InlineData("(1,(1,1))", "constant", true)]
-    // [InlineData("(1,(0,1))", "balanced", true)]
-    // [InlineData("(1,(1,0))", "balanced", true)]
-    // [InlineData("(1,(0,0))", "balanced", false)]
-    // [InlineData("(1,(1,1))", "balanced", false)]
-    // [InlineData("(1,(0,1))", "constant", false)]
-    // [InlineData("(1,(1,0))", "constant", false)]
-    // [InlineData("(2,(0,0,0,0))", "constant", true)]
-    // [InlineData("(2,(1,1,0,0))", "balanced", true)]
-    // [InlineData("(2,(1,0,1,0))", "balanced", true)]
-    // [InlineData("(2,(1,0,0,1))", "balanced", true)]
-    // [InlineData("(2,(0,1,1,0))", "balanced", true)]
-    // [InlineData("(2,(0,1,0,1))", "balanced", true)]
-    // [InlineData("(2,(0,0,1,1))", "balanced", true)]
-    // [InlineData("(2,(1,1,1,1))", "constant", true)]
-    // public void DEUTSCHJOZSA_verifier(string instance, string certificate, bool expected) {
-    //     var problem = new DEUTSCHJOZSA(instance);
-    //     var verifier = new DeutschJozsaVerifier();
-    //     bool result = verifier.verify(problem, certificate);
-    //     Assert.Equal(expected, result);
-    // }
+    [Theory] //tests verifier
+    [InlineData("(0,0)", "constant", true)]
+    [InlineData("(1,1)", "constant", true)]
+    [InlineData("(0,1)", "balanced", true)]
+    [InlineData("(1,0)", "balanced", true)]
+    [InlineData("(0,0)", "balanced", false)]
+    [InlineData("(1,1)", "balanced", false)]
+    [InlineData("(0,1)", "constant", false)]
+    [InlineData("(1,0)", "constant", false)]
+    [InlineData("(0,0,0,0)", "constant", true)]
+    [InlineData("(1,1,0,0)", "balanced", true)]
+    [InlineData("(1,0,1,0)", "balanced", true)]
+    [InlineData("(1,0,0,1)", "balanced", true)]
+    [InlineData("(0,1,1,0)", "balanced", true)]
+    [InlineData("(0,1,0,1)", "balanced", true)]
+    [InlineData("(0,0,1,1)", "balanced", true)]
+    [InlineData("(1,1,1,1)", "constant", true)]
+    public void DEUTSCHJOZSA_verifier(string instance, string certificate, bool expected)
+    {
+        var problem = new DEUTSCHJOZSA(instance);
+        var verifier = new DeutschJozsaVerifier();
+        bool result = verifier.verify(problem, certificate);
+        Assert.Equal(expected, result);
+    }
 
     [Theory] //tests solver
-    [InlineData("(1,(0,0))", "constant")]
-    [InlineData("(1,(1,1))", "constant")]
-    [InlineData("(1,(0,1))", "balanced")]
-    [InlineData("(1,(1,0))", "balanced")]
-    [InlineData("(2,(0,0,0,0))", "constant")]
-    [InlineData("(2,(1,1,0,0))", "balanced")]
-    [InlineData("(2,(1,0,1,0))", "balanced")]
-    [InlineData("(2,(1,0,0,1))", "balanced")]
-    [InlineData("(2,(0,1,1,0))", "balanced")]
-    [InlineData("(2,(0,1,0,1))", "balanced")]
-    [InlineData("(2,(0,0,1,1))", "balanced")]
-    [InlineData("(2,(1,1,1,1))", "constant")]
+    [InlineData("(0,0)", "constant")]
+    [InlineData("(1,1)", "constant")]
+    [InlineData("(0,1)", "balanced")]
+    [InlineData("(1,0)", "balanced")]
+    [InlineData("(0,0,0,0)", "constant")]
+    [InlineData("(1,1,0,0)", "balanced")]
+    [InlineData("(1,0,1,0)", "balanced")]
+    [InlineData("(1,0,0,1)", "balanced")]
+    [InlineData("(0,1,1,0)", "balanced")]
+    [InlineData("(0,1,0,1)", "balanced")]
+    [InlineData("(0,0,1,1)", "balanced")]
+    [InlineData("(1,1,1,1)", "constant")]
     public void DEUTSCHJOZSA_solver(string instance, string certificate)
     {
         var problem = new DEUTSCHJOZSA(instance);
