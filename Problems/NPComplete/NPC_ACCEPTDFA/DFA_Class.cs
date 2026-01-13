@@ -8,7 +8,6 @@ using Xunit;
 using System.Linq;
 using System.Collections.Generic;
 
-// This is For DFA //
 public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>
 {
     // ----- Fields ----- //
@@ -19,7 +18,12 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
 
-    // ✅ Updated default instance: edges use {} instead of ()
+    // Follows Formal Definition of DFA (Q, Σ, δ, q₀, F) With Input String //
+    // Q = Set of Nodes //
+    // Σ = Characters In the Alphabet //
+    // δ = (node, char edge value, node) //
+    // q₀ = Start State //
+    // F = Set of Accept State(s) //
     private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3)},1,{3}),b)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
@@ -38,7 +42,7 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
     // ----- Explicit Interface Implementation ----- //
     UtilCollectionGraph IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>.graph => graph;
 
-    // ----- Graphing Elements ----- //
+    // ----- Deterministic Finite Automata Elements ----- //
     private List<string> _nodes = new();
     private List<char> _alphabet = new();
     private List<DFAEdge> _edges = new();
@@ -72,10 +76,10 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
             "}"
         );
 
-        // ---- Parse the instance ----
+        // Parse the Instance //
         DFA_Graph.parse(instance);
 
-        // ---- Retrieve components with null checks ----
+        // Retrieve Components Or Flag Null //
         UtilCollection N = DFA_Graph["N"] ?? throw new InvalidOperationException("Failed to parse N (nodes).");
         UtilCollection A = DFA_Graph["A"] ?? throw new InvalidOperationException("Failed to parse A (alphabet).");
         UtilCollection E = DFA_Graph["E"] ?? throw new InvalidOperationException("Failed to parse E (edges).");
@@ -83,11 +87,11 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
         UtilCollection F = DFA_Graph["F"] ?? throw new InvalidOperationException("Failed to parse F (accept states).");
         UtilCollection I = DFA_Graph["I"] ?? throw new InvalidOperationException("Failed to parse I (input string).");
 
-        // ---- Convert nodes and alphabet ----
+        // Convert Nodes and Alphabet //
         nodes = N.ToList().Select(x => x.ToString()).ToList();
         alphabet = A.ToList().Select(x => x.ToString()[0]).ToList();
 
-        // ---- Parse and validate edges ----
+        // Parse and Validate Edges //
         edges = new List<DFAEdge>();
         foreach (var e in E.ToList())
         {
@@ -97,7 +101,7 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
                 char symbol = tuple[1].ToString()[0];
                 string to = tuple[2].ToString();
 
-                // Validate edge
+                // Validate Edge //
                 if (!nodes.Contains(from))
                     throw new InvalidOperationException($"Edge From node '{from}' not in N.");
                 if (!alphabet.Contains(symbol))
@@ -110,7 +114,7 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
             else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
         }
 
-        // ---- Parse remaining components ----
+        // Parse Remaining Components //
         startState = S.ToString();
         if (!nodes.Contains(startState))
             throw new InvalidOperationException($"Start state '{startState}' not in N.");
@@ -124,7 +128,7 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
 
         inputString = I.ToString();
 
-        // ---- Build internal graph ----
+        // Build Graph //
         graph = new UtilCollectionGraph(N, E);
     }
 }

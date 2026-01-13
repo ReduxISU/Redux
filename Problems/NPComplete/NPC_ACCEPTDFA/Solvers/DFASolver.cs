@@ -14,25 +14,27 @@ public class DFASolver : ISolver<DFA>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
 
-    // ----- Methods Including Constructors ----- //
+    // Methods Including Constructors //
     public DFASolver() { }
 
     public string solve(DFA problem)
     {
+        // Input String //
         string inputString = problem.inputString;
+        // First Node To Be Analyzed //
         string currentNode = problem.startState;
+        // Will Track Path Through Nodes //
         List<string> nodePath = new List<string> { currentNode };
 
         foreach (char character in inputString)
         {
-            // Check if character is in alphabet
+            // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character))
             {
-                // Skip or fail gracefully
                 return $"No Solution: Input contains character '{character}' not in DFA alphabet";
             }
 
-            // Follow the edge
+            // Follow the Edge //
             bool foundEdge = false;
             foreach (var edge in problem.edges)
             {
@@ -45,14 +47,14 @@ public class DFASolver : ISolver<DFA>
                 }
             }
 
-            // If no edge exists, DFA cannot continue
+            // If No Edge, DFA Stops //
             if (!foundEdge)
             {
                 return "No Solution Exists: DFA cannot transition with this character";
             }
         }
 
-        // Check if the last state is accepting
+        // Check If Last State Is Accept State //
         if (problem.acceptStates.Contains(currentNode))
         {
             return "The sequence of states to accept is: " + string.Join(", ", nodePath);

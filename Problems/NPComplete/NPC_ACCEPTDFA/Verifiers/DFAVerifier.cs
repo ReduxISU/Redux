@@ -13,26 +13,27 @@ public class DFAVerifier : IVerifier<DFA>
     private string _certificate = "";
 
     private string[] nodes;
-
     public string certificate { get => _certificate; }
 
     // --- Methods Including Constructors ---
-    public DFAVerifier()
-    {
-
-    }
+    public DFAVerifier() {}
 
     public bool verify(DFA problem, string certificate)
     {
+        // Trim Unwanted Space //
         certificate.Trim();
+        // Get Each Node //
         nodes = certificate.Split(',');
 
+        // Start State //
         string currentNode = nodes[0];
+        // Tracks If Acceptable Edge Was Found //
         bool foundEdge = false;
 
+        // For Each Node //
         for (int i = 0; i < nodes.Count() -1; i++)
         {
-            // Check if character is in alphabet
+            // Check If Character Is In Alphabet
             if (!problem.nodes.Contains(nodes[i])) { return false; }
 
             if (problem.nodes.Contains(nodes[i]))
@@ -45,11 +46,11 @@ public class DFAVerifier : IVerifier<DFA>
                 }
             }
 
-            // If no edge exists, DFA cannot continue
+            // If No Edge DFA Returns False //
             if (!foundEdge) return false;
         }
 
-        // Check if the last state is accepting
+        // Return True If Last State Is Accept State //
         if (problem.acceptStates.Contains(currentNode)) return true;
         else return false;
     }
