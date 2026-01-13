@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR;
 
-class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, DummyVisualization> {
+class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefaultVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Prime Factorization"; // Name as it appears in the dropdown selection panel
@@ -15,13 +15,13 @@ class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, DummyVisual
     public string problemDefinition { get; } = "The prime factorization algorithm solves the decomposition of a positive integer into a product of prime integers."; // plaintext description of the problem
     public string source { get; } = "Gauss, Carl Friedrich (1801), Disquisitiones Arithmeticae (in Latin), Leipzig: Gerh. Fleischer"; // Academic paper proper citation
     public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
-    private static readonly string _defaultInstance = "123456";
+    private static readonly string _defaultInstance = "15";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
-    public PrimeFactorSolver defaultSolver {get;} = new PrimeFactorSolver();
+    public ShorsQuantumSolver defaultSolver {get;} = new ShorsQuantumSolver();
     public PrimeFactorVerifier defaultVerifier { get; } = new PrimeFactorVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
     public string[] contributors {get;} = { "Paul Gilbreath", "Alex Svancara" };
 
     // TODO: implement properties if {NAME} is a graphing problem

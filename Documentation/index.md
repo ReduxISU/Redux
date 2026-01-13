@@ -4,6 +4,7 @@ Welcome to the documentation for the Redux Backend. Note for standard deployment
 
 ## Table of Contents
 
+- [Steps for Running Local Instance](./HowToRun.md)
 - [Setting up for local development](./localdevelopment.md)
 - [Code Overview](./codeOverview.md)
 - [Code Base Additions](./CodeBaseAdditions.md)

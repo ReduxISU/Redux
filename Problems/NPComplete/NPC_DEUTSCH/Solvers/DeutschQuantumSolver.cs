@@ -11,9 +11,9 @@ namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 class DeutschQuantumSolver : ISolver<DEUTSCH> {
 
     // --- Fields ---
-    public string solverName {get;} = "Deutsch External API Solver";
-    public string solverDefinition {get;} = "Calls external quantum computing API to solve Deutsch's algorithm";
-    public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
+    public string solverName { get; } = "Deutsch Problem Quantum API Solver";
+    public string solverDefinition { get; } = "This solver constructs a quantum circuit for f(x) and then uses phase kickback to determine whether the oracle is constant or balanced with a single invocation of a quantum simulator (qiskit)";
+    public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
     public string[] contributors {get;} = { "Grant Gardner" };
 
     // Configuration: Change this to switch between servers
