@@ -106,6 +106,10 @@ class UtilCollectionGraph : Graph
                 edges = EdgeList.Select(edge =>
                 {
                     List<UtilCollection> cast = edge[0].ToList();
+                    if (cast.Count == 1) // self edge is a set with only one element, since {1,1} = {1}
+                    {
+                        return new KeyValuePair<string, string>(cast[0].ToString(), cast[0].ToString());
+                    }
                     return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
                 }).ToList();
 
@@ -123,6 +127,10 @@ class UtilCollectionGraph : Graph
                 edges = EdgeList.Select(edge =>
                 {
                     List<UtilCollection> cast = edge.ToList();
+                    if (cast.Count == 1) // self edge is a set with only one element, since {1,1} = {1}
+                    {
+                        return new KeyValuePair<string, string>(cast[0].ToString(), cast[0].ToString());
+                    }
                     return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
                 }).ToList();
 
