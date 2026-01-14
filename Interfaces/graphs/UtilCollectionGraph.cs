@@ -81,6 +81,7 @@ class UtilCollectionGraph : Graph
                 foreach (var link in graph.links)
                 {
                     link.directed = true;
+                    link.weighted = true;
                 }
 
             }
@@ -96,6 +97,7 @@ class UtilCollectionGraph : Graph
                 foreach (var link in graph.links)
                 {
                     link.directed = true;
+                    link.weighted = false;
                 }
             }
         }
@@ -114,6 +116,7 @@ class UtilCollectionGraph : Graph
                 for (int i = 0; i < graph.links.Count; i++)
                 {
                     graph.links[i].weight = EdgeList[i][1].ToString();
+                    graph.links[i].weighted = true;
                 }
 
             }
