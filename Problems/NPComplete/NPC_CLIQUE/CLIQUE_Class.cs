@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE;
 
-class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,cliqueDefaultVisualization,UtilCollectionGraph> {
+class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueDefaultVisualization,UtilCollectionGraph> {
 
     // --- Fields ---
     public string problemName {get;} = "Clique";
@@ -24,7 +24,7 @@ class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,cliqueDefaultVisual
     private int _K ;
     public CliqueBruteForce defaultSolver {get;} = new CliqueBruteForce();
     public CliqueVerifier defaultVerifier { get; } = new CliqueVerifier();
-    public cliqueDefaultVisualization defaultVisualization { get; } = new cliqueDefaultVisualization();
+    public CliqueDefaultVisualization defaultVisualization { get; } = new CliqueDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors {get;} = { "Kaden Marchetti", "Alex Diviney" };
 
