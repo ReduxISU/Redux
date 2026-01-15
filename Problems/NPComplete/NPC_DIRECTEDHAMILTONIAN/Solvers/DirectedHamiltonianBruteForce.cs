@@ -10,6 +10,7 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
     public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Directed Hamiltonian Path problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public DirectedHamiltonianBruteForce()

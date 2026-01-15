@@ -17,6 +17,7 @@ class SATGroverSolver : ISolver
     public string solverDefinition { get; } = "This solver builds the expression as a quantum circuit and then uses Grover's algorithm to probablisticly detemine a solution";
     public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors {get;} = { "Jason L. Wright" };
+    public bool timerHasExpired { get; set; }
 
     // Configuration: Change this to switch between servers
     private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;

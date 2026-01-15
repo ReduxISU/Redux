@@ -10,6 +10,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE> {
     public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Steiner Tree problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public SteinerTreeBruteForce()

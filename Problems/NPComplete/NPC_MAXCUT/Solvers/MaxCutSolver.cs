@@ -10,6 +10,7 @@ class MaxCutSolver : ISolver<MAXCUT> {
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
     public string[] contributors {get;} = {"Max Gruenwoldt", "Eric Hill"};
+    public bool timerHasExpired { get; set; }
 
     public MaxCutSolver() { }
 

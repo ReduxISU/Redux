@@ -10,6 +10,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
     public string solverDefinition { get; } = "This solver classically solves the Deutsch-Jozsa problem by querying the oracle up to (n/2) + 1 times to determine if the function is constant or balanced.";
     public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558";
     public string[] contributors {get;} = { "George Lake", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public DeutschJozsaClassicalSolver() {}

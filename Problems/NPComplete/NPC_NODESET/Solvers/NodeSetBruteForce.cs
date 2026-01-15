@@ -10,8 +10,9 @@ class NodeSetBruteForce : ISolver<NODESET> {
     public string solverDefinition {get;} = "This is a brute force solver for the Node Set problem";
     public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
+    public bool timerHasExpired { get; set; }
 
-public NodeSetBruteForce() {
+    public NodeSetBruteForce() {
         
     }
     private long factorial(long x){

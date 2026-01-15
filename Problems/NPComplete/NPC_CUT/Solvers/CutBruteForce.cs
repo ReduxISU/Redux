@@ -10,8 +10,9 @@ class CutBruteForce : ISolver<CUT> {
     public string solverDefinition {get;} = "This is a brute force solver for the Cut problem";
     public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
+    public bool timerHasExpired { get; set; }
 
-public CutBruteForce() {
+    public CutBruteForce() {
         
     }
     private long factorial(long x){

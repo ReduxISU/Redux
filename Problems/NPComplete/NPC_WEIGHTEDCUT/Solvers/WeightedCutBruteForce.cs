@@ -10,6 +10,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
     public string solverDefinition {get;} = "This is a brute force solver for the Weighted Cut problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public bool timerHasExpired { get; set; }
 
     public WeightedCutBruteForce()
     {
@@ -126,4 +127,3 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
         return "{}";
     }
 }
-
