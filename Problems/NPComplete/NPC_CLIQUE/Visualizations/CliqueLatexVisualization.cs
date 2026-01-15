@@ -33,7 +33,6 @@ class CliqueLatexVisualization : IVisualization<CLIQUE>
             if (solutionList.Contains(apiGraph.nodes[i].name))
             { 
                 apiGraph.nodes[i].color = "green";
-                apiGraph.nodes[i].additional = "initial";
             }
             else { apiGraph.nodes[i].color = "white"; }
         }
