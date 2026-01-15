@@ -31,17 +31,19 @@ public class DFAVerifier : IVerifier<DFA>
         bool foundEdge = false;
 
         // For Each Node //
-        for (int i = 0; i < nodes.Count() -1; i++)
+        for (int i = 0; i < nodes.Count() - 1; i++)
         {
-            // Check If Character Is In Alphabet
+            // Check If Character Is In Alphabet //
             if (!problem.nodes.Contains(nodes[i])) { return false; }
 
             if (problem.nodes.Contains(nodes[i]))
             {
+                foundEdge = false;
                 foreach (var edge in problem.edges)
                 {
                     if (!edge.From.Equals(currentNode)) continue;
                     else if (edge.From.Equals(nodes[i]) && !edge.To.Equals(nodes[i + 1])) continue;
+                    else if (!edge.From.Equals(nodes[i]) && !edge.To.Equals(nodes[i + 1])) continue;
                     else { currentNode = nodes[i + 1]; foundEdge = true; }
                 }
             }

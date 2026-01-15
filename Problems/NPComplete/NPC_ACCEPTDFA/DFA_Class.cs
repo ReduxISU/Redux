@@ -7,8 +7,9 @@ using SPADE;
 using Xunit;
 using System.Linq;
 using System.Collections.Generic;
+using API.Interfaces.Graphs;
 
-public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>
+public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph>
 {
     // ----- Fields ----- //
     public string problemName { get; } = "DFA Acceptance";
@@ -33,14 +34,21 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
     public DFAVisualization defaultVisualization { get; } = new DFAVisualization();
     public string[] contributors { get; } = { "Michael Trosper" };
 
-    // Edge Structure //
-    public record DFAEdge(string From, char Symbol, string To);
+    // Edge Structures //
+    public record DFAEdge (string From, char Symbol, string To);
+    //public record CombinedDFAEdge (string From, string Symbols, string To);
 
     // ----- Internal Graph ----- //
-    internal UtilCollectionGraph graph { get; set; }
+    //internal UtilCollectionGraph graph { get; set; }
 
     // ----- Explicit Interface Implementation ----- //
-    UtilCollectionGraph IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>.graph => graph;
+    //UtilCollectionGraph IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilCollectionGraph>.graph => graph;
+
+    // ----- Internal Graph ----- //
+    internal WeightedDirectedGraph graph { get; }
+
+    // ----- Explicit Interface Implementation ----- //
+    WeightedDirectedGraph IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph>.graph => graph;
 
     // ----- Deterministic Finite Automata Elements ----- //
     private List<string> _nodes = new();
@@ -128,7 +136,35 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, UtilC
 
         inputString = I.ToString();
 
+        // Join Multiple Edges To Same Output To Single Edge For Graph //
+
+        // Save New Edges With Multiple Char Paths, Ex:(Node, "a,b", Node) //
+        List<WeightedEdge> joinedEdges = new List<WeightedEdge>();
+        // Track What Nodes Are Connected To One Another //
+        var connections = new Dictionary<(string From, string To), string>();
+
+        // Join Edges That Have the Same From and To Destination //
+        foreach (var edge in edges)
+        {
+            var from = edge.From;
+            var to = edge.To;
+            var edgeValue = edge.Symbol.ToString();
+
+            if (!connections.ContainsKey((from, to)))
+            {
+                connections.Add((from, to), edgeValue);
+            }
+            else
+            {
+                if (connections[(from, to)].Contains(edgeValue)) { continue; }
+                else { connections[(from, to)] = connections[(from, to)] += "," + edgeValue; }
+            }
+        }
+
+        // Save New Edges As WeightedEdge Format For API Graph Conversion //
+        foreach (var connectionPair in connections) { joinedEdges.Add(new WeightedEdge(connectionPair.Key.Item1, connectionPair.Key.Item2, connectionPair.Value)); }
+
         // Build Graph //
-        graph = new UtilCollectionGraph(N, E);
+        graph = new WeightedDirectedGraph(nodes, joinedEdges);
     }
 }
