@@ -1,0 +1,31 @@
+# Basic GitHub Automation For Pull Requests -- Michael Trosper -- 1/15/2026 #
+
+name: PR Integration Tests (.NET 6)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 6
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit & integration tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
