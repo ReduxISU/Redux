@@ -7,10 +7,10 @@ using System.Text.Json;
 
 class SATGroverVisualization : IVisualization<SAT>
 {
-    public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (Q)";
-    public string visualizationDefinition { get; } = "Requests the QASM for the Deutsch-Jozsa circuit (data qubits plus ancilla), showing the oracle and measurements that separate constant vs. balanced functions in one query for Q.js.";
-    public string source { get; } = "";
-    public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner" };
+    public string visualizationName { get; } = "SAT Gover Solver (Q)";
+    public string visualizationDefinition { get; } = "RThis visualization builds a quantum circuit from the Boolean expression and then uses Grover's algorithm to find a bit string x such that f(x) = 1.";
+    public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
+    public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner", "Jason L. Wright" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
 
     // --- Methods Including Constructors ---
