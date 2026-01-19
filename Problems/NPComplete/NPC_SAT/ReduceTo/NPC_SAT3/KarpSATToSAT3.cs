@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_SAT;
 using API.Problems.NPComplete.NPC_SAT3;
+using API.Interfaces.JSON_Objects;
 
 namespace API.Problems.NPComplete.NPC_SAT.ReduceTo.NPC_SAT3;
 
@@ -8,31 +9,19 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
 {
 
     // --- Fields ---
-    public string reductionName {get;} = "Karp's SAT3 Reduction";
-    public string reductionDefinition {get;} = "Karp's Reduction from SAT to SAT3";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string reductionName { get; } = "Karp's SAT3 Reduction";
+    public string reductionDefinition { get; } = "Karp's Reduction from SAT to SAT3";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     private string _complexity = "";
-    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
-
+    public List<Gadget> gadgets { get; }
     private SAT _reductionFrom;
     private SAT3 _reductionTo;
 
 
     // --- Properties ---
-    public Dictionary<Object, Object> gadgetMap
-    {
-        get
-        {
-            return _gadgetMap;
-        }
-        set
-        {
-            _gadgetMap = value;
-        }
-    }
     public SAT reductionFrom
     {
         get
@@ -61,6 +50,7 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
     // --- Methods Including Constructors ---
     public KarpSATToSAT3(SAT from)
     {
+        gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
 
@@ -74,6 +64,16 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
 
         List<string> literals = SATInstance.getLiterals(SATInstance.instance);
         List<List<string>> clauses = SATInstance.getClauses(SATInstance.instance);
+
+        for (int clauseIndex = 0; clauseIndex < clauses.Count; clauseIndex++)
+        {
+            string clauseId = clauseIndex.ToString();
+            gadgets.Add(new Gadget(
+                "ClauseHighlight",
+                new List<string>() { clauseId },
+                new List<string>() { clauseId }
+            ));
+        }
 
         string newInstance = "x1";
 
@@ -94,7 +94,8 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
             {
                 instance += " " + j + " |";
             }
-            while(i.Count < 3) {
+            while (i.Count < 3)
+            {
                 instance += " " + i[0] + " |";
                 i.Add(i[0]);
             }
@@ -108,39 +109,31 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
         return reducedSAT3;
     }
 
-    public void reduceSetSize(int index, ref List<string> literals, ref string newInstance, ref List<List<string>> clauses)
+    public void reduceSetSize(int index, ref List<string> literals, ref string newVar, ref List<List<string>> clauses)
     {
 
-        while (literals.Contains(newInstance) || literals.Contains('!' + newInstance))
+        while (literals.Contains(newVar) || literals.Contains("!" + newVar))
         {
-            newInstance = "x" + (int.Parse(newInstance.Split('x')[1]) + 1).ToString();
+            int n = int.Parse(newVar.Substring(1)) + 1;
+            newVar = "x" + n;
         }
-        literals.Add(newInstance);
-        literals.Add('!' + newInstance);
-        List<string> tempList = new()
-        {
-            clauses[index][0],
-            clauses[index][1],
-            newInstance
-        };
-        foreach (var j in tempList)
-        {
-            clauses[index].Remove(j);
-        }
-        clauses.Add(new List<string>(tempList));
-        tempList.Clear();
-        foreach (var j in clauses[index])
-        {
-            if (j[0] == '!') tempList.Add(j);
-            else tempList.Add('!' + j);
-            tempList.Add(newInstance);
-            clauses.Add(new List<string>(tempList));
-            tempList.Clear();
-            
-        }
-        clauses[index].Add('!' + newInstance);
 
+        literals.Add(newVar);
+        literals.Add("!" + newVar);
+
+        string l1 = clauses[index][0];
+        string l2 = clauses[index][1];
+
+        clauses.Add(new List<string> { l1, l2, newVar });
+
+        gadgets.Add(new Gadget("ClauseHighlight", new List<string>() { index.ToString() }, new List<string>() { (clauses.Count - 1).ToString() }));
+
+        clauses[index].RemoveAt(0);
+        clauses[index].RemoveAt(0);
+
+        clauses[index].Add("!" + newVar);
     }
+
 
     public int findSet(List<List<string>> clauses)
     {
