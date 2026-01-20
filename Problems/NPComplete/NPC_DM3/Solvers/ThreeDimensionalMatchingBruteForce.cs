@@ -9,6 +9,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
     public string solverDefinition {get;} = "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public ThreeDimensionalMatchingBruteForce() {

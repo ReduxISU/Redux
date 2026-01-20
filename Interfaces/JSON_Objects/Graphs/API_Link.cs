@@ -14,6 +14,7 @@ class API_Link
     private string _dashed;
     private string _delay;
     private string _weight;
+    private bool _weighted;
     private bool _directed;
     public API_Link()
     {
@@ -25,11 +26,12 @@ class API_Link
         this._dashed = "";
         this._delay = "";
         this._weight = "1";
+        this._weighted = false;
         this._directed = false;
 
     }
 
-    public API_Link(string s, string t, string a1 = "", string a2 = "", string color = "", string dashed = "", string delay = "", string weight = "1", bool directed = false)
+    public API_Link(string s, string t, string a1 = "", string a2 = "", string color = "", string dashed = "", string delay = "", string weight = "1", bool weighted = false, bool directed = false)
     {
         _source = s;
         _target = t;
@@ -39,6 +41,7 @@ class API_Link
         _dashed = dashed;
         _delay = delay;
         _weight = weight;
+        _weighted = weighted;
         _directed = directed;
     }
 
@@ -124,6 +127,18 @@ class API_Link
         set
         {
             _weight = value;
+        }
+    }
+
+    public bool weighted
+    {
+        get
+        {
+            return _weighted;
+        }
+        set
+        {
+            _weighted = value;
         }
     }
 

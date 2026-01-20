@@ -6,16 +6,16 @@ using API.Interfaces.JSON_Objects.Graphs;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
 
-class CliqueDefaultVisualization : IVisualization<CLIQUE>
+class CliqueLatexVisualization : IVisualization<CLIQUE>
 {
-    public string visualizationName { get; } = "Clique Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for Clique";
+    public string visualizationName { get; } = "Clique LaTeX Visualization";
+    public string visualizationDefinition { get; } = "This is a visualization for Clique using the LaTeX visualization type";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Kaden Marchetti", "Alex Diviney", "Andrija Sevaljevic" };
-    public string visualizationType { get; } = "Graph D3";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
+    public string visualizationType { get; } = "Graph LaTeX";
 
     // --- Methods Including Constructors ---
-    public CliqueDefaultVisualization()
+    public CliqueLatexVisualization()
     {
 
     }
@@ -27,13 +27,14 @@ class CliqueDefaultVisualization : IVisualization<CLIQUE>
     {
         List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(solution); //Note, this is just a convenience string to list function.
         API_GraphJSON apiGraph = clique.graph.ToAPIGraph();
+
         for (int i = 0; i < apiGraph.nodes.Count; i++)
         {
             if (solutionList.Contains(apiGraph.nodes[i].name))
-            {
-                apiGraph.nodes[i].color = "Solution";
+            { 
+                apiGraph.nodes[i].color = "green";
             }
-            else { apiGraph.nodes[i].color = "Background"; }
+            else { apiGraph.nodes[i].color = "white"; }
         }
 
         for (int i = 0; i < apiGraph.links.Count; i++)
@@ -43,11 +44,11 @@ class CliqueDefaultVisualization : IVisualization<CLIQUE>
             if (solutionList.Contains(edge.source) &&
                 solutionList.Contains(edge.target))
             {
-                edge.color = "Solution";
+                apiGraph.links[i].color = "green";
             }
             else
             {
-                edge.color = "Background";
+                apiGraph.links[i].color = "black";
             }
         }
 

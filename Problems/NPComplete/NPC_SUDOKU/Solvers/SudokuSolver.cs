@@ -8,6 +8,7 @@ class SudokuSolver : ISolver<SUDOKU> {
     public string solverDefinition { get; } = "TODO";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Eric Hill" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public SudokuSolver() {}

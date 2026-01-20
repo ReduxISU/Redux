@@ -10,6 +10,7 @@ class PartitionBruteForce : ISolver<PARTITION> {
     public string solverDefinition {get;} = "This is a brute force solver for the Partition problem";
     public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public PartitionBruteForce() {

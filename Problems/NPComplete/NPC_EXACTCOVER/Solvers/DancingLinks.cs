@@ -9,6 +9,7 @@ class DancingLinks : ISolver<EXACTCOVER> {
     public string solverDefinition {get;} = "";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public DancingLinks() {

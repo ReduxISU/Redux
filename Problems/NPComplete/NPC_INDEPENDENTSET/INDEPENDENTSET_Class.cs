@@ -14,7 +14,7 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce,IndependentSetVeri
     public string problemDefinition {get;} = "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set";
     public string source {get;} = "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)";
-    private static string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,a},{a,g},{g,f},{h,a},{a,i},{i,h}}),4)";
+    private static string _defaultInstance = "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";

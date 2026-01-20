@@ -11,6 +11,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
     public string solverDefinition { get; } = "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.";
     public string source {get;} = "";
     public string[] contributors {get;} = {"David Lindeman","Kaden Marchetti"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public Sat3BacktrackingSolver() {

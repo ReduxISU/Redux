@@ -15,6 +15,7 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
     public string solverDefinition {get;} = "Calls external quantum computing API to solve Deutsch-Jozsa's algorithm";
     public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors {get;} = { "Grant Gardner" };
+    public bool timerHasExpired { get; set; }
 
     // Configuration: Change this to switch between servers
     private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;

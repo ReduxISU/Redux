@@ -11,6 +11,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
     public string solverDefinition {get;} = "This is a brute force solver for Hitting Set";
     public string source {get;} = "";
     public string[] contributors {get;} = {"Russell Phillips"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public HittingSetBruteForce() {

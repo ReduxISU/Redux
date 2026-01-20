@@ -10,6 +10,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
     public string solverDefinition {get;} = "This a brute force solver for the 0-1 Knapsack problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Russell Phillips"};
+    public bool timerHasExpired { get; set; }
 
 
     public string complexity {get;} = "O(2^n)";
