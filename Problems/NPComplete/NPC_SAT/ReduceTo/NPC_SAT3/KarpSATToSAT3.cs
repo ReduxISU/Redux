@@ -73,7 +73,18 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
                 new List<string>() { clauseId },
                 new List<string>() { clauseId }
             ));
+
+            for (int literalIndex = 0; literalIndex < clauses[clauseIndex].Count; literalIndex++)
+            {
+                string literalId = clauseId + "-" + literalIndex.ToString();
+                gadgets.Add(new Gadget(
+                    "ElementHighlight",
+                    new List<string>() { literalId },
+                    new List<string>() { literalId }
+                ));
+            }
         }
+
 
         string newInstance = "x1";
 
@@ -88,19 +99,33 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
         reducedSAT3.literals = literals;
 
         string instance = "(";
-        foreach (var i in clauses)
+        for (int c = 0; c < clauses.Count; c++)
         {
-            foreach (var j in i)
+            var i = clauses[c];
+
+            for (int k = 0; k < i.Count; k++)
             {
-                instance += " " + j + " |";
+                instance += " " + i[k] + " |";
             }
-            while (i.Count < 3)
+
+            if (i.Count == 2)
             {
                 instance += " " + i[0] + " |";
                 i.Add(i[0]);
+                gadgets.Add(new Gadget("ElementHighlight", new List<string>() { c + "-0" }, new List<string>() { c + "-2" }));
             }
+
+            if (i.Count == 1)
+            {
+                instance += " " + i[0] + " |" + " " + i[0] + " |";
+                i.Add(i[0]);
+                i.Add(i[0]);
+                gadgets.Add(new Gadget("ElementHighlight", new List<string>() { c + "-0" }, new List<string>() { c + "-2", c + "-1" }));
+            }
+
             instance = instance.TrimEnd('|') + ") & (";
         }
+
         instance = instance.TrimEnd('(').TrimEnd().TrimEnd('&');
 
         reducedSAT3.instance = instance;
@@ -121,15 +146,51 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
         literals.Add(newVar);
         literals.Add("!" + newVar);
 
-        string l1 = clauses[index][0];
-        string l2 = clauses[index][1];
+        // Getting last two literals from the clause
+        string l1 = clauses[index][clauses[index].Count - 2];
+        string l2 = clauses[index][clauses[index].Count - 1];
+
+        string index1 = index.ToString() + "-" + (clauses[index].Count - 2).ToString();
+        string index2 = index.ToString() + "-" + (clauses[index].Count - 1).ToString();
 
         clauses.Add(new List<string> { l1, l2, newVar });
 
-        gadgets.Add(new Gadget("ClauseHighlight", new List<string>() { index.ToString() }, new List<string>() { (clauses.Count - 1).ToString() }));
+        // Adding clause highlighting gadget
+        var existing = gadgets.FirstOrDefault(g =>
+            g.color == "ClauseHighlight" &&
+            g.reductionFromIds.FirstOrDefault() == index.ToString()
+        );
 
-        clauses[index].RemoveAt(0);
-        clauses[index].RemoveAt(0);
+        if (existing != null)
+            existing.reductionToIds.Add((clauses.Count - 1).ToString());
+        else
+            gadgets.Add(new Gadget("ClauseHighlight", new List<string> { index.ToString() }, new List<string> { (clauses.Count - 1).ToString() }));
+
+        // Adding element highlighting gadget
+        var literal1 = gadgets.FirstOrDefault(g =>
+            g.color == "ElementHighlight" &&
+            g.reductionToIds.Contains(index1)
+        );
+
+        var literal2 = gadgets.FirstOrDefault(g =>
+            g.color == "ElementHighlight" &&
+            g.reductionToIds.Contains(index2)
+        );
+
+        if (literal1 != null)
+        {
+            literal1.reductionToIds.Remove(index1);
+            literal1.reductionToIds.Add((clauses.Count - 1).ToString() + "-0");
+        }
+        if (literal2 != null)
+        {
+            literal2.reductionToIds.Remove(index2);
+            literal2.reductionToIds.Add((clauses.Count - 1).ToString() + "-1");
+        }
+
+        // Removing last two literals from the original clause
+        clauses[index].RemoveAt(clauses[index].Count - 1);
+        clauses[index].RemoveAt(clauses[index].Count - 1);
 
         clauses[index].Add("!" + newVar);
     }
@@ -151,4 +212,3 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
     }
 
 }
-// return an instance of what you are reducing to

@@ -19,7 +19,7 @@ namespace API.Problems.NPComplete.NPC_SAT;
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Daniel Igbokwe" };
 
-    public static string _defaultInstance { get; } = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1) & (!x3 | x4 | !x2 | x1) & (!x4 | !x1) & (x4 | x3 | !x1)";
+    public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
 

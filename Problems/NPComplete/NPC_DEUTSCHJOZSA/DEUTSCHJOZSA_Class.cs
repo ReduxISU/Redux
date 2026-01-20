@@ -35,11 +35,9 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
 
         // use SPADE parser to extract n and the list S
         StringParser parser = new("{(n, S) | n is int, S is list}");
-        Console.WriteLine($"Parsing instance: {instance}");
         parser.parse(instance);
         n = int.Parse(parser["n"].ToString());
         SPADE.UtilCollection bitslist = parser["S"];
-        // Console.WriteLine(bitslist);
 
         // Convert to C# list
         w = new List<int>();
@@ -54,10 +52,6 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
         {
             throw new ArgumentException($"Invalid instance: n is {n}, which requires {expectedSize} bits in the list, but {w.Count} were given.");
         }
-
-        // This parsing is left over from the template, but we're pretty sure it works for extracting the values from the input
-        // Good luck solver team :) - problems team
-        // It worked good! -GL
 
     }
 

@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_SAT;
 
 class SatDefaultVisualization : IVisualization<SAT>
 {
-    public string visualizationName { get; } = "SAT visualization";
+    public string visualizationName { get; } = "SAT Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for SAT";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
