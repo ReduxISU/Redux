@@ -1,8 +1,8 @@
-﻿namespace API.Problems.NPComplete.NPC_ACCEPTDFA;
+﻿namespace API.Problems.NPComplete.NPC_DFA;
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_ACCEPTDFA.Solvers;
-using API.Problems.NPComplete.NPC_ACCEPTDFA.Verifiers;
-using API.Problems.NPComplete.NPC_ACCEPTDFA.Visualizations;
+using API.Problems.NPComplete.NPC_DFA.Solvers;
+using API.Problems.NPComplete.NPC_DFA.Verifiers;
+using API.Problems.NPComplete.NPC_DFA.Visualizations;
 using SPADE;
 using Xunit;
 using System.Linq;

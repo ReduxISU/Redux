@@ -1,9 +1,9 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.NPComplete.NPC_ACCEPTDFA;
+using API.Problems.NPComplete.NPC_DFA;
 using Xunit;
 
-namespace API.Problems.NPComplete.NPC_ACCEPTDFA.Solvers;
+namespace API.Problems.NPComplete.NPC_DFA.Solvers;
 
 public class DFASolver : ISolver<DFA>
 {

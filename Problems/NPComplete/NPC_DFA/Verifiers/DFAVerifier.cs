@@ -1,7 +1,7 @@
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_ACCEPTDFA;
+using API.Problems.NPComplete.NPC_DFA;
 
-namespace API.Problems.NPComplete.NPC_ACCEPTDFA.Verifiers;
+namespace API.Problems.NPComplete.NPC_DFA.Verifiers;
 
 public class DFAVerifier : IVerifier<DFA>
 {

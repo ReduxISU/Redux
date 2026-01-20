@@ -1,11 +1,11 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_ACCEPTDFA;
+using API.Problems.NPComplete.NPC_DFA;
 using API.Interfaces.JSON_Objects.Graphs;
 using System.Text.Json;
 //using API.Interfaces.graphs.GraphParser;
 
-namespace API.Problems.NPComplete.NPC_ACCEPTDFA.Visualizations;
+namespace API.Problems.NPComplete.NPC_DFA.Visualizations;
 
 public class DFAVisualization : IVisualization<DFA>
 {
