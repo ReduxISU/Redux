@@ -3,7 +3,7 @@ name: dotnet build
 on:
   pull_request:
     branches:
-      - main
+      - CSharpAPI
 
 jobs:
   build:
