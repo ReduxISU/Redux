@@ -13,6 +13,7 @@ class ArcSetBruteForce : ISolver<ARCSET> {
     public string source {get;} = "";
 
     public string[] contributors {get;} = { "Alex Diviney","Caleb Eardley","Russell Phillips"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public ArcSetBruteForce() {

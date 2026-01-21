@@ -11,6 +11,7 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
     public string solverDefinition {get;} = "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public VertexCoverBruteForce() {

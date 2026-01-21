@@ -8,6 +8,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
     public string solverDefinition {get;} = "This is a optimized recursive solver for Exact Cover";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Russell Phillips"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public ExactCoverRecursive() {

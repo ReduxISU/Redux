@@ -8,6 +8,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
     public string solverDefinition {get;} = "This is a brute force solver for Subset Sum";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley","Garret Stouffer"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public SubsetSumBruteForce() {

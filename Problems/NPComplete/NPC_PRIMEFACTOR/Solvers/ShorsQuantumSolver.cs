@@ -20,6 +20,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
         "composite number through classical number theory operations like the greatest common divisor.";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
     public string[] contributors { get; } = { "Grant Gardner", "George Lake", "Jason Wright" };
+    public bool timerHasExpired { get; set; }
 
     // Configuration: Change this to switch between servers
     private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
