@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_DFA;
 using Xunit;
@@ -14,6 +14,8 @@ public class DFASolver : ISolver<DFA>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
 
+    public bool timerHasExpired { get; set; }
+
     // Methods Including Constructors //
     public DFASolver() { }
 
@@ -28,6 +30,9 @@ public class DFASolver : ISolver<DFA>
 
         foreach (char character in inputString)
         {
+            // Accept Empty String If Start State Is an Accept State //
+            if (character == 'ε' && problem.acceptStates.Contains(currentNode)) return $"The sequence of states to accept is: {currentNode}";
+
             // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character))
             {

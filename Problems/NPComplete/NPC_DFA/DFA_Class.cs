@@ -25,7 +25,7 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, Weigh
     // δ = (node, char edge value, node) //
     // q₀ = Start State //
     // F = Set of Accept State(s) //
-    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3)},1,{3}),b)";
+    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3)},1,{1,2}),a)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "N/A";
@@ -135,6 +135,7 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, Weigh
         }
 
         inputString = I.ToString();
+        if (inputString.Length == 0) { inputString = "ε"; }
 
         // Join Multiple Edges To Same Output To Single Edge For Graph //
 
@@ -165,6 +166,6 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, Weigh
         foreach (var connectionPair in connections) { joinedEdges.Add(new WeightedEdge(connectionPair.Key.Item1, connectionPair.Key.Item2, connectionPair.Value)); }
 
         // Build Graph //
-        graph = new WeightedDirectedGraph(nodes, joinedEdges);
+        graph = new WeightedDirectedGraph(nodes, joinedEdges, startState, acceptStates);
     }
 }

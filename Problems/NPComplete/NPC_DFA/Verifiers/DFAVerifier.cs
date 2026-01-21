@@ -30,6 +30,9 @@ public class DFAVerifier : IVerifier<DFA>
         // Tracks If Acceptable Edge Was Found //
         bool foundEdge = false;
 
+        // Certificate Did Not Begin At Start State //
+        if (!currentNode.Equals(problem.startState)) return false;
+
         // For Each Node //
         for (int i = 0; i < nodes.Count() - 1; i++)
         {
