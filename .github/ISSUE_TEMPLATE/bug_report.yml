@@ -1,0 +1,38 @@
+name: Bug Report
+description: File a bug report to help Redux.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting issues of Redux!
+
+        To make it easier for us to help you please enter detailed information below.
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+        4.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected behaviour
+      placeholder: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: >
+        OS [e.g. Windows 11], C# version [e.g. C# 14]; anything else that would matter
+      placeholder: |
+        Operating System:
+        C# version:
+        Anything else:
+    validations:
+      required: true
