@@ -104,4 +104,3 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
         return "";
     }
 }
-// return an instance of what you are reducing to
