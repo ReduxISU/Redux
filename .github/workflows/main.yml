@@ -23,3 +23,6 @@ jobs:
 
       - name: Build
         run: dotnet build --no-restore --configuration Release
+
+      - name: Unit tests
+        run: dotnet test --no-restore --no-build --configuration Release
