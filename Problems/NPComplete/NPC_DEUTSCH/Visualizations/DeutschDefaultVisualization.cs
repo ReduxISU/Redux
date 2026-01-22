@@ -43,7 +43,7 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
             bool[] requestBody = instance.funcValues;
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;

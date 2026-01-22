@@ -42,7 +42,7 @@ class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI>
             bool[] requestBody = instance.funcValues.ToArray();
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/bernstein-vazirani-quantum", requestBody).Result;

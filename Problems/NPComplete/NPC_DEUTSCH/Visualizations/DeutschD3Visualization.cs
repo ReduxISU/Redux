@@ -66,7 +66,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         try
         {
             bool[] requestBody = instance.funcValues;
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
 
             using JsonDocument doc = JsonDocument.Parse(response);

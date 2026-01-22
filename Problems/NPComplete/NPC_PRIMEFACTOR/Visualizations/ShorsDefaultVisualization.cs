@@ -34,7 +34,7 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
             int numberToFactor = int.Parse(instance.instance);
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             // The API expects just the raw number as the body

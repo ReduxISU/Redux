@@ -66,7 +66,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         try
         {
             bool[] requestBody = instance.w.Select(v => v != 0).ToArray();
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
             string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;
 
             using JsonDocument doc = JsonDocument.Parse(response);
