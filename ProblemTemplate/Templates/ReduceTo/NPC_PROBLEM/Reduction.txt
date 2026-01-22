@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_{REDUCE_TO};
 
 namespace API.Problems.NPComplete.NPC_{REDUCE_FROM}.ReduceTo.NPC_{REDUCE_TO};
@@ -9,7 +10,8 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
     public string reductionName {get;} = "{REDUCTION}";
     public string reductionDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
-    private string[] _contributers = { "TODO" };
+    public string sourceLink {get;} = "TODO";
+    public string[] contributors {get;} = { "TODO" };
 
     private {REDUCE_FROM} _reductionFrom;
     private {REDUCE_TO} _reductionTo;
@@ -36,27 +38,26 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
 
     // --- Methods Including Constructors ---
     public {REDUCTION_PASCAL_CASE}({REDUCE_FROM} from) {
+        gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
     }
+    
     public {REDUCTION_PASCAL_CASE}(string instance) : this(new {REDUCE_FROM}(instance)) { }
-    public {REDUCTION_PASCAL_CASE() : this(new {REDUCE_FROM}()) { }
+    
+    public {REDUCTION_PASCAL_CASE}() : this(new {REDUCE_FROM}()) { }
 
     public {REDUCE_TO} reduce() {
         {REDUCE_FROM} {REDUCE_FROM}Instance = _reductionFrom;
-        {REDUCE_TO} {REDUCE_TO}Instance = new {REDUCE_TO}();
         
         // TODO: implement reduction {REDUCTION} from {REDUCE_FROM} to {REDUCE_TO}
+        // TODO: implement gadget mapping
 
+        {REDUCE_TO} {REDUCE_TO}Instance = new {REDUCE_TO}();
         return {REDUCE_TO}Instance;
     }
 
-    public string mapSolutions({REDUCE_FROM} problemFrom, {REDUCE_TO} problemTo, string problemFromSolution){
-        // Verifies that the specified solution is valid for {REDUCE_FROM}
-        if(!problemFrom.defaultVerifier.verify(problemFrom, problemFromSolution)) {
-            return "Solution is incorrect";
-        }
-
+    public string mapSolutions(string solution){
         // TODO: implement reduction mapped solution {REDUCTION} from {REDUCE_FROM} to {REDUCE_TO}
 
         return "TODO";
