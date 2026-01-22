@@ -21,10 +21,11 @@ class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH>
     }
     public API_JSON visualize(UNSTRUCTUREDSEARCH instance)
     {
-        var qc = new API_QUANTUMCIRCUIT();
-        var solvers = new UnstructuredGroverSolver();
-        qc.solution = solvers.solve(instance);
-        qc.circuit = instance.circuit;
-        return qc;
+        return new API_QUANTUMCIRCUIT
+        {
+            format = QuantumCircuitFormat.QASM,
+            qasm = "",
+            solution = ""
+        };
     }
 }
