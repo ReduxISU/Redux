@@ -32,7 +32,7 @@ public class ARCSET_Tests
         Assert.Equal(testingArc.instance, "(" + testGraph.ToString() + ",1)"); //Tests that the arcset instance string is equal to its generated graph string plus the rest of the problem
         Assert.Equal(1, testingArc.K);
         Assert.Equal(testingArc.defaultInstance, "(" + testGraph.ToString() + ",1)"); //Bonus test that ensures the default instance and the current instance are the same. 
-        Assert.Equal( "(({1,2,3,4},{(1,2),(2,4),(3,2),(4,1),(4,3)}),1)",testingArc.defaultInstance); //tests default instance
+        Assert.Equal("(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)", testingArc.defaultInstance); //tests default instance
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class ARCSET_Tests
         ARCSET testArc = new ARCSET();
         ArcSetBruteForce solver = testArc.defaultSolver;
         string solvedString = solver.solve(testArc);
-        Assert.Equal("{(2,4)}", solvedString);
+        Assert.Equal("{(2,3)}", solvedString);
     }
 
 
