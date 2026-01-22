@@ -20,13 +20,21 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
 
     public API_JSON visualize(PRIMEFACTOR instance)
     {
-        return new API_QUANTUMCIRCUIT();
+        return new API_QUANTUMCIRCUIT
+        {
+            format = QuantumCircuitFormat.QASM,
+            qasm = "",
+            solution = ""
+        };
     }
 
     public API_JSON SolvedVisualization(PRIMEFACTOR instance, string solution)
     {
-        var qc = new API_QUANTUMCIRCUIT();
-        qc.solution = solution;
+        var qc = new API_QUANTUMCIRCUIT
+        {
+            solution = solution,
+            format = QuantumCircuitFormat.QASM
+        };
 
         try
         {
@@ -52,7 +60,7 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
         catch (Exception)
         {
             // If API call fails, leave circuit empty
-            qc.circuit = "";
+            qc.qasm = "";
         }
 
         return qc;
