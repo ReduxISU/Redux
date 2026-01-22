@@ -3,3 +3,5 @@ Redux is a system designed to be an interactive, dynamic knowledgebase of comput
 ## Documentation
 
 Documentation can be found on github [here](Documentation/index.md)
+
+Additionally, a quick start guide for running local instances can be found [here](Documentation/HowToRun.md)

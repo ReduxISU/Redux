@@ -2,7 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
 
-class {VERIFIER_PASCEL_CASE} : IVerifier<{PROBLEM}> {
+class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
 
     // --- Fields ---
     public string verifierName {get;} = "{VERIFIER}";
@@ -18,7 +18,7 @@ class {VERIFIER_PASCEL_CASE} : IVerifier<{PROBLEM}> {
     }
 
     // --- Methods Including Constructors ---
-    public {VERIFIER_PASCEL_CASE}Verifier() {
+    public {VERIFIER_PASCAL_CASE}Verifier() {
         
     }
 

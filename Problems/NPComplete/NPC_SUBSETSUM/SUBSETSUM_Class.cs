@@ -15,7 +15,7 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce,SubsetSumVerifier, DummyVisualiza
     public string problemDefinition {get;} = "The problem is to determine whether there exists a sum of elements that totals to the number T.";
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Garret Stouffer, Caleb Eardley"};
+    public string[] contributors {get;} = { "Garret Stouffer", "Caleb Eardley"};
     public static string _defaultInstance { get; } = "{{1,7,12,15} : 28}";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;

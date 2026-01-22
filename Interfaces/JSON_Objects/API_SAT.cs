@@ -3,6 +3,7 @@ using System.Security.Cryptography.Xml;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Problems.NPComplete.NPC_SAT3;
+using API.Problems.NPComplete.NPC_SAT;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.VisualBasic;
 
@@ -12,6 +13,11 @@ class API_SAT : API_JSON
 {
     public List<Clause> clauses { get; set; }
     public API_SAT(SAT3 instance)
+    {
+        clauses = instance.clauses.Select((c, i) => new Clause(c, i.ToString())).ToList();
+    }
+
+    public API_SAT(SAT instance)
     {
         clauses = instance.clauses.Select((c, i) => new Clause(c, i.ToString())).ToList();
     }

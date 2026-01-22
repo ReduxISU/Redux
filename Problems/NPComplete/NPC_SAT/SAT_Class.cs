@@ -3,8 +3,6 @@ using API.DummyClasses;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
-
-
 namespace API.Problems.NPComplete.NPC_SAT;
 
  class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
@@ -21,14 +19,28 @@ namespace API.Problems.NPComplete.NPC_SAT;
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Daniel Igbokwe" };
 
-    public static string _defaultInstance { get; } = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1) & (!x3 | x4 | !x2 | x1) & (!x4 | !x1) & (x4 | x3 | !x1)";
+    public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
 
     public string wikiName {get;} = "";
     private List<List<string>> _clauses = new List<List<string>>();
     private List<string> _literals = new List<string>();
-   
+
+    private string _circuit = "";
+
+    public string circuit
+    {
+        get
+        {
+            return _circuit;
+        }
+        set
+        {
+            _circuit = value;
+        }
+    }
+
     public SATBruteForceSolver defaultSolver {get;} = new SATBruteForceSolver();
     public SATVerifier defaultVerifier { get; } = new SATVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
@@ -125,4 +137,3 @@ namespace API.Problems.NPComplete.NPC_SAT;
     #endregion
         
 }
-

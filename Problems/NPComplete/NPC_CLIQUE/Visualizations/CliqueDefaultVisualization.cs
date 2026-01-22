@@ -6,16 +6,16 @@ using API.Interfaces.JSON_Objects.Graphs;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
 
-class cliqueDefaultVisualization : IVisualization<CLIQUE>
+class CliqueDefaultVisualization : IVisualization<CLIQUE>
 {
     public string visualizationName { get; } = "Clique Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for clique";
+    public string visualizationDefinition { get; } = "This is a default visualization for Clique";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Kaden Marchetti", "Alex Diviney" };
+    public string[] contributors { get; } = { "Kaden Marchetti", "Alex Diviney", "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Graph D3";
 
     // --- Methods Including Constructors ---
-    public cliqueDefaultVisualization()
+    public CliqueDefaultVisualization()
     {
 
     }
@@ -30,11 +30,27 @@ class cliqueDefaultVisualization : IVisualization<CLIQUE>
         for (int i = 0; i < apiGraph.nodes.Count; i++)
         {
             if (solutionList.Contains(apiGraph.nodes[i].name))
-            { 
+            {
                 apiGraph.nodes[i].color = "Solution";
             }
             else { apiGraph.nodes[i].color = "Background"; }
         }
+
+        for (int i = 0; i < apiGraph.links.Count; i++)
+        {
+            var edge = apiGraph.links[i];
+
+            if (solutionList.Contains(edge.source) &&
+                solutionList.Contains(edge.target))
+            {
+                edge.color = "Solution";
+            }
+            else
+            {
+                edge.color = "Background";
+            }
+        }
+
         return apiGraph;
     }
 }

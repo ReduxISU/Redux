@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
     public string verifierName {get;} = "SAT Verifier";
     public string verifierDefinition {get;} = "This is a verifier for SAT";
     public string source {get;} = "";
-    public string[] contributors {get;} = { "Daniel Igbokwe, Show Pratoomratana"};
+    public string[] contributors {get;} = { "Daniel Igbokwe", "Show Pratoomratana"};
 
     private string _complexity = " ";
 

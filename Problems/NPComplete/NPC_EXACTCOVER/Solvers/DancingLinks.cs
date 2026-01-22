@@ -9,6 +9,7 @@ class DancingLinks : ISolver<EXACTCOVER> {
     public string solverDefinition {get;} = "";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic"};
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public DancingLinks() {
@@ -39,14 +40,7 @@ class DancingLinks : ISolver<EXACTCOVER> {
 
         Stack<int> selectedSets = new Stack<int>();
         bool foundSolution = false;
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
         iterate(Y,ref X,ref selectedSets, ref foundSolution);
-
-        stopwatch.Stop();
-
-        Console.WriteLine(stopwatch.ElapsedMilliseconds);
-        Console.WriteLine(exactCover.S.Count());
 
         if(selectedSets.Any()) {
             return solutionToCertificate(selectedSets, exactCover);

@@ -10,6 +10,7 @@ class TSPBruteForce : ISolver<TSP> {
     public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Traveling Sales Person problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public TSPBruteForce()

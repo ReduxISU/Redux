@@ -10,6 +10,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
     public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Clique Cover problem";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public CliqueCoverBruteForce()

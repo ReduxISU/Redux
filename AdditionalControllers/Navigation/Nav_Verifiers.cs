@@ -123,8 +123,10 @@ public class Problem_VerifiersRefactorController : ControllerBase {
 
             ArrayList subFilesList = new ArrayList();
 
-            foreach (string file in subfiles)
+            foreach (var file in subfiles)
             {
+                if (file is null)
+                    continue;
                 string fileNoExt = file.Split('.')[0]; //gets the file without the file extension
                 subFilesList.Add(fileNoExt);
             }

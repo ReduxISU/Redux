@@ -160,7 +160,9 @@ public class Problem_ReductionsRefactorController : ControllerBase {
                             .ToArray();
 
         ArrayList subdirsNoPrefix = new ArrayList();
-        foreach(string problemDirName in subdirs){
+        foreach(var problemDirName in subdirs){
+            if (problemDirName is null)
+                continue;
             string[] splitStr = problemDirName.Split('_');
             string newName = splitStr[1];
             subdirsNoPrefix.Add(newName);
@@ -265,8 +267,10 @@ public class PossibleReductionsRefactorController : ControllerBase {
                                 .ToArray();
 
             ArrayList subFilesList = new ArrayList();
-            foreach (string file in subfiles)
+            foreach (var file in subfiles)
             {
+                if (file is null)
+                    continue;
                 string fileNoExt = file.Split('.')[0];
                 subFilesList.Add(fileNoExt);
             }
