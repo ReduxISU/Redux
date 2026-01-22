@@ -3,20 +3,24 @@ New problems should be added into the back end repository in the Problems/NPComp
 * A file named PROBLEMNAME_Class.cs
 * A folder named "Solvers"
 * A folder named "Verifiers"
+* A foler named "Visualizations"
 
 *Any NPHFolders contain code for a NP Hard version of that problem, and include deprecated code, that may be useful as the code base is expanded.*
 
 ### Problem Class
 The PROBLEMNAME_Class.cs should implement the `ProblemI` interface found in ProblemInterface.cs. This includes
 * `string problemName` : Human readable problem name, this is what the problem will appear as in the GUI
+* `string problemLink` : Link to an information on the problem, not neccesarily a formal definition 
 * `string formalDefinition` : Definition in the form of {[problem variables] | "definition" }
 * `string problemDefinition` : A more easily readable form of the above definition.
 * `string source` : A formal citation of the source material for the problem definition
+* `string sourceLink` : A link to the formal citation
 * `string wikiName` : This is deprecated, and should be removed from all problems
 * `string defaultInstance` : A reasonably sized example of the problem, and the necessary format. *If the problem is of a similar form to an existing problem, such as a directed graph, the format should match the existing problems.*
 * `string[] contributors` : A list of names of all developers who have worked on the problem
 * `T defaultSolver` : An object of the default solver for the problem
 * `U defaultVerifier` : An object of the default verifier for the problem
+* `V defaultVisualization` : An objet of the default visualization for the problem
 
 The PROBLEMNAME_Class.cs should also include any necessary problem variables, any functions necessary for parsing string instances into a variable, and two constructors. One constructor that takes a string instance, and one which uses the default instance. For any graph problems, use the objects and parsers found in Interfaces/graphs.
 
@@ -25,7 +29,9 @@ The Solvers folder should contain all solver files for that problem. Each of whi
 * `string solverName` : Human readable name of solving algorithm, this is what with appear in the GUI
 * `string solverDefinition` : A brief description of the algorithm used to solve the problem
 * `string source` : Formal citation of the source of the solving algorithm
+* `string sourceLink` : A link to the formal citation
 * `string[] contributors` : A list of names of all developers who have worked on the solver
+* `bool timerHasExpired` : bool that says if the timer for a problem has expired
 
 The file should also include a function which takes a problem object and returns a string of the solution, as well as any other necessary functions.\
 *Because for now, all problems are NP-Complete, solution algorithms should return a complete solution.*
@@ -35,6 +41,7 @@ The Verifiers folder should contain all verifier files for that problem. Each of
 * `string verifierName` : Human readable name of verifier, this is what with appear in the GUI
 * `string verifierDefinition` : A brief description of the algorithm used to verify the problem
 * `string source` : Formal citation of the source of the verifier algorithm
+* `string sourceLink` : A link to the formal citation
 * `string[] contributors` : A list of names of all developers who have worked on the verifier
 
 The file should also include a function which takes a problem object and certificate, and returns a Boolean for if the certificate is a solution to the given problem. As well as any other necessary functions.
