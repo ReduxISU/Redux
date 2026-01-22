@@ -9,6 +9,7 @@ class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}>
     public string visualizationName { get; } = "{VISUALIZATION}";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
+    public string sourceLink {get;} = "TODO";
     public string[] contributors { get; } = { "TODO" };
     public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
 

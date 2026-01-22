@@ -10,6 +10,7 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
     public string reductionName {get;} = "{REDUCTION}";
     public string reductionDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
+    public string sourceLink {get;} = "TODO";
     public string[] contributors {get;} = { "TODO" };
 
     private {REDUCE_FROM} _reductionFrom;
