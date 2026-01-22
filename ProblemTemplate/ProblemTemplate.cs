@@ -24,11 +24,10 @@ public class ProblemTemplate : ControllerBase
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
-                {$"NPC_{problemNameUpper}/{problemNamePascal}Graph.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/ProblemGraph.txt"))},
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
-                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemName, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
-                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemName, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
-                {$"NPC_{problemNameUpper}/visualizations/{problemNamePascal}Visualization.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
+                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
+                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
+                {$"NPC_{problemNameUpper}/visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
             }
         );
 
@@ -142,6 +141,23 @@ public class ProblemTemplate : ControllerBase
             .Replace("{PROBLEM}", problemName)
             .Replace("{VERIFIER}", verifierName)
             .Replace("{VERIFIER_PASCAL_CASE}", ToPascalCase(verifierName));
+    }
+
+    static string GenerateVisualizationTemplate(string problemName, string visualizationName, string template)
+    {
+        if (string.IsNullOrEmpty(problemName))
+        {
+            problemName = "Problem";
+        }
+        if (string.IsNullOrEmpty(visualizationName))
+        {
+            visualizationName = "Problem";
+        }
+
+        return template
+            .Replace("{PROBLEM}", problemName)
+            .Replace("{VISUALIZATION}", visualizationName)
+            .Replace("{VISUALIZATION_PASCAL_CASE}", ToPascalCase(visualizationName));
     }
 
     static string GenerateReductionTemplate(string problemFrom, string problemTo, string reductionName, string template)
