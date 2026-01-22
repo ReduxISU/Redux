@@ -2,11 +2,11 @@ using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_{PROBLEM};
 
-namespace API.Problems.NPComplete.NPC_{PROBLEM}.Visualizers;
+namespace API.Problems.NPComplete.NPC_{PROBLEM}.Visualizations;
 
 class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}>
 {
-    public string visualizationName { get; } = "{VERIFIER}";
+    public string visualizationName { get; } = "{VISUALIZATION}";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
     public string[] contributors { get; } = { "TODO" };

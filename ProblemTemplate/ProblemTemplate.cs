@@ -27,7 +27,7 @@ public class ProblemTemplate : ControllerBase
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
                 {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
                 {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
-                {$"NPC_{problemNameUpper}/visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
+                {$"NPC_{problemNameUpper}/Visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
             }
         );
 
@@ -93,6 +93,26 @@ public class ProblemTemplate : ControllerBase
         );
 
         return File(zip, "application/force-download", "VerifierTemplate.zip");
+    }
+
+    ///<summary>Returns generated files zipped together for the user to implement.</summary>
+    ///<param name="problemName" example="CLIQUE">Problem name</param>
+    ///<param name="visualizationName" example="My Clique Visualization">Visualization name</param>
+    ///<response code="200">Returns the visualization template with the given name.</response>
+    [ProducesResponseType(typeof(ActionResult), 200)]
+    [HttpGet("visualization")]
+    public ActionResult DownloadVisualizationTemplate([FromQuery] string problemName, [FromQuery] string visualizationName)
+    {
+        string visualizationNamePascal = ToPascalCase(visualizationName);
+        string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
+
+        byte[] zip = ZipFiles(
+            new Dictionary<string, string>{
+                {$"NPC_{problemName}/Visualizations/{visualizationNamePascal}.cs", GenerateVisualizationTemplate(problemName, visualizationName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/ProblemVisualization.txt"))},
+            }
+        );
+
+        return File(zip, "application/force-download", "VisualizationTemplate.zip");
     }
 
     static string GenerateProblemTemplate(string problemName, string template)
