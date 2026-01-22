@@ -25,7 +25,7 @@ public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, Weigh
     // δ = (node, char edge value, node) //
     // q₀ = Start State //
     // F = Set of Accept State(s) //
-    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3)},1,{1,2}),a)";
+    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "N/A";
