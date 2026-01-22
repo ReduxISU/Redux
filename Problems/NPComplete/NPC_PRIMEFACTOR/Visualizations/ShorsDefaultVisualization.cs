@@ -54,7 +54,7 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
 
             if (root.TryGetProperty("qasm", out JsonElement qasmElement))
             {
-                qc.circuit = qasmElement.GetString() ?? "";
+                qc.qasm = qasmElement.GetString() ?? "";
             }
         }
         catch (Exception)
