@@ -12,28 +12,28 @@ using System.Linq;
 public class ContributorProfileController : ControllerBase {
 #pragma warning restore CS1591
 
-    /// <summary>Returns the portfolio/profile of a specific contributor with all their contributions</summary>
-    /// <param name="contributorName">Name of the contributor to fetch profile for</param>
-    /// <response code="200">Returns contributor profile with all contributions</response>
+    /// <summary>Retrieve a contributor's full profile including their personal details and all contributions to the project</summary>
+    /// <param name="contributorName">The name of the contributor whose profile you want to view</param>
+    /// <response code="200">Successfully returns the contributor's complete profile with all their work</response>
     [ProducesResponseType(typeof(ContributorPortfolio), 200)]
     [HttpGet("{contributorName}")]
     public IActionResult GetContributorProfile(string contributorName) {
         try {
             string projectSourcePath = ProjectSourcePath.Value;
             
-            // Get contributor info from JSON
+            // Load personal information from the contributor database
             var contributorInfo = GetContributorInfo(contributorName);
             
-            // Get problems for this specific contributor
+            // Find all NP-Complete problems this contributor worked on
             var allProblems = GetAllProblems(projectSourcePath, contributorName);
             
-            // Get solvers for this specific contributor
+            // Find all solvers this contributor created
             var allSolvers = GetAllSolvers(projectSourcePath, contributorName);
             
-            // Get reductions for this specific contributor
+            // Find all problem reductions this contributor created
             var allReductions = GetAllReductions(projectSourcePath, contributorName);
             
-            // Build contributor portfolio
+            // Combine all contributions and create their profile
             var portfolio = new ContributorPortfolio {
                 ContributorName = contributorName,
                 Email = contributorInfo?.Email ?? "Not specified",
@@ -53,8 +53,8 @@ public class ContributorProfileController : ControllerBase {
         }
     }
 
-    /// <summary>Returns list of all contributors available in the system</summary>
-    /// <response code="200">Returns list of all contributor names</response>
+    /// <summary>Get a list of all contributors in the system</summary>
+    /// <response code="200">Successfully returns the list of all contributor names</response>
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet("all")]
     public IActionResult GetAllContributors() {
@@ -91,20 +91,20 @@ public class ContributorProfileController : ControllerBase {
         var problems = new List<string>();
         
         try {
-            // Scan NPComplete folder
+            // Scan the NP-Complete problems folder
             string npcPath = Path.Combine(problemsPath, "NPComplete");
             if (Directory.Exists(npcPath)) {
                 var npcProblemDirs = Directory.GetDirectories(npcPath);
                 foreach (var problemDir in npcProblemDirs) {
                     string problemName = "NPC_" + Path.GetFileName(problemDir);
-                    // Check if contributor worked on this problem by looking at files
+                    // Check if the contributor's name appears in the problem files
                     if (ContributorWorkedOnProblem(problemDir, contributorName)) {
                         problems.Add(problemName);
                     }
                 }
             }
 
-            // Scan any other complexity class folders
+            // Scan any other problem difficulty/complexity folders
             var otherFolders = Directory.GetDirectories(problemsPath)
                 .Where(d => Path.GetFileName(d) != "NPComplete");
             
@@ -127,7 +127,7 @@ public class ContributorProfileController : ControllerBase {
 
     private bool ContributorWorkedOnProblem(string problemDir, string contributorName) {
         try {
-            // Check main problem files
+            // Search for the contributor's name in the main problem files
             var csFiles = Directory.GetFiles(problemDir, "*.cs", SearchOption.TopDirectoryOnly);
             foreach (var file in csFiles) {
                 string content = System.IO.File.ReadAllText(file);
@@ -136,7 +136,7 @@ public class ContributorProfileController : ControllerBase {
                 }
             }
             
-            // Check Solvers folder
+            // Search in the Solvers folder for this problem
             string solversPath = Path.Combine(problemDir, "Solvers");
             if (Directory.Exists(solversPath)) {
                 var solverFiles = Directory.GetFiles(solversPath, "*.cs");
@@ -148,7 +148,7 @@ public class ContributorProfileController : ControllerBase {
                 }
             }
             
-            // Check ReduceTo folder
+            // Search in the ReduceTo folder for this problem
             string reducePath = Path.Combine(problemDir, "ReduceTo");
             if (Directory.Exists(reducePath)) {
                 var reduceFiles = Directory.GetFiles(reducePath, "*.cs");
@@ -169,7 +169,7 @@ public class ContributorProfileController : ControllerBase {
         var solvers = new List<string>();
         
         try {
-            // Scan all problem folders for Solvers subfolder
+            // Scan through all problems to find solvers created by this contributor
             string problemsPath = Path.Combine(projectSourcePath, "Problems");
             
             if (!Directory.Exists(problemsPath)) {
@@ -200,7 +200,7 @@ public class ContributorProfileController : ControllerBase {
         var reductions = new List<string>();
         
         try {
-            // Scan all problem folders for ReduceTo subfolder
+            // Scan through all problems to find reductions created by this contributor
             string problemsPath = Path.Combine(projectSourcePath, "Problems");
             
             if (!Directory.Exists(problemsPath)) {
@@ -240,8 +240,14 @@ public class ContributorProfileController : ControllerBase {
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var allContributors = JsonSerializer.Deserialize<Dictionary<string, ContributorInfo>>(jsonContent, options);
             
-            if (allContributors != null && allContributors.ContainsKey(contributorName)) {
-                return allContributors[contributorName];
+            if (allContributors != null) {
+                // Perform case-insensitive search to find the contributor regardless of capitalization
+                var contributor = allContributors.FirstOrDefault(x => 
+                    x.Key.Equals(contributorName, StringComparison.OrdinalIgnoreCase));
+                
+                if (!string.IsNullOrEmpty(contributor.Key)) {
+                    return contributor.Value;
+                }
             }
         }
         catch { }
@@ -250,56 +256,60 @@ public class ContributorProfileController : ControllerBase {
     }
 }
 
-/// <summary>Represents a contributor's portfolio/profile</summary>
+/// <summary>Represents a contributor's complete profile with personal details and all contributions</summary>
 public class ContributorPortfolio {
-    /// <summary>Name of the contributor</summary>
+    /// <summary>The contributor's full name</summary>
     [JsonPropertyName("contributorName")]
-    public string ContributorName { get; set; }
+    public string? ContributorName { get; set; }
 
-    /// <summary>Email of the contributor</summary>
+    /// <summary>The contributor's email address</summary>
     [JsonPropertyName("email")]
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
-    /// <summary>Education/University of the contributor</summary>
+    /// <summary>The contributor's education institution</summary>
     [JsonPropertyName("education")]
-    public string Education { get; set; }
+    public string? Education { get; set; }
 
-    /// <summary>Major/Field of study</summary>
+    /// <summary>The contributor's field of study or major</summary>
     [JsonPropertyName("major")]
-    public string Major { get; set; }
+    public string? Major { get; set; }
 
-    /// <summary>Bio/Description of the contributor</summary>
+    /// <summary>A short biography describing the contributor's expertise</summary>
     [JsonPropertyName("bio")]
-    public string Bio { get; set; }
+    public string? Bio { get; set; }
 
-    /// <summary>List of problems this contributor has worked on</summary>
+    /// <summary>List of all NP-Complete problems this contributor has worked on</summary>
     [JsonPropertyName("problemsContributed")]
     public List<string> ProblemsContributed { get; set; } = new List<string>();
 
-    /// <summary>List of solvers this contributor has created</summary>
+    /// <summary>List of all algorithm solvers this contributor has created</summary>
     [JsonPropertyName("solversCreated")]
     public List<string> SolversCreated { get; set; } = new List<string>();
 
-    /// <summary>List of reductions this contributor has created</summary>
+    /// <summary>List of all problem reductions this contributor has created</summary>
     [JsonPropertyName("reductionsCreated")]
     public List<string> ReductionsCreated { get; set; } = new List<string>();
 
-    /// <summary>Total number of contributions</summary>
+    /// <summary>Total count of all contributions (problems + solvers + reductions)</summary>
     [JsonPropertyName("totalContributions")]
     public int TotalContributions { get; set; }
 }
 
-/// <summary>Contributor information from JSON file</summary>
+/// <summary>Stores basic information about a contributor from the database</summary>
 public class ContributorInfo {
+    /// <summary>The contributor's email address</summary>
     [JsonPropertyName("email")]
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
+    /// <summary>The contributor's educational institution</summary>
     [JsonPropertyName("education")]
-    public string Education { get; set; }
+    public string? Education { get; set; }
 
+    /// <summary>The contributor's field of study</summary>
     [JsonPropertyName("major")]
-    public string Major { get; set; }
+    public string? Major { get; set; }
 
+    /// <summary>A short biography about the contributor</summary>
     [JsonPropertyName("bio")]
-    public string Bio { get; set; }
+    public string? Bio { get; set; }
 }
