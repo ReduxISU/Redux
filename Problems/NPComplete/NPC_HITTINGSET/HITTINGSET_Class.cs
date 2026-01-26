@@ -1,12 +1,13 @@
+using SPADE;
 using API.Interfaces;
 using API.DummyClasses;
 using API.Problems.NPComplete.NPC_HITTINGSET.Solvers;
 using API.Problems.NPComplete.NPC_HITTINGSET.Verifiers;
-using SPADE;
+using API.Problems.NPComplete.NPC_HITTINGSET.Visualizers;
 
 namespace API.Problems.NPComplete.NPC_HITTINGSET;
 
-class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, DummyVisualization> {
+class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSetDefaultVisualization> {
 
 
     #region Fields
@@ -29,7 +30,7 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, DummyVisua
     public HittingSetBruteForce defaultSolver {get;} = new HittingSetBruteForce();
 
     public HittingSetVerifier defaultVerifier { get; } = new HittingSetVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public HittingSetDefaultVisualization defaultVisualization { get; } = new HittingSetDefaultVisualization();
 
     public UtilCollection _universalSet;
 
