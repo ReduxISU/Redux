@@ -4,7 +4,7 @@ using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using SPADE;
 
-namespace API.Problems.NPComplete.NPC_EXACTCOVER.Visualizers;
+namespace API.Problems.NPComplete.NPC_EXACTCOVER.Visualizations;
 
 class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER>
 {

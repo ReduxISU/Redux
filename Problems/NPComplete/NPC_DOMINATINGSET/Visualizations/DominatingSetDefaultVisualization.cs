@@ -3,7 +3,7 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 
-namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizers;
+namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizations;
 
 class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
 {

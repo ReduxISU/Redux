@@ -2,11 +2,12 @@ using API.Interfaces;
 using API.DummyClasses;
 using API.Problems.NPComplete.NPC_PARTITION.Solvers;
 using API.Problems.NPComplete.NPC_PARTITION.Verifiers;
+using API.Problems.NPComplete.NPC_PARTITION.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PARTITION;
 
-class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, DummyVisualization>
+class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefaultVisualization>
 {
 
     // --- Fields ---
@@ -17,14 +18,14 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, DummyVisualiz
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    private static string _defaultInstance = "{1,7,12,15,33,12,11,5,6,9,21,18}";
+    private static string _defaultInstance = "({1,7,12,15,33,12,11,5,6,9,21,18})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     private List<string> _S = new List<string>();
     public string wikiName { get; } = "";
     public PartitionBruteForce defaultSolver { get; } = new PartitionBruteForce();
     public PartitionVerifier defaultVerifier { get; } = new PartitionVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public PartitionDefaultVisualization defaultVisualization { get; } = new PartitionDefaultVisualization();
 
     // --- Properties ---
     public List<string> S
@@ -47,7 +48,7 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, DummyVisualiz
     {
         this.instance = instance;
 
-        StringParser partition = new("{N | N is set}");
+        StringParser partition = new("{(N) | N is set}");
         partition.parse(instance);
         S = partition["N"].ToList().Select(node => node.ToString()).ToList();
     }

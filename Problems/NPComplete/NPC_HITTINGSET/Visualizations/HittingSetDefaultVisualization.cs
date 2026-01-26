@@ -4,7 +4,7 @@ using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using SPADE;
 
-namespace API.Problems.NPComplete.NPC_HITTINGSET.Visualizers;
+namespace API.Problems.NPComplete.NPC_HITTINGSET.Visualizations;
 
 class HittingSetDefaultVisualization : IVisualization<HITTINGSET>
 {

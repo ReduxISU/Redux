@@ -6,7 +6,7 @@ using API.Interfaces.JSON_Objects;
 using SPADE;
 using API.Interfaces.Graphs;
 
-namespace API.Problems.NPComplete.NPC_ARCSET.Visualizers;
+namespace API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 
 class ArcSetDefaultVisualization : IVisualization<ARCSET> {
 

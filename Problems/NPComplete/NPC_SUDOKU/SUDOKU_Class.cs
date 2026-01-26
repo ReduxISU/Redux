@@ -2,7 +2,7 @@ using API.Interfaces;
 using API.DummyClasses;
 using API.Problems.NPComplete.NPC_SUDOKU.Solvers;
 using API.Problems.NPComplete.NPC_SUDOKU.Verifiers;
-using API.Problems.NPComplete.NPC_SUDOKU.Visualizers;
+using API.Problems.NPComplete.NPC_SUDOKU.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUDOKU;
