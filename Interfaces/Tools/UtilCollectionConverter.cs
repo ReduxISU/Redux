@@ -27,6 +27,7 @@ public class UtilCollectionConverter : JsonConverter<UtilCollection>
         if (uc.IsValue())
         {
             writer.WriteString("value", uc.ToString());
+            writer.WriteString("color", "Background");
         }
         else
         {
