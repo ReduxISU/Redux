@@ -5,7 +5,7 @@ using Xunit;
 
 namespace API.Problems.NPComplete.NPC_DFA.Solvers;
 
-public class DFASolver : ISolver<DFA>
+class DFASolver : ISolver<DFA>
 {
 
     // ----- Fields ----- //

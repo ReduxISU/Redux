@@ -9,7 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using API.Interfaces.Graphs;
 
-public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph>
+class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph>
 {
     // ----- Fields ----- //
     public string problemName { get; } = "DFA Acceptance";

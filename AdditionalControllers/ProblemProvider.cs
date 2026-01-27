@@ -180,7 +180,7 @@ public class ProblemProvider : ControllerBase
     [HttpPost("visualize")]
     public string visualize(string visualization, string solver, [FromBody] string instance)
     {
-        return getVisualize(Visualization(visualization), Solver(solver).GetSteps(instance), Solver(solver).solve(instance), instance);
+        return getVisualize(Visualization(visualization), Visualization(visualization).solver.GetSteps(instance), Solver(solver).solve(instance), instance);
     }
 
     /// <summary>
@@ -196,19 +196,17 @@ public class ProblemProvider : ControllerBase
         List<string> reds = reduction.Split("-").ToList();
 
         ISolver sol = Solver(solver);
-        List<string> steps = sol.GetSteps(instance);
         string solution = sol.solve(instance);
 
         IReduction? red = null;
         foreach (string reductionname in reds)
         {
             red = Reduction(reductionname, instance);
-            steps = steps.Select(step => red.mapSolutions(step)).ToList();
             solution = red.mapSolutions(solution);
             instance = red.reductionTo.instance;
         }
 
-        return getVisualize(red.visualization, steps, solution, instance);
+        return getVisualize(red.visualization, new List<String>(), solution, instance);
     }
 
     /// <summary>

@@ -11,9 +11,9 @@ interface IVisualization
     string visualizationType { get; }
     string source { get; }
     string[] contributors { get; }
+    ISolver solver { get; }
     API_JSON visualize(string problem);
     API_JSON SolvedVisualization(string problem, string solution);
-
     List<API_JSON> StepsVisualization(string problem, List<string> steps);
 }
 

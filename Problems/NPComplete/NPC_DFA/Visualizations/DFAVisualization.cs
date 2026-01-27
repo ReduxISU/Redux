@@ -4,16 +4,18 @@ using API.Problems.NPComplete.NPC_DFA;
 using API.Interfaces.JSON_Objects.Graphs;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
+using API.Problems.NPComplete.NPC_DFA.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DFA.Visualizations;
 
-public class DFAVisualization : IVisualization<DFA>
+class DFAVisualization : IVisualization<DFA>
 {
     public string visualizationName { get; } = "Determinite Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Deterministic Finite Automata";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
     public string visualizationType { get; } = "Graph LaTeX";
+    public ISolver solver { get; } = new DFASolver();
 
     // --- Methods Including Constructors ---
     public DFAVisualization() {}

@@ -63,6 +63,7 @@ The Visualizations folder should contain all visualizations files for that probl
 * `string source` : Formal citation of the source of the visualization algorithm
 * `string sourceLink` : A link to the formal citation
 * `string[] contributors` : A list of names of all developers who have worked on the visualization
+* `ISolver solver` : The solver to use for this visualization. If `StepsVisualization` is not implemented then setting it to the default solver is fine
 
 The file should also include two functions which take a problem object and solution string, and returns an API object of the visualization for the given problem. As well as any other necessary functions.
 
