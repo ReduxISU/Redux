@@ -26,7 +26,7 @@ class SetCoverDefaultVisualization : IVisualization<SETCOVER>
     public API_JSON SolvedVisualization(SETCOVER setcover, string solution)
     {
         //return new API_SET(new UtilCollection(setcover.instance));
-        API_SET ec = new API_SET(new UtilCollection(setcover.instance));
+        API_SET sc = new API_SET(new UtilCollection(setcover.instance));
 
         return new API_SET(new UtilCollection(setcover.instance));
     }
