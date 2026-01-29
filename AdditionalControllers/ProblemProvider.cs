@@ -151,7 +151,6 @@ public class ProblemProvider : ControllerBase
             WriteIndented = true
         };
         options.Converters.Add(new API_JSON_Converter());
-        options.Converters.Add(new UtilCollectionConverter());
 
         API_JSON visual = visualization.visualize(instance);
         List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps);
