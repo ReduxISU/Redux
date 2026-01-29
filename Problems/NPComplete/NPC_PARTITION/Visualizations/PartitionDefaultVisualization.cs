@@ -27,7 +27,25 @@ class PartitionDefaultVisualization : IVisualization<PARTITION>
     {
         //return new API_SET(new UtilCollection(partition.instance));
         API_SET ec = new API_SET(new UtilCollection(partition.instance));
+        UtilCollection sol = new(solution);
+        List<UtilCollection> groups = new();
+        foreach (UtilCollection e in sol)
+        {
+            groups.Add(e);
+        }
 
-        return new API_SET(new UtilCollection(partition.instance));
+        foreach (var e in ec.data.list)
+        {
+            if (groups[0].Contains(new(e.value)))
+            {
+                e.color = "Solution";
+            }
+            else
+            {
+                e.color = "SolutionAlt";
+            }
+        }
+
+        return ec;
     }
 }
