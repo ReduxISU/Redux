@@ -91,4 +91,31 @@ class DFAVisualization : IVisualization<DFA>
         else { return null; }
         */
     }
+
+    public List<API_JSON> StepsVisualization(DFA instance, List<Object> steps)
+    {
+        List<string> solutionList = steps.Cast<string>().ToList();
+        List<API_GraphJSON> apiGraphs = Enumerable.Range(0, solutionList.Count)
+                                                  .Select(_ => instance.graph.ToAPIGraph())
+                                                  .ToList();
+
+        for (int i = 0; i < apiGraphs.Count; i++)
+        {
+            API_GraphJSON apiGraph = apiGraphs[i];
+            string currNode = solutionList[i];
+
+            for (int j = 0; j < apiGraph.nodes.Count; j++)
+            {
+                if (apiGraph.nodes[j].name == currNode)
+                {
+                    apiGraph.nodes[j].color = "green";
+                }
+                else { apiGraph.nodes[j].color = "white"; }
+            }
+
+        }
+
+        return apiGraphs.Cast<API_JSON>().ToList();
+
+    }
 }
