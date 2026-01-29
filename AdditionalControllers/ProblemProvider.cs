@@ -178,25 +178,22 @@ public class ProblemProvider : ControllerBase
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualize")]
-    public string visualize(string visualization, string solver, [FromBody] string instance)
+    public string visualize(string visualization, [FromBody] string instance)
     {
-        return getVisualize(Visualization(visualization), Visualization(visualization).solver.GetSteps(instance), Solver(solver).solve(instance), instance);
+        return getVisualize(Visualization(visualization), Visualization(visualization).solver.GetSteps(instance), Visualization(visualization).solver.solve(instance), instance);
     }
 
     /// <summary>
     /// Reduces a problem and returns the visualization of the reduction
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">List of reductions to use, seperated by a dash. Can use a single reduction</param>
-    /// <param name="solver" example = "Sat3BacktrackingSolver">The solver to use for steps and solution</param>
+    /// <param name="solution" example = "(x1:True,x2:True)">The solution to visualize</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance string of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
-    public string visualizeReduction(string reduction, string solver, [FromBody] string instance)
+    public string visualizeReduction(string reduction, string solution, [FromBody] string instance)
     {
         List<string> reds = reduction.Split("-").ToList();
-
-        ISolver sol = Solver(solver);
-        string solution = sol.solve(instance);
 
         IReduction? red = null;
         foreach (string reductionname in reds)
