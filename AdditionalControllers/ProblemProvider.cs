@@ -144,7 +144,7 @@ public class ProblemProvider : ControllerBase
         return false;
     }
 
-    private string getVisualize(IVisualization visualization, List<string> steps, string solution, string instance)
+    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance)
     {
         var options = new JsonSerializerOptions
         {
@@ -203,7 +203,7 @@ public class ProblemProvider : ControllerBase
             instance = red.reductionTo.instance;
         }
 
-        return getVisualize(red.visualization, new List<String>(), solution, instance);
+        return getVisualize(red.visualization, new List<Object>(), solution, instance);
     }
 
     /// <summary>
