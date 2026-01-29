@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using SPADE;
 
 namespace API.Interfaces.JSON_Objects;
@@ -7,9 +8,12 @@ class API_UtilCollection
     public bool isOrdered { get; }
     public bool isValue { get; }
     public string id { get; }
-    public string value { get; }
-    public string color { get; set; }
-    public List<API_UtilCollection> list { get; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string ?value { get; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string ?color { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<API_UtilCollection> ?list { get; }
 
     public API_UtilCollection(UtilCollection uc) : this(uc, "r")
     {
@@ -21,16 +25,15 @@ class API_UtilCollection
         isOrdered = uc.IsOrdered();
         isValue = uc.IsValue();
         this.id = id;
-        list = new();
-        color = "Background";
 
         if (uc.IsValue())
         {
             value = uc.ToString();
+            color = "Background";
         }
         else
         {
-
+            list = new();
             if (uc.IsOrdered())
             {
                 for (int i = 0; i < uc.Count(); i ++)
