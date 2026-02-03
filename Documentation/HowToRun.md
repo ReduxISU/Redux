@@ -20,6 +20,10 @@
 
     ```npm install next react react-dom```
 
+5. Install other parts of npm (Inside Redux front-end directory)
+
+    ```npm install ```
+
 ## Each runtime (run these concurrently in separate terminals):
 
 1. Run backend (in Redux file structure) (may or may not need to run as admin):
