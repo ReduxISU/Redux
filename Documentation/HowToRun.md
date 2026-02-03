@@ -8,7 +8,7 @@
 
 	Frontend: https://github.com/ReduxISU/Redux_GUI
 
-2. Install .NET version 6.0
+2. Install .NET version 6.0 
 
     https://dotnet.microsoft.com/en-us/download/dotnet/6.0 
 
