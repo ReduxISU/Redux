@@ -3,10 +3,14 @@ using API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
 using API.Problems.NPComplete.NPC_SHORTESTPATH.Verifiers;
 using API.Problems.NPComplete.NPC_SHORTESTPATH.Visualizations;
 using SPADE;
+using Xunit;
+using System.Linq;
+using System.Collections.Generic;
+using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_SHORTESTPATH;
 
-class SHORTESTPATH: IGraphProblem<DijkstraSolver, DijkstraVerifier, DijkstraDefaultVisualization, UtilCollectionGraph>
+public class SHORTESTPATH: IGraphProblem<DijkstraSolver, DijkstraVerifier, DijkstraDefaultVisualization, UtilCollectionGraph>
 {
 
     // --- Fields ---
