@@ -40,14 +40,7 @@ class DancingLinks : ISolver<EXACTCOVER> {
 
         Stack<int> selectedSets = new Stack<int>();
         bool foundSolution = false;
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
         iterate(Y,ref X,ref selectedSets, ref foundSolution);
-
-        stopwatch.Stop();
-
-        Console.WriteLine(stopwatch.ElapsedMilliseconds);
-        Console.WriteLine(exactCover.S.Count());
 
         if(selectedSets.Any()) {
             return solutionToCertificate(selectedSets, exactCover);

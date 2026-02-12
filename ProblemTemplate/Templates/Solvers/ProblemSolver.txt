@@ -7,13 +7,19 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     public string solverName {get;} = "{SOLVER}";
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
-    public string[] contributers {get;} = { "TODO" };
+    public string[] contributors {get;} = { "TODO" };
+    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public {SOLVER_PASCAL_CASE}() {}
 
     public string solve({PROBLEM} problem){
         // TODO: implement {SOLVER} for {PROBLEM}
+
+        // make sure to check timerHasExpired occasionally, and return if it has
+        if (timerHasExpired)
+            return "timeout";
+
         return "{}";
     }
 }

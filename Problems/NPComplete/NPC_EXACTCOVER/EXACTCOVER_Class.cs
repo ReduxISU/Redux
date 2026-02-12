@@ -3,11 +3,12 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 using API.Problems.NPComplete.NPC_EXACTCOVER.Verifiers;
+using API.Problems.NPComplete.NPC_EXACTCOVER.Visualizers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER;
 
-class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,DummyVisualization> {
+class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDefaultVisualization> {
 
     // --- Fields ---
     public string problemName {get;} = "Exact Cover";
@@ -26,7 +27,7 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,DummyVisuali
     public string wikiName {get;} = "";
     public ExactCoverBruteForce defaultSolver {get;} = new ExactCoverBruteForce();
     public ExactCoverVerifier defaultVerifier { get; } = new ExactCoverVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public ExactCoverDefaultVisualization defaultVisualization { get; } = new ExactCoverDefaultVisualization();
     List<List<string>> _S = new List<List<string>>();
     List<string> _X = new List<string>();
 
