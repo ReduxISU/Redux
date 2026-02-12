@@ -31,7 +31,7 @@ class ARCSET : IGraphProblem<ArcSetBruteForce,ArcSetVerifier,ArcSetDefaultVisual
     //           the question is "how many edges would you have to remove to break this graph's cycle?" and the answer is 1. 
     // G = {A,r} 
     //Mathmatical notation of the following default instance: "A = {1,2,3,4} r = {(4,1),(1,2),(4,3),(3,2),(2,4)} k = 1"; 
-    private static string _defaultInstance = "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)"; //final formal version. This is standard mathmatical digraph notation with a K element appended. 
+    private static string _defaultInstance = "(({1,2,3,4},{(1,2),(2,4),(3,2),(4,1),(4,3)}),1)"; //final formal version. This is standard mathmatical digraph notation with a K element appended. 
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
 
