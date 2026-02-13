@@ -1,36 +1,103 @@
 ﻿using System;
+using System.Collections.Generic;
 
-public class DijkstraPriorityQueue
+public class DijkstraPriorityQueue<T>
 {
-	private List<(string Node, int Priority)> elements = new List<(string, int)>();
+    // (T item, int priority) is a tuple
+    private List<(T node, int priority)> heap = new();
 
-	public int Count => elements.Count;
+    public int Count => heap.Count;
 
-	public void Enqueue(string node, int priority)
-	{
-		elements.Add((node, priority));
-	}
+    /* Note the indices for storing a binary tree in a linear collection:
+     * parent: (i-1)/2
+     * left child: (2*i)+1
+     * right child: (2*i)+2
+     */
 
-	public string Dequeue()
-	{
-		if(elements.Count == 0)
-		{
-			throw new InvalidOperationException("The queue is empty.");
-		}
 
-		int minIndex = 0; 
+    // insert
+    public void Enqueue(T item, int priority)
+    {
+        heap.Add((item, priority));
 
-		for(int i = 1; i < elements.Count; i++)
-		{
-			if (elements[i].Priority < elements[minIndex].Priority)
-			{
-				minIndex = i;
-			}
-		}
+        // bubble up as needed
+        BubbleUp(heap.Count - 1);
+    }
 
-		var minElement = elements[minIndex];
-		elements.RemoveAt(minIndex);
+    // remove minimum
+    public T Dequeue()
+    {
+        if (heap.Count == 0)
+            throw new InvalidOperationException("queue is empty");
 
-		return minElement.Node;
-	}
+        T min = heap[0].node; // we just want the item, priorty isn't relevent externally
+
+        // move the bottom element to the top
+        heap[0] = heap[heap.Count - 1];
+
+        // remove the last element
+        heap.RemoveAt(heap.Count - 1);
+
+        // rectify by bubbling down as needed
+        if(heap.Count > 0)
+        {
+            BubbleDown(0);
+        }
+
+        return min;
+    }
+
+    private void BubbleUp(int index)
+    {
+        while (index > 0)
+        {
+            int parentIndex = (index - 1) / 2;
+
+            // already sorted
+            if (heap[index].priority >= heap[parentIndex].priority)
+                break;
+
+            // otherwise swap with parent
+            Swap(parentIndex, index);
+
+            index = parentIndex; // keep bubbling up from there
+        }
+    }
+
+    private void BubbleDown(int index)
+    {
+        int lastIndex = heap.Count - 1;
+        while (true)
+        {
+            int leftChildIndex = (2 * index) + 1;
+            int rightChildIndex = (2 * index) + 2;
+
+            int smaller = index;
+
+            if (leftChildIndex <= lastIndex && heap[leftChildIndex].priority < heap[smaller].priority)
+            {
+                smaller = leftChildIndex;
+            }
+
+            if (rightChildIndex <= lastIndex && heap[rightChildIndex].priority < heap[smaller].priority)
+            {
+                smaller = rightChildIndex;
+            }
+
+            if (smaller == index)
+            {
+                break;
+            }
+
+            Swap(index, smaller);
+            index = smaller;
+        }
+    }
+
+    private void Swap(int i, int j)
+    {
+        (T, int) temp = heap[i];
+        heap[i] = heap[j];
+        heap[j] = temp;
+    }
 }

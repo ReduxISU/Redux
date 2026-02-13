@@ -10,7 +10,7 @@ using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_SHORTESTPATH;
 
-public class SHORTESTPATH: IGraphProblem<DijkstraSolver, DijkstraVerifier, DijkstraDefaultVisualization, UtilCollectionGraph>
+public class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, ShortestPathVisualization, UtilCollectionGraph>
 {
 
     // --- Fields ---
@@ -28,8 +28,8 @@ public class SHORTESTPATH: IGraphProblem<DijkstraSolver, DijkstraVerifier, Dijks
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
     public DijkstraSolver defaultSolver { get; } = new DijkstraSolver();
-    public DijkstraVerifier defaultVerifier { get; } = new DijkstraVerifier();
-    public DijkstraDefaultVisualization defaultVisualization { get; } = new DijkstraDefaultVisualization();
+    public ShortestPathVerifier defaultVerifier { get; } = new ShortestPathVerifier();
+    public ShortestPathVisualization defaultVisualization { get; } = new ShortestPathVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors { get; } = { "Tiger Sant", "Malaya Witt", "Rajit Nilkar", "Scott Barfuss" };
     
