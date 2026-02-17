@@ -89,27 +89,16 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
         // StringParser maxCut = new("{(N,E) | N is set, E is set");
         // StringParser EParse = new("E ");
         // Instance (for help with fixing above) "({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})";
-        Console.WriteLine($"Parsing instance: {instance}");
-        //maxCut.parse(GInput);
+       
         maxCut.parse(instance);
         nodes = maxCut["N"].ToList().Select(node => node.ToString()).ToList();
-        Console.WriteLine($"Parsed Nodes: {string.Join(", ", nodes)}");
-        // foreach (var node in nodes)
-        // {
-        //     Console.WriteLine($"{node}");
-        // }
+
         edges = maxCut["E"].ToList().Select(edge =>
         {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();
-        Console.WriteLine($"Parsed Edges:");
-        foreach (var edge in edges)
-        {
-            Console.WriteLine($"{edge}");
-        }
-        // _K = int.Parse(maxCut["K"].ToString());
-
+        
         graph = new UtilCollectionGraph(maxCut["N"], maxCut["E"]);
     }
 }

@@ -24,11 +24,10 @@ public class ProblemTemplate : ControllerBase
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
-                {$"NPC_{problemNameUpper}/{problemNamePascal}Graph.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/ProblemGraph.txt"))},
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
-                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemName, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
-                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemName, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
-                {$"NPC_{problemNameUpper}/visualizations/{problemNamePascal}Visualization.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
+                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
+                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
+                {$"NPC_{problemNameUpper}/Visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
             }
         );
 
@@ -96,6 +95,26 @@ public class ProblemTemplate : ControllerBase
         return File(zip, "application/force-download", "VerifierTemplate.zip");
     }
 
+    ///<summary>Returns generated files zipped together for the user to implement.</summary>
+    ///<param name="problemName" example="CLIQUE">Problem name</param>
+    ///<param name="visualizationName" example="My Clique Visualization">Visualization name</param>
+    ///<response code="200">Returns the visualization template with the given name.</response>
+    [ProducesResponseType(typeof(ActionResult), 200)]
+    [HttpGet("visualization")]
+    public ActionResult DownloadVisualizationTemplate([FromQuery] string problemName, [FromQuery] string visualizationName)
+    {
+        string visualizationNamePascal = ToPascalCase(visualizationName);
+        string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
+
+        byte[] zip = ZipFiles(
+            new Dictionary<string, string>{
+                {$"NPC_{problemName}/Visualizations/{visualizationNamePascal}.cs", GenerateVisualizationTemplate(problemName, visualizationName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/ProblemVisualization.txt"))},
+            }
+        );
+
+        return File(zip, "application/force-download", "VisualizationTemplate.zip");
+    }
+
     static string GenerateProblemTemplate(string problemName, string template)
     {
         if (string.IsNullOrEmpty(problemName))
@@ -142,6 +161,23 @@ public class ProblemTemplate : ControllerBase
             .Replace("{PROBLEM}", problemName)
             .Replace("{VERIFIER}", verifierName)
             .Replace("{VERIFIER_PASCAL_CASE}", ToPascalCase(verifierName));
+    }
+
+    static string GenerateVisualizationTemplate(string problemName, string visualizationName, string template)
+    {
+        if (string.IsNullOrEmpty(problemName))
+        {
+            problemName = "Problem";
+        }
+        if (string.IsNullOrEmpty(visualizationName))
+        {
+            visualizationName = "Problem";
+        }
+
+        return template
+            .Replace("{PROBLEM}", problemName)
+            .Replace("{VISUALIZATION}", visualizationName)
+            .Replace("{VISUALIZATION_PASCAL_CASE}", ToPascalCase(visualizationName));
     }
 
     static string GenerateReductionTemplate(string problemFrom, string problemTo, string reductionName, string template)

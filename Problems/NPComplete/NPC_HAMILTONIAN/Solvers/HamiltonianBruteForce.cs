@@ -1,96 +1,73 @@
+using System.Text;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Solvers;
-class HamiltonianBruteForce : ISolver<HAMILTONIAN> {
+
+class HamiltonianBruteForce : ISolver<HAMILTONIAN>
+{
 
     // --- Fields ---
-    public string solverName {get;} = "Hamiltonian Path Brute Force Solver";
-    public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Hamiltonian Path problem";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string solverName { get; } = "Hamiltonian Path Brute Force Solver";
+    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Hamiltonian Path problem";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public HamiltonianBruteForce()
-    {
+    { }
 
+
+    private string CombinationToCertificate(List<string> combination)
+    {
+        var sb = new StringBuilder();
+        sb.Append("{");
+        foreach (var node in combination)
+            sb.Append(node).Append(",");
+        sb.Append(combination[0]).Append("}");
+        return sb.ToString();
     }
 
-    private string combinationToCertificate(List<int> combination, List<string> nodes) {
-        string certificate = "";
-        foreach(int i in combination) {
-            certificate += nodes[i - 1] + ',';
-        }
-        return "{" + certificate + certificate.Split(',')[0] + "}";
-    }
-    
-    public static List<List<int>> GenerateCombinations(int x)
+    // Undirected edge check
+    private bool HasEdgeUndirected(HAMILTONIAN graph, string nodeA, string nodeB)
     {
-        List<int> currentCombination = new List<int>();
-        for (int i = 1; i <= x; i++)
+        return graph.edges.Any(e =>
+            (e.Key == nodeA && e.Value == nodeB) ||
+            (e.Key == nodeB && e.Value == nodeA));
+    }
+
+    private IEnumerable<List<string>> PermuteWithPruning(List<string> nodes, HAMILTONIAN graph, int start = 0)
+    {
+        if (start == nodes.Count - 1)
         {
-            currentCombination.Add(i);
+            yield return new List<string>(nodes);
         }
-
-        List<List<int>> combinations = new List<List<int>>();
-        combinations.Add(new List<int>(currentCombination));
-
-        while (true)
+        else
         {
-            if (GetNextCombination(currentCombination))
+            for (int i = start; i < nodes.Count; i++)
             {
-                combinations.Add(new List<int>(currentCombination));
+                (nodes[start], nodes[i]) = (nodes[i], nodes[start]);
+
+                // Early pruning: check edge between last node in partial path and current node
+                if (start == 0 || HasEdgeUndirected(graph, nodes[start - 1], nodes[start]))
+                {
+                    foreach (var perm in PermuteWithPruning(nodes, graph, start + 1))
+                        yield return perm;
+                }
+
+                (nodes[start], nodes[i]) = (nodes[i], nodes[start]);
             }
-            else
-            {
-                break; // All combinations have been generated
-            }
         }
-
-        return combinations;
     }
-
-    private static bool GetNextCombination(List<int> combination)
-    {
-        int x = combination.Count;
-        int i = x - 2;
-        while (i >= 0 && combination[i] >= combination[i + 1])
-        {
-            i--;
-        }
-
-        if (i < 0)
-        {
-            return false; // No more combinations
-        }
-
-        int j = x - 1;
-        while (combination[j] <= combination[i])
-        {
-            j--;
-        }
-
-        // Swap elements at indices i and j
-        int temp = combination[i];
-        combination[i] = combination[j];
-        combination[j] = temp;
-
-        // Reverse the sequence from i+1 to the end
-        combination.Reverse(i + 1, x - i - 1);
-
-        return true;
-    }
-
 
     public string solve(HAMILTONIAN hamiltonian)
     {
-        List<List<int>> combinations = GenerateCombinations(hamiltonian.nodes.Count);
-
-        foreach (List<int> combination in combinations)
+        foreach (var combination in PermuteWithPruning(hamiltonian.nodes, hamiltonian))
         {
-            string certificate = combinationToCertificate(combination, hamiltonian.nodes);
+            string certificate = CombinationToCertificate(combination);
             if (hamiltonian.defaultVerifier.verify(hamiltonian, certificate))
             {
                 return certificate;

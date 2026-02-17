@@ -8,7 +8,8 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
     public string verifierName {get;} = "{VERIFIER}";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
-    private string[] _contributers = { "TODO" };
+    public string sourceLink {get;} = "TODO";
+    public string[] contributors {get;} = { "TODO" };
     private string _certificate =  "";
 
     public string certificate {
@@ -18,7 +19,7 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
     }
 
     // --- Methods Including Constructors ---
-    public {VERIFIER_PASCAL_CASE}Verifier() {
+    public {VERIFIER_PASCAL_CASE}() {
         
     }
 
