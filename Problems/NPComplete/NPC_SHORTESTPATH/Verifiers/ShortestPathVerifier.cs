@@ -10,16 +10,12 @@ public class ShortestPathVerifier : IVerifier<SHORTESTPATH>
     public string verifierDefinition { get; } = "Verifies shortest path solutions";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar" };
+    private string _certificate = "";
+    public string certificate { get => _certificate; }
 
-    public bool verify(string problem, string solution)
+    public bool verify(SHORTESTPATH problem, string certificate)
     {
         // TODO: Implement verification logic
         return true;
-    }
-
-    public string certificate(SHORTESTPATH problem, string solution)
-    {
-        // TODO: Implement certificate generation
-        return solution;
     }
 }

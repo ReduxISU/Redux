@@ -1,5 +1,6 @@
 ﻿using System;
 using API.Interfaces;
+using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_SHORTESTPATH;
 
 namespace API.Problems.NPComplete.NPC_SHORTESTPATH.Visualizations;
@@ -11,16 +12,14 @@ public class ShortestPathVisualization : IVisualization<SHORTESTPATH>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar" };
 
-    // Implement the required method from IVisualization<SHORTESTPATH>
-    public string visualize(SHORTESTPATH problem)
-    {
-        // TODO: Implement visualization logic using the problem instance
-        return problem.ToString();
-    }
+    // Add the missing property to implement the interface
+    public string visualizationType => typeof(SHORTESTPATH);
 
-    public string visualize(string problem, string solution)
+    // Implement the required method from IVisualization<SHORTESTPATH>
+    public API_JSON visualize(SHORTESTPATH problem)
     {
-        // TODO: Implement visualization
-        return solution;
+        // For simplicity, we will just return a JSON representation of the graph
+        // In a real implementation, this would be more complex and would include visual elements
+        return new API_Graph(problem.nodes, problem.edges);
     }
 }
