@@ -12,7 +12,7 @@ using System.Linq;
 public class ContributorProfileController : ControllerBase {
 #pragma warning restore CS1591
 
-    /// <summary>Retrieve a contributor's full profile including their personal details and all contributions to the project</summary>
+    ///Retrieve a contributor's full profile including their personal details and all contributions to the project</summary>
     /// <param name="contributorName">The name of the contributor whose profile you want to view</param>
     /// <response code="200">Successfully returns the contributor's complete profile with all their work</response>
     [ProducesResponseType(typeof(ContributorPortfolio), 200)]
