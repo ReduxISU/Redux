@@ -48,7 +48,7 @@ The backend is designed to be adaptable and can work with different frontends. T
 
 ### Prerequisites
 
-- [.NET 6.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download)
 - [Node.js](https://nodejs.org/en/download) (for frontend)
 - [Visual Studio](https://visualstudio.microsoft.com/) or your preferred IDE
 
