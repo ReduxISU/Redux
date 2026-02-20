@@ -4,17 +4,18 @@ using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_SHORTESTPATH;
-using Xunit;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
 
-public class DijkstraSolver : ISolver<SHORTESTPATH>
+class DijkstraSolver : ISolver<SHORTESTPATH>
 {
 	// ----- Fields ----- //
 	public string solverName { get; } = "Dijkstra's Algorithm";
-	public string solverDefinition { get; } = "This solver implements Dijkstra's algorithm to find the shortest path from a source node to a target node in a positively weighted graph.";
+	public string solverDefinition { get; } =
+	"This solver implements Dijkstra's algorithm to find the shortest path from a source node to a target node in a positively weighted graph.";
 	public string source { get; } = "";
-	public string[] contributors { get; } = { "Rajit Nilkar" };
+	public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
 	public bool timerHasExpired { get; set; }
 
 	public string solve(SHORTESTPATH problem)
@@ -23,17 +24,22 @@ public class DijkstraSolver : ISolver<SHORTESTPATH>
 		UtilCollectionGraph graph = problem.graph;
 
 		//Get nodes as strings
-		List<string> nodeList = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
+		List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
+		if (nodes.Count == 0)
+			return "{}"; // No nodes, return empty path
 
-		string sourceNode = nodeist[0];
+		string sourceNode = nodes[0];
+		string targetNode = nodes[^1];
+
+		var adjacency = BuildAdjacency(graph);
 
 		//Initialize distances
-		Dictionary<string, int> distances = new Dictionary<string, int>();
-		Dictionary<string, bool> visited = new Dictionary<string, bool>();
-		Dictionary<string, string> previous = new Dictionary<string, string>();
+		var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
+        var prev = nodes.ToDictionary(n => n, _ => (string)null);
+        var visited = new HashSet<string>();
+        var pq = new DijkstraPriorityQueue<string>();
 
-		DijkstraPriorityQueue<string> pq = new DijkstraPriorityQueue<string>();
-
+		/*
 		//Initialize all nodes
 		foreach (string node in nodeList)
 		{
@@ -41,68 +47,172 @@ public class DijkstraSolver : ISolver<SHORTESTPATH>
 			visited[node] = false;
 			previous[node] = null;
         }
-
 		// Source has distance 0
 		distances[sourceNode] = 0;
 		pq.Enqueue(sourceNode, 0);
-
 		// Get edges list
 		List<UtilCollection> edgeList = graph.Edges.ToList();
+		*/
+
+		dist[sourceNode] = 0;
+		pq.Enqueue(sourceNode, 0);
 
 		while (pq.Count > 0)
 		{
 			if (timerHasExpired)
-			{
-				break;
-			}
+				return "{}";
 
 			string current = pq.Dequeue();
+			if (visited.Contains(current))
+				continue; // Skip if we've already visited this node
 
-			if (visited[current])
-			{
-				continue;
-			}
-
-			visited[current] = true;
+			visited.Add(current);
+			if (current == targetNode)
+				break; // Stop if we've reached the target node
+			
+			if (!adjacency.TryGetValue(current, out var neighbors))
+				continue; // No neighbors, skip
 
 			// Find edges from current node
-			foreach (var edge in edgeList)
+			foreach (var (next, weight) in neighbors)
 			{
-				string from, to;
-				int weight;
+				if(visited.Contains(next))
+					continue; // Skip visited neighbors
 
-				if(graph.IsWeighted && graph.IsDirected)
+				if(weight < 0)
+					return "{}"; // No negative weights
+
+				if(dist[current] == int.MaxValue)
+					continue; // Skip if current node is unreachable
+				
+				int candidate = dist[current] + weight;
+				if(candidate < dist[next])
 				{
-					// Format: ((a,b), w)
-					from = edge[0][0].ToString();
-					to = edge[0][1].ToString();
-					weight = int.Parse(edge[1].ToString());
+					dist[next] = candidate;
+					prev[next] = current;
+					pq.Enqueue(next, candidate); // Update priority queue with new distance
 				}
+			}
+		}
 
-                // Check if this edge starts from current node
-                if (from == current && !visited[to])
-                {
-                    int newDistance = distances[current] + weight;
+		if (dist[targetNode] == int.MaxValue)
+			return "{}"; // No path found
+		
+		List<string> path = ReconstructPath(prev, sourceNode, targetNode);
+		return NodeListToCertificate(path);
+	}
 
-                    if (newDistance < distances[to])
-                    {
-                        distances[to] = newDistance;
-                        previous[to] = current;
-                        pq.Enqueue(to, newDistance);
-                    }
-                }
+	// BuildAdjacency: Helper method to build an adjacency list representation of the graph
+	internal static Dictionary<string, List<(string neighbor, int weight)>> BuildAdjacency(UtilCollectionGraph graph)
+	{
+		var adjacency = new Dictionary<string, List<(string neighbor, int weight)>>();
+		
+		if (graph.Edges.Count() == 0)
+			return adjacency; // No edges, return empty adjacency list
 
-            }
-        }
+		foreach (UtilCollection rawEdge in graph.Edges.ToList())
+		{
+			// Check if edge is weighted
+			bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
+			bool secondLooksLikeCollection = LooksLikeCollection(rawEdge[1]);
+			bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
 
-		return FormatResult(distances, previous);
-    }
+			if (isWeighted)
+			{
+				UtilCollection endpoints = rawEdge[0];
+				int w = int.Parse(rawEdge[1].ToString()); // Assuming the weight is an integer
+				
+				if (endpoints.IsOrdered())
+					AddDirected(adjacency, endpoints[0].ToString(), endpoints[1].ToString(), w);
+				else
+				{
+					var cast = endpoints.ToList();
+					if (cast.Count == 1) // Add directed edge from the node to itself
+					{
+						string v = cast[0].ToString();
+						AddDirected(adjacency, v, v, w); // Self-loop
+					}
+					else // Undirected edge, add in both directions
+					{
+						string a = cast[0].ToString();
+						string b = cast[1].ToString();
+						AddDirected(adjacency, a, b, w);
+						AddDirected(adjacency, b, a, w);
+					}
+				}
+			}
+			else
+			{
+				int w = 1;
+				
+				if(rawEdge.IsOrdered())
+					// If it's an ordered pair, treat it as a directed edge
+					AddDirected(adjacency, rawEdge[0].ToString(), rawEdge[1].ToString(), w);
+				else
+				{
+					// If it's an unordered pair, treat it as an undirected edge
+					var cast = rawEdge.ToList();
+					if (cast.Count == 1) // Add directed edge from the node to itself
+					{
+						string v = cast[0].ToString();
+						AddDirected(adjacency, v, v, w); // Self-loop
+					}
+					else // Undirected edge, add in both directions
+					{
+						string a = cast[0].ToString();
+						string b = cast[1].ToString();
+						AddDirected(adjacency, a, b, w);
+						AddDirected(adjacency, b, a, w);
+					}
+				}
+			}
+		}
+		return adjacency;
+	}
 
-    private string FormatResult(Dictionary<string, int> distances, Dictionary<string, string> previous)
-    {
-        // Format as needed for your project
-        // Example: return JSON or simple string representation
-        var result = string.Join(", ", distances.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
-        return $"Distances: {result}";
-    }
+	// AddDirected: Adds a directed edge to the adjacency list
+	private static void AddDirected(Dictionary<string, List<(string neighbor, int weight)>> adjacency, string from, string to, int weight)
+	{
+		if (!adjacency.TryGetValue(from, out var list))
+		{
+			list = new List<(string neighbor, int weight)>();
+			adjacency[from] = list;
+		}
+		list.Add((to, weight));
+	}
+
+	// ReconstructPath: Reconstructs the path from source to target using the prev dictionary
+	internal static List<string> ReconstructPath(Dictionary<string, string?> prev, string source, string target)
+	{
+		var path = new List<string>();
+		string current = target;
+
+		while (current != null)
+		{
+			path.Add(current);
+			if (current == source)
+				break; // Stop if we've reached the source node
+			current = prev[current];
+		}
+		path.Reverse();
+
+		if(path.Count == 0 || path[0] != source)
+			return new List<string>(); // No valid path found
+		return path;
+	}
+
+	// NodeListToCertificate: Converts a list of nodes into the certificate format
+	internal static string NodeListToCertificate(List<string> nodes)
+	{
+		if (nodes == null || nodes.Count == 0)
+			return "{}"; // No path found, return empty certificate
+		return "{" + string.Join(",", nodes) + "}";
+	}
+
+	// LooksLikeCollection: Helper method to determine if a UtilCollection looks like a collection
+	private static bool LooksLikeCollection(UtilCollection u)
+	{
+		string s = u.ToString().TrimStart();
+		return s.StartsWith("{") || s.StartsWith("(");
+	}
 }
