@@ -13,22 +13,23 @@ public class INDPENDENTSET_Tests {
 
    [Fact]
    public void INDEPENDENTSET_Default_Instantiation() {
-    INDEPENDENTSET independentset = new INDEPENDENTSET();
-    UtilCollectionGraph graph = independentset.graph;
-    Assert.Equal(independentset.instance, "(" + graph.ToString() + ",4)");
-    Assert.Equal(4, independentset.K);
-    Assert.Equal(independentset.defaultInstance, "(" + graph.ToString() + ",4)");
-    Assert.Equal(new UtilCollection("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,a},{a,g},{g,f},{h,a},{a,i},{i,h}}),4)"), new UtilCollection(independentset.defaultInstance));
-   } 
+        INDEPENDENTSET independentset = new INDEPENDENTSET();
+        UtilCollectionGraph graph = independentset.graph;
+        Assert.Equal(independentset.instance, "(" + graph.ToString() + ",3)");
+        Assert.Equal(3, independentset.K);
+        Assert.Equal(independentset.defaultInstance, "(" + graph.ToString() + ",3)");
+        Assert.Equal(new UtilCollection("(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)"), new UtilCollection(independentset.defaultInstance));
+    }
 
-   [Fact]
-   public void INDEPENDENTSET_Custom_Instantiation() {
-    INDEPENDENTSET independentset = new INDEPENDENTSET("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)");
-    UtilCollectionGraph graph = independentset.graph;
-    Assert.Equal(independentset.instance, "(" + graph.ToString() + ",2)");
-    Assert.Equal(2, independentset.K);
-    Assert.Equal("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", independentset.instance);
-   }
+    [Fact]
+    public void INDEPENDENTSET_Custom_Instantiation()
+    {
+        INDEPENDENTSET independentset = new INDEPENDENTSET("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)");
+        UtilCollectionGraph graph = independentset.graph;
+        Assert.Equal(independentset.instance, "(" + graph.ToString() + ",2)");
+        Assert.Equal(2, independentset.K);
+        Assert.Equal("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", independentset.instance);
+    }
 
    [Theory] //Tests independent set verifier with a few certificates
 
@@ -65,7 +66,3 @@ public class INDPENDENTSET_Tests {
         Assert.Equal(result, reduction.reductionTo.instance);
     }
 }
-
-
-
-
