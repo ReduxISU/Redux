@@ -12,7 +12,10 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET>
     // --- Fields ---
     private string _verifierName = "Dominating Set Verifier";
     private string _verifierDefinition = "This is a Verifier for Dominating Set";
-    private string _source = "Quinton Smith";
+    private string _source =
+        "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";
+    private string _sourceLink =
+        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     private string[] _contributors = { "Quinton Smith" };
     private string _certificate = string.Empty;
 
@@ -20,6 +23,7 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET>
     public string verifierName => _verifierName;
     public string verifierDefinition => _verifierDefinition;
     public string source => _source;
+    public string sourceLink => _sourceLink;
     public string[] contributors => _contributors;
     public string certificate => _certificate;
 
