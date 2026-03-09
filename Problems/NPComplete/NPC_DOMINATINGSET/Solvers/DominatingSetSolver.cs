@@ -7,9 +7,10 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
         // --- Fields ---
         private string _solverName = "Dominating Set Solver";
         private string _solverDefinition =
-            "Greedy approximation: pick an uncovered vertex, mark it and all neighbors covered.";
+            "Exact branching search using closed neighborhoods to find a dominating set of size <= K.";
         private string _source =
             "Exactly solving minimum dominating set and its generalizations: A branch-and-reduce approach, Akiba and Iwata, 2016";
+        private string _sourceLink = "https://arxiv.org/abs/1603.02882";
         private string[] _contributors = { "Quinton Smith" };
         public bool timerHasExpired { get; set; }
 
@@ -17,6 +18,7 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
         public string solverName => _solverName;
         public string solverDefinition => _solverDefinition;
         public string source => _source;
+        public string sourceLink => _sourceLink;
         public string[] contributors => _contributors;
 
         // --- Methods Including Constructors ---
@@ -137,8 +139,6 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
                 }
             } while (forcedApplied);
 
-            // --- Choose an undominated vertex u to branch on ---
-            // Heuristic: highest degree among undominated vertices
             int uPick = -1;
             int bestDeg = -1;
             for (int v = 0; v < n; v++)
@@ -153,18 +153,14 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
                 }
             }
 
-            // Safety: if somehow none found (shouldn't happen), success
             if (uPick == -1)
             {
                 solution = new List<int>(chosen);
                 return true;
             }
 
-            // --- Branch: in any dominating set, at least one vertex from {uPick} ∪ N(uPick) must be chosen ---
-            // Try each candidate w in closed neighborhood of uPick
             foreach (int w in closed[uPick])
             {
-                // Recurse with w added
                 var dominated2 = (bool[])dominated.Clone();
                 var chosen2 = new List<int>(chosen) { w };
                 ApplyPick(closed, w, dominated2);
