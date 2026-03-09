@@ -1,15 +1,19 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
-# Copy everything
-COPY . ./
-# Restore as distinct layers
+# Copy project files first (better caching)
+COPY *.csproj ./
 RUN dotnet restore
-# Build and publish a release
+
+# Copy the rest
+COPY . .
 RUN dotnet publish -c Release -o out
 
-# Build runtime image
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
-COPY --from=build-env /app/out .
+COPY --from=build /app/out .
+
+EXPOSE 27000
 ENTRYPOINT ["dotnet", "API.dll"]
