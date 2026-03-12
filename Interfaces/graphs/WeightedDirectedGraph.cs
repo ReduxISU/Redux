@@ -64,10 +64,6 @@ class WeightedDirectedGraph : Graph
             graph.links[i].weight = Edges[i].value.ToString();
             graph.links[i].directed = true;
         }
-        /*
-        graph.StartState.additional = "initial";
-        foreach (var node in graph.AcceptStates) { node.color = "solution"; }
-        */
 
         return graph;
     }
