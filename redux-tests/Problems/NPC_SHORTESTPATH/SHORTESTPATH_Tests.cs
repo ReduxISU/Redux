@@ -10,20 +10,43 @@ namespace redux_tests;
 public class SHORTESTPATH_Tests
 {
     [Fact]
-    public void TestSolverAndVerfierIntegration()
+    public void SHORTESTPATH_Default_Instantiation()
     {
-        //Create a simple graph instance 
-        string graphInstance = "({1,2,3,4,5},{({1,2},1),({2,3},1),({3,4},1),({4,5},1),({1,5},10),({4,5},9)})";
-        SHORTESTPATH problem = new SHORTESTPATH(graphInstance);
-        DijkstraSolver solver = new DijkstraSolver();
+        SHORTESTPATH problem = new SHORTESTPATH();
+        Assert.Equal("({1,2,3,4,5},{({1,2},4),({1,3},2),({2,3},1),({3,5},7),({2,4},3),({4,5},9)})", problem.instance);
+        Assert.Equal("({1,2,3,4,5},{({1,2},4),({1,3},2),({2,3},1),({3,5},7),({2,4},3),({4,5},9)})", problem.defaultInstance);
+    }
+
+    [Fact]
+    public void SHORTESTPATH_Custom_Instantiation()
+    {
+        string instance = "({1,2,3,4,5,6},{({1,2},8),({1,3},4),({2,3},6),({3,5},5),({2,4},3),({4,5},9),({3,6},1),({4,6},12),({5,6},5)})";
+        var problem = new SHORTESTPATH(instance);
+        Assert.Equal(instance, problem.instance);
+    }
+
+    [Theory] //Tests independent set verifier with a few certificates
+
+    [InlineData("({1,2,3,4,5},{({1,2},4),({1,3},2),({2,3},1),({3,5},7),({2,4},3),({4,5},9)})", "{1,3,5}", true)]
+    [InlineData("({1,2,3,4,5},{({1,2},4),({1,3},2),({2,3},1),({3,5},7),({2,4},3),({4,5},9)})", "{1,2,3,5}", false)]
+    [InlineData("({1,2,3,4,5,6},{({1,2},8),({1,3},4),({2,3},6),({3,5},5),({2,4},3),({4,5},9),({3,6},1),({4,6},12),({5,6},5)})", "{1,3,6}", true)]
+    [InlineData("({1,2,3,4,5,6},{({1,2},8),({1,3},4),({2,3},6),({3,5},5),({2,4},3),({4,5},9),({3,6},1),({4,6},12),({5,6},5)})", "{1,2,4,5}", false)]
+    public void SHORTESTPATH_Verifier(string instance, string certificate, bool expected)
+    {
+        SHORTESTPATH problem = new SHORTESTPATH(instance);
         ShortestPathVerifier verifier = new ShortestPathVerifier();
+        bool result = verifier.verify(problem, certificate);
+        Assert.Equal(expected, result);
+    }
 
-        //Solve the problem
+    [Theory] //Tests solver
+    [InlineData("({1,2,3,4,5},{({1,2},4),({1,3},2),({2,3},1),({3,5},7),({2,4},3),({4,5},9)})", "{1,3,5}")]
+    [InlineData("({1,2,3,4,5,6},{({1,2},8),({1,3},4),({2,3},6),({3,5},5),({2,4},3),({4,5},9),({3,6},1),({4,6},12),({5,6},5)})", "{1,3,6}")]
+    public void SHORTESTPATH_Solver(string instance, string certificate)
+    {
+        SHORTESTPATH problem = new SHORTESTPATH(instance);
+        DijkstraSolver solver = new DijkstraSolver();
         string solution = solver.solve(problem);
-
-        bool isValid = verifier.verify(problem, solution);
-
-        Assert.True(isValid, "The verifier should confirm that the solution provided by the solver is correct.");
-        Assert.True(isValid, $"Solution: {solution}");
+        Assert.Equal(certificate, solution);
     }
 }
