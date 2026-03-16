@@ -30,8 +30,8 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
             // If there are no nodes, the only valid solution is an empty path
             return solution == "{}" || string.IsNullOrWhiteSpace(solution);
         
-        string sourceNode = nodes[0];
-        string targetNode = nodes[^1];
+        string sourceNode = problem.sourceNode;
+        string targetNode = problem.targetNode;
 
         var adjacency = DijkstraSolver.BuildAdjacency(problem.graph);
 
@@ -114,7 +114,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
             foreach (var (next, weight) in neighbors)
             {
                 if (weight < 0)
-                    return null; // invalid instance for Dijkstra
+                    throw new InvalidOperationException("SHORTESTPATH does not allow negative edge weights.");
 
                 if (visited.Contains(next))
                     continue; // Skip visited neighbors

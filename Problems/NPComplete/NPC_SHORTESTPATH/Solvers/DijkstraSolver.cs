@@ -28,8 +28,8 @@ class DijkstraSolver : ISolver<SHORTESTPATH>
 		if (nodes.Count == 0)
 			return "{}"; // No nodes, return empty path
 
-		string sourceNode = nodes[0];
-		string targetNode = nodes[^1];
+		string sourceNode = problem.sourceNode;
+		string targetNode = problem.targetNode;
 
 		var adjacency = BuildAdjacency(graph);
 
@@ -80,7 +80,7 @@ class DijkstraSolver : ISolver<SHORTESTPATH>
 					continue; // Skip visited neighbors
 
 				if(weight < 0)
-					return "{}"; // No negative weights
+					throw new InvalidOperationException("SHORTESTPATH does not allow negative edge weights.");
 
 				if(dist[current] == int.MaxValue)
 					continue; // Skip if current node is unreachable
