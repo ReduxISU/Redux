@@ -8,7 +8,7 @@
 
 	Frontend: https://github.com/ReduxISU/Redux_GUI
 
-2. Install .NET version 6.0
+2. Install .NET version 6.0 
 
     https://dotnet.microsoft.com/en-us/download/dotnet/6.0 
 
@@ -19,6 +19,10 @@
 4. Download npm packages via the following command
 
     ```npm install next react react-dom```
+
+5. Install other parts of npm (Inside Redux front-end directory)
+
+    ```npm install ```
 
 ## Each runtime (run these concurrently in separate terminals):
 
