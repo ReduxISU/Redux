@@ -12,7 +12,7 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
     public string visualizationName { get; } = "Dijkstra Visualization";
     public string visualizationDefinition { get; } = "Visualizes Dijkstra's algorithm";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
+    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant" };
     public string visualizationType => "Graph D3";
 
     public ShortestPathVisualization() { }
@@ -68,7 +68,14 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
 
     public List<API_JSON> stepsVisualization(SHORTESTPATH problem, List<string> steps)
     {
-        // No step-by-step visualization yet?
-        return new List<API_JSON>();
+        var result = new List<API_JSON>();
+
+        foreach (var step in steps)
+        {
+            // reuse existing logic for highlighting a path
+            result.Add(SolvedVisualization(problem, step));
+        }
+
+        return result;
     }
 }
