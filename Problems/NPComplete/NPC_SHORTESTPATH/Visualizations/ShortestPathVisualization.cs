@@ -58,7 +58,10 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
         for (int i = 0; i < graph.links.Count; i++)
         {
             var link = graph.links[i];
-            if (pathEdges.Contains((link.source, link.target)) || pathEdges.Contains((link.target, link.source)))
+            bool isForwardPathEdge = pathEdges.Contains((link.source, link.target));
+            bool isReversePathEdge = !problem.isDirected && pathEdges.Contains((link.target, link.source));
+
+            if (isForwardPathEdge || isReversePathEdge)
                 link.color = "Solution";
             else
                 link.color = "Background";
