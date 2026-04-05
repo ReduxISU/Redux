@@ -9,8 +9,8 @@ namespace API.Problems.NPComplete.NPC_SHORTESTPATH.Visualizations;
 
 class ShortestPathVisualization : IVisualization<SHORTESTPATH>
 {
-    public string visualizationName { get; } = "Dijkstra Visualization";
-    public string visualizationDefinition { get; } = "Visualizes Dijkstra's algorithm";
+    public string visualizationName { get; } = "Shortest Path Visualization";
+    public string visualizationDefinition { get; } = "Visualizes the BFS and Dijkstra's algorithm";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant" };
     public string visualizationType => "Graph D3";

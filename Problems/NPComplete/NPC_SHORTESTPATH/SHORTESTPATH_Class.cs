@@ -21,7 +21,7 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
     private static string _defaultInstance =
-    "({1,2,3,4,5},{({1,2},4),({1,3},2),({2,3},1),({3,5},7),({2,4},3),({4,5},9)})";
+    "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
 
