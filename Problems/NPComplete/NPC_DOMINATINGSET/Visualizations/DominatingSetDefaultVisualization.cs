@@ -11,7 +11,10 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
     public string visualizationName { get; } = "Dominating Set Visualization";
     public string visualizationDefinition { get; } =
         "This is a default visualization for dominating set";
-    public string source { get; } = "";
+    public string source { get; } =
+        "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";
+    public string sourceLink { get; } =
+        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     public string[] contributors { get; } = { "Quinton Smith" };
     public string visualizationType { get; } = "Graph D3";
     public ISolver solver { get; } = new DominatingSetSolver();
