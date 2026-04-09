@@ -66,6 +66,18 @@ public class ProblemProvider : ControllerBase
         return Activator.CreateInstance(Reductions[name.ToLower()]) as IReduction;
     }
 
+    static ISolver? SolverForVisualization(string visualizationName)
+    {
+        Type visualizationType = Visualizers[visualizationName.ToLower()];
+        foreach (var problemType in Problems.Values)
+        {
+            IProblem? problem = Activator.CreateInstance(problemType) as IProblem;
+            if (problem?.defaultVisualization?.GetType() == visualizationType)
+                return problem.defaultSolver;
+        }
+        return null;
+    }
+
 #pragma warning restore CS8603 // Possible null reference return.
 
     /// <summary>
@@ -174,13 +186,16 @@ public class ProblemProvider : ControllerBase
     /// Gets the visualization of an object
     /// </summary>
     /// <param name="visualization" example = "Sat3DefaultVisualization">The visualization to use</param>
-    /// <param name="solver" example = "Sat3BacktrackingSolver">The solver to use for steps and solution</param>
+    /// <param name="solver" example = "Sat3BacktrackingSolver">The solver to use for steps and solution. If omitted, the default solver for the problem associated with the visualization is used.</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualize")]
-    public string visualize(string visualization, string solver, [FromBody] string instance)
+    public string visualize(string visualization, [FromBody] string instance, string? solver = null)
     {
-        return getVisualize(Visualization(visualization), Solver(solver).GetSteps(instance), Solver(solver).solve(instance), instance);
+        ISolver? sol = solver is not null ? Solver(solver) : SolverForVisualization(visualization);
+        List<string> steps = sol?.GetSteps(instance) ?? new List<string>();
+        string solution = sol?.solve(instance) ?? "";
+        return getVisualize(Visualization(visualization), steps, solution, instance);
     }
 
     /// <summary>
