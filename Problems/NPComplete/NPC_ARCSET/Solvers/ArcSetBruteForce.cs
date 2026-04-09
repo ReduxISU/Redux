@@ -11,9 +11,9 @@ class ArcSetBruteForce : ISolver<ARCSET> {
     public string solverName {get;} = "Arc Set Brute Force Solver";
     public string solverDefinition {get;} = @" This Solver is a brute force solver, which checks all combinations of k edges until a solution is found or its determined there is no solution";
     public string source {get;} = "";
+    public bool timerHasExpired { get; set; }
 
     public string[] contributors {get;} = { "Alex Diviney","Caleb Eardley","Russell Phillips"};
-    public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
     public ArcSetBruteForce() {
