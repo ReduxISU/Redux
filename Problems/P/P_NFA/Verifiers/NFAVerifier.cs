@@ -1,34 +1,41 @@
-﻿using API.Interfaces;
-using API.Interfaces.Graphs;
-using API.Problems.NPComplete.NPC_NFA;
-using Xunit;
-using System.Collections.Generic;
-using System.Linq;
+using API.Interfaces;
+using API.Problems.P.P_NFA;
+using System;
 using System.Text;
+using System.Collections.Generic;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Text.RegularExpressions;
 
-namespace API.Problems.NPComplete.NPC_NFA.Solvers;
-
-public class NFASolver : ISolver<NFA>
+namespace API.Problems.P.P_NFA.Verifiers
 {
-    public string solverName { get; } = "NFA Solver";
-    public string solverDefinition { get; } = "This solver enumerates all accepting runs of a nondeterministic finite automaton (returns all successful state sequences).";
-    public string source { get; } = "";
-    public string[] contributors { get; } = { "Michael Trosper" };
-    public bool timerHasExpired { get; set; }
-
-    public NFASolver() { }
-
-    public string solve(NFA problem)
+    public class NFAVerifier : IVerifier<NFA>
     {
-        // Normalize empty-input representation "ε"
+        public string verifierName { get; } = "NFA Verifier";
+        public string verifierDefinition { get; } =
+            "Verifies one (or many) NFA run certificates against the input string, including ε-transitions, matching solver semantics.";
+        public string source { get; } = "";
+        public string[] contributors { get; } = { "Michael Trosper" };
+
+        private string _certificate = "";
+        public string certificate => _certificate;
+
+        private const char EPS = '\u03B5'; // U+03B5 (ε), matches NFAEdge normalization
+
+        public NFAVerifier() { }
+
+        public bool verify(NFA problem, string certificate)
+        {
+            // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
+        string result = "";
 
         // Validate characters
         foreach (char c in input)
         {
             if (!problem.alphabet.Contains(c))
-                return $"No Solution: Input contains character '{c}' not in NFA alphabet";
+                return false; // Input contains character not in NFA alphabet
         }
 
         var edges = problem.edges; // List<NFAEdge>
@@ -72,6 +79,7 @@ public class NFASolver : ISolver<NFA>
                 }
             }
         }
+        
 
         // Seed DFS with start state
         var startPath = new List<string> { problem.startState };
@@ -81,15 +89,29 @@ public class NFASolver : ISolver<NFA>
         // Build output
         if (acceptPaths.Count == 0)
         {
-            return "No Solution Exists: No run accepts the input";
+            return false; // No Solution Exists: No run accepts the input
         }
 
         var sb = new StringBuilder();
         foreach (var p in acceptPaths)
         {
-            sb.AppendLine("The sequence of states to accept is: " + string.Join(", ", p));
+            sb.AppendLine(string.Join(", ", p) + "\r\n");
         }
 
-        return sb.ToString().TrimEnd();
+        result = sb.ToString().TrimEnd();
+
+        string[] sequences = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        bool hasPath = false;
+        foreach (string seq in sequences)
+        {
+            if (seq.Replace(" ", "").Trim() == certificate.Replace(" ", "").Trim())
+            {
+                hasPath = true;
+                break;
+            }
+        }
+
+        return hasPath;
+        }
     }
 }

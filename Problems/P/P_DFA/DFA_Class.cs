@@ -1,41 +1,41 @@
-﻿namespace API.Problems.NPComplete.NPC_NFA;
+﻿namespace API.Problems.P.P_DFA;
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_NFA.Solvers;
-using API.Problems.NPComplete.NPC_NFA.Verifiers;
-using API.Problems.NPComplete.NPC_NFA.Visualizations;
+using API.Problems.P.P_DFA.Solvers;
+using API.Problems.P.P_DFA.Verifiers;
+using API.Problems.P.P_DFA.Visualizations;
 using SPADE;
 using Xunit;
 using System.Linq;
 using System.Collections.Generic;
 using API.Interfaces.Graphs;
 
-public class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDirectedGraph>
+public class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph>
 {
     // ----- Fields ----- //
-    public string problemName { get; } = "NFA Acceptance";
-    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton";
-    public string formalDefinition { get; } = "Acceptance Problem of a NFA = {<N,w> | N is a Non-deterministic Finite Automata that accepts a string w}";
-    public string problemDefinition { get; } = "Acceptance Problem of a NFA is a problem that aims to see if a string input will be accepted by a particular Non-deterministic Finite Automata model.";
+    public string problemName { get; } = "DFA Acceptance";
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Deterministic_finite_automaton";
+    public string formalDefinition { get; } = "Acceptance Problem of a DFA = {<D,w> | D is a Deterministic Finite Automata that accepts a string w}";
+    public string problemDefinition { get; } = "Acceptance Problem of a DFA is a problem that aims to see if a string input will be accepted by a particular Deterministic Finite Automata model.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
 
-    // Follows Formal Definition of NFA (Q, Σ, δ, q₀, F) With Input String //
+    // Follows Formal Definition of DFA (Q, Σ, δ, q₀, F) With Input String //
     // Q = Set of Nodes //
     // Σ = Characters In the Alphabet //
     // δ = (node, char edge value, node) //
     // q₀ = Start State //
     // F = Set of Accept State(s) //
-    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,ε,2),(1,b,3),(2,a,2),(2,ε,3),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
+    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "N/A";
-    public NFASolver defaultSolver { get; } = new NFASolver();
-    public NFAVerifier defaultVerifier { get; } = new NFAVerifier();
-    public NFAVisualization defaultVisualization { get; } = new NFAVisualization();
+    public DFASolver defaultSolver { get; } = new DFASolver();
+    public DFAVerifier defaultVerifier { get; } = new DFAVerifier();
+    public DFAVisualization defaultVisualization { get; } = new DFAVisualization();
     public string[] contributors { get; } = { "Michael Trosper" };
 
     // Edge Structures //
-    public record NFAEdge (string From, char Symbol, string To);
+    public record DFAEdge (string From, char Symbol, string To);
     //public record CombinedDFAEdge (string From, string Symbols, string To);
 
     // ----- Internal Graph ----- //
@@ -48,32 +48,32 @@ public class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, Weigh
     internal WeightedDirectedGraph graph { get; }
 
     // ----- Explicit Interface Implementation ----- //
-    WeightedDirectedGraph IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDirectedGraph>.graph => graph;
+    WeightedDirectedGraph IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph>.graph => graph;
 
     // ----- Deterministic Finite Automata Elements ----- //
     private List<string> _nodes = new();
     private List<char> _alphabet = new();
-    private List<NFAEdge> _edges = new();
+    private List<DFAEdge> _edges = new();
     private string _startState;
     private List<string> _acceptStates = new();
     private string _inputString;
 
     public List<string> nodes { get => _nodes; set => _nodes = value; }
     public List<char> alphabet { get => _alphabet; set => _alphabet = value; }
-    public List<NFAEdge> edges { get => _edges; set => _edges = value; }
+    public List<DFAEdge> edges { get => _edges; set => _edges = value; }
     public string startState { get => _startState; set => _startState = value; }
     public List<string> acceptStates { get => _acceptStates; set => _acceptStates = value; }
     public string inputString { get => _inputString; set => _inputString = value; }
 
     // ----- Constructors ----- //
-    public NFA() : this(_defaultInstance) { }
+    public DFA() : this(_defaultInstance) { }
 
-    public NFA(string instance)
+    public DFA(string instance)
     {
         this.instance = instance;
 
         // ---- SPADE grammar: edges as ordered triples (cross) ----
-        StringParser NFA_Graph = new(
+        StringParser DFA_Graph = new(
             "{((N,A,E,S,F),I) | " +
             "N is set, " +
             "A is set, " +
@@ -85,54 +85,39 @@ public class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, Weigh
         );
 
         // Parse the Instance //
-        NFA_Graph.parse(instance);
+        DFA_Graph.parse(instance);
 
         // Retrieve Components Or Flag Null //
-        UtilCollection N = NFA_Graph["N"] ?? throw new InvalidOperationException("Failed to parse N (nodes).");
-        UtilCollection A = NFA_Graph["A"] ?? throw new InvalidOperationException("Failed to parse A (alphabet).");
-        UtilCollection E = NFA_Graph["E"] ?? throw new InvalidOperationException("Failed to parse E (edges).");
-        UtilCollection S = NFA_Graph["S"] ?? throw new InvalidOperationException("Failed to parse S (start state).");
-        UtilCollection F = NFA_Graph["F"] ?? throw new InvalidOperationException("Failed to parse F (accept states).");
-        UtilCollection I = NFA_Graph["I"] ?? throw new InvalidOperationException("Failed to parse I (input string).");
+        UtilCollection N = DFA_Graph["N"] ?? throw new InvalidOperationException("Failed to parse N (nodes).");
+        UtilCollection A = DFA_Graph["A"] ?? throw new InvalidOperationException("Failed to parse A (alphabet).");
+        UtilCollection E = DFA_Graph["E"] ?? throw new InvalidOperationException("Failed to parse E (edges).");
+        UtilCollection S = DFA_Graph["S"] ?? throw new InvalidOperationException("Failed to parse S (start state).");
+        UtilCollection F = DFA_Graph["F"] ?? throw new InvalidOperationException("Failed to parse F (accept states).");
+        UtilCollection I = DFA_Graph["I"] ?? throw new InvalidOperationException("Failed to parse I (input string).");
 
         // Convert Nodes and Alphabet //
         nodes = N.ToList().Select(x => x.ToString()).ToList();
         alphabet = A.ToList().Select(x => x.ToString()[0]).ToList();
 
         // Parse and Validate Edges //
-        edges = new List<NFAEdge>();
+        edges = new List<DFAEdge>();
         foreach (var e in E.ToList())
         {
             if (e is UtilCollection tuple && tuple.Count() == 3)
             {
                 string from = tuple[0].ToString();
-                string symbolText = tuple[1].ToString();
+                char symbol = tuple[1].ToString()[0];
                 string to = tuple[2].ToString();
-
-                // Normalize common epsilon representations to the single char U+03B5
-                char symbol;
-                if (symbolText == "ε" || string.Equals(symbolText, "\\u03B5", StringComparison.OrdinalIgnoreCase) || string.Equals(symbolText, "epsilon", StringComparison.OrdinalIgnoreCase) || symbolText == "eps")
-                {
-                    symbol = '\u03B5';
-                }
-                else if (symbolText.Length >= 1)
-                {
-                    symbol = symbolText[0];
-                }
-                else
-                {
-                    throw new InvalidOperationException("Edge symbol empty");
-                }
 
                 // Validate Edge //
                 if (!nodes.Contains(from))
                     throw new InvalidOperationException($"Edge From node '{from}' not in N.");
-                if (!alphabet.Contains(symbol) && symbol != '\u03B5')
-                    throw new InvalidOperationException($"Edge Symbol '{symbolText}' not in A.");
+                if (!alphabet.Contains(symbol))
+                    throw new InvalidOperationException($"Edge Symbol '{symbol}' not in A.");
                 if (!nodes.Contains(to))
                     throw new InvalidOperationException($"Edge To node '{to}' not in N.");
 
-                edges.Add(new NFAEdge(from, symbol, to));
+                edges.Add(new DFAEdge(from, symbol, to));
             }
             else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
         }
@@ -164,8 +149,7 @@ public class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, Weigh
         {
             var from = edge.From;
             var to = edge.To;
-
-            var edgeValue = edge.Symbol == 'ε' ? "epsilon" : edge.Symbol.ToString();
+            var edgeValue = edge.Symbol.ToString();
 
             if (!connections.ContainsKey((from, to)))
             {

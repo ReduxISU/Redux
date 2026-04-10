@@ -1,11 +1,11 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_NFA;
+using API.Problems.P.P_NFA;
 using API.Interfaces.JSON_Objects.Graphs;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 
-namespace API.Problems.NPComplete.NPC_NFA.Visualizations;
+namespace API.Problems.P.P_NFA.Visualizations;
 
 public class NFAVisualization : IVisualization<NFA>
 {
