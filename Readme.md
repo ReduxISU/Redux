@@ -165,12 +165,12 @@ We welcome contributions! Join our community:
 - **Development Branch**: `develop`
 
 **Workflow**:
-1. Fork the Redux API repo
+1. Fork the Redux API repo and clone it
 2. Create a feature branch on your forked repo
-3. Create a pull request to `develop` inside ReduxISU/Redux repo
-4. Assign a reviewer
-5. After code review, merge into `develop`
-6. Periodically merge `develop` into `CSharpAPI` for production
+3. Implement changes
+4. Create a pull request to CSharpAPI
+5. Assign a reviewer
+6. After code review, merge into CSharpAPI
 
 ** Important**: DO NOT complete pull requests before they are reviewed.
 
