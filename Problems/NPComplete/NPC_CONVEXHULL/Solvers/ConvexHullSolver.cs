@@ -1,16 +1,17 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
-class ConvexHullSolver : ISolver<CONVEXHULL> {
 
-    // --- Fields ---
-    public string solverName {get;} = "Convex Hull Solver";
-    public string solverDefinition {get;} = "Computes the convex hull of a set of 2D points using a divide-and-conquer algorithm. The points are split recursively, and partial hulls are merged by finding upper and lower tangents.";
-    public string source {get;} = "https://doi.org/10.1145/359423.359430";
-    public string[] contributors {get;} = { "Bektur Akkabakov" };
+class ConvexHullSolver : ISolver<CONVEXHULL>
+{
+
+    public string solverName { get; } = "Convex Hull Solver";
+    public string solverDefinition { get; } = "Computes the convex hull of a set of 2D points using divide and conquer.";
+    public string source { get; } = "https://doi.org/10.1145/359423.359430";
+    public string[] contributors { get; } = { "Bektur Akkabakov" };
     public bool timerHasExpired { get; set; }
-    // --- Methods Including Constructors ---
-    public ConvexHullSolver(){}
+
+    public ConvexHullSolver() { }
 
     public string solve(CONVEXHULL problem)
     {
@@ -19,7 +20,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL> {
 
         List<(double x, double y)> points = problem.points;
 
-        // Sort by x
+        // Sort by x (important for D&C split)
         points.Sort((a, b) => a.x.CompareTo(b.x));
 
         List<(double x, double y)> hull = ConvexHullDC(points);
@@ -31,86 +32,148 @@ class ConvexHullSolver : ISolver<CONVEXHULL> {
 
     // Divide & Conquer
 
-    private List<(double x, double y)> ConvexHullDC(List<(double x, double y)> points)
+    private List<(double x, double y)> ConvexHullDC(List<(double x, double y)> pts)
     {
-        if (points.Count <= 1)
-            return new List<(double x, double y)>(points);
+        if (pts.Count <= 1)
+            return new List<(double x, double y)>(pts);
 
-        int mid = points.Count / 2;
+        if (pts.Count <= 3)
+            return BaseHull(pts);
 
-        List<(double x, double y)> left = ConvexHullDC(points.GetRange(0, mid));
-        List<(double x, double y)> right = ConvexHullDC(points.GetRange(mid, points.Count - mid));
+        int mid = pts.Count / 2;
 
-        int rightmostL = RightmostP(left);
-        int leftmostR = LeftmostP(right);
+        var left = ConvexHullDC(pts.GetRange(0, mid));
+        var right = ConvexHullDC(pts.GetRange(mid, pts.Count - mid));
 
-        int vertexL_ui = rightmostL;
-        int vertexR_ui = leftmostR;
-        int vertexL_li = rightmostL;
-        int vertexR_li = leftmostR;
+        return Merge(left, right);
+    }
 
-        // Upper Tangent
-        while (Slope(left[vertexL_ui], right[vertexR_ui]) > Slope(left[(vertexL_ui == 0 ? left.Count - 1 : vertexL_ui - 1)], right[vertexR_ui]) ||
-            Slope(left[vertexL_ui], right[vertexR_ui]) < Slope(left[vertexL_ui], right[(vertexR_ui + 1) % right.Count]))
+    private List<(double x, double y)> Merge(List<(double x, double y)> left, List<(double x, double y)> right)
+    {
+        int iL = RightmostP(left);
+        int iR = LeftmostP(right);
+
+        int upperL = iL, upperR = iR;
+        int lowerL = iL, lowerR = iR;
+
+        // upper tangent
+        bool done = false;
+        while (!done)
         {
-            while (Slope(left[vertexL_ui], right[vertexR_ui]) > Slope(left[(vertexL_ui == 0 ? left.Count - 1 : vertexL_ui - 1)], right[vertexR_ui]))
+            done = true;
+            // move left counterclockwise
+            while (true)
             {
-                vertexL_ui = (vertexL_ui == 0 ? left.Count - 1 : vertexL_ui - 1);
-            }
+                int next = (upperL == 0 ? left.Count - 1 : upperL - 1);
+                double o = Orientation(right[upperR], left[upperL], left[next]);
 
-            while (Slope(left[vertexL_ui], right[vertexR_ui]) < Slope(left[vertexL_ui], right[(vertexR_ui + 1) % right.Count]))
+                if (o > 0 || (o == 0 && DistSq(right[upperR], left[next]) > DistSq(right[upperR], left[upperL])))
+                    upperL = next;
+                else break;
+            }
+            // move right clockwise
+            while (true)
             {
-                vertexR_ui = (vertexR_ui + 1) % right.Count;
+                int next = (upperR + 1) % right.Count;
+                double o = Orientation(left[upperL], right[upperR], right[next]);
+                if (o < 0 || (o == 0 && DistSq(left[upperL], right[next]) > DistSq(left[upperL], right[upperR])))
+                {
+                    upperR = next;
+                    done = false;
+                }
+                else break;
             }
         }
 
-        // Lower Tangent
-        while (Slope(right[vertexR_li], left[vertexL_li]) < Slope(right[vertexR_li], left[(vertexL_li + 1) % left.Count]) ||
-            Slope(right[vertexR_li], left[vertexL_li]) > Slope(right[(vertexR_li == 0 ? right.Count - 1 : vertexR_li - 1)], left[vertexL_li]))
+        // lower tangent
+        done = false;
+        while (!done)
         {
-            while (Slope(right[vertexR_li], left[vertexL_li]) < Slope(right[vertexR_li], left[(vertexL_li + 1) % left.Count]))
+            done = true;
+            // move left clockwise
+            while (true)
             {
-                vertexL_li = (vertexL_li + 1) % left.Count;
-            }
+                int next = (lowerL + 1) % left.Count;
+                double o = Orientation(right[lowerR], left[lowerL], left[next]);
 
-            while (Slope(right[vertexR_li], left[vertexL_li]) > Slope(right[(vertexR_li == 0 ? right.Count - 1 : vertexR_li - 1)], left[vertexL_li]))
+                if (o < 0 || (o == 0 && DistSq(right[lowerR], left[next]) > DistSq(right[lowerR], left[lowerL])))
+                    lowerL = next;
+                else break;
+            }
+            // move right counterclockwise
+            while (true)
             {
-                vertexR_li = (vertexR_li == 0 ? right.Count - 1 : vertexR_li - 1);
+                int next = (lowerR == 0 ? right.Count - 1 : lowerR - 1);
+                double o = Orientation(left[lowerL], right[lowerR], right[next]);
+                if (o > 0 || (o == 0 && DistSq(left[lowerL], right[next]) > DistSq(left[lowerL], right[lowerR])))
+                {
+                    lowerR = next;
+                    done = false;
+                }
+                else break;
             }
         }
-
-        // Merge 
+        // build merged hull
         List<(double x, double y)> merged = new List<(double x, double y)>();
-
-        int v = vertexR_ui;
-        while (v != vertexR_li)
+        int v = upperR;
+        merged.Add(right[v]);
+        while (v != lowerR)
         {
-            merged.Add(right[v]);
             v = (v + 1) % right.Count;
+            merged.Add(right[v]);
         }
-        merged.Add(right[vertexR_li]);
-
-        v = vertexL_li;
-        while (v != vertexL_ui)
+        v = lowerL;
+        merged.Add(left[v]);
+        while (v != upperL)
         {
-            merged.Add(left[v]);
             v = (v + 1) % left.Count;
+            merged.Add(left[v]);
         }
-        merged.Add(left[vertexL_ui]);
-
         return merged;
     }
 
+    private List<(double x, double y)> BaseHull(List<(double x, double y)> pts)
+    {
+        if (pts.Count <= 1)
+            return new List<(double x, double y)>(pts);
+        if (pts.Count == 2)
+            return pts;
+        var a = pts[0];
+        var b = pts[1];
+        var c = pts[2];
+        double o = Orientation(a, b, c);
+        if (o == 0)
+        {
+            // return only endpoints
+            var sorted = pts.OrderBy(p => p.x).ThenBy(p => p.y).ToList();
+            return new List<(double x, double y)> { sorted[0], sorted[2] };
+        }
+        if (o > 0)
+            return new List<(double x, double y)> { a, b, c };
+        else
+            return new List<(double x, double y)> { a, c, b };
+    }
     // Helpers
+    private double Orientation((double x, double y) a,
+                               (double x, double y) b,
+                               (double x, double y) c)
+    {
+        return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    }
+
+    private double DistSq((double x, double y) a, (double x, double y) b)
+    {
+        double dx = a.x - b.x;
+        double dy = a.y - b.y;
+        return dx * dx + dy * dy;
+    }
 
     private int RightmostP(List<(double x, double y)> pts)
     {
         int idx = 0;
         for (int i = 1; i < pts.Count; i++)
-        {
             if (pts[i].x > pts[idx].x)
                 idx = i;
-        }
         return idx;
     }
 
@@ -118,21 +181,13 @@ class ConvexHullSolver : ISolver<CONVEXHULL> {
     {
         int idx = 0;
         for (int i = 1; i < pts.Count; i++)
-        {
             if (pts[i].x < pts[idx].x)
                 idx = i;
-        }
         return idx;
-    }
-
-    private double Slope((double x, double y) a, (double x, double y) b)
-    {
-        return (a.y - b.y) / (a.x - b.x);
     }
 
     private string Format(List<(double x, double y)> pts)
     {
         return "(" + string.Join(", ", pts.Select(p => $"({p.x},{p.y})")) + ")";
     }
-
 }
