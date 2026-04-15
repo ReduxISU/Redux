@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Configuration.GetSection("QuantumSolver").Get<QuantumSolverSettings>();
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache(); //AddMemoryCache because without registering it, the backend won't inject it properly. 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
