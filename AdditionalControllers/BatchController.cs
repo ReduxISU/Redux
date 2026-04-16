@@ -7,18 +7,13 @@ using Microsoft.Extensions.Caching.Memory;
 public class BatchController : ControllerBase
 {
 #pragma warning restore CS1591
-
     private readonly IMemoryCache _cache;
-
     public BatchController(IMemoryCache cache)
     {
         _cache = cache;
     }
 
-
-
-
-
+    
     /// <summary>
     /// Returns ALL problems for a given complexity class in a single call.
     /// No request body is required. Defaults to NPC.
@@ -28,20 +23,16 @@ public class BatchController : ControllerBase
     public IActionResult GetAllProblems([FromQuery] string problemType = "NPC")
     {
         string cacheKey = $"batch_problems_{problemType}";
-
         if (_cache.TryGetValue(cacheKey, out string? cached))
         {
             Response.Headers["X-Cache"] = "HIT";
             return Content(cached!, "application/json");
         }
-
         string problemTypeDirectory = GetDirectory(problemType);
         string projectSourcePath = ProjectSourcePath.Value;
         string problemsPath = Path.Combine(projectSourcePath, "Problems", problemTypeDirectory);
-
         if (!Directory.Exists(problemsPath))
             return NotFound($"Directory not found: {problemsPath}");
-
         var problems = Directory.GetDirectories(problemsPath)
             .Select(dir =>
             {
@@ -53,16 +44,11 @@ public class BatchController : ControllerBase
             .Cast<string>()
             .OrderBy(name => name)
             .ToList();
-
         string json = Newtonsoft.Json.JsonConvert.SerializeObject(problems, Newtonsoft.Json.Formatting.Indented);
         _cache.Set(cacheKey, json, TimeSpan.FromHours(1));
-
         Response.Headers["X-Cache"] = "MISS";
         return Content(json, "application/json");
     }
-
-
-
 
 
     /// <summary>
@@ -74,26 +60,19 @@ public class BatchController : ControllerBase
     public IActionResult GetAllSolvers([FromQuery] string problemType = "NPC")
     {
         string cacheKey = $"batch_solvers_{problemType}";
-
         if (_cache.TryGetValue(cacheKey, out string? cached))
         {
             Response.Headers["X-Cache"] = "HIT";
             return Content(cached!, "application/json");
         }
-
         var result = GetAllSubfolderFiles(problemType, "Solvers");
         if (result == null)
             return NotFound($"No problem directory found for type {problemType}");
-
         string json = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
         _cache.Set(cacheKey, json, TimeSpan.FromHours(1));
-
         Response.Headers["X-Cache"] = "MISS";
         return Content(json, "application/json");
     }
-
-
-
 
 
     /// <summary>
@@ -111,20 +90,14 @@ public class BatchController : ControllerBase
             Response.Headers["X-Cache"] = "HIT";
             return Content(cached!, "application/json");
         }
-
         var result = GetAllSubfolderFiles(problemType, "Verifiers");
         if (result == null)
             return NotFound($"No problem directory found for type {problemType}");
-
         string json = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
         _cache.Set(cacheKey, json, TimeSpan.FromHours(1));
-
         Response.Headers["X-Cache"] = "MISS";
         return Content(json, "application/json");
     }
-
-
-
 
 
     /// <summary>
@@ -146,16 +119,11 @@ public class BatchController : ControllerBase
         var result = GetAllSubfolderFiles(problemType, "Visualizations");
         if (result == null)
             return NotFound($"No problem directory found for type {problemType}");
-
         string json = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
         _cache.Set(cacheKey, json, TimeSpan.FromHours(1));
-
         Response.Headers["X-Cache"] = "MISS";
         return Content(json, "application/json");
     }
-
-
-
 
 
 /// <summary>
@@ -167,42 +135,33 @@ public class BatchController : ControllerBase
 public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
 {
     string cacheKey = $"batch_info_{problemType}";
-
     if (_cache.TryGetValue(cacheKey, out string? cached))
     {
         Response.Headers["X-Cache"] = "HIT";
         return Content(cached!, "application/json");
     }
-
     string problemTypeDirectory = GetDirectory(problemType);
     string projectSourcePath = ProjectSourcePath.Value;
     string problemsPath = Path.Combine(projectSourcePath, "Problems", problemTypeDirectory);
-
     if (!Directory.Exists(problemsPath))
         return NotFound($"Directory not found: {problemsPath}");
-
     var interfaces = ProblemProvider.Interfaces;
     var interfaceNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
     foreach (var problemDir in Directory.GetDirectories(problemsPath))
     {
         string fullDirName = Path.GetFileName(problemDir);
         string[] parts = fullDirName.Split('_');
         if (parts.Length < 2) continue;
-
         string problemName = string.Join("_", parts.Skip(1));
         interfaceNames.Add(problemName);
-
+        
         foreach (var solver in GetFilesNoExt(Path.Combine(problemDir, "Solvers")))
             interfaceNames.Add(solver);
-
         foreach (var verifier in GetFilesNoExt(Path.Combine(problemDir, "Verifiers")))
             interfaceNames.Add(verifier);
-
         foreach (var visualization in GetFilesNoExt(Path.Combine(problemDir, "Visualizations")))
             interfaceNames.Add(visualization);
     }
-
     var result = new Dictionary<string, object>();
 
     foreach (var name in interfaceNames.OrderBy(x => x))
@@ -232,12 +191,9 @@ public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
         });
 
     _cache.Set(cacheKey, finalJson, TimeSpan.FromHours(1));
-
     Response.Headers["X-Cache"] = "MISS";
     return Content(finalJson, "application/json");
 }
-
-
 
 
     /// <summary>
@@ -257,7 +213,6 @@ public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
 
         return Ok("Cache cleared.");
     }
-
     private Dictionary<string, List<string>>? GetAllSubfolderFiles(string problemType, string subfolder)
     {
         string problemTypeDirectory = GetDirectory(problemType);
@@ -283,7 +238,6 @@ public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
 
         return result;
     }
-
     private static string GetDirectory(string problemType) => problemType switch
     {
         "NPC" => "NPComplete",
@@ -291,7 +245,6 @@ public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
         "NPHard" => "NPHard",
         _ => "NPComplete"
     };
-
     private static List<string> GetFilesNoExt(string dirPath)
     {
         if (!Directory.Exists(dirPath))
