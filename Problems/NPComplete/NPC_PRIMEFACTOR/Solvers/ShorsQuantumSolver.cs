@@ -74,7 +74,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
                 else if (answerElement.ValueKind == JsonValueKind.Array)
                 {
                     // If it's an array of factors, serialize it back to a JSON string
-                    return JsonSerializer.Serialize(answerElement);
+                    return "(" + string.Join(",", answerElement.EnumerateArray().Select(e => e.GetInt32())) + ")";
                 }
                 else
                 {

@@ -18,12 +18,14 @@ class DOMINATINGSET
     public string problemName { get; } = "Dominating Set";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Dominating_set";
     public string formalDefinition { get; } =
-        "Dominating Set = {<G, k> | G is a graph with a dominating set less then or equal to k}";
+        "Dominating Set = {<G, k> | G is a graph with a dominating set less than or equal to k}";
     public string problemDefinition { get; } =
         "A dominating set of a graph G is a subset D of the vertices of G such that every vertex v of G is either in the set D or v has at least one neighbour that is in D.";
     public string[] contributors { get; } = { "Quinton Smith" };
 
     public string source { get; } =
+        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
+    public string sourceLink { get; } =
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     private static string _defaultInstance =
         "(({0,1,2,3,4},{{1,0},{0,3},{1,2},{2,4},{1,3},{3,4},{4,1}}),2)";
