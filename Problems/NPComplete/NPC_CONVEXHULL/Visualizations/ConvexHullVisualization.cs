@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CONVEXHULL;
+using API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL.Visualizations;
 
@@ -12,6 +13,7 @@ class ConvexHullVisualization : IVisualization<CONVEXHULL>
     public string sourceLink {get;} = "TODO";
     public string[] contributors { get; } = { "TODO" };
     public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
+    public ISolver solver { get; } = new ConvexHullSolver();
 
     // --- Methods Including Constructors ---
     public ConvexHullVisualization()

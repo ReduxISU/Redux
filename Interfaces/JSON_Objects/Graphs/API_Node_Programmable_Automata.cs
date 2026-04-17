@@ -1,8 +1,4 @@
-//This API Node is used when we need to inject additional attributes into a node for a visualization request.
-// For example, a node class naturaly only has the name attribute, but a CLique node needs a name, and clique attribute, and a vertexcover node needs a name and
-// cover attribute. Rather than build custom nodes for every graph object that have attributes that are only used in visualizing, we can build nodes that are
-// in the correct json format opon serialization by having generic attributes.
-//Author: Alex Diviney, 
+//This API Node is used when we need to inject additional attributes into a node for a visualization request for Automatas.
 //Modified by Andrija Sevaljevic to include initial and accept state information for DFA visualizations -- 4/16/2026
 
 namespace API.Interfaces.JSON_Objects.Graphs;
