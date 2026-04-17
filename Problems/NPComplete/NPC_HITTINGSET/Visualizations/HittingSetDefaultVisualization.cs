@@ -3,7 +3,7 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using SPADE;
-
+using API.Problems.NPComplete.NPC_HITTINGSET.Solvers;
 namespace API.Problems.NPComplete.NPC_HITTINGSET.Visualizations;
 
 class HittingSetDefaultVisualization : IVisualization<HITTINGSET>
@@ -13,6 +13,7 @@ class HittingSetDefaultVisualization : IVisualization<HITTINGSET>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Set D3";
+    public ISolver solver { get; } = new HittingSetBruteForce();
 
     // --- Methods Including Constructors ---
     public HittingSetDefaultVisualization()

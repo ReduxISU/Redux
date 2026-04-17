@@ -8,7 +8,7 @@ using System.Text;
 
 namespace API.Problems.NPComplete.NPC_NFA.Solvers;
 
-public class NFASolver : ISolver<NFA>
+class NFASolver : ISolver<NFA>
 {
     public string solverName { get; } = "NFA Solver";
     public string solverDefinition { get; } = "This solver enumerates all accepting runs of a nondeterministic finite automaton (returns all successful state sequences).";
