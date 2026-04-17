@@ -14,6 +14,7 @@ class SudokuVisualization : IVisualization<SUDOKU>
     public string source { get; } = "TODO";
     public string[] contributors { get; } = { "Eric Hill" };
     public string visualizationType { get; } = "TODO";
+    public ISolver solver { get; } = new SudokuSolver();
 
     // --- Methods Including Constructors ---
     public SudokuVisualization()

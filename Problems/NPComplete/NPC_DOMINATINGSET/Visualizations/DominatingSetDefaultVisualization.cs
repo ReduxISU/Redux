@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizers;
 
@@ -16,6 +17,7 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     public string[] contributors { get; } = { "Quinton Smith" };
     public string visualizationType { get; } = "Graph D3";
+    public ISolver solver { get; } = new DominatingSetSolver();
 
     // --- Methods Including Constructors ---
     public DominatingSetDefaultVisualization() { }

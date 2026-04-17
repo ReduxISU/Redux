@@ -12,6 +12,7 @@ class SATGroverVisualization : IVisualization<SAT>
     public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner", "Jason L. Wright" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public ISolver solver { get; } = new SATGroverSolver();
 
     // --- Methods Including Constructors ---
     public SATGroverVisualization()

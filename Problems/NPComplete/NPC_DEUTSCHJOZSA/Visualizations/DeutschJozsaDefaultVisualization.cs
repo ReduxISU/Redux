@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
+using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 using System.Text.Json;
 
@@ -11,6 +12,7 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
 
     // --- Methods Including Constructors ---
     public DeutschJozsaDefaultVisualization()

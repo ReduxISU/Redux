@@ -4,16 +4,18 @@ using API.Problems.NPComplete.NPC_DFA;
 using API.Interfaces.JSON_Objects.Graphs;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
+using API.Problems.NPComplete.NPC_DFA.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DFA.Visualizations;
 
-public class DFAVisualization : IVisualization<DFA>
+class DFAVisualization : IVisualization<DFA>
 {
     public string visualizationName { get; } = "Determinite Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Deterministic Finite Automata";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
     public string visualizationType { get; } = "Graph LaTeX";
+    public ISolver solver { get; } = new DFASolver();
 
     // --- Methods Including Constructors ---
     public DFAVisualization() {}
@@ -25,5 +27,32 @@ public class DFAVisualization : IVisualization<DFA>
     API_JSON IVisualization<DFA>.SolvedVisualization(DFA instance, string solution)
     {
         return instance.graph.ToAPIGraph();
+    }
+
+    public List<API_JSON> StepsVisualization(DFA instance, List<Object> steps)
+    {
+        List<string> solutionList = steps.Cast<string>().ToList();
+        List<API_GraphJSON> apiGraphs = Enumerable.Range(0, solutionList.Count)
+                                                  .Select(_ => instance.graph.ToAPIGraph())
+                                                  .ToList();
+
+        for (int i = 0; i < apiGraphs.Count; i++)
+        {
+            API_GraphJSON apiGraph = apiGraphs[i];
+            string currNode = solutionList[i];
+
+            for (int j = 0; j < apiGraph.nodes.Count; j++)
+            {
+                if (apiGraph.nodes[j].name == currNode)
+                {
+                    apiGraph.nodes[j].color = "green";
+                }
+                else { apiGraph.nodes[j].color = "white"; }
+            }
+
+        }
+
+        return apiGraphs.Cast<API_JSON>().ToList();
+
     }
 }
