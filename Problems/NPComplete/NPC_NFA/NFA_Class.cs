@@ -9,7 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using API.Interfaces.Graphs;
 
-public class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDirectedGraph>
+class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDirectedGraph>
 {
     // ----- Fields ----- //
     public string problemName { get; } = "NFA Acceptance";

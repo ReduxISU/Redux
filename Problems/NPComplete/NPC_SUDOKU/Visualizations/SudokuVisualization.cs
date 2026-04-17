@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_SUDOKU.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizers;
+namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizations;
 
 class SudokuVisualization : IVisualization<SUDOKU>
 {
@@ -14,6 +14,7 @@ class SudokuVisualization : IVisualization<SUDOKU>
     public string source { get; } = "TODO";
     public string[] contributors { get; } = { "Eric Hill" };
     public string visualizationType { get; } = "TODO";
+    public ISolver solver { get; } = new SudokuSolver();
 
     // --- Methods Including Constructors ---
     public SudokuVisualization()

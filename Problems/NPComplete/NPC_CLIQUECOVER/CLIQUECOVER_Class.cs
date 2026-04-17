@@ -1,5 +1,5 @@
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
+using API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 using API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers;
 using API.Problems.NPComplete.NPC_CLIQUECOVER.Verifiers;
 using API.Problems.NPComplete.NPC_CLIQUECOVER.Visualizations;

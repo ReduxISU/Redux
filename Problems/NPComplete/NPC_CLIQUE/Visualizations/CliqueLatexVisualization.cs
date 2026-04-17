@@ -3,8 +3,9 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
-namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
+namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 
 class CliqueLatexVisualization : IVisualization<CLIQUE>
 {
@@ -13,6 +14,7 @@ class CliqueLatexVisualization : IVisualization<CLIQUE>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Graph LaTeX";
+    public ISolver solver { get; } = new CliqueBruteForce();
 
     // --- Methods Including Constructors ---
     public CliqueLatexVisualization()

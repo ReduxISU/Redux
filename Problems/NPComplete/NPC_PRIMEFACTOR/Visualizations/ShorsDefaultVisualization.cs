@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_PRIMEFACTOR;
+using API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 using API.Tools;
 using System.Text.Json;
 
@@ -11,6 +12,7 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
     public string[] contributors { get; } = { "Grant Gardner", "Jason L. Wright", "George Lake" };
     public string visualizationType { get; } = "Quantum Circuit";
+    public ISolver solver { get; } = new PrimeFactorSolver();
 
     // --- Methods Including Constructors ---
     public ShorsDefaultVisualization()

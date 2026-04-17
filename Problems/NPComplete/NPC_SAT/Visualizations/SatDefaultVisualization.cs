@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_SAT;
+using API.Problems.NPComplete.NPC_SAT.Solvers;
 
 class SatDefaultVisualization : IVisualization<SAT>
 {
@@ -9,6 +10,7 @@ class SatDefaultVisualization : IVisualization<SAT>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Boolean Satisfiability";
+    public ISolver solver { get; } = new SATBruteForceSolver();
 
     // --- Methods Including Constructors ---
     public SatDefaultVisualization()

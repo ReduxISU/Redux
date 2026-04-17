@@ -3,6 +3,7 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_VERTEXCOVER;
+using API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Visualizations;
 
@@ -14,6 +15,7 @@ class VertexCoverDefaultVisualization : IVisualization<VERTEXCOVER>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Russell Phillips" };
     public string visualizationType { get; } = "Graph D3";
+    public ISolver solver { get; } = new VertexCoverBruteForce();
 
     // --- Methods Including Constructors ---
     public VertexCoverDefaultVisualization()

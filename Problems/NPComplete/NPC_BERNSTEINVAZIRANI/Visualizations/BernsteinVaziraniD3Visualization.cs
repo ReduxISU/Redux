@@ -5,6 +5,7 @@ using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
+using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Tools;
 
 class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
@@ -15,6 +16,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";
+    public ISolver solver { get; } = new BernsteinVaziraniClassicalSolver();
 
     public BernsteinVaziraniD3Visualization() { }
 

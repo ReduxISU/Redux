@@ -4,7 +4,12 @@
 // in the correct json format opon serialization by having generic attributes.
 //Author: Alex Diviney
 
+using System.Text.Json.Serialization;
+
 namespace API.Interfaces.JSON_Objects.Graphs;
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(API_Node_Programmable_Automata))]
 
 class API_Node_Programmable_Small
 {

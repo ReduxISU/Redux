@@ -1,7 +1,7 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Solvers;
 using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Verifiers;
-using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Visualizers;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
 
