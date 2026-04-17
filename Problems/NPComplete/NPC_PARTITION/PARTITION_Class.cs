@@ -2,11 +2,12 @@ using API.Interfaces;
 using API.DummyClasses;
 using API.Problems.NPComplete.NPC_PARTITION.Solvers;
 using API.Problems.NPComplete.NPC_PARTITION.Verifiers;
+using API.Problems.NPComplete.NPC_PARTITION.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PARTITION;
 
-class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, DummyVisualization>
+class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefaultVisualization>
 {
 
     // --- Fields ---
@@ -24,7 +25,7 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, DummyVisualiz
     public string wikiName { get; } = "";
     public PartitionBruteForce defaultSolver { get; } = new PartitionBruteForce();
     public PartitionVerifier defaultVerifier { get; } = new PartitionVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public PartitionDefaultVisualization defaultVisualization { get; } = new PartitionDefaultVisualization();
 
     // --- Properties ---
     public List<string> S
@@ -52,4 +53,4 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, DummyVisualiz
         S = partition["N"].ToList().Select(node => node.ToString()).ToList();
     }
 
-}
+}   

@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_SUDOKU.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizers;
+namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizations;
 
 class SudokuVisualization : IVisualization<SUDOKU>
 {

@@ -7,7 +7,7 @@ using SPADE;
 using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_ARCSET.Solvers;
 
-namespace API.Problems.NPComplete.NPC_ARCSET.Visualizers;
+namespace API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 
 class ArcSetDefaultVisualization : IVisualization<ARCSET> {
 

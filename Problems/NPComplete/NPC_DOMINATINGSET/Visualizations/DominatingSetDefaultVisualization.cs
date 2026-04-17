@@ -4,7 +4,7 @@ using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
-namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizers;
+namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizations;
 
 class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
 {
