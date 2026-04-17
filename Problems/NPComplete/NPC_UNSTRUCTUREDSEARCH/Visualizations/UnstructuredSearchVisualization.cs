@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Visualizers;
+namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Visualizations;
 
 class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH>
 {

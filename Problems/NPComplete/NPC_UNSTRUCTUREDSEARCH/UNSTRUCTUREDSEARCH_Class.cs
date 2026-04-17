@@ -2,7 +2,7 @@ using API.Interfaces;
 using API.DummyClasses;
 using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
 using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Verifiers;
-using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Visualizers;
+using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH;

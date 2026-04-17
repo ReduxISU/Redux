@@ -79,7 +79,7 @@ class NFAVerifier : IVerifier<NFA>
                 }
             }
         }
-
+        
 
         // Seed DFS with start state
         var startPath = new List<string> { problem.startState };
@@ -114,4 +114,3 @@ class NFAVerifier : IVerifier<NFA>
         return hasPath;
     }
 }
-

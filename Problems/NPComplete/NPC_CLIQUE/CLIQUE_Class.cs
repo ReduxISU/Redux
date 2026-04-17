@@ -1,7 +1,7 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 using API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
-using API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
+using API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE;

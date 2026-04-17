@@ -1,7 +1,7 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 using API.Problems.NPComplete.NPC_DOMINATINGSET.Verifiers;
-using API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizers;
+using API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET;

@@ -5,6 +5,7 @@ using API.Interfaces.JSON_Objects.Graphs;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Problems.NPComplete.NPC_NFA.Solvers;
+
 namespace API.Problems.NPComplete.NPC_NFA.Visualizations;
 
 class NFAVisualization : IVisualization<NFA>

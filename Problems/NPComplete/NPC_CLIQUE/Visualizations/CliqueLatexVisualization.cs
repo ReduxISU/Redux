@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
-namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
+namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 
 class CliqueLatexVisualization : IVisualization<CLIQUE>
 {
