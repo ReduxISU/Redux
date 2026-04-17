@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Mvc.Diagnostics;
 using API.Interfaces.Tools;
 using API.Interfaces.JSON_Objects;
 using API.Tools;
-using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
-using API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_VertexCover;
 using Antlr4.Runtime;
 using API.Tools.ApiParameters;
 using System.Dynamic;
@@ -148,7 +146,7 @@ public class ProblemProvider : ControllerBase
     {
         var options = new JsonSerializerOptions
         {
-            WriteIndented = true
+            WriteIndented = true,
         };
         options.Converters.Add(new API_JSON_Converter());
 

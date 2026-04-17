@@ -18,7 +18,7 @@ class DFAVisualization : IVisualization<DFA>
     public ISolver solver { get; } = new DFASolver();
 
     // --- Methods Including Constructors ---
-    public DFAVisualization() {}
+    public DFAVisualization() { }
     API_JSON IVisualization<DFA>.visualize(DFA instance)
     {
         return instance.graph.ToAPIGraph();
@@ -26,7 +26,29 @@ class DFAVisualization : IVisualization<DFA>
 
     API_JSON IVisualization<DFA>.SolvedVisualization(DFA instance, string solution)
     {
-        return instance.graph.ToAPIGraph();
+        API_GraphJSON apiGraph = instance.graph.ToAPIGraph();
+
+        var lastState = solution
+            .Split(':')
+            .Skip(1)
+            .FirstOrDefault()?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .LastOrDefault();
+
+        for (int i = 0; i < apiGraph.nodes.Count; i++)
+        {
+            if (lastState != null && lastState == apiGraph.nodes[i].name)
+            {
+                apiGraph.nodes[i].color = "green";
+            }
+            else
+            {
+                apiGraph.nodes[i].color = "white";
+            }
+        }
+
+        return apiGraph;
     }
 
     public List<API_JSON> StepsVisualization(DFA instance, List<Object> steps)

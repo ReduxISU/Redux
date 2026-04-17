@@ -29,7 +29,30 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER>
     {
         //return new API_SET(new UtilCollection(exactCover.instance));
         API_SET ec = new API_SET(new UtilCollection(exactCover.instance));
-        
-        return new API_SET(new UtilCollection(exactCover.instance));
+
+        List<string> results = solution
+            .Trim('{', '}')
+            .Split("},{")
+            .Select(x => x.Trim('{', '}'))
+            .Select(x => "{" + x + "}")
+            .ToList();
+
+        foreach (var id in results)
+        {
+            foreach (var set in ec.data.list[1].list)
+            {
+                if (set.id == "r-1-" + id)
+                {
+                    set.color = "Solution";
+                    foreach (var elem in set.list)
+                    {
+                        elem.color = "Solution";
+                    }
+                    break;
+                }
+            }
+        }
+
+        return ec;
     }
 }
