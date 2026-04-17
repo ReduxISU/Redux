@@ -3,6 +3,7 @@ using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
+using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Visualizations;
 
@@ -15,6 +16,7 @@ class MaxCutVisualization : IVisualization<MAXCUT>
     public string source { get; } = "TODO";
     public string[] contributors { get; } = { "Max Gruenwoldt" };
     public string visualizationType { get; } = "TODO";
+    public ISolver solver { get; } = new MaxCutSolver();
 
     // --- Methods Including Constructors ---
     public MaxCutVisualization()

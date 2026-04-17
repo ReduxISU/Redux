@@ -12,6 +12,7 @@ class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}>
     public string sourceLink {get;} = "TODO";
     public string[] contributors { get; } = { "TODO" };
     public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
+    public ISolver solver { get; } = null; //TODO fill in solver to use for this visualization
 
     // --- Methods Including Constructors ---
     public {VISUALIZATION_PASCAL_CASE}()

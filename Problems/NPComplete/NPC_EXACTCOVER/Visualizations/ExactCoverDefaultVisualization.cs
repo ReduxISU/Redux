@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Visualizers;
@@ -13,6 +14,7 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Russell Phillips, Andrija Sevaljevic" };
     public string visualizationType { get; } = "Set D3";
+    public ISolver solver { get; } = new DancingLinks();
 
     // --- Methods Including Constructors ---
     public ExactCoverDefaultVisualization()
