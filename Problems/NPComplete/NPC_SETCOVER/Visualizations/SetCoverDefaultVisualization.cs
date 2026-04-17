@@ -3,7 +3,7 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using SPADE;
-
+using API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 namespace API.Problems.NPComplete.NPC_SETCOVER.Visualizations;
 
 class SetCoverDefaultVisualization : IVisualization<SETCOVER>
@@ -13,6 +13,7 @@ class SetCoverDefaultVisualization : IVisualization<SETCOVER>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Set D3";
+    public ISolver solver { get; } = new SetCoverBruteForce();
 
     // --- Methods Including Constructors ---
     public SetCoverDefaultVisualization()
