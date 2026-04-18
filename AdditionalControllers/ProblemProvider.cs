@@ -178,7 +178,7 @@ public class ProblemProvider : ControllerBase
     public string visualize(string visualization, [FromBody] string instance, string? solver = null)
     {
         ISolver sol = solver is not null ? Solver(solver) : Visualization(visualization).solver;
-        List<string> steps = sol.GetSteps(instance);
+        List<Object> steps = sol.GetSteps(instance);
         string solution = sol.solve(instance);
         return getVisualize(Visualization(visualization), steps, solution, instance);
     }
