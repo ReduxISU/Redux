@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Mvc.Diagnostics;
 using API.Interfaces.Tools;
 using API.Interfaces.JSON_Objects;
 using API.Tools;
-using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
-using API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_VertexCover;
 using Antlr4.Runtime;
 using API.Tools.ApiParameters;
 using System.Dynamic;
@@ -64,18 +62,6 @@ public class ProblemProvider : ControllerBase
     static IReduction Reduction(string name)
     {
         return Activator.CreateInstance(Reductions[name.ToLower()]) as IReduction;
-    }
-
-    static ISolver? SolverForVisualization(string visualizationName)
-    {
-        Type visualizationType = Visualizers[visualizationName.ToLower()];
-        foreach (var problemType in Problems.Values)
-        {
-            IProblem? problem = Activator.CreateInstance(problemType) as IProblem;
-            if (problem?.defaultVisualization?.GetType() == visualizationType)
-                return problem.defaultSolver;
-        }
-        return null;
     }
 
 #pragma warning restore CS8603 // Possible null reference return.
@@ -156,14 +142,13 @@ public class ProblemProvider : ControllerBase
         return false;
     }
 
-    private string getVisualize(IVisualization visualization, List<string> steps, string solution, string instance)
+    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance)
     {
         var options = new JsonSerializerOptions
         {
-            WriteIndented = true
+            WriteIndented = true,
         };
         options.Converters.Add(new API_JSON_Converter());
-        options.Converters.Add(new UtilCollectionConverter());
 
         API_JSON visual = visualization.visualize(instance);
         List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps);
@@ -192,9 +177,9 @@ public class ProblemProvider : ControllerBase
     [HttpPost("visualize")]
     public string visualize(string visualization, [FromBody] string instance, string? solver = null)
     {
-        ISolver? sol = solver is not null ? Solver(solver) : SolverForVisualization(visualization);
-        List<string> steps = sol?.GetSteps(instance) ?? new List<string>();
-        string solution = sol?.solve(instance) ?? "";
+        ISolver sol = solver is not null ? Solver(solver) : Visualization(visualization).solver;
+        List<string> steps = sol.GetSteps(instance);
+        string solution = sol.solve(instance);
         return getVisualize(Visualization(visualization), steps, solution, instance);
     }
 
@@ -202,28 +187,23 @@ public class ProblemProvider : ControllerBase
     /// Reduces a problem and returns the visualization of the reduction
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">List of reductions to use, seperated by a dash. Can use a single reduction</param>
-    /// <param name="solver" example = "Sat3BacktrackingSolver">The solver to use for steps and solution</param>
+    /// <param name="solution" example = "(x1:True,x2:True)">The solution to visualize</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance string of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
-    public string visualizeReduction(string reduction, string solver, [FromBody] string instance)
+    public string visualizeReduction(string reduction, string solution, [FromBody] string instance)
     {
         List<string> reds = reduction.Split("-").ToList();
-
-        ISolver sol = Solver(solver);
-        List<string> steps = sol.GetSteps(instance);
-        string solution = sol.solve(instance);
 
         IReduction? red = null;
         foreach (string reductionname in reds)
         {
             red = Reduction(reductionname, instance);
-            steps = steps.Select(step => red.mapSolutions(step)).ToList();
             solution = red.mapSolutions(solution);
             instance = red.reductionTo.instance;
         }
 
-        return getVisualize(red.visualization, steps, solution, instance);
+        return getVisualize(red.visualization, new List<Object>(), solution, instance);
     }
 
     /// <summary>

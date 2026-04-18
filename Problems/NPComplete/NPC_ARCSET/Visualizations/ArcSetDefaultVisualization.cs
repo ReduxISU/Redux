@@ -5,8 +5,9 @@ using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
 using SPADE;
 using API.Interfaces.Graphs;
+using API.Problems.NPComplete.NPC_ARCSET.Solvers;
 
-namespace API.Problems.NPComplete.NPC_ARCSET.Visualizers;
+namespace API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 
 class ArcSetDefaultVisualization : IVisualization<ARCSET> {
 
@@ -16,6 +17,8 @@ class ArcSetDefaultVisualization : IVisualization<ARCSET> {
     public string source {get;} = "";
     public string[] contributors {get;} = {"Russell Phillips"};
     public string visualizationType { get; } = "Graph D3";
+
+    public ISolver solver { get; } = new ArcSetBruteForce();
 
     // --- Methods Including Constructors ---
     public ArcSetDefaultVisualization()

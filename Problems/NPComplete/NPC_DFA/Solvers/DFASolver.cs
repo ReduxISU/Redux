@@ -5,7 +5,7 @@ using Xunit;
 
 namespace API.Problems.NPComplete.NPC_DFA.Solvers;
 
-public class DFASolver : ISolver<DFA>
+class DFASolver : ISolver<DFA>
 {
 
     // ----- Fields ----- //
@@ -15,6 +15,8 @@ public class DFASolver : ISolver<DFA>
     public string[] contributors { get; } = { "Michael Trosper" };
 
     public bool timerHasExpired { get; set; }
+
+    private List<string> nodePath;
 
     // Methods Including Constructors //
     public DFASolver() { }
@@ -26,7 +28,7 @@ public class DFASolver : ISolver<DFA>
         // First Node To Be Analyzed //
         string currentNode = problem.startState;
         // Will Track Path Through Nodes //
-        List<string> nodePath = new List<string> { currentNode };
+        nodePath = new List<string> { currentNode };
 
         foreach (char character in inputString)
         {
@@ -68,5 +70,12 @@ public class DFASolver : ISolver<DFA>
         {
             return "No Solution Exists: The DFA ended in a non-accepting state";
         }
+    }
+
+    public List<Object> GetSteps(string instance)
+    {
+        solve(new DFA(instance));
+
+        return nodePath.Cast<Object>().ToList();
     }
 }
