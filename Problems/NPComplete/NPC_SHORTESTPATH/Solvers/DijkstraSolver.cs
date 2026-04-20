@@ -15,7 +15,7 @@ class DijkstraSolver : ISolver<SHORTESTPATH>
 	public string solverDefinition { get; } =
 	"This solver implements Dijkstra's algorithm to find the shortest path from a source node to a target node in a positively weighted graph.";
 	public string source { get; } = "";
-	public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
+	public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant" };
 	public bool timerHasExpired { get; set; }
 
 	public string solve(SHORTESTPATH problem)
@@ -215,4 +215,73 @@ class DijkstraSolver : ISolver<SHORTESTPATH>
 		string s = u.ToString().TrimStart();
 		return s.StartsWith("{") || s.StartsWith("(");
 	}
+
+    // The steps are returned as a list of strings, where each string representing a path in the following format: 1,5,3
+    public List<string> GetSteps(SHORTESTPATH problem)
+    {
+        var steps = new List<string>();
+
+        UtilCollectionGraph graph = problem.graph;
+
+        List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
+        if (nodes.Count == 0)
+            return steps;
+
+        string sourceNode = nodes[0];
+        string targetNode = nodes[^1];
+
+        var adjacency = BuildAdjacency(graph);
+
+        var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
+        var prev = nodes.ToDictionary(n => n, _ => (string)null);
+        var visited = new HashSet<string>();
+        var pq = new DijkstraPriorityQueue<string>();
+
+        dist[sourceNode] = 0;
+        pq.Enqueue(sourceNode, 0);
+
+        while (pq.Count > 0)
+        {
+            if (timerHasExpired)
+                return steps;
+
+            string current = pq.Dequeue();
+            if (visited.Contains(current))
+                continue;
+
+            visited.Add(current);
+
+            var path = ReconstructPath(prev, sourceNode, current);
+            if (path.Count > 0)
+                steps.Add(NodeListToCertificate(path));
+
+            if (current == targetNode)
+                break;
+
+            if (!adjacency.TryGetValue(current, out var neighbors))
+                continue;
+
+            foreach (var (next, weight) in neighbors)
+            {
+                if (visited.Contains(next))
+                    continue;
+
+                if (weight < 0)
+                    return steps;
+
+                if (dist[current] == int.MaxValue)
+                    continue;
+
+                int candidate = dist[current] + weight;
+                if (candidate < dist[next])
+                {
+                    dist[next] = candidate;
+                    prev[next] = current;
+                    pq.Enqueue(next, candidate);
+                }
+            }
+        }
+
+        return steps;
+    }
 }
