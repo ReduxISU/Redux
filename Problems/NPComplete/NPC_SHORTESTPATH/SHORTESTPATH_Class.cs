@@ -21,7 +21,7 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
     private static string _defaultInstance =
-    "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)})";
+    "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
 
@@ -74,14 +74,20 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
         string? explicitTarget = null;
 
         List<string> outerTerms = SplitOuterTuple(rawInstance);
-        if (outerTerms.Count == 3 && LooksLikeTuple(outerTerms[0]))
+        if (outerTerms.Count == 4)
+        {
+            graphInput = $"({outerTerms[0]},{outerTerms[1]})";
+            explicitSource = outerTerms[2];
+            explicitTarget = outerTerms[3];
+        }
+        else if(outerTerms.Count == 3 && LooksLikeTuple(outerTerms[0]))
         {
             graphInput = outerTerms[0];
             explicitSource = outerTerms[1];
             explicitTarget = outerTerms[2];
         }
 
-        GraphParseResult graphParse = ParseGraph(graphInput);
+            GraphParseResult graphParse = ParseGraph(graphInput);
         UtilCollection nodeCollection = graphParse.Parser["N"] ?? throw new InvalidOperationException("Failed to parse N (nodes).");
         UtilCollection edgeCollection = graphParse.Parser["E"] ?? throw new InvalidOperationException("Failed to parse E (edges).");
 
@@ -180,6 +186,10 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
         {
             UtilCollection endpoints = rawEdge[0];
             int weight = int.Parse(rawEdge[1].ToString());
+
+            if (weight < 0)
+                throw new InvalidOperationException($"SHORTESTPATH does not allow negative edge weights. Found edge weight: {weight}");
+
             return new ParsedEdge(GetFrom(endpoints), GetTo(endpoints), weight);
         }
 

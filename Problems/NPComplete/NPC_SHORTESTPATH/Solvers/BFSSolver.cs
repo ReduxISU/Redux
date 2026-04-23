@@ -28,8 +28,11 @@ class BFSSolver : ISolver<SHORTESTPATH>
         if (nodes.Count == 0)
             return "{}"; // No nodes, return empty path
 
-        string sourceNode = nodes[0];
-        string targetNode = nodes[^1];
+        string sourceNode = problem.sourceNode;
+        string targetNode = problem.targetNode;
+
+        if (!nodes.Contains(sourceNode) || !nodes.Contains(targetNode))
+            return "{}"; // Source or target node not in graph, return empty path
 
         var adjacency = BuildAdjacency(graph);
 
