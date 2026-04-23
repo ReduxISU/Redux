@@ -7,7 +7,7 @@ class SudokuSolver : ISolver<SUDOKU> {
     public string solverName { get; } = "TODO";
     public string solverDefinition { get; } = "TODO";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Eric Hill" };
+    public string[] contributors { get; } = { "Carter Luker, Collin Kress, & Daniel Fawson" };
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
