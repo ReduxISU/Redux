@@ -3,157 +3,196 @@
     "email": "kadenmarchetti@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Full-stack developer with expertise in NP-Complete problems"
+    "bio": "Full-stack developer with expertise in NP-Complete problems",
+    "githubUsername": ""
   },
   "Caleb Eardley": {
     "email": "calebeardley@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Backend specialist focusing on problem reductions"
+    "bio": "Backend specialist focusing on problem reductions",
+    "githubUsername": ""
   },
   "Daniel Igbokwe": {
     "email": "danieligbokwe@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Algorithm optimization expert"
+    "bio": "Algorithm optimization expert",
+    "githubUsername": "igbodani"
   },
   "Alex Diviney": {
     "email": "alexdiviney@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Frontend and visualization specialist"
+    "bio": "Frontend and visualization specialist",
+    "githubUsername": ""
   },
   "Janita Aamir": {
     "email": "janitamir@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Problem solver and verifier developer"
+    "bio": "Problem solver and verifier developer",
+    "githubUsername": ""
   },
   "Andrija Sevaljevic": {
     "email": "andrijaSevaljevic@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Graph algorithm specialist"
+    "bio": "Graph algorithm specialist",
+    "githubUsername": "Andrija-Sevaljevic"
   },
   "Garret Stouffer": {
     "email": "garretstouffer@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Data structure and algorithm expert"
+    "bio": "Data structure and algorithm expert",
+    "githubUsername": ""
   },
   "Porter Glines": {
     "email": "porterglines@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Testing and quality assurance specialist"
+    "bio": "Testing and quality assurance specialist",
+    "githubUsername": ""
   },
   "Show Pratoomratana": {
     "email": "showpratoomratana@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "UI/UX and frontend developer"
+    "bio": "UI/UX and frontend developer",
+    "githubUsername": ""
   },
   "Russell Phillips": {
     "email": "russellphillips@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Documentation and project coordinator"
+    "bio": "Documentation and project coordinator",
+    "githubUsername": ""
   },
   "Michael Crapse": {
     "email": "michaelcrapse@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Backend infrastructure developer"
+    "bio": "Backend infrastructure developer",
+    "githubUsername": ""
   },
   "Ian Gonzalez": {
     "email": "iangonzalez@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Algorithm solver specialist"
+    "bio": "Algorithm solver specialist",
+    "githubUsername": ""
   },
   "Sabal Subedi": {
     "email": "sabalsubedi@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Problem verification specialist"
+    "bio": "Problem verification specialist",
+    "githubUsername": "sabal-subedi"
   },
   "Himanshu Jha": {
     "email": "himanshujha@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Full-stack developer and API specialist"
+    "bio": "Full-stack developer and API specialist",
+    "githubUsername": "himanshujha05"
   },
   "Sansar Kharal": {
     "email": "sanskharal@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Backend and solver specialist"
+    "bio": "Backend and solver specialist",
+    "githubUsername": "kharsans"
   },
   "Pratham Khanal": {
     "email": "prathamkhanal@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Database and backend developer"
+    "bio": "Database and backend developer",
+    "githubUsername": "pkprathamkhanal"
   },
   "George Lake": {
     "email": "georgelake@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Algorithm specialist and reducer"
+    "bio": "Algorithm specialist and reducer",
+    "githubUsername": ""
   },
   "Grant Gardner": {
     "email": "grantgardner@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Problem solver and verifier contributor"
+    "bio": "Problem solver and verifier contributor",
+    "githubUsername": ""
   },
   "Jason Wright": {
     "email": "jasonwright@isu.edu",
     "education": "Idaho State University",
-    "major": "Computer Science"
-
-    
+    "major": "Computer Science",
+    "bio": "",
+    "githubUsername": "wrigjl"
   },
   "Alex Svancara": {
     "email": "alexsvancara@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Problem implementation specialist"
+    "bio": "Problem implementation specialist",
+    "githubUsername": "svanalex"
   },
   "Eric Hill": {
     "email": "erichill@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Solver and reduction developer"
+    "bio": "Solver and reduction developer",
+    "githubUsername": ""
   },
   "Max Grünwoldt": {
     "email": "maxgrunwoldt@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Algorithm and data structure expert"
+    "bio": "Algorithm and data structure expert",
+    "githubUsername": ""
   },
   "Paul Gilbreath": {
     "email": "paulgilbreath@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Backend developer and API contributor"
+    "bio": "Backend developer and API contributor",
+    "githubUsername": ""
   },
   "Andreas Kramer": {
     "email": "andreaskramer@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Problem implementation and testing"
+    "bio": "Problem implementation and testing",
+    "githubUsername": "kramandr"
   },
   "Courtney Bodily": {
     "email": "courtneybodily@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Project lead and system architect"
+    "bio": "Project lead and system architect",
+    "githubUsername": ""
   },
   "Rakesh Itani": {
     "email": "rakeshitani@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Frontend developer and UI specialist"
+    "bio": "Frontend developer and UI specialist",
+    "githubUsername": ""
+  },
+  "David Lindeman": {
+    "email": "",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "",
+    "githubUsername": ""
+  },
+  "Pravesh Aryal": {
+    "email": "pravesharyal@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Test contributor entry",
+    "githubUsername": "PraveshAryal03"
   }
 }
