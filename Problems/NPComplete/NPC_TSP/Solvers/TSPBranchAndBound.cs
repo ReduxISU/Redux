@@ -53,23 +53,6 @@ class TravelingSalesPersonBranchAndBoundSolver : ISolver<TSP> {
     public string solve(TSP problem){
         if (timerHasExpired)
             return "timeout";
-        /*
-         * TEMP TEST
-         */
-        if (problem == null)
-            return "problem is null";
-
-        if (problem.graph == null)
-            return "problem.graph is null";
-
-        if (problem.nodes == null)
-            return "problem.nodes is null";
-
-        if (problem.edges == null)
-            return "problem.edges is null";
-        /*
-         * END TEMP TEST
-         */
 
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
@@ -162,10 +145,13 @@ class TravelingSalesPersonBranchAndBoundSolver : ISolver<TSP> {
             }
         }
         if (bestPath is not null && IsCompleteTour(bestPath, originalMatrix)) {
-            return PathToCertificate(bestPath, nodes);
-        } else {
-            return "No solution found";
+            string certificate = PathToCertificate(bestPath, nodes);
+            if (problem.defaultVerifier.verify(problem, certificate))
+            {
+                return certificate;
+            }
         }
+        return "{}";
     }
 
     private void Enqueue(PriorityQueue<SearchState, PQPriority> pq, SearchState state)
