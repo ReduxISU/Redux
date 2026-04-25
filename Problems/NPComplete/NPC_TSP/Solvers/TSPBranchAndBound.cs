@@ -4,7 +4,7 @@ using API.Interfaces.Graphs.GraphParser;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
-class TravelingSalesPersonBranchAndBoundSolver : ISolver<TSP> {
+class TSPBranchAndBound : ISolver<TSP> {
 
     // --- Fields ---
     public string solverName {get;} = "Traveling Sales Person Branch and Bound Solver";
@@ -48,7 +48,7 @@ class TravelingSalesPersonBranchAndBoundSolver : ISolver<TSP> {
         }
     }
     // --- Methods Including Constructors ---
-    public TravelingSalesPersonBranchAndBoundSolver() {}
+    public TSPBranchAndBound() {}
 
     public string solve(TSP problem){
         if (timerHasExpired)
