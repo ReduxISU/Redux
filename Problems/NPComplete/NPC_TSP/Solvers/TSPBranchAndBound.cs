@@ -68,7 +68,7 @@ class TSPBranchAndBound : ISolver<TSP> {
         double initialLowerBound = ReduceMatrix(initialMatrix);
 
         // Get initial BSSF using greedy solver
-        List<int>? bestPath = GetInitialBSSF(problem, originalMatrix, nodes);
+        List<int>? bestPath = GetInitialBSSF(problem, nodes);
         double bestCost = bestPath is null ? INF : ComputeTourCost(bestPath, originalMatrix);
 
         bool[] rootVisited = new bool[n];
@@ -254,14 +254,11 @@ class TSPBranchAndBound : ISolver<TSP> {
         return "{" + certificate + nodes[path[0]] + "}";
     }
 
-    private List<int>? GetInitialBSSF(TSP problem, double[,] costMatrix, List<string> nodes) {
-        // TODO::Replace this with greedy solver call.
-        // Example:
-        //
-        // string greedyCertificate = new TravelingSalesPersonGreedySolver().solve(problem);
-        // return CertificateToPath(greedyCertificate, nodes);
-
-        return null;
+    private List<int>? GetInitialBSSF(TSP problem, List<string> nodes) {
+        string greedyCertificate = new TSPGreedy() {
+          timerHasExpired = timerHasExpired
+        }.solve(problem);
+        return CertificateToPath(greedyCertificate, nodes);
     }
 
     private static List<int>? CertificateToPath(string certificate, List<string> nodes)
