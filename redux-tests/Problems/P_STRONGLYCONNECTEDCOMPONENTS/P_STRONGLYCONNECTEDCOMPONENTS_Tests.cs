@@ -49,18 +49,18 @@ namespace redux_tests.Problems.P
 
             Assert.Contains("{1,2,3}", result);
         }
+
         [Fact]
-public void Kosaraju_Single_Node_Graph()
-{
-    string input = "({1},{})";
+        public void Kosaraju_Single_Node_Graph()
+        {
+            string input = "({1},{})";
 
-    var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
-    var solver = new KosarajuSolver();
+            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var solver = new KosarajuSolver();
 
-    string result = solver.solve(problem);
+            string result = solver.solve(problem);
 
-    Assert.Contains("{1}", result);
-}
+            Assert.Contains("{1}", result);
+        }
     }
-    
 }
