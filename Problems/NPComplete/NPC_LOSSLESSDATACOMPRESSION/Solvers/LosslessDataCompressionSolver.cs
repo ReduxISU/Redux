@@ -37,7 +37,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         }
 
         // the problem instance is the raw text we want to compress.
-        string input = problem.inputText ?? string.Empty;
+        string input = problem.instance ?? string.Empty;
 
         // resets problem fields before solving.
         problem.frequencies = new Dictionary<char, int>();

@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Visualizations;
 
 class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESSION>
 {
-    public string visualizationName { get; } = "lossless data compression Visualization";
+    public string visualizationName { get; } = "Lossless Data Compression Visualization";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
     public string sourceLink {get;} = "TODO";
