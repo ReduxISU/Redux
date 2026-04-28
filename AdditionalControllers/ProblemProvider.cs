@@ -78,12 +78,16 @@ public class ProblemProvider : ControllerBase
     {
         try
         {
+            Console.WriteLine("(ProblemProvider) Verifier: " + verifier);
+            Console.WriteLine("(ProblemProvider) Problem Instance: " + verify.ProblemInstance);
+            Console.WriteLine("(ProblemProvider) Certificate: " + verify.Certificate);
             // TODO: validate arguments
             bool result = Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate);
             return JsonSerializer.Serialize(result.ToString(), new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
         {
+            Console.WriteLine("Error during verification: " + ex.Message);
             // Return exception details to help debugging invalid input during development
             var err = new { error = ex.Message, stack = ex.ToString() };
             return JsonSerializer.Serialize(err, new JsonSerializerOptions { WriteIndented = true });
