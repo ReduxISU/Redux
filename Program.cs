@@ -7,6 +7,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Configuration.GetSection("QuantumSolver").Get<QuantumSolverSettings>();
 builder.Services.AddControllers();
+
+// Allow larger request bodies for problem instances and certificates
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.ValueLengthLimit = 1024 * 1024; // 1 MB
+    options.MultipartBodyLengthLimit = 1024 * 1024; // 1 MB
+}); //Needs to be deleted
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 1024 * 1024; // 1 MB
+}); //Needs to be deleted
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -44,7 +56,7 @@ app.Use((context, next) =>
     Console.WriteLine($"[REQUEST] {context.Request.Method} {context.Request.Path}");
     Console.WriteLine($"[REQUEST] Content-Length: {context.Request.ContentLength}");
     return next.Invoke();
-});
+}); //Needs Deleted!!!
 
 // Somewhat of a security concern. But since we are not doing POSTS im not concerned about it
 app.Use((context, next) =>
