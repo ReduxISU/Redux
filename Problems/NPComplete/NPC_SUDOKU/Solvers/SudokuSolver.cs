@@ -181,7 +181,9 @@ class SudokuSolver : ISolver<SUDOKU> {
         return false;
     }
 
-    public int[][] Solve(bool getAllSolutions = false)
+    public string solve(SUDOKU problem) => solve();
+
+    public string solve()
     {
         int[][] solution = CopyGrid(_problem);
 
@@ -211,13 +213,15 @@ class SudokuSolver : ISolver<SUDOKU> {
             }
         }
 
-        var solutions = new List<int[][]>();
-        SolveHelper(solution, rows, cols, blocks, 0, 0, getAllSolutions, solutions);
+        SolveHelper(solution, rows, cols, blocks, 0, 0, false, new List<int[][]>());
 
-        if (getAllSolutions)
-            Console.WriteLine($"Solutions found: {solutions.Count}");
-
-        return solution;
+        var sb = new System.Text.StringBuilder();
+        for (int r = 0; r < solution.Length; r++)
+        {
+            sb.Append(string.Join(",", solution[r]));
+            if (r < solution.Length - 1) sb.Append(";");
+        }
+        return sb.ToString();
     }
 
     // --- Helpers ---
