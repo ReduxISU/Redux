@@ -51,6 +51,7 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
         // SPADE.UtilCollection parsedSet = parser["N"];
         // funcValues = new List<int>();
 
+        // Parses the input string into a 2D array representing the Sudoku grid
         instance = input;
 
         var rows = input.Split(';', StringSplitOptions.RemoveEmptyEntries);

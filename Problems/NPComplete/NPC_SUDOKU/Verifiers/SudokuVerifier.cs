@@ -9,7 +9,7 @@ class SudokuVerifier : IVerifier<SUDOKU> {
     public string verifierDefinition {get;} = "This is a verifier for Sudoku. It takes the certificate from the user and validates that it follows the rules of Sudoku and matches the initial clues from the problem instance.";
     public string source {get;} = "TODO";
     public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };
-    private string _certificate =  "";
+    private readonly string _certificate =  "";
 
     public string certificate {
         get {
@@ -32,15 +32,15 @@ class SudokuVerifier : IVerifier<SUDOKU> {
         // Uses the helper function to determine if the certificate is a valid solution
         bool isValid = VerifyHelper(problem, certificate);
 
-        isValid = true; // Placeholder for testing purposes, replace with actual verification logic
+        //isValid = true; // Placeholder for testing purposes, replace with actual verification logic
 
         return isValid;
     }
 
     public bool VerifyHelper(SUDOKU problem, string certificate) {
         // Parses the problem instance and the certificate into 2D arrays
-        int[][] problemGrid = parseCertificate(problem.instance);
-        int[][] certificateGrid = parseCertificate(certificate);
+        int[][] problemGrid = ParseSudokuInput(problem.instance);
+        int[][] certificateGrid = ParseSudokuInput(certificate);
 
         // Checks each cell to ensure it follows Sudoku rules and matches the initial clues from the problem instance
         for (int i = 0; i < problemGrid.Length; i++) {
@@ -95,11 +95,11 @@ class SudokuVerifier : IVerifier<SUDOKU> {
         return true;
     }
 
-    private int[][] parseCertificate(string certificate) {
-        // Implement the logic to parse the certificate string into a usable format (e.g., a 2D array representing the Sudoku grid).
-        // This would involve extracting the values from the certificate and populating a data structure that can be used for verification.
+    private static int[][] ParseSudokuInput(string input) {
+        // Implement the logic to parse the input string into a usable format (e.g., a 2D array representing the Sudoku grid).
+        // This would involve extracting the values from the input and populating a data structure that can be used for verification.
 
-        string parsedString = certificate.Replace(",", "").Replace(";", "").Trim();
+        /*string parsedString = input.Replace(",", "").Replace(";", "").Trim();
 
         int[][] grid = new int[GRID_SIZE][];
         for (int i = 0; i < GRID_SIZE; i++) {
@@ -109,6 +109,17 @@ class SudokuVerifier : IVerifier<SUDOKU> {
             }
         }
         
+        return grid;*/
+
+        var rows = input.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+        int[][] grid = new int[rows.Length][];
+
+        for (int i = 0; i < rows.Length; i++)
+        {
+            var nums = rows[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
+            grid[i] = Array.ConvertAll(nums, int.Parse);
+        }
         return grid;
     }
 }
