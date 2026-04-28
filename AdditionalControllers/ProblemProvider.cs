@@ -76,11 +76,18 @@ public class ProblemProvider : ControllerBase
     [HttpPost("verify")]
     public string verify(string verifier, [FromBody] Verify verify)
     {
-        // TODO: validate arguments
-        return JsonSerializer.Serialize(
-            Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate).ToString(),
-            new JsonSerializerOptions { WriteIndented = true }
-        );
+        try
+        {
+            // TODO: validate arguments
+            bool result = Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate);
+            return JsonSerializer.Serialize(result.ToString(), new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            // Return exception details to help debugging invalid input during development
+            var err = new { error = ex.Message, stack = ex.ToString() };
+            return JsonSerializer.Serialize(err, new JsonSerializerOptions { WriteIndented = true });
+        }
     }
 
     /// <summary>
