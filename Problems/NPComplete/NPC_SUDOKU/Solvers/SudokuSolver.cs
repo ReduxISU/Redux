@@ -11,11 +11,13 @@ class SudokuSolver : ISolver<SUDOKU> {
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
-    private readonly int _gridSize;
-    private readonly int _blockSize;
-    private readonly int[][] _problem;
+    private int _gridSize;
+    private int _blockSize;
+    private int[][] _problem;
 
-    public SudokuSolver(int[][] grid)
+    public SudokuSolver() {}
+
+    /*public SudokuSolver(int[][] grid)
     {
         _gridSize = grid.Length;
 
@@ -31,6 +33,19 @@ class SudokuSolver : ISolver<SUDOKU> {
 
         _blockSize = sqrt;
         _problem = grid;
+    }*/
+
+    public string solve(SUDOKU problem)
+    {
+        // Pull the parsed grid from the problem instance
+        _problem = problem.grid;     // <-- You will add grid to SUDOKU class
+        _gridSize = _problem.Length;
+        _blockSize = (int)Math.Sqrt(_gridSize);
+
+        //if (timerHasExpired)
+        //    return "timeout";
+
+        return SolveInternal();
     }
 
     // Given a cell's row and column index, return the index of the corresponding block unit.
@@ -181,9 +196,9 @@ class SudokuSolver : ISolver<SUDOKU> {
         return false;
     }
 
-    public string solve(SUDOKU problem) => solve();
+    //public string solve(SUDOKU problem) => solve();
 
-    public string solve()
+    public string SolveInternal()
     {
         int[][] solution = CopyGrid(_problem);
 

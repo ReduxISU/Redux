@@ -12,11 +12,11 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     // --- Fields ---
     public string problemName {get;} = "Sudoku";
     public string problemLink {get;} = "https://en.wikipedia.org/wiki/Sudoku";
-    public string formalDefinition {get;} = "Sudoku = {{(x_1, y_1, z_1), (x_2, y_2, z_2), ... (x_n, y_n, z_n)} | x_i is int 0-8, y is int 0-8, z is int 1-9}";
-    public string problemDefinition {get;} = "The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)";
+    public string formalDefinition {get;} = "Sudoku = {{(x_1, y_1, z_1), (x_2, y_2, z_2), ... (x_n, y_n, z_n)} | x_i is int 0-8, y is int 0-8, z is int 1-9}"; //TODO: make this true to the actual format of the problem instance once we decide on that format
+    public string problemDefinition {get;} = "The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)"; //TODO: make this more clear once we decide on the format of the problem instance
     public string source {get;} = "TODO";
     public string sourceLink {get;} = "TODO";
-    private static readonly string _defaultInstance = "{(0, 0, 1), (5, 8, 4), (5, 7, 1), (0, 1, 6), (8, 8, 9)}";
+    private static readonly string _defaultInstance = "{(0, 0, 1), (5, 8, 4), (5, 7, 1), (0, 1, 6), (8, 8, 9)}"; //TODO: make into correct format for parser and solver once we decide on that format
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "Sudoku";
@@ -25,33 +25,7 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     public SudokuVisualization defaultVisualization {get;} = new SudokuVisualization();
     public string[] contributors { get; }= { "Eric Hill" };
 
-    private string _circuit = "";
-
-    public string circuit
-    {
-        get
-        {
-            return _circuit;
-        }
-        set
-        {
-            _circuit = value;
-        }
-    }
-
-    private List<int> _funcValues = new List<int>();
-
-    public List<int> funcValues
-    {
-        get
-        {
-            return _funcValues;
-        }
-        set
-        {
-            _funcValues = value;
-        }
-    }
+    public int[][] grid { get; set; }
 
     // --- Methods and Constructors ---
     public SUDOKU() : this(_defaultInstance) {
@@ -59,8 +33,6 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     }
 
     public SUDOKU(string input) {
-        instance = input;
-
         // Parser is not currently working, I wasn't sure how to get SPADE to handle a list of lists/tuples or a set of lists/tuples.
 
         // StringParser parser = new("{N | N is set}");
@@ -71,7 +43,21 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
         // UtilCollection bitslist = parser["y"];
         // SPADE.UtilCollection parsedSet = parser["N"];
         // funcValues = new List<int>();
-        int[,] p1 = new int[,]
+
+        instance = input;
+
+        var rows = input.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+        grid = new int[rows.Length][];
+
+        for (int i = 0; i < rows.Length; i++)
+        {
+            var nums = rows[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
+            grid[i] = Array.ConvertAll(nums, int.Parse);
+        }
+
+
+        /*int[,] p1 = new int[,]
         {
             {0, 0, 0, 1, 0, 0, 2, 0, 3},
             {0, 2, 0, 0, 4, 0, 5, 0, 6},
@@ -99,6 +85,6 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
 
         SudokuSolver solver = new SudokuSolver(p1);
         int[,] solution = solver.solve();
-        Debug.Assert(solution.Cast<int>().SequenceEqual(s1.Cast<int>()), "Solver solution does not match expected output");
+        Debug.Assert(solution.Cast<int>().SequenceEqual(s1.Cast<int>()), "Solver solution does not match expected output");*/
     }
 }
