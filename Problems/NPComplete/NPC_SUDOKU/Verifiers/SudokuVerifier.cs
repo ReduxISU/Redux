@@ -5,10 +5,10 @@ namespace API.Problems.NPComplete.NPC_SUDOKU.Verifiers;
 class SudokuVerifier : IVerifier<SUDOKU> {
 
     // --- Fields ---
-    public string verifierName { get; } = "TODO";
-    public string verifierDefinition {get;} = "TODO";
-    public string source {get;} = " ";
-    public string[] contributors { get; } = { "Eric Hill" };
+    public string verifierName { get; } = "Sudoku Verifier";
+    public string verifierDefinition {get;} = "This is a verifier for Sudoku. It takes the certificate from the user and validates that it follows the rules of Sudoku and matches the initial clues from the problem instance.";
+    public string source {get;} = "TODO";
+    public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };
     private string _certificate =  "";
 
     public string certificate {
