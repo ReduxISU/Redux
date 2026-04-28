@@ -1,5 +1,4 @@
 using API.Interfaces;
-using API.Interfaces.JSON_Objects;
 using SPADE;
 using System;
 using System.Collections.Generic;
@@ -10,26 +9,24 @@ namespace API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 class KnapsackDP : ISolver<KNAPSACK>
 {
     public string solverName { get; } = "Knapsack DP Solver";
-    public string solverDefinition { get; } = "A pseudo-polynomial time solver using dynamic programming (tabulation).";
-    public string source { get; } = "https://en.wikipedia.org/wiki/Knapsack_problem#0/1_knapsack_problem";
-    public string[] contributors { get; } = { "Your Name" };
+    public string solverDefinition { get; } = "A pseudo-polynomial time solver for the 0-1 Knapsack decision problem using bottom-up dynamic programming. Builds an (N+1) x (W+1) table where dp[i,w] is the maximum value achievable using the first i items within capacity w, then backtracks through the table to recover the chosen subset. Runs in O(N*W) time and space.";
+    public string source { get; } = "Bellman, Richard. Dynamic Programming. Princeton University Press, 1957. See also https://en.wikipedia.org/wiki/Knapsack_problem#0/1_knapsack_problem";
+    public string[] contributors { get; } = { "Musab Khan", "Calvin Condie" };
     public bool timerHasExpired { get; set; }
     public string complexity { get; } = "O(n * W)";
 
     public string solve(KNAPSACK knapsack)
     {
-        // In your class, 'items' is a UtilCollection and 'W' is the capacity
         List<UtilCollection> itemValues = knapsack.items.ToList();
         int n = itemValues.Count;
-        int capacity = knapsack.W; 
+        int capacity = knapsack.W;
 
         int[,] dp = new int[n + 1, capacity + 1];
 
-        // 1. Build the DP Table
         for (int i = 1; i <= n; i++)
         {
-            // Accessing elements from the parsed tuple (weight, value)
-            // Based on your defaultInstance "{(10,60)...}", index 0 is weight, index 1 is value
+            if (timerHasExpired) return "{}";
+
             int weight = int.Parse(itemValues[i - 1][0].ToString());
             int value = int.Parse(itemValues[i - 1][1].ToString());
 
@@ -42,7 +39,6 @@ class KnapsackDP : ISolver<KNAPSACK>
             }
         }
 
-        // 2. Backtrack to find the selected items
         UtilCollection selectedItems = new UtilCollection("{}");
         int remainingCapacity = capacity;
 
@@ -52,7 +48,7 @@ class KnapsackDP : ISolver<KNAPSACK>
             {
                 var item = itemValues[i - 1];
                 selectedItems.Add(item);
-                
+
                 int itemWeight = int.Parse(item[0].ToString());
                 remainingCapacity -= itemWeight;
             }
