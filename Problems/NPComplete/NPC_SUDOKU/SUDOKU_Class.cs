@@ -12,18 +12,25 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     // --- Fields ---
     public string problemName {get;} = "Sudoku";
     public string problemLink {get;} = "https://en.wikipedia.org/wiki/Sudoku";
-    public string formalDefinition {get;} = "Sudoku = {{(x_1, y_1, z_1), (x_2, y_2, z_2), ... (x_n, y_n, z_n)} | x_i is int 0-8, y is int 0-8, z is int 1-9}"; //TODO: make this true to the actual format of the problem instance once we decide on that format
-    public string problemDefinition {get;} = "The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)"; //TODO: make this more clear once we decide on the format of the problem instance
+    public string formalDefinition { get; } =       //"Sudoku = {{(x_1, y_1, z_1), (x_2, y_2, z_2), ... (x_n, y_n, z_n)} | x_i is int 0-8, y is int 0-8, z is int 1-9}"; //TODO: make this true to the actual format of the problem instance once we decide on that format
+        "SUDOKU = {⟨C,n⟩ | n is a perfect square, C ⊆ {0,…,n−1} × {0,…,n−1} × {1,…,n}, " +
+        "and there exists an n×n grid H satisfying: " +
+        "(1) ∀(x,y,z) ∈ C, H[x,y] = z; " +
+        "(2) each row contains each value 1…n exactly once; " +
+        "(3) each column contains each value 1…n exactly once; " +
+        "(4) each √n×√n block contains each value 1…n exactly once }"; //TODO: maybe make this more clear/only be about how to write the problem instance in REDUX
+
+    public string problemDefinition {get;} = "Sudoku is a logic-based, combinatorial number-placement puzzle where the goal is to fill a 9x9 grid with digits so that each column, row, and 3x3 box contains all of the digits from 1 to 9."; //"The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)";
     public string source {get;} = "TODO";
-    public string sourceLink {get;} = "TODO";
-    private static readonly string _defaultInstance = "{(0, 0, 1), (5, 8, 4), (5, 7, 1), (0, 1, 6), (8, 8, 9)}"; //TODO: make into correct format for parser and solver once we decide on that format
+    public string sourceLink {get;} = "https://medium.com/@davidcarmel/solving-sudoku-by-heuristic-search-b0c2b2c5346e and https://www.geeksforgeeks.org/dsa/sudoku-backtracking-7/"; //TODO: Do we need both of these sources? Maybe we can find a more academic source???
+    private static readonly string _defaultInstance = "0,0,0,1,0,0,2,0,3;0,2,0,0,4,0,5,0,6;0,7,0,0,0,6,4,0,0;5,0,0,6,0,0,8,0,0;0,6,0,4,0,2,0,5,0;0,0,4,0,0,9,0,0,7;0,0,9,5,0,0,0,4,0;7,0,6,0,8,0,0,1,0;4,0,3,0,0,7,0,0,0";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "Sudoku";
     public SudokuSolver defaultSolver {get;} = new SudokuSolver();
     public SudokuVerifier defaultVerifier {get;} = new SudokuVerifier();
     public SudokuVisualization defaultVisualization {get;} = new SudokuVisualization();
-    public string[] contributors { get; }= { "Eric Hill" };
+    public string[] contributors { get; }= { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" }; //TODO: keep Eric? I think so but not sure 
 
     public int[][] grid { get; set; }
 
@@ -69,6 +76,8 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
             {7, 0, 6, 0, 8, 0, 0, 1, 0},
             {4, 0, 3, 0, 0, 7, 0, 0, 0},
         };
+        //Needs to be in comma seperated string and semicolon seperated rows for the parser to work
+        //It should look like this: "0,0,0,1,0,0,2,0,3; 0,2,0,0,4,0,5,0,6; 0,7,0,0,0,6,4,0,0; 5,0,0,6,0,0,8,0,0; 0,6,0,4,0,2,0,5,0; 0,0,4,0,0,9,0,0,7; 0,0,9,5,0,0,0,4,0; 7,0,6,0,8,0,0,1,0; 4,0,3,0,0 ,7 ,  0 ,  0 ,  0"
 
         int[,] s1 = new int[,]
         {
