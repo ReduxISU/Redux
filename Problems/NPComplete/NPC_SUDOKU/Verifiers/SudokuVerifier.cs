@@ -22,9 +22,13 @@ class SudokuVerifier : IVerifier<SUDOKU> {
     private readonly int BLOCK_SIZE = 3;
     public SudokuVerifier()
     {
+        Console.WriteLine("Sudoku Verifier created.");
     }
 
     public bool verify(SUDOKU problem, string certificate){
+        Console.WriteLine("Verifying Sudoku solution...");
+        Console.WriteLine("Problem instance: " + problem.instance);
+        Console.WriteLine("Certificate: " + certificate);
         // int i = Convert.ToInt32(certificate);
         // // All we need to do is see if funcValues[certificate] is non-zero
         // return problem.funcValues[i] != 0;
@@ -38,9 +42,9 @@ class SudokuVerifier : IVerifier<SUDOKU> {
     }
 
     public bool VerifyHelper(SUDOKU problem, string certificate) {
+        Console.WriteLine("(Helper) Problem instance: " + problem.instance);
+        Console.WriteLine("(Helper) Certificate: " + certificate);
         // Parses the problem instance and the certificate into 2D arrays
-        Console.WriteLine("Problem instance: " + problem.instance);
-        Console.WriteLine("Certificate: " + certificate);
         int[][] problemGrid = ParseSudokuInput(problem.instance);
         int[][] certificateGrid = ParseSudokuInput(certificate);
 
@@ -98,6 +102,7 @@ class SudokuVerifier : IVerifier<SUDOKU> {
     }
 
     private static int[][] ParseSudokuInput(string input) {
+        Console.WriteLine("Parsing Sudoku input: " + input);
         // Implement the logic to parse the input string into a usable format (e.g., a 2D array representing the Sudoku grid).
         // This would involve extracting the values from the input and populating a data structure that can be used for verification.
 
