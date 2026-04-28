@@ -38,6 +38,14 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
+// Log all incoming requests
+app.Use((context, next) =>
+{
+    Console.WriteLine($"[REQUEST] {context.Request.Method} {context.Request.Path}");
+    Console.WriteLine($"[REQUEST] Content-Length: {context.Request.ContentLength}");
+    return next.Invoke();
+});
+
 // Somewhat of a security concern. But since we are not doing POSTS im not concerned about it
 app.Use((context, next) =>
     {
