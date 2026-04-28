@@ -39,6 +39,8 @@ class SudokuVerifier : IVerifier<SUDOKU> {
 
     public bool VerifyHelper(SUDOKU problem, string certificate) {
         // Parses the problem instance and the certificate into 2D arrays
+        Console.WriteLine("Problem instance: " + problem.instance);
+        Console.WriteLine("Certificate: " + certificate);
         int[][] problemGrid = ParseSudokuInput(problem.instance);
         int[][] certificateGrid = ParseSudokuInput(certificate);
 
