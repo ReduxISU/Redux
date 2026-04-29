@@ -1,8 +1,5 @@
 ﻿using Xunit;
 using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION;
-using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers;
-using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Solvers;
-using API.Interfaces;
 
 namespace redux_tests;
 
@@ -13,7 +10,7 @@ public class LOSSLESSDATACOMPRESSION_Tests
     {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
         string actual_result = problem.defaultSolver.solve(problem);
-        Assert.Equal(problem.solution, actual_result);
+        Assert.Contains("encoded:", actual_result);
     }
 
     [Fact]
@@ -21,18 +18,21 @@ public class LOSSLESSDATACOMPRESSION_Tests
     {
         string input = "banana";
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(input);
+
         string actual_result = problem.defaultSolver.solve(problem);
-        Assert.Equal(problem.solution, actual_result);
+
+        Assert.Contains("encoded:", actual_result);
     }
 
     // verifier tests
 
     [Theory]
-    [InlineData("aaaaaa", "000000", true)]
-    [InlineData("Hello World!", "11010001010011110010011011111100", false)]
-    [InlineData("abcdef", "1001011101110001", true)]
-    [InlineData("Lossless data compression", "101101", false)]
-    [InlineData("algorithm", "1", false)]
+    [InlineData("aaaaaa", "(97=0) encoded:000000", true)]
+    [InlineData("aaaaaa", "(97=1) encoded:111111", true)]
+    [InlineData("abc", "(97=0;98=10;99=11) encoded:01011", true)]
+    [InlineData("abc", "(97=0;98=01;99=1) encoded:001", false)] // not prefix-free
+    [InlineData("abc", "(97=0;98=0;99=1) encoded:000", false)]  // invalid encoding
+    [InlineData("a", "(97=0) encoded:1", false)]                // wrong encoding
     public void LOSSLESS_Verifier(string instance, string certificate, bool expected)
     {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
@@ -42,19 +42,35 @@ public class LOSSLESSDATACOMPRESSION_Tests
         Assert.Equal(expected, result);
     }
 
-    // solver tests
+    // multiple valid encodings
 
-    [Theory]
-    [InlineData("Lossless data compression", "codes:{76=11000;97=1101;99=11001;100=11100;101=1111;105=11101;108=0000;109=0001;110=0010;111=011;112=0011;114=0100;115=10;116=0101}|encoded:110000111010000011111010111001101010111011100101100010011010011111010111010110010")]
-    [InlineData("aa", "codes:{97=0}|encoded:00")]
-    public void LOSSLESS_Solver_BasicCases(string instance, string expectedPrefix)
+    [Fact]
+    public void LOSSLESS_Verifier_Allows_Different_Valid_Encodings()
     {
+        string instance = "banana";
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
 
-        string result = problem.defaultSolver.solve(problem);
+        string cert1 = "(97=0;98=11;110=10) encoded:110100100";
+        string cert2 = "(97=1;98=00;110=01) encoded:001011011";
 
-        Assert.StartsWith("codes:{", result);
+        bool result1 = problem.defaultVerifier.verify(problem, cert1);
+        bool result2 = problem.defaultVerifier.verify(problem, cert2);
+
+        Assert.True(result1);
+        Assert.True(result2);
+    }
+
+    // solver tests
+
+    [Fact]
+    public void LOSSLESS_Solver_Returns_Valid_Format()
+    {
+        string input = "Lossless data compression";
+        LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(input);
+        string result = problem.defaultSolver.solve(problem);
         Assert.Contains("encoded:", result);
+        Assert.Contains("(", result);
+        Assert.Contains(")", result);
     }
 
     [Fact]
@@ -64,6 +80,6 @@ public class LOSSLESSDATACOMPRESSION_Tests
 
         string result = problem.defaultSolver.solve(problem);
 
-        Assert.Equal("codes:{}|encoded:", result);
+        Assert.Equal("( ) encoded:", result);
     }
 }

@@ -1,48 +1,126 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers;
+namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers
+{
+    class LosslessDataCompressionVerifier : IVerifier<LOSSLESSDATACOMPRESSION>
+    {
+        public string verifierName { get; } = "Lossless Data Compression Verifier";
+        public string verifierDefinition { get; } = "Verifies a proposed encoding by checking prefix-free property, decoding the bitstring, and comparing with original input.";
+        public string source { get; } = "Sayood, K. (2018). Introduction to data compression (5th ed.). Morgan Kaufmann.";
+        public string sourceLink { get; } = "https://www.vitalsource.com/products/introduction-to-data-compression-khalid-sayood-v9780128097052?srsltid=AfmBOoqEi_U3xj4PdBt2TaKZYgScGWnKA-v0OVyiworUKPYHJT0RWvPQ";
+        public string[] contributors { get; } = { "Bektur Akkabakov", "Prem Shah" };
 
-class LosslessDataCompressionVerifier : IVerifier<LOSSLESSDATACOMPRESSION> {
-
-    // --- Fields ---
-    public string verifierName {get;} = "Lossless Data Compression Verifier";
-    public string verifierDefinition {get;} = "Verifies a proposed Huffman encoding by recomputing the frequency table from the input string, reconstructing the Huffman tree using the default solver, regenerating the prefix-free code table, and checking that the provided encoded bitstring matches the recomputed encoding exactly.";
-    public string source {get;} = " ";
-    public string sourceLink {get;} = "";
-    public string[] contributors {get;} = { "Bektur Akkabakov", "Prem Shah" };
-    private string _certificate =  "";
-
-    public string certificate {
-        get {
-            return _certificate;
+        private string _certificate = "";
+        public string certificate
+        {
+            get { return _certificate; }
         }
-    }
 
-    // --- Methods Including Constructors ---
-    public LosslessDataCompressionVerifier() {}
+        public LosslessDataCompressionVerifier() { }
 
-    public bool verify(LOSSLESSDATACOMPRESSION problem, string certificate){
-        problem.defaultSolver.solve(problem);
-        if(problem.encodedText == certificate){
+        public bool verify(LOSSLESSDATACOMPRESSION problem, string certificate)
+        {
+            try
+            {
+                _certificate = certificate;
+
+                var (codeTable, encodedText) = ParseCertificate(certificate);
+
+                if (!IsPrefixFree(codeTable))
+                    return false;
+
+                string decoded = Decode(encodedText, codeTable);
+
+                return decoded == problem.instance;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // parsing (UPDATED FORMAT)
+        private (Dictionary<char, string>, string) ParseCertificate(string certificate)
+        {
+            int closeParen = certificate.IndexOf(')');
+            if (closeParen == -1)
+                throw new Exception("Invalid certificate format");
+
+            string codesContent = certificate.Substring(1, closeParen - 1);
+            string rest = certificate.Substring(closeParen + 1).Trim();
+
+            if (!rest.StartsWith("encoded:"))
+                throw new Exception("Missing encoded part");
+
+            string encoded = rest.Substring("encoded:".Length);
+
+            Dictionary<char, string> table = new Dictionary<char, string>();
+
+            foreach (var pair in codesContent.Split(';'))
+            {
+                if (string.IsNullOrWhiteSpace(pair)) continue;
+
+                string[] kv = pair.Split('=');
+                if (kv.Length != 2)
+                    throw new Exception("Invalid pair");
+
+                int ascii = int.Parse(kv[0]);
+                string code = kv[1];
+
+                table[(char)ascii] = code;
+            }
+
+            if (table.Count == 0)
+                throw new Exception("Empty code table");
+
+            return (table, encoded);
+        }
+
+        // prefix-free check
+        private bool IsPrefixFree(Dictionary<char, string> table)
+        {
+            var codes = table.Values.ToList();
+
+            for (int i = 0; i < codes.Count; i++)
+            {
+                for (int j = 0; j < codes.Count; j++)
+                {
+                    if (i == j) continue;
+
+                    if (codes[j].StartsWith(codes[i]))
+                        return false;
+                }
+            }
+
             return true;
         }
-        return false;
-    }
 
-    public string parseAfterColon(string input)
-    {
-        if (string.IsNullOrEmpty(input))
+        // decode
+        private string Decode(string encoded, Dictionary<char, string> table)
         {
-            return string.Empty;
+            Dictionary<string, char> reverse = table.ToDictionary(kv => kv.Value, kv => kv.Key);
+
+            string current = "";
+            var result = new List<char>();
+
+            foreach (char bit in encoded)
+            {
+                current += bit;
+
+                if (reverse.ContainsKey(current))
+                {
+                    result.Add(reverse[current]);
+                    current = "";
+                }
+            }
+
+            if (current.Length != 0)
+                throw new Exception("Invalid encoding");
+
+            return new string(result.ToArray());
         }
-
-        int colonIndex = input.LastIndexOf(':');
-
-        if (colonIndex == -1 || colonIndex == input.Length - 1)
-        {
-            return string.Empty;
-        }
-
-        return input.Substring(colonIndex + 1);
     }
 }

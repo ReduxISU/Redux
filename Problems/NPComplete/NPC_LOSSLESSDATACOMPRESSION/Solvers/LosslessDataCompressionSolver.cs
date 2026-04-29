@@ -15,7 +15,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         "and then encodes the original input string.";
 
     public string source { get; } =
-        "David A. Huffman, A Method for the Construction of Minimum-Redundancy Codes, Proceedings of the IRE, 1952.";
+        "https://www.ias.ac.in/article/fulltext/reso/011/02/0091-0099";
 
     public string[] contributors { get; } = { "Prem Shah", "Bektur Akkabakov" };
 
@@ -47,7 +47,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
 
         // empty input is still valid, it just compresses to nothing.
         if (input.Length == 0) {
-            problem.solution = "codes:{}|encoded:";
+            problem.solution = "( ) encoded:";
             return problem.solution;
         }
 
@@ -204,7 +204,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
     private string FormatSolution(Dictionary<char, string> codes, string encodedText) {
         StringBuilder solutionBuilder = new StringBuilder();
 
-        solutionBuilder.Append("codes:{");
+        solutionBuilder.Append("(");
 
         List<char> characters = new List<char>(codes.Keys);
         characters.Sort();
@@ -221,7 +221,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
             solutionBuilder.Append(codes[currentCharacter]);
         }
 
-        solutionBuilder.Append("}|encoded:");
+        solutionBuilder.Append(") encoded:");
         solutionBuilder.Append(encodedText);
 
         return solutionBuilder.ToString();
