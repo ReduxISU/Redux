@@ -36,11 +36,10 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
 
     // --- Methods and Constructors ---
     public SUDOKU() : this(_defaultInstance) {
-        Console.WriteLine("SUDOKU problem instance created with default instance: " + _defaultInstance);
+        
     }
 
     public SUDOKU(string input) {
-        Console.WriteLine("Creating Sudoku problem instance with input: " + input);
         // Parser is not currently working, I wasn't sure how to get SPADE to handle a list of lists/tuples or a set of lists/tuples.
 
         // StringParser parser = new("{N | N is set}");

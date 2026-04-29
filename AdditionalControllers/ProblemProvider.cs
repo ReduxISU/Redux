@@ -76,28 +76,11 @@ public class ProblemProvider : ControllerBase
     [HttpPost("verify")]
     public string verify(string verifier, [FromBody] Verify verify)
     {
-        try
-        {
-            Console.WriteLine("\n========== VERIFY ENDPOINT CALLED ==========");
-            Console.WriteLine($"[VERIFY] Verifier type: {verifier}");
-            Console.WriteLine($"[VERIFY] Problem Instance length: {verify?.ProblemInstance?.Length ?? 0}");
-            Console.WriteLine($"[VERIFY] Certificate length: {verify?.Certificate?.Length ?? 0}");
-            Console.WriteLine($"[VERIFY] Problem Instance (first 100 chars): {verify?.ProblemInstance?.Substring(0, Math.Min(100, verify.ProblemInstance?.Length ?? 0))}");
-            Console.WriteLine($"[VERIFY] Certificate (first 100 chars): {verify?.Certificate?.Substring(0, Math.Min(100, verify.Certificate?.Length ?? 0))}");
-            
-            // TODO: validate arguments
-            bool result = Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate);
-            Console.WriteLine($"[VERIFY] Result: {result}");
-            return JsonSerializer.Serialize(result.ToString(), new JsonSerializerOptions { WriteIndented = true });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[VERIFY ERROR] {ex.GetType().Name}: {ex.Message}");
-            Console.WriteLine($"[VERIFY ERROR] Stack trace: {ex.StackTrace}");
-            // Return exception details to help debugging invalid input during development
-            var err = new { error = ex.Message, stack = ex.ToString() };
-            return JsonSerializer.Serialize(err, new JsonSerializerOptions { WriteIndented = true });
-        }
+        // TODO: validate arguments
+        return JsonSerializer.Serialize(
+            Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate), 
+            new JsonSerializerOptions { WriteIndented = true }
+        );
     }
 
     /// <summary>
