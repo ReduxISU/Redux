@@ -25,8 +25,7 @@ namespace API.Problems.NPComplete.NPC_BINPACKING.Verifiers;
 
 class BinPackingVerifier : IVerifier<BINPACKING> {
 
-    // ── Metadata ─────────────────────────────────────────────────────────────
-
+    //  Metadata
     public string verifierName { get; } = "Bin Packing Verifier";
 
     // Explains all three checks and the overall time complexity.
@@ -52,12 +51,12 @@ class BinPackingVerifier : IVerifier<BINPACKING> {
         get { return _certificate; }
     }
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    
 
     public BinPackingVerifier() {
     }
 
-    // ── Main verification logic ───────────────────────────────────────────────
+    //  Main verification logic 
 
     public bool verify(BINPACKING problem, string certificate) {
 
@@ -105,8 +104,7 @@ class BinPackingVerifier : IVerifier<BINPACKING> {
         return true;
     }
 
-    // ── Certificate parser ────────────────────────────────────────────────────
-
+    //  Certificate parser 
     // Parses the certificate string "((a,b),(c,d,e),...)" into a list of bins,
     // where each bin is a list of integers.
     //
