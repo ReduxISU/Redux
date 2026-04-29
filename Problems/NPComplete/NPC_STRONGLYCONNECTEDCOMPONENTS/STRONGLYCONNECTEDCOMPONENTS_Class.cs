@@ -1,13 +1,13 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Solvers;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
 using API.DummyClasses;
 using SPADE;
 
-namespace API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS;
+namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
-class P_STRONGLYCONNECTEDCOMPONENTS 
+class STRONGLYCONNECTEDCOMPONENTS 
     : IGraphProblem<KosarajuSolver, SCCVerifier, DummyVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Strongly Connected Components";
@@ -30,9 +30,9 @@ class P_STRONGLYCONNECTEDCOMPONENTS
 
     public UtilCollectionGraph graph { get; set; }
 
-    public P_STRONGLYCONNECTEDCOMPONENTS() : this(_defaultInstance) { }
+    public STRONGLYCONNECTEDCOMPONENTS() : this(_defaultInstance) { }
 
-    public P_STRONGLYCONNECTEDCOMPONENTS(string instanceString)
+    public STRONGLYCONNECTEDCOMPONENTS(string instanceString)
     {
         instance = instanceString;
 

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
-namespace API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Solvers;
+namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 
-class KosarajuSolver : ISolver<P_STRONGLYCONNECTEDCOMPONENTS>
+class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
 {
     public string solverName { get; } = "Kosaraju's Algorithm";
     public string solverDefinition { get; } = "Finds strongly connected components in a directed graph using two depth-first searches: one on the original graph and one on the reversed graph.";
@@ -13,7 +13,7 @@ class KosarajuSolver : ISolver<P_STRONGLYCONNECTEDCOMPONENTS>
     public string[] contributors { get; } = { "Surendra Thapa", "Rohan Shrestha" };
     public bool timerHasExpired { get; set; }
 
-    public string solve(P_STRONGLYCONNECTEDCOMPONENTS problem)
+    public string solve(STRONGLYCONNECTEDCOMPONENTS problem)
     {
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         var edges = problem.graph.Edges.ToList();

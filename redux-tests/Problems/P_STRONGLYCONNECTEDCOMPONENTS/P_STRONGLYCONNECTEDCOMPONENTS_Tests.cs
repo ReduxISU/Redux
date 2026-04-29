@@ -1,6 +1,6 @@
 using Xunit;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Solvers;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 
 namespace redux_tests.Problems.P
 {
@@ -11,7 +11,7 @@ namespace redux_tests.Problems.P
         {
             string input = "({0,1,2,3,4,5,6,7},{(0,1),(1,2),(2,3),(2,0),(3,4),(4,5),(5,6),(6,4),(4,7),(6,7)})";
 
-            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var problem = new STRONGLYCONNECTEDCOMPONENTS(input);
             var solver = new KosarajuSolver();
 
             string result = solver.solve(problem);
@@ -27,7 +27,7 @@ namespace redux_tests.Problems.P
         {
             string input = "({1,2,3},{(1,2),(2,3)})";
 
-            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var problem = new STRONGLYCONNECTEDCOMPONENTS(input);
             var solver = new KosarajuSolver();
 
             string result = solver.solve(problem);
@@ -42,7 +42,7 @@ namespace redux_tests.Problems.P
         {
             string input = "({1,2,3},{(1,2),(2,3),(3,1)})";
 
-            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var problem = new STRONGLYCONNECTEDCOMPONENTS(input);
             var solver = new KosarajuSolver();
 
             string result = solver.solve(problem);
@@ -55,7 +55,7 @@ namespace redux_tests.Problems.P
         {
             string input = "({1},{})";
 
-            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var problem = new STRONGLYCONNECTEDCOMPONENTS(input);
             var solver = new KosarajuSolver();
 
             string result = solver.solve(problem);

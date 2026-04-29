@@ -1,10 +1,10 @@
 using API.Interfaces;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Solvers;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 
-namespace API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
+namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
 
-class SCCVerifier : IVerifier<P_STRONGLYCONNECTEDCOMPONENTS>
+class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS>
 {
     public string verifierName { get; } = "Strongly Connected Components Verifier";
     public string verifierDefinition { get; } = "Verifies an SCC certificate by comparing it with the output produced by Kosaraju's Algorithm.";
@@ -12,7 +12,7 @@ class SCCVerifier : IVerifier<P_STRONGLYCONNECTEDCOMPONENTS>
     public string[] contributors { get; } = { "Surendra Thapa", "Rohan Shrestha" };
     public string certificate { get; set; } = string.Empty;
 
-    public bool verify(P_STRONGLYCONNECTEDCOMPONENTS problem, string certificate)
+    public bool verify(STRONGLYCONNECTEDCOMPONENTS problem, string certificate)
     {
         if (string.IsNullOrWhiteSpace(certificate))
             return false;
