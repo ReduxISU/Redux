@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_TSP.Solvers;
 using API.Problems.NPComplete.NPC_TSP.Verifiers;
 
 namespace redux_tests;
-
+#pragma warning disable CS1591
 public class TSP_Tests {
 
     //TSP Greedy solver tests
