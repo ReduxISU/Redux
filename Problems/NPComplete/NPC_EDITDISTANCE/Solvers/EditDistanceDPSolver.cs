@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
-using API.Problems.P.P_EDITDISTANCE;
+using API.Problems.NPComplete.NPC_EDITDISTANCE;
 using SPADE;
 
 
-namespace API.Problems.P.P_EDITDISTANCE.Solvers;
+namespace API.Problems.NPComplete.NPC_EDITDISTANCE.Solvers;
 
 class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
     public string solverName { get; } = "Dynamic Programming Edit Distance Solver";
