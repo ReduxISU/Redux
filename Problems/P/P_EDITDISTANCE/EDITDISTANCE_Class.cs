@@ -7,7 +7,7 @@ using SPADE;
 
 namespace API.Problems.P.P_EDITDISTANCE;
 
-class P_EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyVisualization>
+class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyVisualization>
 {
     public string problemName { get; } = "Edit Distance";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Edit_distance";
