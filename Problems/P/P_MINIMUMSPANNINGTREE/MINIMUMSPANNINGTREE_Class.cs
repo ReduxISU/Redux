@@ -2,14 +2,14 @@ using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
 using API.Problems.P.P_MINIMUMSPANNINGTREE.Verifiers;
-using API.DummyClasses;
+using API.Problems.P.P_MINIMUMSPANNINGTREE.Visualizations;
 using SPADE;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace API.Problems.P.P_MINIMUMSPANNINGTREE;
 
-class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, DummyVisualization, UtilCollectionGraph>
+class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Minimum Spanning Tree";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
@@ -28,7 +28,7 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
 
     public KruskalSolver defaultSolver { get; } = new KruskalSolver();
     public MinimumSpanningTreeVerifier defaultVerifier { get; } = new MinimumSpanningTreeVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public MinimumSpanningTreeVisualization defaultVisualization { get; } = new MinimumSpanningTreeVisualization();
     public UtilCollectionGraph graph { get; set; }
 
     public List<string> nodes
