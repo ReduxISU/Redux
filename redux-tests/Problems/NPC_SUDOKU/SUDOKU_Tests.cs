@@ -2,6 +2,7 @@ using Xunit;
 using API.Problems.NPComplete.NPC_SUDOKU;
 using API.Problems.NPComplete.NPC_SUDOKU.Verifiers;
 using API.Problems.NPComplete.NPC_SUDOKU.Solvers;
+using System.Runtime.InteropServices;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -33,6 +34,9 @@ Example Solution:
 public class SUDOKU_Tests
 {
 	private readonly SudokuVerifier _verifier = new();
+    private SudokuSolver _solver = new();
+
+    // Verifier Tests
 
 	#region Valid Solution Tests
 
@@ -332,6 +336,38 @@ public class SUDOKU_Tests
 	}
 
 	#endregion
+
+    // Solver Tests
+
+    #region One-Solution Problem Tests
+    
+    [Theory]
+
+    [InlineData("0,0,0,0,0,0,0,1,0;4,0,0,0,0,0,0,0,0;0,2,0,0,0,0,0,0,0;0,0,0,0,5,0,4,0,7;0,0,8,0,0,0,3,0,0;0,0,1,0,9,0,0,0,0;3,0,0,4,0,0,2,0,0;0,5,0,1,0,0,0,0,0;0,0,0,8,0,6,0,0,0","6,9,3,7,8,4,5,1,2;4,8,7,5,1,2,9,3,6;1,2,5,9,6,3,8,7,4;9,3,2,6,5,1,4,8,7;5,6,8,2,4,7,3,9,1;7,4,1,3,9,8,6,2,5;3,1,9,4,7,5,2,6,8;8,5,6,1,2,9,7,4,3;2,7,4,8,3,6,1,5,9;")]
+    [InlineData("0,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5","6,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5")]
+    public void Verify_OneSolutionProblem_ReturnsCorrect(string instance, string expected)
+    {
+        var problem = new SUDOKU(instance);
+
+        Assert.Equivalent(expected, _solver.solve(problem));
+    }
+
+    #endregion
+
+    #region Unsolvable Problem Tests
+
+    [Theory]
+
+    [InlineData("0,0,1,1,0,0,2,0,3;0,2,0,0,4,0,5,0,6;0,7,0,0,0,6,4,0,0;5,0,0,6,0,0,8,0,0;0,6,0,4,0,2,0,5,0;0,0,4,0,0,9,0,0,7;0,0,9,5,0,0,0,4,0;7,0,6,0,8,0,0,1,0;4,0,3,0,0,7,0,0,0")]
+    [InlineData("7,8,1,5,4,3,9,2,6;0,0,6,1,7,9,5,0,0;9,5,4,6,2,8,7,3,1;6,9,5,8,3,7,2,1,4;1,4,8,2,6,5,3,7,9;3,2,7,9,1,4,8,0,0;4,1,3,7,5,2,6,9,8;0,0,2,0,0,0,4,0,0;5,7,9,4,8,6,1,0,3")]
+    public void Verify_UnsolvableProblem_RetunsEmpty(string instance)
+    {
+        var problem = new SUDOKU(instance);
+
+        Assert.Equivalent("", _solver.solve(problem));
+    }
+
+    #endregion
 }
 
 

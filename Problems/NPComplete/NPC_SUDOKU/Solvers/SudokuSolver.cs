@@ -5,9 +5,9 @@ class SudokuSolver : ISolver<SUDOKU> {
 
     // --- Fields ---
     public string solverName { get; } = "Backtrack";
-    public string solverDefinition { get; } = "TODO";
+    public string solverDefinition { get; } = "This solver uses backtracking to solve Sudoku problems.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Carter Luker, Collin Kress, & Daniel Fawson" };
+    public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
@@ -54,6 +54,7 @@ class SudokuSolver : ISolver<SUDOKU> {
         return row / _blockSize * _blockSize + col / _blockSize;
     }
 
+    // Sets the value of a particular cell and removes it from the relevant sets
     private void SetValue(int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
                           int value, int row, int col)
     {
@@ -64,6 +65,7 @@ class SudokuSolver : ISolver<SUDOKU> {
         blocks[b].Remove(value);
     }
 
+    // Clears the value of a particular cell and adds it to the relevant sets
     private int ClearValue(int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
                             int row, int col)
     {
@@ -76,7 +78,7 @@ class SudokuSolver : ISolver<SUDOKU> {
         return value;
     }
 
-    // Returns a list of (value, row, col) changes made, for undoing on backtrack.
+    // UNFINISHED. Returns a list of (value, row, col) changes made, for undoing on backtrack.
     private List<(int value, int row, int col)> HiddenSingles(
         int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
         int startRow, int startCol)
@@ -149,6 +151,7 @@ class SudokuSolver : ISolver<SUDOKU> {
         return changelog;
     }
 
+    // UNFINISHED
     private void UndoHiddenSingles(int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
                                     List<(int value, int row, int col)> changelog)
     {
@@ -183,14 +186,14 @@ class SudokuSolver : ISolver<SUDOKU> {
         foreach (int k in Intersect(rows[row], cols[col], blocks[b]))
         {
             SetValue(grid, rows, cols, blocks, k, row, col);
-            var changelog = HiddenSingles(grid, rows, cols, blocks, row, col + 1);
+        //    var changelog = HiddenSingles(grid, rows, cols, blocks, row, col + 1);        // Hidden singles optimization is unfinished, requires more overhead
 
             if (SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions))
                 return true;
 
             // Undo edits if solution is not valid
             ClearValue(grid, rows, cols, blocks, row, col);
-            UndoHiddenSingles(grid, rows, cols, blocks, changelog);
+        //    UndoHiddenSingles(grid, rows, cols, blocks, changelog);
         }
 
         return false;
@@ -229,6 +232,15 @@ class SudokuSolver : ISolver<SUDOKU> {
         }
 
         SolveHelper(solution, rows, cols, blocks, 0, 0, false, new List<int[][]>());
+
+        // If solution contains any 0s, the problem is unsolveable
+        for (int r = 0; r < solution.Length; r++)
+        {
+            for (int c = 0; c < solution.Length; c++)
+            {
+                if (solution[r][c] == 0) return "";
+            }
+        }
 
         var sb = new System.Text.StringBuilder();
         for (int r = 0; r < solution.Length; r++)
