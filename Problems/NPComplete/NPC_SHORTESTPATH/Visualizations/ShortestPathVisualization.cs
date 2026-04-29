@@ -1,4 +1,4 @@
-﻿using API.Interfaces;
+using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -12,7 +12,7 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
     public string visualizationName { get; } = "Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the BFS and Dijkstra's algorithm";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant" };
+    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt"};
     public string visualizationType => "Graph D3";
 
     public ShortestPathVisualization() { }
@@ -69,6 +69,49 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
         return graph;
     }
 
+    public API_JSON AlternativePathsVisualization(SHORTESTPATH problem, string solution)
+    {
+        if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
+            // No path found, return graph with no highlights
+            return visualize(problem);
+        
+        List<string> path;
+        try
+        {
+            // Parse the solution as a path
+            path = GraphParser.parseNodeListWithStringFunctions(solution);
+        }
+        catch
+        {
+            // Invalid solution format, return graph with no highlights
+            return visualize(problem);
+        }
+
+        API_GraphJSON graph = problem.graph.ToAPIGraph(); // Convert to API graph format
+
+        var pathNodes = new HashSet<string>(path);
+        for (int i = 0; i < graph.nodes.Count; i++)
+            if (pathNodes.Contains(graph.nodes[i].name))
+                graph.nodes[i].color = "SolutionAlt";
+
+        
+        var pathEdges = new HashSet<(string u, string v)>();
+        for (int i = 0; i < path.Count - 1; i++)
+            pathEdges.Add((path[i], path[i + 1]));
+
+        for (int i = 0; i < graph.links.Count; i++)
+        {
+            var link = graph.links[i];
+            bool isForwardPathEdge = pathEdges.Contains((link.source, link.target));
+            bool isReversePathEdge = !problem.isDirected && pathEdges.Contains((link.target, link.source));
+
+            if (isForwardPathEdge || isReversePathEdge)
+                link.color = "SolutionAlt";
+        }
+        return graph;
+    }
+
+
     public List<API_JSON> stepsVisualization(SHORTESTPATH problem, List<string> steps)
     {
         var result = new List<API_JSON>();
@@ -78,6 +121,7 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
             if(string.IsNullOrWhiteSpace(step) || step.Trim() == "{}")
             {
                 result.Add(visualize(problem));
+                continue;
             }
 
             List<string> path;
