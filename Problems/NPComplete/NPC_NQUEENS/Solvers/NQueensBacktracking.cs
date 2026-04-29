@@ -8,8 +8,8 @@ class NQueensBacktracking : ISolver<NQUEENS> {
     public string solverName { get; } = "N-Queens Backtracking Solver";
     public string solverDefinition { get; } =
         "Places queens row by row using backtracking and returns a valid placement if one exists.";
-    public string source { get; } = "";
-    public string[] contributors { get; } = { "Your Name" };
+    public string source { get; } = "Classic backtracking approach for the N-Queens problem.";
+    public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
     public bool timerHasExpired { get; set; }
 
     public string complexity { get; } = "O(N!)";
@@ -23,7 +23,7 @@ class NQueensBacktracking : ISolver<NQUEENS> {
             return formatCertificate(board);
         }
 
-        return "";
+        return "{}";
     }
 
     private bool backtrack(int row, int[] board, int n) {

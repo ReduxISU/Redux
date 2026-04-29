@@ -9,8 +9,8 @@ class NQueensVerifier : IVerifier<NQUEENS> {
     public string verifierName { get; } = "N-Queens Verifier";
     public string verifierDefinition { get; } =
         "Checks that no two queens share the same row, column, or diagonal.";
-    public string source { get; } = "";
-    public string[] contributors { get; } = { "Your Name" };
+    public string source { get; } = "Standard verification for N-Queens by checking row, column, and diagonal conflicts.";
+    public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
 
     private string _complexity = "O(n^2)";
     private string _certificate = "{(0,1),(1,3),(2,0),(3,2)}";

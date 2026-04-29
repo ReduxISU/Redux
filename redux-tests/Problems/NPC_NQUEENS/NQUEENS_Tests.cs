@@ -121,7 +121,7 @@ public class NQUEENS_Tests
 
         string certificate = solver.solve(problem);
 
-        Assert.Equal("", certificate);
+        Assert.Equal("{}", certificate);
     }
 
     [Fact]
@@ -132,6 +132,6 @@ public class NQUEENS_Tests
 
         string certificate = solver.solve(problem);
 
-        Assert.Equal("", certificate);
+        Assert.Equal("{}", certificate);
     }
 }
