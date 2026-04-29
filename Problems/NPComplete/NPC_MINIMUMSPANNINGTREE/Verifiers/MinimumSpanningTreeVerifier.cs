@@ -153,7 +153,7 @@ class MinimumSpanningTreeVerifier : IVerifier<NPC_MINIMUMSPANNINGTREE>
         return s.StartsWith("{") || s.StartsWith("(");
     }
 
-    private class UnionFind<T>
+    private class UnionFind<T> where T : notnull
     {
         private readonly Dictionary<T, T> parent = new();
         private readonly Dictionary<T, int> rank = new();
