@@ -15,7 +15,7 @@ namespace API.Problems.NPComplete.NPC_BINPACKING;
 
 class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisualization> {
 
-    // ── Human-readable metadata shown in the Redux UI ──────────────────────
+    // ── Human-readable metadata shown in the Redux UI 
 
     public string problemName { get; } = "Bin Packing";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Bin_packing_problem";
@@ -36,7 +36,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
 
     public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta" };
 
-    // ── Instance storage ────────────────────────────────────────────────────
+    
 
     // The current instance string (set by the constructor or by Redux when a user
     // types a custom input into the UI).
@@ -50,7 +50,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
 
     public string wikiName { get; } = "";
 
-    // ── Parsed problem components ──────────────────────────────────────────
+    
 
     // S — the multiset of item sizes parsed from the instance string.
     // Using "multiset" rather than "set" is important: duplicate sizes are allowed.
@@ -62,7 +62,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // K — the maximum number of bins we are allowed to use.
     private int _K;
 
-    // ── Wired-up solver, verifier, and visualization ─────────────────────────
+  
 
     // Brute force is the default solver because it is always correct.
     // FFD is registered separately as a named heuristic solver.
@@ -73,7 +73,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // Dummy visualization is an approach also used by KNAPSACK and JOBSEQ.
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
 
-    // ── Public properties ────────────────────────────────────────────────────
+  
 
     public List<int> S {
         get { return _S; }
@@ -90,7 +90,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
         set { _K = value; }
     }
 
-    // ── Constructors ─────────────────────────────────────────────────────────
+  
 
     // Default constructor — loads the built-in example instance.
     public BINPACKING() : this(_defaultInstance) {
