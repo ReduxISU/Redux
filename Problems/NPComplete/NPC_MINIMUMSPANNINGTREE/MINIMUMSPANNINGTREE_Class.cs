@@ -1,15 +1,15 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Verifiers;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Visualizations;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Visualizations;
 using SPADE;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
-class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
+class NPC_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Minimum Spanning Tree";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
@@ -43,9 +43,9 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
         set => _edges = value;
     }
 
-    public P_MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
+    public NPC_MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
 
-    public P_MINIMUMSPANNINGTREE(string instanceString)
+    public NPC_MINIMUMSPANNINGTREE(string instanceString)
     {
         instance = instanceString;
 

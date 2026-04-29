@@ -2,11 +2,11 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE.Visualizations;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Visualizations;
 
-class MinimumSpanningTreeVisualization : IVisualization<P_MINIMUMSPANNINGTREE>
+class MinimumSpanningTreeVisualization : IVisualization<NPC_MINIMUMSPANNINGTREE>
 {
     public string visualizationName { get; } = "Minimum Spanning Tree Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted graph and highlights the edges selected for a minimum spanning tree.";
@@ -15,12 +15,12 @@ class MinimumSpanningTreeVisualization : IVisualization<P_MINIMUMSPANNINGTREE>
     public string visualizationType { get; } = "Graph D3";
     public ISolver solver { get; } = new KruskalSolver();
 
-    public API_JSON visualize(P_MINIMUMSPANNINGTREE problem)
+    public API_JSON visualize(NPC_MINIMUMSPANNINGTREE problem)
     {
         return problem.graph.ToAPIGraph();
     }
 
-    public API_JSON SolvedVisualization(P_MINIMUMSPANNINGTREE problem, string solution)
+    public API_JSON SolvedVisualization(NPC_MINIMUMSPANNINGTREE problem, string solution)
     {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
             return visualize(problem);

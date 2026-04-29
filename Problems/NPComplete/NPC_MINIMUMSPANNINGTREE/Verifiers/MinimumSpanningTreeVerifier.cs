@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
-using API.Problems.P.P_MINIMUMSPANNINGTREE;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 using SPADE;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE.Verifiers;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
 
-class MinimumSpanningTreeVerifier : IVerifier<P_MINIMUMSPANNINGTREE>
+class MinimumSpanningTreeVerifier : IVerifier<NPC_MINIMUMSPANNINGTREE>
 {
     public string verifierName { get; } = "Minimum Spanning Tree Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edge set is a valid minimum spanning tree for the input graph.";
@@ -18,7 +18,7 @@ class MinimumSpanningTreeVerifier : IVerifier<P_MINIMUMSPANNINGTREE>
     private string _certificate = string.Empty;
     public string certificate => _certificate;
 
-    public bool verify(P_MINIMUMSPANNINGTREE problem, string solution)
+    public bool verify(NPC_MINIMUMSPANNINGTREE problem, string solution)
     {
         _certificate = solution ?? string.Empty;
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
