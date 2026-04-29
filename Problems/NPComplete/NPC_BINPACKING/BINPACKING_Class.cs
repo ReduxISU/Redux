@@ -50,7 +50,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
 
     public string wikiName { get; } = "";
 
-    // ── Parsed problem components ────────────────────────────────────────────
+    // ── Parsed problem components ──────────────────────────────────────────
 
     // S — the multiset of item sizes parsed from the instance string.
     // Using "multiset" rather than "set" is important: duplicate sizes are allowed.
@@ -70,7 +70,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     public BinPackingVerifier defaultVerifier { get; } = new BinPackingVerifier();
 
     // No custom visualization — we reuse the shared DummyVisualization,
-    // the same approach used by KNAPSACK and JOBSEQ.
+    // Dummy visualization is an approach also used by KNAPSACK and JOBSEQ.
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
 
     // ── Public properties ────────────────────────────────────────────────────
