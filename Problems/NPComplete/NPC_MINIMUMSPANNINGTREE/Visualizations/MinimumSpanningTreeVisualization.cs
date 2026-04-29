@@ -6,7 +6,7 @@ using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Visualizations;
 
-class MinimumSpanningTreeVisualization : IVisualization<NPC_MINIMUMSPANNINGTREE>
+class MinimumSpanningTreeVisualization : IVisualization<MINIMUMSPANNINGTREE>
 {
     public string visualizationName { get; } = "Minimum Spanning Tree Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted graph and highlights the edges selected for a minimum spanning tree.";
@@ -15,12 +15,12 @@ class MinimumSpanningTreeVisualization : IVisualization<NPC_MINIMUMSPANNINGTREE>
     public string visualizationType { get; } = "Graph D3";
     public ISolver solver { get; } = new KruskalSolver();
 
-    public API_JSON visualize(NPC_MINIMUMSPANNINGTREE problem)
+    public API_JSON visualize(MINIMUMSPANNINGTREE problem)
     {
         return problem.graph.ToAPIGraph();
     }
 
-    public API_JSON SolvedVisualization(NPC_MINIMUMSPANNINGTREE problem, string solution)
+    public API_JSON SolvedVisualization(MINIMUMSPANNINGTREE problem, string solution)
     {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
             return visualize(problem);

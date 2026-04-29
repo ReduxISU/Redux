@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
-class NPC_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
+class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Minimum Spanning Tree";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
@@ -43,9 +43,9 @@ class NPC_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTree
         set => _edges = value;
     }
 
-    public NPC_MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
+    public MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
 
-    public NPC_MINIMUMSPANNINGTREE(string instanceString)
+    public MINIMUMSPANNINGTREE(string instanceString)
     {
         instance = instanceString;
 

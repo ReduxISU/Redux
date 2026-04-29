@@ -9,7 +9,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
 
-class MinimumSpanningTreeVerifier : IVerifier<NPC_MINIMUMSPANNINGTREE>
+class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
 {
     public string verifierName { get; } = "Minimum Spanning Tree Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edge set is a valid minimum spanning tree for the input graph.";
@@ -18,7 +18,7 @@ class MinimumSpanningTreeVerifier : IVerifier<NPC_MINIMUMSPANNINGTREE>
     private string _certificate = string.Empty;
     public string certificate => _certificate;
 
-    public bool verify(NPC_MINIMUMSPANNINGTREE problem, string solution)
+    public bool verify(MINIMUMSPANNINGTREE problem, string solution)
     {
         _certificate = solution ?? string.Empty;
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
