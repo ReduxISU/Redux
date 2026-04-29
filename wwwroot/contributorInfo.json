@@ -1,0 +1,177 @@
+{
+  "Kaden Marchetti": {
+    "email": "kadenmarchetti@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Full-stack developer with expertise in NP-Complete problems"
+  },
+  "Caleb Eardley": {
+    "email": "calebeardley@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Backend specialist focusing on problem reductions"
+  },
+  "Daniel Igbokwe": {
+    "email": "danieligbokwe@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Algorithm optimization expert"
+  },
+  "Alex Diviney": {
+    "email": "alexdiviney@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Frontend and visualization specialist"
+  },
+  "Janita Aamir": {
+    "email": "janitamir@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Problem solver and verifier developer"
+  },
+  "Andrija Sevaljevic": {
+    "email": "andrijaSevaljevic@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Graph algorithm specialist"
+  },
+  "Garret Stouffer": {
+    "email": "garretstouffer@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Data structure and algorithm expert"
+  },
+  "Porter Glines": {
+    "email": "porterglines@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Testing and quality assurance specialist"
+  },
+  "Show Pratoomratana": {
+    "email": "showpratoomratana@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "UI/UX and frontend developer"
+  },
+  "Russell Phillips": {
+    "email": "russellphillips@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Documentation and project coordinator"
+  },
+  "Michael Crapse": {
+    "email": "michaelcrapse@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Backend infrastructure developer"
+  },
+  "Ian Gonzalez": {
+    "email": "iangonzalez@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Algorithm solver specialist"
+  },
+  "Sabal Subedi": {
+    "email": "sabalsubedi@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Problem verification specialist"
+  },
+  "Himanshu Jha": {
+    "email": "himanshujha@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Full-stack developer and API specialist"
+  },
+  "Sansar Kharal": {
+    "email": "sanskharal@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Backend and solver specialist"
+  },
+  "Pratham Khanal": {
+    "email": "prathamkhanal@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Database and backend developer"
+  },
+  "George Lake": {
+    "email": "georgelake@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Algorithm specialist and reducer"
+  },
+  "Grant Gardner": {
+    "email": "grantgardner@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Problem solver and verifier contributor"
+  },
+  "Jason Wright": {
+    "email": "jasonwright@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science"
+
+    
+  },
+  "Alex Svancara": {
+    "email": "alexsvancara@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Problem implementation specialist"
+  },
+  "Eric Hill": {
+    "email": "erichill@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Solver and reduction developer"
+  },
+  "Max Grünwoldt": {
+    "email": "maxgrunwoldt@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Algorithm and data structure expert"
+  },
+  "Paul Gilbreath": {
+    "email": "paulgilbreath@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Backend developer and API contributor"
+  },
+  "Andreas Kramer": {
+    "email": "andreaskramer@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Problem implementation and testing"
+  },
+  "Courtney Bodily": {
+    "email": "courtneybodily@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Project lead and system architect"
+  },
+  "Rakesh Itani": {
+    "email": "rakeshitani@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Frontend developer and UI specialist"
+  },
+  "Pravesh Aryal": {
+    "email": "praveshAryal@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science (Minor: Mathematics)",
+    "bio": "Machine learning model architecture; contributor to Redux graph algorithms and problem implementations"
+  },
+  "Koras Koirala": {
+    "email": "koraskoirala@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Machine learning model architecture; contributor to Redux testing and problem verification"
+  },
+  "Dinesh Khanal": {
+    "email": "dineshkhanal@isu.edu",
+    "education": "Idaho State University",
+    "major": "Mathematics (Minor: Computer Science)",
+    "bio": "Algorithm and logic developer; contributor to Redux problem solver design"
+  }
+}

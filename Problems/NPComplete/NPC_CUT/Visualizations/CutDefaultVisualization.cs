@@ -3,6 +3,7 @@ using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
+using API.Problems.NPComplete.NPC_CUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CUT.Visualizations;
 
@@ -15,6 +16,7 @@ class CutDefaultVisualization : IVisualization<CUT>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Graph D3";
+    public ISolver solver { get; } = new CutBruteForce();
 
     // --- Methods Including Constructors ---
     public CutDefaultVisualization()

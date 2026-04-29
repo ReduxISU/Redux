@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_SAT3;
+using API.Problems.NPComplete.NPC_SAT3.Solvers;
 
 class Sat3DefaultVisualization : IVisualization<SAT3>
 {
@@ -9,6 +10,7 @@ class Sat3DefaultVisualization : IVisualization<SAT3>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Kaden Marchetti" };
     public string visualizationType { get; } = "Boolean Satisfiability";
+    public ISolver solver { get; } = new Sat3BacktrackingSolver();
 
     // --- Methods Including Constructors ---
     public Sat3DefaultVisualization()

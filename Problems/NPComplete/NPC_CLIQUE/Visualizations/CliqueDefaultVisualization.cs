@@ -3,8 +3,9 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
-namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizers;
+namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 
 class CliqueDefaultVisualization : IVisualization<CLIQUE>
 {
@@ -13,6 +14,7 @@ class CliqueDefaultVisualization : IVisualization<CLIQUE>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Kaden Marchetti", "Alex Diviney", "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Graph D3";
+    public ISolver solver { get; } = new CliqueBruteForce();
 
     // --- Methods Including Constructors ---
     public CliqueDefaultVisualization()

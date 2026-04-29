@@ -9,7 +9,7 @@ using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_ARCSET.Solvers;
 using API.Problems.NPComplete.NPC_ARCSET.Verifiers;
-using API.Problems.NPComplete.NPC_ARCSET.Visualizers;
+using API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 using SPADE;
 using Xunit.Sdk;
 namespace API.Problems.NPComplete.NPC_ARCSET;
