@@ -23,7 +23,7 @@ namespace redux_tests;
 
 public class BINPACKING_Tests {
 
-    // ── Instantiation ────────────────────────────────────────────────────────
+    // Instantiation
     // Make sure the constructor correctly parses the instance string into
     // the S (item sizes), C (bin capacity), and K (bin limit) fields.
 
@@ -49,7 +49,7 @@ public class BINPACKING_Tests {
         Assert.Equal(2, bp.K);
     }
 
-    // ── Verifier — valid certificates (should return true) ───────────────────
+    //  Verifier — valid certificates (should return true) 
     // Each case is a YES-instance with a correctly formed certificate.
     // We test two different valid packings of the same default instance
     // to confirm the verifier accepts any correct packing, not just one specific one.
@@ -69,7 +69,7 @@ public class BINPACKING_Tests {
         Assert.Equal(expected, verifier.verify(bp, certificate));
     }
 
-    // ── Verifier — invalid certificates (should return false) ────────────────
+    //  Verifier — invalid certificates (should return false) 
     // Each case targets a different failure mode so we know every check works.
 
     [Theory]
@@ -89,7 +89,7 @@ public class BINPACKING_Tests {
         Assert.Equal(expected, verifier.verify(bp, certificate));
     }
 
-    // ── Brute Force Solver — feasible instances ───────────────────────────────
+    //  Brute Force Solver — feasible instances 
     // These are YES-instances. The brute force solver must find a valid packing
     // and return the exact certificate we traced by hand.
     //
@@ -112,7 +112,7 @@ public class BINPACKING_Tests {
         Assert.Equal(expectedCert, result);
     }
 
-    // ── Brute Force Solver — infeasible instances ─────────────────────────────
+    //  Brute Force Solver — infeasible instances
     // These are NO-instances. The solver must exhaustively confirm no packing
     // exists and return an empty string "".
 
@@ -127,7 +127,7 @@ public class BINPACKING_Tests {
         Assert.Equal("", solver.solve(bp));
     }
 
-    // ── FFD Solver — feasible instances ──────────────────────────────────────
+    // FFD Solver — feasible instances 
     // FFD sorts items largest-first, then places each item in the first bin
     // that still has room. We verify the exact output of that greedy process.
     //
@@ -147,7 +147,7 @@ public class BINPACKING_Tests {
         Assert.Equal(expectedCert, result);
     }
 
-    // ── FFD Solver — over-K or impossible instances ───────────────────────────
+    //  FFD Solver — over-K or impossible instances 
     // When FFD would need more than K bins, it returns "" rather than exceeding
     // the limit. Note: "" from FFD does NOT prove infeasibility — use brute force.
 
@@ -163,7 +163,7 @@ public class BINPACKING_Tests {
         Assert.Equal("", solver.solve(bp));
     }
 
-    // ── Round-trip: Solver output → Verifier ─────────────────────────────────
+    //  Round-trip: Solver output → Verifier 
     // Any certificate produced by a solver must be accepted by the verifier.
     // This catches any mismatch between the certificate format the solver
     // outputs and the format the verifier expects to parse.
