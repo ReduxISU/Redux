@@ -116,8 +116,10 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
     {
         var result = new List<API_JSON>();
 
-        foreach (var step in steps)
+        for (int s = 0; s < steps.Count; s++)
         {
+            string step = steps[s];
+
             if(string.IsNullOrWhiteSpace(step) || step.Trim() == "{}")
             {
                 result.Add(visualize(problem));
@@ -174,6 +176,12 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
             }
 
             result.Add(graph);
+
+            if (s > 0 && s < steps.Count - 1)
+            {
+                // Show the previously explored path as an alternate frame between interior steps.
+                result.Add(AlternativePathsVisualization(problem, steps[s - 1]));
+            }
         }
 
         return result;

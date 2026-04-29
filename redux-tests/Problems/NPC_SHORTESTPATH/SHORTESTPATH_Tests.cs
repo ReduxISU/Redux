@@ -1,8 +1,10 @@
 ﻿using System;
 using Xunit;
+using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_SHORTESTPATH;
 using API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
 using API.Problems.NPComplete.NPC_SHORTESTPATH.Verifiers;
+using API.Problems.NPComplete.NPC_SHORTESTPATH.Visualizations;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -70,5 +72,21 @@ public class SHORTESTPATH_Tests
     {
         string instance = "(({1,2,3},{((1,2),1),((2,3),1)}),4,3)";
         Assert.Throws<InvalidOperationException>(() => new SHORTESTPATH(instance));
+    }
+
+    [Fact]
+    public void SHORTESTPATH_StepsVisualization_Adds_Alternate_Frame_For_Interior_Steps()
+    {
+        string instance = "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
+        SHORTESTPATH problem = new SHORTESTPATH(instance);
+        ShortestPathVisualization visualization = new ShortestPathVisualization();
+
+        var steps = new System.Collections.Generic.List<string> { "{1}", "{1,3}", "{1,3,5}" };
+        var frames = visualization.stepsVisualization(problem, steps);
+
+        Assert.Equal(4, frames.Count);
+
+        API_GraphJSON alternateFrame = Assert.IsType<API_GraphJSON>(frames[2]);
+        Assert.Contains(alternateFrame.nodes, node => node.name == "1" && node.color == "SolutionAlt");
     }
 }
