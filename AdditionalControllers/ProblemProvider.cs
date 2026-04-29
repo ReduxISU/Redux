@@ -78,7 +78,7 @@ public class ProblemProvider : ControllerBase
     {
         // TODO: validate arguments
         return JsonSerializer.Serialize(
-            Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate), 
+            Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate).ToString(), 
             new JsonSerializerOptions { WriteIndented = true }
         );
     }
