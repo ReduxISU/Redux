@@ -103,6 +103,8 @@ class SudokuVerifier : IVerifier<SUDOKU> {
         
         return grid;*/
 
+        input = input.ReplaceLineEndings(string.Empty);
+
         var rows = input.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
         int[][] grid = new int[rows.Length][];
