@@ -29,7 +29,7 @@ public class BINPACKING_Tests {
 
     [Fact]
     public void BINPACKING_Default_Instantiation() {
-        // The no-arg constructor should load the built-in example instance.
+        // Checking default constructor loading and parsing the example instance correctly.
         BINPACKING bp = new BINPACKING();
         Assert.Equal("((4,7,3,6,2,8),10,3)", bp.instance);
         Assert.Equal("((4,7,3,6,2,8),10,3)", bp.defaultInstance);
@@ -40,7 +40,7 @@ public class BINPACKING_Tests {
 
     [Fact]
     public void BINPACKING_Custom_Instantiation() {
-        // Passing a custom string should override the default and parse correctly.
+        // Checking custom instance parsing and confirming values loading correctly.
         string input = "((1,2,3),6,2)";
         BINPACKING bp = new BINPACKING(input);
         Assert.Equal(input, bp.instance);
@@ -56,13 +56,13 @@ public class BINPACKING_Tests {
 
     [Theory]
     [InlineData("((4,7,3,6,2,8),10,3)", "((4,6),(7,3),(2,8))", true)]
-    // ^ brute force output for the default instance (traced by hand)
+    // brute force output for the default instance (traced by hand)
     [InlineData("((4,7,3,6,2,8),10,3)", "((8,2),(7,3),(6,4))", true)]
-    // ^ FFD output for the default instance (sorted descending placement)
+    // FFD output for the default instance (sorted descending placement)
     [InlineData("((1,2,3),6,2)",         "((3,2),(1))",         true)]
-    // ^ simple 3-item instance: bin 0 sum=5 ≤ 6, bin 1 sum=1 ≤ 6, 2 bins ≤ K=2
+    // simple 3-item instance: bin 0 sum=5 ≤ 6, bin 1 sum=1 ≤ 6, 2 bins ≤ K=2
     [InlineData("((5),10,1)",            "((5))",               true)]
-    // ^ single item that fits exactly — minimum possible case
+    // single item that fits exactly — minimum possible case
     public void BINPACKING_Verifier_True(string instance, string certificate, bool expected) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingVerifier verifier = new BinPackingVerifier();
@@ -74,15 +74,15 @@ public class BINPACKING_Tests {
 
     [Theory]
     [InlineData("((1,2,3),3,2)",         "((3,1),(2))",         false)]
-    // ^ capacity check fails: bin 0 has sum 4 which exceeds C=3
+    // Checking capacity violation handling.
     [InlineData("((1,2,3),6,1)",         "((1,2),(3))",         false)]
-    // ^ bin count check fails: 2 non-empty bins used but K=1
+    // Verifying bin limit validation.
     [InlineData("((4,7,3,6,2,8),10,3)", "((10),(10),(10))",    false)]
-    // ^ multiset check fails: certificate items {10,10,10} ≠ S {4,7,3,6,2,8}
+    // multiset check fails: certificate items {10,10,10} ≠ S {4,7,3,6,2,8}
     [InlineData("((4,7,3,6,2,8),10,3)", "",                    false)]
-    // ^ malformed input: empty string has no outer parentheses
+    // malformed input: empty string has no outer parentheses
     [InlineData("((4,7,3,6,2,8),10,3)", "not-a-cert",          false)]
-    // ^ malformed input: plain text doesn't match the expected format at all
+    // malformed input: plain text doesn't match the expected format at all
     public void BINPACKING_Verifier_False(string instance, string certificate, bool expected) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingVerifier verifier = new BinPackingVerifier();
@@ -100,11 +100,11 @@ public class BINPACKING_Tests {
 
     [Theory]
     [InlineData("((4,7,3,6,2,8),10,3)", "((4,6),(7,3),(2,8))")]
-    // ^ default instance — certificate traced step by step above
+    // default instance — certificate traced step by step above
     [InlineData("((1,1,1),2,2)",         "((1,1),(1))")]
-    // ^ 3 items of size 1, capacity 2, 2 bins: first two items share bin 0
+    // 3 items of size 1, capacity 2, 2 bins: first two items share bin 0
     [InlineData("((5,5,5),10,2)",        "((5,5),(5))")]
-    // ^ two items of size 5 fit together (sum=10=C), the third goes alone
+    // two items of size 5 fit together (sum=10=C), the third goes alone
     public void BINPACKING_BruteForce_Feasible(string instance, string expectedCert) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingBruteForce solver = new BinPackingBruteForce();
@@ -118,9 +118,9 @@ public class BINPACKING_Tests {
 
     [Theory]
     [InlineData("((6,6,6),10,1)")]
-    // ^ three items of size 6 can't all fit in one bin of capacity 10 (6+6=12>10)
+    // three items of size 6 can't all fit in one bin of capacity 10 (6+6=12>10)
     [InlineData("((11,5),10,3)")]
-    // ^ item size 11 exceeds the bin capacity C=10 — impossible regardless of K
+    // item size 11 exceeds the bin capacity C=10 — impossible regardless of K
     public void BINPACKING_BruteForce_Infeasible_Returns_Empty(string instance) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingBruteForce solver = new BinPackingBruteForce();
@@ -137,9 +137,9 @@ public class BINPACKING_Tests {
 
     [Theory]
     [InlineData("((4,7,3,6,2,8),10,3)", "((8,2),(7,3),(6,4))")]
-    // ^ default instance — FFD sorts to [8,7,6,4,3,2] and fills bins perfectly
+    // default instance — FFD sorts to [8,7,6,4,3,2] and fills bins perfectly
     [InlineData("((1,2,3,4),5,2)",       "((4,1),(3,2))")]
-    // ^ sorted [4,3,2,1]: 4→bin0, 3→bin1, 2→bin1(5=C), 1→bin0(5=C) → "((4,1),(3,2))"
+    // sorted [4,3,2,1]: 4→bin0, 3→bin1, 2→bin1(5=C), 1→bin0(5=C) → "((4,1),(3,2))"
     public void BINPACKING_FFD_Feasible(string instance, string expectedCert) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingFFD solver = new BinPackingFFD();
@@ -153,10 +153,10 @@ public class BINPACKING_Tests {
 
     [Theory]
     [InlineData("((6,6,6),10,1)")]
-    // ^ FFD opens bin0 for first 6, then can't place second 6 (12>10) and
+    // FFD opens bin0 for first 6, then can't place second 6 (12>10) and
     //   opening bin1 would exceed K=1 — so it gives up and returns ""
     [InlineData("((11,5),10,3)")]
-    // ^ item size 11 exceeds C=10 — caught by the pre-check, returns "" immediately
+    // item size 11 exceeds C=10 — caught by the pre-check, returns "" immediately
     public void BINPACKING_FFD_Infeasible_Returns_Empty(string instance) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingFFD solver = new BinPackingFFD();
