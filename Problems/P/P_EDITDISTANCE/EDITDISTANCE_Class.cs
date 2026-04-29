@@ -28,9 +28,9 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public string sourceString = "";
     public string targetString = "";
 
-    public P_EDITDISTANCE() : this(_defaultInstance) { }
+    public EDITDISTANCE() : this(_defaultInstance) { }
 
-    public P_EDITDISTANCE(string instanceString)
+    public EDITDISTANCE(string instanceString)
     {
         instance = instanceString;
 
