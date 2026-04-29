@@ -64,8 +64,10 @@ public class TOPOLOGICALSORT_Tests
     public void TOPOLOGICALSORT_Solver_DefaultInstance()
     {
         var problem = new TOPOLOGICALSORT();
-        string solution = new KahnsAlgorithm().solve(problem);
-        Assert.Equal("{1,2,3,4,6,5}", solution);
+        var solver = new KahnsAlgorithm();
+        var verifier = new TopologicalSortVerifier();
+        string solution = solver.solve(problem);
+        Assert.True(verifier.verify(problem, solution));
     }
 
     [Theory]
