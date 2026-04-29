@@ -1,9 +1,12 @@
 using System;
 using Xunit;
 using API.Interfaces.Graphs.GraphParser;
+using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.P.P_MINIMUMSPANNINGTREE;
 using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
 using API.Problems.P.P_MINIMUMSPANNINGTREE.Verifiers;
+using API.Problems.P.P_MINIMUMSPANNINGTREE.Visualizations;
+using Newtonsoft.Json.Linq;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -164,5 +167,46 @@ public class MINIMUMSPANNINGTREE_Tests
         var problem = new P_MINIMUMSPANNINGTREE(instance);
         string solution = new PrimSolver().solve(problem);
         Assert.Equal("{}", solution);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_DefaultVisualization_Is_MSTVisualization()
+    {
+        var problem = new P_MINIMUMSPANNINGTREE();
+        Assert.IsType<MinimumSpanningTreeVisualization>(problem.defaultVisualization);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_Visualization_Highlights_Solution_Edges_And_Nodes()
+    {
+        string instance = "({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})";
+        var problem = new P_MINIMUMSPANNINGTREE(instance);
+
+        API_GraphJSON graph = (API_GraphJSON)new MinimumSpanningTreeVisualization()
+            .SolvedVisualization(problem, "{{1,2},{2,3}}");
+
+        Assert.Equal("Solution", graph.nodes.Single(n => n.name == "1").color);
+        Assert.Equal("Solution", graph.nodes.Single(n => n.name == "2").color);
+        Assert.Equal("Solution", graph.nodes.Single(n => n.name == "3").color);
+        Assert.Equal("Solution", graph.links.Single(l => l.source == "1" && l.target == "2").color);
+        Assert.Equal("Solution", graph.links.Single(l => l.source == "2" && l.target == "3").color);
+        Assert.Equal("Background", graph.links.Single(l => l.source == "1" && l.target == "3").color);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_AllProblemsRefactor_Can_Filter_P_Problems()
+    {
+        string response = new ALL_ProblemsRefactorController().getDefault("P");
+        Assert.Contains("MINIMUMSPANNINGTREE", response);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_ProblemInfo_Accepts_Unprefixed_Name_And_Reports_P_Type()
+    {
+        string response = new ProblemProvider().info("MINIMUMSPANNINGTREE");
+        JObject json = JObject.Parse(response);
+
+        Assert.Equal("P", json["problemType"]?.ToString());
+        Assert.Equal(P_MINIMUMSPANNINGTREE._defaultInstance, json["defaultInstance"]?.ToString());
     }
 }
