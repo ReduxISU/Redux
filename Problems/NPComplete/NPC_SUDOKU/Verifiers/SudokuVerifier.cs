@@ -63,28 +63,20 @@ class SudokuVerifier : IVerifier<SUDOKU> {
                 }
 
                 // Check for duplicates in the same row
-                for (int r = 0; r < certificateGrid[i].Length; r++) {
-                    if (r != j && certificateGrid[i][r] == currentValue) {
-                        return false;
-                    }
+                if (isDuplicateInRow(certificateGrid, i, j, currentValue)) {
+                    return false;
                 }
 
                 // Check for duplicates in the same column
-                for (int c = 0; c < certificateGrid.Length; c++) {
-                    if (c != i && certificateGrid[c][j] == currentValue) {
-                        return false;
-                    }
+                if (isDuplicateInColumn(certificateGrid, i, j, currentValue)) {
+                    return false;
                 }
 
                 // Check for duplicates in the same 3x3 block
                 int blockRowStart = i / BLOCK_SIZE * BLOCK_SIZE;
                 int blockColStart = j / BLOCK_SIZE * BLOCK_SIZE;
-                for (int r = blockRowStart; r < blockRowStart + BLOCK_SIZE; r++) {
-                    for (int c = blockColStart; c < blockColStart + BLOCK_SIZE; c++) {
-                        if ((r != i || c != j) && certificateGrid[r][c] == currentValue) {
-                            return false;
-                        }
-                    }
+                if(isDuplicateInBlock(certificateGrid, blockRowStart, blockColStart, currentValue, i, j)) {
+                    return false;
                 }
 
                 // If all checks pass, continue to the next cell
@@ -121,5 +113,34 @@ class SudokuVerifier : IVerifier<SUDOKU> {
             grid[i] = Array.ConvertAll(nums, int.Parse);
         }
         return grid;
+    }
+
+    private static bool isDuplicateInRow(int[][] grid, int row, int col, int value) {
+        for (int c = 0; c < grid[row].Length; c++) {
+            if (c != col && grid[row][c] == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool isDuplicateInColumn(int[][] grid, int row, int col, int value) {
+        for (int r = 0; r < grid.Length; r++) {
+            if (r != row && grid[r][col] == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool isDuplicateInBlock(int[][] grid, int blockRowStart, int blockColStart, int value, int row, int col) {
+        for (int r = blockRowStart; r < blockRowStart + BLOCK_SIZE; r++) {
+            for (int c = blockColStart; c < blockColStart + BLOCK_SIZE; c++) {
+                if ((r != row || c != col) && grid[r][c] == value) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
