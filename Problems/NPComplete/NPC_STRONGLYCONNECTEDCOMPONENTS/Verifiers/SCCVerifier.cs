@@ -1,13 +1,6 @@
 using API.Interfaces;
-<<<<<<< HEAD:Problems/NPComplete/NPC_STRONGLYCONNECTEDCOMPONENTS/Verifiers/SCCVerifier.cs
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
-=======
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Solvers;
-using System.Collections.Generic;
-using System.Linq;
->>>>>>> 3f41273 (Address SCC review feedback):Problems/P/P_STRONGLYCONNECTEDCOMPONENTS/Verifiers/SCCVerifier.cs
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
 

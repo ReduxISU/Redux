@@ -1,7 +1,7 @@
 using Xunit;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Solvers;
-using API.Problems.P.P_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
 
 namespace redux_tests.Problems.P
 {
@@ -70,7 +70,7 @@ namespace redux_tests.Problems.P
             string input = "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})";
             string solution = "{{1,2,3},{4,5}}";
 
-            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var problem = new STRONGLYCONNECTEDCOMPONENTS(input);
             var verifier = new SCCVerifier();
 
             Assert.True(verifier.verify(problem, solution));
@@ -82,7 +82,7 @@ namespace redux_tests.Problems.P
             string input = "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})";
             string solution = "{{4,5},{3,2,1}}";
 
-            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var problem = new STRONGLYCONNECTEDCOMPONENTS(input);
             var verifier = new SCCVerifier();
 
             Assert.True(verifier.verify(problem, solution));
@@ -94,7 +94,7 @@ namespace redux_tests.Problems.P
             string input = "({1,2,3},{(1,2),(2,3)})";
             string wrongSolution = "{{1,2,3}}";
 
-            var problem = new P_STRONGLYCONNECTEDCOMPONENTS(input);
+            var problem = new STRONGLYCONNECTEDCOMPONENTS(input);
             var verifier = new SCCVerifier();
 
             Assert.False(verifier.verify(problem, wrongSolution));

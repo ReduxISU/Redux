@@ -7,11 +7,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
-<<<<<<< HEAD:Problems/NPComplete/NPC_STRONGLYCONNECTEDCOMPONENTS/STRONGLYCONNECTEDCOMPONENTS_Class.cs
 class STRONGLYCONNECTEDCOMPONENTS 
-=======
-class P_STRONGLYCONNECTEDCOMPONENTS
->>>>>>> 3f41273 (Address SCC review feedback):Problems/P/P_STRONGLYCONNECTEDCOMPONENTS/P_STRONGLYCONNECTEDCOMPONENTS_Class.cs
     : IGraphProblem<KosarajuSolver, SCCVerifier, DummyVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Strongly Connected Components";
