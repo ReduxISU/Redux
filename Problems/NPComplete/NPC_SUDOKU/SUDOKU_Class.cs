@@ -23,7 +23,7 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     public string problemDefinition {get;} = "Sudoku is a logic-based, combinatorial number-placement puzzle where the goal is to fill a 9x9 grid with digits so that each column, row, and 3x3 box contains all of the digits from 1 to 9."; //"The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)";
     public string source {get;} = "TODO";
     public string sourceLink {get;} = "https://medium.com/@davidcarmel/solving-sudoku-by-heuristic-search-b0c2b2c5346e and https://www.geeksforgeeks.org/dsa/sudoku-backtracking-7/"; //TODO: Do we need both of these sources? Maybe we can find a more academic source???
-    private static readonly string _defaultInstance = "0,0,0,1,0,0,2,0,3;0,2,0,0,4,0,5,0,6;0,7,0,0,0,6,4,0,0;5,0,0,6,0,0,8,0,0;0,6,0,4,0,2,0,5,0;0,0,4,0,0,9,0,0,7;0,0,9,5,0,0,0,4,0;7,0,6,0,8,0,0,1,0;4,0,3,0,0,7,0,0,0";
+    private static readonly string _defaultInstance = "0,0,0,1,0,0,2,0,3;\n0,2,0,0,4,0,5,0,6;\n0,7,0,0,0,6,4,0,0;\n5,0,0,6,0,0,8,0,0;\n0,6,0,4,0,2,0,5,0;\n0,0,4,0,0,9,0,0,7;\n0,0,9,5,0,0,0,4,0;\n7,0,6,0,8,0,0,1,0;\n4,0,3,0,0,7,0,0,0";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "Sudoku";
@@ -53,6 +53,8 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
 
         // Parses the input string into a 2D array representing the Sudoku grid
         instance = input;
+
+        input = input.ReplaceLineEndings(string.Empty);
 
         var rows = input.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
