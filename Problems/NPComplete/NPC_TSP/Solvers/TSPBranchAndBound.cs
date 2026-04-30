@@ -17,10 +17,10 @@ class TSPBranchAndBound : ISolver<TSP> {
     private long pushID = 0;
 
     private class SearchState {
-        public List<int> path;
-        public double[,] matrix;
+        public List<int>? path;
+        public double[,]? matrix;
         public double bound;
-        public bool[] visited;
+        public bool[]? visited;
     }
 
     private readonly struct PQPriority : IComparable<PQPriority> {
@@ -91,7 +91,7 @@ class TSPBranchAndBound : ISolver<TSP> {
             if (current.bound >= bestCost) {
                 continue; // Prune
             }
-            if (current.path.Count == n) {  // Complete tour
+            if (current.path!.Count == n) {  // Complete tour
                 double tourCost = ComputeTourCost(current.path, originalMatrix);
                 if (tourCost < bestCost) {  // Update BSSF
                     bestCost = tourCost;
@@ -102,10 +102,10 @@ class TSPBranchAndBound : ISolver<TSP> {
             int lastNode = current.path[^1];
             for (int next = 0; next < n; next++)
             {
-                if (current.visited[next])
+                if (current.visited![next])
                     continue;
 
-                double edgeCost = current.matrix[lastNode, next];
+                double edgeCost = current.matrix![lastNode, next];
                 if (double.IsPositiveInfinity(edgeCost))
                     continue;
 
@@ -156,7 +156,7 @@ class TSPBranchAndBound : ISolver<TSP> {
 
     private void Enqueue(PriorityQueue<SearchState, PQPriority> pq, SearchState state)
     {
-        int depth = state.path.Count;
+        int depth = state.path!.Count;
         double score = state.bound / depth;
 
         var priority = new PQPriority(score, state.bound, -depth, pushID++);
