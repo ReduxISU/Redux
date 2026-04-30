@@ -155,5 +155,17 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Frontend developer and UI specialist"
+  },
+  "Musab Khan": {
+    "email": "khanmusa@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Implemented the Knapsack DP solver and unit tests"
+  },
+  "Calvin Condie": {
+    "email": "calvincondie@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Implemented the Knapsack DP solver and unit tests"
   }
 }
