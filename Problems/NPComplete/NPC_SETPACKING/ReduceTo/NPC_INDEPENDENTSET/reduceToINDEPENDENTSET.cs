@@ -7,7 +7,6 @@ namespace API.Problems.NPComplete.NPC_SETPACKING.ReduceTo.NPC_INDEPENDENTSET;
 
 class reduceToINDEPENDENTSET : IReduction<SETPACKING, INDEPENDENTSET>
 {
-    // --- Metadata ---
     public string reductionName { get; } = "Set Packing to Independent Set";
 
     public string reductionDefinition { get; } =
@@ -85,7 +84,6 @@ class reduceToINDEPENDENTSET : IReduction<SETPACKING, INDEPENDENTSET>
     {
     }
 
-    // --- Reduction Logic ---
     public INDEPENDENTSET reduce()
     {
         SETPACKING setPackingInstance = _reductionFrom;

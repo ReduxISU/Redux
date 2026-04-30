@@ -1,32 +1,46 @@
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.JSON_Objects.Graphs;
+using System.Collections.Generic;
 
 namespace API.Problems.NPComplete.NPC_SETPACKING.Visualizations;
 
 class SetPackingDefaultVisualization : IVisualization<SETPACKING>
 {
     public string visualizationName { get; } = "Set Packing Visualization";
-    public string visualizationDefinition { get; } = "Conflict graph visualization for Set Packing";
+    public string visualizationDefinition { get; } = "This is a conflict graph visualization for Set Packing.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Sansar Kharal" };
     public string visualizationType { get; } = "Graph D3";
 
-    API_JSON IVisualization<SETPACKING>.visualize(SETPACKING instance)
+    public SetPackingDefaultVisualization()
     {
-        return instance.graph.ToAPIGraph();
     }
 
-    API_JSON IVisualization<SETPACKING>.SolvedVisualization(SETPACKING instance, string solution)
+    public API_JSON visualize(SETPACKING setPacking)
     {
-        var solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
-        var graphJson = instance.graph.ToAPIGraph();
+        return setPacking.graph.ToAPIGraph();
+    }
 
-        foreach (var node in graphJson.nodes)
+    public API_JSON SolvedVisualization(SETPACKING setPacking, string solution)
+    {
+        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
+
+        API_GraphJSON apiGraph = setPacking.graph.ToAPIGraph();
+
+        for (int i = 0; i < apiGraph.nodes.Count; i++)
         {
-            node.color = solutionNodes.Contains(node.name) ? "Solution" : "Background";
+            if (solutionNodes.Contains(apiGraph.nodes[i].name))
+            {
+                apiGraph.nodes[i].color = "Solution";
+            }
+            else
+            {
+                apiGraph.nodes[i].color = "Background";
+            }
         }
 
-        return graphJson;
+        return apiGraph;
     }
 } 
