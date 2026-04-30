@@ -1,9 +1,5 @@
 using API.Interfaces;
-using API.Interfaces.Graphs;
-using API.Interfaces.JSON_Objects;
-using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_INDEPENDENTSET;
-using SPADE;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,13 +7,13 @@ namespace API.Problems.NPComplete.NPC_SETPACKING.ReduceTo.NPC_INDEPENDENTSET;
 
 class reduceToINDEPENDENTSET : IReduction<SETPACKING, INDEPENDENTSET>
 {
-    // --- Fields ---
+    // --- Metadata ---
     public string reductionName { get; } = "Set Packing to Independent Set";
 
     public string reductionDefinition { get; } =
-        "Transforms Set Packing into Independent Set by mapping each set to a node and adding edges between overlapping sets.";
+        "This reduction converts Set Packing into Independent Set by building a conflict graph. Each set becomes a node, and an edge connects two nodes if their sets overlap.";
 
-    public string source { get; } = "Karp-style reduction";
+    public string source { get; } = "";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Set_packing";
     public string[] contributors { get; } = { "Sansar Kharal" };
 
@@ -27,28 +23,49 @@ class reduceToINDEPENDENTSET : IReduction<SETPACKING, INDEPENDENTSET>
     private SETPACKING _reductionFrom;
     private INDEPENDENTSET _reductionTo;
 
-    // --- Properties ---
+    // --- Properties required by IReduction ---
     public Dictionary<object, object> gadgetMap
     {
-        get { return _gadgetMap; }
-        set { _gadgetMap = value; }
+        get
+        {
+            return _gadgetMap;
+        }
+        set
+        {
+            _gadgetMap = value;
+        }
     }
 
     public string complexity
     {
-        get { return _complexity; }
+        get
+        {
+            return _complexity;
+        }
     }
 
     public SETPACKING reductionFrom
     {
-        get { return _reductionFrom; }
-        set { _reductionFrom = value; }
+        get
+        {
+            return _reductionFrom;
+        }
+        set
+        {
+            _reductionFrom = value;
+        }
     }
 
     public INDEPENDENTSET reductionTo
     {
-        get { return _reductionTo; }
-        set { _reductionTo = value; }
+        get
+        {
+            return _reductionTo;
+        }
+        set
+        {
+            _reductionTo = value;
+        }
     }
 
     // --- Constructors ---
@@ -59,56 +76,72 @@ class reduceToINDEPENDENTSET : IReduction<SETPACKING, INDEPENDENTSET>
     }
 
     public reduceToINDEPENDENTSET(string from)
-        : this(new SETPACKING(from)) { }
+        : this(new SETPACKING(from))
+    {
+    }
 
     public reduceToINDEPENDENTSET()
-        : this(new SETPACKING()) { }
+        : this(new SETPACKING())
+    {
+    }
 
     // --- Reduction Logic ---
     public INDEPENDENTSET reduce()
     {
-        SETPACKING sp = _reductionFrom;
+        SETPACKING setPackingInstance = _reductionFrom;
 
-        List<string> nodes = sp.setNames;
-        List<KeyValuePair<string, string>> edges = new();
+        List<string> nodes = setPackingInstance.setNames;
+        List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
-        // Create edges for overlapping sets
+        // Create conflict edges.
+        // Two sets conflict if they share at least one element.
         for (int i = 0; i < nodes.Count; i++)
         {
             for (int j = i + 1; j < nodes.Count; j++)
             {
-                var s1 = sp.sets[nodes[i]];
-                var s2 = sp.sets[nodes[j]];
+                string left = nodes[i];
+                string right = nodes[j];
 
-                if (s1.Intersect(s2).Any())
+                if (setPackingInstance.sets[left].Intersect(setPackingInstance.sets[right]).Any())
                 {
-                    edges.Add(new KeyValuePair<string, string>(nodes[i], nodes[j]));
+                    edges.Add(new KeyValuePair<string, string>(left, right));
                 }
             }
         }
 
-        // Map gadgets (optional)
-        foreach (var node in nodes)
+        // Map each Set Packing set to the same Independent Set node.
+        foreach (string node in nodes)
         {
             gadgetMap[node] = node;
         }
 
-        // Build graph string
-        string nodeStr = string.Join(",", nodes);
+        // Build Independent Set instance string:
+        // (({nodes},{edges}),K)
+        string nodesString = "";
 
-        string edgeStr = "";
-        foreach (var e in edges)
+        foreach (string node in nodes)
         {
-            edgeStr += "{" + e.Key + "," + e.Value + "},";
+            nodesString += node + ",";
         }
-        edgeStr = edgeStr.TrimEnd(',');
 
-        string G = "(({" + nodeStr + "},{" + edgeStr + "})," + sp.K + ")";
+        nodesString = nodesString.Trim(',');
 
-        INDEPENDENTSET result = new INDEPENDENTSET(G);
-        reductionTo = result;
+        string edgesString = "";
 
-        return result;
+        foreach (KeyValuePair<string, string> edge in edges)
+        {
+            edgesString += "{" + edge.Key + "," + edge.Value + "},";
+        }
+
+        edgesString = edgesString.Trim(',');
+
+        string independentSetInstance =
+            "(({" + nodesString + "},{" + edgesString + "})," + setPackingInstance.K.ToString() + ")";
+
+        _reductionTo = new INDEPENDENTSET(independentSetInstance);
+        reductionTo = _reductionTo;
+
+        return _reductionTo;
     }
 
     // --- Solution Mapping ---

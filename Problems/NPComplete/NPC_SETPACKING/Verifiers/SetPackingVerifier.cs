@@ -1,50 +1,75 @@
 using API.Interfaces;
-using System.Linq;
-using System;
+using API.Interfaces.Graphs.GraphParser;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_SETPACKING.Verifiers;
 
-public class SetPackingVerifier : IVerifier<API.Problems.NPComplete.NPC_SETPACKING.SETPACKING>
+class SetPackingVerifier : IVerifier<SETPACKING>
 {
+    // --- Fields ---
     public string verifierName { get; } = "Set Packing Verifier";
-    public string verifierDefinition { get; } = "Checks no overlap";
+    public string verifierDefinition { get; } = "This is a verifier for Set Packing";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Sansar Kharal" };
 
     private string _certificate = "";
 
-    public string certificate => _certificate;
-
-    private List<string> parse(string cert)
+    public string certificate
     {
-        return cert.Trim('{', '}')
-                   .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                   .Select(x => x.Trim())
-                   .ToList();
+        get
+        {
+            return _certificate;
+        }
+    }
+
+    // --- Constructor ---
+    public SetPackingVerifier()
+    {
+    }
+
+    private List<string> parseCertificate(string certificate)
+    {
+        List<string> selectedSets = GraphParser.parseNodeListWithStringFunctions(certificate);
+        return selectedSets;
     }
 
     public bool verify(SETPACKING problem, string certificate)
     {
         _certificate = certificate;
 
-        var chosen = parse(certificate);
+        List<string> selectedSets = parseCertificate(certificate);
 
-        if (chosen.Count != problem.K)
-            return false;
-
-        for (int i = 0; i < chosen.Count; i++)
+        // Check K value
+        if (selectedSets.Count != problem.K)
         {
-            for (int j = i + 1; j < chosen.Count; j++)
-            {
-                var s1 = problem.sets[chosen[i]];
-                var s2 = problem.sets[chosen[j]];
+            return false;
+        }
 
-                if (s1.Intersect(s2).Any())
+        // Check that every selected set actually exists
+        foreach (string setName in selectedSets)
+        {
+            if (!problem.sets.ContainsKey(setName))
+            {
+                return false;
+            }
+        }
+
+        // Check pairwise disjointness
+        for (int i = 0; i < selectedSets.Count; i++)
+        {
+            for (int j = i + 1; j < selectedSets.Count; j++)
+            {
+                string left = selectedSets[i];
+                string right = selectedSets[j];
+
+                if (problem.sets[left].Intersect(problem.sets[right]).Any())
+                {
                     return false;
+                }
             }
         }
 
         return true;
     }
-}
+} 

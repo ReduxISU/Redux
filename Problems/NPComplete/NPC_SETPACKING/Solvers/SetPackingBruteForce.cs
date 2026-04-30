@@ -1,62 +1,84 @@
 using API.Interfaces;
 using System.Collections.Generic;
 
-
 namespace API.Problems.NPComplete.NPC_SETPACKING.Solvers;
 
-public class SetPackingBruteForce : ISolver<API.Problems.NPComplete.NPC_SETPACKING.SETPACKING> {
-
+class SetPackingBruteForce : ISolver<SETPACKING>
+{
     public string solverName { get; } = "Set Packing Brute Force";
     public string solverDefinition { get; } = "Brute force solver for Set Packing";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Sansar Kharal" };
     public bool timerHasExpired { get; set; }
 
-    public string solve(SETPACKING problem)
+    string ISolver<SETPACKING>.solve(SETPACKING problem)
     {
-        List<string> sets = problem.setNames;
-        int n = sets.Count;
+        List<string> setNames = problem.setNames;
+        int n = setNames.Count;
 
-        List<int> comb = new List<int>();
+        if (problem.K < 0 || problem.K > n)
+        {
+            return "{}";
+        }
+
+        List<int> combination = new();
+
         for (int i = 0; i < problem.K; i++)
-            comb.Add(i);
+        {
+            combination.Add(i);
+        }
+
+        IVerifier<SETPACKING> verifier = problem.defaultVerifier;
 
         while (true)
         {
-            string cert = buildCertificate(comb, sets);
+            string certificate = buildCertificate(combination, setNames);
 
-            if (problem.defaultVerifier.verify(problem, cert))
-                return cert;
+            if (verifier.verify(problem, certificate))
+            {
+                return certificate;
+            }
 
-            if (!nextCombination(comb, n))
+            if (!nextCombination(combination, n))
+            {
                 break;
+            }
         }
 
         return "{}";
     }
 
-    private string buildCertificate(List<int> idx, List<string> sets)
+    private string buildCertificate(List<int> indexes, List<string> setNames)
     {
-        string res = "{";
-        foreach (int i in idx)
-            res += sets[i] + ",";
-        return res.TrimEnd(',') + "}";
+        string result = "{";
+
+        foreach (int index in indexes)
+        {
+            result += setNames[index] + ",";
+        }
+
+        return result.TrimEnd(',') + "}";
     }
 
-    private bool nextCombination(List<int> comb, int n)
+    private bool nextCombination(List<int> combination, int n)
     {
-        int k = comb.Count;
+        int k = combination.Count;
 
         for (int i = k - 1; i >= 0; i--)
         {
-            if (comb[i] < n - k + i)
+            if (combination[i] < n - k + i)
             {
-                comb[i]++;
+                combination[i]++;
+
                 for (int j = i + 1; j < k; j++)
-                    comb[j] = comb[j - 1] + 1;
+                {
+                    combination[j] = combination[j - 1] + 1;
+                }
+
                 return true;
             }
         }
+
         return false;
     }
-} 
+}
