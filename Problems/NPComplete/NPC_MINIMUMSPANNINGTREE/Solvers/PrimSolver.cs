@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
-using API.Problems.P.P_MINIMUMSPANNINGTREE;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class PrimSolver : ISolver<P_MINIMUMSPANNINGTREE>
+class PrimSolver : ISolver<MINIMUMSPANNINGTREE>
 {
     public string solverName { get; } = "Prim's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by repeatedly adding the lowest-weight edge that connects the growing tree to a new vertex.";
@@ -13,7 +13,7 @@ class PrimSolver : ISolver<P_MINIMUMSPANNINGTREE>
     public string[] contributors { get; } = { "Val Kimbrough" };
     public bool timerHasExpired { get; set; }
 
-    public string solve(P_MINIMUMSPANNINGTREE problem)
+    public string solve(MINIMUMSPANNINGTREE problem)
     {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().OrderBy(n => n).ToList();
         var edges = KruskalSolver.ExtractEdges(problem.graph);

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.P.P_MINIMUMSPANNINGTREE;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 using SPADE;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
+class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
 {
     public string solverName { get; } = "Kruskal's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by sorting edges by weight and adding each edge if it joins two different components.";
@@ -16,7 +16,7 @@ class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
     public string[] contributors { get; } = { "Andreas Kramer" };
     public bool timerHasExpired { get; set; }
 
-    public string solve(P_MINIMUMSPANNINGTREE problem)
+    public string solve(MINIMUMSPANNINGTREE problem)
     {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         var edges = ExtractEdges(problem.graph);
