@@ -22,7 +22,7 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public static string _defaultInstance { get; } = "(horse, ros, 3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    
+
     public EditDistanceDPSolver defaultSolver {get;} = new EditDistanceDPSolver();
     public EditDistanceVerifier defaultVerifier { get; } = new EditDistanceVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
@@ -35,8 +35,6 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
 
     public EDITDISTANCE(string instanceString)
     {
-        instance = instanceString;
-
         string trimmed = instanceString.Trim().TrimStart('(').TrimEnd(')');
         string[] parts = trimmed.Split(',');
 
