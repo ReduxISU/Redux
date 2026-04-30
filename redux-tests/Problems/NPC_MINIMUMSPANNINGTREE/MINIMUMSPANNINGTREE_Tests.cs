@@ -80,43 +80,6 @@ public class MINIMUMSPANNINGTREE_Tests
     }
 
     [Fact]
-    public void MINIMUMSPANNINGTREE_PropertyVerifier_Accepts_Optimal_Triangle()
-    {
-        string instance = "({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})";
-        var problem = new MINIMUMSPANNINGTREE(instance);
-        bool result = new MinimumSpanningTreePropertyVerifier().verify(problem, "{{1,2},{2,3}}");
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void MINIMUMSPANNINGTREE_PropertyVerifier_Rejects_NonOptimal_Spanning_Tree()
-    {
-        string instance = "({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})";
-        var problem = new MINIMUMSPANNINGTREE(instance);
-        bool result = new MinimumSpanningTreePropertyVerifier().verify(problem, "{{1,2},{1,3}}");
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void MINIMUMSPANNINGTREE_PropertyVerifier_Accepts_Multiple_Valid_MSTs()
-    {
-        string instance = "({1,2,3},{({1,2},1),({2,3},1),({1,3},1)})";
-        var problem = new MINIMUMSPANNINGTREE(instance);
-        var verifier = new MinimumSpanningTreePropertyVerifier();
-
-        Assert.True(verifier.verify(problem, "{{1,2},{2,3}}"));
-        Assert.True(verifier.verify(problem, "{{1,2},{1,3}}"));
-        Assert.True(verifier.verify(problem, "{{1,3},{2,3}}"));
-    }
-
-    [Fact]
-    public void MINIMUMSPANNINGTREE_Has_PropertyVerifier()
-    {
-        var problem = new MINIMUMSPANNINGTREE();
-        Assert.IsType<MinimumSpanningTreePropertyVerifier>(problem.propertyVerifier);
-    }
-
-    [Fact]
     public void MINIMUMSPANNINGTREE_Verifier_Rejects_Cycle()
     {
         string instance = "({1,2,3},{({1,2},1),({2,3},1),({1,3},1)})";

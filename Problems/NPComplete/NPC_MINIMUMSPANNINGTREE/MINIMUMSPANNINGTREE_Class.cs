@@ -28,7 +28,6 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
 
     public KruskalSolver defaultSolver { get; } = new KruskalSolver();
     public MinimumSpanningTreeVerifier defaultVerifier { get; } = new MinimumSpanningTreeVerifier();
-    public MinimumSpanningTreePropertyVerifier propertyVerifier { get; } = new MinimumSpanningTreePropertyVerifier();
     public MinimumSpanningTreeVisualization defaultVisualization { get; } = new MinimumSpanningTreeVisualization();
     public UtilCollectionGraph graph { get; set; }
 
