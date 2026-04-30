@@ -173,5 +173,22 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Testing and quality assurance specialist"
+  "Pravesh Aryal": {
+    "email": "praveshAryal@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science (Minor: Mathematics)",
+    "bio": "Machine learning model architecture; contributor to Redux graph algorithms and problem implementations"
+  },
+  "Koras Koirala": {
+    "email": "koraskoirala@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Machine learning model architecture; contributor to Redux testing and problem verification"
+  },
+  "Dinesh Khanal": {
+    "email": "dineshkhanal@isu.edu",
+    "education": "Idaho State University",
+    "major": "Mathematics (Minor: Computer Science)",
+    "bio": "Algorithm and logic developer; contributor to Redux problem solver design"
   }
 }
