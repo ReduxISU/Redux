@@ -16,10 +16,10 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Edit_distance";
     public string formalDefinition { get; } = "{(x,y,k) | x and y are strings, k is int, and there exists a sequence of k operations to transform x into y}";
     public string problemDefinition { get; } = "Find the minimum number of operations (insertion, deletion, substitution) required to transform one string into another.";
-    public string source { get; } = "N/A";
+    public string source { get; } = "https://en.wikipedia.org/wiki/Edit_distance";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Edit_distance";
     public string wikiName { get; } = "";
-    public static string _defaultInstance { get; } = "(horse, ros, 3)";
+    public static string _defaultInstance { get; } = "(horse, ros)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     
