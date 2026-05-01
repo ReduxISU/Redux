@@ -13,8 +13,8 @@ public class EDITDISTANCE_Tests
     public void EDITDISTANCE_Default_Instantiation()
     {
         var problem = new EDITDISTANCE();
-        Assert.Equal("(horse, ros, 3)", problem.instance);
-        Assert.Equal("(horse, ros, 3)", problem.defaultInstance);
+        Assert.Equal("(horse, ros)", problem.instance);
+        Assert.Equal("(horse, ros)", problem.defaultInstance);
     } 
 
      [Fact]
