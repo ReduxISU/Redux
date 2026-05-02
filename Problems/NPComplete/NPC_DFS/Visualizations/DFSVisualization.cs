@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Problems.NPComplete.NPC_SHORTESTPATH;
 
 namespace API.Problems.NPComplete.NPC_DFS.Visualizations;
 
@@ -71,8 +72,65 @@ class DFSVisualization : IVisualization<DFS>
     {
         var result = new List<API_JSON>();
 
-        foreach (string step in steps)
-            result.Add(SolvedVisualization(problem, step));
+        foreach (var step in steps)
+        {
+            if (string.IsNullOrWhiteSpace(step) || step.Trim() == "{}")
+            {
+                result.Add(visualize(problem));
+                continue;
+            }
+
+            List<string> path;
+            try
+            {
+                path = GraphParser.parseNodeListWithStringFunctions(step);
+            }
+            catch
+            {
+                result.Add(visualize(problem));
+                continue;
+            }
+
+            API_GraphJSON graph = problem.graph.ToAPIGraph();
+
+            string currentNode = path.Count > 0 ? path[path.Count - 1] : null;
+            var pathNodes = new HashSet<string>(path);
+
+            for (int i = 0; i < graph.nodes.Count; i++)
+            {
+                if (graph.nodes[i].name == currentNode)
+                {
+                    graph.nodes[i].color = "ElementHighlight";
+                    graph.nodes[i].outline = "Purple";
+                }
+                else if (pathNodes.Contains(graph.nodes[i].name))
+                {
+                    graph.nodes[i].color = "Solution";
+                }
+                else
+                {
+                    graph.nodes[i].color = "Background";
+                }
+            }
+
+            var pathEdges = new HashSet<(string u, string v)>();
+            for (int i = 0; i < path.Count - 1; i++)
+                pathEdges.Add((path[i], path[i + 1]));
+
+            for (int i = 0; i < graph.links.Count; i++)
+            {
+                var link = graph.links[i];
+                bool isForwardPathEdge = pathEdges.Contains((link.source, link.target));
+                bool isReversePathEdge = !problem.isDirected && pathEdges.Contains((link.target, link.source));
+
+                if (isForwardPathEdge || isReversePathEdge)
+                    link.color = "Solution";
+                else
+                    link.color = "Background";
+            }
+
+            result.Add(graph);
+        }
 
         return result;
     }
