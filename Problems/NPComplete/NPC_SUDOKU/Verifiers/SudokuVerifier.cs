@@ -18,8 +18,8 @@ class SudokuVerifier : IVerifier<SUDOKU> {
     }
 
     // --- Methods Including Constructors ---
-    private readonly int GRID_SIZE = 9;
-    private readonly int BLOCK_SIZE = 3;
+    private int GRID_SIZE;
+    private int BLOCK_SIZE;
     public SudokuVerifier() {
         
     }
@@ -28,6 +28,9 @@ class SudokuVerifier : IVerifier<SUDOKU> {
         // int i = Convert.ToInt32(certificate);
         // // All we need to do is see if funcValues[certificate] is non-zero
         // return problem.funcValues[i] != 0;
+
+        GRID_SIZE = problem.grid.Length;
+        BLOCK_SIZE = (int)Math.Sqrt(GRID_SIZE);
 
         // Uses the helper function to determine if the certificate is a valid solution
         bool isValid = VerifyHelper(problem, certificate);
@@ -52,8 +55,8 @@ class SudokuVerifier : IVerifier<SUDOKU> {
                     return false;
                 }
 
-                // Check if the value is between 1 and 9
-                if (currentValue < 1 || currentValue > 9) {
+                // Check if the value is between 1 and GRID_SIZE
+                if (currentValue < 1 || currentValue > GRID_SIZE) {
                     return false;
                 }
 
