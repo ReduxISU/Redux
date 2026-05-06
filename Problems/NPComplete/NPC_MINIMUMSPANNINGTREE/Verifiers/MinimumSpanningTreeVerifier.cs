@@ -13,7 +13,8 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
 {
     public string verifierName { get; } = "Minimum Spanning Tree Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edge set is a valid minimum spanning tree for the input graph.";
-    public string source { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
+    public string source { get; } = "Original verifier implementation for this repository. It checks that a certificate is spanning and acyclic, then compares its total weight against a reference MST produced by Kruskal's algorithm.";
+    public string sourceLink { get; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
     private string _certificate = string.Empty;
     public string certificate => _certificate;
@@ -49,6 +50,7 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
         if (!IsAcyclicAndSpanning(uniqueEdges, nodes))
             return false;
 
+        // Compare against a known MST weight rather than requiring the exact same edge set.
         string optimal = new KruskalSolver().solve(problem);
         if (optimal == "{}")
             return false;
@@ -112,6 +114,7 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
             }
 
             var canonical = CanonicalPair(u, v);
+            // Keep the lightest parallel edge for each undirected endpoint pair.
             if (!map.ContainsKey(canonical) || weight < map[canonical])
                 map[canonical] = weight;
         }

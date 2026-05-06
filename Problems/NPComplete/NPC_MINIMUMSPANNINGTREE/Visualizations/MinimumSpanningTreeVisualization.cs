@@ -10,7 +10,8 @@ class MinimumSpanningTreeVisualization : IVisualization<MINIMUMSPANNINGTREE>
 {
     public string visualizationName { get; } = "Minimum Spanning Tree Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted graph and highlights the edges selected for a minimum spanning tree.";
-    public string source { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
+    public string source { get; } = "Original visualization implementation for this repository.";
+    public string sourceLink { get; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
     public string visualizationType { get; } = "Graph D3";
     public ISolver solver { get; } = new KruskalSolver();
@@ -40,6 +41,7 @@ class MinimumSpanningTreeVisualization : IVisualization<MINIMUMSPANNINGTREE>
 
         foreach (var edge in parsedEdges)
         {
+            // Normalize undirected edges so either endpoint ordering highlights the same link.
             selectedKeys.Add(KruskalSolver.CanonicalKey(edge.Key, edge.Value));
             selectedNodes.Add(edge.Key);
             selectedNodes.Add(edge.Value);
