@@ -44,7 +44,7 @@ class SATGroverVisualization : IVisualization<SAT>
             var requestBody = new SATGroverSolver.JSON_Sat_Problem(instance.instance);
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/sat-quantum", requestBody).Result;

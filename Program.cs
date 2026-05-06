@@ -1,11 +1,13 @@
 using System.Reflection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Configuration.GetSection("QuantumSolver").Get<QuantumSolverSettings>();
+builder.Services.Configure<QuantumSolverSettings>(
+    builder.Configuration.GetSection("QuantumSolver"));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -38,6 +40,10 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
+QuantumSolverSettingsGlobal.QuantumSolver = app.Services
+    .GetRequiredService<IOptionsMonitor<QuantumSolverSettings>>()
+    .CurrentValue;
+
 // Somewhat of a security concern. But since we are not doing POSTS im not concerned about it
 app.Use((context, next) =>
     {
@@ -64,4 +70,3 @@ app.MapControllers();
 
 
 app.Run();
-

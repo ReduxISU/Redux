@@ -14,29 +14,16 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
     public string solverName { get; } = "Deutsch Problem Quantum API Solver";
     public string solverDefinition { get; } = "This solver constructs a quantum circuit for f(x) and then uses phase kickback to determine whether the oracle is constant or balanced with a single invocation of a quantum simulator (qiskit)";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
-    public string[] contributors {get;} = { "Grant Gardner" };
-
-    // Configuration: Change this to switch between servers
-    private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
+    public string[] contributors { get; } = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
 
     // --- Constructors ---
 
     /// <summary>
-    /// Creates a new DeutschQuantumSolver using the ISU AWS server by default
+    /// Creates a new DeutschQuantumSolver
     /// </summary>
-    public DeutschQuantumSolver() 
+    public DeutschQuantumSolver()
     {
-        _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-    }
-
-    /// <summary>
-    /// Creates a new DeutschQuantumSolver with specified server environment
-    /// </summary>
-    /// <param name="environment">The server environment to use</param>
-    public DeutschQuantumSolver(QuantumServerAPI.ServerEnvironment environment)
-    {
-        _serverEnvironment = environment;
     }
 
     // --- Methods ---
@@ -49,7 +36,7 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
             bool[] requestBody = problem.funcValues;
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;

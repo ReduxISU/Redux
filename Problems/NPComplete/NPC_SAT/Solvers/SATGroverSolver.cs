@@ -19,9 +19,6 @@ class SATGroverSolver : ISolver
     public string[] contributors {get;} = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
 
-    // Configuration: Change this to switch between servers
-    private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
-
     // --- Constructors ---
 
     /// <summary>
@@ -29,16 +26,6 @@ class SATGroverSolver : ISolver
     /// </summary>
     public SATGroverSolver()
     {
-        _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-    }
-
-    /// <summary>
-    /// Creates a new BernsteinVaziraniQuantumSolver with specified server environment
-    /// </summary>
-    /// <param name="environment">The server environment to use</param>
-    public SATGroverSolver(QuantumServerAPI.ServerEnvironment environment)
-    {
-        _serverEnvironment = environment;
     }
 
     public class JSON_Sat_Problem
@@ -59,7 +46,7 @@ class SATGroverSolver : ISolver
             var requestBody = new JSON_Sat_Problem(problemInstance);
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/sat-quantum", requestBody).Result;
@@ -90,7 +77,7 @@ class SATGroverSolver : ISolver
             var requestBody = new JSON_Sat_Problem(problem.instance);
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/sat-quantum", requestBody).Result;

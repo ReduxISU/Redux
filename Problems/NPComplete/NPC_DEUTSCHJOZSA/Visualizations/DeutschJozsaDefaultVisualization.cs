@@ -44,7 +44,7 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
             bool[] requestBody = instance.w.Select(val => val != 0).ToArray();
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;
