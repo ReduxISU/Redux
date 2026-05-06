@@ -1,15 +1,15 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Verifiers;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Visualizations;
 using SPADE;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
-class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, DummyVisualization, UtilCollectionGraph>
+class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Minimum Spanning Tree";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
@@ -28,7 +28,7 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
 
     public KruskalSolver defaultSolver { get; } = new KruskalSolver();
     public MinimumSpanningTreeVerifier defaultVerifier { get; } = new MinimumSpanningTreeVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public MinimumSpanningTreeVisualization defaultVisualization { get; } = new MinimumSpanningTreeVisualization();
     public UtilCollectionGraph graph { get; set; }
 
     public List<string> nodes
@@ -43,9 +43,9 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
         set => _edges = value;
     }
 
-    public P_MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
+    public MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
 
-    public P_MINIMUMSPANNINGTREE(string instanceString)
+    public MINIMUMSPANNINGTREE(string instanceString)
     {
         instance = instanceString;
 
