@@ -51,11 +51,4 @@ public sealed class API_QUANTUMCIRCUIT : API_JSON
     /// Optional metadata associated with the visualization.
     /// </summary>
     public Dictionary<string, object?>? metadata { get; set; }
-
-    /// <summary>
-    /// Legacy circuit field retained for backward compatibility.
-    /// Prefer <see cref="qasm"/> or <see cref="d3"/>.
-    /// </summary>
-    [Obsolete("Use qasm or d3 instead of circuit.")]
-    public string? circuit { get; set; }
 }
