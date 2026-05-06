@@ -1,7 +1,6 @@
 //ArcsetTests.cs
 using Xunit;
 using API.Problems.NPComplete.NPC_ARCSET;
-using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_ARCSET;
 using API.Problems.NPComplete.NPC_ARCSET.Verifiers;
 using API.Problems.NPComplete.NPC_ARCSET.Solvers;
@@ -36,9 +35,8 @@ public class ARCSET_Tests
     }
 
     [Fact]
-     public void ARCSETGraph_Custom_Instance(){
-
-        string testValue = "";
+    public void ARCSETGraph_Custom_Instance()
+    {
         ARCSET testingArc = new ARCSET("(({1,2,3,4,5},{(4,1),(1,2),(4,3),(3,2),(2,4)}),1)");
         UtilCollectionGraph testGraph = testingArc.graph;
         Assert.Equal(testingArc.instance, "(" + testGraph.ToString() + ",1)"); //Tests that the arcset instance string is equal to its generated graph string, plus the rest of the problem
