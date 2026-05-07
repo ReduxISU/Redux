@@ -7,7 +7,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
-class STRONGLYCONNECTEDCOMPONENTS 
+class STRONGLYCONNECTEDCOMPONENTS
     : IGraphProblem<KosarajuSolver, SCCVerifier, DummyVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Strongly Connected Components";
@@ -22,10 +22,10 @@ class STRONGLYCONNECTEDCOMPONENTS
         "A strongly connected component is a maximal group of vertices in a directed graph where every vertex can reach every other vertex in the same group. The goal is to return all such components.";
 
     public string source { get; } =
-        "Wikipedia: Strongly connected component";
+        "Swati Dhingra, Poorvi S. Dodwad, and Meghna Madan, \"Finding Strongly Connected Components in a Social Network Graph,\" International Journal of Computer Applications, Volume 136, No. 7, February 2016.";
 
     public string sourceLink { get; } =
-        "https://en.wikipedia.org/wiki/Strongly_connected_component";
+        "https://ijcaonline.org/research/volume136/number7/dhingra-2016-ijca-908481.pdf";
 
     public string wikiName { get; } =
         "Strongly connected component";
