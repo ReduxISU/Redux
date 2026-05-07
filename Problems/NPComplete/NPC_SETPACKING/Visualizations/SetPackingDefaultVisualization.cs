@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Problems.NPComplete.NPC_SETPACKING.Solvers;
 using System.Collections.Generic;
 
 namespace API.Problems.NPComplete.NPC_SETPACKING.Visualizations;
@@ -13,6 +14,9 @@ class SetPackingDefaultVisualization : IVisualization<SETPACKING>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Sansar Kharal" };
     public string visualizationType { get; } = "Graph D3";
+
+    // REQUIRED by IVisualization
+    public ISolver<SETPACKING> solver { get; set; } = new SetPackingBruteForce();
 
     public SetPackingDefaultVisualization()
     {
@@ -43,4 +47,4 @@ class SetPackingDefaultVisualization : IVisualization<SETPACKING>
 
         return apiGraph;
     }
-} 
+}
