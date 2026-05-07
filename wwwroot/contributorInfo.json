@@ -220,7 +220,7 @@
     "email": "koraskoirala@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Machine learning model architecture; contributor to Redux testing and problem verification"
+    "bio": "Machine learning model architecture; contributor to Redux testing and problem verification",
     "githubUsername": ""
   },
   "Dinesh Khanal": {
@@ -234,7 +234,7 @@
     "email": "khanmusa@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Implemented the Knapsack DP solver and unit tests"
+    "bio": "Implemented the Knapsack DP solver and unit tests",
     "githubUsername": ""
   },
   "Calvin Condie": {
