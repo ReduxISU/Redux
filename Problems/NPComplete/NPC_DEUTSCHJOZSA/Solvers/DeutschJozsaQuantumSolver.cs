@@ -17,26 +17,13 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
     public string[] contributors {get;} = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
 
-    // Configuration: Change this to switch between servers
-    private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
-
     // --- Constructors ---
 
     /// <summary>
-    /// Creates a new DeutschJozsaQuantumSolver using the ISU AWS server by default
+    /// Creates a new DeutschJozsaQuantumSolver
     /// </summary>
     public DeutschJozsaQuantumSolver()
     {
-        _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-    }
-
-    /// <summary>
-    /// Creates a new DeutschJozsaQuantumSolver with specified server environment
-    /// </summary>
-    /// <param name="environment">The server environment to use</param>
-    public DeutschJozsaQuantumSolver(QuantumServerAPI.ServerEnvironment environment)
-    {
-        _serverEnvironment = environment;
     }
 
     // --- Methods ---
@@ -49,7 +36,7 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
             bool[] requestBody = problem.w.Select(val => val != 0).ToArray();
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;

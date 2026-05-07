@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.P.P_MINIMUMSPANNINGTREE;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 using SPADE;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
+class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
 {
     public string solverName { get; } = "Kruskal's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by sorting edges by weight and adding each edge if it joins two different components.";
-    public string source { get; } = "https://en.wikipedia.org/wiki/Kruskal%27s_algorithm";
+    public string source { get; } = "Kruskal, J. B. \"On the shortest spanning subtree of a graph and the traveling salesman problem.\" Proceedings of the American Mathematical Society 7, no. 1 (1956): 48-50.";
+    public string sourceLink { get; } = "https://doi.org/10.2307/2033241";
     public string[] contributors { get; } = { "Andreas Kramer" };
     public bool timerHasExpired { get; set; }
 
-    public string solve(P_MINIMUMSPANNINGTREE problem)
+    public string solve(MINIMUMSPANNINGTREE problem)
     {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         var edges = ExtractEdges(problem.graph);
@@ -27,6 +28,7 @@ class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
         UnionFind<string> uf = new(nodes);
         List<(string u, string v, int weight)> selected = new();
 
+        // Deterministic tie-breaking keeps certificates stable across runs.
         foreach (var edge in edges.OrderBy(e => e.weight).ThenBy(e => CanonicalKey(e.u, e.v)))
         {
             if (timerHasExpired)
@@ -60,6 +62,7 @@ class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
             if (!firstLooksLikeCollection || secondLooksLikeCollection)
                 continue;
 
+            // Accept the weighted-edge encoding produced by the MST parser and normalize it here.
             UtilCollection endpoints = rawEdge[0];
             int weight = int.Parse(rawEdge[1].ToString());
             if (endpoints.IsOrdered())
@@ -88,6 +91,7 @@ class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
         if (edges == null || edges.Count == 0)
             return "{}";
 
+        // Certificates store only the chosen undirected edges; weights stay in the original instance.
         var sorted = edges
             .Select(edge => (u: edge.u, v: edge.v))
             .Select(edge => (u: edge.u, v: edge.v, key: CanonicalKey(edge.u, edge.v)))
@@ -119,7 +123,7 @@ class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
         return s.StartsWith("{") || s.StartsWith("(");
     }
 
-    private class UnionFind<T>
+    private class UnionFind<T> where T : notnull
     {
         private readonly Dictionary<T, T> parent = new();
         private readonly Dictionary<T, int> rank = new();
@@ -138,6 +142,7 @@ class KruskalSolver : ISolver<P_MINIMUMSPANNINGTREE>
             if (!parent.ContainsKey(item))
                 throw new InvalidOperationException("Item is not part of this union-find structure.");
 
+            // Path compression keeps repeated connectivity checks near-constant amortized time.
             if (!EqualityComparer<T>.Default.Equals(parent[item], item))
                 parent[item] = Find(parent[item]);
             return parent[item];

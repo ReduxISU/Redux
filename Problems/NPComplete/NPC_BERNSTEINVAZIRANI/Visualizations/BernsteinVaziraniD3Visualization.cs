@@ -68,7 +68,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         try
         {
             bool[] requestBody = instance.funcValues.ToArray();
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
             string response = client.PostAsync("/bernstein-vazirani-quantum", requestBody).Result;
 
             using JsonDocument doc = JsonDocument.Parse(response);

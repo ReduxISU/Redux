@@ -1,22 +1,22 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Verifiers;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Visualizations;
 using SPADE;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
-class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, DummyVisualization, UtilCollectionGraph>
+class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
 {
     public string problemName { get; } = "Minimum Spanning Tree";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
     public string formalDefinition { get; } = "Given a weighted undirected graph G = (V, E, w), find a subset T \u2286 E such that T is a spanning tree of G and the sum of weights in T is minimum.";
-    public string problemDefinition { get; } = "Find a minimum-weight spanning tree in a weighted, undirected graph.";
-    public string source { get; } = "N/A";
-    public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
+    public string problemDefinition { get; } = "Given a weighted, undirected graph, find a set of edges that connects every vertex without creating cycles and has the smallest possible total weight.";
+    public string source { get; } = "Graham, Ronald L., and Pavel Hell. \"On the history of the minimum spanning tree problem.\" Annals of the History of Computing 7, no. 1 (1985): 43-57.";
+    public string sourceLink { get; } = "https://doi.org/10.1109/MAHC.1985.10011";
     public string wikiName { get; } = "";
     public static string _defaultInstance { get; } = "({1,2,3,4},{({1,2},1),({2,3},2),({3,4},1),({1,4},2),({1,3},3)})";
     public string defaultInstance { get; } = _defaultInstance;
@@ -28,7 +28,7 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
 
     public KruskalSolver defaultSolver { get; } = new KruskalSolver();
     public MinimumSpanningTreeVerifier defaultVerifier { get; } = new MinimumSpanningTreeVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public MinimumSpanningTreeVisualization defaultVisualization { get; } = new MinimumSpanningTreeVisualization();
     public UtilCollectionGraph graph { get; set; }
 
     public List<string> nodes
@@ -43,12 +43,13 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
         set => _edges = value;
     }
 
-    public P_MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
+    public MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
 
-    public P_MINIMUMSPANNINGTREE(string instanceString)
+    public MINIMUMSPANNINGTREE(string instanceString)
     {
         instance = instanceString;
 
+        // Parse weighted undirected graph instances of the form ({V},{({u,v},w),...}).
         StringParser mstParser = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
         mstParser.parse(instanceString);
 
@@ -59,6 +60,7 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();
 
+        // Reject malformed instances before building the graph object used elsewhere.
         ValidateInstance(nodes, mstParser["E"]);
         graph = new UtilCollectionGraph(mstParser["N"], mstParser["E"]);
     }
@@ -71,6 +73,7 @@ class P_MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVe
             List<UtilCollection> endpoints = rawEdge[0].ToList();
             string u = endpoints[0].ToString();
             string v = endpoints[1].ToString();
+
             if (!nodeSet.Contains(u) || !nodeSet.Contains(v))
                 throw new InvalidOperationException("MST instance contains an edge with a vertex that is not in the node set.");
         }

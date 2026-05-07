@@ -6,6 +6,8 @@ using API.Interfaces;
 
 namespace redux_tests;
 
+#pragma warning disable CS1591
+
 public class CONVEXHULL_Tests
 {
 

@@ -3,22 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
-using API.Problems.P.P_MINIMUMSPANNINGTREE.Solvers;
-using API.Problems.P.P_MINIMUMSPANNINGTREE;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
+using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 using SPADE;
 
-namespace API.Problems.P.P_MINIMUMSPANNINGTREE.Verifiers;
+namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
 
-class MinimumSpanningTreeVerifier : IVerifier<P_MINIMUMSPANNINGTREE>
+class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
 {
     public string verifierName { get; } = "Minimum Spanning Tree Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edge set is a valid minimum spanning tree for the input graph.";
-    public string source { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
+    public string source { get; } = "Original verifier implementation for this repository. It checks that a certificate is spanning and acyclic, then compares its total weight against a reference MST produced by Kruskal's algorithm.";
+    public string sourceLink { get; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
     private string _certificate = string.Empty;
     public string certificate => _certificate;
 
-    public bool verify(P_MINIMUMSPANNINGTREE problem, string solution)
+    public bool verify(MINIMUMSPANNINGTREE problem, string solution)
     {
         _certificate = solution ?? string.Empty;
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
@@ -49,6 +50,7 @@ class MinimumSpanningTreeVerifier : IVerifier<P_MINIMUMSPANNINGTREE>
         if (!IsAcyclicAndSpanning(uniqueEdges, nodes))
             return false;
 
+        // Compare against a known MST weight rather than requiring the exact same edge set.
         string optimal = new KruskalSolver().solve(problem);
         if (optimal == "{}")
             return false;
@@ -112,6 +114,7 @@ class MinimumSpanningTreeVerifier : IVerifier<P_MINIMUMSPANNINGTREE>
             }
 
             var canonical = CanonicalPair(u, v);
+            // Keep the lightest parallel edge for each undirected endpoint pair.
             if (!map.ContainsKey(canonical) || weight < map[canonical])
                 map[canonical] = weight;
         }
@@ -153,7 +156,7 @@ class MinimumSpanningTreeVerifier : IVerifier<P_MINIMUMSPANNINGTREE>
         return s.StartsWith("{") || s.StartsWith("(");
     }
 
-    private class UnionFind<T>
+    private class UnionFind<T> where T : notnull
     {
         private readonly Dictionary<T, T> parent = new();
         private readonly Dictionary<T, int> rank = new();

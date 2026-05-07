@@ -5,7 +5,6 @@ using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
 using SPADE;
 using API.Problems.NPComplete.NPC_WEIGHTEDCUT.Solvers;
-using Microsoft.AspNetCore.Server.IIS.Core;
 
 namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Visualizations;
 
