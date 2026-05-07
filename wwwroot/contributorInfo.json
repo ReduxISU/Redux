@@ -185,7 +185,6 @@
     "email": "",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "",
     "githubUsername": "",
     "bio": "Frontend developer and UI specialist"
   },
@@ -193,48 +192,56 @@
     "email": "kaosiibeabuchi@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science and Software Engineering",
-    "bio": "Problem solver and verifier developer"
+    "bio": "Problem solver and verifier developer",
+    "githubUsername": ""
   },
   "Diya Pandey": {
     "email": "diyapandey@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science and Software Engineering",
-    "bio": "Problem architect developer"
+    "bio": "Problem architect developer",
+    "githubUsername": ""
   },
   "Srijan Pant": {
     "email": "srijanpant@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Testing and quality assurance specialist"
+    "bio": "Testing and quality assurance specialist",
+    "githubUsername": ""
   },
   "Pravesh Aryal": {
     "email": "praveshAryal@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science (Minor: Mathematics)",
-    "bio": "Machine learning model architecture; contributor to Redux graph algorithms and problem implementations"
+    "bio": "Machine learning model architecture; contributor to Redux graph algorithms and problem implementations",
+    "githubUsername": ""
   },
   "Koras Koirala": {
     "email": "koraskoirala@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Machine learning model architecture; contributor to Redux testing and problem verification"
+    "githubUsername": ""
   },
   "Dinesh Khanal": {
     "email": "dineshkhanal@isu.edu",
     "education": "Idaho State University",
     "major": "Mathematics (Minor: Computer Science)",
-    "bio": "Algorithm and logic developer; contributor to Redux problem solver design"
+    "bio": "Algorithm and logic developer; contributor to Redux problem solver design",
+    "githubUsername": ""
   },
   "Musab Khan": {
     "email": "khanmusa@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Implemented the Knapsack DP solver and unit tests"
+    "githubUsername": ""
   },
   "Calvin Condie": {
     "email": "calvincondie@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Implemented the Knapsack DP solver and unit tests"
+    "bio": "Implemented the Knapsack DP solver and unit tests",
+    "githubUsername": ""
   }
 }
