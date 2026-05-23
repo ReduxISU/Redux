@@ -1,313 +1,178 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Collections;
+using API.Interfaces;
 
-// Get all problems regardless of complexity class
+// Reflection-derived reduction graph and the endpoint that exposes it.
+// Replaces the prior filesystem-walking controllers (All_Reductions,
+// NPC_Reductions, Problem_Reductions[Refactor], PossibleReductions[Refactor],
+// Reverse_Reductions). Type system is the source of truth; the map shape
+// matches how consumers (LLM or GUI) traverse reductions.
+//
+// ReductionGraphData is also the backing store for the legacy
+// NPC_NavGraph/availableReductions and NPC_NavGraph/reductionPath
+// sub-endpoints (see Nav_Problems.cs) so views cannot drift.
 
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Reductions)")]
-#pragma warning disable CS1591
-
-public class All_ReductionsController : ControllerBase {
-#pragma warning restore CS1591
-
-//Note: CALEB - should probably be removed with api refactor
-
-///<summary>Returns list of all available problem types </summary>
-///<response code="200">Returns string array of problem types</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault() {
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath+ @"Problems")
-                            .Select(Path.GetFileName)
-                            .ToArray();
-
-        // Not completed. Needs to loop through these directories to get the rest of the problems
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirs, options);
-        return jsonString;
+public static class ReductionGraphData
+{
+    public class Edge
+    {
+        public string className { get; set; } = "";
+        public string endpoint { get; set; } = "";
+        public string inputType { get; set; } = "";
+        public string outputType { get; set; } = "";
     }
-}
 
-// Get only NP-Complete problems
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Reductions)")]
-#pragma warning disable CS1591
+    // from -> to -> [edges]. Keys are canonical IProblem class names
+    // (e.g. "SAT3", "CLIQUE"). Built once at process start.
+    public static readonly Dictionary<string, Dictionary<string, List<Edge>>> Graph = Build();
 
-//Note: CALEB - should probably be removed with api refactor
-
-public class NPC_ReductionsController : ControllerBase {
-#pragma warning restore CS1591
-    
-///<summary>Returns all NP-Complete problems </summary>
-///<response code="200">Returns string array of all NP-Complete problems</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault() {
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath+ @"Problems/NPComplete")
-                            .Select(Path.GetFileName)
-                            .ToArray();
-                            
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirs, options);
-        return jsonString;
-    }
-}
-
-// Get all problems we can reduce to for a specific problem
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Reductions)")]
-#pragma warning disable CS1591
-//Note: CALEB - should probably be removed with api refactor
-
-public class Problem_ReductionsController : ControllerBase {
-#pragma warning restore CS1591
-
-    const string NO_REDUCTIONS_ERROR = "{\"ERROR\": \"No Reductions Available\"}"; //API Response. 
-
-///<summary>Returns all problems which a given problem directly reduces to </summary>
-///<param name="chosenProblem" example="NPC_SAT3">Problem name</param>
-///<response code="200">Returns string array of problems</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault([FromQuery]string chosenProblem) {
-        
-
-        // Determine the directory to search based on prefix. chosenProblem expected to be a problemName like "NPC_PROBLEM"\
-
-        string problemTypeDirectory = "";
-        string problemType = chosenProblem.Split('_')[0];
-
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
-
-        string jsonString = "";
-        var options = new JsonSerializerOptions { WriteIndented = true };
-  
-        try{
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + chosenProblem + "/ReduceTo")
-                            .Select(Path.GetFileName)
-                            .ToArray();
-
-        jsonString = JsonSerializer.Serialize(subdirs, options);
- 
-        }
-        catch (System.IO.DirectoryNotFoundException dirNotFoundException){
-            Console.WriteLine(NO_REDUCTIONS_ERROR + " directory not found, exception was thrown in Nav_Reductions.cs");
-                        jsonString = NO_REDUCTIONS_ERROR;
-            Console.WriteLine(dirNotFoundException.StackTrace);
-        }
-        return jsonString;
-    }
-}
-
-
-// Get all problems we can reduce to for a specific problem
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Reductions)")]
-#pragma warning disable CS1591
-
-public class Problem_ReductionsRefactorController : ControllerBase {
-#pragma warning restore CS1591
-
-    const string NO_REDUCTIONS_ERROR = "{\"ERROR\": \"No Reductions Available\"}"; //API Response. 
-
-///<summary>Returns all problems which a given  problem directly reduces to </summary>
-///<param name="chosenProblem" example="SAT3">Problem name</param>
-///<param name="problemType" example="NPC">Problem type</param>
-///<response code="200">Returns string array of problems</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault([FromQuery]string chosenProblem ,[FromQuery] string problemType) {
-        
-
-        // Determine the directory to search based on prefix. chosenProblem expected to be a problemName like "NPC_PROBLEM"\
-        //This method uses a query param to check whether a problem is NPComplete or Polynomial, unlike the original method which checks a name prefix.
-
-        string problemTypeDirectory = "";
-
-        if (problemType == "NPC") { 
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
-
-        string jsonString = "";
-        var options = new JsonSerializerOptions { WriteIndented = true };
-  
-        try{
-        string projectSourcePath = ProjectSourcePath.Value;
-
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/"+problemType+"_" + chosenProblem + "/ReduceTo")
-                            .Select(Path.GetFileName)
-                            .ToArray();
-
-        ArrayList subdirsNoPrefix = new ArrayList();
-        foreach(var problemDirName in subdirs){
-            if (problemDirName is null)
-                continue;
-            string[] splitStr = problemDirName.Split('_');
-            string newName = splitStr[1];
-            subdirsNoPrefix.Add(newName);
-        }
-
-        jsonString = JsonSerializer.Serialize(subdirsNoPrefix, options);
- 
-        }
-        catch (System.IO.DirectoryNotFoundException){
-            //Console.WriteLine(NO_REDUCTIONS_ERROR + " directory not found, exception was thrown in Nav_Reductions.cs");
-                        jsonString = NO_REDUCTIONS_ERROR;
-            //Console.WriteLine(dirNotFoundException.StackTrace);
-        }
-        finally{
-
-        }
-        return jsonString;
-    }
-}
-
-// Get all reductions implemented for a specific problem
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Reductions)")]
-#pragma warning disable CS1591
-//Note: CALEB - should probably be removed with api refactor
-
-public class PossibleReductionsController : ControllerBase {
-#pragma warning restore CS1591
-
-///<summary>Returns al list of reductions from a given problem to another given problem </summary>
-///<param name="reducingFrom" example="NPC_SAT3">Problem name</param>
-///<param name="reducingTo" example="NPC_CLIQUE">Problem name</param>
-///<response code="200">Returns string array of reductions</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault([FromQuery]string reducingFrom, [FromQuery]string reducingTo) {
-
-        // Determine the directory to search based on prefix. reducingFrom and reducingTo are both expected to be a problemName like "NPC_PROBLEM"
-        string problemTypeDirectory = "";
-        string problemType = reducingFrom.Split('_')[0];
-
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
-
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + reducingFrom + "/ReduceTo/" + reducingTo)
-                            .Select(Path.GetFileName)
-                            .ToArray();
-                  
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subfiles, options);
-        return jsonString;
-    }
-}
-
-// Get all reductions implemented for a specific problem
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Reductions)")]
-#pragma warning disable CS1591
-
-public class PossibleReductionsRefactorController : ControllerBase {
-#pragma warning restore CS1591
-
-///<summary>Returns al list of reductions from a given problem to another given problem </summary>
-///<param name="reducingFrom" example="SAT3">Problem name</param>
-///<param name="reducingTo" example="CLIQUE">Problem name</param>
-///<param name="problemType" example="NPC">Problem type</param>
-///<response code="200">Returns string array of reductions</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault([FromQuery]string reducingFrom, [FromQuery]string reducingTo,[FromQuery]string problemType) {
-        string NOT_FOUND_ERR_REDUCTION = "entered a reduce from or to that does not exist";
-
-
-        // Determine the directory to search based on prefix. reducingFrom and reducingTo are both expected to be a problemName like "NPC_PROBLEM"
-        string problemTypeDirectory = "";
-
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
-
-        string jsonString = "";
-        var options = new JsonSerializerOptions { WriteIndented = true };
-
-        try
+    private static Dictionary<string, Dictionary<string, List<Edge>>> Build()
+    {
+        var graph = new Dictionary<string, Dictionary<string, List<Edge>>>();
+        foreach (var (_, type) in ProblemProvider.Reductions)
         {
-
-            string projectSourcePath = ProjectSourcePath.Value;
-            string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + problemType + "_" + reducingFrom + "/ReduceTo/NPC_" + reducingTo)
-                                .Select(Path.GetFileName)
-                                .ToArray();
-
-            ArrayList subFilesList = new ArrayList();
-            foreach (var file in subfiles)
+            var generic = type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReduction<,>));
+            if (generic == null) continue;
+            var args = generic.GetGenericArguments();
+            string from = args[0].Name;
+            string to = args[1].Name;
+            string className = type.Name;
+            var edge = new Edge
             {
-                if (file is null)
-                    continue;
-                string fileNoExt = file.Split('.')[0];
-                subFilesList.Add(fileNoExt);
-            }
-            jsonString = JsonSerializer.Serialize(subFilesList, options);
+                className = className,
+                endpoint = $"POST /ProblemProvider/reduce?reduction={className}",
+                inputType = from,
+                outputType = to,
+            };
+            if (!graph.ContainsKey(from))
+                graph[from] = new Dictionary<string, List<Edge>>();
+            if (!graph[from].ContainsKey(to))
+                graph[from][to] = new List<Edge>();
+            graph[from][to].Add(edge);
+        }
+        return graph;
+    }
 
+    // Resolve a caller-supplied name (any case) to its canonical key as it
+    // appears in Graph. Searches source nodes first, then target nodes.
+    public static string? ResolveKey(string name)
+    {
+        foreach (var k in Graph.Keys)
+            if (string.Equals(k, name, StringComparison.OrdinalIgnoreCase)) return k;
+        foreach (var outs in Graph.Values)
+            foreach (var k in outs.Keys)
+                if (string.Equals(k, name, StringComparison.OrdinalIgnoreCase)) return k;
+        return null;
+    }
+
+    // Transitively reachable problems from source via BFS. Excludes source.
+    public static List<string> ReachableFrom(string source)
+    {
+        var result = new List<string>();
+        string? start = ResolveKey(source);
+        if (start == null) return result;
+
+        var visited = new HashSet<string> { start };
+        var queue = new Queue<string>();
+        queue.Enqueue(start);
+        while (queue.Count > 0)
+        {
+            string cur = queue.Dequeue();
+            if (!Graph.TryGetValue(cur, out var outs)) continue;
+            foreach (var next in outs.Keys)
+            {
+                if (visited.Add(next))
+                {
+                    result.Add(next);
+                    queue.Enqueue(next);
+                }
+            }
         }
-        catch(System.IO.DirectoryNotFoundException){
-            Console.WriteLine(NOT_FOUND_ERR_REDUCTION);
-            jsonString = JsonSerializer.Serialize(NOT_FOUND_ERR_REDUCTION, options);
+        return result;
+    }
+
+    // Shortest path from source to target as a list of hops; each hop is the
+    // list of reduction class names available between consecutive problems.
+    // Empty list if no path exists.
+    public static List<List<string>> PathBetween(string source, string target)
+    {
+        string? s = ResolveKey(source);
+        string? t = ResolveKey(target);
+        if (s == null || t == null) return new List<List<string>>();
+        if (string.Equals(s, t, StringComparison.OrdinalIgnoreCase)) return new List<List<string>>();
+
+        var parent = new Dictionary<string, string>();
+        var visited = new HashSet<string> { s };
+        var queue = new Queue<string>();
+        queue.Enqueue(s);
+        bool found = false;
+        while (queue.Count > 0 && !found)
+        {
+            string cur = queue.Dequeue();
+            if (!Graph.TryGetValue(cur, out var outs)) continue;
+            foreach (var next in outs.Keys)
+            {
+                if (!visited.Add(next)) continue;
+                parent[next] = cur;
+                if (string.Equals(next, t, StringComparison.OrdinalIgnoreCase))
+                {
+                    found = true;
+                    break;
+                }
+                queue.Enqueue(next);
+            }
         }
-        finally{
-            
+        if (!found) return new List<List<string>>();
+
+        var hops = new List<List<string>>();
+        string node = t;
+        while (parent.TryGetValue(node, out string? prev))
+        {
+            hops.Add(Graph[prev][node].Select(e => e.className).ToList());
+            node = prev;
         }
-        return jsonString;
+        hops.Reverse();
+        return hops;
     }
 }
 
-// Get all problems from a chosen reduction
 [ApiController]
 [Route("Navigation/[controller]")]
 [Tags("- Navigation (Reductions)")]
 #pragma warning disable CS1591
+public class ReductionsController : ControllerBase
+{
+#pragma warning restore CS1591
 
-public class Reverse_ReductionsController : ControllerBase {
-
-//Note: CALEB - should probably be removed with api refactor
-    // [ApiExplorerSettings(IgnoreApi = true)]
+    /// <summary>Returns the reduction graph as an adjacency map: from -> to -> list of reduction edges.</summary>
+    /// <remarks>
+    /// Each edge is self-describing (className, endpoint, inputType, outputType) so an LLM
+    /// can chain reductions by matching outputType of step n to inputType of step n+1.
+    /// Omit both source and target to get the full graph for multi-step planning.
+    /// </remarks>
+    /// <param name="source">Optional. Filter to edges originating at this problem (class name, e.g. "CLIQUE"). Case-insensitive.</param>
+    /// <param name="target">Optional. Filter to edges ending at this problem (class name, e.g. "SAT3"). Case-insensitive.</param>
+    /// <response code="200">Adjacency map of reduction edges.</response>
+    [ProducesResponseType(typeof(Dictionary<string, Dictionary<string, List<ReductionGraphData.Edge>>>), 200)]
     [HttpGet]
-    public String getDefault([FromQuery]string chosenReduction) {
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath+ @"Problems/NPComplete")
-                            .Select(Path.GetFileName)
-                            .ToArray();
-                            
+    public string getDefault([FromQuery] string? source = null, [FromQuery] string? target = null)
+    {
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirs, options);
-        return jsonString;
+        if (source == null && target == null)
+            return JsonSerializer.Serialize(ReductionGraphData.Graph, options);
+
+        var result = new Dictionary<string, Dictionary<string, List<ReductionGraphData.Edge>>>();
+        foreach (var (from, tos) in ReductionGraphData.Graph)
+        {
+            if (source != null && !string.Equals(from, source, StringComparison.OrdinalIgnoreCase)) continue;
+            foreach (var (to, edges) in tos)
+            {
+                if (target != null && !string.Equals(to, target, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!result.ContainsKey(from)) result[from] = new Dictionary<string, List<ReductionGraphData.Edge>>();
+                result[from][to] = edges;
+            }
+        }
+        return JsonSerializer.Serialize(result, options);
     }
 }
- #pragma warning restore CS1591
