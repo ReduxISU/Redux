@@ -73,14 +73,51 @@ public class ProblemProvider : ControllerBase
     /// <param name="verify">The certificate and problem instance</param>
     /// <returns>true or false</returns>
     [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(400)]
     [HttpPost("verify")]
-    public string verify(string verifier, [FromBody] Verify verify)
+    public IActionResult verify(string verifier, [FromBody] Verify verify)
     {
-        // TODO: validate arguments
-        return JsonSerializer.Serialize(
-            Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate).ToString(), 
-            new JsonSerializerOptions { WriteIndented = true }
-        );
+        try {
+            string result = JsonSerializer.Serialize(
+                Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate).ToString(),
+                new JsonSerializerOptions { WriteIndented = true }
+            );
+            return Content(result, "application/json");
+        } catch (ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (CertificateParseException ex) {
+            return BadRequest(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
+                ex.Problem.certificateFormat, ex.Received, ex.Message));
+        }
+    }
+
+    private static object ParseErrorBody(string error, string problemName, string expected, string received, string detail) {
+        return new {
+            error,
+            problem = problemName,
+            expected,
+            received,
+            detail
+        };
+    }
+
+    private static string LookupInstanceFormat(string problemName) {
+        // problemName may be either the class name (Problems key) or the
+        // friendly problemName property — scan both. Error path: O(N) is fine.
+        if (Problems.TryGetValue(problemName.ToLower(), out var type)) {
+            try { return (Activator.CreateInstance(type) as IProblem)?.instanceFormat ?? ""; }
+            catch { /* fall through */ }
+        }
+        foreach (var kv in Problems) {
+            try {
+                if (Activator.CreateInstance(kv.Value) is IProblem p
+                    && string.Equals(p.problemName, problemName, StringComparison.OrdinalIgnoreCase)) {
+                    return p.instanceFormat;
+                }
+            } catch { /* skip */ }
+        }
+        return "";
     }
 
     /// <summary>
@@ -119,11 +156,21 @@ public class ProblemProvider : ControllerBase
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance string</param>
     /// <returns>object instance</returns>
     [ProducesResponseType(typeof(IProblem), 200)]
+    [ProducesResponseType(400)]
     [HttpPost("problemInstance")]
-    public string problemInstance(string problem, [FromBody] string problemInstance)
+    public IActionResult problemInstance(string problem, [FromBody] string problemInstance)
     {
-        // TODO: validate arguments
-        return Newtonsoft.Json.JsonConvert.SerializeObject(ProblemInstance(problem, problemInstance));
+        try {
+            return Content(
+                Newtonsoft.Json.JsonConvert.SerializeObject(ProblemInstance(problem, problemInstance)),
+                "application/json");
+        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        }
     }
 
     private static bool IsEmptyVisualization(API_JSON item)
