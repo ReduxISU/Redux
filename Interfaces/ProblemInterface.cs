@@ -13,6 +13,14 @@ interface IProblem {
     string defaultInstance{get;}
     string instance{ get; }
 
+    // Format descriptors consumed by /ProblemProvider/info. Each should be a
+    // short descriptive sentence with an embedded concrete example so a
+    // caller (LLM, GUI, or human) can construct a valid instance/certificate
+    // without reading the verifier source. Defaults to "" on problems that
+    // haven't been backfilled yet.
+    string instanceFormat { get => ""; }
+    string certificateFormat { get => ""; }
+
     string[] contributors{ get; }
 
     ISolver defaultSolver {get;}
