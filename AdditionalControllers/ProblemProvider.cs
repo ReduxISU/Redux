@@ -270,11 +270,40 @@ public class ProblemProvider : ControllerBase
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the problem</param>
     /// <returns>solution certificate of the reduction</returns>
     [HttpPost("mapSolution")]
-    public string mapSolution(string reduction, string solution, [FromBody] string instance)
+    [ProducesResponseType(400)]
+    public IActionResult mapSolution(string reduction, string solution, [FromBody] string instance)
     {
-        IReduction red = Reduction(reduction, instance);
-        string mappedSolution = red.mapSolutions(solution);
-        return JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true });
+        IReduction red;
+        try {
+            red = Reduction(reduction, instance);
+        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ReductionInputException ex) {
+            return BadRequest(ReductionParseErrorBody("reduction_input_parse_error", ex.Reduction,
+                ex.ExpectedFormat, ex.Received, ex.Message));
+        }
+
+        try {
+            string mappedSolution = red.mapSolutions(solution);
+            return Content(
+                JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }),
+                "application/json");
+        } catch (ReductionInputException ex) {
+            return BadRequest(ReductionParseErrorBody("reduction_input_parse_error", ex.Reduction,
+                ex.ExpectedFormat, ex.Received, ex.Message));
+        }
+    }
+
+    private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail) {
+        return new {
+            error,
+            reduction = reduction.reductionName,
+            problem = reduction.reductionFrom.problemName,
+            expected,
+            received,
+            detail
+        };
     }
 
 
