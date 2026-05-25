@@ -16,12 +16,16 @@ The PROBLEMNAME_Class.cs should implement the `IProblem` interface or one of its
 * `string sourceLink` : A link to the formal citation
 * `string wikiName` : This is deprecated, and should be removed from all problems
 * `string defaultInstance` : A reasonably sized example of the problem, and the necessary format. *If the problem is of a similar form to an existing problem, such as a directed graph, the format should match the existing problems.*
+* `string instanceFormat` : Short descriptive sentence with a concrete embedded example of the instance string the problem accepts. Consumed by `/ProblemProvider/info` and by parse-error responses, so this is the canonical place to tell an LLM, the GUI, or a human what shape your instances take. Prefer a sentence + example over a formal grammar.
+* `string certificateFormat` : Same shape as `instanceFormat`, but describes what the verifier accepts as a certificate. The default verifier defines this; if your problem has multiple verifiers, declare the format the *default* one expects here.
 * `string[] contributors` : A list of names of all developers who have worked on the problem
 * `T defaultSolver` : An object of the default solver for the problem
 * `U defaultVerifier` : An object of the default verifier for the problem
 * `V defaultVisualization` : An objet of the default visualization for the problem
 
-The PROBLEMNAME_Class.cs should also include any necessary problem variables, any functions necessary for parsing string instances into a variable, and two constructors. One constructor that takes a string instance, and one which uses the default instance. 
+The PROBLEMNAME_Class.cs should also include any necessary problem variables, any functions necessary for parsing string instances into a variable, and two constructors. One constructor that takes a string instance, and one which uses the default instance.
+
+The string-instance constructor should **throw `ProblemParseException`** (defined in `Interfaces/ParseExceptions.cs`) on malformed input rather than silently constructing a half-populated object. The controller layer catches this exception and returns HTTP 400 with `instanceFormat` quoted back to the caller, which is what lets every client — MCP wrappers, the GUI, an LLM agent — recover from a bad input by reading the structured error rather than parsing a stack trace.
 
 ### Reductions
 The Reductions folder should contain all reduction files for that problem. Each of which implements the `IReduction` interface found in ReductionInterface.cs. This includes
@@ -55,6 +59,8 @@ The Verifiers folder should contain all verifier files for that problem. Each of
 * `string[] contributors` : A list of names of all developers who have worked on the verifier
 
 The file should also include a function which takes a problem object and certificate, and returns a Boolean for if the certificate is a solution to the given problem. As well as any other necessary functions.
+
+The verifier should **throw `CertificateParseException`** (defined in `Interfaces/ParseExceptions.cs`) on malformed certificate input rather than silently returning `false`. The controller catches it and returns HTTP 400 with `problem.certificateFormat` quoted back to the caller. Return `false` only when the certificate parses successfully but fails the verification predicate.
 
 ### Visualizations
 The Visualizations folder should contain all visualizations files for that problem. Each of which implements the `IVisualization` interface found in VisualizationInterface.cs. This includes
