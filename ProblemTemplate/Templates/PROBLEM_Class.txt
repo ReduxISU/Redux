@@ -16,6 +16,12 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Ve
     public string sourceLink {get;} = "TODO";
     private static readonly string _defaultInstance = "TODO";
     public string defaultInstance {get;} = _defaultInstance;
+    // Short descriptive sentence with a concrete example. Consumed by
+    // /ProblemProvider/info and by parse-error responses; this is the
+    // canonical place to tell an LLM (or a human, or the GUI) what
+    // shape your instance/certificate strings take.
+    public string instanceFormat {get;} = "TODO: describe the instance string format with an embedded example, e.g. 'Boolean formula in 3-CNF, clauses joined by `&`. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)'";
+    public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
     public {NAME_PASCAL_CASE}Solver defaultSolver {get;} = new {NAME_PASCAL_CASE}Solver();
@@ -33,7 +39,14 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Ve
     public {NAME_UPPERCASE}(string stringInstance) {
         instance = stringInstance;
 
-
+        // On a malformed instance, throw `ProblemParseException` (see
+        // Interfaces/ParseExceptions.cs). The controller layer catches it
+        // and returns HTTP 400 with `instanceFormat` quoted back to the
+        // caller. Example:
+        //
+        //   if (string.IsNullOrWhiteSpace(stringInstance)) {
+        //       throw new ProblemParseException("{NAME}", stringInstance, "instance is empty");
+        //   }
 
         // TODO: implement parsing of string instance of {NAME}. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
         //
