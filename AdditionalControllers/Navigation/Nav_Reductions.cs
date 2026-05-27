@@ -12,23 +12,31 @@ using API.Interfaces;
 // NPC_NavGraph/availableReductions and NPC_NavGraph/reductionPath
 // sub-endpoints (see Nav_Problems.cs) so views cannot drift.
 
+// Top-level so Swagger emits "$ref": "#/components/schemas/ReductionEdge".
+// Must not be nested inside ReductionGraphData — the CLR names nested types
+// with '+' (e.g. "ReductionGraphData+Edge"), which is not a valid JSON pointer
+// character and causes a Swagger UI resolver error.
+public class ReductionEdge
+{
+    public string className { get; set; } = "";
+    public string endpoint { get; set; } = "";
+    public string inputType { get; set; } = "";
+    public string outputType { get; set; } = "";
+}
+
 public static class ReductionGraphData
 {
-    public class Edge
-    {
-        public string className { get; set; } = "";
-        public string endpoint { get; set; } = "";
-        public string inputType { get; set; } = "";
-        public string outputType { get; set; } = "";
-    }
+    // Alias so existing internal usages (Build, PathBetween, etc.) keep
+    // compiling unchanged while the public API surface uses ReductionEdge.
+    internal class Edge : ReductionEdge { }
 
     // from -> to -> [edges]. Keys are canonical IProblem class names
     // (e.g. "SAT3", "CLIQUE"). Built once at process start.
-    public static readonly Dictionary<string, Dictionary<string, List<Edge>>> Graph = Build();
+    public static readonly Dictionary<string, Dictionary<string, List<ReductionEdge>>> Graph = Build();
 
-    private static Dictionary<string, Dictionary<string, List<Edge>>> Build()
+    private static Dictionary<string, Dictionary<string, List<ReductionEdge>>> Build()
     {
-        var graph = new Dictionary<string, Dictionary<string, List<Edge>>>();
+        var graph = new Dictionary<string, Dictionary<string, List<ReductionEdge>>>();
         foreach (var (_, type) in ProblemProvider.Reductions)
         {
             var generic = type.GetInterfaces()
@@ -38,7 +46,7 @@ public static class ReductionGraphData
             string from = args[0].Name;
             string to = args[1].Name;
             string className = type.Name;
-            var edge = new Edge
+            var edge = new ReductionEdge
             {
                 className = className,
                 endpoint = $"POST /ProblemProvider/reduce?reduction={className}",
@@ -46,9 +54,9 @@ public static class ReductionGraphData
                 outputType = to,
             };
             if (!graph.ContainsKey(from))
-                graph[from] = new Dictionary<string, List<Edge>>();
+                graph[from] = new Dictionary<string, List<ReductionEdge>>();
             if (!graph[from].ContainsKey(to))
-                graph[from][to] = new List<Edge>();
+                graph[from][to] = new List<ReductionEdge>();
             graph[from][to].Add(edge);
         }
         return graph;
@@ -154,7 +162,7 @@ public class ReductionsController : ControllerBase
     /// <param name="source">Optional. Filter to edges originating at this problem (class name, e.g. "CLIQUE"). Case-insensitive.</param>
     /// <param name="target">Optional. Filter to edges ending at this problem (class name, e.g. "SAT3"). Case-insensitive.</param>
     /// <response code="200">Adjacency map of reduction edges.</response>
-    [ProducesResponseType(typeof(Dictionary<string, Dictionary<string, List<ReductionGraphData.Edge>>>), 200)]
+    [ProducesResponseType(typeof(Dictionary<string, Dictionary<string, List<ReductionEdge>>>), 200)]
     [HttpGet]
     public string getDefault([FromQuery] string? source = null, [FromQuery] string? target = null)
     {
@@ -162,14 +170,14 @@ public class ReductionsController : ControllerBase
         if (source == null && target == null)
             return JsonSerializer.Serialize(ReductionGraphData.Graph, options);
 
-        var result = new Dictionary<string, Dictionary<string, List<ReductionGraphData.Edge>>>();
+        var result = new Dictionary<string, Dictionary<string, List<ReductionEdge>>>();
         foreach (var (from, tos) in ReductionGraphData.Graph)
         {
             if (source != null && !string.Equals(from, source, StringComparison.OrdinalIgnoreCase)) continue;
             foreach (var (to, edges) in tos)
             {
                 if (target != null && !string.Equals(to, target, StringComparison.OrdinalIgnoreCase)) continue;
-                if (!result.ContainsKey(from)) result[from] = new Dictionary<string, List<ReductionGraphData.Edge>>();
+                if (!result.ContainsKey(from)) result[from] = new Dictionary<string, List<ReductionEdge>>();
                 result[from][to] = edges;
             }
         }
