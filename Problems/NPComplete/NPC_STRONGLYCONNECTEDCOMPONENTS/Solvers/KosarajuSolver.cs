@@ -8,9 +8,18 @@ namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
 {
     public string solverName { get; } = "Kosaraju's Algorithm";
-    public string solverDefinition { get; } = "Finds strongly connected components in a directed graph using two depth-first searches: one on the original graph and one on the reversed graph.";
-    public string source { get; } = "https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm";
+
+    public string solverDefinition { get; } =
+        "Finds strongly connected components in a directed graph using two depth-first searches: one on the original graph and one on the reversed graph.";
+
+    public string source { get; } =
+        "Swati Dhingra, Poorvi S. Dodwad, and Meghna Madan, \"Finding Strongly Connected Components in a Social Network Graph,\" International Journal of Computer Applications, Volume 136, No. 7, February 2016. Section 4.4 describes Kosaraju's algorithm.";
+
+    public string sourceLink { get; } =
+        "https://ijcaonline.org/research/volume136/number7/dhingra-2016-ijca-908481.pdf";
+
     public string[] contributors { get; } = { "Surendra Thapa", "Rohan Shrestha" };
+
     public bool timerHasExpired { get; set; }
 
     public string solve(STRONGLYCONNECTEDCOMPONENTS problem)
