@@ -25,10 +25,9 @@ abstract class DirectedGraph : Graph {
     protected List<string> _nodeStringList = new List<string>();
     protected List<KeyValuePair<string, string>> _edgesKVP = new List<KeyValuePair<string, string>>();
 
-  
+
 
     protected int _K;
-    protected int lazyCounter;
     protected Dictionary<string,List<KeyValuePair<string,Node>>> _adjacencyMatrix; //Dictionary of Key Value Pairs where keys are node names and values are lists of all the node names that they are connected to.
 
     ///<summary> Default Constructor </summary>
