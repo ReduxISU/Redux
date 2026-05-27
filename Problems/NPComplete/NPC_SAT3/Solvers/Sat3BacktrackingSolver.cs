@@ -25,13 +25,24 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         if (solution == null) {
             return "No Solution";
         }
-        
+
+        // fill in any variables the backtracker left unassigned
+        foreach (string literal in sat3.literals)
+        {
+            string varName = literal.TrimStart('!');
+            if (!solution.ContainsKey(varName))
+            {
+                // value doesn't matter, choose false
+                solution[varName] = false;
+            }
+        }
+
         string solutionString = "(";
         foreach(KeyValuePair<string,bool> kvp in solution){
             solutionString = solutionString + kvp.Key + ":" + kvp.Value.ToString() + ",";
         }
         solutionString = solutionString.TrimEnd(',');
-        solutionString += ")"; 
+        solutionString += ")";
         return solutionString;
     }
 
