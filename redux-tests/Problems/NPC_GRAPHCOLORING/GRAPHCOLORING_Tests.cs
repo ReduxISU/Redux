@@ -2,6 +2,7 @@
 // Saurav Bhusal and Pramesh Shah
 // sauravbhusal@isu.edu, prameshshah@isu.edu
 
+#pragma warning disable CS1591
 using Xunit;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
