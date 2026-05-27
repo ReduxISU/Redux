@@ -11,12 +11,15 @@ class SAT3PQObject{
 
     public SAT3PQObject(SAT3 inSAT3, int newDepth, int totalVariables){
         SATState = inSAT3;
-        string nextVar = string.Empty;
-        int depth = newDepth;
-        int totalVars = totalVariables;
+        depth = newDepth;
+        totalVars = totalVariables;
         varWeights = new Dictionary<string, int>();
         varStates = new Dictionary<string, bool>();
-        initNextVar();
+
+        //gets the next variable for evaluation and removes the variable from the literals
+        string newVar = getVarFromLiteral(SATState.literals[0]);
+        SATState.literals.RemoveAt(0);
+        nextVar = newVar;
     }
 
     //gets the variable witht he highest occurance
@@ -198,14 +201,6 @@ class SAT3PQObject{
         // Console.WriteLine("weights initialized");
         //sets the variable weights to the newly created dictionary with their count
         setVarWeights(numbVars);
-    }
-
-    //gets the next variable for evaluation and removes the variable from the literals
-    private void initNextVar(){
-        string newVar = getVarFromLiteral(SATState.literals[0]);
-        SATState.literals.RemoveAt(0);
-        // Console.WriteLine("newVar is : " + newVar);
-        this.nextVar = newVar;
     }
 
     //returns the literal without the !
