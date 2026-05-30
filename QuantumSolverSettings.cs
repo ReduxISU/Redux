@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Authentication;
 /// </summary>
 public static class QuantumSolverSettingsGlobal
 {
+    /// <summary>Global Quantum Solver configuration instance, populated at startup.</summary>
     public static QuantumSolverSettings QuantumSolver { get; internal set; } = null!;
 }
 
+/// <summary>Configuration settings for the Quantum Solver service.</summary>
 public class QuantumSolverSettings
 {
     /// <summary>
