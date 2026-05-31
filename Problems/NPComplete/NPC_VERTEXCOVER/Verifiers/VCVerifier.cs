@@ -11,7 +11,7 @@ class VCVerifier : IVerifier<VERTEXCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Janita Aamir","Alex Diviney"};
 
-    private string _complexity = "";
+    public string? complexity { get; set; } = null;
 
     private string _certificate = "";
 

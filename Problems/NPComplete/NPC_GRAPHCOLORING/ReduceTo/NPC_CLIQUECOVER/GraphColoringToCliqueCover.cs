@@ -15,7 +15,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
-    private string _complexity = "";
+    public string? complexity { get; set; } = null;
     public List<Gadget> gadgets { get; }
     private GRAPHCOLORING _reductionFrom;
     private CLIQUECOVER _reductionTo;

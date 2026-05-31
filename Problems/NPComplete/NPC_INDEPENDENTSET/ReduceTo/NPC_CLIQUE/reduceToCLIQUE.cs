@@ -24,7 +24,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     private INDEPENDENTSET _reductionFrom;
     private CLIQUE _reductionTo;
 
-    private string _complexity = "";
+    public string? complexity { get; set; } = null;
 
 
     // --- Properties ---

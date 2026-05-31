@@ -8,6 +8,7 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
     public string[] contributors {get;} = { "TODO" };
+    public string? complexity { get; set; } = null;
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
