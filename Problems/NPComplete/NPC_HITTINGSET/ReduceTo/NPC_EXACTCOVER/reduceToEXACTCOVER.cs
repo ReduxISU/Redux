@@ -16,7 +16,7 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Russell Phillip" };
 
-    private string _complexity = "";
+    public string? complexity { get; set; } = null;
 
 
     private HITTINGSET _reductionFrom;

@@ -14,7 +14,7 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
-    private string _complexity = "";
+    public string? complexity { get; set; } = null;
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private EXACTCOVER _reductionFrom;

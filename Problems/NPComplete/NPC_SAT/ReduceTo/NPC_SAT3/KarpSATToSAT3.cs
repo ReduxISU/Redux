@@ -15,7 +15,7 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
-    private string _complexity = "";
+    public string? complexity { get; set; } = null;
     public List<Gadget> gadgets { get; }
     private SAT _reductionFrom;
     private SAT3 _reductionTo;
