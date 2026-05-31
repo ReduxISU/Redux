@@ -1,128 +1,71 @@
-# Running Redux in production
+# Running Redux on portneuf
 
 Running redux on the production server is documented here.
 
-## Initial configuration
+## Introduction
 
-We're going to assume the system is using systemd (the current
-system process manager used by almost all Linux distributions).
+`Redux` and `Redux_GUI` are both managed by systemd now. Which means
+there is no running shell scripts + screen, etc. any more. The first
+part of this document is structured as "how do I? questions.
 
-First, install the systemd service file. The file below should
-be installed to `/etc/systemd/system/redux.service`, owned by root/root and
-not writeable by anyone else.
+### How do I restart the server components?
 
-```
-[Unit]
-Description=redux
-Documentation=Redux backend
-After=network-online.target
-After=remote-fs.target
-Wants=network-online.target
-Wants=remote-fs.target
-ConditionPathExists=/home/USER/Redux
-
-[Service]
-Type=simple
-User=USER
-ExecStart=/home/USER/.dotnet/dotnet run
-WorkingDirectory=/home/USER/Redux
-ExecReload=/bin/kill $MAINPID
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-
-#
-# There are a few variables you might want to edit:
-# - ExecStart
-# - WorkingDirectory
-# - User
-# - ConditionPathExists
-#
-# ExecStart should be the location of the dotnet command
-# which can be found by doing "which dotnet". It should be
-# followed by the "run" command
-#
-# WorkingDirectory is the location of the API.csproj file
-# for Redux (the base directory for the repository)
-#
-# User is the username of the user whose permissions should be
-# used to run the backend.
-#
-# ConditionPathExists should be the same as WorkingDirectory
-# (if you delete the directory, this service will not try to start)
-```
-
-To ensure the file ownership and mode:
+If you are in the "redux" group on portneuf, this is easy.
 
 ```
-chown root:root /etc/systemd/system/redux.service
-chmod 644 /etc/systemd/system/redux.service
+sudo systemctl restart redux.service
+sudo systemctl restart reduxgui.service
 ```
 
-Make sure you kill off any currently running Redux server, and then
-let's get systemd to do the rest of the work:
+### How do I delegate updating and restarting of redux/redux_gui?
 
-```
-# systemd will notice/read the new service file
-systemctl daemon-reload
-# systemd will start the service on boot
-systemctl enable redux.service
-# go ahead and start it now
-systemctl start redux.service
-```
+Edit the file `/etc/group` and include (or delete) the user from
+the `redux` group. You have to log out and log back in if you're
+updating your own membership in this group.
 
-That's it to get things into normal operation!
+### How do I update redux?
 
-## What about updates?
-
-From time to time, you'll want to update the code base and
-restart the service.
-
-```
-# get to the right directory
-cd [working directory with API.csproj in it]
-
-# pull changes into working directory
-git pull origin
-
-# restart the service
+```bash
+sudo -u redux bash --login
+cd ~redux/Redux
+git pull origin CSharpAPI
 sudo systemctl restart redux.service
 ```
 
-## What about errors?
+Note: there's no need to build as the restart script for systemd will
+do that automatically.
 
-Errors logged via `Console.WriteLine` are sent to the standard output
-of dotnet programs. Luckily, systemd logs these in a circular buffer
-by default. To view it:
+### How do I update redux_gui?
 
-```
-# show the console log for redux
-journalctl -xeu redux
-```
-
-## Stop the service
-
-If you want to stop the service, easy enough:
-
-```
-sudo systemctl stop redux.service
+```bash
+sudo -u redux bash --login
+cd ~redux/Redux_GUI
+git pull origin ReduxAPI_GUI
+sudo systemctl restart reduxgui.service
 ```
 
-Stopping it stops it for now. It will still restart on boot. To
-disable it (make sure it never starts again):
+Note: there's no need to build as the restart script for systemd will
+do that automatically.
 
+### How do I check the status?
+
+```bash
+systemctl status redux
+systemctl status reduxgui
 ```
-sudo systemctl disable redux.service
+
+### How do I view the logs?
+
+```bash
+journalctl -u redux
+journalctl -u reduxgui
 ```
 
-## Why use systemd?
+## System Configuration
 
-Running services as root is dangerous. If there's a vulnerability, the
-attacker can run code as the user running the process. Using an
-unpriviledged user means that the potential damage from a vulnerability
-is limited drastically.
+Redux/Redux_GUI are run as reverse proxies with Nginx as the internet-facing
+compondent. The backend services are run using systemd and are configured to
+restart automatically on failure.
 
-Further, we get logging infrastructure for free: systemd logs the
-standard output in such a way that we don't have to worry about filling
-the disk on really bad looping errors, etc.
+The configuration for nginx lives in `/etc/nginx` and and most specifically
+all of the magic happens in `/etc/nginx/sites-enables/default`.

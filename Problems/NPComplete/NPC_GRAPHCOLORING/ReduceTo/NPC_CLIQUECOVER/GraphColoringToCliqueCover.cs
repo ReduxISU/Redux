@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUECOVER;
@@ -15,6 +16,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
     public List<Gadget> gadgets { get; }
     private GRAPHCOLORING _reductionFrom;

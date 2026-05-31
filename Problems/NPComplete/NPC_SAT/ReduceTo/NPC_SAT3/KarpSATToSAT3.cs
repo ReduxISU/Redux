@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_SAT;
 using API.Problems.NPComplete.NPC_SAT3;
@@ -15,6 +16,7 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
     public List<Gadget> gadgets { get; }
     private SAT _reductionFrom;

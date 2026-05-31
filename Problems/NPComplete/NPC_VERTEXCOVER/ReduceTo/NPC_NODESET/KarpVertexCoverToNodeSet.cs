@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_NODESET;
@@ -15,6 +16,7 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
     public string source {get;} = "This reduction was found by the Algorithms Seminar at the Cornell University Computer Science Department. Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
     public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;

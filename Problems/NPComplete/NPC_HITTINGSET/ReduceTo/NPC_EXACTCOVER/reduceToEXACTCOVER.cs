@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_EXACTCOVER;
 using SPADE;
@@ -16,6 +17,7 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Russell Phillip" };
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
 
 
