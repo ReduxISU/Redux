@@ -1,4 +1,5 @@
 using Xunit;
+using API.Interfaces;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Verifiers;
 
@@ -31,6 +32,23 @@ public class BERNSTEINVAZIRANI_tests {
         bool result = verifier.verify(problem, certificate);
         Assert.Equal(expected, result);
 
+    }
+
+    // -------------------------------------------------------------------------
+    // Verifier — invalid certificates (all must throw CertificateParseException)
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("101")]         // old bare-string format — SPADE parse failure
+    [InlineData("")]            // empty — SPADE parse failure
+    [InlineData("(2,0,1)")]    // invalid bit value
+    [InlineData("(x,0,1)")]    // non-numeric value
+    [InlineData("(1,0)")]      // too few bits for a 3-bit problem
+    [InlineData("(1,0,1,0)")] // too many bits for a 3-bit problem
+    public void BERNSTEINVAZIRANI_Verifier_Throws_On_Invalid_Certificate(string certificate) {
+        var problem = new BERNSTEINVAZIRANI("(0,1,0,1,1,0,1,0)");
+        var verifier = new BernsteinVaziraniClassicalVerifier();
+        Assert.Throws<CertificateParseException>(() => verifier.verify(problem, certificate));
     }
 
     [Theory] //tests solver
