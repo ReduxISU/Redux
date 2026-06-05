@@ -142,8 +142,18 @@ class SAT3PQObject{
         //update dictionary
         // this.varStates.Add(this.nextVar, boolValue);
         if(isValid){
-            //create new object
-            SAT3PQObject newSATObj = new SAT3PQObject(new SAT3(newPhiExpression), depth + 1, totalNumberOfVariables);
+            SAT3PQObject newSATObj;
+            if(newPhiExpression == "()"){
+                // All clauses were satisfied by assigning nextVar = boolValue.
+                // new SAT3("()") is rejected by validateInstance (empty literal), so build
+                // the solved-sentinel state directly: clauses = [[""]] is what
+                // evaluateBooleanExpression checks to return 1 (satisfied).
+                SAT3 doneSAT = new SAT3();
+                doneSAT.clauses = new List<List<string>> { new List<string> { "" } };
+                newSATObj = new SAT3PQObject(doneSAT, depth + 1, totalNumberOfVariables);
+            } else {
+                newSATObj = new SAT3PQObject(new SAT3(newPhiExpression), depth + 1, totalNumberOfVariables);
+            }
             newSATObj.setVarStates(this.varStates);
             newSATObj.setVarWeights(this.varWeights);
             //adds the new state to the objects state of vars
