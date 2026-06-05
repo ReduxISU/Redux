@@ -28,7 +28,6 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     // private List<string> _nodes = new List<string>();
     // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
     // private int _K ;
-    // private ProblemGraph _{NAME_CAMEL_CASE}AsGraph;
 
     // --- Properties ---
 
@@ -57,15 +56,6 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     //         _K = value;
     //     }
     // }
-    // public ProblemGraph {NAME_CAMEL_CASE}AsGraph {
-    //     get{
-    //         return _{NAME_CAMEL_CASE}AsGraph;
-    //     }
-    //     set{
-    //         _{NAME_CAMEL_CASE}AsGraph = value;
-    //     }
-    // }
-
     // --- Methods and Constructors ---
     public PRIMEFACTOR() : this(_defaultInstance) {
 

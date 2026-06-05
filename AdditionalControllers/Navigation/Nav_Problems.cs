@@ -314,33 +314,17 @@ public class NPC_NavGraph : ControllerBase {
 #pragma warning restore CS1591
 
 
-///<summary>Returns graph of all NP-Complete problems connected through reductions </summary>
-///<response code="200">Returns json graph of all NP-Complete problems connected through reductions</response>
-//Note: CALEB - should probably be renamed with api refactor
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet("info")]
-    public string getProblemGraph(){
-        ProblemGraph nav_graph = new ProblemGraph();
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(nav_graph.graph, options);
-
-        return jsonString;
-
-    }
-
     ///<summary>Returns all problems reachable from given problem via reductions </summary>
     ///<param name="chosenProblem" example="SAT3">NP-Complete problem name</param>
     ///<response code="200">Returns string array of NP-Complete problems</response>
 
+    // Backed by ReductionGraphData (see Nav_Reductions.cs) so this view cannot
+    // drift from /Navigation/Reductions. Response shape preserved for callers.
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet("availableReductions")]
     public string getConnectedProblems([FromQuery]string chosenProblem){
-        ProblemGraph nav_graph = new ProblemGraph();
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(nav_graph.getConnectedProblems(chosenProblem.ToLower()), options);
-
-        return jsonString;
+        return JsonSerializer.Serialize(ReductionGraphData.ReachableFrom(chosenProblem), options);
     }
 
     ///<summary>Returns reduction path from a given problem to another given problem </summary>
@@ -348,13 +332,11 @@ public class NPC_NavGraph : ControllerBase {
     ///<param name="reducingTo" example="ARCSET">NP-Complete problem name</param>
     ///<response code="200">Returns string array of NP-Complete reductions</response>
 
+    // Backed by ReductionGraphData (see Nav_Reductions.cs).
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet("reductionPath")]
     public string getPaths([FromQuery]string reducingFrom, string reducingTo){
-        ProblemGraph nav_graph = new ProblemGraph();
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(nav_graph.getReductionPath(reducingFrom.ToLower(),reducingTo.ToLower()), options);
-
-        return jsonString;
+        return JsonSerializer.Serialize(ReductionGraphData.PathBetween(reducingFrom, reducingTo), options);
     }
 }
