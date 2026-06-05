@@ -51,9 +51,7 @@ public class SipserReduceToCliqueStandardController : ControllerBase {
 
 
 ///<summary>Returns a solution to the a Clique problem, wich has been reduced from 3SAT using Sipser's reduction  </summary>
-///<param name="problemFrom" example="(x1|!x2|x3)&amp;(!x1|!x3|!x1)&amp;(x2|!x3|x1)">3SAT problem instance string.</param>
-///<param name="problemTo" example="{{x1,!x2,x3,!x1,!x3,!x1_1,x2,!x3_1,x1_1},{{x1,!x3},{x1,!x1_1},{x1,x2},{x1,!x3_1},{x1,x1_1},{!x2,!x1},{!x2,!x3},{!x2,!x1_1},{!x2,!x3_1},{!x2,x1_1},{x3,!x1},{x3,!x1_1},{x3,x2},{x3,!x3_1},{x3,x1_1},{!x1,!x2},{!x1,x3},{!x1,x2},{!x1,!x3_1},{!x1,x1_1},{!x3,x1},{!x3,!x2},{!x3,x2},{!x3,!x3_1},{!x3,x1_1},{!x1_1,x1},{!x1_1,!x2},{!x1_1,x3},{!x1_1,x2},{!x1_1,!x3_1},{x2,x1},{x2,x3},{x2,!x1},{x2,!x3},{x2,!x1_1},{!x3_1,x1},{!x3_1,!x2},{!x3_1,x3},{!x3_1,!x1},{!x3_1,!x3},{!x3_1,!x1_1},{x1_1,x1},{x1_1,!x2},{x1_1,x3},{x1_1,!x1},{x1_1,!x3}},3}">Clique problem instance string reduced from 3SAT instance.</param>
-///<param name="problemFromSolution" example="(x1:True,x3:False)">Solution to 3SAT problem.</param>
+///<param name="mapSolution">MapSolution object with ProblemFrom (3SAT instance), ProblemTo (Clique instance), and ProblemFromSolution (3SAT solution).</param>
 ///<response code="200">Returns solution to the reduced Clique instance</response>
     
     [ProducesResponseType(typeof(string), 200)]
@@ -72,9 +70,7 @@ public class SipserReduceToCliqueStandardController : ControllerBase {
     }
 
 ///<summary>Returns a solution to the a 3SAT problem, based on a Sipser's redution Clique solution. </summary>
-///<param name="problemFrom" example="(x1|!x2|x3)&amp;(!x1|!x3|!x1)&amp;(x2|!x3|x1)">3SAT problem instance string.</param>
-///<param name="problemTo" example="{{x1,!x2,x3,!x1,!x3,!x1_1,x2,!x3_1,x1_1},{{x1,!x3},{x1,!x1_1},{x1,x2},{x1,!x3_1},{x1,x1_1},{!x2,!x1},{!x2,!x3},{!x2,!x1_1},{!x2,!x3_1},{!x2,x1_1},{x3,!x1},{x3,!x1_1},{x3,x2},{x3,!x3_1},{x3,x1_1},{!x1,!x2},{!x1,x3},{!x1,x2},{!x1,!x3_1},{!x1,x1_1},{!x3,x1},{!x3,!x2},{!x3,x2},{!x3,!x3_1},{!x3,x1_1},{!x1_1,x1},{!x1_1,!x2},{!x1_1,x3},{!x1_1,x2},{!x1_1,!x3_1},{x2,x1},{x2,x3},{x2,!x1},{x2,!x3},{x2,!x1_1},{!x3_1,x1},{!x3_1,!x2},{!x3_1,x3},{!x3_1,!x1},{!x3_1,!x3},{!x3_1,!x1_1},{x1_1,x1},{x1_1,!x2},{x1_1,x3},{x1_1,!x1},{x1_1,!x3}},3}">Clique problem instance string reduced from 3SAT instance.</param>
-///<param name="problemToSolution" example="{x1,!x3,!x3_1}">Solution to 3SAT problem.</param>
+///<param name="mapSolution">MapSolution object with ProblemFrom (3SAT instance), ProblemTo (Clique instance), and ProblemFromSolution (Clique solution).</param>
 ///<response code="200">Returns solution to the reduced Clique instance</response>
     
     [ProducesResponseType(typeof(string), 200)]
@@ -183,9 +179,7 @@ public class KarpIntProgStandardController : ControllerBase {
     }
 
 ///<summary>Returns a solution vector to the a 0-1 Integer Programming problem, wich has been reduced from 3SAT using Karp's reduction  </summary>
-///<param name="problemFrom" example="(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">3SAT problem instance string.</param>
-///<param name="problemTo" example="( -1 1 -1 ),( 0 0 -1 ),( -1 -1 1 )&lt;=( 0 0 0 )">0-1 Integer Programming problem instance string reduced from 3SAT instance.</param>
-///<param name="problemFromSolution" example="(x1:True)">Solution to 3SAT problem.</param>
+///<param name="mapSolution">MapSolution object with ProblemFrom (3SAT instance), ProblemTo (0-1 Integer Programming instance), and ProblemFromSolution (3SAT solution).</param>
 ///<response code="200">Returns solution to the reduced 0-1 Integer Programming instance</response>
     
     [ProducesResponseType(typeof(string), 200)]
@@ -241,9 +235,7 @@ public class GareyJohnsonController : ControllerBase {
     }
 
 ///<summary>Returns a solution set to the 3 Dimensional Matching problem, wich has been reduced from 3SAT using Garey and Johnsons's reduction  </summary>
-///<param name="problemFrom" example="(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">3SAT problem instance string.</param>
-///<param name="problemTo" example="{a[x1][1],a[x1][2],a[x1][3],a[x2][1],a[x2][2],a[x2][3],a[x3][1],a[x3][2],a[x3][3],g1[1],g1[2],g1[3],g1[4],g1[5],g1[6],s1[1],s1[2],s1[3]}{b[x1][1],b[x1][2],b[x1][3],b[x2][1],b[x2][2],b[x2][3],b[x3][1],b[x3][2],b[x3][3],g2[1],g2[2],g2[3],g2[4],g2[5],g2[6],s2[1],s2[2],s2[3]}{[!x1][1],[x1][1],[!x1][2],[x1][2],[!x1][3],[x1][3],[!x2][1],[x2][1],[!x2][2],[x2][2],[!x2][3],[x2][3],[!x3][1],[x3][1],[!x3][2],[x3][2],[!x3][3],[x3][3]}{a[x1][1],b[x1][1],[!x1][1]}{a[x1][2],b[x1][1],[x1][1]}{g1[1],g2[1],[x1][1]}{g1[1],g2[1],[!x1][1]}{g1[2],g2[2],[x1][1]}{g1[2],g2[2],[!x1][1]}{g1[3],g2[3],[x1][1]}{g1[3],g2[3],[!x1][1]}{g1[4],g2[4],[x1][1]}{g1[4],g2[4],[!x1][1]}{g1[5],g2[5],[x1][1]}{g1[5],g2[5],[!x1][1]}{g1[6],g2[6],[x1][1]}{g1[6],g2[6],[!x1][1]}{a[x1][2],b[x1][2],[!x1][2]}{a[x1][3],b[x1][2],[x1][2]}{g1[1],g2[1],[x1][2]}{g1[1],g2[1],[!x1][2]}{g1[2],g2[2],[x1][2]}{g1[2],g2[2],[!x1][2]}{g1[3],g2[3],[x1][2]}{g1[3],g2[3],[!x1][2]}{g1[4],g2[4],[x1][2]}{g1[4],g2[4],[!x1][2]}{g1[5],g2[5],[x1][2]}{g1[5],g2[5],[!x1][2]}{g1[6],g2[6],[x1][2]}{g1[6],g2[6],[!x1][2]}{a[x1][3],b[x1][3],[!x1][3]}{a[x1][1],b[x1][3],[x1][3]}{g1[1],g2[1],[x1][3]}{g1[1],g2[1],[!x1][3]}{g1[2],g2[2],[x1][3]}{g1[2],g2[2],[!x1][3]}{g1[3],g2[3],[x1][3]}{g1[3],g2[3],[!x1][3]}{g1[4],g2[4],[x1][3]}{g1[4],g2[4],[!x1][3]}{g1[5],g2[5],[x1][3]}{g1[5],g2[5],[!x1][3]}{g1[6],g2[6],[x1][3]}{g1[6],g2[6],[!x1][3]}{a[x2][1],b[x2][1],[!x2][1]}{a[x2][2],b[x2][1],[x2][1]}{g1[1],g2[1],[x2][1]}{g1[1],g2[1],[!x2][1]}{g1[2],g2[2],[x2][1]}{g1[2],g2[2],[!x2][1]}{g1[3],g2[3],[x2][1]}{g1[3],g2[3],[!x2][1]}{g1[4],g2[4],[x2][1]}{g1[4],g2[4],[!x2][1]}{g1[5],g2[5],[x2][1]}{g1[5],g2[5],[!x2][1]}{g1[6],g2[6],[x2][1]}{g1[6],g2[6],[!x2][1]}{a[x2][2],b[x2][2],[!x2][2]}{a[x2][3],b[x2][2],[x2][2]}{g1[1],g2[1],[x2][2]}{g1[1],g2[1],[!x2][2]}{g1[2],g2[2],[x2][2]}{g1[2],g2[2],[!x2][2]}{g1[3],g2[3],[x2][2]}{g1[3],g2[3],[!x2][2]}{g1[4],g2[4],[x2][2]}{g1[4],g2[4],[!x2][2]}{g1[5],g2[5],[x2][2]}{g1[5],g2[5],[!x2][2]}{g1[6],g2[6],[x2][2]}{g1[6],g2[6],[!x2][2]}{a[x2][3],b[x2][3],[!x2][3]}{a[x2][1],b[x2][3],[x2][3]}{g1[1],g2[1],[x2][3]}{g1[1],g2[1],[!x2][3]}{g1[2],g2[2],[x2][3]}{g1[2],g2[2],[!x2][3]}{g1[3],g2[3],[x2][3]}{g1[3],g2[3],[!x2][3]}{g1[4],g2[4],[x2][3]}{g1[4],g2[4],[!x2][3]}{g1[5],g2[5],[x2][3]}{g1[5],g2[5],[!x2][3]}{g1[6],g2[6],[x2][3]}{g1[6],g2[6],[!x2][3]}{a[x3][1],b[x3][1],[!x3][1]}{a[x3][2],b[x3][1],[x3][1]}{g1[1],g2[1],[x3][1]}{g1[1],g2[1],[!x3][1]}{g1[2],g2[2],[x3][1]}{g1[2],g2[2],[!x3][1]}{g1[3],g2[3],[x3][1]}{g1[3],g2[3],[!x3][1]}{g1[4],g2[4],[x3][1]}{g1[4],g2[4],[!x3][1]}{g1[5],g2[5],[x3][1]}{g1[5],g2[5],[!x3][1]}{g1[6],g2[6],[x3][1]}{g1[6],g2[6],[!x3][1]}{a[x3][2],b[x3][2],[!x3][2]}{a[x3][3],b[x3][2],[x3][2]}{g1[1],g2[1],[x3][2]}{g1[1],g2[1],[!x3][2]}{g1[2],g2[2],[x3][2]}{g1[2],g2[2],[!x3][2]}{g1[3],g2[3],[x3][2]}{g1[3],g2[3],[!x3][2]}{g1[4],g2[4],[x3][2]}{g1[4],g2[4],[!x3][2]}{g1[5],g2[5],[x3][2]}{g1[5],g2[5],[!x3][2]}{g1[6],g2[6],[x3][2]}{g1[6],g2[6],[!x3][2]}{a[x3][3],b[x3][3],[!x3][3]}{a[x3][1],b[x3][3],[x3][3]}{g1[1],g2[1],[x3][3]}{g1[1],g2[1],[!x3][3]}{g1[2],g2[2],[x3][3]}{g1[2],g2[2],[!x3][3]}{g1[3],g2[3],[x3][3]}{g1[3],g2[3],[!x3][3]}{g1[4],g2[4],[x3][3]}{g1[4],g2[4],[!x3][3]}{g1[5],g2[5],[x3][3]}{g1[5],g2[5],[!x3][3]}{g1[6],g2[6],[x3][3]}{g1[6],g2[6],[!x3][3]}{s1[1],s2[1],[x1][1]}{s1[1],s2[1],[!x2][1]}{s1[1],s2[1],[x3][1]}{s1[2],s2[2],[!x1][2]}{s1[2],s2[2],[x3][2]}{s1[2],s2[2],[x1][2]}{s1[3],s2[3],[x2][3]}{s1[3],s2[3],[!x3][3]}{s1[3],s2[3],[x1][3]}">3 Dimensional Matching problem instance string reduced from 3SAT instance.</param>
-///<param name="problemFromSolution" example="(x1:True)">Solution to 3SAT problem.</param>
+///<param name="mapSolution">MapSolution object with ProblemFrom (3SAT instance), ProblemTo (3DM instance), and ProblemFromSolution (3SAT solution).</param>
 ///<response code="200">Returns solution to the reduced 0-1 Integer Programming instance</response>
     
     [ProducesResponseType(typeof(string), 200)]
