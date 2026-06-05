@@ -47,7 +47,9 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
 
             if (root.TryGetProperty("answer", out JsonElement answerElement))
             {
-                return answerElement.GetString() ?? "No answer found";
+                string answer = answerElement.GetString() ?? "No answer found";
+                // Quantum server returns a bare bit string ("101"); translate to certificate format
+                return "(" + string.Join(",", answer) + ")";
             }
 
             // If no answer field, return the whole response
