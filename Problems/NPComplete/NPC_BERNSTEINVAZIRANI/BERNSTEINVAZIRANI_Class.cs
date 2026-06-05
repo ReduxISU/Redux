@@ -19,6 +19,8 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     private static readonly string _defaultInstance = "(0,1,0,1,1,0,1,0)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string certificateFormat {get;} =
+        $"Format: {BernsteinVaziraniClassicalVerifier.CertificateGrammar} Example: {BernsteinVaziraniClassicalVerifier.CertificateExample}";
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public BernsteinVaziraniClassicalSolver defaultSolver {get;} = new BernsteinVaziraniClassicalSolver();
     public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();

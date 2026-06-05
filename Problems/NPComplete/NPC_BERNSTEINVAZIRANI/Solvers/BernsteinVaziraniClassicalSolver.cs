@@ -14,10 +14,10 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
     public BernsteinVaziraniClassicalSolver() {}
 
     public string solve(BERNSTEINVAZIRANI problem) {
-        string result = "";
+        var bits = new List<string>();
         for (int i = problem.NBits - 1; i >= 0; i--) {
-            result += problem.Func(1 << i) ? "1" : "0";
+            bits.Add(problem.Func(1 << i) ? "1" : "0");
         }
-        return result;
+        return "(" + string.Join(",", bits) + ")";
     }
 }
