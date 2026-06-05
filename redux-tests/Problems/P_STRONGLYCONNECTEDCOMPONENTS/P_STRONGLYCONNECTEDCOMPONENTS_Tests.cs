@@ -1,3 +1,4 @@
+#pragma warning disable CS1591
 using Xunit;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
