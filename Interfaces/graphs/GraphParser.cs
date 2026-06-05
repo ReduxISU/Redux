@@ -93,23 +93,13 @@ public List<Edge> edgesGivenValidGraphAndPattern(string validGraphStr,string edg
 /// <returns></returns>
 private List<string> nodesGivenValidGraphAndPattern(string validGraphStr,string nodePattern){
         List<string> retList = new List<string>();
-
-
-        try
-        {
-            MatchCollection eMatches = Regex.Matches(validGraphStr, nodePattern);
-            string matchedStr = eMatches[0].ToString();
-            string parsedInput = matchedStr.Replace('{', ' ').Replace('}', ' ').TrimStart().TrimEnd().TrimEnd(',').TrimEnd(); //takes out starting {{ and ending },}
-            string[] splitArr = parsedInput.Split(',');
-            foreach (string nStr in splitArr)
-            {
-                retList.Add(nStr);
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Invalid input GraphParser nodesGivenValidGraphAndPattern");
-        }
+        MatchCollection eMatches = Regex.Matches(validGraphStr, nodePattern);
+        if (eMatches.Count == 0)
+            throw new ArgumentException("Input does not match expected graph node pattern.", nameof(validGraphStr));
+        string matchedStr = eMatches[0].ToString();
+        string parsedInput = matchedStr.Replace('{', ' ').Replace('}', ' ').TrimStart().TrimEnd().TrimEnd(',').TrimEnd();
+        foreach (string nStr in parsedInput.Split(','))
+            retList.Add(nStr);
         return retList;
     }
 
@@ -123,27 +113,17 @@ private List<string> nodesGivenValidGraphAndPattern(string validGraphStr,string 
 /// only supports word characters  (multicharacter supported) currently, not special characters or ! symbols.
 /// </remarks>
 public List<string> getNodesFromNodeListString(string input){
-        List<string> retList = new List<string>();
-
-        try{
         string pattern = @"{(\w+)(,\w+)*}";
-        MatchCollection matches = Regex.Matches(input,pattern);
-        string foundString = matches[0].ToString();
+        MatchCollection matches = Regex.Matches(input, pattern);
+        if (matches.Count == 0)
+            throw new ArgumentException("Input does not match expected node list format, e.g. {a,b,c}.", nameof(input));
         string innerPattern = @"(\w+)(,\w+)*";
-        MatchCollection matchesInner = Regex.Matches(input,innerPattern);
-        string foundString2 = matchesInner[0].ToString();
-            string[] splitStr = foundString2.Split(',');
-            foreach(string n in splitStr){
-                retList.Add(n);
-            }
-
-
-        }
-        catch(Exception e){
-            Console.WriteLine("Invalid input GraphParser getNodesFromNodeListString");
-        }
-        
-
+        MatchCollection matchesInner = Regex.Matches(input, innerPattern);
+        if (matchesInner.Count == 0)
+            throw new ArgumentException("Input does not contain valid node identifiers.", nameof(input));
+        List<string> retList = new List<string>();
+        foreach(string n in matchesInner[0].ToString().Split(','))
+            retList.Add(n);
         return retList;
     }
     
@@ -154,30 +134,19 @@ public List<string> getNodesFromNodeListString(string input){
     /// <param name="input"></param>
     /// <returns> A list of strings</returns>
     public static List<string> parseNodeListWithStringFunctions(string input){
-        List<string> retList = new List<string>();
-        try{
-            retList = input.Replace("{","").Replace("}","").Split(",").ToList();
-            return retList;
-        }
-        catch(Exception e){
-            Console.WriteLine("Invalid input GraphParser getNodesFromNodeListString");
-        }
-        return retList;
+        return input.Replace("{","").Replace("}","").Split(",").ToList();
 }
 
     public static List<KeyValuePair<string, string>> parseDirectedEdgeListWithStringFunctions(string input){
             List<KeyValuePair<string, string>> retList = new List<KeyValuePair<string, string>>();
-            try{
-                List<string> sList = input.Replace("{","").Replace("}","").Replace(" ","").Replace("),(","|").Split("|").ToList();
-                foreach(string s in sList){
-                    string k = s.Split(",")[0].Replace("(","").Replace(")","");
-                    string v = s.Split(",")[1].Replace("(","").Replace(")","");
-                    retList.Add( new KeyValuePair<string, string>(k,v));
-                }
-                return retList;
-            }
-            catch(Exception e){
-                Console.WriteLine("Invalid input GraphParser getNodesFromNodeListString");
+            List<string> sList = input.Replace("{","").Replace("}","").Replace(" ","").Replace("),(","|").Split("|").ToList();
+            foreach(string s in sList){
+                string[] parts = s.Split(",");
+                if (parts.Length < 2)
+                    throw new ArgumentException($"Expected directed edge pair '(a,b)', got '{s}'.", nameof(input));
+                string k = parts[0].Replace("(","").Replace(")","");
+                string v = parts[1].Replace("(","").Replace(")","");
+                retList.Add(new KeyValuePair<string, string>(k, v));
             }
             return retList;
     }
@@ -185,19 +154,13 @@ public List<string> getNodesFromNodeListString(string input){
     
     public static List<KeyValuePair<string, string>> parseUndirectedEdgeListWithStringFunctions(string input){
             List<KeyValuePair<string, string>> retList = new List<KeyValuePair<string, string>>();
-            try{
-                List<string> sList = input.Replace("{{", "").Replace("}}","").Split("},{").ToList();
-                foreach(string s in sList){
-                    List<string> currentEdge = s.Split(",").ToList();
-                    string k = currentEdge[0];
-                    string v = currentEdge[1];
-                    retList.Add( new KeyValuePair<string, string>(k,v));
-                    retList.Add( new KeyValuePair<string, string>(v,k));
-                }
-                return retList;
-            }
-            catch(Exception e){
-                Console.WriteLine("Invalid input GraphParser getNodesFromNodeListString");
+            List<string> sList = input.Replace("{{", "").Replace("}}","").Split("},{").ToList();
+            foreach(string s in sList){
+                string[] currentEdge = s.Split(",");
+                if (currentEdge.Length < 2)
+                    throw new ArgumentException($"Expected undirected edge pair 'a,b', got '{s}'.", nameof(input));
+                retList.Add(new KeyValuePair<string, string>(currentEdge[0], currentEdge[1]));
+                retList.Add(new KeyValuePair<string, string>(currentEdge[1], currentEdge[0]));
             }
             return retList;
     }
