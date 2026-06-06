@@ -1,5 +1,6 @@
 using API.Interfaces;
 using API.Tools;
+using SPADE;
 using System.Text.Json;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
@@ -49,7 +50,10 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
             {
                 string answer = answerElement.GetString() ?? "No answer found";
                 // Quantum server returns a bare bit string ("101"); translate to certificate format
-                return "(" + string.Join(",", answer) + ")";
+                UtilCollection result = new("()");
+                foreach (char c in answer)
+                    result.Add(new UtilCollection(c.ToString()));
+                return result.ToString();
             }
 
             // If no answer field, return the whole response

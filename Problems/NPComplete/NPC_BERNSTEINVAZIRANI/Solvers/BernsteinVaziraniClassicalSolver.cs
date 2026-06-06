@@ -1,4 +1,5 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
@@ -14,10 +15,9 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
     public BernsteinVaziraniClassicalSolver() {}
 
     public string solve(BERNSTEINVAZIRANI problem) {
-        var bits = new List<string>();
-        for (int i = problem.NBits - 1; i >= 0; i--) {
-            bits.Add(problem.Func(1 << i) ? "1" : "0");
-        }
-        return "(" + string.Join(",", bits) + ")";
+        UtilCollection result = new("()");
+        for (int i = problem.NBits - 1; i >= 0; i--)
+            result.Add(new UtilCollection(problem.Func(1 << i) ? "1" : "0"));
+        return result.ToString();
     }
 }
