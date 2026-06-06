@@ -35,6 +35,21 @@ public class BERNSTEINVAZIRANI_tests {
     }
 
     // -------------------------------------------------------------------------
+    // Constructor — invalid instances (all must throw ProblemParseException)
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("101")]           // bare string — SPADE parse failure
+    [InlineData("")]              // empty — SPADE parse failure
+    [InlineData("(0,2,1,0)")]   // invalid bit value
+    [InlineData("(0,x,1,0)")]   // non-numeric value
+    [InlineData("(0,1,0)")]     // 3 entries — not a power of 2
+    [InlineData("(0,1,0,1,0)")] // 5 entries — not a power of 2
+    public void BERNSTEINVAZIRANI_Constructor_Throws_On_Invalid_Instance(string instance) {
+        Assert.Throws<ProblemParseException>(() => new BERNSTEINVAZIRANI(instance));
+    }
+
+    // -------------------------------------------------------------------------
     // Verifier — invalid certificates (all must throw CertificateParseException)
     // -------------------------------------------------------------------------
 

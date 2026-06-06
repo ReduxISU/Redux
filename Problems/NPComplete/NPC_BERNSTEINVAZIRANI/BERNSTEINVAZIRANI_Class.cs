@@ -75,22 +75,32 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
         instance = input;
 
         StringParser parser = new(InstanceGrammar);
-        parser.parse(instance);
+        try {
+            parser.parse(instance);
+        } catch (Exception ex) {
+            throw new ProblemParseException(problemName, input, ex.Message);
+        }
 
         UtilCollection bitslist = parser["f"];
 
         var fvalues = new List<bool>();
-        bitslist.ToList().ForEach(x => {
-            if (x.ToString() == "0") {
+        foreach (UtilCollection x in bitslist) {
+            string bitStr = x.ToString();
+            if (bitStr == "0")
                 fvalues.Add(false);
-            } else if (x.ToString() == "1") {
+            else if (bitStr == "1")
                 fvalues.Add(true);
-            } else {
-                Console.WriteLine($"{this.GetType().Name}:{MethodBase.GetCurrentMethod()?.Name}: encountered non-bit value {x.ToString()} in function values list");
-            }
-        });
+            else
+                throw new ProblemParseException(problemName, input,
+                    $"'{bitStr}' is not a valid bit; expected 0 or 1");
+        }
 
-        nbits = PowerOfTwo(fvalues.Count);
+        try {
+            nbits = PowerOfTwo(fvalues.Count);
+        } catch (ArithmeticException) {
+            throw new ProblemParseException(problemName, input,
+                $"function table must have a power-of-2 number of entries; got {fvalues.Count}");
+        }
         funcValues = fvalues;
     }
 }
