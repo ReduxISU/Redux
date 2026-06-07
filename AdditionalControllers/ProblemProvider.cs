@@ -218,7 +218,6 @@ public class ProblemProvider : ControllerBase
     /// Gets the visualization of an object
     /// </summary>
     /// <param name="visualization" example = "Sat3DefaultVisualization">The visualization to use</param>
-    /// <param name="solver" example = "Sat3BacktrackingSolver">The solver to use for steps and solution</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualize")]
