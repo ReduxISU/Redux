@@ -11,10 +11,6 @@ class SudokuSolver : ISolver<SUDOKU> {
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
-    private int _gridSize;
-    private int _blockSize;
-    private int[][] _problem;
-
     public SudokuSolver() {}
 
     /*public SudokuSolver(int[][] grid)
@@ -37,21 +33,18 @@ class SudokuSolver : ISolver<SUDOKU> {
 
     public string solve(SUDOKU problem)
     {
-        // Pull the parsed grid from the problem instance
-        _problem = problem.grid;     // <-- You will add grid to SUDOKU class
-        _gridSize = _problem.Length;
-        _blockSize = (int)Math.Sqrt(_gridSize);
-
         //if (timerHasExpired)
         //    return "timeout";
 
-        return SolveInternal();
+        // The grid is the solver's only input; all dimensions are derived from it.
+        return SolveInternal(problem.grid);
     }
 
     // Given a cell's row and column index, return the index of the corresponding block unit.
-    private int GetBlockIndex(int row, int col)
+    private static int GetBlockIndex(int[][] grid, int row, int col)
     {
-        return row / _blockSize * _blockSize + col / _blockSize;
+        int blockSize = (int)Math.Sqrt(grid.Length);
+        return row / blockSize * blockSize + col / blockSize;
     }
 
     // Sets the value of a particular cell and removes it from the relevant sets
@@ -59,7 +52,7 @@ class SudokuSolver : ISolver<SUDOKU> {
                           int value, int row, int col)
     {
         grid[row][col] = value;
-        int b = GetBlockIndex(row, col);
+        int b = GetBlockIndex(grid, row, col);
         rows[row].Remove(value);
         cols[col].Remove(value);
         blocks[b].Remove(value);
@@ -71,7 +64,7 @@ class SudokuSolver : ISolver<SUDOKU> {
     {
         int value = grid[row][col];
         grid[row][col] = 0;
-        int b = GetBlockIndex(row, col);
+        int b = GetBlockIndex(grid, row, col);
         rows[row].Add(value);
         cols[col].Add(value);
         blocks[b].Add(value);
@@ -83,6 +76,8 @@ class SudokuSolver : ISolver<SUDOKU> {
         int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
         int startRow, int startCol)
     {
+        int gridSize = grid.Length;
+        int blockSize = (int)Math.Sqrt(gridSize);
         var changelog = new List<(int, int, int)>();
         var queue = new Queue<(int row, int col)>();
         var visited = new HashSet<(int, int)>();
@@ -97,10 +92,10 @@ class SudokuSolver : ISolver<SUDOKU> {
                 continue;
 
             // Check row for singles
-            for (int c = 0; c < _gridSize; c++)
+            for (int c = 0; c < gridSize; c++)
             {
                 if (grid[row][c] != 0) continue;
-                int b = GetBlockIndex(row, c);
+                int b = GetBlockIndex(grid, row, c);
                 var possible = Intersect(rows[row], cols[c], blocks[b]);
                 if (possible.Count == 1)
                 {
@@ -112,10 +107,10 @@ class SudokuSolver : ISolver<SUDOKU> {
             }
 
             // Check column for singles
-            for (int r = 0; r < _gridSize; r++)
+            for (int r = 0; r < gridSize; r++)
             {
                 if (grid[r][col] != 0) continue;
-                int b = GetBlockIndex(r, col);
+                int b = GetBlockIndex(grid, r, col);
                 var possible = Intersect(rows[r], cols[col], blocks[b]);
                 if (possible.Count == 1)
                 {
@@ -127,13 +122,13 @@ class SudokuSolver : ISolver<SUDOKU> {
             }
 
             // Check block for singles
-            int blockRow = row / _blockSize * _blockSize;
-            int blockCol = col / _blockSize * _blockSize;
-            int blockIdx = GetBlockIndex(row, col);
+            int blockRow = row / blockSize * blockSize;
+            int blockCol = col / blockSize * blockSize;
+            int blockIdx = GetBlockIndex(grid, row, col);
 
-            for (int r = blockRow; r < blockRow + _blockSize; r++)
+            for (int r = blockRow; r < blockRow + blockSize; r++)
             {
-                for (int c = blockCol; c < blockCol + _blockSize; c++)
+                for (int c = blockCol; c < blockCol + blockSize; c++)
                 {
                     if (grid[r][c] != 0) continue;
                     var possible = Intersect(rows[r], cols[c], blocks[blockIdx]);
@@ -162,8 +157,9 @@ class SudokuSolver : ISolver<SUDOKU> {
     private bool SolveHelper(int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
                               int row, int col, bool getAllSolutions, List<int[][]> solutions)
     {
+        int gridSize = grid.Length;
         // Base case: all rows processed
-        if (row == _gridSize)
+        if (row == gridSize)
         {
             if (getAllSolutions)
             {
@@ -174,7 +170,7 @@ class SudokuSolver : ISolver<SUDOKU> {
         }
 
         // Move to next row
-        if (col == _gridSize)
+        if (col == gridSize)
             return SolveHelper(grid, rows, cols, blocks, row + 1, 0, getAllSolutions, solutions);
 
         // Skip filled cells
@@ -182,7 +178,7 @@ class SudokuSolver : ISolver<SUDOKU> {
             return SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions);
 
         // Try each candidate value
-        int b = GetBlockIndex(row, col);
+        int b = GetBlockIndex(grid, row, col);
         foreach (int k in Intersect(rows[row], cols[col], blocks[b]))
         {
             SetValue(grid, rows, cols, blocks, k, row, col);
@@ -201,32 +197,33 @@ class SudokuSolver : ISolver<SUDOKU> {
 
     //public string solve(SUDOKU problem) => solve();
 
-    public string SolveInternal()
+    public string SolveInternal(int[][] problem)
     {
-        int[][] solution = CopyGrid(_problem);
+        int gridSize = problem.Length;
+        int[][] solution = CopyGrid(problem);
 
-        var rows   = new HashSet<int>[_gridSize];
-        var cols   = new HashSet<int>[_gridSize];
-        var blocks = new HashSet<int>[_gridSize];
+        var rows   = new HashSet<int>[gridSize];
+        var cols   = new HashSet<int>[gridSize];
+        var blocks = new HashSet<int>[gridSize];
 
-        for (int i = 0; i < _gridSize; i++)
+        for (int i = 0; i < gridSize; i++)
         {
-            rows[i]   = BuildValueSet();
-            cols[i]   = BuildValueSet();
-            blocks[i] = BuildValueSet();
+            rows[i]   = BuildValueSet(gridSize);
+            cols[i]   = BuildValueSet(gridSize);
+            blocks[i] = BuildValueSet(gridSize);
         }
 
         // Pre-scan: remove givens from candidate sets
-        for (int r = 0; r < _gridSize; r++)
+        for (int r = 0; r < gridSize; r++)
         {
-            for (int c = 0; c < _gridSize; c++)
+            for (int c = 0; c < gridSize; c++)
             {
                 int value = solution[r][c];
                 if (value != 0)
                 {
                     rows[r].Remove(value);
                     cols[c].Remove(value);
-                    blocks[GetBlockIndex(r, c)].Remove(value);
+                    blocks[GetBlockIndex(solution, r, c)].Remove(value);
                 }
             }
         }
@@ -268,10 +265,10 @@ class SudokuSolver : ISolver<SUDOKU> {
         throw new InvalidOperationException("Set is empty.");
     }
 
-    private HashSet<int> BuildValueSet()
+    private static HashSet<int> BuildValueSet(int gridSize)
     {
-        var set = new HashSet<int>(_gridSize);
-        for (int i = 1; i <= _gridSize; i++)
+        var set = new HashSet<int>(gridSize);
+        for (int i = 1; i <= gridSize; i++)
             set.Add(i);
         return set;
     }
