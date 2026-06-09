@@ -26,3 +26,54 @@ jobs:
 
       - name: Unit tests
         run: dotnet test --no-restore --no-build --configuration Release
+
+  warning-gate:
+    name: warning count gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          # Need full history so we can also build the PR's base commit.
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      # Counts unique compiler warnings (file+line+col+code) — the same metric
+      # tracked in warnings.md. Builds with --no-incremental so every project is
+      # recompiled and no warnings are suppressed by an up-to-date build.
+      - name: Count warnings on base
+        id: base
+        run: |
+          git checkout --quiet --force ${{ github.event.pull_request.base.sha }}
+          dotnet restore
+          dotnet build --no-restore --no-incremental --configuration Release > build-base.log 2>&1 || true
+          count=$(grep -oE '[^ ]+\.cs\([0-9]+,[0-9]+\): warning CS[0-9]+' build-base.log | sort -u | wc -l | tr -d ' ' || true)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Base warnings::$count"
+
+      - name: Count warnings on PR
+        id: head
+        run: |
+          git checkout --quiet --force ${{ github.sha }}
+          dotnet restore
+          dotnet build --no-restore --no-incremental --configuration Release > build-head.log 2>&1 || true
+          count=$(grep -oE '[^ ]+\.cs\([0-9]+,[0-9]+\): warning CS[0-9]+' build-head.log | sort -u | wc -l | tr -d ' ' || true)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "::notice title=PR warnings::$count"
+
+      - name: Fail if warnings increased
+        run: |
+          base="${{ steps.base.outputs.count }}"
+          head="${{ steps.head.outputs.count }}"
+          echo "Base warning count: $base"
+          echo "PR warning count:   $head"
+          if [ "$head" -gt "$base" ]; then
+            echo "::error title=Warnings increased::This PR raises the warning count from $base to $head. Resolve the new warning(s) before merging."
+            exit 1
+          fi
+          echo "Warning count did not increase ($base -> $head). ✅"
