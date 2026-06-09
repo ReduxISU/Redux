@@ -165,7 +165,8 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         });
     }
 
-    private void BuildCodeTable(HuffmanNode node, string currentCode, Dictionary<char, string> codes) {
+    private void BuildCodeTable(HuffmanNode? node, string currentCode, Dictionary<char, string> codes)
+    {
         if (node == null) {
             return;
         }
@@ -234,8 +235,8 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         public int Frequency { get; set; }
         public int LowestCharacterValue { get; set; }
         public int SerialNumber { get; set; }
-        public HuffmanNode Left { get; set; }
-        public HuffmanNode Right { get; set; }
+        public HuffmanNode? Left { get; set; }
+        public HuffmanNode? Right { get; set; }
 
         public bool IsLeaf() {
             return Left == null && Right == null;
