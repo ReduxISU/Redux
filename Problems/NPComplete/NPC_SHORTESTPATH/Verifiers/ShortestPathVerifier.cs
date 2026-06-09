@@ -37,12 +37,11 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
 
         // Compute true shortest distance using Dijkstra's algorithm
         int? shortest = ShortestDistance(adjacency, nodes, sourceNode, targetNode);
-        bool reachable = shortest.HasValue;
 
         // Allow {} as a certificate meaning "no path"
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
-            return !reachable; // Valid if and only if target is unreachable
-        
+            return shortest is null; // Valid if and only if target is unreachable
+
         List<string> path;
         try
         {
@@ -55,7 +54,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
         }
 
         if (path.Count == 0)
-            return !reachable; // Empty path is only valid if target is unreachable
+            return shortest is null; // Empty path is only valid if target is unreachable
 
         if (path[0] != sourceNode || path[^1] != targetNode)
             return false; // Path must start at source and end at target
@@ -81,7 +80,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
             
             length += w;
         }
-        return reachable && length == shortest.Value; // Valid if path is correct and matches true shortest distance
+        return shortest is int s && length == s; // Valid if path is correct and matches true shortest distance
     }
 
     // ShortestDistance: helper method to compute shortest distance using Dijkstra's algorithm
