@@ -70,3 +70,6 @@ app.MapControllers();
 
 
 app.Run();
+
+/// <summary>Application entry point and composition root for the API.</summary>
+public partial class Program { }
