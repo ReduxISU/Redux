@@ -16,7 +16,6 @@ class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT>
     public string visualizationDefinition { get; } = "This is a default visualization for Cut";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public UtilCollectionGraph graph { get; set; }
     public string visualizationType { get; } = "Graph D3";
     public ISolver solver { get; } = new WeightedCutBruteForce(); //TODO fill in solver to use for this visualization
 

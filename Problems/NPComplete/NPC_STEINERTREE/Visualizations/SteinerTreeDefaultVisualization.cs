@@ -15,7 +15,6 @@ class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE>
     public string visualizationDefinition { get; } = "This is a default visualization for Steiner Tree";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public UtilCollectionGraph graph { get; set; }
     public string visualizationType { get; } = "Graph D3";
     public ISolver solver { get; } = new SteinerTreeBruteForce();
 
