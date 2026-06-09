@@ -16,14 +16,26 @@ using API.Interfaces;
 // Must not be nested inside ReductionGraphData — the CLR names nested types
 // with '+' (e.g. "ReductionGraphData+Edge"), which is not a valid JSON pointer
 // character and causes a Swagger UI resolver error.
+
+/// <summary>
+/// A reduction graph edge, representing a reduction from one problem type to another.
+/// </summary>
+
 public class ReductionEdge
 {
+    /// <summary>The name of the class implementing the reduction.</summary>
     public string className { get; set; } = "";
+    /// <summary>The HTTP method and relative path that performs the reduction.</summary>
     public string endpoint { get; set; } = "";
+    /// <summary>The input problem type for this reduction.</summary>
     public string inputType { get; set; } = "";
+    /// <summary>The output problem type this reduction produces.</summary>
     public string outputType { get; set; } = "";
 }
 
+/// <summary>
+/// Represents a reduction graph data structure as a dictionary of dictionaries.
+/// </summary>
 public static class ReductionGraphData
 {
     // Alias so existing internal usages (Build, PathBetween, etc.) keep
@@ -32,6 +44,10 @@ public static class ReductionGraphData
 
     // from -> to -> [edges]. Keys are canonical IProblem class names
     // (e.g. "SAT3", "CLIQUE"). Built once at process start.
+    /// <summary>
+    /// A static dictionary of reduction edges organized by source, destination
+    /// and having a list of possible reductions for a given source/destination.
+    /// </summary>
     public static readonly Dictionary<string, Dictionary<string, List<ReductionEdge>>> Graph = Build();
 
     private static Dictionary<string, Dictionary<string, List<ReductionEdge>>> Build()
@@ -62,8 +78,8 @@ public static class ReductionGraphData
         return graph;
     }
 
-    // Resolve a caller-supplied name (any case) to its canonical key as it
-    // appears in Graph. Searches source nodes first, then target nodes.
+    /// <summary>Resolve a caller-supplied name (any case) to its canonical key as it
+    /// appears in Graph. Searches source nodes first, then target nodes.</summary>
     public static string? ResolveKey(string name)
     {
         foreach (var k in Graph.Keys)
@@ -74,7 +90,7 @@ public static class ReductionGraphData
         return null;
     }
 
-    // Transitively reachable problems from source via BFS. Excludes source.
+    /// <summary>Transitively reachable problems from source via BFS. Excludes source.</summary>
     public static List<string> ReachableFrom(string source)
     {
         var result = new List<string>();
@@ -100,9 +116,16 @@ public static class ReductionGraphData
         return result;
     }
 
-    // Shortest path from source to target as a list of hops; each hop is the
-    // list of reduction class names available between consecutive problems.
-    // Empty list if no path exists.
+    /// <summary>
+    /// Shortest path (by hop count, via BFS) from source to target. Each hop is the
+    /// list of reduction class names available between two consecutive problems.
+    /// </summary>
+    /// <param name="source">The source problem (class name, case-insensitive).</param>
+    /// <param name="target">The destination problem (class name, case-insensitive).</param>
+    /// <returns>
+    /// The hops from source to target, or an empty list if either name is unknown,
+    /// source equals target, or no path exists.
+    /// </returns>
     public static List<List<string>> PathBetween(string source, string target)
     {
         string? s = ResolveKey(source);
