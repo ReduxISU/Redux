@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION;
+using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Solvers;
 
 namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Visualizations;
 
@@ -12,7 +13,7 @@ class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESS
     public string sourceLink {get;} = "TODO";
     public string[] contributors { get; } = { "TODO" };
     public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
-    public ISolver solver { get; } = null; //TODO fill in solver to use for this visualization
+    public ISolver solver { get; } = new LosslessDataCompressionSolver();
 
     // --- Methods Including Constructors ---
     public LosslessDataCompressionVisualization()
