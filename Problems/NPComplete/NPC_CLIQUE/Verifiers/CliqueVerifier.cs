@@ -31,8 +31,21 @@ class CliqueVerifier : IVerifier<CLIQUE> {
         return nodeList;
     }
     public bool verify(CLIQUE problem, string certificate){
-        
-        List<string> nodeList = parseCertificate(certificate);
+
+        if (string.IsNullOrWhiteSpace(certificate)) {
+            throw new CertificateParseException(problem, certificate, "certificate is empty");
+        }
+
+        List<string> nodeList;
+        try {
+            nodeList = parseCertificate(certificate);
+        } catch (Exception ex) {
+            throw new CertificateParseException(problem, certificate, ex.Message);
+        }
+        if (nodeList.Count == 0 || nodeList.Any(string.IsNullOrWhiteSpace)) {
+            throw new CertificateParseException(problem, certificate,
+                "certificate did not parse to a non-empty list of node names");
+        }
         //Check k value
         if(nodeList.Count != problem.K){
             return false;

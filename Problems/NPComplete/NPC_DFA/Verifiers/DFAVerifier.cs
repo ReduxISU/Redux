@@ -3,7 +3,7 @@ using API.Problems.NPComplete.NPC_DFA;
 
 namespace API.Problems.NPComplete.NPC_DFA.Verifiers;
 
-public class DFAVerifier : IVerifier<DFA>
+class DFAVerifier : IVerifier<DFA>
 {
     // --- Fields ---
     public string verifierName { get; } = "DFA Verifier";

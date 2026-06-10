@@ -25,7 +25,6 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
     private List<string> _nodes = new List<string>();
     // private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
     private List<(string source, string destination, int weight)> _edges = new List<(string source, string destination, int weight)>();
-    private int _K;
     public MaxCutSolver defaultSolver {get;} = new MaxCutSolver();
     public MaxCutVerifier defaultVerifier {get;} = new MaxCutVerifier();
     public MaxCutVisualization defaultVisualization { get; } = new MaxCutVisualization();

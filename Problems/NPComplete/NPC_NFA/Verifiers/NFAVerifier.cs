@@ -7,26 +7,26 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace API.Problems.NPComplete.NPC_NFA.Verifiers
+namespace API.Problems.NPComplete.NPC_NFA.Verifiers;
+
+class NFAVerifier : IVerifier<NFA>
 {
-    public class NFAVerifier : IVerifier<NFA>
+    public string verifierName { get; } = "NFA Verifier";
+    public string verifierDefinition { get; } =
+        "Verifies one (or many) NFA run certificates against the input string, including ε-transitions, matching solver semantics.";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Michael Trosper" };
+
+    private string _certificate = "";
+    public string certificate => _certificate;
+
+    private const char EPS = '\u03B5'; // U+03B5 (ε), matches NFAEdge normalization
+
+    public NFAVerifier() { }
+
+    public bool verify(NFA problem, string certificate)
     {
-        public string verifierName { get; } = "NFA Verifier";
-        public string verifierDefinition { get; } =
-            "Verifies one (or many) NFA run certificates against the input string, including ε-transitions, matching solver semantics.";
-        public string source { get; } = "";
-        public string[] contributors { get; } = { "Michael Trosper" };
-
-        private string _certificate = "";
-        public string certificate => _certificate;
-
-        private const char EPS = '\u03B5'; // U+03B5 (ε), matches NFAEdge normalization
-
-        public NFAVerifier() { }
-
-        public bool verify(NFA problem, string certificate)
-        {
-            // Normalize empty-input representation "ε"
+        // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
         string result = "";
@@ -112,6 +112,5 @@ namespace API.Problems.NPComplete.NPC_NFA.Verifiers
         }
 
         return hasPath;
-        }
     }
 }

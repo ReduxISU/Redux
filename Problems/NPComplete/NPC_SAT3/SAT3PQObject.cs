@@ -11,12 +11,15 @@ class SAT3PQObject{
 
     public SAT3PQObject(SAT3 inSAT3, int newDepth, int totalVariables){
         SATState = inSAT3;
-        string nextVar = string.Empty;
-        int depth = newDepth;
-        int totalVars = totalVariables;
+        depth = newDepth;
+        totalVars = totalVariables;
         varWeights = new Dictionary<string, int>();
         varStates = new Dictionary<string, bool>();
-        initNextVar();
+
+        //gets the next variable for evaluation and removes the variable from the literals
+        string newVar = getVarFromLiteral(SATState.literals[0]);
+        SATState.literals.RemoveAt(0);
+        nextVar = newVar;
     }
 
     //gets the variable witht he highest occurance
@@ -139,8 +142,18 @@ class SAT3PQObject{
         //update dictionary
         // this.varStates.Add(this.nextVar, boolValue);
         if(isValid){
-            //create new object
-            SAT3PQObject newSATObj = new SAT3PQObject(new SAT3(newPhiExpression), depth + 1, totalNumberOfVariables);
+            SAT3PQObject newSATObj;
+            if(newPhiExpression == "()"){
+                // All clauses were satisfied by assigning nextVar = boolValue.
+                // new SAT3("()") is rejected by validateInstance (empty literal), so build
+                // the solved-sentinel state directly: clauses = [[""]] is what
+                // evaluateBooleanExpression checks to return 1 (satisfied).
+                SAT3 doneSAT = new SAT3();
+                doneSAT.clauses = new List<List<string>> { new List<string> { "" } };
+                newSATObj = new SAT3PQObject(doneSAT, depth + 1, totalNumberOfVariables);
+            } else {
+                newSATObj = new SAT3PQObject(new SAT3(newPhiExpression), depth + 1, totalNumberOfVariables);
+            }
             newSATObj.setVarStates(this.varStates);
             newSATObj.setVarWeights(this.varWeights);
             //adds the new state to the objects state of vars
@@ -198,14 +211,6 @@ class SAT3PQObject{
         // Console.WriteLine("weights initialized");
         //sets the variable weights to the newly created dictionary with their count
         setVarWeights(numbVars);
-    }
-
-    //gets the next variable for evaluation and removes the variable from the literals
-    private void initNextVar(){
-        string newVar = getVarFromLiteral(SATState.literals[0]);
-        SATState.literals.RemoveAt(0);
-        // Console.WriteLine("newVar is : " + newVar);
-        this.nextVar = newVar;
     }
 
     //returns the literal without the !

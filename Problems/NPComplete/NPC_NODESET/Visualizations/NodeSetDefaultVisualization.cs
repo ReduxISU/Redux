@@ -3,6 +3,7 @@ using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
+using API.Problems.NPComplete.NPC_NODESET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Visualizations;
 
@@ -14,8 +15,8 @@ class NodeSetDefaultVisualization : IVisualization<NODESET>
     public string visualizationDefinition { get; } = "This is a default visualization for Node Set";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public UtilCollectionGraph graph { get; set; }
     public string visualizationType { get; } = "Graph D3";
+    public ISolver solver { get; } = new NodeSetBruteForce();
 
     // --- Methods Including Constructors ---
     public NodeSetDefaultVisualization()

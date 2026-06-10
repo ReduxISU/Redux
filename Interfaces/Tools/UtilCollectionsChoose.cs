@@ -39,6 +39,15 @@ public static class UtilCollectionChooseExtension
         }
     }
 
+    /// <summary>
+    /// Lazily yields every non-empty combination of up to <paramref name="k"/> items from the
+    /// collection — i.e. every subset of size 1, 2, … <paramref name="k"/>, by calling
+    /// <see cref="Choose"/> for each size in turn. The empty subset is not included, and sizes
+    /// larger than the collection produce nothing (see <see cref="Choose"/>).
+    /// </summary>
+    /// <param name="coll">the collection to draw combinations from</param>
+    /// <param name="k">the largest combination size to produce</param>
+    /// <returns>combinations ordered from smallest size to largest</returns>
     public static IEnumerable<UtilCollection> ChooseUpTo(this UtilCollection coll, int k)
     {
         for (int i = 1; i <= k; i++)

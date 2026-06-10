@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
+using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 using System.Text.Json;
 
@@ -11,6 +12,7 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
 
     // --- Methods Including Constructors ---
     public DeutschJozsaDefaultVisualization()
@@ -42,7 +44,7 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
             bool[] requestBody = instance.w.Select(val => val != 0).ToArray();
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;

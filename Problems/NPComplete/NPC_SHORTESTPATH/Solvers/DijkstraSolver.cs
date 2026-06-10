@@ -38,7 +38,7 @@ class DijkstraSolver : ISolver<SHORTESTPATH>
 
 		//Initialize distances
 		var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
-        var prev = nodes.ToDictionary(n => n, _ => (string)null);
+        var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
         var pq = new DijkstraPriorityQueue<string>();
 
@@ -188,7 +188,7 @@ class DijkstraSolver : ISolver<SHORTESTPATH>
 	internal static List<string> ReconstructPath(Dictionary<string, string?> prev, string source, string target)
 	{
 		var path = new List<string>();
-		string current = target;
+		string? current = target;
 
 		while (current != null)
 		{

@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCH;
+using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 using System.Text.Json;
 
@@ -12,6 +13,7 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner", "Courtney Bodily", "Andreas Kramer", "Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public ISolver solver { get; } = new DeutschClassicalSolver();
 
     // --- Methods Including Constructors ---
     public DeutschDefaultVisualization()
@@ -43,7 +45,7 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
             bool[] requestBody = instance.funcValues;
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;

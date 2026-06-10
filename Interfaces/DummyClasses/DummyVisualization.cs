@@ -14,6 +14,7 @@ class DummyVisualization : IVisualization<IProblem> {
     public string source {get;} = " ";
     public string[] contributors {get;} = {""};
     public string visualizationType { get; } = "";
+    public ISolver solver { get; } = new DummySolver(); 
 
     // --- Methods Including Constructors ---
     public DummyVisualization() {

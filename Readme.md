@@ -22,25 +22,13 @@
 
 ## About Redux
 
-Redux is a web-based platform that makes computational complexity theory accessible and interactive. It provides:
+Redux is an extensible, interactive web-based platform designed for Computer Science pedagogy. It provides:
 
-- **Interactive Problem Visualization**: See canonical NP-Complete problems in action
+- **Interactive Problem Visualization**: Explore problems across complexity classes, from P to NP-Hard and beyond
 - **Reduction Framework**: Understand how problems reduce to one another
 - **Solver & Verifier Tools**: Execute and verify solutions to computational problems
-- **Educational Resource**: Built on Karp's 21 NP-Complete problems and beyond
-
+- **Educational Resource**: Built on Karp's 21 NP-Complete problems and expanded across multiple complexity classes
 The backend is designed to be adaptable and can work with different frontends. The default frontend can be found at [Redux_GUI](https://github.com/ReduxISU/Redux_GUI).
-
----
-
-## Features
-
- **NP-Complete Problem Library**: Comprehensive collection of canonical CS problems  
- **RESTful API**: Full API access with Swagger documentation  
- **Solver Algorithms**: Multiple solving strategies for each problem  
- **Certificate Verification**: Verify solutions efficiently  
- **Reduction Mappings**: Visualize and understand problem reductions  
- **Graph & SAT Visualizations**: Interactive problem representations  
 
 ---
 
@@ -105,9 +93,10 @@ All problems are located in `Problems/NPComplete/`. Each problem follows a stand
 ```
 NPC_PROBLEMNAME/
 ├── PROBLEMNAME_class.cs      # Implements IProblem interface
+├── Reductions/               # Reduction implementations
 ├── Solvers/                  # Solver implementations
 ├── Verifiers/                # Verifier implementations
-└── PROBLEMNAME_controller.cs # API endpoints
+└── Visualizations            # Visualization implementations
 ```
 
 #### Interfaces
@@ -122,48 +111,13 @@ Redux uses five main interfaces that problems must implement:
 
 For detailed interface documentation, see the [Interfaces](#interfaces-detail) section below.
 
-### API Usage
-
-The Redux API is documented using SwaggerUI. All endpoints can be tested directly from the Swagger interface at:
-- Production: `https://api.redux.portneuf.cose.isu.edu/swagger/index.html`
-- Local: `http://127.0.0.1:27000/swagger/index.html`
-
-#### Adding API Endpoints
-
-When adding an API endpoint, the current practice is to add a controller into the problem reduction controller class, which corresponds to a specific class for that problem reduction. Each reduction has its own controller. The current naming convention is `NameOfRelatedClassController`. 
-
-**Important:** If not named correctly, the GUI will not function properly.
-
-**Controller Attributes:**
-
-![API Attributes](./images/APIAttributes.png)
-
-Each controller should include:
-- `[Route("controller")]`
-- `[Tag("Problem Name")]`
-
-#### XML Documentation Comments
-
-API calls must include proper XML comments to appear in SwaggerUI documentation. Add these comments above each HTTP call:
-
-- `<summary>` - Brief description of API call
-- `<param name="parameterName" example="example value">` - Description of parameter
-- `<response code="200">` - What call returns
-
-**Example:**
-```csharp
-/// <summary>Brief description of API call</summary>
-/// <param name="parameterName" example="example value">Description of parameter</param>
-/// <response code="200">What call returns</response>
-```
-
 ### SPADE Parser
 
-SPADE is used for parsing instance strings into usable data structures. It should be used in problem class constructors. 
+SPADE is used for parsing instance strings into usable data structures and should be used in problem class constructors where supported. Note that SPADE may not support all input types — verify compatibility before use.
 
 Documentation: [SPADE GitHub](https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md)
 
-Example usage can be found in the Knapsack problem class.
+Example usage can be found in the Clique problem class.
 
 ---
 
@@ -204,7 +158,6 @@ Located in `AdditionalControllers/Navigation/`, these controllers handle:
 We welcome contributions! Join our community:
 
 - **Discord**: [https://discord.gg/sEC3rTXn2Z](https://discord.gg/sEC3rTXn2Z)
-- **Weekly Meetings**: Thursdays at 11:30 AM MT via [Zoom](https://isu.zoom.us/j/85203480771?pwd=oEMlnn5EItmPFy3OKHnLqENQF52OIK.1&jst=3)
 
 ### Branching Strategy
 
@@ -212,11 +165,12 @@ We welcome contributions! Join our community:
 - **Development Branch**: `develop`
 
 **Workflow**:
-1. Make changes on the `develop` branch (or create a feature branch)
-2. Create a pull request to `develop`
-3. Assign a reviewer
-4. After code review, merge into `develop`
-5. Periodically merge `develop` into `CSharpAPI` for production
+1. Fork the Redux API repo and clone it
+2. Create a feature branch on your forked repo
+3. Implement changes
+4. Create a pull request to CSharpAPI
+5. Assign a reviewer
+6. After code review, merge into CSharpAPI
 
 ** Important**: DO NOT complete pull requests before they are reviewed.
 
@@ -227,17 +181,13 @@ We welcome contributions! Join our community:
 -  Includes at least one solver
 -  Includes at least one verifier
 -  Tests created and passing
+-  Filled out all metadata fields
 
 #### New Reductions
 -  Correctly implements all interfaces
 -  Includes working solution mapping function
--  Located in correct folder
--  Has API endpoint for reduction info, reduced string, and mapped solution
-
-#### API Additions
--  Controller named properly
--  Controller in proper controller class
--  Proper XML comments for all HTTP calls
+-  Includes working gadget mapping function
+-  Filled out all metadata fields
 
 ### Adding New Problems
 
@@ -253,7 +203,8 @@ Each problem folder should include 4 files/folders:
    - `PROBLEMNAME_class.cs` (implements `IProblem`)
    - `Solvers/` folder with at least one solver
    - `Verifiers/` folder with at least one verifier
-   - `PROBLEMNAME_controller.cs` with API endpoints
+   - `Visualizations/` folder if applicable
+   - `Reductions/` folder if applicable
 
 3. Write tests
 4. Submit pull request
@@ -263,7 +214,7 @@ Each problem folder should include 4 files/folders:
 Testing uses **Xunit**. All new problems should include tests for:
 - Verifier correctness
 - Solver correctness
-- Reduction algorithms
+- Reduction algorithms if applicable
 
 Run tests with:
 ```bash
@@ -274,59 +225,7 @@ dotnet test
 
 ## Interfaces Detail
 
-### IProblem
-Main interface with generic types for `ISolver`, `IVerifier`, and `IVisualization`.
-
-**Required Fields**:
-- `problemName` - Human-readable name
-- `formalDefinition` - Mathematical definition
-- `problemDefinition` - Readable description
-- `source` - Citation
-- `defaultInstance` - Example instance
-- `contributors` - Developer names
-- `defaultSolver` - Default solver object
-- `defaultVerifier` - Default verifier object
-
-**Required Constructors**:
-- Constructor taking a string instance
-- Constructor using default instance
-
-### ISolver
-Implements solving algorithms.
-
-**Required Methods**:
-- `Solve(problem)` → Returns solution string
-- `GetSteps()` → (Optional) Returns first 99 solution steps
-
-### IVerifier
-Verifies solution certificates.
-
-**Required Methods**:
-- `Verify(problem, certificate)` → Returns boolean
-
-### IVisualization
-Creates visual representations.
-
-**Visualization Types**:
-- `Boolean Satisfiability` - Uses `API_SAT`
-- `Graph D3` - Uses `API_graph`
-
-**Required Methods**:
-- `Visualize(problem)` → Returns `API_JSON`
-- `SolvedVisualization(problem, solution)` → (Optional) Highlights solution
-- `StepsVisualization(steps)` → (Optional) Visualizes steps
-
-### IReduction
-Maps one problem to another.
-
-**Required Fields**:
-- `reductionFrom` - Starting problem
-- `reductionTo` - Resulting problem
-- `gadgets` - UI element relationships for highlighting
-
-**Required Methods**:
-- `Reduce()` - Performs the reduction
-- `MapSolutions(certificate)` - Maps solution from one problem to another
+For comprehensive interface details see [Problem Template README](https://github.com/ReduxISU/Redux/blob/CSharpAPI/ProblemTemplate/Templates/README.md).
 
 ---
 
@@ -386,7 +285,7 @@ For a complete list of contributors, visit our [About Us page](https://redux.por
 
 ## License
 
-This project is developed at Idaho State University's Computer Science Department.
+This project is licensed under the BSD 3-Clause License. See [LICENSE.md](LICENSE.md) for details.
 
 ---
 
@@ -394,7 +293,7 @@ This project is developed at Idaho State University's Computer Science Departmen
 
 - **Issues**: Please use GitHub Issues for bug reports and feature requests
 - **Discord**: [Join our community](https://discord.gg/sEC3rTXn2Z)
-- **Email**: Contact the CS department at Idaho State University
+- **Email**: Contact the Reudx email [redux@isu.edu](mailto:redux@isu.edu) 
 
 ---
 

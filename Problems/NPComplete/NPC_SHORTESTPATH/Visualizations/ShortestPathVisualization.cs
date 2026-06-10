@@ -2,8 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
-using System;
-using System.Collections.Generic;
+using API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
 
 namespace API.Problems.NPComplete.NPC_SHORTESTPATH.Visualizations;
 
@@ -14,6 +13,7 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt"};
     public string visualizationType => "Graph D3";
+    public ISolver solver { get; } = new DijkstraSolver();
 
     public ShortestPathVisualization() { }
 

@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
+using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Tools;
 using System.Text.Json;
 
@@ -11,6 +12,7 @@ class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public ISolver solver { get; } = new BernsteinVaziraniClassicalSolver();
 
     // --- Methods Including Constructors ---
     public BernsteinVaziraniDefaultVisualization()
@@ -42,7 +44,7 @@ class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI>
             bool[] requestBody = instance.funcValues.ToArray();
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/bernstein-vazirani-quantum", requestBody).Result;

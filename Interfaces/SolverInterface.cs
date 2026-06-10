@@ -24,9 +24,9 @@ interface ISolver {
     }
     string solve(string problem);
 
-    List<string> GetSteps(string instance)
+    List<Object> GetSteps(string instance)
     {
-        return new List<string>();
+        return new List<Object>();
     }
 }
 
@@ -44,13 +44,13 @@ interface ISolver<T> : ISolver where T : IProblem {
 
     string solve(T problem);
 
-    List<string> ISolver.GetSteps(string instance)
+    List<Object> ISolver.GetSteps(string instance)
     {
         return GetSteps((T)Activator.CreateInstance(typeof(T), instance));
     }
 
-    List<string> GetSteps(T problem)
+    List<Object> GetSteps(T problem)
     {
-        return new List<string>();
+        return new List<Object>();
     }
 }

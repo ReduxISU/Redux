@@ -3,7 +3,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 using API.Problems.NPComplete.NPC_EXACTCOVER.Verifiers;
-using API.Problems.NPComplete.NPC_EXACTCOVER.Visualizers;
+using API.Problems.NPComplete.NPC_EXACTCOVER.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER;

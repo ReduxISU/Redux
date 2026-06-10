@@ -5,6 +5,7 @@ using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCH;
+using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 
 class DeutschD3Visualization : IVisualization<DEUTSCH>
@@ -14,6 +15,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
     public string source { get; } = "https://d3js.org/";
     public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";
+    public ISolver solver { get; } = new DeutschClassicalSolver();
 
     public DeutschD3Visualization() { }
 
@@ -66,7 +68,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         try
         {
             bool[] requestBody = instance.funcValues;
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
 
             using JsonDocument doc = JsonDocument.Parse(response);
