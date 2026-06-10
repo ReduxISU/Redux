@@ -1,0 +1,20 @@
+{
+  "name": "Redux .NET Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:10",
+  "features": {
+    "ghcr.io/devcontainers/features/vscode-extensions:1": {
+      "extensions": [
+        "ms-dotnettools.csharp"
+      ]
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp"
+      ]
+    }
+  },
+  "postCreateCommand": "dotnet --info",
+  "remoteUser": "vscode"
+}
