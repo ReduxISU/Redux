@@ -16,9 +16,13 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce,SubsetSumVerifier, DummyVisualiza
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Garret Stouffer", "Caleb Eardley"};
-    public static string _defaultInstance { get; } = "{{1,7,12,15} : 28}";
+    public const string InstanceGrammar = "{(S,T) | S is set, T is int}";
+    public static string _defaultInstance { get; } = "({1,7,12,15},28)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string instanceFormat {get;} = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat {get;} =
+        $"Format: {SubsetSumVerifier.CertificateGrammar} Example: {SubsetSumVerifier.CertificateExample}";
     private List<string> _S = new List<string>();
     private int _T;
 
@@ -53,34 +57,30 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce,SubsetSumVerifier, DummyVisualiza
 
     public SUBSETSUM(string instance) {
         this.instance = instance;
-        S = getIntegers(instance);
-        T = getT(instance);
-    }
-    public List<string> getIntegers(string instance) {
 
-        List<string> allIntegers = new List<string>();
-        string strippedInput = instance.Replace("{", "").Replace("}", "").Replace(" ", "");
-        
-        // [0] is integers,  [1] is T.
-        string[] SSsections = strippedInput.Split(':');
-        string[] SSintegers = SSsections[0].Split(',');
-        
-        foreach(string integer in SSintegers) {
-            allIntegers.Add(integer);
+        StringParser parser = new(InstanceGrammar);
+        List<string> parsedS;
+        string tStr;
+        try {
+            parser.parse(instance);
+            // Materialize inside the try: SPADE may parse without error and only
+            // fail when the result is enumerated or a missing key is accessed.
+            parsedS = parser["S"].ToList().Select(x => x.ToString()).ToList();
+            tStr = parser["T"].ToString();
+        } catch (Exception ex) {
+            throw new ProblemParseException(problemName, instance, ex.Message);
         }
 
-        return allIntegers;
+        foreach (string element in parsedS) {
+            if (!int.TryParse(element, out _))
+                throw new ProblemParseException(problemName, instance,
+                    $"'{element}' is not a valid integer in S");
+        }
+        S = parsedS;
+
+        if (!int.TryParse(tStr, out int t))
+            throw new ProblemParseException(problemName, instance,
+                $"'{tStr}' is not a valid integer for T");
+        T = t;
     }
-    
-
-    public int getT(string instance) {
-        string strippedInput = instance.Replace("{", "").Replace("}", "").Replace(" ", "");
-        
-        // [0] is integers,  [1] is T.
-        string[] SSsections = strippedInput.Split(':');
-        
-        return Int32.Parse(SSsections[1]);
-    }
-
-
 }

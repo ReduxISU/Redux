@@ -1,4 +1,5 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 class SubsetSumBruteForce : ISolver<SUBSETSUM> {
@@ -12,40 +13,30 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
 
     // --- Methods Including Constructors ---
     public SubsetSumBruteForce() {
-        
-    }
-    private string BinaryToCertificate(List<int> binary, List<string> S ){
-        string certificate = "";
-        for(int i = 0; i< binary.Count; i++){
-            if(binary[i] == 1){
-                certificate += S[i]+",";
-            }
-        }
-        return "{" + certificate.TrimEnd(',') + "}";
 
     }
-    private void nextBinary(List<int> binary){
-        for(int i = 0; i< binary.Count; i++){
-            if(binary[i] == 0){
-                binary[i] += 1;
-                return;
-            }
-            else if(binary[i] == 1){
-                binary[i] = 0;
-            }
+
+    private static string SubsetToCertificate(int mask, List<string> S) {
+        UtilCollection certificate = new UtilCollection("{}");
+        for (int i = 0; i < S.Count; i++) {
+            if ((mask & (1 << i)) != 0)
+                certificate.Add(new UtilCollection(S[i]));
         }
+        return certificate.ToString();
     }
-       
+
     public string solve(SUBSETSUM subsetSum){
-        List<int> binary = new List<int>(){1};
-        for(int i = 0; i < subsetSum.S.Count-1; i++){
-            binary.Add(0);
-        }
-        string certificate = BinaryToCertificate(binary, subsetSum.S);
-        while(certificate != "{}"){
-            nextBinary(binary);
-            certificate = BinaryToCertificate(binary, subsetSum.S);
-            if(subsetSum.defaultVerifier.verify(subsetSum, certificate)){
+        int n = subsetSum.S.Count;
+
+        // Enumerate every subset by its bitmask so that all 2^n subsets -- including
+        // the singleton {S[0]} -- are tested exactly once. Mask 0 (the empty subset)
+        // is skipped: with positive integers and T > 0 it is never a witness, and
+        // "{}" doubles as the no-solution sentinel.
+        for (int mask = 1; mask < (1 << n); mask++) {
+            if (timerHasExpired) return "{}";
+
+            string certificate = SubsetToCertificate(mask, subsetSum.S);
+            if (subsetSum.defaultVerifier.verify(subsetSum, certificate)) {
                 return certificate;
             }
         }

@@ -1,5 +1,4 @@
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_EXACTCOVER;
 using API.Problems.NPComplete.NPC_SUBSETSUM;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.ReduceTo.NPC_SUBSETSUM;
@@ -83,21 +82,20 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
             }
         }
 
-        string instance = "{{";
+        List<string> subsetSumS = new List<string>();
         double sum = 0;
         for(int j = 0; j < reductionFrom.S.Count; j++) {
             for(int i = 0; i < reductionFrom.X.Count; i++) {
                 sum += e[j,i] * Math.Pow(d,i);
             }
-            instance += sum.ToString() + ',';
+            subsetSumS.Add(sum.ToString());
             sum = 0;
         }
 
-        instance = instance.TrimEnd(',') + "} : ";
         string K = ((Math.Pow(d,reductionFrom.X.Count) - 1) / (d - 1)).ToString();
-        instance += K + '}';
+        string instance = "({" + string.Join(",", subsetSumS) + "}," + K + ")";
 
-        reducedSUBSETSUM.S = instance.Replace("{","").Replace("}","").Split(',').ToList();
+        reducedSUBSETSUM.S = subsetSumS;
         reducedSUBSETSUM.T = Int32.Parse(K);
         reducedSUBSETSUM.instance = instance;
 
