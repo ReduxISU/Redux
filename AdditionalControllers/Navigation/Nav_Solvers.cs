@@ -133,11 +133,37 @@ public class Problem_SolversRefactorController : ControllerBase {
 
         }
         catch(System.IO.DirectoryNotFoundException){
-            
-            jsonString = JsonSerializer.Serialize(NOT_FOUND_ERR_SOLVER,options);
+            // Fallback: search every class directory under Problems/ for any folder
+            // whose name ends with _{chosenProblem}, regardless of prefix.
+            var fallback = FindSolversAcrossAllDirs(ProjectSourcePath.Value, chosenProblem);
+            jsonString = fallback.Count > 0
+                ? JsonSerializer.Serialize(fallback, options)
+                : JsonSerializer.Serialize(NOT_FOUND_ERR_SOLVER, options);
         }
         
         // Not completed. Needs to loop through these directories to get the rest of the problems
         return jsonString;
+    }
+
+    private static List<string> FindSolversAcrossAllDirs(string root, string chosenProblem) {
+        var result = new List<string>();
+        var problemsRoot = Path.Combine(root, "Problems");
+        if (!Directory.Exists(problemsRoot)) return result;
+        foreach (var classDir in Directory.GetDirectories(problemsRoot)) {
+            foreach (var problemDir in Directory.GetDirectories(classDir)) {
+                var dirName = Path.GetFileName(problemDir) ?? "";
+                var idx = dirName.IndexOf('_');
+                if (idx >= 0 && dirName[(idx + 1)..] == chosenProblem) {
+                    var solversPath = Path.Combine(problemDir, "Solvers");
+                    if (!Directory.Exists(solversPath)) continue;
+                    foreach (var file in Directory.GetFiles(solversPath)) {
+                        var name = Path.GetFileNameWithoutExtension(file);
+                        if (name != null) result.Add(name);
+                    }
+                    return result;
+                }
+            }
+        }
+        return result;
     }
 }
