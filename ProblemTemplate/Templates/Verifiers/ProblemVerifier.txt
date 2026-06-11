@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
@@ -10,6 +11,8 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
     public string source {get;} = " ";
     public string sourceLink {get;} = "TODO";
     public string[] contributors {get;} = { "TODO" };
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
     private string _certificate =  "";
 
     public string certificate {

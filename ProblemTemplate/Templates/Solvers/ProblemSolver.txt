@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Solvers;
@@ -8,6 +9,8 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
     public string[] contributors {get;} = { "TODO" };
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_EXACTCOVER;
 using API.Problems.NPComplete.NPC_SUBSETSUM;
@@ -14,7 +15,8 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
-    private string _complexity = "";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private EXACTCOVER _reductionFrom;
