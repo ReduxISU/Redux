@@ -4,7 +4,6 @@ using API.Problems.NPComplete.NPC_NFA.Solvers;
 using API.Problems.NPComplete.NPC_NFA.Verifiers;
 using API.Problems.NPComplete.NPC_NFA.Visualizations;
 using SPADE;
-using Xunit;
 using System.Linq;
 using System.Collections.Generic;
 using API.Interfaces.Graphs;

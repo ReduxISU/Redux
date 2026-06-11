@@ -8,7 +8,7 @@ RUN dotnet restore
 
 # Copy the rest
 COPY . .
-RUN dotnet publish -c Release -o out
+RUN dotnet publish API.csproj -c Release -o out
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
