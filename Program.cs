@@ -1,6 +1,6 @@
 using System.Reflection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,4 +71,5 @@ app.MapControllers();
 
 app.Run();
 
+/// <summary>Application entry point and composition root for the API.</summary>
 public partial class Program { }

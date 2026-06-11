@@ -10,17 +10,32 @@ using Antlr4.Runtime;
 using API.Tools.ApiParameters;
 using System.Dynamic;
 
-[ApiController]
+/// <summary>
+/// Core controller for Problems.
+/// </summary>
 [Route("[controller]")]
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase
 {
+    /// <summary>A dictionary of all of the problems mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Problems = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IProblem).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+
+    /// <summary>A dictionary of all of the graph problems in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> GraphProblems = Problems.Where(p => typeof(IGraphProblem).IsAssignableFrom(p.Value)).ToDictionary(x => x.Key, x => x.Value);
+
+    /// <summary>A dictionary of all verifiers in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Verifiers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IVerifier).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+
+    /// <summary>A dictionary of all solvers in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Solvers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(ISolver).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+
+    /// <summary>A dictionary of all visualizers in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Visualizers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IVisualization).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+
+    /// <summary>A dictionary of all reductions in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Reductions = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IReduction).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+
+    /// <summary>A dictionary of all problems, verifiers, solvers, visualizers and reductions in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Interfaces = (new[] { Problems, Verifiers, Solvers, Visualizers,Reductions }).SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
 
 #pragma warning disable CS8603 // Possible null reference return.
@@ -121,19 +136,28 @@ public class ProblemProvider : ControllerBase
     }
 
     /// <summary>
-    /// Takes a problem instance and a solver and returns the soltuion
+    /// Takes a problem instance and a solver and returns the solution
     /// </summary>
     /// <param name="solver" example = "Sat3BacktrackingSolver">The solver to use</param>
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">The instance of the problem to solve</param>
     /// <returns>solution certificate</returns>
     [HttpPost("solve")]
-    public string solve(string solver, [FromBody] string problemInstance)
+    public IActionResult solve(string solver, [FromBody] string problemInstance)
     {
         // TODO: validate arguments
-        return JsonSerializer.Serialize(
-            Solver(solver).solve(problemInstance),
-            new JsonSerializerOptions { WriteIndented = true }
-        );
+        try {
+            return Content(
+                JsonSerializer.Serialize(
+                    Solver(solver).solve(problemInstance),
+                    new JsonSerializerOptions { WriteIndented = true }),
+                "application/json");
+        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        }
     }
 
     /// <summary>
@@ -229,7 +253,7 @@ public class ProblemProvider : ControllerBase
     /// <summary>
     /// Reduces a problem and returns the visualization of the reduction
     /// </summary>
-    /// <param name="reduction" example = "SipserReduceToCliqueStandard">List of reductions to use, seperated by a dash. Can use a single reduction</param>
+    /// <param name="reduction" example = "SipserReduceToCliqueStandard">List of reductions to use, separated by a dash. Can use a single reduction</param>
     /// <param name="solution" example = "(x1:True,x2:True)">The solution to visualize</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance string of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
@@ -253,7 +277,7 @@ public class ProblemProvider : ControllerBase
     /// returns the reduction of a problem
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">the reduction to use</param>
-    /// <param name="instance" example = "(x1 | !x2 | x3) &amp; !x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of a problem</param>
+    /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of a problem</param>
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
     public string reduce(string reduction, [FromBody] string instance)
@@ -291,8 +315,14 @@ public class ProblemProvider : ControllerBase
     }
 }
 
+/// <summary>Request body for verify endpoint</summary>
 public class Verify
 {
+    /// <summary>
+    /// Proposed solution for this problem
+    /// </summary>
     public string Certificate { get; set; } = "";
+
+    /// <summary>Instance of the problem</summary>
     public string ProblemInstance { get; set; } = "";
 }

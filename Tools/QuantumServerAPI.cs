@@ -109,7 +109,7 @@ public class QuantumServerAPI
     /// </summary>
     public string GetBaseUrl() => _baseUrl;
 
-    // --- Dispose ---
+    /// <summary>Ensure that the http client is closed</summary>
     public void Dispose()
     {
         _httpClient?.Dispose();

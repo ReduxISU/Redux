@@ -1,8 +1,12 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Verifiers;
 
 class BernsteinVaziraniClassicalVerifier : IVerifier<BERNSTEINVAZIRANI> {
+
+    public const string CertificateGrammar = "{f | f is list}";
+    public const string CertificateExample = "(1,0,1)";
 
     // --- Fields ---
     public string verifierName {get;} = "Bernstein Vazirani Classical Verifier";
@@ -19,14 +23,12 @@ class BernsteinVaziraniClassicalVerifier : IVerifier<BERNSTEINVAZIRANI> {
 
     // --- Methods Including Constructors ---
     public BernsteinVaziraniClassicalVerifier() {
-        
+
     }
 
     /// <summary>
     /// Count the number of bits set to 1 in an integer
     /// </summary>
-    /// <param name="value"></param>
-    /// <returns>The numver of bits that are 1 in value</returns>
     private static int CountBits(int value) {
         int count = 0;
         while (value != 0) {
@@ -35,18 +37,32 @@ class BernsteinVaziraniClassicalVerifier : IVerifier<BERNSTEINVAZIRANI> {
         }
         return count;
     }
-    public bool verify(BERNSTEINVAZIRANI problem, string certificate){
-        int certInt = Convert.ToInt32(certificate, 2);
+
+    public bool verify(BERNSTEINVAZIRANI problem, string certificate) {
+        StringParser parser = new(CertificateGrammar);
+        try {
+            parser.parse(certificate);
+        } catch (Exception ex) {
+            throw new CertificateParseException(problem, certificate, ex.Message);
+        }
+
+        UtilCollection bits = parser["f"];
+        int certInt = 0;
+        foreach (UtilCollection bit in bits) {
+            string bitStr = bit.ToString();
+            if (bitStr != "0" && bitStr != "1")
+                throw new CertificateParseException(problem, certificate,
+                    $"'{bitStr}' is not a valid bit; expected 0 or 1");
+            certInt = (certInt << 1) | (bitStr == "1" ? 1 : 0);
+        }
+
+        if (bits.ToList().Count != problem.NBits)
+            throw new CertificateParseException(problem, certificate,
+                $"certificate has {bits.ToList().Count} bits but problem requires {problem.NBits}");
 
         for (int x = 0; x < (1 << problem.NBits); x++) {
-
-            // Compute s · x
             int dotProduct = CountBits(certInt & x) % 2;
-            bool actual = (dotProduct == 1);
-
-            bool expected = problem.Func(x);
-
-            if (expected != actual)
+            if (problem.Func(x) != (dotProduct == 1))
                 return false;
         }
         return true;

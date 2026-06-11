@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 
@@ -11,7 +12,8 @@ class VCVerifier : IVerifier<VERTEXCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Janita Aamir","Alex Diviney"};
 
-    private string _complexity = "";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
 
     private string _certificate = "";
 
