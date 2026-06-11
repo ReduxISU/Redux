@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
@@ -67,28 +66,37 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
     {
         instance = input;
 
-        StringParser parser = new(InstanceGrammar);
+        // UtilCollection handles nested bracket/comma structures directly.
+        // StringParser's grammar language only supports flat lists, so we use
+        // UtilCollection for navigation instead.
+        UtilCollection parsed;
         try {
-            parser.parse(input);
+            parsed = new UtilCollection(input);
         } catch (Exception ex) {
             throw new ProblemParseException(problemName, input, ex.Message);
         }
 
         try {
-            var tank = parser["T"].ToList();
+            var sections = parsed.ToList();
+            if (sections.Count != 3)
+                throw new ProblemParseException(problemName, input,
+                    "Instance must have 3 sections: (tank),(demand),(pumps).");
+
+            // Section 0: Tank — (capacity, currentLevel)
+            var tank = ((UtilCollection)sections[0]).ToList();
             if (tank.Count != 2)
                 throw new ProblemParseException(problemName, input,
                     "Tank section must have exactly 2 values: (capacity,currentLevel).");
-            TankCapacity       = ParseDouble(tank[0].ToString());
-            TankCurrentLevel   = ParseDouble(tank[1].ToString());
+            TankCapacity     = ParseDouble(tank[0].ToString());
+            TankCurrentLevel = ParseDouble(tank[1].ToString());
             if (TankCapacity <= 0)
                 throw new ProblemParseException(problemName, input, "Tank capacity must be positive.");
             if (TankCurrentLevel < 0 || TankCurrentLevel > TankCapacity)
                 throw new ProblemParseException(problemName, input,
                     "Tank current level must be within [0, capacity].");
 
-            // D = ((demand curve),(peak hours),(rates)) — three nested sub-lists.
-            var dSections = parser["D"].ToList();
+            // Section 1: Demand — ((d0,...,d23),(peak_hours,...),(on_rate,off_rate))
+            var dSections = ((UtilCollection)sections[1]).ToList();
             if (dSections.Count != 3)
                 throw new ProblemParseException(problemName, input,
                     "Demand section must have 3 sub-lists: (demands),(peak_hours),(rates).");
@@ -112,7 +120,8 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
             OnPeakCostPerKwh  = ParseDouble(costs[0].ToString());
             OffPeakCostPerKwh = ParseDouble(costs[1].ToString());
 
-            foreach (UtilCollection pump in parser["P"])
+            // Section 2: Pumps — ((name,flow_gph,kw,startup_cost),...)
+            foreach (UtilCollection pump in (UtilCollection)sections[2])
             {
                 var parts = pump.ToList();
                 if (parts.Count != 4)

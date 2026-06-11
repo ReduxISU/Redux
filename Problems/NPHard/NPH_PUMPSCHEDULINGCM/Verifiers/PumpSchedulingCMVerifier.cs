@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using API.Interfaces;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
 using SPADE;
@@ -16,6 +15,7 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
         "(PumpC,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,1)))";
 
     public string verifierName { get; } = "Pump Scheduling CM Verifier";
+    public string certificate { get; private set; } = string.Empty;
     public string verifierDefinition { get; } =
         "Parses the pump schedule from the certificate, simulates the 24-hour tank trajectory " +
         "using exact arithmetic, and accepts if: (1) the tank stays within [0, capacity] at every hour, " +
@@ -27,20 +27,28 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
 
     public bool verify(PUMPSCHEDULINGCM problem, string certificate)
     {
-        StringParser parser = new(CertificateGrammar);
+        this.certificate = certificate ?? string.Empty;
+
+        UtilCollection parsed;
         try {
-            parser.parse(certificate);
+            parsed = new UtilCollection(this.certificate);
         } catch (Exception ex) {
             throw new CertificateParseException(problem, certificate, ex.Message);
         }
 
-        if (!double.TryParse(parser["cost"].ToString().Trim(),
+        // Certificate is (cost, ((PumpA,h0,...,h23),...))
+        var topLevel = parsed.ToList();
+        if (topLevel.Count != 2)
+            throw new CertificateParseException(problem, certificate,
+                "Certificate must be (cost,schedule).");
+
+        if (!double.TryParse(topLevel[0].ToString().Trim(),
                 System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture,
                 out double reportedCost))
             throw new CertificateParseException(problem, certificate, "cost field is not a valid number");
 
-        var pumpTuples = parser["S"].ToList();
+        var pumpTuples = ((UtilCollection)topLevel[1]).ToList();
         int n = problem.Pumps.Count;
         if (pumpTuples.Count != n) return false;
 
