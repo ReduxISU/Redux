@@ -11,7 +11,6 @@ using API.Problems.NPComplete.NPC_ARCSET.Solvers;
 using API.Problems.NPComplete.NPC_ARCSET.Verifiers;
 using API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 using SPADE;
-using Xunit.Sdk;
 namespace API.Problems.NPComplete.NPC_ARCSET;
 
 class ARCSET : IGraphProblem<ArcSetBruteForce,ArcSetVerifier,ArcSetDefaultVisualization,UtilCollectionGraph>{

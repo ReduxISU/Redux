@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="API.csproj" />
+  <Project Path="redux-tests/redux-tests.csproj" />
+</Solution>

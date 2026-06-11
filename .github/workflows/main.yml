@@ -18,14 +18,16 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # A bare `dotnet build`/`test` at the repo root errors MSB1011 now that a
+      # .csproj and Redux.slnx sit side by side, so name the solution explicitly.
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore Redux.slnx
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build Redux.slnx --no-restore --configuration Release
 
       - name: Unit tests
-        run: dotnet test --no-restore --no-build --configuration Release
+        run: dotnet test Redux.slnx --no-restore --no-build --configuration Release
 
   warning-gate:
     name: warning count gate
@@ -50,8 +52,11 @@ jobs:
         id: base
         run: |
           git checkout --quiet --force ${{ github.event.pull_request.base.sha }}
-          dotnet restore
-          dotnet build --no-restore --no-incremental --configuration Release > build-base.log 2>&1 || true
+          # Name the solution if it exists; commits predating Redux.slnx still
+          # build with a bare command (one .csproj at the root, no MSB1011).
+          if [ -f Redux.slnx ]; then T=Redux.slnx; else T=; fi
+          dotnet restore $T
+          dotnet build $T --no-restore --no-incremental --configuration Release > build-base.log 2>&1 || true
           count=$(grep -oE '[^ ]+\.cs\([0-9]+,[0-9]+\): warning CS[0-9]+' build-base.log | sort -u | wc -l | tr -d ' ' || true)
           echo "count=$count" >> "$GITHUB_OUTPUT"
           echo "::notice title=Base warnings::$count"
@@ -60,8 +65,9 @@ jobs:
         id: head
         run: |
           git checkout --quiet --force ${{ github.sha }}
-          dotnet restore
-          dotnet build --no-restore --no-incremental --configuration Release > build-head.log 2>&1 || true
+          if [ -f Redux.slnx ]; then T=Redux.slnx; else T=; fi
+          dotnet restore $T
+          dotnet build $T --no-restore --no-incremental --configuration Release > build-head.log 2>&1 || true
           count=$(grep -oE '[^ ]+\.cs\([0-9]+,[0-9]+\): warning CS[0-9]+' build-head.log | sort -u | wc -l | tr -d ' ' || true)
           echo "count=$count" >> "$GITHUB_OUTPUT"
           echo "::notice title=PR warnings::$count"
