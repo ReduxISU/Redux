@@ -136,9 +136,35 @@ public class Problem_VerifiersRefactorController : ControllerBase {
         }
         catch (System.IO.DirectoryNotFoundException)
         {
-            jsonString = JsonSerializer.Serialize(NOT_FOUND_ERR_VERIFIER, options);
-
+            // Fallback: search every class directory under Problems/ for any folder
+            // whose name ends with _{chosenProblem}, regardless of prefix.
+            var fallback = FindVerifiersAcrossAllDirs(ProjectSourcePath.Value, chosenProblem);
+            jsonString = fallback.Count > 0
+                ? JsonSerializer.Serialize(fallback, options)
+                : JsonSerializer.Serialize(NOT_FOUND_ERR_VERIFIER, options);
         }
         return jsonString;
+    }
+
+    private static List<string> FindVerifiersAcrossAllDirs(string root, string chosenProblem) {
+        var result = new List<string>();
+        var problemsRoot = Path.Combine(root, "Problems");
+        if (!Directory.Exists(problemsRoot)) return result;
+        foreach (var classDir in Directory.GetDirectories(problemsRoot)) {
+            foreach (var problemDir in Directory.GetDirectories(classDir)) {
+                var dirName = Path.GetFileName(problemDir) ?? "";
+                var idx = dirName.IndexOf('_');
+                if (idx >= 0 && dirName[(idx + 1)..] == chosenProblem) {
+                    var verifiersPath = Path.Combine(problemDir, "Verifiers");
+                    if (!Directory.Exists(verifiersPath)) continue;
+                    foreach (var file in Directory.GetFiles(verifiersPath)) {
+                        var name = Path.GetFileNameWithoutExtension(file);
+                        if (name != null) result.Add(name);
+                    }
+                    return result;
+                }
+            }
+        }
+        return result;
     }
 }
