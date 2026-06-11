@@ -27,29 +27,32 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER>
     }
     public API_JSON SolvedVisualization(EXACTCOVER exactCover, string solution)
     {
-        //return new API_SET(new UtilCollection(exactCover.instance));
         API_SET ec = new API_SET(new UtilCollection(exactCover.instance));
 
-        List<string> results = solution
-            .Trim('{', '}')
-            .Split("},{")
-            .Select(x => x.Trim('{', '}'))
-            .Select(x => "{" + x + "}")
-            .ToList();
-
-        foreach (var id in results)
+        // The instance is the ordered pair (X, S); ec.data.list[1] is the
+        // collection S, whose elements are the subsets we may colour.
+        List<API_UtilCollection>? subsets = ec.data.list?[1].list;
+        if (subsets is null)
         {
-            foreach (var set in ec.data.list[1].list)
+            return ec;
+        }
+
+        // Each subset in S was given the id "r-1-" + uc.ToString() (see
+        // API_UtilCollection). Parsing the solution with SPADE yields the same
+        // ToString() form, so the chosen subsets match those ids by construction.
+        foreach (UtilCollection chosen in new UtilCollection(solution))
+        {
+            string id = "r-1-" + chosen.ToString();
+            API_UtilCollection? set = subsets.FirstOrDefault(s => s.id == id);
+            if (set is null)
             {
-                if (set.id == "r-1-" + id)
-                {
-                    set.color = "Solution";
-                    foreach (var elem in set.list)
-                    {
-                        elem.color = "Solution";
-                    }
-                    break;
-                }
+                continue;
+            }
+
+            set.color = "Solution";
+            foreach (var elem in set.list ?? Enumerable.Empty<API_UtilCollection>())
+            {
+                elem.color = "Solution";
             }
         }
 
