@@ -20,15 +20,15 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     [Fact]
     public async Task AllProblems_Returns200()
     {
-        var response = await _client.GetAsync("/Navigation/ALL_ProblemsRefactor");
+        var response = await _client.GetAsync("/Navigation/ALL_ProblemsRefactor", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task AllProblems_ReturnsNonEmptyJsonArray()
     {
-        var response = await _client.GetAsync("/Navigation/ALL_ProblemsRefactor");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync("/Navigation/ALL_ProblemsRefactor", TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
         Assert.NotNull(arr);
         Assert.NotEmpty(arr);
@@ -39,15 +39,15 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     [Fact]
     public async Task NpcProblems_Returns200()
     {
-        var response = await _client.GetAsync("/Navigation/NPC_ProblemsRefactor");
+        var response = await _client.GetAsync("/Navigation/NPC_ProblemsRefactor", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task NpcProblems_ReturnsNonEmptyJsonArray()
     {
-        var response = await _client.GetAsync("/Navigation/NPC_ProblemsRefactor");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync("/Navigation/NPC_ProblemsRefactor", TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
         Assert.NotNull(arr);
         Assert.NotEmpty(arr);
@@ -58,15 +58,15 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     [Fact]
     public async Task AllVerifiers_WithProblem_Returns200()
     {
-        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=NPC_SAT3");
+        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task AllVerifiers_WithProblem_ReturnsNonEmptyJsonArray()
     {
-        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=NPC_SAT3");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
         Assert.NotNull(arr);
         Assert.NotEmpty(arr);
@@ -77,15 +77,15 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     [Fact]
     public async Task AllVisualizations_WithProblem_Returns200()
     {
-        var response = await _client.GetAsync("/Navigation/All_Visualizations?chosenProblem=NPC_SAT3");
+        var response = await _client.GetAsync("/Navigation/All_Visualizations?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task AllVisualizations_WithProblem_ReturnsNonEmptyJsonArray()
     {
-        var response = await _client.GetAsync("/Navigation/All_Visualizations?chosenProblem=NPC_SAT3");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync("/Navigation/All_Visualizations?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
         Assert.NotNull(arr);
         Assert.NotEmpty(arr);
@@ -96,15 +96,15 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     [Fact]
     public async Task Reductions_Returns200()
     {
-        var response = await _client.GetAsync("/Navigation/Reductions");
+        var response = await _client.GetAsync("/Navigation/Reductions", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task Reductions_ReturnsNonEmptyGraph()
     {
-        var response = await _client.GetAsync("/Navigation/Reductions");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync("/Navigation/Reductions", TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         // Returns a nested adjacency map, not an array
         var graph = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body);
         Assert.NotNull(graph);

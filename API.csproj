@@ -19,9 +19,12 @@
   </ItemGroup>
 
   <!-- Tests live in their own project (redux-tests/redux-tests.csproj). The
-       Sdk.Web glob would otherwise pull redux-tests/**/*.cs into API.dll. -->
+       Sdk.Web globs would otherwise pull redux-tests/**/*.cs into API.dll and
+       copy redux-tests/**/*.json (e.g. obj/project.assets.json) to the output. -->
   <ItemGroup>
     <Compile Remove="redux-tests/**" />
+    <Content Remove="redux-tests/**" />
+    <None Remove="redux-tests/**" />
   </ItemGroup>
 
 

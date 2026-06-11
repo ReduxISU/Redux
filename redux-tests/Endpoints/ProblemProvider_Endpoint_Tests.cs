@@ -26,7 +26,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     [InlineData("independentset")]
     public async Task Info_KnownProblem_Returns200(string name)
     {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}");
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
@@ -35,8 +35,8 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     [InlineData("clique")]
     public async Task Info_KnownProblem_ReturnsNonEmptyBody(string name)
     {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}");
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.False(string.IsNullOrWhiteSpace(body));
     }
 
@@ -46,9 +46,9 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     public async Task Verify_ValidSAT3Certificate_ReturnsTrue()
     {
         var body = new { Certificate = "x1:True,x2:False,x3:True", ProblemInstance = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)" };
-        var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body);
+        var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("True", result, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -56,9 +56,9 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     public async Task Verify_InvalidSAT3Certificate_ReturnsFalse()
     {
         var body = new { Certificate = "x1:False,x2:False,x3:False", ProblemInstance = "(x1 | x2 | x3) & (!x1 | !x2 | !x3) & (x1 | !x2 | x3)" };
-        var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body);
+        var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("False", result, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -69,7 +69,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content);
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
@@ -78,8 +78,8 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.False(string.IsNullOrWhiteSpace(body));
     }
 
@@ -90,7 +90,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content);
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
@@ -99,8 +99,8 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.False(string.IsNullOrWhiteSpace(body));
     }
 }
