@@ -33,20 +33,20 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
         try {
             parsed = new UtilCollection(this.certificate);
         } catch (Exception ex) {
-            throw new CertificateParseException(problem, certificate, ex.Message);
+            throw new CertificateParseException(problem, this.certificate, ex.Message);
         }
 
         // Certificate is (cost, ((PumpA,h0,...,h23),...))
         var topLevel = parsed.ToList();
         if (topLevel.Count != 2)
-            throw new CertificateParseException(problem, certificate,
+            throw new CertificateParseException(problem, this.certificate,
                 "Certificate must be (cost,schedule).");
 
         if (!double.TryParse(topLevel[0].ToString().Trim(),
                 System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture,
                 out double reportedCost))
-            throw new CertificateParseException(problem, certificate, "cost field is not a valid number");
+            throw new CertificateParseException(problem, this.certificate, "cost field is not a valid number");
 
         var pumpTuples = ((UtilCollection)topLevel[1]).ToList();
         int n = problem.Pumps.Count;
