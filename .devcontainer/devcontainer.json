@@ -1,13 +1,14 @@
 {
   "name": "Redux .NET Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/dotnet:10",
+  "image": "mcr.microsoft.com/dotnet/sdk:10.0",
   "features": {
-    "ghcr.io/devcontainers/features/vscode-extensions:1": {
-      "extensions": [
-        "ms-dotnettools.csharp"
-      ]
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "vscode",
+      "installZsh": false,
+      "upgradePackages": false
     }
   },
+  "remoteUser": "vscode",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -15,6 +16,6 @@
       ]
     }
   },
-  "postCreateCommand": "dotnet --info",
-  "remoteUser": "vscode"
+  "postStartCommand": "if [ \"$(stat -c %U /workspaces/Redux)\" != \"vscode\" ]; then sudo chown -R vscode:vscode /workspaces/Redux; fi",
+  "postCreateCommand": "dotnet --list-sdks"
 }
