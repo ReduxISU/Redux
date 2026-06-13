@@ -91,7 +91,10 @@ class GareyJohnson : IReduction<SAT3, DM3> {
         List<string> unusedLiterals = new List<string>(Z);
         for(int i = 0; i < SAT3Instance.clauses.Count; i++) {
             foreach(var literal in SAT3Instance.clauses[i]) {
-                string found = unusedLiterals.Find(x => x.Contains("z_" + literal));
+                string? found = unusedLiterals.Find(x => x.Contains("z_" + literal));
+                if(found is null) {
+                    continue;
+                }
                 M.Add(new List<string>{"x_clause_" + i.ToString(), "y_clause" + i.ToString(), found});
                 unusedLiterals.Remove(found);
             }
