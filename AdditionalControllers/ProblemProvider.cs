@@ -270,6 +270,11 @@ public class ProblemProvider : ControllerBase
             instance = red.reductionTo.instance;
         }
 
+        if (red is null)
+        {
+            throw new ArgumentException("No reductions provided", nameof(reduction));
+        }
+
         return getVisualize(red.visualization, new List<Object>(), solution, instance);
     }
 
