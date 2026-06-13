@@ -37,8 +37,9 @@ class PartitionDefaultVisualization : IVisualization<PARTITION>
             groups.Add(e);
         }
 
-        foreach (var e in ec.data.list)
+        foreach (var e in ec.data.list ?? [])
         {
+            if (e.value is null) continue;
             if (groups[0].Contains(new(e.value)))
             {
                 e.color = "Solution";
