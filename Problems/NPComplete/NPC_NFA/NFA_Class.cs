@@ -53,9 +53,9 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     private List<string> _nodes = new();
     private List<char> _alphabet = new();
     private List<NFAEdge> _edges = new();
-    private string _startState;
+    private string _startState = string.Empty;
     private List<string> _acceptStates = new();
-    private string _inputString;
+    private string _inputString = string.Empty;
 
     public List<string> nodes { get => _nodes; set => _nodes = value; }
     public List<char> alphabet { get => _alphabet; set => _alphabet = value; }
