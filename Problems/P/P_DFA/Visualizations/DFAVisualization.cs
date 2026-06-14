@@ -1,12 +1,12 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_DFA;
+using API.Problems.P.P_DFA;
 using API.Interfaces.JSON_Objects.Graphs;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
-using API.Problems.NPComplete.NPC_DFA.Solvers;
+using API.Problems.P.P_DFA.Solvers;
 
-namespace API.Problems.NPComplete.NPC_DFA.Visualizations;
+namespace API.Problems.P.P_DFA.Visualizations;
 
 class DFAVisualization : IVisualization<DFA>
 {

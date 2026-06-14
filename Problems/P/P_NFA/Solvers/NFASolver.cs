@@ -1,11 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.NPComplete.NPC_NFA;
+using API.Problems.P.P_NFA;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace API.Problems.NPComplete.NPC_NFA.Solvers;
+namespace API.Problems.P.P_NFA.Solvers;
 
 class NFASolver : ISolver<NFA>
 {

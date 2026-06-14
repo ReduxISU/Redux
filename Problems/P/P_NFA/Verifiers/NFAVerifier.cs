@@ -1,5 +1,5 @@
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_NFA;
+using API.Problems.P.P_NFA;
 using System;
 using System.Text;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace API.Problems.NPComplete.NPC_NFA.Verifiers;
+namespace API.Problems.P.P_NFA.Verifiers;
 
 class NFAVerifier : IVerifier<NFA>
 {
