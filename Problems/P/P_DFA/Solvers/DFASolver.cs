@@ -1,8 +1,8 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.NPComplete.NPC_DFA;
+using API.Problems.P.P_DFA;
 
-namespace API.Problems.NPComplete.NPC_DFA.Solvers;
+namespace API.Problems.P.P_DFA.Solvers;
 
 class DFASolver : ISolver<DFA>
 {
