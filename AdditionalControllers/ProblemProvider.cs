@@ -35,6 +35,9 @@ public class ProblemProvider : ControllerBase
     /// <summary>A dictionary of all reductions in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Reductions = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IReduction).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
 
+    /// <summary>A dictionary of all animatable visualizations in Redux mapped to their C# type.</summary>
+    public static readonly Dictionary<string, Type> Animatables = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IAnimatable).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+
     /// <summary>A dictionary of all problems, verifiers, solvers, visualizers and reductions in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Interfaces = (new[] { Problems, Verifiers, Solvers, Visualizers,Reductions }).SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
 
@@ -77,6 +80,11 @@ public class ProblemProvider : ControllerBase
     static IReduction Reduction(string name)
     {
         return Activator.CreateInstance(Reductions[name.ToLower()]) as IReduction;
+    }
+
+    static IAnimatable Animatable(string name)
+    {
+        return Activator.CreateInstance(Animatables[name.ToLower()]) as IAnimatable;
     }
 
 #pragma warning restore CS8603 // Possible null reference return.
@@ -317,6 +325,36 @@ public class ProblemProvider : ControllerBase
     {
         IReduction red = Reduction(reduction, instance);
         return JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true });
+    }
+
+    /// <summary>
+    /// Returns a list of SolverFrames for the given visualization type.
+    /// Each frame carries an action string, typed metrics, and typed state,
+    /// matching the Python backend's {action, metrics, state} contract so the
+    /// SARE 2026 frontend can consume frames from either backend identically.
+    /// </summary>
+    /// <param name="visualization" example="PumpSchedulingCMVisualization">The IAnimatable visualization class name</param>
+    /// <param name="instance">Problem instance string in SPADE format</param>
+    /// <returns>Array of SolverFrame objects (action / metrics / state)</returns>
+    [HttpPost("animate")]
+    public IActionResult animate(string visualization, [FromBody] string instance)
+    {
+        try
+        {
+            var frames = Animatable(visualization).GetAnimationFrames(instance);
+            return Content(
+                JsonSerializer.Serialize(frames, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                }),
+                "application/json");
+        }
+        catch (ProblemParseException ex)
+        {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        }
     }
 }
 
