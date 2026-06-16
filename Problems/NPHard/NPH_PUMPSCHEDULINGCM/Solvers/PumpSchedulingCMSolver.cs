@@ -17,6 +17,11 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
     public string[] contributors { get; } = { "SARE 2026 Team" };
     public bool timerHasExpired { get; set; }
 
+    // Return a non-empty sentinel so the IVisualization<T> default dispatch in
+    // VisualizationInterface.cs does not short-circuit StepsVisualization when
+    // the steps list is empty.
+    public List<object> GetSteps(PUMPSCHEDULINGCM _) => [true];
+
     private const int Hours = 24;
     private const int Buckets = 1000;
     private const double Inf = double.MaxValue / 2;
