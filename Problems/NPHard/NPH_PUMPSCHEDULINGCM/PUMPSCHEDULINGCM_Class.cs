@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
-using API.DummyClasses;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Verifiers;
+using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
 
 record PumpData(string Name, double FlowRateGph, double PowerKw, double StartupCostDollars);
 
-class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifier, DummyVisualization>
+class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifier, PumpSchedulingCMVisualization>
 {
     public string problemName { get; } = "Pump Scheduling (Cost Minimization)";
     public string problemLink { get; } = "";
@@ -58,7 +58,7 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
 
     public PumpSchedulingCMSolver defaultSolver { get; } = new();
     public PumpSchedulingCMVerifier defaultVerifier { get; } = new();
-    public DummyVisualization defaultVisualization { get; } = new();
+    public PumpSchedulingCMVisualization defaultVisualization { get; } = new();
 
     public PUMPSCHEDULINGCM() : this(DefaultInstance) { }
 
