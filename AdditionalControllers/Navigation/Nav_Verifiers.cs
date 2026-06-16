@@ -1,7 +1,108 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Collections;
+using API.Interfaces;
+
+internal static class VerifierNavigationData
+{
+    internal class VerifierEntry
+    {
+        public string className { get; set; } = "";
+        public string classNameWithExtension { get; set; } = "";
+        public string problemName { get; set; } = "";
+        public string problemTypePrefix { get; set; } = "";
+    }
+
+    // Build once from reflected verifier types so navigation doesn't depend on
+    // on-disk source layout.
+    internal static readonly List<VerifierEntry> Entries = Build();
+
+    internal static List<string> FindWithExtension(string? problemName, string? problemTypePrefix)
+    {
+        return Find(problemName, problemTypePrefix)
+            .Select(x => x.classNameWithExtension)
+            .ToList();
+    }
+
+    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix)
+    {
+        return Find(problemName, problemTypePrefix)
+            .Select(x => x.className)
+            .ToList();
+    }
+
+    internal static bool TryParseProblemKey(string chosenProblem, out string? problemTypePrefix, out string? problemName)
+    {
+        problemTypePrefix = null;
+        problemName = null;
+        if (string.IsNullOrWhiteSpace(chosenProblem)) return false;
+
+        string trimmed = chosenProblem.Trim();
+        int idx = trimmed.IndexOf('_');
+        if (idx <= 0 || idx >= trimmed.Length - 1)
+        {
+            problemName = trimmed;
+            return true;
+        }
+
+        problemTypePrefix = trimmed[..idx];
+        problemName = trimmed[(idx + 1)..];
+        return true;
+    }
+
+    private static List<VerifierEntry> Build()
+    {
+        var entries = new List<VerifierEntry>();
+        foreach (var (_, verifierType) in ProblemProvider.Verifiers)
+        {
+            var generic = verifierType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVerifier<>));
+            if (generic == null) continue;
+
+            Type problemType = generic.GetGenericArguments()[0];
+            string className = verifierType.Name;
+            entries.Add(new VerifierEntry
+            {
+                className = className,
+                classNameWithExtension = className + ".cs",
+                problemName = problemType.Name,
+                problemTypePrefix = InferProblemTypePrefix(problemType),
+            });
+        }
+
+        return entries
+            .GroupBy(e => e.classNameWithExtension, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+    }
+
+    private static string InferProblemTypePrefix(Type problemType)
+    {
+        string ns = problemType.Namespace ?? "";
+        if (ns.Contains(".Problems.NPComplete.", StringComparison.OrdinalIgnoreCase)) return "NPC";
+        if (ns.Contains(".Problems.P.", StringComparison.OrdinalIgnoreCase)) return "P";
+        if (ns.Contains(".Problems.NPHard.", StringComparison.OrdinalIgnoreCase)) return "NPH";
+        return "";
+    }
+
+    private static List<VerifierEntry> Find(string? problemName, string? problemTypePrefix)
+    {
+        IEnumerable<VerifierEntry> query = Entries;
+
+        if (!string.IsNullOrWhiteSpace(problemName))
+        {
+            query = query.Where(e => string.Equals(e.problemName, problemName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(problemTypePrefix))
+        {
+            query = query.Where(e => string.Equals(e.problemTypePrefix, problemTypePrefix, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return query
+            .OrderBy(e => e.className, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+}
 
 // Get all Verifiers regardless of complexity class
 [ApiController]
@@ -20,24 +121,8 @@ public class All_VerifiersController : ControllerBase {
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
     public String getDefault([FromQuery]string chosenProblem) {
-
-        // Determine the directory to search based on prefix. chosenProblem expected to be a problemName like "NPC_PROBLEM"\
-        string problemTypeDirectory = "";
-        string problemType = chosenProblem.Split('_')[0];
-
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
-
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + chosenProblem + "/Verifiers")
-                            .Select(Path.GetFileName)
-                            .ToArray();
-
-        // Not completed. Needs to loop through these directories to get the rest of the problems
+        VerifierNavigationData.TryParseProblemKey(chosenProblem, out string? problemTypePrefix, out string? problemName);
+        List<string> subfiles = VerifierNavigationData.FindWithExtension(problemName, problemTypePrefix);
         var options = new JsonSerializerOptions { WriteIndented = true };
         string jsonString = JsonSerializer.Serialize(subfiles, options);
         return jsonString;
@@ -60,23 +145,8 @@ public class Problem_VerifiersController : ControllerBase {
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
     public String getDefault([FromQuery]string chosenProblem) {
-
-        // Determine the directory to search based on prefix. chosenProblem expected to be a problemName like "NPC_PROBLEM"\
-        string problemTypeDirectory = "";
-        string problemType = chosenProblem.Split('_')[0];
-
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + chosenProblem + "/Verifiers")
-                            .Select(Path.GetFileName)
-                            .ToArray();
-
-        // Not completed. Needs to loop through these directories to get the rest of the problems
+        VerifierNavigationData.TryParseProblemKey(chosenProblem, out string? problemTypePrefix, out string? problemName);
+        List<string> subfiles = VerifierNavigationData.FindWithExtension(problemName, problemTypePrefix);
         var options = new JsonSerializerOptions { WriteIndented = true };
         string jsonString = JsonSerializer.Serialize(subfiles, options);
         return jsonString;
@@ -100,71 +170,15 @@ public class Problem_VerifiersRefactorController : ControllerBase {
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
     public String getDefault([FromQuery]string chosenProblem,[FromQuery]string problemType) {
-                string NOT_FOUND_ERR_VERIFIER = "entered a verifier that does not exist";
-
-        // Determine the directory to search based on prefix. chosenProblem expected to be a problemName like "NPC_PROBLEM"\
-        string problemTypeDirectory = "";
+        string NOT_FOUND_ERR_VERIFIER = "entered a verifier that does not exist";
         string jsonString = "";
         var options = new JsonSerializerOptions { WriteIndented = true };
 
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
+        List<string> subFilesList = VerifierNavigationData.FindWithoutExtension(chosenProblem, problemType);
+        jsonString = subFilesList.Count > 0
+            ? JsonSerializer.Serialize(subFilesList, options)
+            : JsonSerializer.Serialize(NOT_FOUND_ERR_VERIFIER, options);
 
-        try
-        {
-            string projectSourcePath = ProjectSourcePath.Value;
-            string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + problemType + "_" + chosenProblem + "/Verifiers")
-                                .Select(Path.GetFileName)
-                                .ToArray();
-
-            ArrayList subFilesList = new ArrayList();
-
-            foreach (var file in subfiles)
-            {
-                if (file is null)
-                    continue;
-                string fileNoExt = file.Split('.')[0]; //gets the file without the file extension
-                subFilesList.Add(fileNoExt);
-            }
-
-            // Not completed. Needs to loop through these directories to get the rest of the problems
-            jsonString = JsonSerializer.Serialize(subFilesList, options);
-        }
-        catch (System.IO.DirectoryNotFoundException)
-        {
-            // Fallback: search every class directory under Problems/ for any folder
-            // whose name ends with _{chosenProblem}, regardless of prefix.
-            var fallback = FindVerifiersAcrossAllDirs(ProjectSourcePath.Value, chosenProblem);
-            jsonString = fallback.Count > 0
-                ? JsonSerializer.Serialize(fallback, options)
-                : JsonSerializer.Serialize(NOT_FOUND_ERR_VERIFIER, options);
-        }
         return jsonString;
-    }
-
-    private static List<string> FindVerifiersAcrossAllDirs(string root, string chosenProblem) {
-        var result = new List<string>();
-        var problemsRoot = Path.Combine(root, "Problems");
-        if (!Directory.Exists(problemsRoot)) return result;
-        foreach (var classDir in Directory.GetDirectories(problemsRoot)) {
-            foreach (var problemDir in Directory.GetDirectories(classDir)) {
-                var dirName = Path.GetFileName(problemDir) ?? "";
-                var idx = dirName.IndexOf('_');
-                if (idx >= 0 && dirName[(idx + 1)..] == chosenProblem) {
-                    var verifiersPath = Path.Combine(problemDir, "Verifiers");
-                    if (!Directory.Exists(verifiersPath)) continue;
-                    foreach (var file in Directory.GetFiles(verifiersPath)) {
-                        var name = Path.GetFileNameWithoutExtension(file);
-                        if (name != null) result.Add(name);
-                    }
-                    return result;
-                }
-            }
-        }
-        return result;
     }
 }

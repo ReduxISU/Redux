@@ -72,6 +72,42 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
         Assert.NotEmpty(arr);
     }
 
+    [Fact]
+    public async Task AllVerifiers_CaseInsensitiveProblemPrefix_ReturnsNonEmptyJsonArray()
+    {
+        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=npc_sat3", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
+        Assert.NotNull(arr);
+        Assert.NotEmpty(arr);
+    }
+
+    [Fact]
+    public async Task ProblemVerifiersRefactor_CaseInsensitiveInputs_ReturnsNonEmptyJsonArray()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_Verifiers?chosenProblem=sat3&problemType=npc", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
+        Assert.NotNull(arr);
+        Assert.NotEmpty(arr);
+    }
+
+    [Fact]
+    public async Task ProblemVerifiers_UnknownProblem_ReturnsEmptyJsonArray()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_Verifiers?chosenProblem=NoSuchProblem&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
+        Assert.NotNull(arr);
+        Assert.Empty(arr);
+    }
+
     // ── All_Visualizations (requires chosenProblem param) ────────────────────
 
     [Fact]
