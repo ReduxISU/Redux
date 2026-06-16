@@ -1,7 +1,7 @@
 using Xunit;
-using API.Problems.NPComplete.NPC_NFA;
-using API.Problems.NPComplete.NPC_NFA.Solvers;
-using API.Problems.NPComplete.NPC_NFA.Verifiers;
+using API.Problems.P.P_NFA;
+using API.Problems.P.P_NFA.Solvers;
+using API.Problems.P.P_NFA.Verifiers;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -135,7 +135,7 @@ public class NFA_Tests
         string nfaDefault =
             "(({1,2,3},{a,b},{(1,a,2),(1,ε,2),(1,b,3),(2,a,2),(2,ε,3),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
         Assert.Throws<InvalidOperationException>(
-            () => new API.Problems.NPComplete.NPC_DFA.DFA(nfaDefault));
+            () => new API.Problems.P.P_DFA.DFA(nfaDefault));
     }
 
     // -------------------------------------------------------------------------

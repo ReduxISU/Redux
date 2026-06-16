@@ -1,7 +1,7 @@
 using Xunit;
-using API.Problems.NPComplete.NPC_DFA;
-using API.Problems.NPComplete.NPC_DFA.Solvers;
-using API.Problems.NPComplete.NPC_DFA.Verifiers;
+using API.Problems.P.P_DFA;
+using API.Problems.P.P_DFA.Solvers;
+using API.Problems.P.P_DFA.Verifiers;
 
 namespace redux_tests;
 #pragma warning disable CS1591
