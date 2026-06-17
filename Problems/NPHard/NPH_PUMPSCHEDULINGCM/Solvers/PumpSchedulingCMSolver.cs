@@ -7,14 +7,17 @@ namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
 
 class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
 {
-    public string solverName { get; } = "Pump Scheduling CM — DAG Dynamic Programming";
+    public string solverName { get; } = "Pump Scheduling Cost Minimization — DAG Dynamic Programming";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents " +
         "(hour, tank-level-bucket, previous-pump-mask). A forward pass computes the minimum-cost " +
         "path from the initial state to any valid end state. The optimal schedule is recovered " +
-        "by backtracking through parent pointers.";
+        "by backtracking through parent pointers.\r\n" +
+        "The output certificate is a 2-section tuple: (total-cost, schedule) where total-cost is the " +
+        "total cost of the pump schedule, and schedule is a list of pump schedules (one per pump) where " +
+        "each pump schedule is a list of 24 binary values indicating whether that pump is on or off for each hour.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "SARE 2026 Team" };
+    public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
 
     // Return a non-empty sentinel so the IVisualization<T> default dispatch in

@@ -12,19 +12,37 @@ record PumpData(string Name, double FlowRateGph, double PowerKw, double StartupC
 
 class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifier, PumpSchedulingCMVisualization>
 {
-    public string problemName { get; } = "Pump Scheduling (Cost Minimization)";
+    public string problemName { get; } = "Pump Scheduling Cost Minimization";
     public string problemLink { get; } = "";
     public string formalDefinition { get; } =
-        "Given a storage tank, hourly water demand curve, time-of-use electricity tariff, and a set of pumps " +
-        "each with a flow rate, power draw, and startup cost, find the 24-hour on/off schedule for each pump " +
-        "that satisfies demand, keeps the tank within capacity, and minimizes total electricity cost.";
+        "An instance of the Pump Scheduling Cost Minimization is defined as a 3-tuple (T,D,P) where:\r\n" +
+        "\tthe tank T=(c,v) is an ordered pair where c is an \r\n" + 
+        "\tinteger representing the capacity of the tank, \r\n" + 
+        "\tand v is the current volume within the tank; \r\n" +
+        "\tthe demand configuration D=((d_0,...,d_{23}),\r\n" + 
+        "\t(h_1,...,h_k),(r_on},r_off)) is an ordered triple \r\n" + 
+        "\twhere (d_0,...,d_{23}) is a list of 24 integers \r\n" + 
+        "\trepresenting the water demand in gallons per hour\r\n" +
+        "\tfor each hour of the day, (h_1,...,h_k) is a list \r\n" +
+        "\tof integers representing the peak hours (using \r\n" +
+        "\t0-based indexing), and (r_on,r_off) is an ordered\r\n" + 
+        "\tpair of real numbers representing the \r\n" +
+        "\ton-peak and off-peak energy costs per kWh; \r\n" +
+        "\tand the pumps\r\n" +
+        "\tP=((n_1,f_1,p_1,s_1),...,(n_m,f_m,p_m,s_m)) is a\r\n" +
+        "\tlist of m ordered 4-tuples where each 4-tuple \r\n" +
+        "\t(n_i,f_i,p_i,s_i) represents a pump with name \r\n" +
+        "\tn_i, flow rate f_i in gallons per hour, power \r\n" +
+        "\tconsumption p_i in kW, and startup cost s_i \r\n" +
+        "\tin dollars.\r\n" +
+        "Note: any water (e.g., gallons, liters, etc.) and cost units (e.g., $, euros, etc.) are assumed to be consistent throughout the instance definition";
     public string problemDefinition { get; } =
         "Determine which pumps to activate each hour over a 24-hour period so that water demand is met, " +
-        "the storage tank never overflows or empties, and the total energy cost (based on peak/off-peak tariffs " +
+        "the storage tank never overflows or fails to supply the water demand, and the total energy cost (based on peak/off-peak tariffs " +
         "plus pump startup costs) is minimized.";
     public string source { get; } = "";
     public string wikiName { get; } = "";
-    public string[] contributors { get; } = { "SARE 2026 Team" };
+    public string[] contributors { get; } = { "Michael Trosper" };
 
     // Grammar: 3-section tuple — Tank, Demand config, Pumps.
     // D nests demand curve, peak hours, and tariff rates together as one section.
