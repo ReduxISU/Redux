@@ -13,9 +13,9 @@ name: "CodeQL Advanced"
 
 on:
   push:
-    branches: [ "CSharpAPI" ]
+    branches: [ $default-branch ]
   pull_request:
-    branches: [ "CSharpAPI" ]
+    branches: [ $default-branch ]
   schedule:
     - cron: '29 1 * * 6'
 

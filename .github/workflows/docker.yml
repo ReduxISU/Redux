@@ -3,7 +3,7 @@ name: docker build and push
 on:
   push:
     branches:
-      - CSharpAPI
+      - $default-branch
 
 permissions:
   contents: read

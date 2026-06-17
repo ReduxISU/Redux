@@ -3,7 +3,7 @@ name: dotnet build
 on:
   pull_request:
     branches:
-      - CSharpAPI
+      - $default-branch
 
 permissions:
   contents: read
