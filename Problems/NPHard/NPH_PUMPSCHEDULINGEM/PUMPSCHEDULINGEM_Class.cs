@@ -17,22 +17,35 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
     public string formalDefinition { get; } =
         "An instance of the Pump Scheduling Emergency Resilience is defined as a 4-tuple (T,D,P,B) where:\r\n" +
         "\tthe tank T=(c,v,m) is an ordered triple where c is an\r\n" +
-        "\tinteger representing the tank capacity, v is the\r\n" +
-        "\tcurrent volume, and m is the minimum allowed volume;\r\n" +
+        "\tinteger representing the capacity of the tank,\r\n" +
+        "\tv is the current volume within the tank, and\r\n" +
+        "\tm is the minimum allowed volume in the tank;\r\n" +
         "\tthe demand configuration D=((d_0,...,d_{23}),\r\n" +
         "\t(h_1,...,h_k),(r_on,r_off)) is an ordered triple\r\n" +
-        "\twhere (d_0,...,d_{23}) is a 24-value hourly demand\r\n" +
-        "\tcurve, (h_1,...,h_k) are peak-hour indices,\r\n" +
-        "\tand (r_on,r_off) are on-peak/off-peak $/kWh rates;\r\n" +
-        "\tthe pumps P=((n_1,f_1,p_1,s_1),...,(n_m,f_m,p_m,s_m))\r\n" +
-        "\tis a list of pumps with name, flow rate (gph),\r\n" +
-        "\tpower (kW), and startup cost ($);\r\n" +
-        "\tand the budget B >= 0, where B=0 means the budget\r\n" +
-        "\tis auto-computed as 1.5 times the cost-minimization optimum.";
+        "\twhere (d_0,...,d_{23}) is a list of 24 integers\r\n" +
+        "\trepresenting the water demand in gallons per hour\r\n" +
+        "\tfor each hour of the day, (h_1,...,h_k) is a list\r\n" +
+        "\tof integers representing the peak hours (using\r\n" +
+        "\t0-based indexing), and (r_on,r_off) is an ordered\r\n" +
+        "\tpair of real numbers representing the\r\n" +
+        "\ton-peak and off-peak energy costs per kWh;\r\n" +
+        "\tthe pumps\r\n" +
+        "\tP=((n_1,f_1,p_1,s_1),...,(n_m,f_m,p_m,s_m)) is a\r\n" +
+        "\tlist of m ordered 4-tuples where each 4-tuple\r\n" +
+        "\t(n_i,f_i,p_i,s_i) represents a pump with name\r\n" +
+        "\tn_i, flow rate f_i in gallons per hour, power\r\n" +
+        "\tconsumption p_i in kW, and startup cost s_i\r\n" +
+        "\tin dollars;\r\n" +
+        "\tand the budget B is a non-negative real number\r\n" +
+        "\trepresenting the maximum allowable total cost in\r\n" +
+        "\tdollars, where B=0 denotes that the budget is\r\n" +
+        "\tauto-computed as 1.5 times the optimal cost of\r\n" +
+        "\tthe corresponding cost-minimization instance.\r\n" +
+        "Note: any water (e.g., gallons, liters, etc.) and cost units (e.g., $, euros, etc.) are assumed to be consistent throughout the instance definition";
     public string problemDefinition { get; } =
         "Determine which pumps to activate each hour over a 24-hour period so that: " +
         "the storage tank never drops below its minimum level or exceeds its capacity, " +
-        "the total energy cost (tariffs plus startup costs) stays within the given budget, " +
+        "budget total energy cost (tariffs plus startup costs) stays within the given budget, " +
         "and the cumulative water stored across all hours is maximized. " +
         "This models emergency resilience scenarios where maximizing stored water supply " +
         "is prioritized within an operational cost constraint.";
