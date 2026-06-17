@@ -14,14 +14,14 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
         "(PumpB,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)," +
         "(PumpC,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,1)))";
 
-    public string verifierName { get; } = "Pump Scheduling CM Verifier";
+    public string verifierName { get; } = "Pump Scheduling Cost Minimization Verifier";
     public string certificate { get; private set; } = string.Empty;
     public string verifierDefinition { get; } =
         "Parses the pump schedule from the certificate, simulates the 24-hour tank trajectory " +
         "using exact arithmetic, and accepts if: (1) the tank stays within [0, capacity] at every hour, " +
         "(2) the reported cost matches the computed energy and startup costs within $0.01 tolerance.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "SARE 2026 Team" };
+    public string[] contributors { get; } = { "Michael Trosper" };
 
     private const double CostTolerance = 0.01;
 

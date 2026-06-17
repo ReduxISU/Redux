@@ -41,12 +41,12 @@ class API_PumpFrame : API_JSON
 
 class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
 {
-    public string visualizationName { get; } = "Pump Scheduling CM — DAG Animation";
+    public string visualizationName { get; } = "Pump Scheduling Cost Minimization — DAG Animation";
     public string visualizationDefinition { get; } =
         "Animates the 24-hour optimal pump schedule, showing per-hour pump states, " +
         "tank levels, and cumulative costs produced by the DAG dynamic programming solver.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "SARE 2026 Team" };
+    public string[] contributors { get; } = { "Michael Trosper" };
     public string visualizationType { get; } = "pump";
     public ISolver solver { get; } = new PumpSchedulingCMSolver();
 
