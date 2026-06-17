@@ -30,8 +30,11 @@ class NQueensVerifier : IVerifier<NQUEENS> {
         try {
             solution = parseCertificate(certificate);
         }
-        catch {
-            return false;
+        catch (CertificateParseException) {
+            throw;
+        }
+        catch (Exception ex) {
+            throw new CertificateParseException(problem, certificate, ex.Message);
         }
 
         int n = problem.n;

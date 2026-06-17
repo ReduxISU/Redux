@@ -47,10 +47,14 @@ class KnapsackVerifier : IVerifier<KNAPSACK> {
         {
             solution = parseCertificate(problem, certificate);
         }
-        catch 
+        catch (CertificateParseException)
         {
-            return false;
-        } 
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new CertificateParseException(problem, certificate, ex.Message);
+        }
         int totalW = 0;
         int totalV = 0;
 
@@ -71,7 +75,9 @@ class KnapsackVerifier : IVerifier<KNAPSACK> {
         foreach (UtilCollection solItem in solution)
         {
             solItem.assertPair();
-            if (!problem.items.Contains(solItem)) throw new Exception();
+            if (!problem.items.Contains(solItem))
+                throw new CertificateParseException(problem, certificate,
+                    $"item '{solItem}' is not in the problem's item set");
         }
         return solution;
     }
