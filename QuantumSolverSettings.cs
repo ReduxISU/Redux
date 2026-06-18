@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
-
 /// <summary>
 /// Manages configuration settings for the Quantum Solver service.
 /// Provides a default base URL and allows customization through constructors.
@@ -8,6 +6,9 @@ public static class QuantumSolverSettingsGlobal
 {
     /// <summary>Global Quantum Solver configuration instance, populated at startup.</summary>
     public static QuantumSolverSettings QuantumSolver { get; internal set; } = null!;
+
+    /// <summary>Shared IHttpClientFactory for QuantumServerAPI, populated at startup.</summary>
+    public static IHttpClientFactory HttpClientFactory { get; internal set; } = null!;
 }
 
 /// <summary>Configuration settings for the Quantum Solver service.</summary>
