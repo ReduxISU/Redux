@@ -69,7 +69,7 @@ class SetCoverBruteForce : ISolver<SETCOVER> {
                 combination.Add(i);
             }
             BigInteger reps = factorial(setCover.subsets.Count) / (factorial(j) * factorial(setCover.subsets.Count - j));
-            for (int i = 0; i < reps; i++)
+            for (BigInteger i = 0; i < reps; i++)
             {
                 string certificate = indexListToCertificate(combination, setCover.subsets);
                 if (setCover.defaultVerifier.verify(setCover, certificate))
