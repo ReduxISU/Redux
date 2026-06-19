@@ -15,7 +15,7 @@ class DFASolver : ISolver<DFA>
 
     public bool timerHasExpired { get; set; }
 
-    private List<string> nodePath;
+    private List<string> nodePath = [];
 
     // Methods Including Constructors //
     public DFASolver() { }
