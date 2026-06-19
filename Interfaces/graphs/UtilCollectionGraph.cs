@@ -48,9 +48,14 @@ class UtilCollectionGraph : Graph
         }
     }
 
-    public override List<Node> nodes => null;
+    // This transitional class represents its data as UtilCollections and overrides
+    // ToAPIGraph directly, so it never builds the Node/Edge view of the base class.
+    // These getters intentionally return null; null-forgiving (null!) keeps the
+    // non-nullable base contract while preserving the existing serialized output,
+    // which emits these as null (e.g. the /info endpoint reflects over them).
+    public override List<Node> nodes => null!;
 
-    public override List<Edge> edges => null;
+    public override List<Edge> edges => null!;
 
     public override API_GraphJSON ToAPIGraph()
     {
