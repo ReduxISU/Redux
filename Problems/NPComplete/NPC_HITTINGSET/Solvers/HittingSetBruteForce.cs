@@ -40,7 +40,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
         foreach (List<int> possibleSolution in possibleSolutions(items.Count()))
         {
             UtilCollection certificate = new UtilCollection("{}");
-            for (int i = 0; i < hittingSet.subSets.Count() + 1; i++)
+            for (int i = 0; i < items.Count; i++)
             {
                 if (possibleSolution[i] == 1) certificate.Add(items[i]);
             }
