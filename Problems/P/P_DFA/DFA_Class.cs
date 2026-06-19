@@ -139,7 +139,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
         // Join Multiple Edges To Same Output To Single Edge For Graph //
 
         // Save New Edges With Multiple Char Paths, Ex:(Node, "a,b", Node) //
-        List<WeightedEdge> joinedEdges = new List<WeightedEdge>();
+        List<LabeledEdge> joinedEdges = new List<LabeledEdge>();
         // Track What Nodes Are Connected To One Another //
         var connections = new Dictionary<(string From, string To), string>();
 
@@ -161,8 +161,8 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
             }
         }
 
-        // Save New Edges As WeightedEdge Format For API Graph Conversion //
-        foreach (var connectionPair in connections) { joinedEdges.Add(new WeightedEdge(connectionPair.Key.Item1, connectionPair.Key.Item2, connectionPair.Value)); }
+        // Save New Edges As LabeledEdge Format For API Graph Conversion //
+        foreach (var connectionPair in connections) { joinedEdges.Add(new LabeledEdge(connectionPair.Key.Item1, connectionPair.Key.Item2, connectionPair.Value)); }
 
         // Build Graph //
         graph = new WeightedDirectedGraph(nodes, joinedEdges, startState, acceptStates);

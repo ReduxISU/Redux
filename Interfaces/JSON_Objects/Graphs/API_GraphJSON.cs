@@ -48,7 +48,7 @@ class API_GraphJSON : API_JSON
     }
 
     // Added an API Graph JSON Constructor For DFAs That Builds Links With Weights -- Michael Trosper -- 1/20/26 //
-    public API_GraphJSON(List<string> nodes, List<WeightedEdge> inputEdges, string startState, List<string> acceptStates)
+    public API_GraphJSON(List<string> nodes, List<LabeledEdge> inputEdges, string startState, List<string> acceptStates)
     {
         _nodes = new List<API_Node_Programmable_Small>();
         foreach (string n in nodes)
@@ -60,7 +60,7 @@ class API_GraphJSON : API_JSON
         }
 
         _links = new List<API_Link>();
-        foreach (WeightedEdge e in inputEdges)
+        foreach (LabeledEdge e in inputEdges)
         {
             API_Link newLink = new API_Link(e.from, e.to, weight: e.value);
             _links.Add(newLink);
