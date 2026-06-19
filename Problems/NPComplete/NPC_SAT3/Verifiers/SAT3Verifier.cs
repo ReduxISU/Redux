@@ -60,10 +60,10 @@ class SAT3Verifier : IVerifier<SAT3> {
             string literalName = assignmentParts[0];
             string TF = assignmentParts[1];
 
-            if (TF == "True" | TF == "T") {
+            if (TF == "True" || TF == "T") {
                 trueLiterals.Add(literalName);
             }
-            else if (TF == "False" | TF == "F") {
+            else if (TF == "False" || TF == "F") {
                 string inverseLiteralName = "!" + literalName;
                 trueLiterals.Add(inverseLiteralName);
             }

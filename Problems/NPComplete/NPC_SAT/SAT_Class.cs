@@ -73,15 +73,32 @@ namespace API.Problems.NPComplete.NPC_SAT;
     // --- Methods Including Constructors ---
     public SAT() {
         instance = defaultInstance;
-         clauses = getClauses(instance);
+        clauses = getClauses(instance);
         literals = getLiterals(instance);
-      
     }
     public SAT(string phiInput) {
+        validateInstance(phiInput);
         instance = phiInput;
-         clauses = getClauses(phiInput);
+        clauses = getClauses(phiInput);
         literals = getLiterals(phiInput);
-     
+    }
+
+    private static void validateInstance(string phiInput) {
+        if (string.IsNullOrWhiteSpace(phiInput)) {
+            throw new ProblemParseException("SAT", phiInput, "instance is empty");
+        }
+        string stripped = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
+        string[] rawClauses = stripped.Split('&');
+        foreach (string clause in rawClauses) {
+            string[] rawLiterals = clause.Split('|');
+            foreach (string literal in rawLiterals) {
+                string name = literal.StartsWith("!") ? literal.Substring(1) : literal;
+                if (string.IsNullOrEmpty(name) || !char.IsLetter(name[0])) {
+                    throw new ProblemParseException("SAT", phiInput,
+                        $"literal '{literal}' is not a valid identifier (optionally prefixed with '!')");
+                }
+            }
+        }
     }
 
     #endregion
