@@ -30,7 +30,14 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN>
 
     public API_JSON SolvedVisualization(HAMILTONIAN hamiltonian, string solution)
     {
-        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
+        if (string.IsNullOrWhiteSpace(solution) || solution == "{}")
+            return hamiltonian.graph.ToAPIGraph();
+
+        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution)
+            .Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
+
+        if (solutionNodes.Count == 0)
+            return hamiltonian.graph.ToAPIGraph();
 
         API_GraphJSON apiGraph = hamiltonian.graph.ToAPIGraph();
        

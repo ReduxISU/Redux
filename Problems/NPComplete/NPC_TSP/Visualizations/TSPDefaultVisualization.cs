@@ -30,7 +30,14 @@ class TSPDefaultVisualization : IVisualization<TSP>
 
     public API_JSON SolvedVisualization(TSP tsp, string solution)
     {
-        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
+        if (string.IsNullOrWhiteSpace(solution) || solution == "{}")
+            return tsp.graph.ToAPIGraph();
+
+        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution)
+            .Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
+
+        if (solutionNodes.Count == 0)
+            return tsp.graph.ToAPIGraph();
 
         API_GraphJSON apiGraph = tsp.graph.ToAPIGraph();
         for (int i = 0; i < apiGraph.nodes.Count; i++)
