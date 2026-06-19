@@ -13,6 +13,7 @@ using System.Dynamic;
 /// <summary>
 /// Core controller for Problems.
 /// </summary>
+[ApiController]
 [Route("[controller]")]
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase
@@ -142,9 +143,11 @@ public class ProblemProvider : ControllerBase
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">The instance of the problem to solve</param>
     /// <returns>solution certificate</returns>
     [HttpPost("solve")]
+    [ProducesResponseType(400)]
     public IActionResult solve(string solver, [FromBody] string problemInstance)
     {
-        // TODO: validate arguments
+        if (!Solvers.TryGetValue(solver.ToLower(), out _))
+            return BadRequest(new { error = "unknown_solver", received = solver });
         try {
             return Content(
                 JsonSerializer.Serialize(
@@ -166,11 +169,13 @@ public class ProblemProvider : ControllerBase
     /// <param name="interface" example = "SAT3">the name of the object to get the info of</param>
     /// <returns>an object instance</returns>
     [ProducesResponseType(typeof(object), 200)]
+    [ProducesResponseType(400)]
     [HttpGet("info")]
-    public string info(string @interface)
+    public IActionResult info(string @interface)
     {
-        // TODO: validate arguments
-        return Newtonsoft.Json.JsonConvert.SerializeObject(Activator.CreateInstance(Interfaces[@interface.ToLower()]));
+        if (string.IsNullOrEmpty(@interface) || !Interfaces.TryGetValue(@interface.ToLower(), out var type))
+            return BadRequest(new { error = "unknown_interface", received = @interface });
+        return Content(Newtonsoft.Json.JsonConvert.SerializeObject(Activator.CreateInstance(type)), "application/json");
     }
 
     /// <summary>
@@ -245,9 +250,13 @@ public class ProblemProvider : ControllerBase
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualize")]
-    public string visualize(string visualization, [FromBody] string instance)
+    [ProducesResponseType(400)]
+    public IActionResult visualize(string visualization, [FromBody] string instance)
     {
-        return getVisualize(Visualization(visualization), Visualization(visualization).solver.GetSteps(instance), Visualization(visualization).solver.solve(instance), instance);
+        if (!Visualizers.TryGetValue(visualization.ToLower(), out _))
+            return BadRequest(new { error = "unknown_visualization", received = visualization });
+        var vis = Visualization(visualization);
+        return Content(getVisualize(vis, vis.solver.GetSteps(instance), vis.solver.solve(instance), instance), "application/json");
     }
 
     /// <summary>
@@ -258,9 +267,13 @@ public class ProblemProvider : ControllerBase
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance string of the problem</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
-    public string visualizeReduction(string reduction, string solution, [FromBody] string instance)
+    [ProducesResponseType(400)]
+    public IActionResult visualizeReduction(string reduction, string solution, [FromBody] string instance)
     {
         List<string> reds = reduction.Split("-").ToList();
+        foreach (string r in reds)
+            if (!Reductions.TryGetValue(r.ToLower(), out _))
+                return BadRequest(new { error = "unknown_reduction", received = r });
 
         IReduction? red = null;
         foreach (string reductionname in reds)
@@ -271,11 +284,9 @@ public class ProblemProvider : ControllerBase
         }
 
         if (red is null)
-        {
-            throw new ArgumentException("No reductions provided", nameof(reduction));
-        }
+            return BadRequest(new { error = "no_reductions_provided" });
 
-        return getVisualize(red.visualization, new List<Object>(), solution, instance);
+        return Content(getVisualize(red.visualization, new List<Object>(), solution, instance), "application/json");
     }
 
     /// <summary>
@@ -285,9 +296,12 @@ public class ProblemProvider : ControllerBase
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of a problem</param>
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
-    public string reduce(string reduction, [FromBody] string instance)
+    [ProducesResponseType(400)]
+    public IActionResult reduce(string reduction, [FromBody] string instance)
     {
-        return JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true });
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
+        return Content(JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), "application/json");
     }
 
     /// <summary>
@@ -298,11 +312,14 @@ public class ProblemProvider : ControllerBase
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the problem</param>
     /// <returns>solution certificate of the reduction</returns>
     [HttpPost("mapSolution")]
-    public string mapSolution(string reduction, string solution, [FromBody] string instance)
+    [ProducesResponseType(400)]
+    public IActionResult mapSolution(string reduction, string solution, [FromBody] string instance)
     {
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
         IReduction red = Reduction(reduction, instance);
         string mappedSolution = red.mapSolutions(solution);
-        return JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true });
+        return Content(JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }), "application/json");
     }
 
 
@@ -313,10 +330,13 @@ public class ProblemProvider : ControllerBase
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <returns>gadget map</returns>
     [HttpPost("gadgets")]
-    public string gadgets(string reduction, [FromBody] string instance)
+    [ProducesResponseType(400)]
+    public IActionResult gadgets(string reduction, [FromBody] string instance)
     {
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
         IReduction red = Reduction(reduction, instance);
-        return JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true });
+        return Content(JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true }), "application/json");
     }
 }
 
