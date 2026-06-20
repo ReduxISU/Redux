@@ -1,7 +1,5 @@
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
 
 namespace API.Tools;
 
@@ -17,16 +15,12 @@ public class QuantumServerAPI
     // --- Constructor ---
 
     /// <summary>
-    /// Creates a new QuantumServerAPI instance.
+    /// Creates a new QuantumServerAPI instance using the shared IHttpClientFactory.
     /// </summary>
     public QuantumServerAPI()
     {
         _baseUrl = QuantumSolverSettingsGlobal.QuantumSolver.BaseURL;
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(_baseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
-        };
+        _httpClient = QuantumSolverSettingsGlobal.HttpClientFactory.CreateClient("quantum");
     }
 
     // --- Public Methods ---

@@ -101,43 +101,50 @@ public class Problem_VisualizationsRefactorController : ControllerBase {
     [HttpGet]
     public String getDefault([FromQuery]string chosenProblem,[FromQuery]string problemType) {
         List<string> NOT_FOUND_ERR_Visualization = new();
-
-        // Determine the directory to search based on prefix. chosenProblem expected to be a problemName like "NPC_PROBLEM"\
-        string problemTypeDirectory = "";
-        string jsonString = "";
         var options = new JsonSerializerOptions { WriteIndented = true };
-
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
 
         try
         {
             string projectSourcePath = ProjectSourcePath.Value;
-            string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + problemType + "_" + chosenProblem + "/Visualizations")
-                                .Select(Path.GetFileName)
-                                .ToArray();
+            string problemsRoot = Path.Combine(projectSourcePath, "Problems");
 
-            ArrayList subFilesList = new ArrayList();
-
-            foreach (var file in subfiles)
+            // Search all complexity-class subdirectories for any folder ending with _<chosenProblem>
+            // so that NPH, NPC, P, and any future types are all found regardless of the
+            // problemType query parameter (which the Redux_GUI client hardcodes to "NPC").
+            string[]? visFiles = null;
+            foreach (string typeDir in Directory.GetDirectories(problemsRoot))
             {
-                if (file is null)
-                    continue;
-                string fileNoExt = file.Split('.')[0]; //gets the file without the file extension
-                subFilesList.Add(fileNoExt);
+                foreach (string probDir in Directory.GetDirectories(typeDir))
+                {
+                    string folderName = Path.GetFileName(probDir);
+                    if (!folderName.EndsWith("_" + chosenProblem, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    string visPath = Path.Combine(probDir, "Visualizations");
+                    if (!Directory.Exists(visPath))
+                        continue;
+
+                    visFiles = Directory.GetFiles(visPath)
+                                       .Select(Path.GetFileName)
+                                       .Where(f => f is not null)
+                                       .ToArray()!;
+                    break;
+                }
+                if (visFiles is not null) break;
             }
 
-            // Not completed. Needs to loop through these directories to get the rest of the problems
-            jsonString = JsonSerializer.Serialize(subFilesList, options);
+            if (visFiles is null)
+                return JsonSerializer.Serialize(NOT_FOUND_ERR_Visualization, options);
+
+            var subFilesList = new ArrayList();
+            foreach (var file in visFiles)
+                subFilesList.Add(file!.Split('.')[0]); // strip .cs extension
+
+            return JsonSerializer.Serialize(subFilesList, options);
         }
         catch (System.IO.DirectoryNotFoundException)
         {
-            jsonString = JsonSerializer.Serialize(NOT_FOUND_ERR_Visualization, options);
+            return JsonSerializer.Serialize(NOT_FOUND_ERR_Visualization, options);
         }
-        return jsonString;
     }
 }

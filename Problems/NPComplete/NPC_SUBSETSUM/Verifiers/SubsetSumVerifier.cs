@@ -1,12 +1,16 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Verifiers;
 
 class SubsetSumVerifier : IVerifier<SUBSETSUM> {
 
+    public const string CertificateGrammar = "{K | K is set}";
+    public const string CertificateExample = "{1,12,15}";
+
     // --- Fields ---
     public string verifierName {get;} = "Subset Sum Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for Subset Summ";
+    public string verifierDefinition {get;} = "This is a verifier for Subset Sum";
     public string source {get;} = "";
     public string[] contributors {get;} = { "Garret Stouffer"};
 
@@ -21,25 +25,44 @@ class SubsetSumVerifier : IVerifier<SUBSETSUM> {
 
     // --- Methods Including Constructors ---
     public SubsetSumVerifier() {
-        
+
     }
 
     public bool verify(SUBSETSUM problem, string certificate){
-        List<string> c = certificate.Replace("{","").Replace("}","").Replace(" ","").Split(",").ToList();
+        StringParser parser = new(CertificateGrammar);
+        List<UtilCollection> elements;
+        try {
+            parser.parse(certificate);
+            // Materialize inside the try: SPADE may parse a scalar (e.g. "101")
+            // without error and only fail when the result is enumerated.
+            elements = parser["K"].ToList();
+        } catch (Exception ex) {
+            throw new CertificateParseException(problem, certificate, ex.Message);
+        }
+
+        // Multiset of S (value -> remaining count): each element may be used at
+        // most as many times as it occurs in S, so a certificate that reuses an
+        // element is rejected. Using a count map keeps membership checks O(1).
+        Dictionary<string, int> available = new Dictionary<string, int>();
+        foreach (string s in problem.S)
+            available[s] = available.GetValueOrDefault(s) + 1;
+
         int sum = 0;
-        foreach(string a in c){
-            if(problem.S.Contains(a)){    
-                sum += int.Parse(a);
-            }
-            else{
+
+        foreach (UtilCollection element in elements) {
+            string a = element.ToString();
+            if (!int.TryParse(a, out int value))
+                throw new CertificateParseException(problem, certificate,
+                    $"'{a}' is not a valid integer");
+
+            // Not a member of S, or every copy of it has already been used.
+            if (available.GetValueOrDefault(a) == 0)
                 return false;
-            }
-        }
-        if(sum == problem.T){
-            return true;
+
+            available[a]--;
+            sum += value;
         }
 
-
-        return false;
+        return sum == problem.T;
     }
 }

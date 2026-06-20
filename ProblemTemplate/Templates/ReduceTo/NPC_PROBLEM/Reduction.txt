@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_{REDUCE_TO};
@@ -12,6 +13,8 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
     public string source {get;} = "TODO";
     public string sourceLink {get;} = "TODO";
     public string[] contributors {get;} = { "TODO" };
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
 
     private {REDUCE_FROM} _reductionFrom;
     private {REDUCE_TO} _reductionTo;

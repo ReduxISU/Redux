@@ -8,6 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.Configure<QuantumSolverSettings>(
     builder.Configuration.GetSection("QuantumSolver"));
+builder.Services.AddHttpClient("quantum", (sp, client) =>
+{
+    var settings = sp.GetRequiredService<IOptionsMonitor<QuantumSolverSettings>>().CurrentValue;
+    client.BaseAddress = new Uri(settings.BaseURL);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -40,9 +46,9 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
-QuantumSolverSettingsGlobal.QuantumSolver = app.Services
-    .GetRequiredService<IOptionsMonitor<QuantumSolverSettings>>()
-    .CurrentValue;
+var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<QuantumSolverSettings>>();
+QuantumSolverSettingsGlobal.QuantumSolver = optionsMonitor.CurrentValue;
+QuantumSolverSettingsGlobal.HttpClientFactory = app.Services.GetRequiredService<IHttpClientFactory>();
 
 // Somewhat of a security concern. But since we are not doing POSTS im not concerned about it
 app.Use((context, next) =>

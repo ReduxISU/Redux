@@ -142,13 +142,22 @@ public class ProblemProvider : ControllerBase
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">The instance of the problem to solve</param>
     /// <returns>solution certificate</returns>
     [HttpPost("solve")]
-    public string solve(string solver, [FromBody] string problemInstance)
+    public IActionResult solve(string solver, [FromBody] string problemInstance)
     {
         // TODO: validate arguments
-        return JsonSerializer.Serialize(
-            Solver(solver).solve(problemInstance),
-            new JsonSerializerOptions { WriteIndented = true }
-        );
+        try {
+            return Content(
+                JsonSerializer.Serialize(
+                    Solver(solver).solve(problemInstance),
+                    new JsonSerializerOptions { WriteIndented = true }),
+                "application/json");
+        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (ProblemParseException ex) {
+            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        }
     }
 
     /// <summary>
@@ -259,6 +268,11 @@ public class ProblemProvider : ControllerBase
             red = Reduction(reductionname, instance);
             solution = red.mapSolutions(solution);
             instance = red.reductionTo.instance;
+        }
+
+        if (red is null)
+        {
+            throw new ArgumentException("No reductions provided", nameof(reduction));
         }
 
         return getVisualize(red.visualization, new List<Object>(), solution, instance);

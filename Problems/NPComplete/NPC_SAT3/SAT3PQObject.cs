@@ -62,14 +62,17 @@ class SAT3PQObject{
     public List<SAT3PQObject> createSATChildren(int depth, int totalNumberOfVariables){
         // string var = this.varPQ.Dequeue();
         List<SAT3PQObject> outList = new List<SAT3PQObject>();
-        outList.Add(createNewSatState(true, depth, totalNumberOfVariables));
-        outList.Add(createNewSatState(false, depth, totalNumberOfVariables));
+        // createNewSatState returns null for an unviable state — skip those.
+        SAT3PQObject? trueChild = createNewSatState(true, depth, totalNumberOfVariables);
+        if (trueChild != null) outList.Add(trueChild);
+        SAT3PQObject? falseChild = createNewSatState(false, depth, totalNumberOfVariables);
+        if (falseChild != null) outList.Add(falseChild);
         return outList;
     }
 
     //Takes in a variable and a boolean value and returns the new SATState
     //Returns null if the new state would be unviable
-    private SAT3PQObject createNewSatState(bool boolValue, int depth, int totalNumberOfVariables){ //This is the meat and potatoes of the solver
+    private SAT3PQObject? createNewSatState(bool boolValue, int depth, int totalNumberOfVariables){ //This is the meat and potatoes of the solver
         //update the variables to the string representation of the boolean value
         //pass the modified clause to the evaluateBooleanExpression method
         //if the evaluation returns a viable expression it will return a string else it will returns null

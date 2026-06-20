@@ -275,21 +275,6 @@ abstract class WeightedUndirectedGraph : WeightedGraph
 
 
     //Getters
-    public List<Node> getNodeList
-    {
-        get
-        {
-            return base._nodeList;
-        }
-    }
-    public List<WeightedEdge> getEdgeList
-    {
-        get
-        {
-            return base._edgeList;
-        }
-    }
-
     public List<string> nodesStringList
     {
         get

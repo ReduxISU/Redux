@@ -1,7 +1,7 @@
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_DFA;
+using API.Problems.P.P_DFA;
 
-namespace API.Problems.NPComplete.NPC_DFA.Verifiers;
+namespace API.Problems.P.P_DFA.Verifiers;
 
 class DFAVerifier : IVerifier<DFA>
 {
@@ -12,7 +12,6 @@ class DFAVerifier : IVerifier<DFA>
     public string[] contributors { get; } = { "Michael Trosper" };
     private string _certificate = "";
 
-    private string[] nodes;
     public string certificate { get => _certificate; }
 
     // --- Methods Including Constructors ---
@@ -23,7 +22,7 @@ class DFAVerifier : IVerifier<DFA>
         // Trim Unwanted Space //
         certificate.Trim();
         // Get Each Node //
-        nodes = certificate.Split(',');
+        string[] nodes = certificate.Split(',');
 
         // Start State //
         string currentNode = nodes[0];

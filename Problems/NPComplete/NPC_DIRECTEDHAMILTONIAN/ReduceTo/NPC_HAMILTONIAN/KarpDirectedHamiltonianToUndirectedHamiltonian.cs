@@ -45,6 +45,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
 
     public KarpDirectedHamiltonianToUndirectedHamiltonian(DIRECTEDHAMILTONIAN from)
     {
+        gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
     }

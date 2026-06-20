@@ -35,18 +35,22 @@ interface ISolver<T> : ISolver where T : IProblem {
         // Should there be some sort of contraint that assures there is a constructor
         // that matches the signature of a single `string` argument?
         // Perhaps a static `FromInstance(string instance)` method for `IProblem` will work.
-        T problemInstance = (T)Activator.CreateInstance(typeof(T), problem);
-        if (problemInstance == null)
+        object? instance = Activator.CreateInstance(typeof(T), problem);
+        if (instance == null)
             throw new ArgumentException($"Could not create problem instance for {problem}.");
 
-        return solve(problemInstance);
+        return solve((T)instance);
     }
 
     string solve(T problem);
 
     List<Object> ISolver.GetSteps(string instance)
     {
-        return GetSteps((T)Activator.CreateInstance(typeof(T), instance));
+        object? problemInstance = Activator.CreateInstance(typeof(T), instance);
+        if (problemInstance == null)
+            throw new ArgumentException($"Could not create problem instance for {instance}.");
+
+        return GetSteps((T)problemInstance);
     }
 
     List<Object> GetSteps(T problem)

@@ -14,7 +14,7 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
     private string _complexity = " ";
 
     private string _certificate = "(x1:True)";
-    
+
     #endregion
 
     #region Properties
@@ -34,22 +34,24 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
             return _certificate;
         }
     }
-    
 
 
-    #endregion 
+
+    #endregion
 
     #region Constructors
 
     // --- Methods Including Constructors ---
     public SATVerifier() {
-        
+
     }
 
-    // Identical verifier for the 3SAT for KadensSimpleVerifier. Works for any SAT instance not just 3SAT.
     public bool verify(SAT problem, string certificate){
+        if (string.IsNullOrWhiteSpace(certificate)) {
+            throw new CertificateParseException(problem, certificate, "certificate is empty");
+        }
+
         List<List<string>> clauses = problem.clauses;
-        
         string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")","");
 
         string[] assignments = strippedInput.Split(',');
@@ -57,18 +59,27 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
 
         foreach (string assignment in assignments) {
             string[] assignmentParts = assignment.Split(':');
-            if (assignmentParts.Length <= 1){
+            if (assignmentParts.Length <= 1)
                 assignmentParts = assignment.Split('=');
+
+            if (assignmentParts.Length < 2) {
+                throw new CertificateParseException(problem, certificate,
+                    $"assignment '{assignment}' is missing a ':' or '=' separator");
             }
+
             string literalName = assignmentParts[0];
             string TF = assignmentParts[1];
 
-            if (TF == "True" | TF == "T") {
+            if (TF == "True" || TF == "T") {
                 trueLiterals.Add(literalName);
             }
-            else if (TF == "False" | TF == "F") {
-                string inverseLiteralName = "!" + literalName; 
+            else if (TF == "False" || TF == "F") {
+                string inverseLiteralName = "!" + literalName;
                 trueLiterals.Add(inverseLiteralName);
+            }
+            else {
+                throw new CertificateParseException(problem, certificate,
+                    $"assignment '{assignment}' has value '{TF}'; expected True/False (capitalized) or T/F");
             }
         }
 
@@ -84,7 +95,7 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
             if (containedInClause == false) {
                 return false;
             }
-            
+
         }
 
         return true;

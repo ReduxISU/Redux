@@ -286,7 +286,7 @@ public class ContributorProfileController : ControllerBase {
         return reductions.Distinct();
     }
 
-    private ContributorInfo GetContributorInfo(string contributorName) {
+    private ContributorInfo? GetContributorInfo(string contributorName) {
         try {
             string projectSourcePath = ProjectSourcePath.Value;
             string infoFilePath = Path.Combine(projectSourcePath, "wwwroot", "contributorInfo.json");

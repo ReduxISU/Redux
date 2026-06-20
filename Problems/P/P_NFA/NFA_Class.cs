@@ -1,10 +1,9 @@
-﻿namespace API.Problems.NPComplete.NPC_NFA;
+﻿namespace API.Problems.P.P_NFA;
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_NFA.Solvers;
-using API.Problems.NPComplete.NPC_NFA.Verifiers;
-using API.Problems.NPComplete.NPC_NFA.Visualizations;
+using API.Problems.P.P_NFA.Solvers;
+using API.Problems.P.P_NFA.Verifiers;
+using API.Problems.P.P_NFA.Visualizations;
 using SPADE;
-using Xunit;
 using System.Linq;
 using System.Collections.Generic;
 using API.Interfaces.Graphs;
@@ -54,9 +53,9 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     private List<string> _nodes = new();
     private List<char> _alphabet = new();
     private List<NFAEdge> _edges = new();
-    private string _startState;
+    private string _startState = string.Empty;
     private List<string> _acceptStates = new();
-    private string _inputString;
+    private string _inputString = string.Empty;
 
     public List<string> nodes { get => _nodes; set => _nodes = value; }
     public List<char> alphabet { get => _alphabet; set => _alphabet = value; }
@@ -155,7 +154,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
         // Join Multiple Edges To Same Output To Single Edge For Graph //
 
         // Save New Edges With Multiple Char Paths, Ex:(Node, "a,b", Node) //
-        List<WeightedEdge> joinedEdges = new List<WeightedEdge>();
+        List<LabeledEdge> joinedEdges = new List<LabeledEdge>();
         // Track What Nodes Are Connected To One Another //
         var connections = new Dictionary<(string From, string To), string>();
 
@@ -178,8 +177,8 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
             }
         }
 
-        // Save New Edges As WeightedEdge Format For API Graph Conversion //
-        foreach (var connectionPair in connections) { joinedEdges.Add(new WeightedEdge(connectionPair.Key.Item1, connectionPair.Key.Item2, connectionPair.Value)); }
+        // Save New Edges As LabeledEdge Format For API Graph Conversion //
+        foreach (var connectionPair in connections) { joinedEdges.Add(new LabeledEdge(connectionPair.Key.Item1, connectionPair.Key.Item2, connectionPair.Value)); }
 
         // Build Graph //
         graph = new WeightedDirectedGraph(nodes, joinedEdges, startState, acceptStates);
