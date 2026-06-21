@@ -95,7 +95,12 @@ internal static class VerifierNavigationData
 
         if (!string.IsNullOrWhiteSpace(problemTypePrefix))
         {
-            query = query.Where(e => string.Equals(e.problemTypePrefix, problemTypePrefix, StringComparison.OrdinalIgnoreCase));
+            var fallback = query.Where(e => string.Equals(e.problemTypePrefix, problemTypePrefix, StringComparison.OrdinalIgnoreCase));
+
+            if (fallback.Any())
+            {
+                query = fallback;
+            }
         }
 
         return query
