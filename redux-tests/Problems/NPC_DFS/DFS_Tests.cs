@@ -52,7 +52,7 @@ public class DFS_Tests
         DFS problem = new DFS("(({1,2,3,4,5,6},((1,2),(2,4),(1,3),(3,5),(5,6))),1,6)");
         DFSSolver solver = new DFSSolver();
 
-        List<string> steps = solver.GetSteps(problem);
+        List<object> steps = solver.GetSteps(problem);
 
         Assert.Equal(new[]
         {
