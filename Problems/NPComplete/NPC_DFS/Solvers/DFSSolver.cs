@@ -23,9 +23,9 @@ class DFSSolver : ISolver<DFS>
         return NodeListToCertificate(traversal.Path);
     }
 
-    public List<string> GetSteps(DFS problem)
+    public List<Object> GetSteps(DFS problem)
     {
-        return Traverse(problem, () => timerHasExpired).Steps;
+        return Traverse(problem, () => timerHasExpired).Steps.Cast<object>().ToList();
     }
 
     internal static TraversalResult Traverse(DFS problem, Func<bool>? shouldStop = null)

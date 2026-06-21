@@ -12,9 +12,9 @@ class SSSPSolver : ISolver<SSSP>
     public string solverName { get; } = "Dijkstra's Algorithm";
     public string solverDefinition { get; } = "";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Rajit Nilkar" };
+    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
     public bool timerHasExpired { get; set; }
-    PriorityQueue<string, int> pq;
+    PriorityQueue<string, int>? pq;
 
     public string solve(SSSP problem)
     {
@@ -222,7 +222,7 @@ class SSSPSolver : ISolver<SSSP>
         var adjacency = BuildAdjacencyList(graph);
 
         var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
-        var prev = nodes.ToDictionary(n => n, _ => (string)null);
+        var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
         pq = new PriorityQueue<string, int>();
 

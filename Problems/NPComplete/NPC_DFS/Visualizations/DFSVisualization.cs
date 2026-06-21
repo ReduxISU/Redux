@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Problems.NPComplete.NPC_DFS.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DFS.Visualizations;
 
@@ -15,7 +16,7 @@ class DFSVisualization : IVisualization<DFS>
 
     public DFSVisualization() { }
 
-    public ISolver solver => null;
+    public ISolver solver { get; } = new DFSSolver();
 
     public API_JSON visualize(DFS problem)
     {
@@ -69,13 +70,15 @@ class DFSVisualization : IVisualization<DFS>
         return graph;
     }
 
-    public List<API_JSON> stepsVisualization(DFS problem, List<string> steps)
+    public List<API_JSON> StepsVisualization(DFS problem, List<Object> steps)
     {
         var result = new List<API_JSON>();
 
         foreach (var step in steps)
         {
-            if (string.IsNullOrWhiteSpace(step) || step.Trim() == "{}")
+            string stepStr = step?.ToString() ?? "";
+
+            if (string.IsNullOrWhiteSpace(stepStr) || stepStr.Trim() == "{}")
             {
                 result.Add(visualize(problem));
                 continue;
@@ -84,7 +87,7 @@ class DFSVisualization : IVisualization<DFS>
             List<string> path;
             try
             {
-                path = GraphParser.parseNodeListWithStringFunctions(step);
+                path = GraphParser.parseNodeListWithStringFunctions(stepStr);
             }
             catch
             {
@@ -94,7 +97,7 @@ class DFSVisualization : IVisualization<DFS>
 
             API_GraphJSON graph = problem.graph.ToAPIGraph();
 
-            string currentNode = path.Count > 0 ? path[path.Count - 1] : null;
+            string? currentNode = path.Count > 0 ? path[path.Count - 1] : null;
             var pathNodes = new HashSet<string>(path);
 
             for (int i = 0; i < graph.nodes.Count; i++)

@@ -118,7 +118,7 @@ class SSSPVisualization : IVisualization<SSSP>
 
         for (int s = 0; s < steps.Count; s++)
         {
-            string step = steps[s].ToString();
+            string? step = steps[s].ToString();
 
             if(string.IsNullOrWhiteSpace(step) || step.Trim() == "{}")
             {
@@ -139,7 +139,7 @@ class SSSPVisualization : IVisualization<SSSP>
 
             API_GraphJSON graph = problem.graph.ToAPIGraph();
 
-            string currentNode = path.Count > 0 ? path[path.Count - 1] : null;
+            string? currentNode = path.Count > 0 ? path[path.Count - 1] : null;
             var pathNodes = new HashSet<string>(path);
 
             for(int i = 0; i < graph.nodes.Count; i++)
