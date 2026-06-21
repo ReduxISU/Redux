@@ -2,7 +2,6 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
-using API.Problems.NPComplete.NPC_SHORTESTPATH;
 
 namespace API.Problems.NPComplete.NPC_DFS.Visualizations;
 
@@ -15,6 +14,8 @@ class DFSVisualization : IVisualization<DFS>
     public string visualizationType { get; } = "Graph D3";
 
     public DFSVisualization() { }
+
+    public ISolver solver => null;
 
     public API_JSON visualize(DFS problem)
     {

@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
-using API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
+using API.Problems.P.P_SSSP.Solvers;
 
-namespace API.Problems.NPComplete.NPC_SHORTESTPATH.Verifiers;
+namespace API.Problems.P.P_SSSP.Verifiers;
 
-class ShortestPathVerifier : IVerifier<SHORTESTPATH> 
+class SSSPVerifier : IVerifier<SSSP> 
 {
-    public string verifierName { get; } = "Shortest Path Verifier";
-    public string verifierDefinition { get; } = "Verifies shortest path solutions";
+    public string verifierName { get; } = "Single Source Shortest Path Verifier";
+    public string verifierDefinition { get; } = "Verifies the solution for the Single Source Shortest Path problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
     private string _certificate = "";
     public string certificate => _certificate;
 
-    public ShortestPathVerifier() { }
+    public SSSPVerifier() { }
 
     // verify: takes a problem instance and a solution certificate,
     // and returns true if the certificate is a valid solution to the problem instance,
     // false otherwise
-    public bool verify(SHORTESTPATH problem, string solution)
+    public bool verify(SSSP problem, string solution)
     {
         _certificate = solution ?? ""; // Reset certificate before verification
 
@@ -33,7 +33,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
         string sourceNode = problem.sourceNode;
         string targetNode = problem.targetNode;
 
-        var adjacency = DijkstraSolver.BuildAdjacency(problem.graph);
+        var adjacency = SSSPSolver.BuildAdjacencyList(problem.graph);
 
         // Compute true shortest distance using Dijkstra's algorithm
         int? shortest = ShortestDistance(adjacency, nodes, sourceNode, targetNode);
@@ -92,7 +92,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
     {
         var dist = allNodes.ToDictionary(n => n, _ => int.MaxValue);
         var visited = new HashSet<string>();
-        var pq = new DijkstraPriorityQueue<string>();
+        PriorityQueue<string, int> pq = new PriorityQueue<string, int>();
 
         dist[source] = 0;
         pq.Enqueue(source, 0);
