@@ -9,7 +9,6 @@ internal static class VerifierNavigationData
         public string className { get; set; } = "";
         public string classNameWithExtension { get; set; } = "";
         public string problemName { get; set; } = "";
-        public string problemTypePrefix { get; set; } = "";
     }
 
     // Build once from reflected verifier types so navigation doesn't depend on
@@ -65,7 +64,6 @@ internal static class VerifierNavigationData
                 className = className,
                 classNameWithExtension = className + ".cs",
                 problemName = problemType.Name,
-                problemTypePrefix = InferProblemTypePrefix(problemType),
             });
         }
 
@@ -75,15 +73,9 @@ internal static class VerifierNavigationData
             .ToList();
     }
 
-    private static string InferProblemTypePrefix(Type problemType)
-    {
-        string ns = problemType.Namespace ?? "";
-        if (ns.Contains(".Problems.NPComplete.", StringComparison.OrdinalIgnoreCase)) return "NPC";
-        if (ns.Contains(".Problems.P.", StringComparison.OrdinalIgnoreCase)) return "P";
-        if (ns.Contains(".Problems.NPHard.", StringComparison.OrdinalIgnoreCase)) return "NPH";
-        return "";
-    }
-
+    // problemTypePrefix is accepted for API compatibility but intentionally ignored:
+    // problem names are unique across complexity classes, so the name alone identifies
+    // the verifier set. (Solver/visualization nav still use the prefix; handled separately.)
     private static List<VerifierEntry> Find(string? problemName, string? problemTypePrefix)
     {
         IEnumerable<VerifierEntry> query = Entries;
@@ -91,11 +83,6 @@ internal static class VerifierNavigationData
         if (!string.IsNullOrWhiteSpace(problemName))
         {
             query = query.Where(e => string.Equals(e.problemName, problemName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (!string.IsNullOrWhiteSpace(problemTypePrefix))
-        {
-            query = query.Where(e => string.Equals(e.problemTypePrefix, problemTypePrefix, StringComparison.OrdinalIgnoreCase));
         }
 
         return query
