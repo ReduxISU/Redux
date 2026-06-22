@@ -108,6 +108,48 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
         Assert.Empty(arr);
     }
 
+    // ── Problem_VerifiersRefactor: lookup must not depend on problemType ──────
+    // Regression for #317/#318: the GUI pins problemType to "NPC" and never updates
+    // it, so a P / NP-Hard problem arrives with the wrong prefix. The verifier lookup
+    // must still find the verifier by problem name regardless of the prefix sent.
+
+    [Fact]
+    public async Task ProblemVerifiersRefactor_PProblem_WithWrongNpcProblemType_FindsVerifier()
+    {
+        // DFA lives under Problems/P, but mirror the GUI sending problemType=NPC.
+        var response = await _client.GetAsync("/Navigation/Problem_VerifiersRefactor?chosenProblem=DFA&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("DFAVerifier", arr);
+    }
+
+    [Fact]
+    public async Task ProblemVerifiersRefactor_PProblem_WithCorrectProblemType_FindsVerifier()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_VerifiersRefactor?chosenProblem=DFA&problemType=P", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("DFAVerifier", arr);
+    }
+
+    [Fact]
+    public async Task ProblemVerifiersRefactor_UnknownProblem_ReturnsNotFoundString()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_VerifiersRefactor?chosenProblem=NoSuchProblem&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        // Ignoring problemType must not turn a genuinely missing problem into a match.
+        var message = JsonSerializer.Deserialize<string>(body);
+        Assert.Equal("entered a verifier that does not exist", message);
+    }
+
     // ── All_Visualizations (requires chosenProblem param) ────────────────────
 
     [Fact]
