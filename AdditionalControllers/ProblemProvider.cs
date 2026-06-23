@@ -319,15 +319,3 @@ public class ProblemProvider : ControllerBase
         return JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true });
     }
 }
-
-/// <summary>Request body for verify endpoint</summary>
-public class Verify
-{
-    /// <summary>
-    /// Proposed solution for this problem
-    /// </summary>
-    public string Certificate { get; set; } = "";
-
-    /// <summary>Instance of the problem</summary>
-    public string ProblemInstance { get; set; } = "";
-}
