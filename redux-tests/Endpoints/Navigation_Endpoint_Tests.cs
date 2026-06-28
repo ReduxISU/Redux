@@ -96,6 +96,19 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
+    public async Task ProblemVerifiersRefactor_OmittedProblemType_FindsVerifier()
+    {
+        // problemType is optional (#330); omitting it entirely must still resolve by name.
+        var response = await _client.GetAsync("/Navigation/Problem_VerifiersRefactor?chosenProblem=DFA", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("DFAVerifier", arr);
+    }
+
+    [Fact]
     public async Task ProblemVerifiersRefactor_CaseInsensitiveInputs_ReturnsNonEmptyJsonArray()
     {
         var response = await _client.GetAsync("/Navigation/Problem_VerifiersRefactor?chosenProblem=sat3&problemType=npc", TestContext.Current.CancellationToken);

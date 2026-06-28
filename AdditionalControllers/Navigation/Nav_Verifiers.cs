@@ -93,12 +93,12 @@ public class Problem_VerifiersRefactorController : ControllerBase {
     
 ///<summary>Returns all verifiers available for a given problem </summary>
 ///<param name="chosenProblem" example="SAT3">Problem name</param>
-///<param name="problemType" example="NPC">Problem type</param>
+///<param name="problemType" example="NPC">Problem type (optional; ignored — problem names are unique across complexity classes)</param>
 ///<response code="200">Returns string array of verifiers</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
-    public String getDefault([FromQuery]string chosenProblem,[FromQuery]string problemType) {
+    public String getDefault([FromQuery]string chosenProblem,[FromQuery]string? problemType = null) {
         string NOT_FOUND_ERR_VERIFIER = "entered a verifier that does not exist";
         string jsonString = "";
         var options = new JsonSerializerOptions { WriteIndented = true };
