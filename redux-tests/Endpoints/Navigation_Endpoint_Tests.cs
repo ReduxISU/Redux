@@ -107,6 +107,85 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
         Assert.NotEmpty(arr);
     }
 
+    // ── Problem_SolversRefactor: reflection-based, lookup ignores problemType ──
+    // Mirrors the verifier navigation: the GUI pins problemType to "NPC", so the
+    // solver lookup must find solvers by problem name regardless of the prefix sent.
+
+    [Fact]
+    public async Task ProblemSolversRefactor_NpcProblem_FindsSolver()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_SolversRefactor?chosenProblem=SAT3&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.NotEmpty(arr);
+    }
+
+    [Fact]
+    public async Task ProblemSolversRefactor_SAT_ListsGroverSolver()
+    {
+        // SATGroverSolver declares ISolver<SAT>, so it resolves to SAT like any
+        // other solver — guards against it regressing out of the listing.
+        var response = await _client.GetAsync("/Navigation/Problem_SolversRefactor?chosenProblem=SAT&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("SATGroverSolver", arr);
+    }
+
+    [Fact]
+    public async Task ProblemSolversRefactor_PProblem_WithWrongNpcProblemType_FindsSolver()
+    {
+        // CLIQUE solver lookup must succeed even when the GUI sends a mismatched prefix.
+        var response = await _client.GetAsync("/Navigation/Problem_SolversRefactor?chosenProblem=Clique&problemType=P", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("CliqueBruteForce", arr);
+    }
+
+    [Fact]
+    public async Task ProblemSolversRefactor_OmittedProblemType_FindsSolver()
+    {
+        // problemType is optional; omitting it entirely must still resolve by name.
+        var response = await _client.GetAsync("/Navigation/Problem_SolversRefactor?chosenProblem=SAT3", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.NotEmpty(arr);
+    }
+
+    [Fact]
+    public async Task ProblemSolversRefactor_UnknownProblem_ReturnsNotFoundString()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_SolversRefactor?chosenProblem=NoSuchProblem&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var message = JsonSerializer.Deserialize<string>(body);
+        Assert.Equal("entered a solver that does not exist", message);
+    }
+
+    [Fact]
+    public async Task ProblemSolversRefactor_CaseInsensitiveInputs_ReturnsNonEmptyJsonArray()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_SolversRefactor?chosenProblem=sat3&problemType=npc", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
+        Assert.NotNull(arr);
+        Assert.NotEmpty(arr);
+    }
+
     // ── Reductions ────────────────────────────────────────────────────────────
 
     [Fact]

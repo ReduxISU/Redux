@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 /// solution to the instance.
 /// </summary>
 /// 
-class SATGroverSolver : ISolver
+class SATGroverSolver : ISolver<SAT>
 {
     // --- Fields ---
     public string solverName { get; } = "SAT Solver using Grover's Quantum computing algorithm.";
@@ -38,37 +38,6 @@ class SATGroverSolver : ISolver
     }
 
     // --- Methods ---
-
-    public string solve(string problemInstance)
-    {
-        try
-        {
-            var requestBody = new JSON_Sat_Problem(problemInstance);
-
-            // Create the API client
-            var client = new QuantumServerAPI();
-
-            // Make the API call to the quantum endpoint
-            string response = client.PostAsync("/sat-quantum", requestBody).Result;
-
-            // Parse the JSON response and extract just the answer
-            using JsonDocument doc = JsonDocument.Parse(response);
-            JsonElement root = doc.RootElement;
-
-            if (root.TryGetProperty("answer", out JsonElement answerElement))
-            {
-                return answerElement.GetString() ?? "No answer found";
-            }
-
-            // If no answer field, return the whole response
-            return response;
-        }
-        catch (Exception ex)
-        {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
-        }
-    }
 
     public string solve(SAT problem)
     {
