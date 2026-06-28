@@ -7,20 +7,12 @@ internal static class VerifierNavigationData
     internal class VerifierEntry
     {
         public string className { get; set; } = "";
-        public string classNameWithExtension { get; set; } = "";
         public string problemName { get; set; } = "";
     }
 
     // Build once from reflected verifier types so navigation doesn't depend on
     // on-disk source layout.
     internal static readonly List<VerifierEntry> Entries = Build();
-
-    internal static List<string> FindWithExtension(string? problemName, string? problemTypePrefix)
-    {
-        return Find(problemName, problemTypePrefix)
-            .Select(x => x.classNameWithExtension)
-            .ToList();
-    }
 
     internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix)
     {
@@ -62,13 +54,12 @@ internal static class VerifierNavigationData
             entries.Add(new VerifierEntry
             {
                 className = className,
-                classNameWithExtension = className + ".cs",
                 problemName = problemType.Name,
             });
         }
 
         return entries
-            .GroupBy(e => e.classNameWithExtension, StringComparer.OrdinalIgnoreCase)
+            .GroupBy(e => e.className, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
             .ToList();
     }
@@ -88,55 +79,6 @@ internal static class VerifierNavigationData
         return query
             .OrderBy(e => e.className, StringComparer.OrdinalIgnoreCase)
             .ToList();
-    }
-}
-
-// Get all Verifiers regardless of complexity class
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Verifiers)")]
-#pragma warning disable CS1591
-//Note: CALEB - should probably be removed with api refactor
-
-public class All_VerifiersController : ControllerBase {
-#pragma warning restore CS1591
-   
-///<summary>Returns all verifiers available for a given problem </summary>
-///<param name="chosenProblem" example="NPC_SAT3">Problem name</param>
-///<response code="200">Returns string array of verifiers</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault([FromQuery]string chosenProblem) {
-        VerifierNavigationData.TryParseProblemKey(chosenProblem, out string? problemTypePrefix, out string? problemName);
-        List<string> subfiles = VerifierNavigationData.FindWithExtension(problemName, problemTypePrefix);
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subfiles, options);
-        return jsonString;
-    }
-}
-// Get all Verifiers for a specific problem\
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Verifiers)")]
-#pragma warning disable CS1591
-//Note: CALEB - should probably be removed with api refactor
-
-public class Problem_VerifiersController : ControllerBase {
-#pragma warning restore CS1591
-    
-///<summary>Returns all verifiers available for a given problem </summary>
-///<param name="chosenProblem" example="NPC_SAT3">Problem name</param>
-///<response code="200">Returns string array of verifiers</response>
-
-    [ProducesResponseType(typeof(string[]), 200)]
-    [HttpGet]
-    public String getDefault([FromQuery]string chosenProblem) {
-        VerifierNavigationData.TryParseProblemKey(chosenProblem, out string? problemTypePrefix, out string? problemName);
-        List<string> subfiles = VerifierNavigationData.FindWithExtension(problemName, problemTypePrefix);
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subfiles, options);
-        return jsonString;
     }
 }
 

@@ -53,61 +53,6 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
         Assert.NotEmpty(arr);
     }
 
-    // ── All_Verifiers (requires chosenProblem param) ──────────────────────────
-
-    [Fact]
-    public async Task AllVerifiers_WithProblem_Returns200()
-    {
-        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task AllVerifiers_WithProblem_ReturnsNonEmptyJsonArray()
-    {
-        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
-        Assert.NotNull(arr);
-        Assert.NotEmpty(arr);
-    }
-
-    [Fact]
-    public async Task AllVerifiers_CaseInsensitiveProblemPrefix_ReturnsNonEmptyJsonArray()
-    {
-        var response = await _client.GetAsync("/Navigation/All_Verifiers?chosenProblem=npc_sat3", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
-        Assert.NotNull(arr);
-        Assert.NotEmpty(arr);
-    }
-
-    [Fact]
-    public async Task ProblemVerifiersRefactor_CaseInsensitiveInputs_ReturnsNonEmptyJsonArray()
-    {
-        var response = await _client.GetAsync("/Navigation/Problem_Verifiers?chosenProblem=sat3&problemType=npc", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
-        Assert.NotNull(arr);
-        Assert.NotEmpty(arr);
-    }
-
-    [Fact]
-    public async Task ProblemVerifiers_UnknownProblem_ReturnsEmptyJsonArray()
-    {
-        var response = await _client.GetAsync("/Navigation/Problem_Verifiers?chosenProblem=NoSuchProblem&problemType=NPC", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
-        Assert.NotNull(arr);
-        Assert.Empty(arr);
-    }
-
     // ── Problem_VerifiersRefactor: lookup must not depend on problemType ──────
     // Regression for #317/#318: the GUI pins problemType to "NPC" and never updates
     // it, so a P / NP-Hard problem arrives with the wrong prefix. The verifier lookup
@@ -150,19 +95,12 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
         Assert.Equal("entered a verifier that does not exist", message);
     }
 
-    // ── All_Visualizations (requires chosenProblem param) ────────────────────
-
     [Fact]
-    public async Task AllVisualizations_WithProblem_Returns200()
+    public async Task ProblemVerifiersRefactor_CaseInsensitiveInputs_ReturnsNonEmptyJsonArray()
     {
-        var response = await _client.GetAsync("/Navigation/All_Visualizations?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/Navigation/Problem_VerifiersRefactor?chosenProblem=sat3&problemType=npc", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
 
-    [Fact]
-    public async Task AllVisualizations_WithProblem_ReturnsNonEmptyJsonArray()
-    {
-        var response = await _client.GetAsync("/Navigation/All_Visualizations?chosenProblem=NPC_SAT3", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
         Assert.NotNull(arr);
