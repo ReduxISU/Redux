@@ -36,7 +36,7 @@ public class MINCUT_Tests
         string instance = "({1,2},{({1,2},7)})";
         MINCUT problem = new MINCUT(instance);
         Assert.Equal(2, problem.nodes.Count);
-        Assert.Equal(1, problem.edges.Count);
+        Assert.Single(problem.edges);
     }
 
     // ----- Solver ----- //
