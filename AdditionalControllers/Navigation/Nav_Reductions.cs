@@ -24,12 +24,16 @@ using API.Interfaces;
 public class ReductionEdge
 {
     /// <summary>The name of the class implementing the reduction.</summary>
+    /// <example>KarpVertexCoverToSetCover</example>
     public string className { get; set; } = "";
     /// <summary>The HTTP method and relative path that performs the reduction.</summary>
+    /// <example>POST /ProblemProvider/reduce?reduction=KarpVertexCoverToSetCover</example>
     public string endpoint { get; set; } = "";
     /// <summary>The input problem type for this reduction.</summary>
+    /// <example>VERTEXCOVER</example>
     public string inputType { get; set; } = "";
     /// <summary>The output problem type this reduction produces.</summary>
+    /// <example>SETCOVER</example>
     public string outputType { get; set; } = "";
 }
 
