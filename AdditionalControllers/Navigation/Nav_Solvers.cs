@@ -21,15 +21,6 @@ internal static class SolverNavigationData
             .ToList();
     }
 
-    // Every distinct solver class name, for the "all solvers" view.
-    internal static List<string> AllClassNames()
-    {
-        return Entries
-            .Select(e => e.className)
-            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
-
     private static List<SolverEntry> Build()
     {
         var entries = new List<SolverEntry>();
@@ -71,25 +62,6 @@ internal static class SolverNavigationData
             .ToList();
     }
 }
-
-// Get all Solvers regardless of complexity class
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Solvers)")]
-#pragma warning disable CS1591
-
-public class All_SolversController : ControllerBase {
-//Note: CALEB - should probably be removed with api refactor
-
-    [ApiExplorerSettings(IgnoreApi = true)]
-    [HttpGet]
-    public String getDefault() {
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        return JsonSerializer.Serialize(SolverNavigationData.AllClassNames(), options);
-    }
-}
-#pragma warning restore CS1591
-
 
 // Get all Solvers for a specific problem (Refactored)
 [ApiController]
