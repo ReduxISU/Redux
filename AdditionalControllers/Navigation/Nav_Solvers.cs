@@ -1,33 +1,67 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Collections;
+using API.Interfaces;
 
-// Get all Solvers regardless of complexity class
-[ApiController]
-[Route("Navigation/[controller]")]
-[Tags("- Navigation (Solvers)")]
-#pragma warning disable CS1591
+internal static class SolverNavigationData
+{
+    internal class SolverEntry
+    {
+        public string className { get; set; } = "";
+        public string problemName { get; set; } = "";
+    }
 
-public class All_SolversController : ControllerBase {
-//Note: CALEB - should probably be removed with api refactor
+    // Build once from reflected solver types so navigation doesn't depend on
+    // on-disk source layout. Mirrors VerifierNavigationData (see Nav_Verifiers.cs).
+    internal static readonly List<SolverEntry> Entries = Build();
 
-    [ApiExplorerSettings(IgnoreApi = true)]
-    [HttpGet]
-    public String getDefault() {
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath+ @"/Solvers")
-                            .Select(Path.GetFileName)
-                            .ToArray();
+    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix)
+    {
+        return Find(problemName, problemTypePrefix)
+            .Select(x => x.className)
+            .ToList();
+    }
 
-        // Not completed. Needs to loop through these directories to get the rest of the problems
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirs, options);
-        return jsonString;
+    private static List<SolverEntry> Build()
+    {
+        var entries = new List<SolverEntry>();
+        foreach (var (_, solverType) in ProblemProvider.Solvers)
+        {
+            var generic = solverType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>));
+            if (generic == null) continue;
+
+            Type problemType = generic.GetGenericArguments()[0];
+            entries.Add(new SolverEntry
+            {
+                className = solverType.Name,
+                problemName = problemType.Name,
+            });
+        }
+
+        return entries
+            .GroupBy(e => e.className, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+    }
+
+    // problemTypePrefix is accepted for API compatibility but intentionally ignored:
+    // problem names are unique across complexity classes, so the name alone identifies
+    // the solver set. Mirrors the verifier navigation (#317/#318): the GUI pins
+    // problemType to "NPC", so matching on the prefix would drop P / NP-Hard solvers.
+    private static List<SolverEntry> Find(string? problemName, string? problemTypePrefix)
+    {
+        IEnumerable<SolverEntry> query = Entries;
+
+        if (!string.IsNullOrWhiteSpace(problemName))
+        {
+            query = query.Where(e => string.Equals(e.problemName, problemName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return query
+            .OrderBy(e => e.className, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 }
-#pragma warning restore CS1591
-
 
 // Get all Solvers for a specific problem (Refactored)
 [ApiController]
@@ -38,83 +72,21 @@ public class All_SolversController : ControllerBase {
 public class Problem_SolversRefactorController : ControllerBase {
 #pragma warning restore CS1591
 
-            string NOT_FOUND_ERR_SOLVER = "entered a solver that does not exist";
+    string NOT_FOUND_ERR_SOLVER = "entered a solver that does not exist";
 
 ///<summary>Returns all solvers available for a given problem </summary>
 ///<param name="chosenProblem" example="SAT3">Problem name</param>
-///<param name="problemType" example="NPC">Problem type</param>
+///<param name="problemType" example="NPC">Problem type (optional; ignored — problem names are unique across complexity classes)</param>
 ///<response code="200">Returns string array of solvers</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
-    public String getDefault([FromQuery]string chosenProblem, [FromQuery]string problemType) {
-
-        // Determine the directory to search based on prefix. chosenProblem expected to be a problemName like "NPC_PROBLEM"\
-        string problemTypeDirectory = "";
+    public String getDefault([FromQuery]string chosenProblem, [FromQuery]string? problemType = null) {
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = "";
 
-        if (problemType == "NPC") {
-            problemTypeDirectory = "NPComplete";
-        }
-        else if (problemType == "P") {
-            problemTypeDirectory = "Polynomial";
-        }
-
-
-        try
-        {
-            string projectSourcePath = ProjectSourcePath.Value;
-            string?[] subfiles = Directory.GetFiles(projectSourcePath+ @"Problems/" + problemTypeDirectory + "/" + problemType + "_" + chosenProblem + "/Solvers")
-                                .Select(Path.GetFileName)
-                                .ToArray();
-
-            ArrayList subFilesList = new ArrayList();
-
-            foreach (var file in subfiles)
-            {
-                if (file is null)
-                    continue;
-                string fileNoExt = file.Split('.')[0]; //gets the file without the file extension
-                subFilesList.Add(fileNoExt);
-            }
-
-             jsonString = JsonSerializer.Serialize(subFilesList, options);
-
-
-        }
-        catch(System.IO.DirectoryNotFoundException){
-            // Fallback: search every class directory under Problems/ for any folder
-            // whose name ends with _{chosenProblem}, regardless of prefix.
-            var fallback = FindSolversAcrossAllDirs(ProjectSourcePath.Value, chosenProblem);
-            jsonString = fallback.Count > 0
-                ? JsonSerializer.Serialize(fallback, options)
-                : JsonSerializer.Serialize(NOT_FOUND_ERR_SOLVER, options);
-        }
-        
-        // Not completed. Needs to loop through these directories to get the rest of the problems
-        return jsonString;
-    }
-
-    private static List<string> FindSolversAcrossAllDirs(string root, string chosenProblem) {
-        var result = new List<string>();
-        var problemsRoot = Path.Combine(root, "Problems");
-        if (!Directory.Exists(problemsRoot)) return result;
-        foreach (var classDir in Directory.GetDirectories(problemsRoot)) {
-            foreach (var problemDir in Directory.GetDirectories(classDir)) {
-                var dirName = Path.GetFileName(problemDir) ?? "";
-                var idx = dirName.IndexOf('_');
-                if (idx >= 0 && dirName[(idx + 1)..] == chosenProblem) {
-                    var solversPath = Path.Combine(problemDir, "Solvers");
-                    if (!Directory.Exists(solversPath)) continue;
-                    foreach (var file in Directory.GetFiles(solversPath)) {
-                        var name = Path.GetFileNameWithoutExtension(file);
-                        if (name != null) result.Add(name);
-                    }
-                    return result;
-                }
-            }
-        }
-        return result;
+        List<string> subFilesList = SolverNavigationData.FindWithoutExtension(chosenProblem, problemType);
+        return subFilesList.Count > 0
+            ? JsonSerializer.Serialize(subFilesList, options)
+            : JsonSerializer.Serialize(NOT_FOUND_ERR_SOLVER, options);
     }
 }
