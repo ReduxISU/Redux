@@ -26,18 +26,18 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
     public List<object> GetSteps(PUMPSCHEDULINGCM _) => [true];
 
     private const int Hours = 24;
-    private const int Buckets = 1000;
-    private const double Inf = double.MaxValue / 2;
+    private const double Inf = double.PositiveInfinity;
 
     public string solve(PUMPSCHEDULINGCM problem)
     {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double cap = problem.TankCapacity;
-        double bucketSize = cap / Buckets;
+        int buckets = (int)Math.Ceiling(cap);
+        double bucketSize = 1.0;
 
         int ToBucket(double level) =>
-            Math.Clamp((int)Math.Round(level / bucketSize), 0, Buckets);
+            Math.Clamp((int)Math.Round(level / bucketSize), 0, buckets);
 
         double ToLevel(int b) => b * bucketSize;
 
@@ -69,7 +69,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
             return cost;
         }
 
-        int stateB = Buckets + 1;
+        int stateB = buckets + 1;
         double[,,] dp      = new double[Hours + 1, stateB, nMasks];
         int[,,]    parentB = new int   [Hours + 1, stateB, nMasks];
         int[,,]    parentM = new int   [Hours + 1, stateB, nMasks];
