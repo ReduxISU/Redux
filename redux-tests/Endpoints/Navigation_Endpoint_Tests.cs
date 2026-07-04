@@ -218,4 +218,58 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
         Assert.NotNull(graph);
         Assert.NotEmpty(graph);
     }
+
+    // ── Problem_VisualizationsRefactor: reflection-based, ignores problemType (#331) ──
+    // Lookup resolves by problem name; the GUI pins problemType to "NPC", so matching
+    // on the prefix would drop P / NP-Hard problems.
+
+    [Fact]
+    public async Task ProblemVisualizationsRefactor_NpcProblem_FindsVisualization()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_VisualizationsRefactor?chosenProblem=SAT3&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("Sat3DefaultVisualization", arr);
+    }
+
+    [Fact]
+    public async Task ProblemVisualizationsRefactor_PProblem_WithWrongNpcProblemType_FindsVisualization()
+    {
+        // DFA lives under Problems/P, but mirror the GUI sending problemType=NPC.
+        var response = await _client.GetAsync("/Navigation/Problem_VisualizationsRefactor?chosenProblem=DFA&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("DFAVisualization", arr);
+    }
+
+    [Fact]
+    public async Task ProblemVisualizationsRefactor_OmittedProblemType_FindsVisualization()
+    {
+        // problemType is optional (#331); omitting it entirely must still resolve by name.
+        var response = await _client.GetAsync("/Navigation/Problem_VisualizationsRefactor?chosenProblem=SAT3", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        Assert.Contains("Sat3DefaultVisualization", arr);
+    }
+
+    [Fact]
+    public async Task ProblemVisualizationsRefactor_UnknownProblem_ReturnsEmptyJsonArray()
+    {
+        var response = await _client.GetAsync("/Navigation/Problem_VisualizationsRefactor?chosenProblem=NoSuchProblem&problemType=NPC", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<JsonElement[]>(body);
+        Assert.NotNull(arr);
+        Assert.Empty(arr);
+    }
 }
