@@ -26,8 +26,8 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
 
     private const int Hours     = 24;
     private const double BudgetSlack = 1.5;
-    private const double Inf    = double.MaxValue / 2;
-    private const double NegInf = double.MinValue / 2;
+    private const double Inf    = double.PositiveInfinity;
+    private const double NegInf = double.NegativeInfinity;
 
     public string solve(PUMPSCHEDULINGEM problem)
     {

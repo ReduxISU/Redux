@@ -26,7 +26,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
     public List<object> GetSteps(PUMPSCHEDULINGCM _) => [true];
 
     private const int Hours = 24;
-    private const double Inf = double.MaxValue / 2;
+    private const double Inf = double.PositiveInfinity;
 
     public string solve(PUMPSCHEDULINGCM problem)
     {
