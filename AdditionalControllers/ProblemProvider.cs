@@ -352,25 +352,14 @@ public class ProblemProvider : ControllerBase
     {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
-        IReduction red;
         try {
-            red = Reduction(reduction, instance);
-        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
-                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
-        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ReductionInputException ex) {
-            return BadRequest(ReductionParseErrorBody("reduction_input_parse_error", ex.Reduction,
-                ex.ExpectedFormat, ex.Received, ex.Message));
-        }
-
-        try {
+            IReduction red = Reduction(reduction, instance);
             string mappedSolution = red.mapSolutions(solution);
             return Content(
                 JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }),
                 "application/json");
-        } catch (ReductionInputException ex) {
-            return BadRequest(ReductionParseErrorBody("reduction_input_parse_error", ex.Reduction,
-                ex.ExpectedFormat, ex.Received, ex.Message));
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
         }
     }
 
