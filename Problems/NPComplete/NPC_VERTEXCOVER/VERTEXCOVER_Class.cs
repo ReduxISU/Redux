@@ -18,6 +18,8 @@ class VERTEXCOVER : IGraphProblem<VertexCoverBruteForce,VCVerifier,VertexCoverDe
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     private static string _defaultInstance = "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat {get;} = "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)";
+    public string certificateFormat {get;} = "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance's node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}";
     public string instance {get;set;} = string.Empty;
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
@@ -65,19 +67,27 @@ class VERTEXCOVER : IGraphProblem<VertexCoverBruteForce,VCVerifier,VertexCoverDe
 
     }
     public VERTEXCOVER(string instanceInput) {
+        if (string.IsNullOrWhiteSpace(instanceInput)) {
+            throw new ProblemParseException("VERTEXCOVER", instanceInput, "instance is empty");
+        }
+
         instance = instanceInput;
 
         StringParser vertexCover = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
-        vertexCover.parse(instanceInput);
-        nodes = vertexCover["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = vertexCover["E"].ToList().Select(edge =>
-        {
-            List<UtilCollection> cast = edge.ToList();
-            return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
-        }).ToList();
-        _K = int.Parse(vertexCover["K"].ToString());
+        try {
+            vertexCover.parse(instanceInput);
+            nodes = vertexCover["N"].ToList().Select(node => node.ToString()).ToList();
+            edges = vertexCover["E"].ToList().Select(edge =>
+            {
+                List<UtilCollection> cast = edge.ToList();
+                return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
+            }).ToList();
+            _K = int.Parse(vertexCover["K"].ToString());
 
-        graph = new UtilCollectionGraph(vertexCover["N"], vertexCover["E"]);
+            graph = new UtilCollectionGraph(vertexCover["N"], vertexCover["E"]);
+        } catch (Exception ex) when (ex is not ProblemParseException) {
+            throw new ProblemParseException("VERTEXCOVER", instanceInput, ex.Message);
+        }
     }
 }
 
