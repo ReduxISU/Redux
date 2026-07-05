@@ -103,4 +103,60 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.False(string.IsNullOrWhiteSpace(body));
     }
+
+    // ── /ProblemProvider/mapSolution ──────────────────────────────────────────
+
+    [Fact]
+    public async Task MapSolution_ValidSAT3Solution_Returns200()
+    {
+        var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("(x1:True,x2:False,x3:True)");
+        var response = await _client.PostAsync($"/ProblemProvider/mapSolution?reduction=sipserreducetocliquestandard&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task MapSolution_CliqueShapedCertificate_Returns400WithParseError()
+    {
+        // The original gut-check: a CLIQUE-shaped certificate fed to the SAT3→CLIQUE
+        // forward mapper used to throw IndexOutOfRangeException → HTTP 500. It must
+        // now surface as a structured 400.
+        var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("{x1_0,x2_1,!x3_3}");
+        var response = await _client.PostAsync($"/ProblemProvider/mapSolution?reduction=sipserreducetocliquestandard&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("reduction_input_parse_error", body);
+    }
+
+    [Fact]
+    public async Task MapSolution_NonSipserInstance_Returns400WithParseError()
+    {
+        // SipserReduceToSAT3 requires Sipser-formatted CLIQUE node names. A plain
+        // numeric-node CLIQUE instance is well-formed as a CLIQUE but invalid for
+        // this reduction, and must surface as a 400 rather than a 500.
+        var instance = "\"(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("{x1_0}");
+        var response = await _client.PostAsync($"/ProblemProvider/mapSolution?reduction=sipserreducetosat3&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("reduction_input_parse_error", body);
+    }
+
+    [Fact]
+    public async Task MapSolution_BadCertificate_Returns400WithParseError()
+    {
+        // Valid Sipser-formatted CLIQUE instance, but the certificate carries
+        // non-Sipser node names — the certificate-side throw site.
+        var instance = "\"(({x1_0,x2_1,x3_2},{{x1_0,x2_1},{x2_1,x3_2},{x1_0,x3_2}}),3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("{a,b}");
+        var response = await _client.PostAsync($"/ProblemProvider/mapSolution?reduction=sipserreducetosat3&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("reduction_input_parse_error", body);
+    }
 }
