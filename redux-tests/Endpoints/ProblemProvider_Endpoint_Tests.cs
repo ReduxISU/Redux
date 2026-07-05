@@ -159,4 +159,55 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("reduction_input_parse_error", body);
     }
+
+    // ── unparsable-instance handling on the remaining reduction/visualization
+    //    endpoints (issue #355) ─────────────────────────────────────────────
+    // Each of these builds a SAT3 from the posted instance; a malformed SAT3
+    // formula ("1" is not a valid literal) used to escape as an unhandled
+    // exception → HTTP 500, and must now surface as a structured 400.
+
+    // A CLIQUE-shaped string posted to a SAT3-sourced reduction — the exact
+    // shape from the production stack trace that motivated issue #355.
+    private const string InvalidSat3Instance = "\"(1 | 2 | 3)\"";
+
+    [Fact]
+    public async Task Reduce_InvalidInstance_Returns400WithParseError()
+    {
+        var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("instance_parse_error", body);
+    }
+
+    [Fact]
+    public async Task Gadgets_InvalidInstance_Returns400WithParseError()
+    {
+        var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/gadgets?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("instance_parse_error", body);
+    }
+
+    [Fact]
+    public async Task VisualizeReduction_InvalidInstance_Returns400WithParseError()
+    {
+        var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("(x1:True)");
+        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction=sipserreducetocliquestandard&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("instance_parse_error", body);
+    }
+
+    [Fact]
+    public async Task Visualize_InvalidInstance_Returns400WithParseError()
+    {
+        var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=sat3defaultvisualization", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("instance_parse_error", body);
+    }
 }

@@ -118,6 +118,29 @@ public class ProblemProvider : ControllerBase
         };
     }
 
+    // --- Parse-error handling shared across endpoints -----------------------
+    // Reflective construction (Activator.CreateInstance) wraps constructor
+    // exceptions in TargetInvocationException; direct calls (e.g. mapSolutions,
+    // verify) throw the parse exception unwrapped. Unwrap normalizes both so
+    // callers can pattern-match on the real exception type.
+    private static Exception Unwrap(Exception ex) =>
+        ex is System.Reflection.TargetInvocationException { InnerException: { } inner } ? inner : ex;
+
+    /// <summary>True when <paramref name="ex"/> (once unwrapped) is a parse error we translate to HTTP 400.</summary>
+    private static bool IsParseError(Exception ex) =>
+        Unwrap(ex) is ProblemParseException or ReductionInputException or CertificateParseException;
+
+    /// <summary>Maps a parse exception to a 400 BadRequest with the matching structured body.</summary>
+    private IActionResult ParseError(Exception ex) => Unwrap(ex) switch {
+        ProblemParseException p     => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
+                                           LookupInstanceFormat(p.ProblemName), p.Received, p.Message)),
+        ReductionInputException r   => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
+                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message)),
+        CertificateParseException c => BadRequest(ParseErrorBody("certificate_parse_error",
+                                           c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message)),
+        _ => throw ex,
+    };
+
     private static string LookupInstanceFormat(string problemName) {
         // problemName may be either the class name (Problems key) or the
         // friendly problemName property — scan both. Error path: O(N) is fine.
@@ -256,7 +279,11 @@ public class ProblemProvider : ControllerBase
         if (!Visualizers.TryGetValue(visualization.ToLower(), out _))
             return BadRequest(new { error = "unknown_visualization", received = visualization });
         var vis = Visualization(visualization);
-        return Content(getVisualize(vis, vis.solver.GetSteps(instance), vis.solver.solve(instance), instance), "application/json");
+        try {
+            return Content(getVisualize(vis, vis.solver.GetSteps(instance), vis.solver.solve(instance), instance), "application/json");
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
     }
 
     /// <summary>
@@ -276,11 +303,15 @@ public class ProblemProvider : ControllerBase
                 return BadRequest(new { error = "unknown_reduction", received = r });
 
         IReduction? red = null;
-        foreach (string reductionname in reds)
-        {
-            red = Reduction(reductionname, instance);
-            solution = red.mapSolutions(solution);
-            instance = red.reductionTo.instance;
+        try {
+            foreach (string reductionname in reds)
+            {
+                red = Reduction(reductionname, instance);
+                solution = red.mapSolutions(solution);
+                instance = red.reductionTo.instance;
+            }
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
         }
 
         if (red is null)
@@ -301,7 +332,11 @@ public class ProblemProvider : ControllerBase
     {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
-        return Content(JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+        try {
+            return Content(JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
     }
 
     /// <summary>
@@ -363,7 +398,11 @@ public class ProblemProvider : ControllerBase
     {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
-        IReduction red = Reduction(reduction, instance);
-        return Content(JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+        try {
+            IReduction red = Reduction(reduction, instance);
+            return Content(JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
     }
 }
