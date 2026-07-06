@@ -2,127 +2,125 @@
 
 Running redux on the production server is documented here.
 
-## Initial configuration
+## Common operations
 
-We're going to assume the system is using systemd (the current
-system process manager used by almost all Linux distributions).
+### How to restart the services
 
-First, install the systemd service file. The file below should
-be installed to `/etc/systemd/system/redux.service`, owned by root/root and
-not writeable by anyone else.
+All of the services are run as a single docker composition and it is
+started and stopped via systemd. Members of the `redux` group are granted
+permission to start/stop/restart the service via sudo (see
+[How it is configured](#how-it-is-configured) below), so no password is
+required.
+
+To start/restart:
+```
+sudo systemctl restart redux
+```
+
+To stop:
+```
+sudo systemctl stop redux
+```
+
+If you want to disable the service (or re-enable it), systemctl's
+enable/disable commands can be used. Note that the sudo grant only
+covers start/stop/restart; enable/disable require a password.
+
+### Viewing the logs
+
+systemd services use journalctl to manage their logs. To view, use the command below.
+Note that this log has entries for all of the redux services.
+
+```
+sudo journalctl -xeu redux
+```
+### Updating
+
+The docker containers are NOT upgraded regularly and must be manually upgraded on
+the production machine (portneuf). They are regularly updated on `redux.thought.net`,
+though.
+
+To update the packages on the production server:
+
+```
+$ sudo docker compose pull
+[+] Pulling 4/4
+ ✔ redux-gui Pulled                                                        0.8s
+ ✔ mcpredux Pulled                                                         0.8s
+ ✔ redux Pulled                                                            0.9s
+ ✔ quantumsolver Pulled                                                    0.8s
+$ sudo systemctl restart redux
+```
+
+The restart completes without a password prompt because the sudoers rule
+grants the `redux` group NOPASSWD access to manage the service.
+
+## How it is configured
+
+All of the redux services (Redux_GUI, Redux, mcpredux, quantumsolver) are
+composed into a set of docker containers. Each container is built by github actions
+and the composition file uses those containers. There is no source code on the
+production server.
+
+The compose file can be found in `/home/redux/docker-compose.yml`. It currently
+exposes the following ports to the internet at large:
+ - Redux (http on 27000)
+ - Redux_GUI (http on 3000)
+ - mcpredux (http on 27200)
+ - quantumsolver (http on 27100)
+
+ Internally, Redux_GUI and mcpredux connect to Redux on the docker private network.
+ Likewise, Redux connects to quantumsolver on the docker private network. The public
+ exposure of the other ports is a legacy behavior.
+
+In front of the composed container is an nginx server which handles TLS and connects
+to redux as a reverse proxy.
+
+ ### service restarts (sudo)
+
+ Members of the `redux` group are allowed to start/stop/restart the service
+ without a password via the following line in /etc/sudoers (edit with
+ `visudo`):
+
+ ```
+ %redux ALL=(root) NOPASSWD: /usr/bin/systemctl restart redux, \
+                             /usr/bin/systemctl stop redux, \
+                             /usr/bin/systemctl start redux
+ ```
+
+ This covers start/stop/restart only; enabling/disabling the unit is not
+ granted and still prompts for a password. The command match is exact, so
+ only these three invocations (no extra arguments) are permitted.
+
+ ### docker container updates
+
+ This requires the following line in /etc/sudoers:
+
+ ```
+ %redux ALL=(root) CWD=/home/redux NOPASSWD: /usr/bin/docker compose pull
+ ```
+
+### systemd
+
+The service file can be found in `/etc/systemd/system/redux.service` and
+looks something like:
 
 ```
 [Unit]
-Description=redux
-Documentation=Redux backend
-After=network-online.target
-After=remote-fs.target
-Wants=network-online.target
-Wants=remote-fs.target
-ConditionPathExists=/home/USER/Redux
+Description=Redux composition
+After=docker.service
+Requires=docker.service
 
 [Service]
 Type=simple
-User=USER
-ExecStart=/home/USER/.dotnet/dotnet run
-WorkingDirectory=/home/USER/Redux
-ExecReload=/bin/kill $MAINPID
+User=redux
+Group=redux
+WorkingDirectory=/home/redux
+ExecStart=docker compose up
+ExecStop=docker compose down
 Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
-
-#
-# There are a few variables you might want to edit:
-# - ExecStart
-# - WorkingDirectory
-# - User
-# - ConditionPathExists
-#
-# ExecStart should be the location of the dotnet command
-# which can be found by doing "which dotnet". It should be
-# followed by the "run" command
-#
-# WorkingDirectory is the location of the API.csproj file
-# for Redux (the base directory for the repository)
-#
-# User is the username of the user whose permissions should be
-# used to run the backend.
-#
-# ConditionPathExists should be the same as WorkingDirectory
-# (if you delete the directory, this service will not try to start)
 ```
-
-To ensure the file ownership and mode:
-
-```
-chown root:root /etc/systemd/system/redux.service
-chmod 644 /etc/systemd/system/redux.service
-```
-
-Make sure you kill off any currently running Redux server, and then
-let's get systemd to do the rest of the work:
-
-```
-# systemd will notice/read the new service file
-systemctl daemon-reload
-# systemd will start the service on boot
-systemctl enable redux.service
-# go ahead and start it now
-systemctl start redux.service
-```
-
-That's it to get things into normal operation!
-
-## What about updates?
-
-From time to time, you'll want to update the code base and
-restart the service.
-
-```
-# get to the right directory
-cd [working directory with API.csproj in it]
-
-# pull changes into working directory
-git pull origin
-
-# restart the service
-sudo systemctl restart redux.service
-```
-
-## What about errors?
-
-Errors logged via `Console.WriteLine` are sent to the standard output
-of dotnet programs. Luckily, systemd logs these in a circular buffer
-by default. To view it:
-
-```
-# show the console log for redux
-journalctl -xeu redux
-```
-
-## Stop the service
-
-If you want to stop the service, easy enough:
-
-```
-sudo systemctl stop redux.service
-```
-
-Stopping it stops it for now. It will still restart on boot. To
-disable it (make sure it never starts again):
-
-```
-sudo systemctl disable redux.service
-```
-
-## Why use systemd?
-
-Running services as root is dangerous. If there's a vulnerability, the
-attacker can run code as the user running the process. Using an
-unpriviledged user means that the potential damage from a vulnerability
-is limited drastically.
-
-Further, we get logging infrastructure for free: systemd logs the
-standard output in such a way that we don't have to worry about filling
-the disk on really bad looping errors, etc.
