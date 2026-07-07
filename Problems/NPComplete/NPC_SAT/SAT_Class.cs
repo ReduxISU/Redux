@@ -21,6 +21,8 @@ namespace API.Problems.NPComplete.NPC_SAT;
 
     public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat {get;} = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
+    public string certificateFormat {get;} = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public string instance {get;set;} = string.Empty;
 
     public string wikiName {get;} = "";

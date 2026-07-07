@@ -22,6 +22,28 @@ public class SAT_Tests
     }
 
     [Fact]
+    public void SAT_Instance_Format_Described()
+    {
+        SAT sat = new SAT();
+        Assert.NotNull(sat.instanceFormat);
+        Assert.NotEmpty(sat.instanceFormat);
+        Assert.Contains("Boolean formula", sat.instanceFormat);
+        Assert.Contains("&", sat.instanceFormat);
+        Assert.Contains("|", sat.instanceFormat);
+    }
+
+    [Fact]
+    public void SAT_Certificate_Format_Described()
+    {
+        SAT sat = new SAT();
+        Assert.NotNull(sat.certificateFormat);
+        Assert.NotEmpty(sat.certificateFormat);
+        Assert.Contains("True", sat.certificateFormat);
+        Assert.Contains("False", sat.certificateFormat);
+        Assert.Contains(":", sat.certificateFormat);
+    }
+
+    [Fact]
     public void SAT_Custom_Instance()
     {
         string instance = "(x1 | x2) & (!x1 | !x2) & (x1 | !x2)";
