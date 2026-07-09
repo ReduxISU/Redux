@@ -2,22 +2,22 @@ using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
-using API.Problems.P.P_SSSP.Solvers;
+using API.Problems.P.P_SPSP.Solvers;
 
-namespace API.Problems.P.P_SSSP.Visualizations;
+namespace API.Problems.P.P_SPSP.Visualizations;
 
-class SSSPVisualization : IVisualization<SSSP>
+class SPSPVisualization : IVisualization<SPSP>
 {
-    public string visualizationName { get; } = "Single Source Shortest Path Visualization";
-    public string visualizationDefinition { get; } = "Visualizes the Single Source Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
+    public string visualizationName { get; } = "Single Pair Shortest Path Visualization";
+    public string visualizationDefinition { get; } = "Visualizes the Single Pair Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt" };
     public string visualizationType => "Graph D3";
-    public ISolver solver { get; } = new SSSPSolver();
+    public ISolver solver { get; } = new SPSPSolver();
 
-    public SSSPVisualization() { }
+    public SPSPVisualization() { }
 
-    public API_JSON visualize(SSSP problem)
+    public API_JSON visualize(SPSP problem)
     {
         // For simplicity, we will just return a JSON representation of the graph
         // In a real implementation, this would be more complex and would include visual elements
@@ -26,7 +26,7 @@ class SSSPVisualization : IVisualization<SSSP>
 
     // SolvedVisualization: takes a problem instance and a solution certificate,
     // and returns a visualization of the problem instance with the solution highlighted
-    public API_JSON SolvedVisualization(SSSP problem, string solution)
+    public API_JSON SolvedVisualization(SPSP problem, string solution)
     {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
             // No path found, return graph with no highlights
@@ -69,7 +69,7 @@ class SSSPVisualization : IVisualization<SSSP>
         return graph;
     }
 
-    public List<API_JSON> StepsVisualization(SSSP problem, List<Object> steps)
+    public List<API_JSON> StepsVisualization(SPSP problem, List<Object> steps)
     {
         var result = new List<API_JSON>();
 
