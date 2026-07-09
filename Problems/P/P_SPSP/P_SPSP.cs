@@ -1,24 +1,24 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_TSP.Verifiers;
-using API.Problems.P.P_SSSP.Solvers;
-using API.Problems.P.P_SSSP.Verifiers;
-using API.Problems.P.P_SSSP.Visualizations;
+using API.Problems.P.P_SPSP.Solvers;
+using API.Problems.P.P_SPSP.Verifiers;
+using API.Problems.P.P_SPSP.Visualizations;
 using SPADE;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace API.Problems.P.P_SSSP;
+namespace API.Problems.P.P_SPSP;
 
-class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilCollectionGraph>
+class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilCollectionGraph>
 {
 
     // --- Fields ---
-    public string problemName { get; } = "Single Source Shortest Path Problem";
+    public string problemName { get; } = "Single Pair Shortest Path Problem";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Shortest_path_problem";
-    public string formalDefinition { get; } = "For a weighted graph G= (V,E) with non-negative edge weights and source vertex s \u2208 V, find the shortest path distance from s to every other vertex v \u2208 V, where path length is defined as the sum of edge weights along the path.";
-    public string problemDefinition { get; } = "Single Source Shortest Path (SSSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s in the graph, such that the sum of edge weights along each path is minimized.";
+    public string formalDefinition { get; } = "For a weighted graph G= (V,E) with non-negative edge weights, a source vertex s \u2208 V, and a target vertex t \u2208 V, find the shortest path from s to t, where path length is defined as the sum of edge weights along the path.";
+    public string problemDefinition { get; } = "Single Pair Shortest Path (SPSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s and target vertex t in the graph, such that the sum of edge weights along the path is minimized.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
     private static string _defaultInstance =
@@ -33,9 +33,9 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     public bool isWeighted { get; private set; }
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
-    public SSSPSolver defaultSolver { get; } = new SSSPSolver();
-    public SSSPVerifier defaultVerifier { get; } = new SSSPVerifier();
-    public SSSPVisualization defaultVisualization { get; } = new SSSPVisualization();
+    public SPSPSolver defaultSolver { get; } = new SPSPSolver();
+    public SPSPVerifier defaultVerifier { get; } = new SPSPVerifier();
+    public SPSPVisualization defaultVisualization { get; } = new SPSPVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
 
@@ -52,9 +52,9 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     }
 
     // --- Methods Including Constructors ---
-    public SSSP() : this(_defaultInstance) { }
+    public SPSP() : this(_defaultInstance) { }
 
-    public SSSP(string GInput)
+    public SPSP(string GInput)
     {
         instance = GInput;
 
@@ -136,7 +136,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
             }
         }
 
-        throw new InvalidOperationException("Failed to parse SSSP instance.", lastError);
+        throw new InvalidOperationException("Failed to parse SPSP instance.", lastError);
     }
 
     private static void ValidateInstance(
@@ -164,7 +164,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
                 throw new InvalidOperationException($"Edge target '{edge.To}' is not in N.");
 
             if (edge.Weight < 0)
-                throw new InvalidOperationException("SSSP using Dijkstra's algorithm does not allow negative edge weights.");
+                throw new InvalidOperationException("SPSP using Dijkstra's algorithm does not allow negative edge weights.");
         }
     }
 
@@ -189,7 +189,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
             int weight = int.Parse(rawEdge[1].ToString());
 
             if (weight < 0)
-                throw new InvalidOperationException($"SSSP using Dijkstra's algorithm does not allow negative edge weights. Found edge weight: {weight}");
+                throw new InvalidOperationException($"SPSP using Dijkstra's algorithm does not allow negative edge weights. Found edge weight: {weight}");
 
             return new ParsedEdge(GetFrom(endpoints), GetTo(endpoints), weight);
         }

@@ -4,9 +4,9 @@ using API.Interfaces;
 using API.Interfaces.Graphs;
 using SPADE;
 
-namespace API.Problems.P.P_SSSP.Solvers;
+namespace API.Problems.P.P_SPSP.Solvers;
 
-class SSSPSolver : ISolver<SSSP>
+class SPSPSolver : ISolver<SPSP>
 {
     // ----- Fields ----- //
     public string solverName { get; } = "Dijkstra's Algorithm";
@@ -16,7 +16,7 @@ class SSSPSolver : ISolver<SSSP>
     public bool timerHasExpired { get; set; }
     PriorityQueue<string, int>? pq;
 
-    public string solve(SSSP problem)
+    public string solve(SPSP problem)
     {
         UtilCollectionGraph graph = problem.graph;
         List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
@@ -207,7 +207,7 @@ class SSSPSolver : ISolver<SSSP>
     }
 
     // GetSteps: The steps are returned as a list of strings, where each string representing a path in the certificate format
-    public List<Object> GetSteps(SSSP problem)
+    public List<Object> GetSteps(SPSP problem)
     {
         var steps = new List<Object>();
         UtilCollectionGraph graph = problem.graph;

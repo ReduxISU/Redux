@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
-using API.Problems.P.P_SSSP.Solvers;
+using API.Problems.P.P_SPSP.Solvers;
 
-namespace API.Problems.P.P_SSSP.Verifiers;
+namespace API.Problems.P.P_SPSP.Verifiers;
 
-class SSSPVerifier : IVerifier<SSSP>
+class SPSPVerifier : IVerifier<SPSP>
 {
-    public string verifierName { get; } = "Single Source Shortest Path Verifier";
-    public string verifierDefinition { get; } = "Verifies the solution for the Single Source Shortest Path problem";
+    public string verifierName { get; } = "Single Pair Shortest Path Verifier";
+    public string verifierDefinition { get; } = "Verifies the solution for the Single Pair Shortest Path problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
     private string _certificate = "";
     public string certificate => _certificate;
 
-    public SSSPVerifier() { }
+    public SPSPVerifier() { }
 
     // verify: takes a problem instance and a solution certificate,
     // and returns true if the certificate is a valid solution to the problem instance,
     // false otherwise
-    public bool verify(SSSP problem, string solution)
+    public bool verify(SPSP problem, string solution)
     {
         _certificate = solution ?? ""; // Reset certificate before verification
 
@@ -33,7 +33,7 @@ class SSSPVerifier : IVerifier<SSSP>
         string sourceNode = problem.sourceNode;
         string targetNode = problem.targetNode;
 
-        var adjacency = SSSPSolver.BuildAdjacencyList(problem.graph);
+        var adjacency = SPSPSolver.BuildAdjacencyList(problem.graph);
 
         // Compute true shortest distance using Dijkstra's algorithm
         int? shortest = ShortestDistance(adjacency, nodes, sourceNode, targetNode);
@@ -113,7 +113,7 @@ class SSSPVerifier : IVerifier<SSSP>
             foreach (var (next, weight) in neighbors)
             {
                 if (weight < 0)
-                    throw new InvalidOperationException("SSSP does not allow negative edge weights.");
+                    throw new InvalidOperationException("SPSP does not allow negative edge weights.");
 
                 if (visited.Contains(next))
                     continue; // Skip visited neighbors
