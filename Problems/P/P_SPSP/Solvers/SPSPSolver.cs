@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.JSON_Objects;
 using SPADE;
+using System;
 
 namespace API.Problems.P.P_SPSP.Solvers;
 
@@ -272,5 +272,114 @@ class SPSPSolver : ISolver<SPSP>
             }
         }
         return steps;
+    }
+
+    public class SPSPTableStepVertex
+    {
+        public string name { get; set; } = "";
+        public bool known { get; set; }
+        public string cost { get; set; } = "\u221E"; // Infinity symbol
+        public string? path { get; set; }
+    }
+
+    public class SPSPTableStep : API_JSON
+    {
+        public List<SPSPTableStepVertex> vertices { get; set; } = new();
+        public string? currentVertex { get; set; }
+        public string? sourceVertex { get; set; }
+        public string? targetVertex { get; set; }
+    }
+
+    public List<Object> GetTableSteps(SPSP problem)
+    {
+        var steps = new List<Object>();
+        UtilCollectionGraph graph = problem.graph;
+
+        List<string> nodes = graph.Nodes.ToList()
+            .Select(n => n.ToString())
+            .OrderBy(n => n)
+            .ToList();
+
+        if (nodes.Count == 0)
+            return steps; // return empty list of steps
+
+        string sourceNode = problem.sourceNode;
+        string targetNode = problem.targetNode;
+
+        var adjacency = BuildAdjacencyList(graph);
+        var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
+        var prev = nodes.ToDictionary(n => n, _ => (string?)null);
+        var visited = new HashSet<string>();
+        var pq = new PriorityQueue<string, int>();
+
+        dist[sourceNode] = 0;
+        pq.Enqueue(sourceNode, 0);
+
+        steps.Add(BuildTableStep(nodes, dist, prev, visited, currentVertex: null, sourceVertex: sourceNode, targetVertex: targetNode));
+
+        while (pq.Count > 0)
+        {
+            if (timerHasExpired)
+                return steps;
+
+            string current = pq.Dequeue();
+
+            if (visited.Contains(current))
+                continue;
+
+            visited.Add(current);
+
+            // Record the step after visiting a node before relaxing its neighbors
+            steps.Add(BuildTableStep(nodes, dist, prev, visited, currentVertex: null, sourceVertex: sourceNode, targetVertex: targetNode));
+
+            if (current == targetNode)
+                break; // Stop if we've reached the target node
+
+            if (!adjacency.TryGetValue(current, out var neighbors))
+                continue; // No neighbors, so skip
+
+            foreach (var (next, weight) in neighbors)
+            {
+                if (visited.Contains(next))
+                    continue; // Skip visited neighbors
+
+                if (dist[current] == int.MaxValue)
+                    continue; // Skip if current node is unreachable
+
+                int candidate = dist[current] + weight;
+                if (candidate < dist[next])
+                {
+                    dist[next] = candidate;
+                    prev[next] = current;
+                    pq.Enqueue(next, candidate);
+                }
+            }
+            steps.Add(BuildTableStep(nodes, dist, prev, visited, currentVertex: current, sourceVertex: sourceNode, targetVertex: targetNode));
+        }
+        return steps;
+    }
+
+    private static SPSPTableStep BuildTableStep(
+        List<string> nodes,
+        Dictionary<string, int> dist,
+        Dictionary<string, string?> prev,
+        HashSet<string> visited,
+        string? currentVertex,
+        string? sourceVertex,
+        string? targetVertex)
+    {
+        return new SPSPTableStep
+        {
+            currentVertex = currentVertex,
+            sourceVertex = sourceVertex,
+            targetVertex = targetVertex,
+            vertices = nodes.Select(n => new SPSPTableStepVertex
+            {
+                name = n,
+                known = visited.Contains(n),
+                cost = dist[n] == int.MaxValue ? "\u221E" : dist[n].ToString(),
+                path = prev[n]
+            }).ToList()
+        };
     }
 }
