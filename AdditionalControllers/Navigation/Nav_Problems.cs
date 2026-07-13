@@ -1,16 +1,63 @@
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Collections.Generic;
-using System.Collections;
 
-//NOTE - Corbin: In order to add a controller for another file within /Problems, simply copy a specified controller (such as 'NPC_ProblemsRefactorController')
-//               paste and rename, the only changes needed is the path which defines subdirs for both functions: getDefault and getProblemsJson and update comments
+// Problem navigation resolved via reflection over ProblemProvider.Problems, so it no
+// longer depends on the on-disk Problems/ folder layout. Mirrors the solver / verifier
+// / visualization navigation (#317/#318/#331); those endpoints were converted earlier,
+// this closes the gap for the problem-listing endpoints.
+//
+// A problem's complexity class is read from its namespace: every problem lives in
+// API.Problems.<ComplexityClass>.<ProblemFolder> (e.g. API.Problems.NPComplete.NPC_SAT3).
+// Only these top-level problems are listed; nested helper variants such as
+// API.Problems.NPComplete.NPC_CLIQUE.Inherited (SipserClique) are excluded, matching the
+// old top-level directory scan.
+internal static class ProblemNavigationData
+{
+    internal class ProblemEntry
+    {
+        public string className { get; set; } = "";
+        public string complexityClass { get; set; } = "";
+    }
 
-//NOTE - Corbin: All specific controllers should probably be removed with the addition of tags, instead of one function per folder it should probably query a tag (like the NagGraph does for chosenProblem)
-//               in order to have one generalized specified problem controller
+    // Built once from reflected problem types.
+    internal static readonly List<ProblemEntry> Entries = Build();
+
+    private static List<ProblemEntry> Build()
+    {
+        var entries = new List<ProblemEntry>();
+        foreach (var (_, type) in ProblemProvider.Problems)
+        {
+            // Namespace is API . Problems . <ComplexityClass> . <ProblemFolder>.
+            // Anything deeper (…<Folder>.Inherited, .ReduceTo.*, …) is a nested helper
+            // problem, not a top-level listable one, so require exactly that shape.
+            string[] ns = (type.Namespace ?? "").Split('.');
+            int i = Array.IndexOf(ns, "Problems");
+            if (i < 0 || ns.Length != i + 3) continue;
+
+            entries.Add(new ProblemEntry
+            {
+                className = type.Name,
+                complexityClass = ns[i + 1],
+            });
+        }
+
+        return entries
+            .GroupBy(e => e.className, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .OrderBy(e => e.className, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    // All problem names, sorted (Entries is already sorted).
+    internal static List<string> All() => Entries.Select(e => e.className).ToList();
+
+    // Problem names for one complexity class (namespace segment: NPComplete / P / NPHard).
+    internal static List<string> ByComplexity(string complexityClass) =>
+        Entries
+            .Where(e => string.Equals(e.complexityClass, complexityClass, StringComparison.OrdinalIgnoreCase))
+            .Select(e => e.className)
+            .ToList();
+}
 
 // Get all problems
 [ApiController]
@@ -24,38 +71,14 @@ public class ALL_ProblemsRefactorController : ControllerBase
 
 ///<summary>Returns all problems</summary>
 ///<response code = "200">Returns string array of all problems regardless of class</response>
-    
+
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
 
     public String getDefault()
     {
-        string projectSourcePath = ProjectSourcePath.Value;
-        var allProblemDirNames = new List<string>();
-
-        foreach (var classDir in Directory.GetDirectories(projectSourcePath + @"Problems"))
-        {
-            foreach (var problemDir in Directory.GetDirectories(classDir))
-            {
-                var name = Path.GetFileName(problemDir);
-                if (name != null)
-                    allProblemDirNames.Add(name);
-            }
-        }
-        string?[] subdirs = allProblemDirNames.ToArray();
-        ArrayList subdirsNoPrefix = new ArrayList();
-        foreach (var problemDirName in subdirs)
-        {
-            if (problemDirName is null)
-                continue;
-            string[] splitStr = problemDirName.Split('_');
-            string newName = splitStr[1];
-            subdirsNoPrefix.Add(newName);
-        }
-
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirsNoPrefix, options);
-        return jsonString;
+        return JsonSerializer.Serialize(ProblemNavigationData.All(), options);
     }
 }
 
@@ -77,34 +100,8 @@ public class NPC_ProblemsRefactorController : ControllerBase
 
     public String getDefault()
     {
-        // File system patch that should work on both Window/Linux enviroments
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath + @"/Problems/NPComplete")
-                        .Select(Path.GetFileName)
-                        .ToArray();
-
-        ArrayList subdirsNoPrefix = new ArrayList();
-        foreach (var problemDirName in subdirs)
-        {
-            if (problemDirName is null)
-                continue;
-            string[] splitStr = problemDirName.Split('_');
-            string newName = splitStr[1];
-            subdirsNoPrefix.Add(newName);
-        }
-
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirsNoPrefix, options);
-
-        //NOTE - Corbin: below is someone elses commented out code, I am leaving it for now just in case it is needed.
-
-        // ProblemGraph graph = new ProblemGraph();
-        // graph.getConnectedNodes("SAT3");
-        // string ring = JsonSerializer.Serialize(graph.getConnectedNodes("SAT3"), options);
-        //  Console.WriteLine("\n"+ring );
-
-        //Response.Headers.Add("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
-        return jsonString;
+        return JsonSerializer.Serialize(ProblemNavigationData.ByComplexity("NPComplete"), options);
     }
 }
 
@@ -119,32 +116,15 @@ public class P_ProblemsRefactorController : ControllerBase
 #pragma warning restore CS1591
 
     ///<summary>Returns all P-Class problems </summary>
-    ///<response code="200">Returns string array of all NP-Complete problems</response>
+    ///<response code="200">Returns string array of all P-Class problems</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
 
     public String getDefault()
     {
-        // File system patch that should work on both Window/Linux enviroments
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath + @"/Problems/P")
-                        .Select(Path.GetFileName)
-                        .ToArray();
-
-        ArrayList subdirsNoPrefix = new ArrayList();
-        foreach (var problemDirName in subdirs)
-        {
-            if (problemDirName is null)
-                continue;
-            string[] splitStr = problemDirName.Split('_');
-            string newName = splitStr[1];
-            subdirsNoPrefix.Add(newName);
-        }
-
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirsNoPrefix, options);
-        return jsonString;
+        return JsonSerializer.Serialize(ProblemNavigationData.ByComplexity("P"), options);
     }
 
 }
@@ -160,32 +140,15 @@ public class NPHard_ProblemsRefactorController : ControllerBase
 #pragma warning restore CS1591
 
     ///<summary>Returns all NPHard problems </summary>
-    ///<response code="200">Returns string array of all NP-Complete problems</response>
+    ///<response code="200">Returns string array of all NP-Hard problems</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
 
     public String getDefault()
     {
-        // File system patch that should work on both Window/Linux enviroments
-        string projectSourcePath = ProjectSourcePath.Value;
-        string?[] subdirs = Directory.GetDirectories(projectSourcePath + @"/Problems/NPHard")
-                        .Select(Path.GetFileName)
-                        .ToArray();
-
-        ArrayList subdirsNoPrefix = new ArrayList();
-        foreach (var problemDirName in subdirs)
-        {
-            if (problemDirName is null)
-                continue;
-            string[] splitStr = problemDirName.Split('_');
-            string newName = splitStr[1];
-            subdirsNoPrefix.Add(newName);
-        }
-
         var options = new JsonSerializerOptions { WriteIndented = true };
-        string jsonString = JsonSerializer.Serialize(subdirsNoPrefix, options);
-        return jsonString;
+        return JsonSerializer.Serialize(ProblemNavigationData.ByComplexity("NPHard"), options);
     }
 
 }
