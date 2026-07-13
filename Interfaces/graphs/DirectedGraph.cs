@@ -1,7 +1,6 @@
 //DirectedGraph.cs
 //Can take a string representation of a directed graph and turn it into a directed graph object.
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,10 +24,9 @@ abstract class DirectedGraph : Graph {
     protected List<string> _nodeStringList = new List<string>();
     protected List<KeyValuePair<string, string>> _edgesKVP = new List<KeyValuePair<string, string>>();
 
-  
+
 
     protected int _K;
-    protected int lazyCounter;
     protected Dictionary<string,List<KeyValuePair<string,Node>>> _adjacencyMatrix; //Dictionary of Key Value Pairs where keys are node names and values are lists of all the node names that they are connected to.
 
     ///<summary> Default Constructor </summary>
@@ -343,39 +341,8 @@ abstract class DirectedGraph : Graph {
         return toString;
     }
 
-
-    ///<summary>
-    ///Returns an ArrayList of Strings that is essentially a dot representation of the graph.
-    ///</summary>
-    public ArrayList toDotArrayList(){
-
-        ArrayList dotList = new ArrayList();
-  
-        string preStr = @"digraph {";
-        dotList.Add(preStr);
-
-        //string preStr2 = @"node[style = ""filled""]";
-        dotList.Add(preStr);
-
-        
-        string dotNode = ""; 
-        //string colorRed = "#d62728";
-        foreach(Node n in _nodeList){
-        //dotNode=$"{n.name} [{colorRed}]";
-        dotList.Add(dotNode);
-        }
-        foreach(Edge e in _edgeList){ 
-            KeyValuePair<string,string> eKVP = e.toKVP();
-            string edgeStr = $"{eKVP.Key} -> {eKVP.Value}";
-            dotList.Add(edgeStr);
-        }
-        dotList.Add("}");
-        return dotList;
-       
-    }
-
     /// <summary>
-    /// Returns a Jsoned Dot representation (jsoned list of strings) that is compliant with the graphvis DOT format. 
+    /// Returns a Jsoned Dot representation (jsoned list of strings) that is compliant with the graphvis DOT format.
     /// </summary>
     /// <returns></returns>
     public abstract String toDotJson();

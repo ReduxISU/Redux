@@ -10,21 +10,19 @@ namespace API.Interfaces.Graphs;
 class WeightedDirectedGraph : Graph
 {
     private List<string> _nodeList;
-    private List<WeightedEdge> _edgeList;
-    private List<Node> _nodes;
-    private List<Edge> _edges;
+    private List<LabeledEdge> _edgeList;
     private List<string> _acceptStates;
     private string _startState;
 
     public WeightedDirectedGraph()
     {
         _nodeList = new List<string>();
-        _edgeList = new List<WeightedEdge>();
+        _edgeList = new List<LabeledEdge>();
         _acceptStates = new List<string>();
         _startState = string.Empty;
     }
 
-    public WeightedDirectedGraph(List<string> N, List<WeightedEdge> E, string S, List<string> F)
+    public WeightedDirectedGraph(List<string> N, List<LabeledEdge> E, string S, List<string> F)
     {
         _nodeList = N;
         _edgeList = E;
@@ -32,24 +30,19 @@ class WeightedDirectedGraph : Graph
         _acceptStates = F;
     }
 
+    // This graph stores its data in the string-based DFA model (Nodes/Edges below),
+    // not the base class's Node/Edge view, so the inherited accessors are unsupported.
+    // Use Nodes/Edges instead. See ToAPIGraph for how the data is surfaced.
     public override List<Node> nodes
-    {
-        get
-        {
-            return _nodes;
-        }
-    }
+        => throw new NotSupportedException(
+            "WeightedDirectedGraph does not expose the base Node/Edge view; use Nodes/Edges instead.");
 
     public override List<Edge> edges
-    {
-        get
-        {
-            return _edges;
-        }
-    }
+        => throw new NotSupportedException(
+            "WeightedDirectedGraph does not expose the base Node/Edge view; use Nodes/Edges instead.");
     
     public List<string> Nodes { get => _nodeList; }
-    public List<WeightedEdge> Edges { get => _edgeList; }
+    public List<LabeledEdge> Edges { get => _edgeList; }
     public string StartState { get => _startState; }
     public List<string> AcceptStates { get => _acceptStates; }
 

@@ -41,7 +41,10 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
         w = new List<int>();
         foreach (var bit in bitslist)
         {
-            w.Add(int.Parse(bit.ToString()));
+            if (int.TryParse(bit.ToString(), out int value))
+            {
+                w.Add(value);
+            }
         }
 
         n = PowerOfTwo(w.Count);

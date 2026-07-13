@@ -12,6 +12,7 @@ class SATGroverVisualization : IVisualization<SAT>
     public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner", "Jason L. Wright" };
     public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public ISolver solver { get; } = new SATGroverSolver();
 
     // --- Methods Including Constructors ---
     public SATGroverVisualization()
@@ -43,7 +44,7 @@ class SATGroverVisualization : IVisualization<SAT>
             var requestBody = new SATGroverSolver.JSON_Sat_Problem(instance.instance);
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             string response = client.PostAsync("/sat-quantum", requestBody).Result;

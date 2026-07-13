@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Graphs.GraphParser;
@@ -24,7 +25,8 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     private INDEPENDENTSET _reductionFrom;
     private CLIQUE _reductionTo;
 
-    private string _complexity = "";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
 
 
     // --- Properties ---

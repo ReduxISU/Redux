@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
@@ -10,6 +11,8 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
     public string source {get;} = " ";
     public string sourceLink {get;} = "TODO";
     public string[] contributors {get;} = { "TODO" };
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
     private string _certificate =  "";
 
     public string certificate {
@@ -24,6 +27,19 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
     }
 
     public bool verify({PROBLEM} problem, string certificate){
+        // On a malformed certificate, throw `CertificateParseException`
+        // (see Interfaces/ParseExceptions.cs) rather than silently
+        // returning false. The controller layer catches it and returns
+        // HTTP 400 with `problem.certificateFormat` quoted back to the
+        // caller. Example:
+        //
+        //   if (string.IsNullOrWhiteSpace(certificate)) {
+        //       throw new CertificateParseException(problem, certificate, "certificate is empty");
+        //   }
+        //
+        // Return false only when the certificate parses successfully but
+        // fails the verification predicate; return true when it satisfies it.
+
         // TODO: implement {VERIFIER} for {PROBLEM}
         return true;
     }

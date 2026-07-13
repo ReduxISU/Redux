@@ -5,57 +5,22 @@ namespace API.Tools;
 
 /// <summary>
 /// Client for making HTTP requests to external API servers.
-/// Supports switching between different server environments.
 /// </summary>
 public class QuantumServerAPI
 {
-    // --- Server Configuration ---
-    public enum ServerEnvironment
-    {
-        ISU_AWS,
-        LOCAL
-    }
-
-    private static readonly Dictionary<ServerEnvironment, string> ServerUrls = new()
-    {
-        { ServerEnvironment.ISU_AWS, "http://towel.aws.cose.isu.edu:8080" },
-        { ServerEnvironment.LOCAL, "http://127.0.0.1:5000" }
-    };
-
     // --- Fields ---
     private readonly HttpClient _httpClient;
-    private readonly ServerEnvironment _environment;
     private readonly string _baseUrl;
 
     // --- Constructor ---
-    
-    /// <summary>
-    /// Creates a new QuantumServerAPI instance.
-    /// </summary>
-    /// <param name="environment">The server environment to use (ISU_AWS or LOCAL)</param>
-    public QuantumServerAPI(ServerEnvironment environment = ServerEnvironment.ISU_AWS)
-    {
-        _environment = environment;
-        _baseUrl = ServerUrls[environment];
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(_baseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
-        };
-    }
 
     /// <summary>
-    /// Creates a new QuantumServerAPI with a custom base URL.
+    /// Creates a new QuantumServerAPI instance using the shared IHttpClientFactory.
     /// </summary>
-    /// <param name="customBaseUrl">Custom base URL for the API server</param>
-    public QuantumServerAPI(string customBaseUrl)
+    public QuantumServerAPI()
     {
-        _baseUrl = customBaseUrl;
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(_baseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
-        };
+        _baseUrl = QuantumSolverSettingsGlobal.QuantumSolver.BaseURL;
+        _httpClient = QuantumSolverSettingsGlobal.HttpClientFactory.CreateClient("quantum");
     }
 
     // --- Public Methods ---
@@ -138,12 +103,7 @@ public class QuantumServerAPI
     /// </summary>
     public string GetBaseUrl() => _baseUrl;
 
-    /// <summary>
-    /// Gets the current environment (if applicable).
-    /// </summary>
-    public ServerEnvironment? GetEnvironment() => _environment;
-
-    // --- Dispose ---
+    /// <summary>Ensure that the http client is closed</summary>
     public void Dispose()
     {
         _httpClient?.Dispose();

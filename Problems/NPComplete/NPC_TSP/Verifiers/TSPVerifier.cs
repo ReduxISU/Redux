@@ -35,17 +35,25 @@ class TSPVerifier : IVerifier<TSP> {
         List<string> order = certificate.Replace("{","").Replace("}","").Split(',').ToList();
         int sum = 0;
     
-        for (int i = 0; i < order.Count - 1; i++)
+        // Determine the effective node count — solvers repeat the starting node at the end
+        // (e.g. {A,B,C,D,A}), so clamp the loop to avoid checking A→A.
+        int nodeCount = (order.Count > 1 && order[0] == order[order.Count - 1])
+            ? order.Count - 1
+            : order.Count;
+
+        for (int i = 0; i < nodeCount; i++)
         {
-            bool check1 = problem.edges.Any(tuple => tuple.source == order[i] && tuple.target == order[i+1]);
-            bool check2 = problem.edges.Any(tuple => tuple.source == order[i+1] && tuple.target == order[i]);
+            string from = order[i];
+            string to   = order[(i + 1) % nodeCount];
+            bool check1 = problem.edges.Any(tuple => tuple.source == from && tuple.target == to);
+            bool check2 = problem.edges.Any(tuple => tuple.source == to   && tuple.target == from);
             if (check1) {
-                var matchingTuple = problem.edges.FirstOrDefault(tuple => tuple.Item1 == order[i] && tuple.Item2 == order[i+1]);
+                var matchingTuple = problem.edges.FirstOrDefault(tuple => tuple.Item1 == from && tuple.Item2 == to);
                 if(matchingTuple != default) {
                     sum += matchingTuple.Item3;
                 }
             } else if(check2) {
-                var matchingTuple = problem.edges.FirstOrDefault(tuple => tuple.Item1 == order[i+1] && tuple.Item2 == order[i]);
+                var matchingTuple = problem.edges.FirstOrDefault(tuple => tuple.Item1 == to && tuple.Item2 == from);
                 if(matchingTuple != default) {
                     sum += matchingTuple.Item3;
                 }

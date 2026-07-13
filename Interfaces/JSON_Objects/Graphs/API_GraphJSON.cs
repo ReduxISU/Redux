@@ -9,10 +9,6 @@ class API_GraphJSON : API_JSON
     public List<API_Node_Programmable_Small> _nodes;
     public List<API_Link> _links;
 
-    // Added Start and Accept States Elements -- Michael Trosper -- 1/20/2026 //
-    public API_Node_Programmable_Small _startState;
-    public List<API_Node_Programmable_Small> _acceptStates;
-
     public API_GraphJSON()
     {
         this._nodes = new List<API_Node_Programmable_Small>();
@@ -52,19 +48,19 @@ class API_GraphJSON : API_JSON
     }
 
     // Added an API Graph JSON Constructor For DFAs That Builds Links With Weights -- Michael Trosper -- 1/20/26 //
-    public API_GraphJSON(List<string> nodes, List<WeightedEdge> inputEdges, string startState, List<string> acceptStates)
+    public API_GraphJSON(List<string> nodes, List<LabeledEdge> inputEdges, string startState, List<string> acceptStates)
     {
         _nodes = new List<API_Node_Programmable_Small>();
         foreach (string n in nodes)
         {
-            API_Node_Programmable_Small newNode = new API_Node_Programmable_Small(n);
-            if (n.Equals(startState)) { newNode.additional = "initial"; }
-            if (acceptStates.Contains(n)) { newNode.color = "solution"; }
+            API_Node_Programmable_Automata newNode = new API_Node_Programmable_Automata(n);
+            if (n.Equals(startState)) { newNode.initial = "true"; }
+            if (acceptStates.Contains(n)) { newNode.accept_state = "true"; }
             _nodes.Add(newNode);
         }
 
         _links = new List<API_Link>();
-        foreach (WeightedEdge e in inputEdges)
+        foreach (LabeledEdge e in inputEdges)
         {
             API_Link newLink = new API_Link(e.from, e.to, weight: e.value);
             _links.Add(newLink);

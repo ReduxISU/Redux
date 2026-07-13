@@ -52,7 +52,7 @@ class PartitionBruteForce : ISolver<PARTITION> {
             binary.Add(0);
         }
         string certificate = BinaryToCertificate(binary, partition.S);
-        while(counter <= Math.Pow(2,partition.S.Count)){
+        while(counter < Math.Pow(2,partition.S.Count)){
             nextBinary(binary);
             certificate = BinaryToCertificate(binary, partition.S);
             if(partition.defaultVerifier.verify(partition, certificate)){

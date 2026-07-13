@@ -6,6 +6,12 @@
 // Solution is based off StackOverflow (https://stackoverflow.com/a/66285728)
 
 using System.Runtime.CompilerServices;
+
+// Lets the test project (assembly name "redux-tests") see internal members:
+// ProjectSourcePath below, and the top-level internal Program class used by
+// WebApplicationFactory<Program> in redux-tests/Endpoints/EndpointFixture.cs.
+[assembly: InternalsVisibleTo("redux-tests")]
+
 internal static class ProjectSourcePath
 {
     private const  string  myRelativePath = nameof(ProjectSourcePath) + ".cs";

@@ -101,9 +101,9 @@ static class ProblemInstanceGenerators{
         }
         string S = "";
         foreach(var clause in clauses){
-            S += " %26 "+clause;
+            S += " & "+clause;
         }
-        if(S.Length != 0) S = S.Substring(5);
+        if(S.Length != 0) S = S.Substring(3);
         return S;
     }
 };

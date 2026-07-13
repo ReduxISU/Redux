@@ -11,19 +11,12 @@ The `QuantumServerAPI` class provides a reusable HTTP client for making POST req
 
 ## Features
 
-✅ Switch between ISU AWS and local servers with enum
+✅ Switch between servers in appsettings.json
 ✅ Reusable POST methods with JSON serialization
 ✅ Support for typed and untyped responses
 ✅ Automatic error handling and timeouts
 ✅ Simple, clean API
 ✅ Integration with quantum algorithm solvers and visualizations
-
-## Server Configurations
-
-```csharp
-ServerEnvironment.ISU_AWS  → http://towel.aws.cose.isu.edu:8080
-ServerEnvironment.LOCAL    → http://127.0.0.1:5000
-```
 
 ## Basic Usage
 
@@ -42,20 +35,7 @@ bool[] body = new[] { true, false };
 string response = await client.PostAsync("/deutsch-quantum", body);
 ```
 
-### 2. Switch Between Servers
-
-```csharp
-// Use ISU AWS server
-var isuClient = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
-
-// Use local server
-var localClient = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.LOCAL);
-
-// Use custom URL
-var customClient = new QuantumServerAPI("http://custom-server.com:3000");
-```
-
-### 3. Typed Response
+### 2. Typed Response
 
 ```csharp
 // Define response type
@@ -76,7 +56,7 @@ if (result != null)
 }
 ```
 
-### 4. Raw JSON String
+### 3. Raw JSON String
 
 ```csharp
 var client = new QuantumServerAPI();
@@ -89,13 +69,11 @@ string response = await client.PostRawJsonAsync("/deutsch-quantum", jsonBody);
 The `DeutschQuantumSolver` class uses the Quantum API:
 
 ```csharp
-// Default constructor uses ISU_AWS
+// Default constructor
 var solver = new DeutschQuantumSolver();
 
 // Or specify environment
-var localSolver = new DeutschQuantumSolver(
-    QuantumServerAPI.ServerEnvironment.LOCAL
-);
+var localSolver = new DeutschQuantumSolver();
 
 // Use it
 DEUTSCH problem = new DEUTSCH("(0,1)");
@@ -169,23 +147,6 @@ curl -X POST http://127.0.0.1:5000/deutsch-quantum \
 
 ## Configuration
 
-### Changing Server Environment
-
-**In DeutschQuantumSolver:**
-```csharp
-// Default is ISU_AWS
-public DeutschQuantumSolver()
-{
-    _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-}
-```
-
-**In DeutschDefaultVisualization:**
-```csharp
-// Line 37 in DeutschDefaultVisualization.cs
-var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
-```
-
 ### Timeouts
 
 Default timeout is **30 seconds**. To change, modify in `QuantumServerAPI.cs`:
@@ -213,7 +174,7 @@ public string solve(DEUTSCH problem)
     try
     {
         bool[] requestBody = problem.funcValues;
-        var client = new QuantumServerAPI(_serverEnvironment);
+        var client = new QuantumServerAPI();
         string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
 
         // Parse and return answer

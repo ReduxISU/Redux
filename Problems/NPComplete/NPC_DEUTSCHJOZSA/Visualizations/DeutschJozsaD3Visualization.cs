@@ -5,6 +5,7 @@ using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
+using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 
 class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
@@ -15,7 +16,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
     public string visualizationType { get; } = "Quantum Circuit D3";
-
+    public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
     public DeutschJozsaD3Visualization() { }
 
     private sealed class D3GateOp
@@ -66,7 +67,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         try
         {
             bool[] requestBody = instance.w.Select(v => v != 0).ToArray();
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
             string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;
 
             using JsonDocument doc = JsonDocument.Parse(response);

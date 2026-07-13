@@ -12,17 +12,9 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
     public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
 
-    private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
-
     // --- Methods Including Constructors ---
     public UnstructuredGroverSolver()
     {
-        _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-    }
-
-    public UnstructuredGroverSolver(QuantumServerAPI.ServerEnvironment environment)
-    {
-        _serverEnvironment = environment;
     }
 
     static public int PowerOfTwo(int n)
@@ -84,7 +76,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
             var requestBody = new JSON_Sat_Problem(problemInstance);
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/sat-quantum", requestBody).Result;

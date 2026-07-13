@@ -1,5 +1,6 @@
 using API.Interfaces;
 using API.Tools;
+using SPADE;
 using System.Text.Json;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
@@ -17,26 +18,13 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
     public string[] contributors {get;} = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
 
-    // Configuration: Change this to switch between servers
-    private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
-
     // --- Constructors ---
 
     /// <summary>
-    /// Creates a new BernsteinVaziraniQuantumSolver using the ISU AWS server by default
+    /// Creates a new BernsteinVaziraniQuantumSolver
     /// </summary>
     public BernsteinVaziraniQuantumSolver()
     {
-        _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-    }
-
-    /// <summary>
-    /// Creates a new BernsteinVaziraniQuantumSolver with specified server environment
-    /// </summary>
-    /// <param name="environment">The server environment to use</param>
-    public BernsteinVaziraniQuantumSolver(QuantumServerAPI.ServerEnvironment environment)
-    {
-        _serverEnvironment = environment;
     }
 
     // --- Methods ---
@@ -49,7 +37,7 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
             bool[] requestBody = problem.funcValues.ToArray();
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/bernstein-vazirani-quantum", requestBody).Result;
@@ -60,7 +48,12 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
 
             if (root.TryGetProperty("answer", out JsonElement answerElement))
             {
-                return answerElement.GetString() ?? "No answer found";
+                string answer = answerElement.GetString() ?? "No answer found";
+                // Quantum server returns a bare bit string ("101"); translate to certificate format
+                UtilCollection result = new("()");
+                foreach (char c in answer)
+                    result.Add(new UtilCollection(c.ToString()));
+                return result.ToString();
             }
 
             // If no answer field, return the whole response

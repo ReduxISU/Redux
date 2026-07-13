@@ -22,26 +22,13 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
     public string[] contributors { get; } = { "Grant Gardner", "George Lake", "Jason Wright" };
     public bool timerHasExpired { get; set; }
 
-    // Configuration: Change this to switch between servers
-    private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
-
     // --- Constructors ---
 
     /// <summary>
-    /// Creates a new ShorsQuantumSolver using the ISU AWS server by default
+    /// Creates a new ShorsQuantumSolver
     /// </summary>
     public ShorsQuantumSolver()
     {
-        _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-    }
-
-    /// <summary>
-    /// Creates a new ShorsQuantumSolver with specified server environment
-    /// </summary>
-    /// <param name="environment">The server environment to use</param>
-    public ShorsQuantumSolver(QuantumServerAPI.ServerEnvironment environment)
-    {
-        _serverEnvironment = environment;
     }
 
     // --- Methods ---
@@ -54,7 +41,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
             int numberToFactor = int.Parse(problem.instance);
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the prime-factorization-quantum endpoint
             // The API expects just the raw number as the body (e.g., "15")

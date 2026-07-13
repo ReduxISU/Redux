@@ -20,23 +20,35 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
 
 
     public string solve(SAT3 sat3) {
-        Dictionary<string, bool> solution = findSolution(sat3);
+        Dictionary<string, bool>? solution = findSolution(sat3);
 
         if (solution == null) {
             return "No Solution";
         }
-        
+
+        // fill in any variables the backtracker left unassigned
+        foreach (string literal in sat3.literals)
+        {
+            string varName = literal.TrimStart('!');
+            if (!solution.ContainsKey(varName))
+            {
+                // value doesn't matter, choose false
+                solution[varName] = false;
+            }
+        }
+
         string solutionString = "(";
         foreach(KeyValuePair<string,bool> kvp in solution){
             solutionString = solutionString + kvp.Key + ":" + kvp.Value.ToString() + ",";
         }
         solutionString = solutionString.TrimEnd(',');
-        solutionString += ")"; 
+        solutionString += ")";
         return solutionString;
     }
 
     // Return type varies
-    public Dictionary<string, bool> findSolution(SAT3 sat3) {
+    public Dictionary<string, bool>? findSolution(SAT3 sat3)
+    {
         ////O(n!)
         // while(!solutionFound && !satQueue.isEmpty()):
         // 	var = varQueue.pop() //O(1)
@@ -49,17 +61,17 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         // 		//a potential pruning function would be to prioritize any variable that is alone in a statement and evaluating that to its required value (ex (y) must evaluate to true)
         // 		//to resolve cases where there are two contradicting statements ex (y), (!y) always choose the first statment to satisfy before evaluating the whole expression
         // 		//this pruning function would attempt to imediatly evaluate the first standalone expression as the next node (after current processing is done)
-        
+
         //CATCHES INVALID INPUTS
         // Console.WriteLine(sat3.literals.Count);
-        if(sat3.literals.Count < 2){
+        if (sat3.literals.Count < 2){
             // Console.WriteLine("No literals provided");
             return null;
         }
         
         bool solutionFound = false;
         PriorityQueue<SAT3PQObject, int> satPQ = new PriorityQueue<SAT3PQObject, int>();
-        Dictionary<string, bool> solution = null;
+        Dictionary<string, bool>? solution = null;
 
         int totalNumberOfVariables = findVariables(sat3.literals);
 

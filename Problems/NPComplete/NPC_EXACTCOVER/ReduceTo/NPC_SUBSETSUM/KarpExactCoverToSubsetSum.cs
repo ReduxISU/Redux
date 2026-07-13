@@ -1,5 +1,5 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_EXACTCOVER;
 using API.Problems.NPComplete.NPC_SUBSETSUM;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.ReduceTo.NPC_SUBSETSUM;
@@ -14,7 +14,8 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
 
-    private string _complexity = "";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = null;
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private EXACTCOVER _reductionFrom;
@@ -83,21 +84,20 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
             }
         }
 
-        string instance = "{{";
+        List<string> subsetSumS = new List<string>();
         double sum = 0;
         for(int j = 0; j < reductionFrom.S.Count; j++) {
             for(int i = 0; i < reductionFrom.X.Count; i++) {
                 sum += e[j,i] * Math.Pow(d,i);
             }
-            instance += sum.ToString() + ',';
+            subsetSumS.Add(sum.ToString());
             sum = 0;
         }
 
-        instance = instance.TrimEnd(',') + "} : ";
         string K = ((Math.Pow(d,reductionFrom.X.Count) - 1) / (d - 1)).ToString();
-        instance += K + '}';
+        string instance = "({" + string.Join(",", subsetSumS) + "}," + K + ")";
 
-        reducedSUBSETSUM.S = instance.Replace("{","").Replace("}","").Split(',').ToList();
+        reducedSUBSETSUM.S = subsetSumS;
         reducedSUBSETSUM.T = Int32.Parse(K);
         reducedSUBSETSUM.instance = instance;
 

@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_PRIMEFACTOR;
+using API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 using API.Tools;
 using System.Text.Json;
 
@@ -11,6 +12,7 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
     public string[] contributors { get; } = { "Grant Gardner", "Jason L. Wright", "George Lake" };
     public string visualizationType { get; } = "Quantum Circuit";
+    public ISolver solver { get; } = new PrimeFactorSolver();
 
     // --- Methods Including Constructors ---
     public ShorsDefaultVisualization()
@@ -42,7 +44,7 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
             int numberToFactor = int.Parse(instance.instance);
 
             // Create the API client
-            var client = new QuantumServerAPI(QuantumServerAPI.ServerEnvironment.ISU_AWS);
+            var client = new QuantumServerAPI();
 
             // Make the API call to get the full response including QASM
             // The API expects just the raw number as the body

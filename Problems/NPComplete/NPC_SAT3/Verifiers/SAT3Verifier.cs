@@ -35,6 +35,10 @@ class SAT3Verifier : IVerifier<SAT3> {
     // ONLY true literal names should be included in the user input seperated by commas
     public bool verify(SAT3 problem, string certificate) {
 
+        if (string.IsNullOrWhiteSpace(certificate)) {
+            throw new CertificateParseException(problem, certificate, "certificate is empty");
+        }
+
         // User input is effectively asking for the list of variables assigned to "True"
         List<List<string>> clauses = problem.clauses;
         string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")","");
@@ -49,15 +53,23 @@ class SAT3Verifier : IVerifier<SAT3> {
             if (assignmentParts.Length <= 1){
                 assignmentParts = assignment.Split('=');
             }
+            if (assignmentParts.Length < 2) {
+                throw new CertificateParseException(problem, certificate,
+                    $"assignment '{assignment}' is missing a ':' or '=' separator");
+            }
             string literalName = assignmentParts[0];
             string TF = assignmentParts[1];
 
-            if (TF == "True" | TF == "T") {
+            if (TF == "True" || TF == "T") {
                 trueLiterals.Add(literalName);
             }
-            else if (TF == "False" | TF == "F") {
-                string inverseLiteralName = "!" + literalName; 
+            else if (TF == "False" || TF == "F") {
+                string inverseLiteralName = "!" + literalName;
                 trueLiterals.Add(inverseLiteralName);
+            }
+            else {
+                throw new CertificateParseException(problem, certificate,
+                    $"assignment '{assignment}' has value '{TF}'; expected True/False (capitalized) or T/F");
             }
         }
 

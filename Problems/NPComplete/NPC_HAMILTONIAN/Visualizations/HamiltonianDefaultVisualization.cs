@@ -3,6 +3,7 @@ using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
+using API.Problems.NPComplete.NPC_HAMILTONIAN.Solvers;
 
 namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Visualizations;
 
@@ -15,6 +16,7 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public string visualizationType { get; } = "Graph D3";
+    public ISolver solver { get; } = new HamiltonianBruteForce();
 
     // --- Methods Including Constructors ---
     public HamiltonianDefaultVisualization()
@@ -28,7 +30,14 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN>
 
     public API_JSON SolvedVisualization(HAMILTONIAN hamiltonian, string solution)
     {
-        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
+        if (string.IsNullOrWhiteSpace(solution) || solution == "{}")
+            return hamiltonian.graph.ToAPIGraph();
+
+        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution)
+            .Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
+
+        if (solutionNodes.Count == 0)
+            return hamiltonian.graph.ToAPIGraph();
 
         API_GraphJSON apiGraph = hamiltonian.graph.ToAPIGraph();
        

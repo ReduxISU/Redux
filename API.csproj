@@ -12,19 +12,19 @@
 
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SPADE" Version="0.1.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.2" />
-      <Content Include="Problems\**" CopyToPublishDirectory="PreserveNewest" />
-       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.1.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <Content Include="Problems\**" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Tests live in their own project (redux-tests/redux-tests.csproj). The
+       Sdk.Web globs would otherwise pull redux-tests/**/*.cs into API.dll and
+       copy redux-tests/**/*.json (e.g. obj/project.assets.json) to the output. -->
+  <ItemGroup>
+    <Compile Remove="redux-tests/**" />
+    <Content Remove="redux-tests/**" />
+    <None Remove="redux-tests/**" />
   </ItemGroup>
 
 

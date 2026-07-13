@@ -97,7 +97,8 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
         return false;
     }
 
-        public string solve(string SATInstance){
+    public string solve(string SATInstance)
+    {
         //string SATInstance = "(!x1 | !x2 | !x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
         Boolean_Parser parser = new Boolean_Parser(SATInstance);
         List<string> literals = parser.getLiterals();
@@ -109,7 +110,8 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 
         // Adding all the literals to a dictionary with their starting value as false
         Dictionary<string, Boolean> literalDict = new Dictionary<string, bool>();
-        foreach(string literal in literals){    
+        foreach (string literal in literals)
+        {
             literalDict.Add(literal, false);
         }
 
@@ -121,34 +123,35 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
             if (timerHasExpired)
                 return "timeout";
 
+            literalDict = increment(literalDict);
             foreach (List<string> currentClause in clause){
-                    // change the T/F values of the literals. Starts with at least 1 being true by incrementing at the start.
-                    literalDict = increment(literalDict); 
-                    bool currentEvaluation = evaluate(literalDict, currentClause);
-                    
-                    if (currentEvaluation == false){
-                        break;// A clause is false, so the whole SAT is false.
-                    }
+                // change the T/F values of the literals. Starts with at least 1 being true by incrementing at the start.
+                bool currentEvaluation = evaluate(literalDict, currentClause);
 
-                    trueClauses++; // All clauses are true. We found a valid SAT solution
-                    if (clause.Count == trueClauses){
-                        string solutionString = "(";
-                        foreach (KeyValuePair<string, bool> pair in literalDict){
-                        
-                            solutionString += string.Format("{0}:{1},", pair.Key, pair.Value);
-                        }
-                        solutionString += ")";
-                        // Just getting rid of the extra comma at the end.
-                        solutionString = solutionString.Remove(solutionString.Length - 2, 1);
-                        return solutionString;
-                    }
+                if (currentEvaluation == false)
+                {
+                    break;// A clause is false, so the whole SAT is false.
                 }
-                        //literalDict = increment(literalDict); // Incrementing here starts with the formula being all false.
+
+                trueClauses++; // All clauses are true. We found a valid SAT solution
+                if (clause.Count == trueClauses)
+                {
+                    string solutionString = "(";
+                    foreach (KeyValuePair<string, bool> pair in literalDict)
+                    {
+                        solutionString += string.Format("{0}:{1},", pair.Key, pair.Value);
+                    }
+                    solutionString += ")";
+                    // Just getting rid of the extra comma at the end.
+                    solutionString = solutionString.Remove(solutionString.Length - 2, 1);
+                    return solutionString;
+                }
+            }
         }
-            return "No solution exists";
-        }
+        return "No solution exists";
+    }
 
 
     #endregion
-        
-    }
+
+}

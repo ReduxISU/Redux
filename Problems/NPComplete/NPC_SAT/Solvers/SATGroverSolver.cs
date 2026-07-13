@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 /// solution to the instance.
 /// </summary>
 /// 
-class SATGroverSolver : ISolver
+class SATGroverSolver : ISolver<SAT>
 {
     // --- Fields ---
     public string solverName { get; } = "SAT Solver using Grover's Quantum computing algorithm.";
@@ -19,9 +19,6 @@ class SATGroverSolver : ISolver
     public string[] contributors {get;} = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
 
-    // Configuration: Change this to switch between servers
-    private readonly QuantumServerAPI.ServerEnvironment _serverEnvironment;
-
     // --- Constructors ---
 
     /// <summary>
@@ -29,16 +26,6 @@ class SATGroverSolver : ISolver
     /// </summary>
     public SATGroverSolver()
     {
-        _serverEnvironment = QuantumServerAPI.ServerEnvironment.ISU_AWS;
-    }
-
-    /// <summary>
-    /// Creates a new BernsteinVaziraniQuantumSolver with specified server environment
-    /// </summary>
-    /// <param name="environment">The server environment to use</param>
-    public SATGroverSolver(QuantumServerAPI.ServerEnvironment environment)
-    {
-        _serverEnvironment = environment;
     }
 
     public class JSON_Sat_Problem
@@ -52,37 +39,6 @@ class SATGroverSolver : ISolver
 
     // --- Methods ---
 
-    public string solve(string problemInstance)
-    {
-        try
-        {
-            var requestBody = new JSON_Sat_Problem(problemInstance);
-
-            // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
-
-            // Make the API call to the quantum endpoint
-            string response = client.PostAsync("/sat-quantum", requestBody).Result;
-
-            // Parse the JSON response and extract just the answer
-            using JsonDocument doc = JsonDocument.Parse(response);
-            JsonElement root = doc.RootElement;
-
-            if (root.TryGetProperty("answer", out JsonElement answerElement))
-            {
-                return answerElement.GetString() ?? "No answer found";
-            }
-
-            // If no answer field, return the whole response
-            return response;
-        }
-        catch (Exception ex)
-        {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
-        }
-    }
-
     public string solve(SAT problem)
     {
         try
@@ -90,7 +46,7 @@ class SATGroverSolver : ISolver
             var requestBody = new JSON_Sat_Problem(problem.instance);
 
             // Create the API client
-            var client = new QuantumServerAPI(_serverEnvironment);
+            var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/sat-quantum", requestBody).Result;
