@@ -13,7 +13,7 @@ public class BatchController : ControllerBase
         _cache = cache;
     }
 
-    
+
     /// <summary>
     /// Returns ALL problems for a given complexity class in a single call.
     /// No request body is required. Defaults to NPC.
@@ -22,13 +22,16 @@ public class BatchController : ControllerBase
     [HttpPost("allProblems")]
     public IActionResult GetAllProblems([FromQuery] string problemType = "NPC")
     {
-        string cacheKey = $"batch_problems_{problemType}";
+        string? problemTypeDirectory = GetDirectory(problemType);
+        if (problemTypeDirectory == null)
+            return BadRequest($"Invalid problemType: {problemType}");
+
+        string cacheKey = $"batch_problems_{problemTypeDirectory}";
         if (_cache.TryGetValue(cacheKey, out string? cached))
         {
             Response.Headers["X-Cache"] = "HIT";
             return Content(cached!, "application/json");
         }
-        string problemTypeDirectory = GetDirectory(problemType);
         string projectSourcePath = ProjectSourcePath.Value;
         string problemsPath = Path.Combine(projectSourcePath, "Problems", problemTypeDirectory);
         if (!Directory.Exists(problemsPath))
@@ -59,13 +62,17 @@ public class BatchController : ControllerBase
     [HttpPost("allSolvers")]
     public IActionResult GetAllSolvers([FromQuery] string problemType = "NPC")
     {
-        string cacheKey = $"batch_solvers_{problemType}";
+        string? problemTypeDirectory = GetDirectory(problemType);
+        if (problemTypeDirectory == null)
+            return BadRequest($"Invalid problemType: {problemType}");
+
+        string cacheKey = $"batch_solvers_{problemTypeDirectory}";
         if (_cache.TryGetValue(cacheKey, out string? cached))
         {
             Response.Headers["X-Cache"] = "HIT";
             return Content(cached!, "application/json");
         }
-        var result = GetAllSubfolderFiles(problemType, "Solvers");
+        var result = GetAllSubfolderFiles(problemTypeDirectory, "Solvers");
         if (result == null)
             return NotFound($"No problem directory found for type {problemType}");
         string json = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
@@ -83,14 +90,18 @@ public class BatchController : ControllerBase
     [HttpPost("allVerifiers")]
     public IActionResult GetAllVerifiers([FromQuery] string problemType = "NPC")
     {
-        string cacheKey = $"batch_verifiers_{problemType}";
+        string? problemTypeDirectory = GetDirectory(problemType);
+        if (problemTypeDirectory == null)
+            return BadRequest($"Invalid problemType: {problemType}");
+
+        string cacheKey = $"batch_verifiers_{problemTypeDirectory}";
 
         if (_cache.TryGetValue(cacheKey, out string? cached))
         {
             Response.Headers["X-Cache"] = "HIT";
             return Content(cached!, "application/json");
         }
-        var result = GetAllSubfolderFiles(problemType, "Verifiers");
+        var result = GetAllSubfolderFiles(problemTypeDirectory, "Verifiers");
         if (result == null)
             return NotFound($"No problem directory found for type {problemType}");
         string json = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
@@ -108,7 +119,11 @@ public class BatchController : ControllerBase
     [HttpPost("allVisualizations")]
     public IActionResult GetAllVisualizations([FromQuery] string problemType = "NPC")
     {
-        string cacheKey = $"batch_visualizations_{problemType}";
+        string? problemTypeDirectory = GetDirectory(problemType);
+        if (problemTypeDirectory == null)
+            return BadRequest($"Invalid problemType: {problemType}");
+
+        string cacheKey = $"batch_visualizations_{problemTypeDirectory}";
 
         if (_cache.TryGetValue(cacheKey, out string? cached))
         {
@@ -116,7 +131,7 @@ public class BatchController : ControllerBase
             return Content(cached!, "application/json");
         }
 
-        var result = GetAllSubfolderFiles(problemType, "Visualizations");
+        var result = GetAllSubfolderFiles(problemTypeDirectory, "Visualizations");
         if (result == null)
             return NotFound($"No problem directory found for type {problemType}");
         string json = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
@@ -126,74 +141,77 @@ public class BatchController : ControllerBase
     }
 
 
-/// <summary>
-/// Returns ProblemProvider/info data for ALL interfaces in one call.
-/// No request body is required. Defaults to NPC.
-/// </summary>
-[ProducesResponseType(typeof(Dictionary<string, object>), 200)]
-[HttpPost("allInfo")]
-public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
-{
-    string cacheKey = $"batch_info_{problemType}";
-    if (_cache.TryGetValue(cacheKey, out string? cached))
+    /// <summary>
+    /// Returns ProblemProvider/info data for ALL interfaces in one call.
+    /// No request body is required. Defaults to NPC.
+    /// </summary>
+    [ProducesResponseType(typeof(Dictionary<string, object>), 200)]
+    [HttpPost("allInfo")]
+    public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
     {
-        Response.Headers["X-Cache"] = "HIT";
-        return Content(cached!, "application/json");
-    }
-    string problemTypeDirectory = GetDirectory(problemType);
-    string projectSourcePath = ProjectSourcePath.Value;
-    string problemsPath = Path.Combine(projectSourcePath, "Problems", problemTypeDirectory);
-    if (!Directory.Exists(problemsPath))
-        return NotFound($"Directory not found: {problemsPath}");
-    var interfaces = ProblemProvider.Interfaces;
-    var interfaceNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    foreach (var problemDir in Directory.GetDirectories(problemsPath))
-    {
-        string fullDirName = Path.GetFileName(problemDir);
-        string[] parts = fullDirName.Split('_');
-        if (parts.Length < 2) continue;
-        string problemName = string.Join("_", parts.Skip(1));
-        interfaceNames.Add(problemName);
-        
-        foreach (var solver in GetFilesNoExt(Path.Combine(problemDir, "Solvers")))
-            interfaceNames.Add(solver);
-        foreach (var verifier in GetFilesNoExt(Path.Combine(problemDir, "Verifiers")))
-            interfaceNames.Add(verifier);
-        foreach (var visualization in GetFilesNoExt(Path.Combine(problemDir, "Visualizations")))
-            interfaceNames.Add(visualization);
-    }
-    var result = new Dictionary<string, object>();
+        string? problemTypeDirectory = GetDirectory(problemType);
+        if (problemTypeDirectory == null)
+            return BadRequest($"Invalid problemType: {problemType}");
 
-    foreach (var name in interfaceNames.OrderBy(x => x))
-    {
-        try
+        string cacheKey = $"batch_info_{problemTypeDirectory}";
+        if (_cache.TryGetValue(cacheKey, out string? cached))
         {
-            if (interfaces.TryGetValue(name.ToLower(), out var type))
+            Response.Headers["X-Cache"] = "HIT";
+            return Content(cached!, "application/json");
+        }
+        string projectSourcePath = ProjectSourcePath.Value;
+        string problemsPath = Path.Combine(projectSourcePath, "Problems", problemTypeDirectory);
+        if (!Directory.Exists(problemsPath))
+            return NotFound($"Directory not found: {problemsPath}");
+        var interfaces = ProblemProvider.Interfaces;
+        var interfaceNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var problemDir in Directory.GetDirectories(problemsPath))
+        {
+            string fullDirName = Path.GetFileName(problemDir);
+            string[] parts = fullDirName.Split('_');
+            if (parts.Length < 2) continue;
+            string problemName = string.Join("_", parts.Skip(1));
+            interfaceNames.Add(problemName);
+
+            foreach (var solver in GetFilesNoExt(Path.Combine(problemDir, "Solvers")))
+                interfaceNames.Add(solver);
+            foreach (var verifier in GetFilesNoExt(Path.Combine(problemDir, "Verifiers")))
+                interfaceNames.Add(verifier);
+            foreach (var visualization in GetFilesNoExt(Path.Combine(problemDir, "Visualizations")))
+                interfaceNames.Add(visualization);
+        }
+        var result = new Dictionary<string, object>();
+
+        foreach (var name in interfaceNames.OrderBy(x => x))
+        {
+            try
             {
-                var instance = Activator.CreateInstance(type);
-                if (instance != null)
+                if (interfaces.TryGetValue(name.ToLower(), out var type))
                 {
-                    result[name] = instance;
+                    var instance = Activator.CreateInstance(type);
+                    if (instance != null)
+                    {
+                        result[name] = instance;
+                    }
                 }
             }
+            catch
+            {
+                // Skip bad interface instead of failing the whole response here
+            }
         }
-        catch
-        {
-            // Skip bad interface instead of failing the whole response here
-        }
-    }
-    string finalJson = Newtonsoft.Json.JsonConvert.SerializeObject(
-        result,
-        Newtonsoft.Json.Formatting.Indented,
-        new Newtonsoft.Json.JsonSerializerSettings
-        {
-            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-        });
+        string finalJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+            result,
+            Newtonsoft.Json.Formatting.Indented,
+            new Newtonsoft.Json.JsonSerializerSettings
+            {
+                ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            });
 
-    _cache.Set(cacheKey, finalJson, TimeSpan.FromHours(1));
-    Response.Headers["X-Cache"] = "MISS";
-    return Content(finalJson, "application/json");
-}
+        _cache.Set(cacheKey, finalJson, TimeSpan.FromHours(1));
+        Response.Headers["X-Cache"] = "MISS";
+        return Content(finalJson, "application/json");
+    }
 
 
     /// <summary>
@@ -202,7 +220,7 @@ public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
     [HttpDelete("clearCache")]
     public IActionResult ClearCache()
     {
-        foreach (var pt in new[] { "NPC", "P", "NPHard" })
+        foreach (var pt in new[] { "NPComplete", "P", "NPHard" })
         {
             _cache.Remove($"batch_problems_{pt}");
             _cache.Remove($"batch_solvers_{pt}");
@@ -213,9 +231,8 @@ public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
 
         return Ok("Cache cleared.");
     }
-    private Dictionary<string, List<string>>? GetAllSubfolderFiles(string problemType, string subfolder)
+    private Dictionary<string, List<string>>? GetAllSubfolderFiles(string problemTypeDirectory, string subfolder)
     {
-        string problemTypeDirectory = GetDirectory(problemType);
         string projectSourcePath = ProjectSourcePath.Value;
         string problemsPath = Path.Combine(projectSourcePath, "Problems", problemTypeDirectory);
 
@@ -238,12 +255,12 @@ public IActionResult GetAllInfo([FromQuery] string problemType = "NPC")
 
         return result;
     }
-    private static string GetDirectory(string problemType) => problemType switch
+    private static string? GetDirectory(string problemType) => problemType switch
     {
         "NPC" => "NPComplete",
         "P" => "P",
         "NPHard" => "NPHard",
-        _ => "NPComplete"
+        _ => null
     };
     private static List<string> GetFilesNoExt(string dirPath)
     {
