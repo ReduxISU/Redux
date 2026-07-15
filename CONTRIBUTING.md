@@ -27,6 +27,17 @@ By submitting a contribution (pull request, patch, or code submission), you conf
 
 ## How to Contribute
 
+### Development environment
+
+The easiest way to develop is the **dev container**: it provides the correct .NET 10 toolchain
+and a shared `mise run <task>` command set, so you install nothing on your host and your
+environment matches CI. Open the repo in VS Code (**Reopen in Container**) or run
+`devcontainer up` from a terminal. See **Quick Start → Recommended: Dev Container** in the
+[README](./Readme.md) for full setup.
+
+Inside the container: `mise run run` starts the API on `http://localhost:27000`, and
+`mise run test` runs the full test suite.
+
 ### 1. Fork the repository
 Create your own fork of the project.
 
@@ -40,7 +51,7 @@ Use a descriptive branch name:
 
 ### 4. Test your changes
 - Ensure the project builds successfully
-- Run any existing tests
+- Run any existing tests (`mise run test` in the dev container)
 - Add tests if applicable
 
 ### 5. Submit a Pull Request (PR)

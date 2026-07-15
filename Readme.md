@@ -34,6 +34,57 @@ The backend is designed to be adaptable and can work with different frontends. T
 
 ## Quick Start
 
+The recommended path is the **dev container** (below): it needs only a container runtime and
+gives everyone the same .NET 10 toolchain. Prefer to install toolchains on your host instead?
+Skip to [Prerequisites](#prerequisites).
+
+### Recommended: Dev Container
+
+The dev container pins the .NET 10 SDK and a shared task runner ([mise](https://mise.jdx.dev/))
+so VS Code, a plain terminal, and CI all build and test the same way. **No local .NET SDK or
+Node.js is required for backend work** — the container provides them.
+
+**Dependencies**
+
+- [Docker](https://docs.docker.com/get-docker/) (or a compatible container runtime), and
+- one of:
+  - **VS Code** + the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) (or a [GitHub Codespace](https://github.com/features/codespaces)), or
+  - the [`@devcontainers/cli`](https://github.com/devcontainers/cli) for terminal-based editors (neovim, etc.): `npm install -g @devcontainers/cli` (needs Node.js on your host).
+
+**VS Code / Codespaces**
+
+Open the repo and choose **Reopen in Container**. The first build restores packages
+automatically; then use the tasks below from the integrated terminal.
+
+**Terminal (devcontainer CLI)**
+
+```bash
+# create/start the container (first run pulls the image + restores packages)
+devcontainer up --workspace-folder .
+
+# run tasks inside it
+devcontainer exec --workspace-folder . mise run test   # restore -> build -> test
+devcontainer exec --workspace-folder . mise run run    # API on http://localhost:27000
+```
+
+**Tasks** — the same `mise run <task>` names work in VS Code, the terminal, and CI:
+
+| Task | What it does |
+|------|--------------|
+| `mise run restore` | Restore NuGet packages |
+| `mise run build`   | Build the solution (Release) |
+| `mise run test`    | Restore → build → test (mirrors CI) |
+| `mise run run`     | Run the API on http://localhost:27000 (Swagger at `/swagger/index.html`) |
+| `mise run watch`   | Run the API with hot reload |
+
+Port **27000** is published to your host, so a browser or the
+[Redux_GUI](https://github.com/ReduxISU/Redux_GUI) frontend can reach the API at
+`http://localhost:27000` while you develop.
+
+> **Working on the GUI too (e.g. a reduction)?** Run this backend container, then start the
+> frontend separately and point its `REDUX_BASE_URL` at `http://localhost:27000/`. The two are
+> independent containers wired over HTTP — you do not need both in one container.
+
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download)

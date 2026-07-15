@@ -1,0 +1,35 @@
+# mise — one task vocabulary across the Redux repos (`mise run build|test|run|watch`),
+# so C#, Python, and JS repos share the same commands.
+#
+# There is intentionally NO [tools] section: the .NET 10 runtime is provided by the
+# devcontainer base image, not mise. mise is the task layer only. See CLAUDE.md
+# "Toolchain layering (DECIDED)".
+#
+# Every task names Redux.slnx explicitly — a bare `dotnet` at the repo root errors
+# MSB1011 because API.csproj and Redux.slnx sit side by side (same reason CI does).
+
+[tasks.restore]
+description = "Restore NuGet packages"
+run = "dotnet restore Redux.slnx"
+
+[tasks.build]
+description = "Build the solution (Release)"
+depends = ["restore"]
+run = "dotnet build Redux.slnx --no-restore --configuration Release"
+
+[tasks.test]
+description = "Run unit tests (restore -> build -> test, matching CI)"
+depends = ["build"]
+run = "dotnet test Redux.slnx --no-restore --no-build --configuration Release"
+
+[tasks.run]
+description = "Run the API on http://localhost:27000 (Development + Swagger)"
+# Bind via ASPNETCORE_URLS, NOT `--urls`: `dotnet run` treats `--urls` as an unknown
+# run option and exits before the app starts. 0.0.0.0 so the published port is reachable.
+env = { ASPNETCORE_URLS = "http://0.0.0.0:27000" }
+run = "dotnet run --project API.csproj"
+
+[tasks.watch]
+description = "Run the API with hot reload on :27000"
+env = { ASPNETCORE_URLS = "http://0.0.0.0:27000" }
+run = "dotnet watch --project API.csproj run"
