@@ -136,7 +136,7 @@ class SSSPVerifier : IVerifier<SSSP>
         return allNodes.ToDictionary(n => n, n => dist[n] == int.MaxValue ? (int?)null : dist[n]);
     }
 
-    private static Dictionary<string, List<string>> ParseSSSPCertificate(string certificate)
+    public static Dictionary<string, List<string>> ParseSSSPCertificate(string certificate)
     {
         var result = new Dictionary<string, List<string>>();
 
