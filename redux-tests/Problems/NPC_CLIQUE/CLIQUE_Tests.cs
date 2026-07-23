@@ -55,6 +55,11 @@ public class CLIQUE_Tests
     [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),3)", "{5,2,3,4,1}", false)]
     // right size, but not all pairwise adjacent
     [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,3}}),4)", "{1,2,3,4}", false)]
+    // right size, but a node is not in the graph (regression: K==1 skips the
+    // pairwise-adjacency check, so membership must be validated explicitly)
+    [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),1)", "{99}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),1)", "{1}", true)]
+    [InlineData("(({1,2,3,4},{{1,2},{2,3},{3,4},{3,1},{1,4},{2,4}}),3)", "{1,2,99}", false)]
     public void CLIQUE_verifier(string instance, string certificate, bool expected)
     {
         CLIQUE clique = new CLIQUE(instance);

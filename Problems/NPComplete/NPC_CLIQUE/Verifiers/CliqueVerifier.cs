@@ -52,6 +52,12 @@ class CliqueVerifier : IVerifier<CLIQUE> {
         if(nodeList.Count != problem.K){
             return false;
         }
+        // Every certificate node must belong to the graph. The pairwise-adjacency
+        // loop below skips the i==j case, so without this a single non-member node
+        // (K==1) would be accepted as a trivial clique.
+        if(nodeList.Any(node => !problem.nodes.Contains(node))){
+            return false;
+        }
         foreach(var i in nodeList){
             foreach(var j in nodeList){
                 KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i,j);
