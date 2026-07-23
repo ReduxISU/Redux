@@ -15,10 +15,12 @@ class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueDefaultVisual
     public string problemDefinition {get;} = "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    private static string _defaultInstance = "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)"; 
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
+    private static string _defaultInstance = "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)";
     public string defaultInstance {get;} = _defaultInstance;
-    public string instanceFormat {get;} = "Graph and target clique size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...}; k is the required clique size. Example: (({1,2,3,4},{{1,2},{2,3},{3,4},{1,4}}),3)";
-    public string certificateFormat {get;} = "Comma-separated node names, optionally wrapped in braces. Must list exactly k nodes from the instance's node set, all pairwise adjacent. Example: {1,2,3,4}";
+    public string instanceFormat {get;} = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat {get;} =
+        $"Format: {CliqueVerifier.CertificateGrammar} Example: {CliqueVerifier.CertificateExample}";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
     private List<string> _nodes = new List<string>();
@@ -68,7 +70,7 @@ class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueDefaultVisual
         }
 
         instance = GInput;
-        StringParser cliqueGraph = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
+        StringParser cliqueGraph = new(InstanceGrammar);
         try {
             cliqueGraph.parse(GInput);
             nodes = cliqueGraph["N"].ToList().Select(node => node.ToString()).ToList();

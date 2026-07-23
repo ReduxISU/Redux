@@ -1,9 +1,12 @@
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
 
 class CliqueVerifier : IVerifier<CLIQUE> {
+
+    public const string CertificateGrammar = "{K | K is set}";
+    public const string CertificateExample = "{1,2,4}";
 
     // --- Fields ---
     public string verifierName {get;} = "Clique Verifier";
@@ -23,12 +26,7 @@ class CliqueVerifier : IVerifier<CLIQUE> {
 
     // --- Methods Including Constructors ---
     public CliqueVerifier() {
-        
-    }
-    private List<string> parseCertificate(string certificate){
 
-        List<string> nodeList = GraphParser.parseNodeListWithStringFunctions(certificate);
-        return nodeList;
     }
     public bool verify(CLIQUE problem, string certificate){
 
@@ -36,9 +34,13 @@ class CliqueVerifier : IVerifier<CLIQUE> {
             throw new CertificateParseException(problem, certificate, "certificate is empty");
         }
 
+        StringParser parser = new(CertificateGrammar);
         List<string> nodeList;
         try {
-            nodeList = parseCertificate(certificate);
+            parser.parse(certificate);
+            // Materialize inside the try: SPADE may parse without error and only
+            // fail when the result is enumerated or a missing key is accessed.
+            nodeList = parser["K"].ToList().Select(node => node.ToString()).ToList();
         } catch (Exception ex) {
             throw new CertificateParseException(problem, certificate, ex.Message);
         }
