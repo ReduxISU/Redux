@@ -302,6 +302,8 @@ class SSSPSolver : ISolver<SSSP>
         public string name { get; set; } = "";
         public string display { get; set; } = "\u221E";
         public string? path { get; set; }
+        public bool known { get; set; }
+        public string order { get; set; } = "";
     }
 
     public class SSSPTableStep : API_JSON
@@ -328,12 +330,14 @@ class SSSPSolver : ISolver<SSSP>
         var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
         var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
+        var finalizationOrder = new Dictionary<string, int>();
+        int orderCounter = 1;
         pq = new PriorityQueue<string, int>();
 
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
 
-        steps.Add(BuildTableStep(nodes, dist, prev, visited, currentVertex: null, sourceVertex: sourceNode));
+        steps.Add(BuildTableStep(nodes, dist, prev, visited, finalizationOrder, currentVertex: null, sourceVertex: sourceNode));
 
         while(pq.Count > 0)
         {
@@ -346,8 +350,9 @@ class SSSPSolver : ISolver<SSSP>
                 continue;
 
             visited.Add(current);
+            finalizationOrder[current] = orderCounter++;
 
-            steps.Add(BuildTableStep(nodes, dist, prev, visited, currentVertex: null, sourceVertex: sourceNode));
+            steps.Add(BuildTableStep(nodes, dist, prev, visited, finalizationOrder, currentVertex: null, sourceVertex: sourceNode));
 
             if (!adjacency.TryGetValue(current, out var neighbors))
                 continue;
@@ -368,7 +373,9 @@ class SSSPSolver : ISolver<SSSP>
                     pq.Enqueue(next, candidate);
                 }
             }
-            steps.Add(BuildTableStep(nodes, dist, prev, visited, currentVertex: current, sourceVertex: sourceNode));
+            bool isLastVertex = pq.Count == 0 || pq.UnorderedItems.All(item => visited.Contains(item.Element));
+
+            steps.Add(BuildTableStep(nodes, dist, prev, visited, finalizationOrder, currentVertex: isLastVertex ? null: current, sourceVertex: sourceNode));
         }
         return steps;
     }
@@ -378,6 +385,7 @@ class SSSPSolver : ISolver<SSSP>
         Dictionary<string, int> dist,
         Dictionary<string, string?> prev,
         HashSet<string> visited,
+        Dictionary<string, int> finalizationOrder,
         string? currentVertex,
         string? sourceVertex)
     {
@@ -391,10 +399,12 @@ class SSSPSolver : ISolver<SSSP>
                 name = n,
                 display = dist[n] == int.MaxValue
                     ? "\u221E"
-                    : (prev[n] != null ? $"{dist[n]}, {prev[n]}" : $"{dist[n]}"),
+                    : (prev[n] != null ? $"{dist[n]},{prev[n]}" : $"{dist[n]}"),
                 path = dist[n] == int.MaxValue
                     ? null
-                    : NodeListToCertificate(ReconstructPath(prev, sourceVertex, n))
+                    : NodeListToCertificate(ReconstructPath(prev, sourceVertex, n)),
+                known = visited.Contains(n),
+                order = finalizationOrder.ContainsKey(n) ? finalizationOrder[n].ToString() : ""
             }).ToList()
         };
     }

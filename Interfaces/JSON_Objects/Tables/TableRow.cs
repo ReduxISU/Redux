@@ -6,6 +6,6 @@ class TableRow
 {
     public string id { get; set; } = "";
     public string? color { get; set; }
-    public Dictionary<string, string> cells = new();
-    public Dictionary<string, string>? cellColors;
+    public Dictionary<string, string> cells { get; set; } = new();
+    public Dictionary<string, string>? cellColors { get; set; }
 }
