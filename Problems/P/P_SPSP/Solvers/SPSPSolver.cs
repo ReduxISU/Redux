@@ -286,6 +286,7 @@ class SPSPSolver : ISolver<SPSP>
     {
         public List<SPSPTableStepVertex> vertices { get; set; } = new();
         public string? currentVertex { get; set; }
+        public List<string> knownSet { get; set; } = new();
         public string? sourceVertex { get; set; }
         public string? targetVertex { get; set; }
     }
@@ -373,12 +374,13 @@ class SPSPSolver : ISolver<SPSP>
             currentVertex = currentVertex,
             sourceVertex = sourceVertex,
             targetVertex = targetVertex,
+            knownSet = visited.ToList(),
             vertices = nodes.Select(n => new SPSPTableStepVertex
             {
                 name = n,
                 known = visited.Contains(n),
                 cost = dist[n] == int.MaxValue ? "\u221E" : dist[n].ToString(),
-                path = prev[n]
+                path = dist[n] == int.MaxValue ? null : NodeListToCertificate(ReconstructPath(prev, sourceVertex!, n))
             }).ToList()
         };
     }
