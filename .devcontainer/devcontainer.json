@@ -1,13 +1,16 @@
 {
   "name": "Redux .NET Dev Container",
   "image": "mcr.microsoft.com/devcontainers/dotnet:10.0",
-  "//appPort": "Publishes 27000 to the host via `docker -p`, so it works from a plain terminal (devcontainer CLI), not just VS Code forwarding. The API binds 0.0.0.0 (see the mise `run` task).",
   "appPort": [27000],
   "portsAttributes": {
     "27000": { "label": "Redux API", "onAutoForward": "notify" }
   },
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "containerEnv": { "ASPNETCORE_URLS": "http://0.0.0.0:27000" },
+  "containerUser": "vscode",
   "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+  "postStartCommand": "if [ \"$(stat -c %U /workspaces/Redux)\" != \"vscode\" ]; then sudo chown -R vscode:vscode /workspaces/Redux; fi",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "extensions": ["ms-dotnettools.csharp"]
