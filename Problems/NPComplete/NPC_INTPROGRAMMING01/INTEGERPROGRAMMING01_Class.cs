@@ -26,6 +26,8 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string instance { get; set; } = string.Empty;
     public string[] contributors { get; } = { "Caleb Eardley" };
+    // Declared, not derived. INTPROGRAMMING01 (0-1 Integer Programming) is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<List<int>> C

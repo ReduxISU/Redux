@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
 {
@@ -13,6 +13,16 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
         private string _sourceLink = "https://arxiv.org/abs/1603.02882";
         private string[] _contributors = { "Quinton Smith" };
         public bool timerHasExpired { get; set; }
+        // Declared, not derived. Exact search WITH pruning/bounding -- distinct from an unpruned
+        // brute-force enumeration.
+        public SolverType solverType { get; } = SolverType.Backtracking;
+        public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+        // Declared, not derived. Worst case (forced-vertex reduction never fires): recursion
+        // depth is bounded by K, and SearchExact branches over closed[uPick], whose size is
+        // bounded by n; each recursive call does O(n) work (AllDominated/forced-vertex scan/
+        // ApplyPick). That's O(n^K) leaves at O(n) work apiece. The branch-and-reduce pruning
+        // (Akiba & Iwata) makes this far faster in practice -- this bound is worst-case only.
+        public string complexity { get; } = "O(n^(K+1)), n = |nodes|, K = target dominating-set size";
 
         // --- Properties ---
         public string solverName => _solverName;

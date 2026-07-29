@@ -30,6 +30,8 @@ class CLIQUECOVER : IGraphProblem<CliqueCoverBruteForce,CliqueCoverVerifier,Cliq
     public CliqueCoverDefaultVisualization defaultVisualization { get; } = new CliqueCoverDefaultVisualization();
     public UtilCollectionGraph graph { get; }
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    // Declared, not derived. CLIQUECOVER is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> nodes {

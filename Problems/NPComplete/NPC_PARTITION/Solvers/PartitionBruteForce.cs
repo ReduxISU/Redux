@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
@@ -11,6 +11,13 @@ class PartitionBruteForce : ISolver<PARTITION> {
     public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Enumerates all 2^n binary partition vectors; each candidate's
+    // verify() call is O(n^2) (nested Count()/Contains() scans over S), dominating the O(n)
+    // certificate-building cost per candidate.
+    public string complexity { get; } = "O(n^2 * 2^n), n = |S|";
 
     // --- Methods Including Constructors ---
     public PartitionBruteForce() {

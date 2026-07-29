@@ -27,6 +27,12 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
     public string sourceLink { get; } =
         "https://doi.org/10.1109/JRPROC.1952.273898";
 
+    // Declared, not derived. LosslessDataCompressionSolver is genuinely Huffman coding
+    // (frequency table, greedy lowest-frequency-pair tree merges, prefix code assignment)
+    // -- a textbook polynomial-time algorithm. See
+    // redux-tests/Metadata/ComplexityClass_Tests.cs.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+
     private static readonly string _defaultInstance =
         "this is an example of lossless data compression using huffman encoding";
 

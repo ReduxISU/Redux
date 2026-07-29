@@ -14,7 +14,7 @@ class ShortestPathVisualization : IVisualization<SHORTESTPATH>
     public string visualizationDefinition { get; } = "Visualizes Dijkstra's algorithm";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
-    public string visualizationType => "Graph D3";
+    public VisualizationType visualizationType => VisualizationType.GraphD3;
     public ISolver solver { get; } = new DijkstraSolver();
 
     public ShortestPathVisualization() { }

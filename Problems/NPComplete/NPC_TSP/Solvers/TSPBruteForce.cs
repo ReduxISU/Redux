@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
@@ -11,6 +11,13 @@ class TSPBruteForce : ISolver<TSP> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
+    // Declared, not derived. Enumerates all n! permutations; each is checked via defaultVerifier,
+    // whose verify() does two O(m) edge-list scans per node visited in the tour (n per
+    // permutation), so per-permutation cost is O(n * m).
+    public string complexity { get; } = "O(n! * n * m), n = |nodes|, m = |edges|";
 
     // --- Methods Including Constructors ---
     public TSPBruteForce()

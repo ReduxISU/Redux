@@ -37,6 +37,10 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
     public ShortestPathVisualization defaultVisualization { get; } = new ShortestPathVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors { get; } = { "Tiger Sant", "Malaya Witt", "Rajit Nilkar", "Scott Barfuss" };
+    // Declared, not derived from the Problems/NPComplete/ folder — solvable in
+    // polynomial time (e.g. Dijkstra's algorithm), it just lives under NPComplete/
+    // for filing reasons.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     
     // --- Properties ---
     public List<string> nodes

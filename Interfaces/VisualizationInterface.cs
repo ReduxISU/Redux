@@ -8,7 +8,7 @@ interface IVisualization
 {
     string visualizationName { get; }
     string visualizationDefinition { get; }
-    string visualizationType { get; }
+    VisualizationType visualizationType { get; }
     string source { get; }
     string[] contributors { get; }
     ISolver solver { get; }

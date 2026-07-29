@@ -54,7 +54,7 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM>
         "produced by the constrained longest-path DAG dynamic programming solver.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
-    public string visualizationType { get; } = "pump";
+    public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingEMSolver();
 
     public API_JSON visualize(PUMPSCHEDULINGEM problem) => new API_empty();

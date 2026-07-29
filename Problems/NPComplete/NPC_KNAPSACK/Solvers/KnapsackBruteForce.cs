@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using SPADE;
 
@@ -11,6 +11,9 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Russell Phillips"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration (own complexity string above already says "O(2^n)").
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 
 
     public string complexity {get;} = "O(2^n)";

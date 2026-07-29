@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.P.P_MINCUT.Solvers;
 
@@ -9,6 +9,14 @@ class MinCutStoerWagner : ISolver<MINCUT>
     public string source { get; } = "Stoer, Mechthild, and Frank Wagner. \"A simple min-cut algorithm.\" Journal of the ACM 44, no. 4 (1997): 585-591.";
     public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Each phase greedily grows a "maximum adjacency" ordering by
+    // repeatedly picking the most tightly-connected remaining vertex.
+    public SolverType solverType { get; } = SolverType.Greedy;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // n-1 phases; each phase's maximum-adjacency-ordering search does an O(n) array scan to
+    // pick the next node, n times (O(n^2) per phase), matching the solverDefinition's stated
+    // O(V^3) bound (n = V here, on the dense adjacency matrix).
+    public string complexity { get; } = "O(V^3)";
 
     public MinCutStoerWagner() { }
 

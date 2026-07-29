@@ -1,4 +1,4 @@
-// BinPackingBruteForce.cs
+﻿// BinPackingBruteForce.cs
 // This is the exact / correct solver for Bin Packing.
 // It uses recursive backtracking to try every possible way of placing items
 // into bins, pruning branches that would exceed the bin capacity.
@@ -26,9 +26,14 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
 
     public string source { get; } = "Garey, M. R., and Johnson, D. S. Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman, 1979. Problem SR1.";
 
-    public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta" };
+    public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta", "Michael Trosper" };
 
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Does real (if minor) pruning, but tagged BruteForce per its class name
+    // and because the pruning is incidental, not the algorithm's defining feature -- contrast with
+    // the Backtracking cluster below, where pruning/bounding IS the defining feature.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 
     // Worst-case complexity — each of the n items can go into any of K bins.
     public string complexity { get; } = "O(K^n)";

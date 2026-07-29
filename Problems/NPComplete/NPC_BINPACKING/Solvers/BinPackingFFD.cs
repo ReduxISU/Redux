@@ -1,4 +1,4 @@
-// BinPackingFFD.cs
+﻿// BinPackingFFD.cs
 // This is the First Fit Decreasing (FFD) heuristic solver for Bin Packing.
 //
 // The idea is simple and intuitive:
@@ -37,6 +37,12 @@ class BinPackingFFD : ISolver<BINPACKING> {
     public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta" };
 
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Tag reflects the guarantee class, not the mechanism: the algorithm's
+    // mechanism is a greedy first-fit pass, but its own doc comment claims a proven Dosa 2007
+    // approximation-ratio bound ((11/9)*OPT + 6/9) -- that guarantee makes it Approximation, not
+    // Greedy.
+    public SolverType solverType { get; } = SolverType.Approximation;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
     // Much cheaper than brute force — quadratic in the number of items.
     public string complexity { get; } = "O(n^2)";

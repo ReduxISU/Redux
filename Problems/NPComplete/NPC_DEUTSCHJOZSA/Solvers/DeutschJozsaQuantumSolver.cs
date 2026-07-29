@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Tools;
 using System.Text.Json;
 
@@ -16,6 +16,11 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
     public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors {get;} = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Delegates to the external quantum-simulator service.
+    public SolverType solverType { get; } = SolverType.Quantum;
+    // The Deutsch-Jozsa algorithm resolves constant-vs-balanced with exactly one query to
+    // the oracle, regardless of n; this solver makes a single call to the external endpoint.
+    public string complexity { get; } = "O(1) oracle queries";
 
     // --- Constructors ---
 

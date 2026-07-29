@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using System.Numerics;
 
 namespace API.Problems.NPComplete.NPC_DM3.Solvers;
@@ -10,6 +10,18 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // SURPRISING: reps is the exact binomial coefficient C(|M|,|X|) (the factorial-ratio formula
+    // below, computed in BigInteger because it can be huge) -- NOT a flat 2^n or n! bound. |M|
+    // (candidate triples) is an input size independent of |X|, |Y|, |Z|; when |M| is large relative
+    // to n = |X| (up to n^3 possible triples), C(|M|,n) grows asymptotically worse than n! (e.g.
+    // n=3, |M|=27 already gives C(27,3)=2925 > 3!=6). Exponential is kept as the closest available
+    // bucket -- same reasoning as CliqueCoverBruteForce's (K+1)^n case, this combinatorial growth
+    // isn't cleanly "exponential" or "factorial" in a single variable either. Each combination costs
+    // O(n^2) to verify (GenericVerifierDM3's parse plus per-coordinate List.Contains membership scans).
+    public string complexity { get; } = "O(C(m, n) * n^2), m = |M| (candidate triples), n = |X| = |Y| = |Z|";
 
     // --- Methods Including Constructors ---
     public ThreeDimensionalMatchingBruteForce() {

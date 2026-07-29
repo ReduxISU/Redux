@@ -17,6 +17,14 @@ class DijkstraSolver : ISolver<SHORTESTPATH>
 	public string source { get; } = "";
 	public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
 	public bool timerHasExpired { get; set; }
+	// Declared, not derived. Dijkstra's algorithm always finalizes the nearest unvisited
+	// node next -- an irrevocable, locally-optimal choice at each step.
+	public SolverType solverType { get; } = SolverType.Greedy;
+	public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+	// Uses DijkstraPriorityQueue<T>, a real binary min-heap (O(log n) enqueue/dequeue), with
+	// lazy re-insertion on relaxation and a `visited` check to skip stale entries — the
+	// standard binary-heap Dijkstra bound, not the O(V^2) array-scan version.
+	public string complexity { get; } = "O((V + E) log V)";
 
 	public string solve(SHORTESTPATH problem)
 	{

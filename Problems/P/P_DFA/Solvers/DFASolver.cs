@@ -14,6 +14,14 @@ class DFASolver : ISolver<DFA>
     public string[] contributors { get; } = { "Michael Trosper" };
 
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Analyzes the input string and transitions between DFA states
+    // according to the edge relation, matching this SolverType value's own definition.
+    public SolverType solverType { get; } = SolverType.StateTransition;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // For each of the up-to-n input characters, solve() does "foreach (var edge in problem.edges)"
+    // — a linear scan of all E edges to find the matching transition — instead of an O(1)
+    // dictionary/table lookup, so this is O(n * E), not the ideal O(n).
+    public string complexity { get; } = "O(n * E)";
 
     private List<string> nodePath = [];
 

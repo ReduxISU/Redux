@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects.Tables;
 using API.Problems.P.P_SPSP;
 using API.Problems.P.P_SPSP.Solvers;
@@ -11,11 +12,11 @@ namespace API.Problems.P.P_SPSP.Visualizations;
 
 class SPSPTableVisualization : IVisualization<SPSP>
 {
-    public string visualizationName { get; } = "SPSP Table Visualization";
+    public string visualizationName { get; } = "Single Pair Shortest Path Table Visualization";
     public string visualizationDefinition { get; } = "Displays a step-by-step table of Dijkstra's algorithm execution, showing each vertex's known status, current cost, and path at each stage of the algorithm.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar" };
-    public string visualizationType => "Dynamic Table";
+    public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SPSPSolver();
 
     public SPSPTableVisualization() { }
@@ -60,7 +61,7 @@ class SPSPTableVisualization : IVisualization<SPSP>
         {
             bool isKnown = knownSet.Contains(vertex.name);
             bool isCurrent = vertex.name == step.currentVertex;
-            bool isShortestPath = isFinalStep && vertex.name == step.targetVertex && vertex.path != null; 
+            bool isShortestPath = isFinalStep && vertex.name == step.targetVertex && vertex.path != null;
 
             var row = new TableRow
             {
@@ -68,11 +69,11 @@ class SPSPTableVisualization : IVisualization<SPSP>
                 cells = new Dictionary<string, string>
                {
                    {"vertex", vertex.name },
-                   {"known", isKnown ? "\u2705" : "\u274c" },
+                   {"known", isKnown ? "✅" : "❌" },
                    {"cost", vertex.cost },
                    {"path", vertex.path ?? "-" }
                },
-                cellColors = isCurrent ? new Dictionary<string, string> { { "cost", "ElementHighlight" } } : 
+                cellColors = isCurrent ? new Dictionary<string, string> { { "cost", "ElementHighlight" } } :
                     isShortestPath ? new Dictionary<string, string> { { "path", "Solution"} } : null
             };
             result.rows.Add(row);

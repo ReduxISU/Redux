@@ -40,6 +40,15 @@ public class BatchController : ControllerBase
     private static readonly Lazy<string> VisualizationsJson = new(() =>
         GroupedJson(VisualizationNavigationData.Entries.Select(e => (e.problemName, e.className))));
 
+    // className -> declared VisualizationType wire value, for every reflected
+    // visualizer. Backed by VisualizationTypeCatalog.ByClassName (see
+    // Nav_Visualizations.cs), which already does the per-type try/catch instantiation.
+    // Exists so the GUI can resolve renderability without walking allInfo, which would
+    // instantiate and Newtonsoft-serialize every problem/solver/verifier/visualization/
+    // reduction just to read one string per visualization.
+    private static readonly Lazy<string> VisualizationTypesJson = new(() =>
+        JsonSerializer.Serialize(VisualizationTypeCatalog.ByClassName.Value, Indented));
+
     // Instances of every reflected interface type, mirroring ProblemProvider.info
     // (Newtonsoft + reference-loop ignore) but for all interfaces at once. Types that
     // cannot be default-constructed are skipped rather than failing the whole payload.
@@ -111,4 +120,10 @@ public class BatchController : ControllerBase
     [ProducesResponseType(typeof(Dictionary<string, object>), 200)]
     [HttpGet("allInfo")]
     public IActionResult AllInfo() => Content(InfoJson.Value, "application/json");
+
+    /// <summary>Returns the declared VisualizationType wire value for every visualizer, keyed by class name.</summary>
+    /// <response code="200">Map of visualization class name to its VisualizationType wire value.</response>
+    [ProducesResponseType(typeof(Dictionary<string, string>), 200)]
+    [HttpGet("allVisualizationTypes")]
+    public IActionResult AllVisualizationTypes() => Content(VisualizationTypesJson.Value, "application/json");
 }

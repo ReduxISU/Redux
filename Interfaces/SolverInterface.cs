@@ -10,6 +10,31 @@ interface ISolver {
     bool timerHasExpired { get; set; }
 
     /// <summary>
+    /// The algorithmic style this solver uses. Declared, not derived — see
+    /// <see cref="API.Interfaces.SolverType"/>. Defaults to
+    /// <see cref="API.Interfaces.SolverType.Unclassified"/> until a concrete solver
+    /// overrides it.
+    /// </summary>
+    SolverType solverType { get => SolverType.Unclassified; }
+
+    /// <summary>
+    /// Free-text runtime-complexity commentary (e.g. "O(n * W)"). Pre-existing ad-hoc
+    /// field promoted to the interface under its original name — see the header of
+    /// <see cref="API.Interfaces.ReductionCost"/> for why this differs from that type's
+    /// naming choice. Defaults to empty string; only populate with a confidently-known
+    /// Big-O string, never a guess.
+    /// </summary>
+    string complexity { get => ""; }
+
+    /// <summary>
+    /// Coarse WORST-CASE growth class of this solver. Declared, not derived — see
+    /// <see cref="API.Interfaces.SolverComplexityBucket"/>. Defaults to
+    /// <see cref="API.Interfaces.SolverComplexityBucket.Unclassified"/> until a concrete
+    /// solver overrides it.
+    /// </summary>
+    SolverComplexityBucket complexityBucket { get => SolverComplexityBucket.Unclassified; }
+
+    /// <summary>
     /// Called when the run time timer for this solver has run out. The solver is
     /// expected to check the "timerHasExpired" periodically and abandon the solution
     /// if the flag is found to be true.

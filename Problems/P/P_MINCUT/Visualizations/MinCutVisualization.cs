@@ -12,7 +12,7 @@ class MinCutVisualization : IVisualization<MINCUT>
     public string visualizationDefinition { get; } = "Displays a weighted undirected graph and highlights the edges belonging to the minimum cut.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
-    public string visualizationType { get; } = "Graph D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new MinCutStoerWagner();
 
     public MinCutVisualization() { }

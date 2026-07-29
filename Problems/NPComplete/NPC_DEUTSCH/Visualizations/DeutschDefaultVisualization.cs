@@ -12,7 +12,7 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 
     public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner", "Courtney Bodily", "Andreas Kramer", "Rakesh Itani" };
-    public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new DeutschClassicalSolver();
 
     // --- Methods Including Constructors ---

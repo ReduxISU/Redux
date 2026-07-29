@@ -14,7 +14,7 @@ class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET> {
     public string visualizationDefinition {get;} = "This is a default visualization for Independent Set";
     public string source {get;} = "";
     public string[] contributors {get;} = {"Russell Phillips"};
-    public string visualizationType { get; } = "Graph D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new IndependentSetBruteForce();
 
     // --- Methods Including Constructors ---

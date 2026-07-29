@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Solvers;
 
@@ -11,6 +11,14 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT>
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/368996.369025";
     public string[] contributors { get; } = { "Pravesh Aryal", "Koras Koirala", "Dinesh Khanal" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Processes the zero-in-degree frontier via a queue, breadth-first.
+    public SolverType solverType { get; } = SolverType.BreadthFirstSearch;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // No adjacency list is built: for every one of the V dequeued nodes, the inner loop does
+    // "foreach (var edge in problem.edges)" — a full linear scan of all E edges to find those
+    // leaving `current` — instead of an O(1)-per-neighbor adjacency lookup. That's O(V * E),
+    // not the textbook O(V + E).
+    public string complexity { get; } = "O(V * E)";
 
     // --- Constructors ---
     public KahnsAlgorithm() { }
