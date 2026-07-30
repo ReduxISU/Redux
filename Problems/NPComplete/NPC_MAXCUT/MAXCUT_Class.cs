@@ -31,7 +31,7 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
     public UtilCollectionGraph graph { get; set; }
     // Declared, not derived. MAXCUT is NP-complete (Karp, 1972) — distinct from
     // min-cut (P_MINCUT), which is in P.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
 
     public List<string> nodes { get => _nodes; set => _nodes = value; }
     public List<(string source, string destination, int weight)> edges { get => _edges; set => _edges = value; }
