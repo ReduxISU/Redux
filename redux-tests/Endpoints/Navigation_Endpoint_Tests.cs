@@ -94,7 +94,7 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
                 "ARCSET", "BINPACKING", "CLIQUE", "CLIQUECOVER", "CUT", "DIRECTEDHAMILTONIAN",
                 "DM3", "DOMINATINGSET", "EXACTCOVER", "GRAPHCOLORING", "HAMILTONIAN",
                 "HITTINGSET", "INDEPENDENTSET", "INTPROGRAMMING01", "JOBSEQ", "KNAPSACK",
-                "MAXCUT", "NODESET", "PARTITION", "SAT", "SAT3", "SETCOVER", "STEINERTREE",
+                "NODESET", "PARTITION", "SAT", "SAT3", "SETCOVER", "STEINERTREE",
                 "SUBSETSUM", "SUDOKU", "TSP", "VERTEXCOVER", "WEIGHTEDCUT",
             },
             StringComparer.OrdinalIgnoreCase);
@@ -134,7 +134,7 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     {
         var actual = await GetStringSet(_client, "/Navigation/NPHard_ProblemsRefactor");
         var expected = new HashSet<string>(
-            new[] { "PUMPSCHEDULINGCM", "PUMPSCHEDULINGEM" },
+            new[] { "MAXCUT", "PUMPSCHEDULINGCM", "PUMPSCHEDULINGEM" },
             StringComparer.OrdinalIgnoreCase);
 
         Assert.True(expected.SetEquals(actual),
