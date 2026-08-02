@@ -1,7 +1,7 @@
 using API.Interfaces;
 using SPADE;
 
-namespace API.Problems.NPComplete.NPC_NQUEENS.Verifiers;
+namespace API.Problems.P.P_NQUEENS.Verifiers;
 
 class NQueensVerifier : IVerifier<NQUEENS> {
 
