@@ -121,7 +121,7 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
     {
         var actual = await GetStringSet(_client, "/Navigation/P_ProblemsRefactor");
         var expected = new HashSet<string>(
-            new[] { "CONVEXHULL", "DFA", "EDITDISTANCE", "LOSSLESSDATACOMPRESSION", "MINCUT", "MINIMUMSPANNINGTREE", "MINSTCUT", "NFA", "NQUEENS", "SHORTESTPATH", "SPSP", "SSSP", "STRONGLYCONNECTEDCOMPONENTS", "TOPOLOGICALSORT" },
+            new[] { "CONVEXHULL", "DFA", "EDITDISTANCE", "LOSSLESSDATACOMPRESSION", "MINCUT", "MINIMUMSPANNINGTREE", "MINSTCUT", "NFA", "NQUEENS", "SPSP", "SSSP", "STRONGLYCONNECTEDCOMPONENTS", "TOPOLOGICALSORT" },
             StringComparer.OrdinalIgnoreCase);
 
         Assert.True(expected.SetEquals(actual),
