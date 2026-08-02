@@ -12,7 +12,7 @@ class SetCoverDefaultVisualization : IVisualization<SETCOVER>
     public string visualizationDefinition { get; } = "This is a default visualization for Set Cover";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public string visualizationType { get; } = "Set D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
     public ISolver solver { get; } = new SetCoverBruteForce();
 
     // --- Methods Including Constructors ---

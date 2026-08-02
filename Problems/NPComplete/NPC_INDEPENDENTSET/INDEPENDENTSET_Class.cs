@@ -26,6 +26,8 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce,IndependentSetVeri
     public IndependentSetDefaultVisualization defaultVisualization { get; } = new IndependentSetDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors {get;} = { "Russell Phillips" };
+    // Declared, not derived. INDEPENDENTSET is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> nodes {

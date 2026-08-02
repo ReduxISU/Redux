@@ -46,6 +46,8 @@ class DOMINATINGSET
     public DominatingSetVerifier defaultVerifier { get; } = new DominatingSetVerifier();
     public DominatingSetDefaultVisualization defaultVisualization { get; } =
         new DominatingSetDefaultVisualization();
+    // Declared, not derived. DOMINATINGSET is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     public UtilCollectionGraph graph { get; set; }
 

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
@@ -10,6 +10,17 @@ class DancingLinks : ISolver<EXACTCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Exact search WITH pruning (Algorithm X via dancing links) -- distinct
+    // from ExactCoverBruteForce, which does not prune.
+    public SolverType solverType { get; } = SolverType.Backtracking;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Choosing the minimum-remaining-rows column each step (iterate's OrderBy) is a heuristic that cuts
+    // branching in practice, but it does not change the worst-case bound: any subset of the s = |S| rows
+    // could still be visited by some sequence of column choices, so the search tree is still bounded by
+    // the standard O(2^s) exact-cover worst case. Each node's select/deselect walks, for every column a
+    // row covers (<= x = |X|), every row covering that column (<= s), every column that row covers
+    // (<= x), doing an O(s) List<int>.Remove -- O(s^2 * x^2) per node in the worst (densest) case.
+    public string complexity { get; } = "O(2^s * s^2 * x^2), s = |S| (rows/subsets), x = |X| (columns/universe)";
 
     // --- Methods Including Constructors ---
     public DancingLinks() {

@@ -13,7 +13,7 @@ class MinimumSpanningTreeVisualization : IVisualization<MINIMUMSPANNINGTREE>
     public string source { get; } = "Original visualization implementation for this repository.";
     public string sourceLink { get; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
-    public string visualizationType { get; } = "Graph D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new KruskalSolver();
 
     public API_JSON visualize(MINIMUMSPANNINGTREE problem)

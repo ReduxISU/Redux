@@ -13,6 +13,11 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    // The e[j,i] loop is |S| x |X|, and each of the |S| output numbers needs a full
+    // |X|-digit base-(|S|+1) positional encoding regardless of how sparse each set is
+    // — total output (string) size is O(|S| * |X|), even though the element COUNT of
+    // the output (|S| numbers) is only O(|S|).
+    public ReductionCost cost { get; } = ReductionCost.Quadratic;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;

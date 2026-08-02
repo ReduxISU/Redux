@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Tools;
 using System.Text.Json;
 
@@ -11,6 +11,12 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
     public string source { get; } = "Grover L.K.: A fast quantum mechanical algorithm for database search, Proceedings, 28th Annual ACM Symposium on the Theory of Computing, (May 1996) p. 212.";
     public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Delegates to the external quantum-simulator service.
+    public SolverType solverType { get; } = SolverType.Quantum;
+    // Grover's algorithm finds a marked item among N = 2^n candidates in O(sqrt(N)) oracle
+    // queries; this solver reduces to a SAT instance and makes one call to the quantum
+    // endpoint that runs that Grover search.
+    public string complexity { get; } = "O(sqrt(2^n)) oracle queries";
 
     // --- Methods Including Constructors ---
     public UnstructuredGroverSolver()

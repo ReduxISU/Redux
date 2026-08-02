@@ -13,7 +13,7 @@ class SSSPVisualization : IVisualization<SSSP>
     public string visualizationDefinition { get; } = "Visualizes the Single Source Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar" };
-    public string visualizationType => "Graph D3";
+    public VisualizationType visualizationType => VisualizationType.GraphD3;
     public ISolver solver { get; } = new SSSPSolver();
     public IVerifier verifier { get; } = new SSSPVerifier();
 

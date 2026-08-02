@@ -9,6 +9,10 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
     public string reductionDefinition {get;} = "Karps reduction maps each clause of a SAT problem into a row in a integer programming matrix.";
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string[] contributors {get;} = { "Caleb Eardley"};
+    // reduce() builds a dense clauses x variables constraint matrix — every cell is
+    // explicitly filled (0, 1, or -1), not just the 3 literals actually present per
+    // clause, so output size is O(clauses * variables) even for sparse SAT3 input.
+    public ReductionCost cost { get; } = ReductionCost.Quadratic;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 
     private SAT3 _reductionFrom;
@@ -84,27 +88,11 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
             }
             Cmatrix.Add(row);
         }
-        string Cstring = string.Empty;
-        string dstring = string.Empty;
-
-        for(int i=0; i<Cmatrix.Count-1; i++){
-            Cstring += "(";
-            for(int j = 0; j<Cmatrix[i].Count; j++){
-                Cstring += " "+Cmatrix[i][j]+" ";
-            }
-            Cstring += "),";
-        }
-        Cstring += "(";
-        for(int i=0; i<Cmatrix[Cmatrix.Count-1].Count; i++){
-            Cstring += " "+Cmatrix[Cmatrix.Count-1][i]+" ";
-        }
-        Cstring += ")";
- 
-        dstring += "(";
-        for(int i=0; i<dVector.Count; i++){
-            dstring += " "+dVector[i]+" ";
-        }
-        dstring += ")";
+        // Single-space-separated within each row/vector, matching INTPROGRAMMING01's own
+        // parser (getMatrixC/getVectorD both do a naive Split(" ") -- double spaces here
+        // produce empty tokens there, which fail int.Parse).
+        string Cstring = string.Join(",", Cmatrix.Select(row => "(" + string.Join(" ", row) + ")"));
+        string dstring = "(" + string.Join(" ", dVector) + ")";
 
         string instance = Cstring +"<="+dstring;
 

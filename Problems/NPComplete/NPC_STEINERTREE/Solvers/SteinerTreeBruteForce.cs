@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
@@ -11,6 +11,16 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // The outer loop sums C(m, i+1) (m = |edges|) over i from |terminals|-1 to K -- a partial sum of
+    // binomial coefficients of m, which is bounded above by the sum of ALL of them, 2^m, regardless of
+    // where K falls (and reaches that order whenever K is near m/2). So this enumerates edge subsets,
+    // not node subsets or permutations. Each candidate costs O(i) to build (indexListToCertificate) and
+    // SteinerTreeVerifier's IsConnected/terminal-coverage check costs O(i*t) (t = |terminals|, from the
+    // per-edge-endpoint List.Contains/Remove scans against the terminals list), i <= m.
+    public string complexity { get; } = "O(2^m * m * t), m = |edges|, t = |terminals|";
 
     // --- Methods Including Constructors ---
     public SteinerTreeBruteForce()

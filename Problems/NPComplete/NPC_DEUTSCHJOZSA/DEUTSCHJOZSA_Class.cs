@@ -22,6 +22,10 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
     public DeutschJozsaVerifier defaultVerifier { get; } = new DeutschJozsaVerifier();
     public DeutschJozsaDefaultVisualization defaultVisualization { get; } = new DeutschJozsaDefaultVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "George Lake" };
+    // Declared, not derived. Deutsch-Jozsa is a query-complexity promise problem over
+    // an oracle, not a citizen of the classical P/NP hierarchy — see
+    // ComplexityClass.QuantumOracle.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
     
     public int n { get; set; }
     public List<int> w {get; set; } = new List<int>();

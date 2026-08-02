@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Tools;
 using System.Text.Json;
 
@@ -18,6 +18,12 @@ class SATGroverSolver : ISolver<SAT>
     public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors {get;} = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Delegates to the external quantum-simulator service.
+    public SolverType solverType { get; } = SolverType.Quantum;
+    // Grover search over the 2^v possible assignments to the formula's v boolean variables
+    // takes O(sqrt(2^v)) oracle queries; this solver ships the whole formula to the quantum
+    // endpoint in a single call that runs that search.
+    public string complexity { get; } = "O(sqrt(2^v)) oracle queries, where v is the number of boolean variables in the formula";
 
     // --- Constructors ---
 

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using SPADE;
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,12 @@ class KnapsackDP : ISolver<KNAPSACK>
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Knapsack_problem#0/1_knapsack_problem";
     public string[] contributors { get; } = { "Musab Khan", "Calvin Condie" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Memo table + optimal-substructure recurrence. Bucket stays Polynomial by
+    // convention even though O(n * W) is pseudo-polynomial -- polynomial in the *value* of W,
+    // exponential in W's *bit-length*; the existing complexity string above already carries that
+    // nuance.
+    public SolverType solverType { get; } = SolverType.DynamicProgramming;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     public string complexity { get; } = "O(n * W)";
 
     public string solve(KNAPSACK knapsack)

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Problems.NPComplete.NPC_HITTINGSET;
 using SPADE;
 
@@ -12,6 +12,14 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
     public string source {get;} = "";
     public string[] contributors {get;} = {"Russell Phillips"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. possibleSolutions enumerates all 2^n subsets of the universal
+    // set (n = |universalSet|; there is no K to bound this one, unlike the other set-cover-
+    // family brute forces in this batch). Each candidate costs O(s*n) to verify
+    // (HittingSetVerifier intersects the candidate against every one of the s subsets).
+    public string complexity { get; } = "O(2^n * s * n), n = |universalSet|, s = number of subsets in S";
 
     // --- Methods Including Constructors ---
     public HittingSetBruteForce() {

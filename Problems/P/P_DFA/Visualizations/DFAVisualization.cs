@@ -14,7 +14,7 @@ class DFAVisualization : IVisualization<DFA>
     public string visualizationDefinition { get; } = "This is a default visualization for Deterministic Finite Automata";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
-    public string visualizationType { get; } = "Graph LaTeX";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX;
     public ISolver solver { get; } = new DFASolver();
 
     // --- Methods Including Constructors ---

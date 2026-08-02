@@ -16,7 +16,7 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
     public string sourceLink { get; } =
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     public string[] contributors { get; } = { "Quinton Smith" };
-    public string visualizationType { get; } = "Graph D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new DominatingSetSolver();
 
     // --- Methods Including Constructors ---

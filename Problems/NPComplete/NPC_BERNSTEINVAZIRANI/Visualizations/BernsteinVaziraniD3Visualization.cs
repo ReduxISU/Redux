@@ -15,7 +15,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         "Builds the Bernstein-Vazirani circuit with ancilla, highlights the oracle that encodes the secret string, and shows how a single query plus phase kickback reveals the hidden bits in D3.js.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
-    public string visualizationType { get; } = "Quantum Circuit D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitD3;
     public ISolver solver { get; } = new BernsteinVaziraniClassicalSolver();
 
     public BernsteinVaziraniD3Visualization() { }

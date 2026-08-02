@@ -43,6 +43,11 @@ class STRONGLYCONNECTEDCOMPONENTS
         "Rohan Shrestha"
     };
 
+    // Declared, not derived from the Problems/NPComplete/ folder — Kosaraju's
+    // algorithm solves this in polynomial time; it just lives under NPComplete/
+    // for filing reasons.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+
     public KosarajuSolver defaultSolver { get; } = new KosarajuSolver();
 
     public SCCVerifier defaultVerifier { get; } = new SCCVerifier();

@@ -13,7 +13,7 @@ class DummyVisualization : IVisualization<IProblem> {
     public string visualizationDefinition {get;} = "This is a placeholder visualization class for problems with no visualization";
     public string source {get;} = " ";
     public string[] contributors {get;} = {""};
-    public string visualizationType { get; } = "";
+    public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
     public ISolver solver { get; } = new DummySolver(); 
 
     // --- Methods Including Constructors ---

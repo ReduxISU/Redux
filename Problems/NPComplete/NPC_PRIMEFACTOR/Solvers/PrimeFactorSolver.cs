@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
@@ -13,6 +13,16 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
     public string source { get; } = "Pisano, Leonardo (1202), Incipit liber Abbaci compositus to Lionardo filio Bonaccii Pisano in year Mccij, Museo Galileo.";
     public string[] contributors { get; } = { "Jason L. Wright", "Paul Gilbreath", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive trial division. Classic trap: looks polynomial-ish
+    // (a loop to sqrt(n)) in the *value* of n, but is exponential in n's *bit-length* -- the actual
+    // input size for a factoring problem -- which is why Shor's quantum algorithm (ShorsQuantumSolver)
+    // is a genuine complexity-class improvement, not just a constant-factor speedup.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // solve()'s trial-division loop runs while i * i <= numberToFactor, i.e. O(sqrt(n)) iterations
+    // in the *value* of n -- but n's bit-length b is the real input size, and n = 2^b, so this is
+    // O(2^(b/2)): exponential in input size, matching the Exponential bucket above.
+    public string complexity { get; } = "O(sqrt(n)) in the value of n (exponential in n's bit-length)";
     // --- Methods Including Constructors ---
     public PrimeFactorSolver() {}
 

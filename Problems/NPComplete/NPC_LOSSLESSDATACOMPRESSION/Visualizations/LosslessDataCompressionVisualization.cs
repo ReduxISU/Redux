@@ -12,7 +12,7 @@ class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESS
     public string source { get; } = "";
     public string sourceLink {get;} = "TODO";
     public string[] contributors { get; } = { "TODO" };
-    public string visualizationType { get; } = "TODO"; //either "Boolean Satisfiability" or "Graph D3" most likely
+    public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented; //either "Boolean Satisfiability" or "Graph D3" most likely
     public ISolver solver { get; } = new LosslessDataCompressionSolver();
 
     // --- Methods Including Constructors ---

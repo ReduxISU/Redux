@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
@@ -11,6 +11,17 @@ class TSPGreedy : ISolver<TSP> {
 	public string source {get;} = "";
     public string[] contributors {get;} = { "Derek Winmill" , "Beau Williams" , "Corbin Hay" };
 	public bool timerHasExpired { get; set; }
+	// Declared, not derived. Irrevocable locally-optimal choice each step (nearest-neighbor).
+	public SolverType solverType { get; } = SolverType.Greedy;
+	public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+	// Declared, not derived. Nearest-neighbor is restarted from each of the n start nodes; each
+	// construction does up to n steps, each scanning all n candidate nodes, each calling
+	// getEdgeWeight() which does an O(m) linear scan of the edge list (no adjacency lookup) --
+	// O(n^2 * m) per start, times n starts. No approximation-ratio guarantee is proven or
+	// enforced here (TSP_Class.cs places no triangle-inequality/metric constraint on edge
+	// weights, and a failed nearest-neighbor pass can also skip a start entirely), so this
+	// stays Greedy rather than Approximation.
+	public string complexity { get; } = "O(n^3 * m), n = |nodes|, m = |edges|";
 
 	// --- Methods Including Constructors ---
 	public TSPGreedy()

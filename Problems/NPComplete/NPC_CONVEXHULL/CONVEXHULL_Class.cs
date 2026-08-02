@@ -22,6 +22,11 @@ class CONVEXHULL : IProblem<ConvexHullSolver, ConvexHullVerifier, ConvexHullVisu
     public ConvexHullVerifier defaultVerifier {get;} = new ConvexHullVerifier();
     public ConvexHullVisualization defaultVisualization {get;} = new ConvexHullVisualization();
     public string[] contributors {get;} = { "Bektur Akkabakov" };
+    // Declared, not derived from the Problems/NPComplete/ folder — solvable in
+    // polynomial time (e.g. Graham scan / gift wrapping); it just lives under
+    // NPComplete/ for filing reasons.
+    public SolverType solverType { get; } = SolverType.DivideAndConquer;
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public List<(double x, double y)> points { get; set; }
     public List<(double x, double y)> convexHull { get; set; }
     public string solution { get; set; }

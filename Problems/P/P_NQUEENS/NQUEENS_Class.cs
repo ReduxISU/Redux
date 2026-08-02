@@ -21,6 +21,13 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
 
     public string source { get; } = "Classic combinatorial problem.";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Eight_queens_puzzle";
+    // Declared, not derived. This class takes only n (no partial/pre-placed board), so
+    // it models PLACEMENT ("does some valid arrangement exist"), not the NP-complete
+    // COMPLETION variant. Placement has known constructive polynomial solutions for
+    // every n >= 4. NQueensBacktracking's O(N!) is a correct but needlessly exponential
+    // solver for an easy problem, not evidence the problem itself is hard. See
+    // redux-tests/Metadata/ComplexityClass_Tests.cs.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
 

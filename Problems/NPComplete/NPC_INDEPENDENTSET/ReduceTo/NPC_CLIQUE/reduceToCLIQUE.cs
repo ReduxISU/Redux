@@ -20,6 +20,9 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     public string source {get;} = "";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)#Relationship_to_other_graph_parameters";
     public string[] contributors {get;} = {"Russell Phillips"};
+    // reduce() materializes the complement graph (all node pairs that are NOT edges
+    // in the input) — up to O(n^2) edges even when the input only encodes O(n+m).
+    public ReductionCost cost { get; } = ReductionCost.Quadratic;
 
     public List<Gadget> gadgets { get; }
     private INDEPENDENTSET _reductionFrom;

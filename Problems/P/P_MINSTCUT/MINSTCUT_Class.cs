@@ -13,6 +13,9 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
     public string formalDefinition { get; } = "MinSTCut = {<G,s,t> | G is a weighted directed graph with source s and sink t} — find the partition of V into S (containing s) and T (containing t) minimizing the total capacity of edges directed from S to T.";
     public string problemDefinition { get; } = "Given a weighted directed graph with non-negative edge capacities, a source node s, and a sink node t, find a partition of the vertices into S (containing s) and T (containing t) such that the total capacity of edges directed from S to T is minimized. By the Max-Flow Min-Cut theorem, this minimum cut capacity equals the maximum flow from s to t.";
     public string[] contributors { get; } = { "Michael Trosper" };
+    // Declared, not derived. Minimum s-t cut is solvable in polynomial time
+    // (Ford-Fulkerson / max-flow min-cut).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public string source { get; } = "Ford, L. R.; Fulkerson, D. R. (1956). Maximal flow through a network. Canadian Journal of Mathematics, 8, 399–404.";
     public string sourceLink { get; } = "https://doi.org/10.4153/CJM-1956-045-5";
     public string wikiName { get; } = "";

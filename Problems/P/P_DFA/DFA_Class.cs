@@ -32,6 +32,9 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     public DFAVerifier defaultVerifier { get; } = new DFAVerifier();
     public DFAVisualization defaultVisualization { get; } = new DFAVisualization();
     public string[] contributors { get; } = { "Michael Trosper" };
+    // Declared, not derived. DFA acceptance is decidable in polynomial time (linear
+    // in the input string, given the DFA).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // Edge Structures //
     public record DFAEdge (string From, char Symbol, string To);

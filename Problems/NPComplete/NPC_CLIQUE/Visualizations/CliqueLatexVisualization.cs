@@ -13,7 +13,7 @@ class CliqueLatexVisualization : IVisualization<CLIQUE>
     public string visualizationDefinition { get; } = "This is a visualization for Clique using the LaTeX visualization type";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public string visualizationType { get; } = "Graph LaTeX";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX;
     public ISolver solver { get; } = new CliqueBruteForce();
 
     // --- Methods Including Constructors ---

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using System.Text;
 
 namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Solvers;
@@ -20,8 +20,16 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
     public string[] contributors { get; } = { "Prem Shah", "Bektur Akkabakov" };
 
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Huffman coding: irrevocable locally-optimal choice each step.
+    public SolverType solverType { get; } = SolverType.Greedy;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Declared, not derived. This is Huffman coding, but BuildHuffmanTree fully
+    // re-sorts the remaining node list on every merge instead of using a heap, so tree
+    // construction is O(k^2 log k) rather than the classical O(n log n) heap-based bound
+    // (k = distinct characters, k <= n). EncodeInput adds O(n * k) (code length <= k-1).
+    public string complexity { get; } = "O(k^2 log k + n*k), n = input length, k <= n = distinct characters";
 
-    // Constructors 
+    // Constructors
 
     public LosslessDataCompressionSolver() {
 

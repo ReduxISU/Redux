@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 using API.Problems.NPComplete.NPC_SAT3;
 
@@ -12,6 +12,14 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
     public string source {get;} = "";
     public string[] contributors {get;} = {"David Lindeman","Kaden Marchetti"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Exact constraint-backtracking search WITH pruning -- distinct from an
+    // unpruned brute-force enumeration.
+    public SolverType solverType { get; } = SolverType.Backtracking;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Priority-queue-guided backtracking: each state branches into
+    // up to 2 children (true/false for the next variable), and building each child
+    // re-scans all clauses -- worst case is still a full 2^n binary tree of assignments.
+    public string complexity { get; } = "O(2^n * |phi|), n = number of variables, |phi| = formula size";
 
     // --- Methods Including Constructors ---
     public Sat3BacktrackingSolver() {

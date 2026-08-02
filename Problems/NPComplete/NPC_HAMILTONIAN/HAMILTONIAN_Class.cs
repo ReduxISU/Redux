@@ -28,6 +28,8 @@ class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, Ha
     public HamiltonianDefaultVisualization defaultVisualization { get; } = new HamiltonianDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
+    // Declared, not derived. HAMILTONIAN is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> nodes

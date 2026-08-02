@@ -42,6 +42,8 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
     public KnapsackBruteForce defaultSolver {get;} = new KnapsackBruteForce();
     public KnapsackVerifier defaultVerifier { get; } = new KnapsackVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    // Declared, not derived. KNAPSACK is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public int W {

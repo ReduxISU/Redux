@@ -11,6 +11,9 @@ class GareyJohnson : IReduction<SAT3, DM3> {
     public string reductionDefinition {get;} = "Garey and Johnson Reduction converts 3SAT to a set of elements, and constraints of a 3-dimensional matching problem. The varibles are represented by wheels of 2 constraints for each clause a variable is in. The clauses are each mapped to a group of contraints all sharing two elements, with the third attaching to a varible gadget. Garbage collection gadgets are than created as constrains that assure any unincluded elements outside of the clause gadget are included in a matching.";
     public string source {get;} = "Garey, M. R. and David S. Johnson. “Computers and Intractability: A Guide to the Theory of NP-Completeness.” (1978).";
     public string[] contributors {get;} = { "Caleb Eardley"};
+    // The garbage-collection gadget loop ("for i in 0..(literals-clauses): foreach j in
+    // Z") unconditionally emits one M-triple per (i,j) pair — O(n^2) matching triples.
+    public ReductionCost cost { get; } = ReductionCost.Quadratic;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 
     private SAT3 _reductionFrom;

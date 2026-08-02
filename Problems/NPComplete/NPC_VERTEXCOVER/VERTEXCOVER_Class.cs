@@ -31,6 +31,8 @@ class VERTEXCOVER : IGraphProblem<VertexCoverBruteForce,VCVerifier,VertexCoverDe
     private string _vertexCover = string.Empty;
 
     public string[] contributors {get;} = { "Janita Aamir", "Alex Diviney" };
+    // Declared, not derived. VERTEXCOVER is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
 
     // --- Properties ---

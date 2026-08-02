@@ -13,7 +13,7 @@ class SudokuVisualization : IVisualization<SUDOKU>
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
     public string[] contributors { get; } = { "Eric Hill" };
-    public string visualizationType { get; } = "TODO";
+    public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
     public ISolver solver { get; } = new SudokuSolver();
 
     // --- Methods Including Constructors ---

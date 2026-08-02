@@ -41,6 +41,8 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
 
     public GraphColoringDefaultVisualization defaultVisualization { get; } = new GraphColoringDefaultVisualization();
     public UtilCollectionGraph graph { get; }
+    // Declared, not derived. GRAPHCOLORING is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     #endregion
 

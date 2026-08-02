@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
@@ -14,6 +15,10 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    // The final gadget block ("foreach edge: for f1 in 1..K: for f2 in 1..K: build an
+    // O(K)-sized subset") unconditionally emits O(m * K^3) new subset elements that
+    // have no counterpart already in the GRAPHCOLORING input encoding.
+    public ReductionCost cost { get; } = ReductionCost.HigherPolynomial;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
@@ -148,22 +153,13 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
         }
 
 
-        string instance = "{{";
-        for (int i = 0; i < subsets.Count; i++)
-        {
-            for (int j = 0; j < subsets[i].Count; j++)
-            {
-                instance += subsets[i][j] + ',';
-            }
-            instance = instance.TrimEnd(',') + "},{";
-        }
-
-        instance = instance.TrimEnd('{').TrimEnd(',') + " : {";
-        foreach (var i in universalSet)
-        {
-            instance += i + ',';
-        }
-        instance = instance.TrimEnd(',') + "}}";
+        // EXACTCOVER's grammar/constructor expects (U,S) -- U (universal set) first, S
+        // (the subset collection) second, wrapped in parens -- matching its own
+        // defaultInstance shape ("({1,2,3,4},{{1,2,3},{2,3},{4,1}})"), not the "{S : U}"
+        // shape this used to emit.
+        string uPart = "{" + string.Join(",", universalSet) + "}";
+        string sPart = "{" + string.Join(",", subsets.Select(s => "{" + string.Join(",", s) + "}")) + "}";
+        string instance = "(" + uPart + "," + sPart + ")";
 
         reducedExactCover.S = subsets;
         reducedExactCover.X = universalSet;

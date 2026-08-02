@@ -193,10 +193,22 @@ public class MINIMUMSPANNINGTREE_Tests
         Assert.Equal("Background", graph.links.Single(l => l.source == "1" && l.target == "3").color);
     }
 
+    // MST is filed under Problems/NPComplete/ for historical reasons, but it's solved
+    // by Kruskal's/Prim's algorithm in polynomial time, so it's a P problem. Complexity
+    // class is now DECLARED (MINIMUMSPANNINGTREE_Class.cs), not derived from that
+    // folder (Redux Tag System plan, Phase 4.3/4.4) — this test used to assert the
+    // folder-derived (incorrect) membership; it now asserts the corrected one.
     [Fact]
-    public void MINIMUMSPANNINGTREE_NPCProblemsRefactor_Contains_MST()
+    public void MINIMUMSPANNINGTREE_NPCProblemsRefactor_DoesNotContain_MST()
     {
         string response = new NPC_ProblemsRefactorController().getDefault();
+        Assert.DoesNotContain("MINIMUMSPANNINGTREE", response);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_PProblemsRefactor_Contains_MST()
+    {
+        string response = new P_ProblemsRefactorController().getDefault();
         Assert.Contains("MINIMUMSPANNINGTREE", response);
     }
 }

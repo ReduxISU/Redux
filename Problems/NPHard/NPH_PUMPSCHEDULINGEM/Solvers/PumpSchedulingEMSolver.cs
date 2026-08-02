@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using API.Interfaces;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM;
@@ -21,6 +21,14 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Memo table + optimal-substructure recurrence.
+    public SolverType solverType { get; } = SolverType.DynamicProgramming;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Declared, not derived. Same pseudo-polynomial nuance as PumpSchedulingCMSolver: the
+    // optional cost-minimization pre-solve and the emergency-resilience solve each run the
+    // same H x B x nMasks x nMasks DP transition (nMasks = 2^n pump-on/off states), so the
+    // two sequential passes don't change the asymptotic bound.
+    public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
 
     public List<object> GetSteps(PUMPSCHEDULINGEM _) => [true];
 

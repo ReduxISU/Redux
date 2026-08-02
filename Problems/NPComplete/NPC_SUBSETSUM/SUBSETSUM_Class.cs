@@ -30,6 +30,8 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce,SubsetSumVerifier, DummyVisualiza
     public SubsetSumBruteForce defaultSolver {get;} = new SubsetSumBruteForce();
     public SubsetSumVerifier defaultVerifier { get; } = new SubsetSumVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    // Declared, not derived. SUBSETSUM is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> S {

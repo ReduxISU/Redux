@@ -21,6 +21,10 @@ interface IProblem {
     string instanceFormat { get => ""; }
     string certificateFormat { get => ""; }
 
+    // Declared, not derived. The Problems/<Folder>/ layout is a filing convention and is
+    // wrong for at least a dozen problems; this is the source of truth.
+    ComplexityClass complexityClass { get => ComplexityClass.Unclassified; }
+
     string[] contributors{ get; }
 
     ISolver defaultSolver {get;}

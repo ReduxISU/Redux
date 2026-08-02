@@ -24,6 +24,10 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization>
     public SimonVerifier defaultVerifier { get; } = new SimonVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Max Gruenwoldt"};
+    // Declared, not derived. Simon's problem is a query-complexity promise problem
+    // over an oracle, not a citizen of the classical P/NP hierarchy — see
+    // ComplexityClass.QuantumOracle.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
 
     private int[] _funcValues = new int[2] { 0, 1 };
 

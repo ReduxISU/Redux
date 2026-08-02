@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Tools;
 using SPADE;
 using System.Text.Json;
@@ -17,6 +17,11 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
     public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors {get;} = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Delegates to the external quantum-simulator service.
+    public SolverType solverType { get; } = SolverType.Quantum;
+    // The Bernstein-Vazirani algorithm recovers the full n-bit secret string with exactly
+    // one query to the oracle (a single call to the external quantum endpoint here).
+    public string complexity { get; } = "O(1) oracle queries";
 
     // --- Constructors ---
 
