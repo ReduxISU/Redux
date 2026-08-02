@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
@@ -10,6 +10,13 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley","Garret Stouffer"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Enumerates all 2^n subset bitmasks; each candidate does O(n)
+    // certificate building and an O(n) dictionary-based verify() -- no per-candidate factor
+    // beyond linear.
+    public string complexity { get; } = "O(n * 2^n), n = |S|";
 
     // --- Methods Including Constructors ---
     public SubsetSumBruteForce() {

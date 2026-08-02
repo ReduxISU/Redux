@@ -23,6 +23,9 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public PrimeFactorVerifier defaultVerifier { get; } = new PrimeFactorVerifier();
     public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
     public string[] contributors {get;} = { "Paul Gilbreath", "Alex Svancara" };
+    // Declared, not derived. Integer factorization is in NP and co-NP but not known
+    // NP-complete and not known to be in P — the textbook example of NPIntermediate.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPIntermediate;
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();

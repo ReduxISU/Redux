@@ -28,6 +28,8 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDe
     public ExactCoverBruteForce defaultSolver {get;} = new ExactCoverBruteForce();
     public ExactCoverVerifier defaultVerifier { get; } = new ExactCoverVerifier();
     public ExactCoverDefaultVisualization defaultVisualization { get; } = new ExactCoverDefaultVisualization();
+    // Declared, not derived. EXACTCOVER is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     List<List<string>> _S = new List<List<string>>();
     List<string> _X = new List<string>();
 

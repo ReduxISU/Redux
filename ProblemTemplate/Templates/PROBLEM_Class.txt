@@ -28,6 +28,13 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Ve
     public {NAME_PASCAL_CASE}Verifier defaultVerifier {get;} = new {NAME_PASCAL_CASE}Verifier();
     public {NAME_PASCAL_CASE}Visualization defaultVisualization {get;} = new {NAME_PASCAL_CASE}Visualization();
     public string[] contributors {get;} = { "TODO" };
+    // Declared, not derived — do NOT infer this from which Problems/<Folder>/ this file
+    // lives under. The folder is a filing convention only and is wrong for a dozen-plus
+    // existing problems; declaring it explicitly here is the only source of truth the
+    // API trusts. Leave as Unclassified (the default — this line can simply be deleted)
+    // until someone has actually checked the literature/argued the class. Getting this
+    // wrong is a public correctness claim the API will serve to callers.
+    // public ComplexityClass complexityClass {get;} = ComplexityClass.TODO;
 
     // --- Properties ---
 

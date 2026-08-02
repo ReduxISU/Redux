@@ -32,6 +32,10 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     public NFAVerifier defaultVerifier { get; } = new NFAVerifier();
     public NFAVisualization defaultVisualization { get; } = new NFAVisualization();
     public string[] contributors { get; } = { "Michael Trosper" };
+    // Declared, not derived. NFA acceptance is decidable in polynomial time even
+    // though NFA-to-DFA conversion can blow up exponentially — acceptance itself
+    // doesn't require that conversion.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // Edge Structures //
     public record NFAEdge (string From, char Symbol, string To);

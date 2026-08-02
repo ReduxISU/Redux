@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
@@ -16,6 +16,11 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
     public string[] contributors { get; } = { "Kaosi Ibeabuchi", "Diya Pandey", "Srijan Pant" };
 
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Memo table + optimal-substructure recurrence.
+    public SolverType solverType { get; } = SolverType.DynamicProgramming;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Fills the full (m+1) x (n+1) DP table with one O(1) transition per cell.
+    public string complexity { get; } = "O(m * n)";
 
      public EditDistanceDPSolver() {}
 

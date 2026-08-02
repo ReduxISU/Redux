@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 using System.Linq;
@@ -13,6 +13,15 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
     public string source {get;} = "Dasgupta, S, Papadimitriou, C, & Vazirani, U. (2006). Algorithms. McGraw-Hill. Chapter 9.2";
     public string[] contributors {get;} = { "Pramesh Shah" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Irrevocable locally-optimal choice each step.
+    public SolverType solverType { get; } = SolverType.Greedy;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Adjacency build + the per-node color assignment loop are the textbook O(n + m) greedy-coloring
+    // pass (neighbor scans and usedColors lookups amortize to O(m) and O(n) respectively across all
+    // nodes). BuildCertificate adds a factor beyond that textbook bound though: for each of up to
+    // numColors (<= n) color groups it does a fresh O(n) nodes.Where(...) scan, i.e. O(n^2) worst case
+    // when many colors are used -- so the actual bound is O(n^2 + m), not the source text's O(V + E).
+    public string complexity { get; } = "O(n^2 + m), n = |nodes|, m = |edges|";
 
     // Constructor 
     public GraphColoringGreedy() { }

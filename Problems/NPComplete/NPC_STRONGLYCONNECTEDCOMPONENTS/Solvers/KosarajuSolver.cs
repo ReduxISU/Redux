@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
@@ -21,6 +21,12 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
     public string[] contributors { get; } = { "Surendra Thapa", "Rohan Shrestha" };
 
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Runs two depth-first-search passes (forward, then reversed graph).
+    public SolverType solverType { get; } = SolverType.DepthFirstSearch;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Builds proper adjacency and reverse-adjacency dictionaries (O(V + E)) and runs two DFS
+    // passes over them, each O(V + E) — the standard bound, no linear edge-list rescans.
+    public string complexity { get; } = "O(V + E)";
 
     public string solve(STRONGLYCONNECTEDCOMPONENTS problem)
     {

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.P.P_MINSTCUT.Solvers;
 
@@ -9,6 +9,14 @@ class MinSTCutSolver : ISolver<MINSTCUT>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Edmonds-Karp finds each augmenting path via a breadth-first
+    // search of the residual graph.
+    public SolverType solverType { get; } = SolverType.BreadthFirstSearch;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Standard Edmonds-Karp: BFS (O(V + E) via a proper adjacency-dictionary residual graph,
+    // not a linear edge-list scan) finds a shortest augmenting path each round, and the
+    // classic bound of O(V * E) augmentations gives O(V * E) BFS calls.
+    public string complexity { get; } = "O(V * E^2)";
 
     public MinSTCutSolver() { }
 

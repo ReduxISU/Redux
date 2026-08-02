@@ -10,6 +10,13 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
     public string source { get; } = "https://doi.org/10.1145/359423.359430";
     public string[] contributors { get; } = { "Bektur Akkabakov" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Splits the point set in half, solves each half recursively, then
+    // merges the two hulls -- the textbook divide-and-conquer shape.
+    public SolverType solverType { get; } = SolverType.DivideAndConquer;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Sort is O(n log n); the divide-and-conquer merge finds the two hulls' tangent lines with
+    // a linear rotating scan per level, giving the classic T(n) = 2T(n/2) + O(n) recurrence.
+    public string complexity { get; } = "O(n log n)";
 
     public ConvexHullSolver() { }
 

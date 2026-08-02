@@ -30,7 +30,11 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     public SudokuSolver defaultSolver {get;} = new SudokuSolver();
     public SudokuVerifier defaultVerifier {get;} = new SudokuVerifier();
     public SudokuVisualization defaultVisualization {get;} = new SudokuVisualization();
-    public string[] contributors { get; }= { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" }; //TODO: keep Eric? I think so but not sure 
+    // Declared, not derived. Generalized (n x n) Sudoku is NP-complete
+    // (Yato & Seta, 2003); the standard 9x9 board is a fixed-size instance of the
+    // same NP-complete family.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public string[] contributors { get; }= { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" }; //TODO: keep Eric? I think so but not sure
 
     public int[][] grid { get; set; }
 

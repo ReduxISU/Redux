@@ -26,6 +26,10 @@ class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, T
     public TopologicalSortDefaultVisualization defaultVisualization { get; } = new TopologicalSortDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors { get; } = { "Pravesh Aryal", "Koras Koirala", "Dinesh Khanal" };
+    // Declared, not derived from the Problems/NPComplete/ folder — Kahn's algorithm
+    // solves this in polynomial time; it just lives under NPComplete/ for filing
+    // reasons.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // --- Properties ---
     public List<string> nodes

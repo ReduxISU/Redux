@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
@@ -11,6 +11,13 @@ class CutBruteForce : ISolver<CUT> {
     public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Enumerates subsets of size 1..K (K <= edges.Count, but K
+    // can still be Theta(n)); each candidate costs O(n^2) to build (certificateToEdges)
+    // plus O(m) to verify.
+    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
 
     public CutBruteForce() {
         

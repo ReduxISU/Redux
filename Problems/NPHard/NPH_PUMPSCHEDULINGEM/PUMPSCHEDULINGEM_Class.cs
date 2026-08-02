@@ -52,6 +52,9 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
     public string source { get; } = "";
     public string wikiName { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
+    // Declared, not derived. Correctly filed under Problems/NPHard/ already; this
+    // makes the folder's claim machine-checkable instead of implicit.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
 
     // 4-section tuple: Tank (capacity, currentLevel, minLevel), Demand config, Pumps, Budget.
     // Budget = 0 means auto-compute as 1.5× the cost-minimization optimum.

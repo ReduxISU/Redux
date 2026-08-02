@@ -29,7 +29,9 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public TSPVerifier defaultVerifier { get; } = new TSPVerifier();
     public TSPDefaultVisualization defaultVisualization { get; } = new TSPDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
-    
+    // Declared, not derived. TSP (decision version) is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+
     public string wikiName {get;} = "";
   
 

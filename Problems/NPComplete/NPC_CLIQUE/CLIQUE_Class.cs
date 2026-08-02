@@ -29,6 +29,8 @@ class CLIQUE : IGraphProblem<CliqueBruteForce,CliqueVerifier,CliqueDefaultVisual
     public CliqueDefaultVisualization defaultVisualization { get; } = new CliqueDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors {get;} = { "Kaden Marchetti", "Alex Diviney" };
+    // Declared, not derived. CLIQUE is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> nodes {

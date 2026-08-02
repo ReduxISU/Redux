@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
@@ -13,6 +13,16 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE>
     public string sourceLink { get; } = "https://doi.org/10.1002/j.1538-7305.1957.tb01515.x";
     public string[] contributors { get; } = { "Val Kimbrough" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Repeatedly adds the lowest-weight edge connecting the growing
+    // tree to a new vertex -- an irrevocable, locally-optimal choice at each step.
+    public SolverType solverType { get; } = SolverType.Greedy;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Does NOT maintain a running frontier/priority queue of best-known edges. Each of the
+    // V-1 while-loop iterations recomputes candidateEdges from scratch via
+    // visited.SelectMany(node => adjacency[node]) — up to O(E) edges — and re-sorts that
+    // whole list with OrderBy (O(E log E)) just to pick the minimum. That's O(V) iterations
+    // times O(E log E) per iteration, not the textbook O(E log V) (heap) or O(V^2) (array).
+    public string complexity { get; } = "O(V * E log E)";
 
     public string solve(MINIMUMSPANNINGTREE problem)
     {

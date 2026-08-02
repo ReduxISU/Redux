@@ -28,6 +28,8 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3, Dumm
     public ThreeDimensionalMatchingBruteForce defaultSolver {get;} = new ThreeDimensionalMatchingBruteForce();
     public GenericVerifierDM3 defaultVerifier { get; } = new GenericVerifierDM3();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    // Declared, not derived. DM3 (3-Dimensional Matching) is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     public string[] contributors {get;} = { "Caleb Eardley" };
 

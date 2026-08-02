@@ -12,7 +12,9 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
     public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
-  
+    // reduce() copies S (one pass) and appends exactly 2 derived numbers — O(n).
+    public ReductionCost cost { get; } = ReductionCost.Linear;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();

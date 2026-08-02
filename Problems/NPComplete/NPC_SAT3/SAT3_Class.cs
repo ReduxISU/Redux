@@ -20,6 +20,10 @@ class SAT3 : IProblem<Sat3BacktrackingSolver,SAT3Verifier,Sat3DefaultVisualizati
     public Sat3BacktrackingSolver defaultSolver {get;} = new Sat3BacktrackingSolver();
     public SAT3Verifier defaultVerifier {get;} = new SAT3Verifier();
     public Sat3DefaultVisualization defaultVisualization { get; } = new Sat3DefaultVisualization();
+    // Declared, not derived. 3-SAT is NP-complete (Cook-Levin plus the standard
+    // SAT-to-3SAT clause-splitting reduction); it is the canonical starting point for
+    // most of this repo's NP-completeness reductions.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public string instance {get;set;} = string.Empty;
 
     public string wikiName {get;} = "";

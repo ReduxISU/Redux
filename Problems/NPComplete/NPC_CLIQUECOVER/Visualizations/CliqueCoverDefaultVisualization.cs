@@ -14,7 +14,7 @@ class CliqueCoverDefaultVisualization : IVisualization<CLIQUECOVER> {
     public string visualizationDefinition {get;} = "This is a default visualization for Clique Cover";
     public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic", "Russell Phillips"};
-    public string visualizationType { get; } = "Graph D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new CliqueCoverBruteForce();
 
     // --- Methods Including Constructors ---

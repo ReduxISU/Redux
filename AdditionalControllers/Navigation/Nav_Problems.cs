@@ -1,16 +1,55 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using API.Interfaces;
 
 // Problem navigation resolved via reflection over ProblemProvider.Problems, so it no
 // longer depends on the on-disk Problems/ folder layout. Mirrors the solver / verifier
 // / visualization navigation (#317/#318/#331); those endpoints were converted earlier,
 // this closes the gap for the problem-listing endpoints.
 //
-// A problem's complexity class is read from its namespace: every problem lives in
-// API.Problems.<ComplexityClass>.<ProblemFolder> (e.g. API.Problems.NPComplete.NPC_SAT3).
-// Only these top-level problems are listed; nested helper variants such as
+// A problem's complexity class is DECLARED (IProblem.complexityClass), not derived from
+// its namespace. The namespace (API.Problems.<Folder>.<ProblemFolder>) used to be treated
+// as the source of truth, but Problems/NPComplete/ misfiles at least a dozen entries (six
+// are actually P, one is NPIntermediate, five are quantum query-complexity promise
+// problems that aren't classical-hierarchy citizens at all) — the folder is a filing
+// convention, not a correctness claim. See ComplexityClassCatalog below.
+//
+// Only top-level problems are listed; nested helper variants such as
 // API.Problems.NPComplete.NPC_CLIQUE.Inherited (SipserClique) are excluded, matching the
-// old top-level directory scan.
+// old top-level directory scan. That namespace-shape filter is still correct and is kept
+// as-is — only the complexity-class *value* changed from derived to declared.
+
+// className -> declared ComplexityClass's wire value. Built by instantiating every
+// reflected problem type inside a per-type try/catch, exactly like
+// VisualizationTypeCatalog (Nav_Visualizations.cs) and Nav_Batch.cs's InfoJson: one
+// problem with a throwing/missing default constructor must not take down navigation
+// at startup. Deliberately Lazy<>, never a static readonly field initializer that
+// eagerly instantiates every problem type, for the same reason.
+internal static class ComplexityClassCatalog
+{
+    internal static readonly Lazy<Dictionary<string, string>> ByClassName = new(Build);
+
+    private static Dictionary<string, string> Build()
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Problems)
+        {
+            try
+            {
+                if (Activator.CreateInstance(type) is IProblem instance)
+                    result[type.Name] = instance.complexityClass.ToString();
+            }
+            catch
+            {
+                // Skip a problem that can't be default-constructed instead of
+                // failing the whole catalog. It falls back to Unclassified at the
+                // call site (ProblemNavigationData.Build).
+            }
+        }
+        return result;
+    }
+}
+
 internal static class ProblemNavigationData
 {
     internal class ProblemEntry
@@ -30,6 +69,8 @@ internal static class ProblemNavigationData
             // Namespace is API . Problems . <ComplexityClass> . <ProblemFolder>.
             // Anything deeper (…<Folder>.Inherited, .ReduceTo.*, …) is a nested helper
             // problem, not a top-level listable one, so require exactly that shape.
+            // (This namespace check is only used to decide which types are top-level
+            // listable problems — it is no longer used to derive the complexity class.)
             string[] ns = (type.Namespace ?? "").Split('.');
             int i = Array.IndexOf(ns, "Problems");
             if (i < 0 || ns.Length != i + 3) continue;
@@ -37,7 +78,9 @@ internal static class ProblemNavigationData
             entries.Add(new ProblemEntry
             {
                 className = type.Name,
-                complexityClass = ns[i + 1],
+                complexityClass = ComplexityClassCatalog.ByClassName.Value.TryGetValue(type.Name, out var cc)
+                    ? cc
+                    : nameof(ComplexityClass.Unclassified),
             });
         }
 

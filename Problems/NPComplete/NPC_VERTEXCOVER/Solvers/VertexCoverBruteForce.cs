@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using System.Numerics;
 
@@ -12,6 +12,14 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Enumerates all C(n,K) size-K node combinations (worst case
+    // Theta(2^n) at K ~ n/2 via nextComb); each candidate costs O(K*n) to check certificate
+    // nodes belong to G plus O(K*m) to check every edge is incident to the set (VCVerifier),
+    // i.e. O(K*(n+m)) per candidate.
+    public string complexity { get; } = "O(2^n * n * (n + m)), n = |nodes|, m = |edges|";
 
     // --- Methods Including Constructors ---
     public VertexCoverBruteForce() {

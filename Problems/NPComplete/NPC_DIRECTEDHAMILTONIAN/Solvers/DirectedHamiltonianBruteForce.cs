@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
@@ -15,6 +15,17 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Does real (if minor) pruning, but tagged BruteForce per its class name
+    // and because the pruning is incidental, not the algorithm's defining feature -- contrast with
+    // the Backtracking cluster, where pruning/bounding IS the defining feature. Factorial: enumerates
+    // permutations of vertices.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
+    // PermuteWithPruning's edge check only trims a branch once an edge is missing; on a dense/complete
+    // graph (the worst case) it never trips, so all n! permutations are still generated. Each yielded
+    // permutation costs O(n) to build (CombinationToCertificate), and DirectedHamiltonianVerifier walks
+    // it in O(n) steps, each doing an O(m) List<>.Contains edge lookup -- O(n*m) per verify call.
+    public string complexity { get; } = "O(n! * n * m), n = |nodes|, m = |edges|";
 
     // --- Methods Including Constructors ---
 

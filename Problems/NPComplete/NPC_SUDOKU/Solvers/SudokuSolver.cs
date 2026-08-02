@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_SUDOKU.Solvers;
 class SudokuSolver : ISolver<SUDOKU> {
@@ -9,6 +9,15 @@ class SudokuSolver : ISolver<SUDOKU> {
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
     public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Does real (if minor) pruning, but tagged BruteForce per its class name
+    // and because the pruning is incidental, not the algorithm's defining feature -- contrast with
+    // the Backtracking cluster, where pruning/bounding IS the defining feature.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Recursive cell-by-cell backtracking over an n x n grid
+    // (n^2 cells, up to n candidate values per cell after row/col/block pruning); the
+    // row/col/block HashSets cut branches in practice but don't change the worst-case bound.
+    public string complexity { get; } = "O(n ^ (n^2)), n = grid dimension";
 
     // --- Methods Including Constructors ---
     public SudokuSolver() {}

@@ -28,6 +28,10 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
     public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
     public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
+    // Declared, not derived. Bernstein-Vazirani is a query-complexity promise problem
+    // over an oracle, not a citizen of the classical P/NP hierarchy — see
+    // ComplexityClass.QuantumOracle.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
 
     // --- Methods and Constructors ---
     public BERNSTEINVAZIRANI() : this(_defaultInstance) {

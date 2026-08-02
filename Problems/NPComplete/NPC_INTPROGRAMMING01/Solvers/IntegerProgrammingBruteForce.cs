@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Solvers;
 class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
@@ -9,6 +9,12 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Enumerates all 2^n 0/1 assignments (n = number of variables,
+    // i.e. columns of C); each is verified via a full C*x matrix-vector product, O(m*n).
+    public string complexity { get; } = "O(2^n * m * n), n = number of variables, m = number of constraints";
 
     // --- Methods Including Constructors ---
     public IntegerProgrammingBruteForce() {

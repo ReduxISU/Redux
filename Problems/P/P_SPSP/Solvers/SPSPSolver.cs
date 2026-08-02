@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using SPADE;
@@ -14,6 +14,14 @@ class SPSPSolver : ISolver<SPSP>
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Dijkstra's algorithm always finalizes the nearest unvisited
+    // node next -- an irrevocable, locally-optimal choice at each step.
+    public SolverType solverType { get; } = SolverType.Greedy;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Uses .NET's built-in PriorityQueue<T> (real binary heap, O(log n) enqueue/dequeue) with
+    // lazy re-insertion on relaxation and a `visited` check to skip stale entries — the
+    // standard binary-heap Dijkstra bound.
+    public string complexity { get; } = "O((V + E) log V)";
     PriorityQueue<string, int>? pq;
 
     public string solve(SPSP problem)

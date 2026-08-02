@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_SETCOVER.Solvers;
@@ -10,6 +10,17 @@ class HeuristicSolver : ISolver<SETCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Despite the class name, this is NOT a heuristic: it is exact bounded
+    // backtracking (min-column-selection + push/pop stack) that gives no-worse-than-optimal-of-size-K
+    // guarantees when it terminates. Tagged Backtracking, not Heuristic -- catching this misleading
+    // class name is exactly what a declared (not derived) tag system is for.
+    public SolverType solverType { get; } = SolverType.Backtracking;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Exact backtracking bounded to depth K: branching factor is bounded
+    // by the number of subsets s covering the current minimum column, and recursion is cut off
+    // once the partial solution exceeds K sets. Per-node cost is dominated by the X.OrderBy scan
+    // over remaining columns (O(u log u), u = |universal|).
+    public string complexity { get; } = "O(s^K * u log u), s = |subsets|, u = |universal|, K = target cover size";
 
     // --- Methods Including Constructors ---
     public HeuristicSolver()

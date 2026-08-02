@@ -39,6 +39,8 @@ class ARCSET : IGraphProblem<ArcSetBruteForce,ArcSetVerifier,ArcSetDefaultVisual
     public ArcSetBruteForce defaultSolver {get;} = new ArcSetBruteForce();
     public ArcSetVerifier defaultVerifier { get; } = new ArcSetVerifier(); //Verifier implements a Depth First Search. 
     public ArcSetDefaultVisualization defaultVisualization { get; } = new ArcSetDefaultVisualization();
+    // Declared, not derived. ARCSET (Feedback Arc Set) is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     public string[] contributors { get; } = { "Alex Diviney" };
 

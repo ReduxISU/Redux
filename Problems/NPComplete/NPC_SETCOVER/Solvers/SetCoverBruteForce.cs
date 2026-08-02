@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 using System.Numerics;
@@ -12,6 +12,14 @@ class SetCoverBruteForce : ISolver<SETCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Outer loop runs K times; for j = 0..K-1 the inner loop runs
+    // C(m, j) times (m = |subsets|), so total iterations are bounded by sum_{j=0}^{K-1} C(m,j)
+    // <= 2^m. Each iteration's verify() call additionally costs O(u^2) (List.Contains/Remove
+    // scans over the universal set, u = |universal|).
+    public string complexity { get; } = "O(2^m * u^2), m = |subsets|, u = |universal|";
 
     // --- Methods Including Constructors ---
     public SetCoverBruteForce()

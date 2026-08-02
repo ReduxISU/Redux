@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
@@ -16,6 +16,13 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
     public string sourceLink { get; } = "https://doi.org/10.2307/2033241";
     public string[] contributors { get; } = { "Andreas Kramer" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Repeatedly adds the lowest-weight edge that doesn't form a
+    // cycle -- an irrevocable, locally-optimal choice at each step.
+    public SolverType solverType { get; } = SolverType.Greedy;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // OrderBy sorts all E edges (O(E log E)); Union-Find uses path compression + union by
+    // rank, near-O(1) amortized per operation, so the sort dominates.
+    public string complexity { get; } = "O(E log E)";
 
     public string solve(MINIMUMSPANNINGTREE problem)
     {

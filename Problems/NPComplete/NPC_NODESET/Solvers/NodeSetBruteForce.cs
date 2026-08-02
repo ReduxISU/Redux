@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
@@ -11,6 +11,14 @@ class NodeSetBruteForce : ISolver<NODESET> {
     public string source {get;} = "";
     public string[] contributors {get;} = {"Andrija Sevaljevic"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Enumerates subsets of size 1..K (K <= nodes.Count, but K can
+    // still be Theta(n), so the sum of C(n,i) terms is Theta(2^n) in the worst case); each
+    // candidate costs O(K*m) to build the removed-edge set (toEdges) plus O(n^2 * m) to
+    // check acyclicity via the reachability fixpoint in isACyclical.
+    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
 
     public NodeSetBruteForce() {
         
