@@ -29,6 +29,12 @@ class NQueensConstructive : ISolver<NQUEENS> {
     public string[] contributors { get; } = { "Jason Wright" };
     public bool timerHasExpired { get; set; }
 
+    // Declared, not derived. This solver builds the placement directly from a closed-form
+    // rule with no search, which is exactly the SolverType.Constructive category. The
+    // runtime is linear in n, so the worst-case bucket is Polynomial.
+    public SolverType solverType { get; } = SolverType.Constructive;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+
     public string complexity { get; } = "O(n)";
 
     // --- Solver ---
