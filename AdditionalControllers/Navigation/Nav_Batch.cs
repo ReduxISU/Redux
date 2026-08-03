@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 // Batch navigation endpoints: return metadata for ALL problems in a single
 // call so the GUI can prime its state with one request instead of N per-problem
@@ -25,6 +26,17 @@ public class BatchController : ControllerBase
 #pragma warning restore CS1591
 
     private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
+
+    // Mirrors ProblemProvider's reflected-object serialization: IncludeFields so public
+    // fields serialize (System.Text.Json omits them by default, whereas the previous
+    // Newtonsoft path serialized them), plus cycle handling to replace the old
+    // ReferenceLoopHandling.Ignore now that arbitrary reflected instances are serialized.
+    private static readonly JsonSerializerOptions ReflectedIndented = new()
+    {
+        WriteIndented = true,
+        IncludeFields = true,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
+    };
 
     // All top-level problem names, from the same reflected source as the singular
     // Navigation/*Problems* endpoints (see ProblemNavigationData in Nav_Problems.cs).
@@ -68,13 +80,7 @@ public class BatchController : ControllerBase
                 // failing the whole response.
             }
         }
-        return Newtonsoft.Json.JsonConvert.SerializeObject(
-            result,
-            Newtonsoft.Json.Formatting.Indented,
-            new Newtonsoft.Json.JsonSerializerSettings
-            {
-                ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-            });
+        return JsonSerializer.Serialize(result, ReflectedIndented);
     });
 
     // Group (problemName -> className) pairs into a sorted map of sorted class names.

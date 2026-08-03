@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace API.Interfaces;
 
@@ -10,7 +9,6 @@ namespace API.Interfaces;
 /// derived" convention as <see cref="ComplexityClass"/>, <see cref="VisualizationType"/>,
 /// and <see cref="ReductionCost"/>.
 /// </summary>
-[Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
 [JsonConverter(typeof(JsonStringEnumConverter<SolverType>))]
 public enum SolverType
 {

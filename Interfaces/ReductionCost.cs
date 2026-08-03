@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace API.Interfaces;
 
@@ -20,7 +19,6 @@ namespace API.Interfaces;
 /// confused with it.
 /// </para>
 /// </summary>
-[Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
 [JsonConverter(typeof(JsonStringEnumConverter<ReductionCost>))]
 public enum ReductionCost
 {

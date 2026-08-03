@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace API.Interfaces;
 
@@ -8,7 +7,6 @@ namespace API.Interfaces;
 /// <see cref="Unimplemented"/> must have a matching key in
 /// Redux_GUI/components/Visualization/svgs/Visualizations.js. CI enforces this.
 /// </summary>
-[Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
 [JsonConverter(typeof(JsonStringEnumConverter<VisualizationType>))]
 public enum VisualizationType
 {
