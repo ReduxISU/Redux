@@ -16,6 +16,7 @@
     <PackageReference Include="SPADE" Version="0.1.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     <Content Include="Problems\**" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="ProblemTemplate\Templates\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Tests live in their own project (redux-tests/redux-tests.csproj). The
