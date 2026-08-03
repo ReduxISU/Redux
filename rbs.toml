@@ -1,0 +1,16 @@
+# Redux Build System pipeline config. See github.com/ReduxISU/Redux_Build_System.
+engine = "dotnet"
+solution = "Redux.slnx"
+
+[unit-test]
+# The standard we're holding to. Currently 61%, so this reports red until coverage catches up.
+coverage-min = 80
+
+[artifact]
+image = "ghcr.io/reduxisu/redux"
+port = 27000
+# /health does not exist yet; inert until `rbs integration-test` lands.
+health-path = "/health"
+
+[push]
+on-branch = "CSharpAPI"

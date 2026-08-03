@@ -6,7 +6,9 @@
       "username": "vscode",
       "installZsh": false,
       "upgradePackages": false
-    }
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": { "moby": false },
+    "ghcr.io/reduxisu/features/rbs:1": {}
   },
   "remoteUser": "vscode",
   "customizations": {

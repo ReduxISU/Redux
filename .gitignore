@@ -8,3 +8,7 @@ Redux.sln
 global.json
 .DS_Store
 .idea/
+
+# Redux Build System output
+.rbs/
+report.md
