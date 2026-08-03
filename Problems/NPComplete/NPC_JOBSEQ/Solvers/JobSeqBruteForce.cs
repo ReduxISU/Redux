@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
@@ -11,6 +11,13 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     public string source {get;} = "";
     public string[] contributors {get;} = {"Russell Phillips"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
+    // Declared, not derived. GenerateCombinations eagerly materializes all p! permutations
+    // of the job indices (p = number of jobs) before solve() iterates and verifies each
+    // (verify is O(p)).
+    public string complexity { get; } = "O(p! * p), p = number of jobs";
 
     // --- Methods Including Constructors ---
     public JobSeqBruteForce() {

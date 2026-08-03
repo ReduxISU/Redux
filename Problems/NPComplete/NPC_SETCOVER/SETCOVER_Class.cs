@@ -28,6 +28,8 @@ class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier,DummyVisualization
     public SetCoverVerifier defaultVerifier { get; } = new SetCoverVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    // Declared, not derived. SETCOVER is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> universal {

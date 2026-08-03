@@ -1,27 +1,28 @@
-﻿using API.Interfaces;
-using API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
-using API.Problems.NPComplete.NPC_SHORTESTPATH.Verifiers;
-using API.Problems.NPComplete.NPC_SHORTESTPATH.Visualizations;
-using SPADE;
-using System.Linq;
-using System.Collections.Generic;
+using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Problems.NPComplete.NPC_TSP.Verifiers;
+using API.Problems.P.P_SPSP.Solvers;
+using API.Problems.P.P_SPSP.Verifiers;
+using API.Problems.P.P_SPSP.Visualizations;
+using SPADE;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
-namespace API.Problems.NPComplete.NPC_SHORTESTPATH;
+namespace API.Problems.P.P_SPSP;
 
-class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, ShortestPathVisualization, UtilCollectionGraph>
+class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilCollectionGraph>
 {
 
     // --- Fields ---
-    public string problemName { get; } = "Shortest Path Problem";
+    public string problemName { get; } = "Single Pair Shortest Path Problem";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Shortest_path_problem";
-    public string formalDefinition { get; } = "For a weighted graph G= (V,E) with weight function w:E->\\(\\mathbb{R}\\), find the shortest path source s to target t, where path length is the sum of edge weights"; //TODO figure out what it's supposed to be
-    public string problemDefinition { get; } = "Shortest Path Problem is the problem of determining the shortest path from a given source vertex to all other vertices such that the sum of the weights of its inherent edges is minimized.";
+    public string formalDefinition { get; } = "For a weighted graph G= (V,E) with non-negative edge weights, a source vertex s \u2208 V, and a target vertex t \u2208 V, find the shortest path from s to t, where path length is defined as the sum of edge weights along the path.";
+    public string problemDefinition { get; } = "Single Pair Shortest Path (SPSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s and target vertex t in the graph, such that the sum of edge weights along the path is minimized.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
     private static string _defaultInstance =
-    "({1,2,3,4,5},{({1,2},4),({1,3},2),({2,3},1),({3,5},7),({2,4},3),({4,5},9)})";
+    "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
 
@@ -32,12 +33,15 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
     public bool isWeighted { get; private set; }
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
-    public DijkstraSolver defaultSolver { get; } = new DijkstraSolver();
-    public ShortestPathVerifier defaultVerifier { get; } = new ShortestPathVerifier();
-    public ShortestPathVisualization defaultVisualization { get; } = new ShortestPathVisualization();
+    public SPSPSolver defaultSolver { get; } = new SPSPSolver();
+    public SPSPVerifier defaultVerifier { get; } = new SPSPVerifier();
+    public SPSPVisualization defaultVisualization { get; } = new SPSPVisualization();
     public UtilCollectionGraph graph { get; set; }
-    public string[] contributors { get; } = { "Tiger Sant", "Malaya Witt", "Rajit Nilkar", "Scott Barfuss" };
-    
+    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
+    // Declared, not derived. Single-pair shortest path (non-negative weights) is
+    // solvable in polynomial time (Dijkstra's algorithm).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+
     // --- Properties ---
     public List<string> nodes
     {
@@ -51,9 +55,9 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
     }
 
     // --- Methods Including Constructors ---
-    public SHORTESTPATH() : this(_defaultInstance) { }
+    public SPSP() : this(_defaultInstance) { }
 
-    public SHORTESTPATH(string GInput)
+    public SPSP(string GInput)
     {
         instance = GInput;
 
@@ -74,7 +78,13 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
         string? explicitTarget = null;
 
         List<string> outerTerms = SplitOuterTuple(rawInstance);
-        if (outerTerms.Count == 3 && LooksLikeTuple(outerTerms[0]))
+        if (outerTerms.Count == 4)
+        {
+            graphInput = $"({outerTerms[0]},{outerTerms[1]})";
+            explicitSource = outerTerms[2];
+            explicitTarget = outerTerms[3];
+        }
+        else if (outerTerms.Count == 3 && LooksLikeTuple(outerTerms[0]))
         {
             graphInput = outerTerms[0];
             explicitSource = outerTerms[1];
@@ -129,7 +139,7 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
             }
         }
 
-        throw new InvalidOperationException("Failed to parse SHORTESTPATH instance.", lastError);
+        throw new InvalidOperationException("Failed to parse SPSP instance.", lastError);
     }
 
     private static void ValidateInstance(
@@ -157,7 +167,7 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
                 throw new InvalidOperationException($"Edge target '{edge.To}' is not in N.");
 
             if (edge.Weight < 0)
-                throw new InvalidOperationException("SHORTESTPATH does not allow negative edge weights.");
+                throw new InvalidOperationException("SPSP using Dijkstra's algorithm does not allow negative edge weights.");
         }
     }
 
@@ -180,6 +190,10 @@ class SHORTESTPATH: IGraphProblem<DijkstraSolver, ShortestPathVerifier, Shortest
         {
             UtilCollection endpoints = rawEdge[0];
             int weight = int.Parse(rawEdge[1].ToString());
+
+            if (weight < 0)
+                throw new InvalidOperationException($"SPSP using Dijkstra's algorithm does not allow negative edge weights. Found edge weight: {weight}");
+
             return new ParsedEdge(GetFrom(endpoints), GetTo(endpoints), weight);
         }
 

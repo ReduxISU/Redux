@@ -73,7 +73,8 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // Dummy visualization is an approach also used by KNAPSACK and JOBSEQ.
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
 
-  
+    // Declared, not derived. BINPACKING is NP-complete (Garey & Johnson, 1979, problem SR1).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     public List<int> S {
         get { return _S; }

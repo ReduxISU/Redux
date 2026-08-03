@@ -1,27 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
-using API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
+using API.Problems.P.P_SPSP.Solvers;
 
-namespace API.Problems.NPComplete.NPC_SHORTESTPATH.Verifiers;
+namespace API.Problems.P.P_SPSP.Verifiers;
 
-class ShortestPathVerifier : IVerifier<SHORTESTPATH> 
+class SPSPVerifier : IVerifier<SPSP>
 {
-    public string verifierName { get; } = "Shortest Path Verifier";
-    public string verifierDefinition { get; } = "Verifies shortest path solutions";
+    public string verifierName { get; } = "Single Pair Shortest Path Verifier";
+    public string verifierDefinition { get; } = "Verifies the solution for the Single Pair Shortest Path problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
     private string _certificate = "";
     public string certificate => _certificate;
 
-    public ShortestPathVerifier() { }
+    public SPSPVerifier() { }
 
     // verify: takes a problem instance and a solution certificate,
     // and returns true if the certificate is a valid solution to the problem instance,
     // false otherwise
-    public bool verify(SHORTESTPATH problem, string solution)
+    public bool verify(SPSP problem, string solution)
     {
         _certificate = solution ?? ""; // Reset certificate before verification
 
@@ -29,11 +29,11 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
         if (nodes.Count == 0)
             // If there are no nodes, the only valid solution is an empty path
             return solution == "{}" || string.IsNullOrWhiteSpace(solution);
-        
+
         string sourceNode = problem.sourceNode;
         string targetNode = problem.targetNode;
 
-        var adjacency = DijkstraSolver.BuildAdjacency(problem.graph);
+        var adjacency = SPSPSolver.BuildAdjacencyList(problem.graph);
 
         // Compute true shortest distance using Dijkstra's algorithm
         int? shortest = ShortestDistance(adjacency, nodes, sourceNode, targetNode);
@@ -58,7 +58,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
 
         if (path[0] != sourceNode || path[^1] != targetNode)
             return false; // Path must start at source and end at target
-        
+
         // Validate each hop is an edge, and compute total path length
         int length = 0;
         for (int i = 0; i < path.Count - 1; i++)
@@ -77,7 +77,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
             int w = weights.Min();
             if (w < 0)
                 return false; // No negative weights allowed
-            
+
             length += w;
         }
         return shortest is int s && length == s; // Valid if path is correct and matches true shortest distance
@@ -92,7 +92,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
     {
         var dist = allNodes.ToDictionary(n => n, _ => int.MaxValue);
         var visited = new HashSet<string>();
-        var pq = new DijkstraPriorityQueue<string>();
+        PriorityQueue<string, int> pq = new PriorityQueue<string, int>();
 
         dist[source] = 0;
         pq.Enqueue(source, 0);
@@ -113,7 +113,7 @@ class ShortestPathVerifier : IVerifier<SHORTESTPATH>
             foreach (var (next, weight) in neighbors)
             {
                 if (weight < 0)
-                    throw new InvalidOperationException("SHORTESTPATH does not allow negative edge weights.");
+                    throw new InvalidOperationException("SPSP does not allow negative edge weights.");
 
                 if (visited.Contains(next))
                     continue; // Skip visited neighbors

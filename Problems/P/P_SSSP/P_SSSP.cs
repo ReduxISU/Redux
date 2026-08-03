@@ -1,6 +1,6 @@
+using Antlr4.Runtime;
 using API.Interfaces;
 using API.Interfaces.Graphs;
-using API.Problems.NPComplete.NPC_TSP.Verifiers;
 using API.Problems.P.P_SSSP.Solvers;
 using API.Problems.P.P_SSSP.Verifiers;
 using API.Problems.P.P_SSSP.Visualizations;
@@ -13,22 +13,18 @@ namespace API.Problems.P.P_SSSP;
 
 class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilCollectionGraph>
 {
-
     // --- Fields ---
     public string problemName { get; } = "Single Source Shortest Path Problem";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Shortest_path_problem";
-    public string formalDefinition { get; } = "For a weighted graph G= (V,E) with non-negative edge weights and source vertex s \u2208 V, find the shortest path distance from s to every other vertex v \u2208 V, where path length is defined as the sum of edge weights along the path.";
-    public string problemDefinition { get; } = "Single Source Shortest Path (SSSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s in the graph, such that the sum of edge weights along each path is minimized.";
+    public string formalDefinition { get; } = "For a weighted graph G = (V,E), with non-negative edge weights, a source vertex s \u2208 V, find the shortest path distance from s to every other vertex v \u2208 V, where path length is defined as the sum of edge weights along the path.";
+    public string problemDefinition { get; } = "Single Source Shortest Path (SSSP) in a weighted graph is the problem of determining the shortest path from a source vertex to all other reachable vertices in the graph such that the sum of edge weights along each path is minimized.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
-    private static string _defaultInstance =
-    "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
+    private static string _defaultInstance = "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-
     public string wikiName { get; } = "";
     public string sourceNode { get; private set; } = string.Empty;
-    public string targetNode { get; private set; } = string.Empty;
     public bool isDirected { get; private set; }
     public bool isWeighted { get; private set; }
     private List<string> _nodes = new List<string>();
@@ -37,7 +33,10 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     public SSSPVerifier defaultVerifier { get; } = new SSSPVerifier();
     public SSSPVisualization defaultVisualization { get; } = new SSSPVisualization();
     public UtilCollectionGraph graph { get; set; }
-    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
+    public string[] contributors { get; } = { "Rajit Nilkar" };
+    // Declared, not derived. Single-source shortest path (non-negative weights) is
+    // solvable in polynomial time (Dijkstra's algorithm).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // --- Properties ---
     public List<string> nodes
@@ -51,7 +50,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         set => _edges = value;
     }
 
-    // --- Methods Including Constructors ---
+    // --- Methods Including Constructor ---
     public SSSP() : this(_defaultInstance) { }
 
     public SSSP(string GInput)
@@ -62,7 +61,6 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         nodes = parsed.Nodes;
         edges = parsed.Edges;
         sourceNode = parsed.SourceNode;
-        targetNode = parsed.TargetNode;
         isDirected = parsed.IsDirected;
         isWeighted = parsed.IsWeighted;
         graph = new UtilCollectionGraph(parsed.NodeCollection, parsed.EdgeCollection);
@@ -72,33 +70,29 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     {
         string graphInput = rawInstance;
         string? explicitSource = null;
-        string? explicitTarget = null;
 
         List<string> outerTerms = SplitOuterTuple(rawInstance);
-        if (outerTerms.Count == 4)
+        if (outerTerms.Count == 3)
         {
             graphInput = $"({outerTerms[0]},{outerTerms[1]})";
             explicitSource = outerTerms[2];
-            explicitTarget = outerTerms[3];
         }
-        else if (outerTerms.Count == 3 && LooksLikeTuple(outerTerms[0]))
+        else if (outerTerms.Count == 2 && LooksLikeTuple(outerTerms[0]))
         {
             graphInput = outerTerms[0];
             explicitSource = outerTerms[1];
-            explicitTarget = outerTerms[2];
         }
 
         GraphParseResult graphParse = ParseGraph(graphInput);
-        UtilCollection nodeCollection = graphParse.Parser["N"] ?? throw new InvalidOperationException("Failed to parse N (nodes).");
-        UtilCollection edgeCollection = graphParse.Parser["E"] ?? throw new InvalidOperationException("Failed to parse E (edges).");
+        UtilCollection nodeCollection = graphParse.Parser["N"] ?? throw new InvalidOperationException("Failed to parse N (nodes)");
+        UtilCollection edgeCollection = graphParse.Parser["E"] ?? throw new InvalidOperationException("Failed to parse E (edges)");
 
         List<string> parsedNodes = nodeCollection.ToList().Select(node => node.ToString()).ToList();
         List<KeyValuePair<string, string>> parsedEdges = ToEdgePairs(edgeCollection);
 
-        ValidateInstance(parsedNodes, edgeCollection, explicitSource, explicitTarget);
+        ValidateInstance(parsedNodes, edgeCollection, explicitSource);
 
         string resolvedSource = explicitSource ?? (parsedNodes.Count > 0 ? parsedNodes[0] : string.Empty);
-        string resolvedTarget = explicitTarget ?? (parsedNodes.Count > 0 ? parsedNodes[^1] : string.Empty);
 
         return new ParsedShortestPathInstance(
             nodeCollection,
@@ -106,7 +100,6 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
             parsedNodes,
             parsedEdges,
             resolvedSource,
-            resolvedTarget,
             graphParse.IsDirected,
             graphParse.IsWeighted);
     }
@@ -116,9 +109,9 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         (string Pattern, bool IsDirected, bool IsWeighted)[] parseAttempts =
         {
             ("{(N,E) | N is set, E subset {(e,w) | e is N cross N, w is int}}", true, true),
-            ("{(N,E) | N is set, E subset {(e,w) | e is N unorderedcross N, w is int}}", false, true),
+            ("{(N,E) | N is set, E subset {(e,w) | e is unorderedcross N, w is int}}", false, true),
             ("{(N,E) | N is set, E subset N cross N}", true, false),
-            ("{(N,E) | N is set, E subset N unorderedcross N}", false, false)
+            ("{(N,E) | N is set, E subset unorderedcross N", false, false)
         };
 
         Exception? lastError = null;
@@ -130,9 +123,9 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
                 parser.parse(graphInput);
                 return new GraphParseResult(parser, attempt.IsDirected, attempt.IsWeighted);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                lastError = ex;
+                lastError = e;
             }
         }
 
@@ -142,18 +135,14 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     private static void ValidateInstance(
         List<string> parsedNodes,
         UtilCollection edgeCollection,
-        string? explicitSource,
-        string? explicitTarget)
+        string? explicitSource)
     {
         HashSet<string> nodeSet = parsedNodes.ToHashSet();
 
         if (explicitSource != null && !nodeSet.Contains(explicitSource))
-            throw new InvalidOperationException($"Source node '{explicitSource}' is not in N.");
+            throw new InvalidOperationException($"Source node '{explicitSource}' is not in N");
 
-        if (explicitTarget != null && !nodeSet.Contains(explicitTarget))
-            throw new InvalidOperationException($"Target node '{explicitTarget}' is not in N.");
-
-        foreach (UtilCollection rawEdge in edgeCollection.ToList())
+        foreach(UtilCollection rawEdge in edgeCollection)
         {
             ParsedEdge edge = ParseEdge(rawEdge);
 
@@ -164,7 +153,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
                 throw new InvalidOperationException($"Edge target '{edge.To}' is not in N.");
 
             if (edge.Weight < 0)
-                throw new InvalidOperationException("SSSP using Dijkstra's algorithm does not allow negative edge weights.");
+                throw new InvalidOperationException("SSSP using Dijkstra's algorithm does not handle negative edge-weights.");
         }
     }
 
@@ -197,6 +186,12 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         return new ParsedEdge(GetFrom(rawEdge), GetTo(rawEdge), 1);
     }
 
+    private static bool LooksLikeCollection(UtilCollection value)
+    {
+        string text = value.ToString().TrimStart();
+        return text.StartsWith("{") || text.StartsWith("(");
+    }
+
     private static string GetFrom(UtilCollection endpoints)
     {
         if (endpoints.IsOrdered())
@@ -216,12 +211,6 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
             return cast[0].ToString();
 
         return cast[1].ToString();
-    }
-
-    private static bool LooksLikeCollection(UtilCollection value)
-    {
-        string text = value.ToString().TrimStart();
-        return text.StartsWith("{") || text.StartsWith("(");
     }
 
     private static bool LooksLikeTuple(string value)
@@ -288,7 +277,6 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         List<string> Nodes,
         List<KeyValuePair<string, string>> Edges,
         string SourceNode,
-        string TargetNode,
         bool IsDirected,
         bool IsWeighted);
     private sealed record ParsedEdge(string From, string To, int Weight);

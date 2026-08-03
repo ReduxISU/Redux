@@ -47,7 +47,7 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
         "tank levels, and cumulative costs produced by the DAG dynamic programming solver.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
-    public string visualizationType { get; } = "pump";
+    public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingCMSolver();
 
     public API_JSON visualize(PUMPSCHEDULINGCM problem) => new API_empty();

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_NQUEENS.Solvers;
 
@@ -11,6 +11,10 @@ class NQueensBacktracking : ISolver<NQUEENS> {
     public string source { get; } = "Classic backtracking approach for the N-Queens problem.";
     public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Exact backtracking search WITH pruning over permutation-style placements
+    // -- factorial worst case (own complexity string above already says "O(N!)").
+    public SolverType solverType { get; } = SolverType.Backtracking;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
 
     public string complexity { get; } = "O(N!)";
 

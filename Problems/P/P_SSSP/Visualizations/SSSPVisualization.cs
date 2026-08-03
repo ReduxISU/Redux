@@ -3,6 +3,7 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.P.P_SSSP.Solvers;
+using API.Problems.P.P_SSSP.Verifiers;
 
 namespace API.Problems.P.P_SSSP.Visualizations;
 
@@ -11,9 +12,10 @@ class SSSPVisualization : IVisualization<SSSP>
     public string visualizationName { get; } = "Single Source Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Source Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt" };
-    public string visualizationType => "Graph D3";
+    public string[] contributors { get; } = { "Rajit Nilkar" };
+    public VisualizationType visualizationType => VisualizationType.GraphD3;
     public ISolver solver { get; } = new SSSPSolver();
+    public IVerifier verifier { get; } = new SSSPVerifier();
 
     public SSSPVisualization() { }
 
@@ -29,108 +31,108 @@ class SSSPVisualization : IVisualization<SSSP>
     public API_JSON SolvedVisualization(SSSP problem, string solution)
     {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
-            // No path found, return graph with no highlights
-            return visualize(problem);
+            return visualize(problem); // No entries so return graph with no highlights
 
-        List<string> path;
+        Dictionary<string, List<string>> pathsByNode;
         try
         {
-            // Parse the solution as a path
-            path = GraphParser.parseNodeListWithStringFunctions(solution);
+            pathsByNode = SSSPVerifier.ParseSSSPCertificate(solution);
         }
         catch
         {
-            // Invalid solution format, return graph with no highlights
-            return visualize(problem);
+            return visualize(problem); // Invalid solution format, return graph with no highlights
         }
 
-        API_GraphJSON graph = problem.graph.ToAPIGraph(); // Convert to API graph format
+        API_GraphJSON graph = problem.graph.ToAPIGraph();
 
-        var pathNodes = new HashSet<string>(path);
-        for (int i = 0; i < graph.nodes.Count; i++)
-            graph.nodes[i].color = pathNodes.Contains(graph.nodes[i].name)
-            ? "Solution" : "Background";
+        var reachedNodes = new HashSet<string>();
+        var treeEdges = new HashSet<(string u, string v)>();
 
-        var pathEdges = new HashSet<(string u, string v)>();
-        for (int i = 0; i < path.Count - 1; i++)
-            pathEdges.Add((path[i], path[i + 1]));
-
-        for (int i = 0; i < graph.links.Count; i++)
+        foreach(var (node, path) in pathsByNode)
         {
-            var link = graph.links[i];
-            bool isForwardPathEdge = pathEdges.Contains((link.source, link.target));
-            bool isReversePathEdge = !problem.isDirected && pathEdges.Contains((link.target, link.source));
+            if (pathsByNode.Count == 0)
+                continue; // unreachable node, no highlight
 
-            if (isForwardPathEdge || isReversePathEdge)
-                link.color = "Solution";
-            else
-                link.color = "Background";
+            foreach (string pathNode in path)
+                reachedNodes.Add(pathNode);
+
+            for (int i = 0; i < path.Count - 1; i++)
+                treeEdges.Add((path[i], path[i + 1]));
+
+            for(int i = 0; i < graph.nodes.Count; i++)
+            {
+                graph.nodes[i].color = reachedNodes.Contains(graph.nodes[i].name) ? "Solution" : "Background";
+            }
+
+            for(int i = 0; i < graph.links.Count; i++)
+            {
+                var link = graph.links[i];
+                bool isForwardTreeEdge = treeEdges.Contains((link.source, link.target));
+                bool isReversedTreeEdge = !problem.isDirected && treeEdges.Contains((link.source, link.target));
+
+                link.color = (isForwardTreeEdge || isReversedTreeEdge) ? "Solution" : "Background";
+            }
         }
         return graph;
     }
 
+    // StepsVisualization : takes a problem instance and a list of step objects,
+    // and returns a step-by-step visualization with a highlighted path for the current node being processed and final path solution for reachable nodes
     public List<API_JSON> StepsVisualization(SSSP problem, List<Object> steps)
     {
         var result = new List<API_JSON>();
 
-        for (int s = 0; s < steps.Count; s++)
+        for(int s = 0; s < steps.Count; s++)
         {
-            string? step = steps[s].ToString();
-
-            if (string.IsNullOrWhiteSpace(step) || step.Trim() == "{}")
-            {
-                result.Add(visualize(problem));
-                continue;
-            }
-
-            List<string> path;
-            try
-            {
-                path = GraphParser.parseNodeListWithStringFunctions(step);
-            }
-            catch
+            var step = steps[s] as SSSPSolver.SSSPGraphStep;
+            if(step == null)
             {
                 result.Add(visualize(problem));
                 continue;
             }
 
             API_GraphJSON graph = problem.graph.ToAPIGraph();
+            var knownNodes = new HashSet<string>(step.knownNodes);
 
-            string? currentNode = path.Count > 0 ? path[path.Count - 1] : null;
-            var pathNodes = new HashSet<string>(path);
-
-            for (int i = 0; i < graph.nodes.Count; i++)
+            for(int i = 0; i < graph.nodes.Count; i++)
             {
-                if (graph.nodes[i].name == currentNode)
+                if (graph.nodes[i].name == step.currentNode)
                 {
                     graph.nodes[i].color = "ElementHighlight";
                     graph.nodes[i].outline = "Purple";
                 }
-                else if (pathNodes.Contains(graph.nodes[i].name))
+                else if (knownNodes.Contains(graph.nodes[i].name))
                 {
                     graph.nodes[i].color = "Solution";
+                    graph.nodes[i].outline = "SolutionAlt";
                 }
                 else
                 {
-                    graph.nodes[i].color = "Background";
+                    graph.nodes[i].color = "Background"; 
                 }
             }
 
-            var pathEdges = new HashSet<(string u, string v)>();
-            for (int i = 0; i < path.Count - 1; i++)
-                pathEdges.Add((path[i], path[i + 1]));
+            var treeEdges = new HashSet<(string from, string to)>(step.treeEdges);
+            (string from, string to)? currentEdge = step.currentEdgeFrom != null && step.currentNode != null ? (step.currentEdgeFrom, step.currentNode) : null;
 
-            for (int i = 0; i < graph.links.Count; i++)
+            for(int i = 0; i < graph.links.Count; i++)
             {
                 var link = graph.links[i];
-                bool isForwardPathEdge = pathEdges.Contains((link.source, link.target));
-                bool isReversedPathEdge = !problem.isDirected && pathEdges.Contains((link.target, link.source));
+                var forward = (link.source, link.target);
+                var reverse = (link.source, link.target);
 
-                link.color = (isForwardPathEdge || isReversedPathEdge) ? "Solution" : "Background";
+                bool isCurrentEdge = currentEdge.HasValue && (forward == currentEdge.Value || (!problem.isDirected && reverse == currentEdge.Value));
+                bool isTreeEdge = treeEdges.Contains(forward) || (!problem.isDirected && treeEdges.Contains(reverse));
+
+                if (isCurrentEdge)
+                    link.color = "ElementHighlight";
+                else if (isTreeEdge)
+                    link.color = "Solution";
+                else
+                    link.color = "Background";
             }
             result.Add(graph);
         }
-
         return result;
     }
 }

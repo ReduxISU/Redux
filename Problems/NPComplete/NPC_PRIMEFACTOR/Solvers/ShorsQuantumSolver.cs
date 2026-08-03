@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Tools;
 using System.Text.Json;
 
@@ -21,6 +21,16 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
     public string[] contributors { get; } = { "Grant Gardner", "George Lake", "Jason Wright" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Delegates to the external quantum-simulator service. complexityBucket is
+    // intentionally left Unclassified, not just an unfilled gap: tagging Shor's algorithm with any
+    // classical growth bucket would be a category error -- its entire point is a proven quantum-vs-
+    // classical complexity separation (exponential classical factoring vs. polynomial quantum).
+    public SolverType solverType { get; } = SolverType.Quantum;
+    // Shor's algorithm's quantum period-finding (phase estimation + QFT) plus the classical
+    // GCD post-processing described in solverDefinition runs in time polynomial in the number
+    // n's bit-length -- the textbook O((log n)^3) bound -- versus the exponential-in-bit-length
+    // cost of classical trial division (PrimeFactorSolver).
+    public string complexity { get; } = "O((log n)^3)";
 
     // --- Constructors ---
 

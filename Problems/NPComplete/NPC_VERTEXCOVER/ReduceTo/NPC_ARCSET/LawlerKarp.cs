@@ -28,6 +28,9 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Daniel Igbokwe", "Caleb Eardley" };
+    // reduce() emits 2 gadget nodes + O(1) gadget edges per input node, and O(1)
+    // directed edges per input edge — O(n+m), no cross-product terms.
+    public ReductionCost cost { get; } = ReductionCost.Linear;
     public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;
     private ARCSET _reductionTo;

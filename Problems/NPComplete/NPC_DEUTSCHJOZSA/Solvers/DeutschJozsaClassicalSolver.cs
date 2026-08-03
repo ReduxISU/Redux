@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using System;
 using System.Collections.Generic;
 
@@ -11,6 +11,15 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
     public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558";
     public string[] contributors {get;} = { "George Lake", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Classical baseline paired with DeutschJozsaQuantumSolver; no SolverType
+    // bucket fits so solverType stays Unclassified per user decision. Natural parameter is
+    // oracle-bit-count n (matches the paired quantum solver), not the 2^n-length array scanned --
+    // classically needs exponentially many oracle queries in n, the entire pedagogical point of this
+    // problem.
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // solve() queries the oracle array up to (2^n / 2) + 1 times (queries_to_be_certain,
+    // computed from total_inputs = 2^n) before it can be certain of constant vs. balanced.
+    public string complexity { get; } = "O(2^n) queries";
 
     // --- Methods Including Constructors ---
     public DeutschJozsaClassicalSolver() {}

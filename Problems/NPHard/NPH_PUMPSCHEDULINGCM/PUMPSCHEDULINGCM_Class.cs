@@ -43,6 +43,9 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
     public string source { get; } = "";
     public string wikiName { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
+    // Declared, not derived. Correctly filed under Problems/NPHard/ already; this
+    // makes the folder's claim machine-checkable instead of implicit.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
 
     // Grammar: 3-section tuple — Tank, Demand config, Pumps.
     // D nests demand curve, peak hours, and tariff rates together as one section.

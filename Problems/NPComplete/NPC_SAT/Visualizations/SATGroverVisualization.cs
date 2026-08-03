@@ -11,7 +11,7 @@ class SATGroverVisualization : IVisualization<SAT>
     public string visualizationDefinition { get; } = "This visualization builds a quantum circuit from the Boolean expression and then uses Grover's algorithm to find a bit string x such that f(x) = 1.";
     public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner", "Jason L. Wright" };
-    public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new SATGroverSolver();
 
     // --- Methods Including Constructors ---

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_SIMON.Solvers;
 
@@ -11,6 +11,14 @@ class SimonSolver : ISolver<SIMON>
     public string source { get; } = "Simon, Daniel R. (1997-10-01). \"On the Power of Quantum Computation\". SIAM Journal on Computing. 26 (5): 1474–1483. doi:10.1137/S0097539796298637. ISSN 0097-5397";
     public string[] contributors { get; } = { "Jason L. Wright", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Classical algorithm for Simon's problem; no SolverType bucket fits so
+    // solverType stays Unclassified per user decision. Natural parameter is oracle-bit-count n, not
+    // the 2^n-length array scanned -- classically needs exponentially many oracle queries in n, the
+    // entire pedagogical point of this problem.
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // solve() calls problem.Func(s) once for every s in [0, 2^n), building fmap over the
+    // full function table before it can recover the secret string.
+    public string complexity { get; } = "O(2^n) queries";
 
     // --- Methods Including Constructors ---
     public SimonSolver() { }

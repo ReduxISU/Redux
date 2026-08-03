@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 class ExactCoverRecursive : ISolver<EXACTCOVER> {
@@ -9,6 +9,21 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Russell Phillips"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Exact recursive search WITH pruning -- distinct from ExactCoverBruteForce,
+    // which does not prune.
+    public SolverType solverType { get; } = SolverType.Backtracking;
+    // Corrected from Exponential: solve_r has no index cursor to fix a selection order -- at every
+    // level it re-scans the full remaining `possibleSubsets` list and recurses once per candidate, so
+    // the exact same final combination of subsets can be assembled via any of its orderings, all of
+    // which get explored separately (classic combination-search-without-a-cursor blowup). When no two
+    // subsets in S share elements (so shareElememnts never prunes a branch), this degenerates into a
+    // full permutation tree of the s = |S| subsets: O(s!) recursive calls in the worst case, matching
+    // the Backtracking + Factorial pairing already used by NQueensBacktracking.
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
+    // Per node: building possibleSubsets scans up to s remaining subsets, each checked via
+    // shareElememnts against up to s chosen subsets, O(n^2) per pairwise check (n = |X|, bounding
+    // subset size) -- O(s^2 * n^2) per node. Combined with the O(s!) node count above.
+    public string complexity { get; } = "O(s! * s^2 * n^2), s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)";
 
     // --- Methods Including Constructors ---
     public ExactCoverRecursive() {

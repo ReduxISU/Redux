@@ -53,6 +53,95 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory>
         Assert.NotEmpty(arr);
     }
 
+    // ── {NPC,P,NPHard}_ProblemsRefactor membership (plan: Redux Tag System, Phase 4.4,
+    // Risk 4) ───────────────────────────────────────────────────────────────────────
+    //
+    // These three endpoints used to derive complexity class from the C# namespace
+    // (API.Problems.<Folder>.<ProblemFolder>), so membership equaled the on-disk
+    // Problems/<Folder>/ layout. Phase 4 flips that to the DECLARED complexityClass
+    // (Nav_Problems.cs, ComplexityClassCatalog), and Problems/NPComplete/ misfiled at
+    // least a dozen entries — so membership genuinely changes:
+    //   - NPC_ProblemsRefactor: 42 (namespace-derived) -> 4 (declared NPComplete,
+    //     Phase 4) -> 26 (Phase 4.3/Step 1 declares the 22 textbook Karp/BINPACKING/
+    //     SUDOKU NP-complete problems). 4 problems remain on the Unclassified
+    //     allowlist (CUT, WEIGHTEDCUT, NQUEENS, LOSSLESSDATACOMPRESSION — each needs
+    //     someone to read what the code models before it can be classified; see
+    //     ComplexityClass_Tests.UnclassifiedAllowlist) and so appear on no per-class
+    //     endpoint, only on ALL_ProblemsRefactor.
+    //   - P_ProblemsRefactor: 6 -> 12 (gains the 6 misfiled-as-NPComplete P problems).
+    //   - NPHard_ProblemsRefactor: 2 -> 2 (already filed correctly; unchanged).
+    // This was verified safe pre-merge: the GUI only calls ALL_ProblemsRefactor
+    // (redux/index.js:328) and never these three per-class endpoints. These exact-set
+    // assertions exist so that fact can't silently stop being true.
+
+    private static async Task<HashSet<string>> GetStringSet(HttpClient client, string path)
+    {
+        var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var arr = JsonSerializer.Deserialize<string[]>(body);
+        Assert.NotNull(arr);
+        return new HashSet<string>(arr!, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task NpcProblems_MembershipIsExactlyDeclaredNPComplete()
+    {
+        var actual = await GetStringSet(_client, "/Navigation/NPC_ProblemsRefactor");
+        var expected = new HashSet<string>(
+            new[]
+            {
+                "ARCSET", "BINPACKING", "CLIQUE", "CLIQUECOVER", "CUT", "DIRECTEDHAMILTONIAN",
+                "DM3", "DOMINATINGSET", "EXACTCOVER", "GRAPHCOLORING", "HAMILTONIAN",
+                "HITTINGSET", "INDEPENDENTSET", "INTPROGRAMMING01", "JOBSEQ", "KNAPSACK",
+                "NODESET", "PARTITION", "SAT", "SAT3", "SETCOVER", "STEINERTREE",
+                "SUBSETSUM", "SUDOKU", "TSP", "VERTEXCOVER", "WEIGHTEDCUT",
+            },
+            StringComparer.OrdinalIgnoreCase);
+
+        Assert.True(expected.SetEquals(actual),
+            $"NPC_ProblemsRefactor membership changed.\nExpected: {string.Join(", ", expected.OrderBy(s => s))}\n" +
+            $"Actual:   {string.Join(", ", actual.OrderBy(s => s))}");
+
+        // The six problems Problems/NPComplete/ misfiles as P must NOT be here.
+        foreach (var shouldBeGone in new[] { "MINIMUMSPANNINGTREE", "SHORTESTPATH", "TOPOLOGICALSORT", "STRONGLYCONNECTEDCOMPONENTS", "EDITDISTANCE", "CONVEXHULL" })
+            Assert.DoesNotContain(shouldBeGone, actual);
+
+        // PRIMEFACTOR (NPIntermediate) and the quantum-oracle problems must NOT be here.
+        foreach (var shouldBeGone in new[] { "PRIMEFACTOR", "DEUTSCH", "DEUTSCHJOZSA", "BERNSTEINVAZIRANI", "SIMON", "UNSTRUCTUREDSEARCH" })
+            Assert.DoesNotContain(shouldBeGone, actual);
+
+        // NQUEENS and LOSSLESSDATACOMPRESSION resolved to P, not NPComplete -- must NOT be here.
+        foreach (var shouldBeGone in new[] { "NQUEENS", "LOSSLESSDATACOMPRESSION" })
+            Assert.DoesNotContain(shouldBeGone, actual);
+    }
+
+    [Fact]
+    public async Task PProblems_MembershipIsExactlyDeclaredP()
+    {
+        var actual = await GetStringSet(_client, "/Navigation/P_ProblemsRefactor");
+        var expected = new HashSet<string>(
+            new[] { "CONVEXHULL", "DFA", "EDITDISTANCE", "LOSSLESSDATACOMPRESSION", "MINCUT", "MINIMUMSPANNINGTREE", "MINSTCUT", "NFA", "NQUEENS", "SPSP", "SSSP", "STRONGLYCONNECTEDCOMPONENTS", "TOPOLOGICALSORT" },
+            StringComparer.OrdinalIgnoreCase);
+
+        Assert.True(expected.SetEquals(actual),
+            $"P_ProblemsRefactor membership changed.\nExpected: {string.Join(", ", expected.OrderBy(s => s))}\n" +
+            $"Actual:   {string.Join(", ", actual.OrderBy(s => s))}");
+    }
+
+    [Fact]
+    public async Task NpHardProblems_MembershipIsExactlyDeclaredNPHard()
+    {
+        var actual = await GetStringSet(_client, "/Navigation/NPHard_ProblemsRefactor");
+        var expected = new HashSet<string>(
+            new[] { "MAXCUT", "PUMPSCHEDULINGCM", "PUMPSCHEDULINGEM" },
+            StringComparer.OrdinalIgnoreCase);
+
+        Assert.True(expected.SetEquals(actual),
+            $"NPHard_ProblemsRefactor membership changed.\nExpected: {string.Join(", ", expected.OrderBy(s => s))}\n" +
+            $"Actual:   {string.Join(", ", actual.OrderBy(s => s))}");
+    }
+
     // ── Problem_VerifiersRefactor: lookup must not depend on problemType ──────
     // Regression for #317/#318: the GUI pins problemType to "NPC" and never updates
     // it, so a P / NP-Hard problem arrives with the wrong prefix. The verifier lookup

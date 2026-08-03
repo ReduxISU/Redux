@@ -15,6 +15,10 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
     public string reductionDefinition {get;} = "Karp's Reduction from Vertex Cover to Feedback Node Set";
     public string source {get;} = "This reduction was found by the Algorithms Seminar at the Cornell University Computer Science Department. Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    // The node x node loop only emits an instance entry when the pair IS an existing
+    // edge (not its complement) — despite the O(n^2)-iteration scan, real output is
+    // bounded by O(m) (each existing edge emitted in both directions).
+    public ReductionCost cost { get; } = ReductionCost.Linear;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;

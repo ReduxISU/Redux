@@ -44,6 +44,8 @@ namespace API.Problems.NPComplete.NPC_SAT;
     public SATBruteForceSolver defaultSolver {get;} = new SATBruteForceSolver();
     public SATVerifier defaultVerifier { get; } = new SATVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    // Declared, not derived. SAT is the canonical NP-complete problem (Cook-Levin).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     #endregion
 

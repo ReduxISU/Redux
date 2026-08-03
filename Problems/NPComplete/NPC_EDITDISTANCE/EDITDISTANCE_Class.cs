@@ -27,6 +27,10 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public EditDistanceVerifier defaultVerifier { get; } = new EditDistanceVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors { get; } = { "Kaosi Ibeabuchi", "Diya Pandey", "Srijan Pant" };
+    // Declared, not derived from the Problems/NPComplete/ folder. The comment above
+    // (this problem is solved with DP in polynomial time) already said as much; this
+    // makes it a machine-checkable fact instead of a comment nobody reads.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     public string sourceString = "";
     public string targetString = "";

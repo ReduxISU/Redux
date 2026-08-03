@@ -30,6 +30,8 @@ class STEINERTREE : IGraphProblem<SteinerTreeBruteForce, SteinerTreeVerifier, St
     public SteinerTreeDefaultVisualization defaultVisualization { get; } = new SteinerTreeDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    // Declared, not derived. STEINERTREE is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> nodes
