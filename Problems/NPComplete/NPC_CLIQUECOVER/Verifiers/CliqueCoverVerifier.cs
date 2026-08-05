@@ -40,6 +40,10 @@ class CliqueCoverVerifier : IVerifier<CLIQUECOVER> {
     {
         List<string> bandAid = new List<string>(problem.nodes);
         List<string> nodeSet = certificate.Split("},{").ToList();
+        if (nodeSet.Count > problem.K)
+        {
+            return false;
+        }
         foreach (var k in nodeSet)
         {
             List<string> nodeList = parseCertificate(k);

@@ -8,3 +8,4 @@ Redux.sln
 global.json
 .DS_Store
 .idea/
+missing_tests.txt
