@@ -11,7 +11,7 @@ class MaxCutVisualization : IVisualization<MAXCUT>
     public string visualizationDefinition { get; } = "Displays a weighted undirected graph and highlights the edges belonging to the maximum cut, coloring S-side nodes and crossing edges.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Max Gruenwoldt", "Michael Trosper" };
-    public string visualizationType { get; } = "Graph D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new MaxCutSolver();
 
     public MaxCutVisualization() { }

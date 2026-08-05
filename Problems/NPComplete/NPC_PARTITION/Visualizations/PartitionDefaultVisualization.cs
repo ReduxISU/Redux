@@ -3,7 +3,6 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using SPADE;
-using API.Problems.NPComplete.NPC_SHORTESTPATH.Solvers;
 using API.Problems.NPComplete.NPC_PARTITION.Solvers;
 
 namespace API.Problems.NPComplete.NPC_PARTITION.Visualizations;
@@ -14,7 +13,7 @@ class PartitionDefaultVisualization : IVisualization<PARTITION>
     public string visualizationDefinition { get; } = "This is a default visualization for Partition";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public string visualizationType { get; } = "Set D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
     public ISolver solver { get; } = new PartitionBruteForce();
 
     // --- Methods Including Constructors ---

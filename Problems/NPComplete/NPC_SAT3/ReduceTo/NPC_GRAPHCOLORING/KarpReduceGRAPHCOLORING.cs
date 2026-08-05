@@ -13,6 +13,12 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING>
     public string reductionDefinition { get; } = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
     public string source { get; } = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
     public string[] contributors { get; } = { "Daniel Igbokwe" };
+    // The literal-negation loop iterates O(v^2) times but each distinct literal has at
+    // most one negation partner, so real edges added there are O(v); clause-gadget
+    // edges are O(1) per clause. Total real output edges are O(v + c), despite the
+    // O(v^2)-iteration scan — not the same claim as the pre-existing `complexity` field
+    // below (unrelated, unverified runtime-complexity note).
+    public ReductionCost cost { get; } = ReductionCost.Linear;
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private SAT3 _reductionFrom;

@@ -12,7 +12,10 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
     public string source {get;} = "Feng, Thomas";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Steiner_tree_problem";
     public string[] contributors {get;} = {"Garret Stouffer", "Daniel Igbokwe"};
-  
+    // reduce() maps each SUBSETSUM integer to exactly one KNAPSACK item (n,n) — a
+    // straight 1:1 mapping, O(n).
+    public ReductionCost cost { get; } = ReductionCost.Linear;
+
     private string _complexity ="O(n)";
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 

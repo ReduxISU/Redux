@@ -11,7 +11,7 @@ class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI>
     public string visualizationDefinition { get; } = "Requests QASM for the Bernstein-Vazirani circuit (Hadamards, oracle, measure data qubits) to show how one query recovers the hidden bit string for Q.js rendering.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner" };
-    public string visualizationType { get; } = "Quantum Circuit Q.js";
+    public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new BernsteinVaziraniClassicalSolver();
 
     // --- Methods Including Constructors ---

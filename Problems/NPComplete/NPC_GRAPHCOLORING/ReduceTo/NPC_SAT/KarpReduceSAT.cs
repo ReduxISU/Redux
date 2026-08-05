@@ -13,7 +13,13 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
     public string sourceLink {get;} = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
     public string[] contributors {get;} = {"Daniel Igbokwe"};
     // Dictionary<Object,List<string>> _gadgetMap = new Dictionary<object, List<string>>();
-    
+
+    // Per node, the nested "for i in 0..K: for j in 0..K" loop unconditionally emits
+    // ~O(K^2) "not both colors i,j" clauses (the dedup check only trims by roughly
+    // half), giving O(n * K^2) total clauses. Not the same thing as the pre-existing
+    // `complexity` field below (that's an unrelated, unverified runtime-complexity note).
+    public ReductionCost cost { get; } = ReductionCost.Cubic;
+
     private GRAPHCOLORING _reductionFrom;
     private SAT _reductionTo;
     private string _complexity = "O(n^2)";

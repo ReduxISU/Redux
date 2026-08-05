@@ -9,7 +9,7 @@ class Sat3DefaultVisualization : IVisualization<SAT3>
     public string visualizationDefinition { get; } = "This is a default visualization for 3SAT";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Kaden Marchetti" };
-    public string visualizationType { get; } = "Boolean Satisfiability";
+    public VisualizationType visualizationType { get; } = VisualizationType.BooleanSatisfiability;
     public ISolver solver { get; } = new Sat3BacktrackingSolver();
 
     // --- Methods Including Constructors ---

@@ -13,7 +13,7 @@ class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH>
     public string visualizationDefinition { get; } = "This visualization builds a quantum circuit";
     public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
     public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
-    public string visualizationType { get; } = "Quantum Circuit";
+    public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new UnstructuredSearchSolver();
 
     // --- Methods Including Constructors ---

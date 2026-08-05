@@ -22,6 +22,10 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
+    // Declared, not derived from the Problems/NPComplete/ folder — MST is solvable in
+    // polynomial time (e.g. Kruskal's / Prim's algorithm), it just lives under the
+    // NPComplete/ folder for filing reasons.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     private List<string> _nodes = new List<string>();
     private List<(string source, string destination, int weight)> _edges = new List<(string source, string destination, int weight)>();

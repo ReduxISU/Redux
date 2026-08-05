@@ -12,7 +12,7 @@ class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT>
     public string visualizationDefinition { get; } = "Animates the graph by topological rank: all source nodes (in-degree zero) highlight first, followed by their successors in waves. This mirrors how Kahn's Algorithm peels off layers of zero-in-degree nodes during execution. Every edge is highlighted because, in a valid topological ordering, every directed edge points forward.";
     public string source { get; } = "Kahn, A. B. (1962). Topological sorting of large networks. Communications of the ACM, 5(11), 558-562.";
     public string[] contributors { get; } = { "Pravesh Aryal", "Koras Koirala", "Dinesh Khanal" };
-    public string visualizationType { get; } = "Graph D3";
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new KahnsAlgorithm();
 
     // --- Constructors ---

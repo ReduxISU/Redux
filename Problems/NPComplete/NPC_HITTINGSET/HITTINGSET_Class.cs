@@ -31,6 +31,8 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
 
     public HittingSetVerifier defaultVerifier { get; } = new HittingSetVerifier();
     public HittingSetDefaultVisualization defaultVisualization { get; } = new HittingSetDefaultVisualization();
+    // Declared, not derived. HITTINGSET is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     public UtilCollection _universalSet;
 

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Tools;
 using System.Text.Json;
 
@@ -16,6 +16,11 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
     public string[] contributors { get; } = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Delegates to the external quantum-simulator service.
+    public SolverType solverType { get; } = SolverType.Quantum;
+    // solverDefinition itself states this determines constant/balanced "with a single
+    // invocation of a quantum simulator" -- one oracle query via phase kickback.
+    public string complexity { get; } = "O(1) oracle queries";
 
     // --- Constructors ---
 

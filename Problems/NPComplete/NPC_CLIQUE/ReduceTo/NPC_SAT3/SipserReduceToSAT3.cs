@@ -5,6 +5,19 @@ using API.Problems.NPComplete.NPC_SAT3;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 
+// Not a general reduction: reduce() only produces a meaningful SAT3 formula for CLIQUE
+// instances already Sipser-formatted by SipserReduceToCliqueStandard (nodes named
+// '<literal>_<clauseIdx>') -- see ParseSipserNode below and reductionDefinition. An
+// arbitrary CLIQUE instance (e.g. CLIQUE.defaultInstance, plain node names) has no such
+// structure to invert -- and its own parameterless constructor immediately hits this,
+// since `new CLIQUE()` isn't Sipser-formatted either, so this can't safely be
+// Activator.CreateInstance'd just to inspect it (see NotAGeneralReductionAttribute's own
+// comment in Interfaces/ReductionInterface.cs for why that's an attribute, not a
+// property). Excluded from ReductionGraphData's navigable graph so it isn't advertised as
+// a working CLIQUE -> SAT3 reduction for any input; still directly callable by name via
+// /ProblemProvider/reduce for its actual purpose (mapping a solution back through a
+// paired SipserReduceToCliqueStandard run).
+[NotAGeneralReduction]
 class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.SAT3>
 {
     // --- Fields ---
@@ -16,6 +29,10 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         + "CLIQUE instances produced by SipserReduceToCliqueStandard.";
     public string source { get; } = "Sipser, Michael. Introduction to the Theory of Computation. ACM Sigact News 27.1 (1996): 27-29.";
     public string[] contributors { get; } = { "Jason Wright" };
+    // reduce() does a single pass over the CLIQUE instance's nodes, grouping them into
+    // clauses by trailing '_<clauseIdx>' suffix — output clause count is O(n) in the
+    // number of input nodes.
+    public ReductionCost cost { get; } = ReductionCost.Linear;
 
     public List<Gadget> gadgets { get; set; }
 

@@ -12,6 +12,36 @@ using API.Interfaces;
 // NPC_NavGraph/availableReductions and NPC_NavGraph/reductionPath
 // sub-endpoints (see Nav_Problems.cs) so views cannot drift.
 
+// className -> declared ReductionCost's wire value. Built the same way as
+// ComplexityClassCatalog (Nav_Problems.cs): iterate ProblemProvider.Reductions,
+// Activator.CreateInstance per-type try/catch, read instance.cost.ToString() off the
+// constructed IReduction. One reduction with a throwing/missing default constructor
+// must not take down the whole catalog.
+internal static class ReductionCostCatalog
+{
+    internal static readonly Lazy<Dictionary<string, string>> ByClassName = new(Build);
+
+    private static Dictionary<string, string> Build()
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Reductions)
+        {
+            try
+            {
+                if (Activator.CreateInstance(type) is IReduction instance)
+                    result[type.Name] = instance.cost.ToString();
+            }
+            catch
+            {
+                // Skip a reduction that can't be default-constructed instead of failing
+                // the whole catalog. It falls back to Unclassified at the call site
+                // (ReductionGraphData.Build).
+            }
+        }
+        return result;
+    }
+}
+
 // Top-level so Swagger emits "$ref": "#/components/schemas/ReductionEdge".
 // Must not be nested inside ReductionGraphData — the CLR names nested types
 // with '+' (e.g. "ReductionGraphData+Edge"), which is not a valid JSON pointer
@@ -35,6 +65,15 @@ public class ReductionEdge
     /// <summary>The output problem type this reduction produces.</summary>
     /// <example>SETCOVER</example>
     public string outputType { get; set; } = "";
+    /// <summary>The declared <see cref="ComplexityClass"/> wire value of <see cref="inputType"/>. Additive field for Phase 7 faceting; purely informational here.</summary>
+    /// <example>NPComplete</example>
+    public string fromComplexity { get; set; } = "";
+    /// <summary>The declared <see cref="ComplexityClass"/> wire value of <see cref="outputType"/>. Additive field for Phase 7 faceting; purely informational here.</summary>
+    /// <example>NPComplete</example>
+    public string toComplexity { get; set; } = "";
+    /// <summary>The declared <see cref="ReductionCost"/> wire value: how much this reduction blows up instance size (output vs input). Already-stringified, same Newtonsoft-enum-as-int mitigation as <see cref="fromComplexity"/>/<see cref="toComplexity"/>.</summary>
+    /// <example>Linear</example>
+    public string cost { get; set; } = "";
 }
 
 /// <summary>
@@ -54,6 +93,36 @@ public static class ReductionGraphData
     /// </summary>
     public static readonly Dictionary<string, Dictionary<string, List<ReductionEdge>>> Graph = Build();
 
+    // Reads the declared ComplexityClass off a problem type, per-type try/catch so a
+    // throwing/missing default constructor degrades to Unclassified instead of
+    // failing the whole graph. Backed by ComplexityClassCatalog (Nav_Problems.cs) so
+    // this can never disagree with the Navigation/*Problems* endpoints.
+    private static string DeclaredComplexity(Type problemType) =>
+        ComplexityClassCatalog.ByClassName.Value.TryGetValue(problemType.Name, out var cc)
+            ? cc
+            : nameof(API.Interfaces.ComplexityClass.Unclassified);
+
+    private static string DeclaredCost(string className) =>
+        ReductionCostCatalog.ByClassName.Value.TryGetValue(className, out var cost)
+            ? cost
+            : nameof(API.Interfaces.ReductionCost.Unclassified);
+
+    // Ascending cost rank for sorting parallel edges (same from->to pair, multiple
+    // reduction classes) cheapest-first, so a caller that just takes edges[0] gets the
+    // cheapest *declared* reduction automatically. Unclassified sorts last — an
+    // undeclared cost is not evidence of being cheap. This only orders parallel edges
+    // between a single (from, to) pair; it is intentionally NOT a re-weighting of
+    // PathBetween's BFS (which is unweighted, by hop count only) — a weighted,
+    // cheapest-multi-hop PathBetween is a deferred follow-up phase, not in scope here.
+    private static readonly Dictionary<string, int> CostRank = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [nameof(API.Interfaces.ReductionCost.Linear)] = 0,
+        [nameof(API.Interfaces.ReductionCost.Quadratic)] = 1,
+        [nameof(API.Interfaces.ReductionCost.Cubic)] = 2,
+        [nameof(API.Interfaces.ReductionCost.HigherPolynomial)] = 3,
+        [nameof(API.Interfaces.ReductionCost.Unclassified)] = 4,
+    };
+
     private static Dictionary<string, Dictionary<string, List<ReductionEdge>>> Build()
     {
         var graph = new Dictionary<string, Dictionary<string, List<ReductionEdge>>>();
@@ -62,6 +131,18 @@ public static class ReductionGraphData
             var generic = type.GetInterfaces()
                 .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReduction<,>));
             if (generic == null) continue;
+
+            // Some reductions (e.g. SipserReduceToSAT3) are solution-mapping companions to
+            // another reduction, not general A->B reductions valid for any A instance --
+            // [NotAGeneralReduction] (Interfaces/ReductionInterface.cs) lets them opt out of
+            // being advertised as a navigable graph edge, instead of a hardcoded skip-list
+            // here. Checked via the attribute (pure reflection over the type), not by
+            // constructing an instance: a class excluded for this reason can have a default
+            // constructor that itself isn't safely callable (SipserReduceToSAT3's chains
+            // through `new CLIQUE()` and immediately calls reduce() on it).
+            if (type.GetCustomAttributes(typeof(NotAGeneralReductionAttribute), inherit: false).Length > 0)
+                continue;
+
             var args = generic.GetGenericArguments();
             string from = args[0].Name;
             string to = args[1].Name;
@@ -72,6 +153,9 @@ public static class ReductionGraphData
                 endpoint = $"POST /ProblemProvider/reduce?reduction={className}",
                 inputType = from,
                 outputType = to,
+                fromComplexity = DeclaredComplexity(args[0]),
+                toComplexity = DeclaredComplexity(args[1]),
+                cost = DeclaredCost(className),
             };
             if (!graph.ContainsKey(from))
                 graph[from] = new Dictionary<string, List<ReductionEdge>>();
@@ -79,6 +163,17 @@ public static class ReductionGraphData
                 graph[from][to] = new List<ReductionEdge>();
             graph[from][to].Add(edge);
         }
+
+        // Sort parallel edges (multiple reduction classes between the same from/to
+        // pair) cheapest-first. Stable sort preserves relative order among equal-cost
+        // edges. Does not affect which (from, to) pairs exist in the graph, and does
+        // not touch PathBetween's hop-count BFS — see CostRank's comment above.
+        foreach (var tos in graph.Values)
+            foreach (var to in tos.Keys.ToList())
+                tos[to] = tos[to]
+                    .OrderBy(e => CostRank.TryGetValue(e.cost, out var r) ? r : int.MaxValue)
+                    .ToList();
+
         return graph;
     }
 

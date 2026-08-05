@@ -2,6 +2,30 @@ using API.Interfaces.JSON_Objects;
 
 namespace API.Interfaces;
 
+// Whether a reduction is valid for ANY instance of its FROM problem (the actual
+// mathematical definition of a reduction) is a fact about the CLASS, not about any
+// particular instance -- so this is a type-level attribute, not an instance property.
+// That matters concretely: a class whose default constructor is itself only valid on
+// specially-shaped input (e.g. SipserReduceToSAT3, whose default ctor chains through
+// `new CLIQUE()` and immediately calls reduce() on it) can't safely be
+// Activator.CreateInstance'd just to ask it "are you general?" -- an attribute answers
+// that via pure reflection over the type, no construction required. Apply to a
+// concrete IReduction<,> class that implements the interface for some reason other than
+// "this reduces any FROM instance to a valid TO instance" -- e.g. a solution-mapping
+// companion to one specific other reduction (see SipserReduceToSAT3). Gates whether
+// ReductionGraphData.Build() (Nav_Reductions.cs) advertises the class as a navigable
+// /Navigation/Reductions edge; it does NOT remove the class from ProblemProvider.Reductions
+// or /ProblemProvider/reduce?reduction=<name>, which construct by class name directly.
+/// <summary>
+/// Marks an <see cref="IReduction{T,U}"/> class as not a general reduction: its
+/// <c>reduce()</c> is only valid for specially-shaped instances of the FROM problem, not
+/// any instance. Excludes it from the navigable graph built by
+/// <c>ReductionGraphData.Build()</c> (Nav_Reductions.cs) without needing to construct an
+/// instance to check.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class NotAGeneralReductionAttribute : Attribute { }
+
 interface IReduction
 {
     string reductionName { get; }
@@ -14,6 +38,12 @@ interface IReduction
     IProblem reductionTo { get; }
     IProblem reduce();
     string mapSolutions(string problemFromSolution);
+
+    // Declared, not derived — same "default interface member, override on the concrete
+    // class" shape as IProblem.complexityClass. See ReductionCost.cs for what this is
+    // (and isn't: it's not the pre-existing ad-hoc `complexity` string field some
+    // reduction classes already carry).
+    ReductionCost cost { get => ReductionCost.Unclassified; }
 }
 
 interface IReduction<T, U> : IReduction where T : IProblem where U : IProblem

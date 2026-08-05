@@ -9,3 +9,7 @@ global.json
 .DS_Store
 .idea/
 missing_tests.txt
+
+# Redux Build System output
+.rbs/
+report.md

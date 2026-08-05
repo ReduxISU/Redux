@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 class ExactCoverBruteForce : ISolver<EXACTCOVER> {
@@ -9,6 +9,15 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER> {
     public string source {get;} = "";
     public string[] contributors {get;} = { "Caleb Eardley"};
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // The enumeration is over 2^s, s = |S| (the number of candidate subsets) -- NOT 2^n over the
+    // universe |X|, since `binary` has one bit per subset in S (binary.Count == exactCover.S.Count).
+    // Each candidate's ExactCoverVerifier.verify compares every selected subset (<= s) against every
+    // subset in S (s) via OrderBy+SequenceEqual, O(n) per comparison (n = |X|, bounding subset size)
+    // -- O(s^2 * n) per candidate.
+    public string complexity { get; } = "O(2^s * s^2 * n), s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)";
 
     // --- Methods Including Constructors ---
     public ExactCoverBruteForce() {

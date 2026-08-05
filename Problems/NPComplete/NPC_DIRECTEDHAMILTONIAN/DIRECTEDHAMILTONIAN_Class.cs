@@ -28,6 +28,8 @@ class DIRECTEDHAMILTONIAN : IGraphProblem<DirectedHamiltonianBruteForce, Directe
     public DirectedHamiltonianDefaultVisualization defaultVisualization { get; } = new DirectedHamiltonianDefaultVisualization();
     public UtilCollectionGraph graph { get; set; }
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
+    // Declared, not derived. DIRECTEDHAMILTONIAN is NP-complete (Karp, 1972).
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
     public List<string> nodes

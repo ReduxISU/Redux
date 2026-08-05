@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Problems.NPComplete.NPC_SAT;
 
 using API.Tools.Boolean_Parser; 
@@ -17,6 +17,14 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
     public string solverDefinition {get;} = "This is a simple brute force solver for SAT";
     public string source {get;} = "";
     public bool timerHasExpired { get; set; }
+    // Declared, not derived. Unpruned exhaustive enumeration. Implements non-generic ISolver directly
+    // (not ISolver<T>) -- included here so SolverTypeCatalog's `is ISolver` check (not `is ISolver<T>`)
+    // does not silently skip it.
+    public SolverType solverType { get; } = SolverType.BruteForce;
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
+    // Declared, not derived. Enumerates all 2^n truth assignments (n = distinct literals);
+    // each is evaluated against every clause, O(|phi|) total literal occurrences.
+    public string complexity {get;} = "O(2^n * |phi|), n = number of variables, |phi| = formula size";
     public string[] contributors {get;} = { "Daniel Igbokwe", "Show Pratoomratana"};
 
     #endregion

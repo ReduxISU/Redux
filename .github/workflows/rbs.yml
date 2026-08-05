@@ -1,0 +1,22 @@
+name: rbs
+
+on:
+  pull_request:
+  push:
+    # branches: [CSharpAPI]
+
+permissions:
+  contents: read
+  pull-requests: write
+  packages: write
+
+concurrency:
+  group: rbs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    uses: ReduxISU/Redux_Build_System/.github/workflows/ci.yml@main
+    secrets: inherit
+    with:
+      soft: true
