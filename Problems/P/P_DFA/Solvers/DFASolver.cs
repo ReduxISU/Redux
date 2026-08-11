@@ -85,4 +85,74 @@ class DFASolver : ISolver<DFA>
 
         return nodePath.Cast<Object>().ToList();
     }
+
+    // ----- Table Visualization Support ----- //
+
+    public class DFATableStepRow
+    {
+        public int step { get; set; }
+        public string symbol { get; set; } = "-";
+        public string fromState { get; set; } = "-";
+        public string toState { get; set; } = "";
+        public bool accepting { get; set; }
+    }
+
+    // One frame of the step slider: the whole trace (`rows`) plus the row that frame is "at"
+    // (`currentRow`). Every frame carries every row, so the table itself never changes shape and
+    // only the highlight moves -- the same frame shape SPSP/SSSP feed to the shared DynamicTable
+    // renderer, which is why no DFA-specific renderer or first/last-step special case is needed.
+    public class DFATableStep
+    {
+        public int currentRow { get; set; }
+        public List<DFATableStepRow> rows { get; set; } = new();
+    }
+
+    // GetTableSteps: Traces the single deterministic path through the DFA once, then emits one
+    // frame per row of that trace, walking the highlight down the table.
+    public List<Object> GetTableSteps(DFA problem)
+    {
+        string inputString = problem.inputString;
+        string currentNode = problem.startState;
+
+        var rows = new List<DFATableStepRow>
+        {
+            new DFATableStepRow
+            {
+                step = 0,
+                toState = currentNode,
+                accepting = problem.acceptStates.Contains(currentNode)
+            }
+        };
+
+        int stepIndex = 1;
+        foreach (char character in inputString)
+        {
+            if (character == 'ε' && problem.acceptStates.Contains(currentNode))
+                break;
+
+            if (!problem.alphabet.Contains(character))
+                break; // Input invalid for this DFA; table stops where the trace stalls
+
+            var matchedEdge = problem.edges.FirstOrDefault(e => e.From == currentNode && e.Symbol == character);
+            if (matchedEdge == null)
+                break; // No transition available; DFA rejects, table stops where the trace stalls
+
+            currentNode = matchedEdge.To;
+            rows.Add(new DFATableStepRow
+            {
+                step = stepIndex,
+                symbol = character.ToString(),
+                fromState = matchedEdge.From,
+                toState = matchedEdge.To,
+                accepting = problem.acceptStates.Contains(currentNode)
+            });
+            stepIndex++;
+        }
+
+        // `rows` is shared by reference across frames: it is finished being built here and every
+        // frame is a read-only view of the same completed trace.
+        return rows
+            .Select((_, i) => (Object)new DFATableStep { currentRow = i, rows = rows })
+            .ToList();
+    }
 }
