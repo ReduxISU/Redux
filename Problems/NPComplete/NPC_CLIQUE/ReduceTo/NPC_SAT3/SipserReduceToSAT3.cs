@@ -56,7 +56,17 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
     {
         gadgets = new();
         _reductionFrom = from;
-        _reductionTo = reduce();
+        try {
+            _reductionTo = reduce();
+        } catch (ArgumentException ex) {
+            // ParseSipserNode rejected one of the instance's node names.
+            // The CLIQUE itself is well-formed; it's just not the
+            // Sipser-formatted variety this reduction needs as input.
+            throw new ReductionInputException(this, from.instance,
+                _reductionFrom.instanceFormat +
+                " | Additionally, this reduction requires Sipser-formatted node names of the form '<literal>_<clauseIdx>'.",
+                ex.Message);
+        }
     }
     public SipserReduceToSAT3(string instance) : this(new CLIQUE(instance)) { }
     public SipserReduceToSAT3() : this(new CLIQUE()) { }
@@ -84,23 +94,30 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
     public string mapSolutions(string problemFromSolution)
     {
         // problemFromSolution is a clique certificate like "{x1_0,x2_1,x1_2}".
-        var assigned = new Dictionary<string, bool>();
-        var order = new List<string>();
-        foreach (string raw in problemFromSolution.Trim('{', '}', '(', ')', ' ').Split(','))
-        {
-            string node = raw.Trim();
-            if (node.Length == 0) continue;
-            (string literal, int _) = ParseSipserNode(node);
-            bool positive = !literal.StartsWith("!");
-            string varName = positive ? literal : literal.Substring(1);
-            if (!assigned.ContainsKey(varName))
+        try {
+            var assigned = new Dictionary<string, bool>();
+            var order = new List<string>();
+            foreach (string raw in problemFromSolution.Trim('{', '}', '(', ')', ' ').Split(','))
             {
-                assigned[varName] = positive;
-                order.Add(varName);
+                string node = raw.Trim();
+                if (node.Length == 0) continue;
+                (string literal, int _) = ParseSipserNode(node);
+                bool positive = !literal.StartsWith("!");
+                string varName = positive ? literal : literal.Substring(1);
+                if (!assigned.ContainsKey(varName))
+                {
+                    assigned[varName] = positive;
+                    order.Add(varName);
+                }
             }
+            var parts = order.Select(v => $"{v}:{(assigned[v] ? "True" : "False")}");
+            return "(" + string.Join(",", parts) + ")";
+        } catch (ArgumentException ex) {
+            throw new ReductionInputException(this, problemFromSolution,
+                _reductionFrom.certificateFormat +
+                " | Additionally, this reduction requires Sipser-formatted node names of the form '<literal>_<clauseIdx>'.",
+                ex.Message);
         }
-        var parts = order.Select(v => $"{v}:{(assigned[v] ? "True" : "False")}");
-        return "(" + string.Join(",", parts) + ")";
     }
 
     private static (string literal, int clauseIdx) ParseSipserNode(string node)

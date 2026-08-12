@@ -369,6 +369,11 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         foreach (string item in items)
         {
             List<string> split = item.Split(":").ToList();
+            if (split.Count < 2) {
+                throw new ReductionInputException(this, solution,
+                    reductionFrom.certificateFormat,
+                    $"assignment '{item}' is missing a ':' separator");
+            }
             if (split[1] == "True")
                 trueLiterals.Add(split[0]);
             else
