@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [CSharpAPI]
 
+permissions:
+  contents: read
+
 jobs:
   format-check:
     runs-on: ubuntu-latest
