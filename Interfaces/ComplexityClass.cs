@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace API.Interfaces;
 
@@ -11,7 +10,6 @@ namespace API.Interfaces;
 /// quantum query-complexity promise problems that aren't classical-hierarchy
 /// citizens at all). This enum is the source of truth instead.
 /// </summary>
-[Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
 [JsonConverter(typeof(JsonStringEnumConverter<ComplexityClass>))]
 public enum ComplexityClass
 {

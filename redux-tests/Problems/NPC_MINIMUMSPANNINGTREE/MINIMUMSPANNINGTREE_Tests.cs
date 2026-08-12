@@ -6,7 +6,6 @@ using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
 using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Visualizations;
-using Newtonsoft.Json.Linq;
 
 namespace redux_tests;
 #pragma warning disable CS1591

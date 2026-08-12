@@ -39,6 +39,14 @@ public class ProblemProvider : ControllerBase
     /// <summary>A dictionary of all problems, verifiers, solvers, visualizers and reductions in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Interfaces = (new[] { Problems, Verifiers, Solvers, Visualizers,Reductions }).SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
 
+    /// <summary>
+    /// Serializer options for the <c>info</c> and <c>problemInstance</c> endpoints, which reflect over an
+    /// arbitrary problem/interface object. <see cref="JsonSerializerOptions.IncludeFields"/> is enabled so that
+    /// public fields (e.g. <c>ARCSET.K</c>, the <c>UtilCollectionGraph.Nodes</c>/<c>Edges</c> fields) are emitted,
+    /// matching the previous Newtonsoft.Json output which serialized public fields by default.
+    /// </summary>
+    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
+
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name)
     {
@@ -175,7 +183,10 @@ public class ProblemProvider : ControllerBase
     {
         if (string.IsNullOrEmpty(@interface) || !Interfaces.TryGetValue(@interface.ToLower(), out var type))
             return BadRequest(new { error = "unknown_interface", received = @interface });
-        return Content(Newtonsoft.Json.JsonConvert.SerializeObject(Activator.CreateInstance(type)), "application/json");
+        object? obj = Activator.CreateInstance(type);
+        // Serialize by the runtime type: System.Text.Json serializes by the declared type, and `object`/`IProblem`
+        // would emit an empty `{}` instead of the concrete object's members.
+        return Content(JsonSerializer.Serialize(obj, obj?.GetType() ?? type, ReflectedObjectJsonOptions), "application/json");
     }
 
     /// <summary>
@@ -190,8 +201,10 @@ public class ProblemProvider : ControllerBase
     public IActionResult problemInstance(string problem, [FromBody] string problemInstance)
     {
         try {
+            IProblem p = ProblemInstance(problem, problemInstance);
+            // Serialize by the runtime type; see the note in `info`.
             return Content(
-                Newtonsoft.Json.JsonConvert.SerializeObject(ProblemInstance(problem, problemInstance)),
+                JsonSerializer.Serialize(p, p.GetType(), ReflectedObjectJsonOptions),
                 "application/json");
         } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
             return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
