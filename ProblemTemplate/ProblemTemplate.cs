@@ -10,6 +10,11 @@ public class ProblemTemplate : ControllerBase
 {
 #pragma warning restore CS1591
 
+    // Templates ship alongside the app (see the <Content> include in API.csproj),
+    // so resolve them relative to the running assembly rather than the build-time
+    // source path — the latter does not exist on a deployed/containerized server.
+    static readonly string templatePath = Path.Combine(AppContext.BaseDirectory, "ProblemTemplate", "Templates");
+
     ///<summary>Returns generated files zipped together for the user to implement.</summary>
     ///<param name="problemName" example="Traveling Sales Person">Problem name</param>
     ///<response code="200">Returns the problem template with the given name.</response>
@@ -19,11 +24,10 @@ public class ProblemTemplate : ControllerBase
     {
         string problemNameUpper = ToUpperCase(problemName);
         string problemNamePascal = ToPascalCase(problemName);
-        string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
-                {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
+                {"README.md", System.IO.File.ReadAllText($"{templatePath}/README.md")},
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
                 {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
                 {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"{problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
@@ -44,7 +48,6 @@ public class ProblemTemplate : ControllerBase
     public ActionResult DownloadReductionTemplate([FromQuery] string problemFrom, [FromQuery] string problemTo, [FromQuery] string reductionName)
     {
         string reductionNamePascal = ToPascalCase(reductionName);
-        string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
@@ -64,12 +67,11 @@ public class ProblemTemplate : ControllerBase
     public ActionResult DownloadSolverTemplate([FromQuery] string problemName, [FromQuery] string solverName)
     {
         string solverNamePascal = ToPascalCase(solverName);
-        string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {$"NPC_{problemName}/Solvers/{solverNamePascal}.cs", GenerateSolverTemplate(problemName, solverName, System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
-                {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
+                {"README.md", System.IO.File.ReadAllText($"{templatePath}/README.md")},
             }
         );
 
@@ -85,12 +87,11 @@ public class ProblemTemplate : ControllerBase
     public ActionResult DownloadVerifierTemplate([FromQuery] string problemName, [FromQuery] string verifierName)
     {
         string verifierNamePascal = ToPascalCase(verifierName);
-        string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
                 {$"NPC_{problemName}/Verifiers/{verifierNamePascal}.cs", GenerateVerifierTemplate(problemName, verifierName, System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"))},
-                {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
+                {"README.md", System.IO.File.ReadAllText($"{templatePath}/README.md")},
             }
         );
 
@@ -106,12 +107,11 @@ public class ProblemTemplate : ControllerBase
     public ActionResult DownloadVisualizationTemplate([FromQuery] string problemName, [FromQuery] string visualizationName)
     {
         string visualizationNamePascal = ToPascalCase(visualizationName);
-        string templatePath = $"{ProjectSourcePath.Value}/ProblemTemplate/Templates";
 
         byte[] zip = ZipFiles(
             new Dictionary<string, string>{
-                {$"NPC_{problemName}/Visualizations/{visualizationNamePascal}.cs", GenerateVisualizationTemplate(problemName, visualizationName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/ProblemVisualization.txt"))},
-                {"README.md", System.IO.File.ReadAllText($"{ProjectSourcePath.Value}/ProblemTemplate/Templates/README.md")},
+                {$"NPC_{problemName}/Visualizations/{visualizationNamePascal}.cs", GenerateVisualizationTemplate(problemName, visualizationName, System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))},
+                {"README.md", System.IO.File.ReadAllText($"{templatePath}/README.md")},
             }
         );
 
