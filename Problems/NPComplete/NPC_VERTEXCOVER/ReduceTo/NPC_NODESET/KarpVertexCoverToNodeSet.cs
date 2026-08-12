@@ -27,7 +27,7 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |VERTEXCOVER.nodes|";
     public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;
     private NODESET _reductionTo;

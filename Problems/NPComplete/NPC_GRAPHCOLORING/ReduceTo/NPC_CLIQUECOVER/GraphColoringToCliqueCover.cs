@@ -27,7 +27,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |GRAPHCOLORING.nodes|";
     public List<Gadget> gadgets { get; }
     private GRAPHCOLORING _reductionFrom;
     private CLIQUECOVER _reductionTo;

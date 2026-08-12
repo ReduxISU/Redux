@@ -36,6 +36,8 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
     public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
     // Declared, not derived. One pass over nodes, one pass over edges.
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n + m), n = |VERTEXCOVER.nodes|, m = |edges|";
     public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;
     private ARCSET _reductionTo;

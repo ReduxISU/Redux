@@ -35,7 +35,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     private CLIQUE _reductionTo;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |INDEPENDENTSET.nodes|";
 
 
     // --- Properties ---

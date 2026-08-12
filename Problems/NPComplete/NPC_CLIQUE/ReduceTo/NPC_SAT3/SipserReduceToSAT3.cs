@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE;
@@ -39,6 +40,8 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
     public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
     // Declared, not derived. Single pass over the input's nodes, grouping by suffix.
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n), n = |CLIQUE.nodes|";
 
     public List<Gadget> gadgets { get; set; }
 

@@ -27,7 +27,7 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(|S| * |X|), S = subsets, X = universal set";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private EXACTCOVER _reductionFrom;

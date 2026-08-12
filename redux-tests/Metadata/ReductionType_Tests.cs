@@ -217,6 +217,53 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
             $"in ReductionType_Tests.cs: {string.Join(", ", stale)}.");
     }
 
+    // ── Ratchet pair #3: complexity != "" ────────────────────────────────────────
+    //
+    // NoNewUndeclaredComplexity:            actualUndeclared ⊆ Allowlist
+    // AllowlistHasNoStaleComplexityEntries:  Allowlist ⊆ actualUndeclared
+    //
+    // complexity is a free-text Big-O string, not an enum -- "undeclared" here means
+    // still an empty string (ReductionTypeCatalog.BuildComplexity's not-present
+    // fallback). Every real reduction was read directly and given a confidently-known
+    // Big-O string as part of the reduction Big-O backfill pass (see each reduction's
+    // own "Declared, not derived" comment on its `cost`/`reductionType`/
+    // `complexityBucket` block) -- this allowlist should stay empty.
+    private static readonly string[] ComplexityUnclassifiedAllowlist =
+    {
+    };
+
+    private static HashSet<string> ActualComplexityUndeclared() =>
+        ReductionTypeCatalog.ComplexityByClassName.Value
+            .Where(kv => string.IsNullOrEmpty(kv.Value))
+            .Select(kv => kv.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    [Fact]
+    public void NoNewUndeclaredComplexity()
+    {
+        var actual = ActualComplexityUndeclared();
+        var allowlist = new HashSet<string>(ComplexityUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
+        var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
+
+        Assert.True(unexpected.Count == 0,
+            $"Reduction(s) have an empty complexity string without being added to the allowlist: " +
+            $"{string.Join(", ", unexpected)}. Either declare a confidently-known Big-O string by reading " +
+            "reduce() (see the header of this file), or add the class to ComplexityUnclassifiedAllowlist " +
+            "in ReductionType_Tests.cs.");
+    }
+
+    [Fact]
+    public void AllowlistHasNoStaleComplexityEntries()
+    {
+        var actual = ActualComplexityUndeclared();
+        var stale = ComplexityUnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
+
+        Assert.True(stale.Count == 0,
+            $"Allowlist entry no longer has an empty complexity string (already classified, or " +
+            $"renamed/removed/failed to instantiate) — delete from ComplexityUnclassifiedAllowlist in " +
+            $"ReductionType_Tests.cs: {string.Join(", ", stale)}.");
+    }
+
     // ── MostEfficient ranking sanity check ──────────────────────────────────────
     //
     // Not a ratchet — a direct check that ReductionEfficiency.MostEfficient (issue
@@ -310,10 +357,12 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     {
         var reductionTypeByClassName = ReductionTypeCatalog.ReductionTypeByClassName.Value;
         var complexityBucketByClassName = ReductionTypeCatalog.ComplexityBucketByClassName.Value;
+        var complexityByClassName = ReductionTypeCatalog.ComplexityByClassName.Value;
         var costByClassName = ReductionCostCatalog.ByClassName.Value;
 
         var allClassNames = reductionTypeByClassName.Keys
             .Union(complexityBucketByClassName.Keys, StringComparer.OrdinalIgnoreCase)
+            .Union(complexityByClassName.Keys, StringComparer.OrdinalIgnoreCase)
             .Union(costByClassName.Keys, StringComparer.OrdinalIgnoreCase)
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
@@ -326,11 +375,15 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
         {
             string reductionType = reductionTypeByClassName.TryGetValue(className, out var rt) ? rt : "<not instantiated>";
             string complexityBucket = complexityBucketByClassName.TryGetValue(className, out var cb) ? cb : "<not instantiated>";
+            string complexity = complexityByClassName.TryGetValue(className, out var cx)
+                ? (string.IsNullOrEmpty(cx) ? "<empty>" : cx)
+                : "<not instantiated>";
             string cost = costByClassName.TryGetValue(className, out var c) ? c : "<not instantiated>";
 
             _output.WriteLine($"--- {className} ---");
             _output.WriteLine($"  reductionType:     {reductionType}");
             _output.WriteLine($"  complexityBucket:  {complexityBucket}");
+            _output.WriteLine($"  complexity:        {complexity}");
             _output.WriteLine($"  cost:              {cost}");
         }
 

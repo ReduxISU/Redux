@@ -33,7 +33,7 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
     private CLIQUE _reductionFrom;
     private VERTEXCOVER _reductionTo;
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |CLIQUE.nodes|";
 
     public CLIQUE reductionFrom {
         get {

@@ -48,6 +48,7 @@ internal static class ReductionTypeCatalog
 {
     internal static readonly Lazy<Dictionary<string, string>> ReductionTypeByClassName = new(BuildReductionType);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityBucketByClassName = new(BuildComplexityBucket);
+    internal static readonly Lazy<Dictionary<string, string>> ComplexityByClassName = new(BuildComplexity);
 
     private static Dictionary<string, string> BuildReductionType()
     {
@@ -82,6 +83,34 @@ internal static class ReductionTypeCatalog
             {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to Unclassified at the call site.
+            }
+        }
+        return result;
+    }
+
+    // `complexity` is deliberately NOT part of IReduction (see ReductionCost.cs's own
+    // doc comment: it's "the pre-existing ad-hoc `complexity` string field some
+    // reduction classes already carry", a free-text Big-O note, not a closed
+    // vocabulary like cost/reductionType/complexityBucket) -- so it's read via
+    // reflection on the concrete type rather than through the interface, same
+    // ad-hoc-ness the property itself has on each class.
+    private static Dictionary<string, string> BuildComplexity()
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Reductions)
+        {
+            try
+            {
+                if (Activator.CreateInstance(type) is IReduction instance)
+                {
+                    var property = type.GetProperty("complexity");
+                    result[type.Name] = property?.GetValue(instance) as string ?? "";
+                }
+            }
+            catch
+            {
+                // Skip a reduction that can't be default-constructed instead of failing
+                // the whole catalog. It falls back to "" (empty) at the call site.
             }
         }
         return result;

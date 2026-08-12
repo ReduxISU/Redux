@@ -31,7 +31,7 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(subSets * universalSet), sizes of HITTINGSET's own sets";
 
 
     private HITTINGSET _reductionFrom;

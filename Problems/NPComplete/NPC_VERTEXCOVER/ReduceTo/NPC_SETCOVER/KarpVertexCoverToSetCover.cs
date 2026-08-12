@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_SETCOVER;
 
@@ -23,6 +24,8 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER>
     // Declared, not derived. Nested loop over nodes x edges to build each node's
     // incident-edge subset.
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n * m), n = |VERTEXCOVER.nodes|, m = |edges|";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private VERTEXCOVER _reductionFrom;

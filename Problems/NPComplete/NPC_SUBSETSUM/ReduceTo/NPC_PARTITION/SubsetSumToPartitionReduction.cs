@@ -23,7 +23,7 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n), n = |SUBSETSUM.S|";
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 
     private SUBSETSUM _reductionFrom;

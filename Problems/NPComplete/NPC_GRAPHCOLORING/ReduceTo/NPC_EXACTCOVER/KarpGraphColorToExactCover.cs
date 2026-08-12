@@ -28,7 +28,7 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(m * K^3), m = |edges|, K = number of colors";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private GRAPHCOLORING _reductionFrom;

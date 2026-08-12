@@ -29,7 +29,7 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3>
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(L), L = total literal count across the SAT formula";
     public List<Gadget> gadgets { get; }
     private SAT _reductionFrom;
     private SAT3 _reductionTo;

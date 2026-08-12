@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_DM3;
 using API.Problems.NPComplete.NPC_SAT;
@@ -21,6 +22,8 @@ class GareyJohnson : IReduction<SAT3, DM3> {
     // Declared, not derived. The garbage-collection loop emits one M-triple per
     // (literal, Z-entry) pair.
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n^2), n ~ |SAT3.literals|";
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 
     private SAT3 _reductionFrom;
