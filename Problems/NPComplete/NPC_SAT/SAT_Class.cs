@@ -5,156 +5,153 @@ using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SAT;
 
- class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
+class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
 
 
-    #region Fields
+        #region Fields
 
-    // --- Fields ---
-    public string problemName {get;} = "SAT";
-    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Boolean_satisfiability_problem";
-    public string formalDefinition {get;} = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
-    public string problemDefinition {get;} = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
-    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Daniel Igbokwe" };
+        // --- Fields ---
+        public string problemName { get; } = "SAT";
+        public string problemLink { get; } = "https://en.wikipedia.org/wiki/Boolean_satisfiability_problem";
+        public string formalDefinition { get; } = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
+        public string problemDefinition { get; } = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
+        public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+        public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+        public string[] contributors { get; } = { "Daniel Igbokwe" };
 
-    public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
-    public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat {get;} = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
-    public string certificateFormat {get;} = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
-    public string instance {get;set;} = string.Empty;
+        public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
+        public string defaultInstance { get; } = _defaultInstance;
+        public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
+        public string certificateFormat { get; } = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
+        public string instance { get; set; } = string.Empty;
 
-    public string wikiName {get;} = "";
-    private List<List<string>> _clauses = new List<List<string>>();
-    private List<string> _literals = new List<string>();
+        public string wikiName { get; } = "";
+        private List<List<string>> _clauses = new List<List<string>>();
+        private List<string> _literals = new List<string>();
 
-    private string _circuit = "";
+        private string _circuit = "";
 
-    public string circuit
-    {
-        get
-        {
-            return _circuit;
-        }
-        set
-        {
-            _circuit = value;
-        }
-    }
-
-    public SATBruteForceSolver defaultSolver {get;} = new SATBruteForceSolver();
-    public SATVerifier defaultVerifier { get; } = new SATVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    // Declared, not derived. SAT is the canonical NP-complete problem (Cook-Levin).
-    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
-
-    #endregion
-
-
-    #region Properties
-    // --- Properties ---
-     public List<List<string>> clauses {
-        get {
-            return _clauses;
-        }
-        set {
-            _clauses = value;
-        }
-    }
-    public List<string> literals {
-        get {
-            return _literals;
-        }
-        set {
-            _literals = value;
-        }
-    }
-
-    #endregion
-
-    #region Constructors
-    // --- Methods Including Constructors ---
-    public SAT() {
-        instance = defaultInstance;
-        clauses = getClauses(instance);
-        literals = getLiterals(instance);
-    }
-    public SAT(string phiInput) {
-        validateInstance(phiInput);
-        instance = phiInput;
-        clauses = getClauses(phiInput);
-        literals = getLiterals(phiInput);
-    }
-
-    private static void validateInstance(string phiInput) {
-        if (string.IsNullOrWhiteSpace(phiInput)) {
-            throw new ProblemParseException("SAT", phiInput, "instance is empty");
-        }
-        string stripped = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-        string[] rawClauses = stripped.Split('&');
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('|');
-            foreach (string literal in rawLiterals) {
-                string name = literal.StartsWith("!") ? literal.Substring(1) : literal;
-                if (string.IsNullOrEmpty(name) || !char.IsLetter(name[0])) {
-                    throw new ProblemParseException("SAT", phiInput,
-                        $"literal '{literal}' is not a valid identifier (optionally prefixed with '!')");
+        public string circuit {
+                get {
+                        return _circuit;
                 }
-            }
-        }
-    }
-
-    #endregion
-
-
-    #region Methods
-
-    public void ParseProblem(string phiInput) {
-    }
-
-     public List<List<string>> getClauses(string phiInput) {
-        
-        List<List<string>> clauses = new List<List<string>>();
-
-        // Strip extra characters
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")","");
-
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('&');
-
-        foreach(string clause in rawClauses) {
-            List<string> clauseToAdd = new List<string>();
-            string[] literals = clause.Split('|');
-
-            foreach(string literal in literals) {
-                clauseToAdd.Add(literal);
-            }
-            clauses.Add(clauseToAdd);
+                set {
+                        _circuit = value;
+                }
         }
 
-        return clauses;
+        public SATBruteForceSolver defaultSolver { get; } = new SATBruteForceSolver();
+        public SATVerifier defaultVerifier { get; } = new SATVerifier();
+        public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+        // Declared, not derived. SAT is the canonical NP-complete problem (Cook-Levin).
+        public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
-    }
+        #endregion
 
-    public List<string> getLiterals(string phiInput) {
-        
-        List<string> literals = new List<string>();
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")","");
 
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('|');
-
-        foreach(string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('&');
-
-            foreach(string literal in rawLiterals) {
-                literals.Add(literal);
-            }
+        #region Properties
+        // --- Properties ---
+        public List<List<string>> clauses {
+                get {
+                        return _clauses;
+                }
+                set {
+                        _clauses = value;
+                }
         }
-        return literals;
-    }
+        public List<string> literals {
+                get {
+                        return _literals;
+                }
+                set {
+                        _literals = value;
+                }
+        }
 
-    #endregion
-        
+        #endregion
+
+        #region Constructors
+        // --- Methods Including Constructors ---
+        public SAT() {
+                instance = defaultInstance;
+                clauses = getClauses(instance);
+                literals = getLiterals(instance);
+        }
+        public SAT(string phiInput) {
+                validateInstance(phiInput);
+                instance = phiInput;
+                clauses = getClauses(phiInput);
+                literals = getLiterals(phiInput);
+        }
+
+        private static void validateInstance(string phiInput) {
+                if (string.IsNullOrWhiteSpace(phiInput)) {
+                        throw new ProblemParseException("SAT", phiInput, "instance is empty");
+                }
+                string stripped = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
+                string[] rawClauses = stripped.Split('&');
+                foreach (string clause in rawClauses) {
+                        string[] rawLiterals = clause.Split('|');
+                        foreach (string literal in rawLiterals) {
+                                string name = literal.StartsWith("!") ? literal.Substring(1) : literal;
+                                if (string.IsNullOrEmpty(name) || !char.IsLetter(name[0])) {
+                                        throw new ProblemParseException("SAT", phiInput,
+                                            $"literal '{literal}' is not a valid identifier (optionally prefixed with '!')");
+                                }
+                        }
+                }
+        }
+
+        #endregion
+
+
+        #region Methods
+
+        public void ParseProblem(string phiInput) {
+        }
+
+        public List<List<string>> getClauses(string phiInput) {
+
+                List<List<string>> clauses = new List<List<string>>();
+
+                // Strip extra characters
+                string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
+
+                // Parse on | to collect each clause
+                string[] rawClauses = strippedInput.Split('&');
+
+                foreach (string clause in rawClauses) {
+                        List<string> clauseToAdd = new List<string>();
+                        string[] literals = clause.Split('|');
+
+                        foreach (string literal in literals) {
+                                clauseToAdd.Add(literal);
+                        }
+                        clauses.Add(clauseToAdd);
+                }
+
+                return clauses;
+
+        }
+
+        public List<string> getLiterals(string phiInput) {
+
+                List<string> literals = new List<string>();
+                string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
+
+                // Parse on | to collect each clause
+                string[] rawClauses = strippedInput.Split('|');
+
+                foreach (string clause in rawClauses) {
+                        string[] rawLiterals = clause.Split('&');
+
+                        foreach (string literal in rawLiterals) {
+                                literals.Add(literal);
+                        }
+                }
+                return literals;
+        }
+
+        #endregion
+
 }

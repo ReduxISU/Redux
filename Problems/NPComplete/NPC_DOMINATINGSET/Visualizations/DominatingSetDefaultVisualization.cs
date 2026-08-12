@@ -6,44 +6,38 @@ using API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizations;
 
-class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
-{
-    public string visualizationName { get; } = "Dominating Set Visualization";
-    public string visualizationDefinition { get; } =
-        "This is a default visualization for dominating set";
-    public string source { get; } =
-        "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";
-    public string sourceLink { get; } =
-        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
-    public string[] contributors { get; } = { "Quinton Smith" };
-    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
-    public ISolver solver { get; } = new DominatingSetSolver();
+class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET> {
+        public string visualizationName { get; } = "Dominating Set Visualization";
+        public string visualizationDefinition { get; } =
+            "This is a default visualization for dominating set";
+        public string source { get; } =
+            "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";
+        public string sourceLink { get; } =
+            "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
+        public string[] contributors { get; } = { "Quinton Smith" };
+        public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
+        public ISolver solver { get; } = new DominatingSetSolver();
 
-    // --- Methods Including Constructors ---
-    public DominatingSetDefaultVisualization() { }
+        // --- Methods Including Constructors ---
+        public DominatingSetDefaultVisualization() { }
 
-    public API_JSON visualize(DOMINATINGSET dominatingSet)
-    {
-        return dominatingSet.graph.ToAPIGraph();
-    }
-
-    public API_JSON SolvedVisualization(DOMINATINGSET dominatingSet, string solution)
-    {
-        List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(solution);
-
-        API_GraphJSON apiGraph = dominatingSet.graph.ToAPIGraph();
-
-        for (int i = 0; i < apiGraph.nodes.Count; i++)
-        {
-            if (solutionList.Contains(apiGraph.nodes[i].name))
-            {
-                apiGraph.nodes[i].color = "Solution";
-            }
-            else
-            {
-                apiGraph.nodes[i].color = "Background";
-            }
+        public API_JSON visualize(DOMINATINGSET dominatingSet) {
+                return dominatingSet.graph.ToAPIGraph();
         }
-        return apiGraph;
-    }
+
+        public API_JSON SolvedVisualization(DOMINATINGSET dominatingSet, string solution) {
+                List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(solution);
+
+                API_GraphJSON apiGraph = dominatingSet.graph.ToAPIGraph();
+
+                for (int i = 0; i < apiGraph.nodes.Count; i++) {
+                        if (solutionList.Contains(apiGraph.nodes[i].name)) {
+                                apiGraph.nodes[i].color = "Solution";
+                        }
+                        else {
+                                apiGraph.nodes[i].color = "Background";
+                        }
+                }
+                return apiGraph;
+        }
 }

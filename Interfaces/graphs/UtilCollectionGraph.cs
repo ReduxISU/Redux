@@ -13,151 +13,130 @@ namespace API.Interfaces;
 /// weighted undirected  : (N,E) where N is set of nodes, E is a set of edges represented as ({a,b}, w) where w is the weight
 /// weighted directed    : (N,E) where N is set of nodes, E is a set of edges represented as ((a,b), w) where w is the weight
 /// Child of Graph class to fix some typing issues while codebase is converted. Expected to be removed
-class UtilCollectionGraph : Graph
-{
-    public UtilCollection Nodes;
+class UtilCollectionGraph : Graph {
+        public UtilCollection Nodes;
 
-    public UtilCollection Edges;
+        public UtilCollection Edges;
 
-    bool IsDirected;
-    bool IsWeighted;
+        bool IsDirected;
+        bool IsWeighted;
 
-    public UtilCollectionGraph(UtilCollection n, UtilCollection e)
-    {
-        Nodes = n;
-        Edges = e;
+        public UtilCollectionGraph(UtilCollection n, UtilCollection e) {
+                Nodes = n;
+                Edges = e;
 
-        if (Edges.Count() == 0)
-        {
-            IsWeighted = false;
-            IsDirected = false;
-            return;
-        }
-
-        UtilCollection EdgeExample = Edges.ToList()[0];
-
-        if (!EdgeExample.IsOrdered() || EdgeExample[0].IsValue())
-        {
-            IsWeighted = false;
-            IsDirected = EdgeExample.IsOrdered();
-        }
-        else
-        {
-            IsWeighted = true;
-            IsDirected = EdgeExample[0].IsOrdered();
-        }
-    }
-
-    // This transitional class represents its data as UtilCollections and overrides
-    // ToAPIGraph directly, so it never builds the Node/Edge view of the base class.
-    // These getters intentionally return null; null-forgiving (null!) keeps the
-    // non-nullable base contract while preserving the existing serialized output,
-    // which emits these as null (e.g. the /info endpoint reflects over them).
-    public override List<Node> nodes => null!;
-
-    public override List<Edge> edges => null!;
-
-    public override API_GraphJSON ToAPIGraph()
-    {
-        //nodes are always the same
-        List<string> nodes = Nodes.ToList().Select(node => node.ToString()).ToList();
-        //edges need special handling based on case
-        List<KeyValuePair<string, string>> edges;
-        List<UtilCollection> EdgeList = Edges.ToList();
-
-        API_GraphJSON graph;
-
-        if (IsDirected)
-        {
-            if (IsWeighted)
-            {
-                edges = EdgeList.Select(edge =>
-                {
-                    return new KeyValuePair<string, string>(edge[0][0].ToString(), edge[0][1].ToString());
-                }).ToList();
-
-                graph = new API_GraphJSON(nodes, edges);
-
-                for (int i = 0; i < graph.links.Count; i++)
-                {
-                    graph.links[i].weight = EdgeList[i][1].ToString();
+                if (Edges.Count() == 0) {
+                        IsWeighted = false;
+                        IsDirected = false;
+                        return;
                 }
 
-                foreach (var link in graph.links)
-                {
-                    link.directed = true;
-                    link.weighted = true;
+                UtilCollection EdgeExample = Edges.ToList()[0];
+
+                if (!EdgeExample.IsOrdered() || EdgeExample[0].IsValue()) {
+                        IsWeighted = false;
+                        IsDirected = EdgeExample.IsOrdered();
                 }
-
-            }
-            else
-            {
-                edges = EdgeList.Select(edge =>
-                {
-                    return new KeyValuePair<string, string>(edge[0].ToString(), edge[1].ToString());
-                }).ToList();
-
-                graph = new API_GraphJSON(nodes, edges);
-
-                foreach (var link in graph.links)
-                {
-                    link.directed = true;
-                    link.weighted = false;
+                else {
+                        IsWeighted = true;
+                        IsDirected = EdgeExample[0].IsOrdered();
                 }
-            }
         }
-        else
-        {
-            if (IsWeighted)
-            {
-                edges = EdgeList.Select(edge =>
-                {
-                    List<UtilCollection> cast = edge[0].ToList();
-                    if (cast.Count == 1) // self edge is a set with only one element, since {1,1} = {1}
-                    {
-                        return new KeyValuePair<string, string>(cast[0].ToString(), cast[0].ToString());
-                    }
-                    return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
-                }).ToList();
 
-                graph = new API_GraphJSON(nodes, edges);
+        // This transitional class represents its data as UtilCollections and overrides
+        // ToAPIGraph directly, so it never builds the Node/Edge view of the base class.
+        // These getters intentionally return null; null-forgiving (null!) keeps the
+        // non-nullable base contract while preserving the existing serialized output,
+        // which emits these as null (e.g. the /info endpoint reflects over them).
+        public override List<Node> nodes => null!;
 
-                for (int i = 0; i < graph.links.Count; i++)
-                {
-                    graph.links[i].weight = EdgeList[i][1].ToString();
-                    graph.links[i].weighted = true;
+        public override List<Edge> edges => null!;
+
+        public override API_GraphJSON ToAPIGraph() {
+                //nodes are always the same
+                List<string> nodes = Nodes.ToList().Select(node => node.ToString()).ToList();
+                //edges need special handling based on case
+                List<KeyValuePair<string, string>> edges;
+                List<UtilCollection> EdgeList = Edges.ToList();
+
+                API_GraphJSON graph;
+
+                if (IsDirected) {
+                        if (IsWeighted) {
+                                edges = EdgeList.Select(edge => {
+                                        return new KeyValuePair<string, string>(edge[0][0].ToString(), edge[0][1].ToString());
+                                }).ToList();
+
+                                graph = new API_GraphJSON(nodes, edges);
+
+                                for (int i = 0; i < graph.links.Count; i++) {
+                                        graph.links[i].weight = EdgeList[i][1].ToString();
+                                }
+
+                                foreach (var link in graph.links) {
+                                        link.directed = true;
+                                        link.weighted = true;
+                                }
+
+                        }
+                        else {
+                                edges = EdgeList.Select(edge => {
+                                        return new KeyValuePair<string, string>(edge[0].ToString(), edge[1].ToString());
+                                }).ToList();
+
+                                graph = new API_GraphJSON(nodes, edges);
+
+                                foreach (var link in graph.links) {
+                                        link.directed = true;
+                                        link.weighted = false;
+                                }
+                        }
                 }
+                else {
+                        if (IsWeighted) {
+                                edges = EdgeList.Select(edge => {
+                                        List<UtilCollection> cast = edge[0].ToList();
+                                        if (cast.Count == 1) // self edge is a set with only one element, since {1,1} = {1}
+                                        {
+                                                return new KeyValuePair<string, string>(cast[0].ToString(), cast[0].ToString());
+                                        }
+                                        return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
+                                }).ToList();
 
-            }
-            else //default case
-            {
+                                graph = new API_GraphJSON(nodes, edges);
 
-                edges = EdgeList.Select(edge =>
-                {
-                    List<UtilCollection> cast = edge.ToList();
-                    if (cast.Count == 1) // self edge is a set with only one element, since {1,1} = {1}
-                    {
-                        return new KeyValuePair<string, string>(cast[0].ToString(), cast[0].ToString());
-                    }
-                    return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
-                }).ToList();
+                                for (int i = 0; i < graph.links.Count; i++) {
+                                        graph.links[i].weight = EdgeList[i][1].ToString();
+                                        graph.links[i].weighted = true;
+                                }
 
-                graph = new API_GraphJSON(nodes, edges);
-            }
+                        }
+                        else //default case
+                        {
+
+                                edges = EdgeList.Select(edge => {
+                                        List<UtilCollection> cast = edge.ToList();
+                                        if (cast.Count == 1) // self edge is a set with only one element, since {1,1} = {1}
+                                        {
+                                                return new KeyValuePair<string, string>(cast[0].ToString(), cast[0].ToString());
+                                        }
+                                        return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
+                                }).ToList();
+
+                                graph = new API_GraphJSON(nodes, edges);
+                        }
+                }
+                return graph;
         }
-        return graph;
-    }
 
-    public UtilCollectionGraph removeEdges(UtilCollection removedEdges)
-    {
-        HashSet<UtilCollection> edgeset = Edges.ToList().ToHashSet();
-        edgeset.ExceptWith(removedEdges.ToList().ToHashSet());
-        return new(Nodes, new UtilCollection(edgeset));
-    }
+        public UtilCollectionGraph removeEdges(UtilCollection removedEdges) {
+                HashSet<UtilCollection> edgeset = Edges.ToList().ToHashSet();
+                edgeset.ExceptWith(removedEdges.ToList().ToHashSet());
+                return new(Nodes, new UtilCollection(edgeset));
+        }
 
-    public override string ToString()
-    {
-        return $"({Nodes},{Edges})";
-    }
+        public override string ToString() {
+                return $"({Nodes},{Edges})";
+        }
 
 }

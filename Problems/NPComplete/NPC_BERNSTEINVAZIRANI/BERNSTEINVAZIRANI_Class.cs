@@ -6,105 +6,104 @@ using System.Reflection;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 
-class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, BernsteinVaziraniDefaultVisualization>
-{
+class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, BernsteinVaziraniDefaultVisualization> {
 
-    // --- Fields ---
-    public string problemName { get; } = "Bernstein Vazirani";
-    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Bernstein%E2%80%93Vazirani_algorithm";
-    public string formalDefinition { get; } = "Bernstein Vazirani = {(n, <w_1, w_2, ... , w_(2^n - 1), w_(2^n)> | n is int, w_i is bit (0 or 1)}";
-    public string problemDefinition { get; } = "The Bernstein-Vazirani problem asks for the identification of an unknown bit string s that defines a linear Boolean function f(x)= s*x (mod 2). The task is to determine the hidden string s using as few queries as possible";
-    public string source { get; } = "Bernstein, Ethan, and Umesh, Vazirani. Quantum complexity theory. Proceedings of the twenty-fifth annual ACM symposium on Theory of computing. 1993.";
-    public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/167088.167097";
-    public const string InstanceGrammar = "{f | f is list}";
-    private static readonly string _defaultInstance = "(0,1,0,1,1,0,1,0)";
-    public string defaultInstance {get;} = _defaultInstance;
-    public string instance {get;set;} = string.Empty;
-    public string instanceFormat {get;} = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
-    public string certificateFormat {get;} =
-        $"Format: {BernsteinVaziraniClassicalVerifier.CertificateGrammar} Example: {BernsteinVaziraniClassicalVerifier.CertificateExample}";
-    public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public BernsteinVaziraniClassicalSolver defaultSolver {get;} = new BernsteinVaziraniClassicalSolver();
-    public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
-    public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
-    // Declared, not derived. Bernstein-Vazirani is a query-complexity promise problem
-    // over an oracle, not a citizen of the classical P/NP hierarchy — see
-    // ComplexityClass.QuantumOracle.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+        // --- Fields ---
+        public string problemName { get; } = "Bernstein Vazirani";
+        public string problemLink { get; } = "https://en.wikipedia.org/wiki/Bernstein%E2%80%93Vazirani_algorithm";
+        public string formalDefinition { get; } = "Bernstein Vazirani = {(n, <w_1, w_2, ... , w_(2^n - 1), w_(2^n)> | n is int, w_i is bit (0 or 1)}";
+        public string problemDefinition { get; } = "The Bernstein-Vazirani problem asks for the identification of an unknown bit string s that defines a linear Boolean function f(x)= s*x (mod 2). The task is to determine the hidden string s using as few queries as possible";
+        public string source { get; } = "Bernstein, Ethan, and Umesh, Vazirani. Quantum complexity theory. Proceedings of the twenty-fifth annual ACM symposium on Theory of computing. 1993.";
+        public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/167088.167097";
+        public const string InstanceGrammar = "{f | f is list}";
+        private static readonly string _defaultInstance = "(0,1,0,1,1,0,1,0)";
+        public string defaultInstance { get; } = _defaultInstance;
+        public string instance { get; set; } = string.Empty;
+        public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+        public string certificateFormat { get; } =
+            $"Format: {BernsteinVaziraniClassicalVerifier.CertificateGrammar} Example: {BernsteinVaziraniClassicalVerifier.CertificateExample}";
+        public string wikiName { get; } = ""; // Wiki name or link? - not used yet
+        public BernsteinVaziraniClassicalSolver defaultSolver { get; } = new BernsteinVaziraniClassicalSolver();
+        public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
+        public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
+        public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
+        // Declared, not derived. Bernstein-Vazirani is a query-complexity promise problem
+        // over an oracle, not a citizen of the classical P/NP hierarchy — see
+        // ComplexityClass.QuantumOracle.
+        public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
 
-    // --- Methods and Constructors ---
-    public BERNSTEINVAZIRANI() : this(_defaultInstance) {
-    }
-
-    private List<bool> _funcValues = new List<bool>{false, true};
-    
-    public List<bool> funcValues {
-        get {
-            return _funcValues;
-        }
-        set {
-            _funcValues = value;
-        }
-    }
-
-    private int nbits = 1;
-    public int NBits {
-        get {
-            return nbits;
-        }
-        set {
-            nbits = value;
-        }
-    }
-
-    static public int PowerOfTwo(int n)
-    {
-        if (n > 0 && (n & (n - 1)) == 0)
-            return (int)Math.Log2(n);
-        throw new ArithmeticException("not a power of two");
-    }
-
-    public bool Func(int x)
-    {
-        if (x < 0 || x >= funcValues.Count) {
-            // XXX deal with error?
-            Console.WriteLine($"{this.GetType().Name}:{MethodBase.GetCurrentMethod()?.Name}: input {x} out of range for function values array of length {funcValues.Count}");
-            return false;
-        }
-        return funcValues[x];
-    }
-
-    public BERNSTEINVAZIRANI(string input) {
-        instance = input;
-
-        StringParser parser = new(InstanceGrammar);
-        try {
-            parser.parse(instance);
-        } catch (Exception ex) {
-            throw new ProblemParseException(problemName, input, ex.Message);
+        // --- Methods and Constructors ---
+        public BERNSTEINVAZIRANI() : this(_defaultInstance) {
         }
 
-        UtilCollection bitslist = parser["f"];
+        private List<bool> _funcValues = new List<bool> { false, true };
 
-        var fvalues = new List<bool>();
-        foreach (UtilCollection x in bitslist) {
-            string bitStr = x.ToString();
-            if (bitStr == "0")
-                fvalues.Add(false);
-            else if (bitStr == "1")
-                fvalues.Add(true);
-            else
-                throw new ProblemParseException(problemName, input,
-                    $"'{bitStr}' is not a valid bit; expected 0 or 1");
+        public List<bool> funcValues {
+                get {
+                        return _funcValues;
+                }
+                set {
+                        _funcValues = value;
+                }
         }
 
-        try {
-            nbits = PowerOfTwo(fvalues.Count);
-        } catch (ArithmeticException) {
-            throw new ProblemParseException(problemName, input,
-                $"function table must have a power-of-2 number of entries; got {fvalues.Count}");
+        private int nbits = 1;
+        public int NBits {
+                get {
+                        return nbits;
+                }
+                set {
+                        nbits = value;
+                }
         }
-        funcValues = fvalues;
-    }
+
+        static public int PowerOfTwo(int n) {
+                if (n > 0 && (n & (n - 1)) == 0)
+                        return (int)Math.Log2(n);
+                throw new ArithmeticException("not a power of two");
+        }
+
+        public bool Func(int x) {
+                if (x < 0 || x >= funcValues.Count) {
+                        // XXX deal with error?
+                        Console.WriteLine($"{this.GetType().Name}:{MethodBase.GetCurrentMethod()?.Name}: input {x} out of range for function values array of length {funcValues.Count}");
+                        return false;
+                }
+                return funcValues[x];
+        }
+
+        public BERNSTEINVAZIRANI(string input) {
+                instance = input;
+
+                StringParser parser = new(InstanceGrammar);
+                try {
+                        parser.parse(instance);
+                }
+                catch (Exception ex) {
+                        throw new ProblemParseException(problemName, input, ex.Message);
+                }
+
+                UtilCollection bitslist = parser["f"];
+
+                var fvalues = new List<bool>();
+                foreach (UtilCollection x in bitslist) {
+                        string bitStr = x.ToString();
+                        if (bitStr == "0")
+                                fvalues.Add(false);
+                        else if (bitStr == "1")
+                                fvalues.Add(true);
+                        else
+                                throw new ProblemParseException(problemName, input,
+                                    $"'{bitStr}' is not a valid bit; expected 0 or 1");
+                }
+
+                try {
+                        nbits = PowerOfTwo(fvalues.Count);
+                }
+                catch (ArithmeticException) {
+                        throw new ProblemParseException(problemName, input,
+                            $"function table must have a power-of-2 number of entries; got {fvalues.Count}");
+                }
+                funcValues = fvalues;
+        }
 }

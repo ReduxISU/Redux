@@ -3,73 +3,63 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_CLIQUE;
 #pragma warning disable CS1591
 
-public class CLIQUEGadget : IGadget
-{
+public class CLIQUEGadget : IGadget {
 
-    private string _reductionType;
+        private string _reductionType;
 
-    private string _problemType;
+        private string _problemType;
 
-    private string _gadgetString;
+        private string _gadgetString;
 
-    private int _uniqueId; //NEEDED FOR SERIALIZATION!!!
+        private int _uniqueId; //NEEDED FOR SERIALIZATION!!!
 
-    public CLIQUEGadget(string reductionType, string gadgetString,int id){
-        _reductionType = reductionType;
-        _gadgetString = gadgetString;
-        _problemType = "CLIQUE";
-        _uniqueId = id;
-    }
-
-
-    public string reductionType
-    {
-        get
-        {
-            return _reductionType;
+        public CLIQUEGadget(string reductionType, string gadgetString, int id) {
+                _reductionType = reductionType;
+                _gadgetString = gadgetString;
+                _problemType = "CLIQUE";
+                _uniqueId = id;
         }
-        set
-        {
-            _reductionType = value;
-        }
-    }
 
-    public string problemType
-    {
-        get
-        {
-            return _problemType;
-        }
-        set
-        {
-            _problemType = value;
-        }
-    }
 
-    public string gadgetString
-    {
-        get
-        {
-            return _gadgetString;
+        public string reductionType {
+                get {
+                        return _reductionType;
+                }
+                set {
+                        _reductionType = value;
+                }
         }
-        set
-        {
-            _gadgetString = value;
-        }
-    }
 
-        public int uniqueId{
-        get{
-            return _uniqueId;
+        public string problemType {
+                get {
+                        return _problemType;
+                }
+                set {
+                        _problemType = value;
+                }
         }
-        set{
-            _uniqueId = value;
+
+        public string gadgetString {
+                get {
+                        return _gadgetString;
+                }
+                set {
+                        _gadgetString = value;
+                }
         }
-    }
 
-    override public string? ToString(){
+        public int uniqueId {
+                get {
+                        return _uniqueId;
+                }
+                set {
+                        _uniqueId = value;
+                }
+        }
 
-        return _gadgetString;
-    }
+        override public string? ToString() {
+
+                return _gadgetString;
+        }
 
 }

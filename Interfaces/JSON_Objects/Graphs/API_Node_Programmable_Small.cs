@@ -11,109 +11,87 @@ namespace API.Interfaces.JSON_Objects.Graphs;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(API_Node_Programmable_Automata))]
 
-class API_Node_Programmable_Small
-{
-    private string _name;
-    private string _color;
-    private string _outline;
-    private string _delay;
-    private string _dashed;
-    private string _additional;
+class API_Node_Programmable_Small {
+        private string _name;
+        private string _color;
+        private string _outline;
+        private string _delay;
+        private string _dashed;
+        private string _additional;
 
-    public API_Node_Programmable_Small()
-    {
-        this._name = "APINODE";
-        this._color = "";
-        this._outline = "";
-        this._delay = "";
-        this._dashed = "";
-        this._additional = "";
-    }
+        public API_Node_Programmable_Small() {
+                this._name = "APINODE";
+                this._color = "";
+                this._outline = "";
+                this._delay = "";
+                this._dashed = "";
+                this._additional = "";
+        }
 
-    public API_Node_Programmable_Small(string nm, string color = "", string outline = "", string delay = "", string dashed = "", string additional = "")
-    {
-        _name = nm;
-        _color = color;
-        _outline = outline;
-        _delay = delay;
-        _dashed = dashed;
-        _additional = additional;
-    }
+        public API_Node_Programmable_Small(string nm, string color = "", string outline = "", string delay = "", string dashed = "", string additional = "") {
+                _name = nm;
+                _color = color;
+                _outline = outline;
+                _delay = delay;
+                _dashed = dashed;
+                _additional = additional;
+        }
 
 
-    public string name
-    {
-        get
-        {
-            return _name;
+        public string name {
+                get {
+                        return _name;
+                }
         }
-    }
-    public string color
-    {
-        get
-        {
-            return _color;
+        public string color {
+                get {
+                        return _color;
+                }
+                set {
+                        _color = value;
+                }
         }
-        set
-        {
-            _color = value;
-        }
-    }
 
-    public string outline
-    {
-        get
-        {
-            return _outline;
+        public string outline {
+                get {
+                        return _outline;
+                }
+                set {
+                        _outline = value;
+                }
         }
-        set
-        {
-            _outline = value;
-        }
-    }
 
-    public string delay
-    {
-        get
-        {
-            return _delay;
+        public string delay {
+                get {
+                        return _delay;
+                }
+                set {
+                        _delay = value;
+                }
         }
-        set
-        {
-            _delay = value;
-        }
-    }
 
-    public string dashed
-    {
-        get
-        {
-            return _dashed;
+        public string dashed {
+                get {
+                        return _dashed;
+                }
+                set {
+                        _dashed = value;
+                }
         }
-        set
-        {
-            _dashed = value;
-        }
-    }
 
-    public string additional
-    {
-        get
-        {
-            return _additional;
+        public string additional {
+                get {
+                        return _additional;
+                }
+                set {
+                        _additional = value;
+                }
         }
-        set
-        {
-            _additional = value;
-        }
-    }
 
-    public string id
-    {
-        get
-        {
-            return name;
+        public string id {
+                get {
+                        return name;
+                }
         }
-    }
 
 }

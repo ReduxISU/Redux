@@ -6,29 +6,25 @@ using SPADE;
 using API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 namespace API.Problems.NPComplete.NPC_SETCOVER.Visualizations;
 
-class SetCoverDefaultVisualization : IVisualization<SETCOVER>
-{
-    public string visualizationName { get; } = "Set Cover Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for Set Cover";
-    public string source { get; } = "";
-    public string[] contributors { get; } = { "Andrija Sevaljevic" };
-    public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
-    public ISolver solver { get; } = new SetCoverBruteForce();
+class SetCoverDefaultVisualization : IVisualization<SETCOVER> {
+        public string visualizationName { get; } = "Set Cover Visualization";
+        public string visualizationDefinition { get; } = "This is a default visualization for Set Cover";
+        public string source { get; } = "";
+        public string[] contributors { get; } = { "Andrija Sevaljevic" };
+        public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
+        public ISolver solver { get; } = new SetCoverBruteForce();
 
-    // --- Methods Including Constructors ---
-    public SetCoverDefaultVisualization()
-    {
+        // --- Methods Including Constructors ---
+        public SetCoverDefaultVisualization() {
 
-    }
-    public API_JSON visualize(SETCOVER setcover)
-    {
-        return new API_SET(new UtilCollection(setcover.instance));
-    }
-    public API_JSON SolvedVisualization(SETCOVER setcover, string solution)
-    {
-        //return new API_SET(new UtilCollection(setcover.instance));
-        API_SET sc = new API_SET(new UtilCollection(setcover.instance));
+        }
+        public API_JSON visualize(SETCOVER setcover) {
+                return new API_SET(new UtilCollection(setcover.instance));
+        }
+        public API_JSON SolvedVisualization(SETCOVER setcover, string solution) {
+                //return new API_SET(new UtilCollection(setcover.instance));
+                API_SET sc = new API_SET(new UtilCollection(setcover.instance));
 
-        return new API_SET(new UtilCollection(setcover.instance));
-    }
+                return new API_SET(new UtilCollection(setcover.instance));
+        }
 }

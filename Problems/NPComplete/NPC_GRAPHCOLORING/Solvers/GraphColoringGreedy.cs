@@ -7,78 +7,74 @@ using System.Collections.Generic;
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
 class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
- 
-    public string solverName {get;} = "Graph Coloring Greedy";
-    public string solverDefinition {get;} = "A greedy algorithm that iterates through each vertex and assigns the smallest color not used by any of its neighbors.";
-    public string source {get;} = "Dasgupta, S, Papadimitriou, C, & Vazirani, U. (2006). Algorithms. McGraw-Hill. Chapter 9.2";
-    public string[] contributors {get;} = { "Pramesh Shah" };
-    public bool timerHasExpired { get; set; }
-    // Declared, not derived. Irrevocable locally-optimal choice each step.
-    public SolverType solverType { get; } = SolverType.Greedy;
-    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    // Adjacency build + the per-node color assignment loop are the textbook O(n + m) greedy-coloring
-    // pass (neighbor scans and usedColors lookups amortize to O(m) and O(n) respectively across all
-    // nodes). BuildCertificate adds a factor beyond that textbook bound though: for each of up to
-    // numColors (<= n) color groups it does a fresh O(n) nodes.Where(...) scan, i.e. O(n^2) worst case
-    // when many colors are used -- so the actual bound is O(n^2 + m), not the source text's O(V + E).
-    public string complexity { get; } = "O(n^2 + m), n = |nodes|, m = |edges|";
 
-    // Constructor 
-    public GraphColoringGreedy() { }
+        public string solverName { get; } = "Graph Coloring Greedy";
+        public string solverDefinition { get; } = "A greedy algorithm that iterates through each vertex and assigns the smallest color not used by any of its neighbors.";
+        public string source { get; } = "Dasgupta, S, Papadimitriou, C, & Vazirani, U. (2006). Algorithms. McGraw-Hill. Chapter 9.2";
+        public string[] contributors { get; } = { "Pramesh Shah" };
+        public bool timerHasExpired { get; set; }
+        // Declared, not derived. Irrevocable locally-optimal choice each step.
+        public SolverType solverType { get; } = SolverType.Greedy;
+        public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+        // Adjacency build + the per-node color assignment loop are the textbook O(n + m) greedy-coloring
+        // pass (neighbor scans and usedColors lookups amortize to O(m) and O(n) respectively across all
+        // nodes). BuildCertificate adds a factor beyond that textbook bound though: for each of up to
+        // numColors (<= n) color groups it does a fresh O(n) nodes.Where(...) scan, i.e. O(n^2) worst case
+        // when many colors are used -- so the actual bound is O(n^2 + m), not the source text's O(V + E).
+        public string complexity { get; } = "O(n^2 + m), n = |nodes|, m = |edges|";
 
-    // Builds certificate string in format {{a,d},{b},{c}}
-    private string BuildCertificate(Dictionary<string, int> colorAssignment, List<string> nodes, int numColors)
-    {
-        List<string> colorGroups = new List<string>();
-        for (int i = 0; i < numColors; i++)
-        {
-            List<string> group = nodes.Where(node => colorAssignment[node] == i).ToList();
-            colorGroups.Add("{" + string.Join(",", group) + "}");
-        }
-        return "{" + string.Join(",", colorGroups) + "}";
-    }
+        // Constructor 
+        public GraphColoringGreedy() { }
 
-    public string solve(GRAPHCOLORING gColor)
-    {
-        List<string> nodes = gColor.nodes;
-        List<KeyValuePair<string, string>> edges = gColor.edges;
-
-        // Guard, empty graph
-        if (nodes == null || nodes.Count == 0)
-            return "{}";
-
-        // Build adjacency list
-        Dictionary<string, List<string>> adjacency = new Dictionary<string, List<string>>();
-        foreach (string node in nodes)
-            adjacency[node] = new List<string>();
-
-        foreach (KeyValuePair<string, string> edge in edges) {
-            adjacency[edge.Key].Add(edge.Value);
-            adjacency[edge.Value].Add(edge.Key);
+        // Builds certificate string in format {{a,d},{b},{c}}
+        private string BuildCertificate(Dictionary<string, int> colorAssignment, List<string> nodes, int numColors) {
+                List<string> colorGroups = new List<string>();
+                for (int i = 0; i < numColors; i++) {
+                        List<string> group = nodes.Where(node => colorAssignment[node] == i).ToList();
+                        colorGroups.Add("{" + string.Join(",", group) + "}");
+                }
+                return "{" + string.Join(",", colorGroups) + "}";
         }
 
-        // For each vertex assign smallest color not used by neighbors
-        Dictionary<string, int> colorAssignment = new Dictionary<string, int>();
-        foreach (string node in nodes)
-        {
-            HashSet<int> usedColors = new HashSet<int>();
-            foreach (string neighbor in adjacency[node])
-                if (colorAssignment.ContainsKey(neighbor))
-                    usedColors.Add(colorAssignment[neighbor]);
+        public string solve(GRAPHCOLORING gColor) {
+                List<string> nodes = gColor.nodes;
+                List<KeyValuePair<string, string>> edges = gColor.edges;
 
-            int color = 0;
-            while (usedColors.Contains(color))
-                color++;
+                // Guard, empty graph
+                if (nodes == null || nodes.Count == 0)
+                        return "{}";
 
-            colorAssignment[node] = color;
+                // Build adjacency list
+                Dictionary<string, List<string>> adjacency = new Dictionary<string, List<string>>();
+                foreach (string node in nodes)
+                        adjacency[node] = new List<string>();
+
+                foreach (KeyValuePair<string, string> edge in edges) {
+                        adjacency[edge.Key].Add(edge.Value);
+                        adjacency[edge.Value].Add(edge.Key);
+                }
+
+                // For each vertex assign smallest color not used by neighbors
+                Dictionary<string, int> colorAssignment = new Dictionary<string, int>();
+                foreach (string node in nodes) {
+                        HashSet<int> usedColors = new HashSet<int>();
+                        foreach (string neighbor in adjacency[node])
+                                if (colorAssignment.ContainsKey(neighbor))
+                                        usedColors.Add(colorAssignment[neighbor]);
+
+                        int color = 0;
+                        while (usedColors.Contains(color))
+                                color++;
+
+                        colorAssignment[node] = color;
+                }
+
+                int numColors = colorAssignment.Values.Max() + 1;
+
+                // Guard, greedy used more colors than K allows
+                if (numColors > gColor.K)
+                        return "{}";
+
+                return BuildCertificate(colorAssignment, nodes, numColors);
         }
-
-        int numColors = colorAssignment.Values.Max() + 1;
-
-        // Guard, greedy used more colors than K allows
-        if (numColors > gColor.K)
-            return "{}";
-
-        return BuildCertificate(colorAssignment, nodes, numColors);
-    }
 }

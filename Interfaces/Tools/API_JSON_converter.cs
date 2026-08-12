@@ -19,30 +19,26 @@ namespace API.Interfaces.Tools;
 /// <c>JsonConverter&lt;T&gt;</c>), the <see cref="Write"/> call below re-enters the serializer
 /// with the concrete type and is <em>not</em> intercepted again, so there is no infinite recursion.
 /// </remarks>
-public class API_JSON_Converter : JsonConverter<API_JSON>
-{
-    /// <summary>
-    /// Not supported. Deserialization would require a type discriminator to recover the concrete
-    /// type from the JSON; these payloads are only ever serialized outward to clients.
-    /// </summary>
-    /// <exception cref="NotImplementedException">Always thrown.</exception>
-    public override API_JSON Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        throw new NotImplementedException("Deserialization requires knowing the concrete type.");
-    }
-
-    /// <summary>
-    /// Writes <paramref name="value"/> using its runtime concrete type (or a JSON null when it is null).
-    /// </summary>
-    public override void Write(Utf8JsonWriter writer, API_JSON value, JsonSerializerOptions options)
-    {
-        if (value == null)
-        {
-            writer.WriteNullValue();
-            return;
+public class API_JSON_Converter : JsonConverter<API_JSON> {
+        /// <summary>
+        /// Not supported. Deserialization would require a type discriminator to recover the concrete
+        /// type from the JSON; these payloads are only ever serialized outward to clients.
+        /// </summary>
+        /// <exception cref="NotImplementedException">Always thrown.</exception>
+        public override API_JSON Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+                throw new NotImplementedException("Deserialization requires knowing the concrete type.");
         }
 
-        // Serialize using the runtime concrete type
-        JsonSerializer.Serialize(writer, value, value.GetType(), options);
-    }
+        /// <summary>
+        /// Writes <paramref name="value"/> using its runtime concrete type (or a JSON null when it is null).
+        /// </summary>
+        public override void Write(Utf8JsonWriter writer, API_JSON value, JsonSerializerOptions options) {
+                if (value == null) {
+                        writer.WriteNullValue();
+                        return;
+                }
+
+                // Serialize using the runtime concrete type
+                JsonSerializer.Serialize(writer, value, value.GetType(), options);
+        }
 }

@@ -5,75 +5,75 @@
 using System;
 using System.Collections.Generic;
 namespace API.Interfaces.Graphs;
-class Edge : IComparable<Edge>{
 
-//Fields
-private Node _source;
-private Node _target;
-private int _weight;
+class Edge : IComparable<Edge> {
 
-public Edge(){
-_source = new Node();
-_target = new Node();
-}
-public Edge(Node n1,Node n2){
-    _source = n1;
-    _target = n2;
-}
+        //Fields
+        private Node _source;
+        private Node _target;
+        private int _weight;
 
-public Node source{
-    get{
-        return _source;
-    }
-    set{
-        _source = value;
-    }
-}
-
-public Node target{
-    get{
-        return _target;
-    }
-    set{
-        _target = value;
-    }
-}
-
-public int weight {
-    get {
-        return _weight;
-    } 
-    set {
-        _weight = value;
-    }
-}
-
-public override string ToString(){
-return source.name+","+_target.name;
-}
-
-public string undirectedString(){
-    return "{"+source.name+","+_target.name+"}";
-}
-public string directedString(){
-    return "("+source.name+","+_target.name+")";
-}
-public int CompareTo(Edge? other)
-    {
-        if (other is null) {
-             // Convention: this instance is greater than null
-             return 1;
+        public Edge() {
+                _source = new Node();
+                _target = new Node();
+        }
+        public Edge(Node n1, Node n2) {
+                _source = n1;
+                _target = n2;
         }
 
-        int compare = this.toKVP().Key.CompareTo(other.toKVP().Key);
-        if(compare == 0){
-            compare = this.toKVP().Value.CompareTo(other.toKVP().Value);
+        public Node source {
+                get {
+                        return _source;
+                }
+                set {
+                        _source = value;
+                }
         }
-        return compare;
-    }
-public KeyValuePair<string,string> toKVP(){
-    KeyValuePair<string,string> asKVP = new KeyValuePair<string, string>(source.name,target.name);
-    return asKVP;
-}
+
+        public Node target {
+                get {
+                        return _target;
+                }
+                set {
+                        _target = value;
+                }
+        }
+
+        public int weight {
+                get {
+                        return _weight;
+                }
+                set {
+                        _weight = value;
+                }
+        }
+
+        public override string ToString() {
+                return source.name + "," + _target.name;
+        }
+
+        public string undirectedString() {
+                return "{" + source.name + "," + _target.name + "}";
+        }
+        public string directedString() {
+                return "(" + source.name + "," + _target.name + ")";
+        }
+        public int CompareTo(Edge? other) {
+                if (other is null) {
+                        // Convention: this instance is greater than null
+                        return 1;
+                }
+
+                int compare = this.toKVP().Key.CompareTo(other.toKVP().Key);
+                if (compare == 0) {
+                        compare = this.toKVP().Value.CompareTo(other.toKVP().Value);
+                }
+                return compare;
+        }
+        public KeyValuePair<string, string> toKVP() {
+                KeyValuePair<string, string> asKVP = new KeyValuePair<string, string>(source.name, target.name);
+                return asKVP;
+        }
 
 }

@@ -7,26 +7,22 @@ using System.Text.Json;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Visualizations;
 
-class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH>
-{
-    public string visualizationName { get; } = "Unstructured Search Quantum Circuit";
-    public string visualizationDefinition { get; } = "This visualization builds a quantum circuit";
-    public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
-    public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
-    public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
-    public ISolver solver { get; } = new UnstructuredSearchSolver();
+class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH> {
+        public string visualizationName { get; } = "Unstructured Search Quantum Circuit";
+        public string visualizationDefinition { get; } = "This visualization builds a quantum circuit";
+        public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
+        public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
+        public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
+        public ISolver solver { get; } = new UnstructuredSearchSolver();
 
-    // --- Methods Including Constructors ---
-    public UnstructuredSearchVisualization()
-    {
-    }
-    public API_JSON visualize(UNSTRUCTUREDSEARCH instance)
-    {
-        return new API_QUANTUMCIRCUIT
-        {
-            format = QuantumCircuitFormat.QASM,
-            qasm = "",
-            solution = ""
-        };
-    }
+        // --- Methods Including Constructors ---
+        public UnstructuredSearchVisualization() {
+        }
+        public API_JSON visualize(UNSTRUCTUREDSEARCH instance) {
+                return new API_QUANTUMCIRCUIT {
+                        format = QuantumCircuitFormat.QASM,
+                        qasm = "",
+                        solution = ""
+                };
+        }
 }

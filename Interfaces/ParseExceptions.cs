@@ -4,13 +4,13 @@ namespace API.Interfaces;
 // instance string. Controllers translate this to HTTP 400 with the
 // problem's `instanceFormat` as the structured hint.
 internal class ProblemParseException : Exception {
-    public string ProblemName { get; }
-    public string Received { get; }
-    public ProblemParseException(string problemName, string received, string? detail = null)
-        : base(detail ?? $"could not parse {problemName} instance") {
-        ProblemName = problemName;
-        Received = received;
-    }
+        public string ProblemName { get; }
+        public string Received { get; }
+        public ProblemParseException(string problemName, string received, string? detail = null)
+            : base(detail ?? $"could not parse {problemName} instance") {
+                ProblemName = problemName;
+                Received = received;
+        }
 }
 
 // Thrown when a verifier cannot parse the supplied certificate string.
@@ -19,13 +19,13 @@ internal class ProblemParseException : Exception {
 // instance (already constructed successfully) so the controller can
 // read its certificateFormat directly.
 internal class CertificateParseException : Exception {
-    public IProblem Problem { get; }
-    public string Received { get; }
-    public CertificateParseException(IProblem problem, string received, string? detail = null)
-        : base(detail ?? $"could not parse {problem.problemName} certificate") {
-        Problem = problem;
-        Received = received;
-    }
+        public IProblem Problem { get; }
+        public string Received { get; }
+        public CertificateParseException(IProblem problem, string received, string? detail = null)
+            : base(detail ?? $"could not parse {problem.problemName} certificate") {
+                Problem = problem;
+                Received = received;
+        }
 }
 
 // Thrown when a reduction cannot parse the supplied input (either the
@@ -35,13 +35,13 @@ internal class CertificateParseException : Exception {
 // caller can choose between `reductionFrom.instanceFormat` and
 // `reductionFrom.certificateFormat` depending on which input failed.
 internal class ReductionInputException : Exception {
-    public IReduction Reduction { get; }
-    public string Received { get; }
-    public string ExpectedFormat { get; }
-    public ReductionInputException(IReduction reduction, string received, string expectedFormat, string? detail = null)
-        : base(detail ?? $"could not parse input to {reduction.reductionName}") {
-        Reduction = reduction;
-        Received = received;
-        ExpectedFormat = expectedFormat;
-    }
+        public IReduction Reduction { get; }
+        public string Received { get; }
+        public string ExpectedFormat { get; }
+        public ReductionInputException(IReduction reduction, string received, string expectedFormat, string? detail = null)
+            : base(detail ?? $"could not parse input to {reduction.reductionName}") {
+                Reduction = reduction;
+                Received = received;
+                ExpectedFormat = expectedFormat;
+        }
 }

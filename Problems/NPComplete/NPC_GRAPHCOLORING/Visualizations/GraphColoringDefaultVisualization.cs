@@ -9,64 +9,57 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Visualizations;
 
 class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING> {
 
-    // --- Fields ---
-    public string visualizationName {get;} = "Graph Coloring Visualization";
-    public string visualizationDefinition {get;} = "This is a default visualization for Graph Coloring";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"Andrija Sevaljevic", "Russell Phillips"};
-    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
-    public ISolver solver { get; } = new GraphColoringBruteForce();
+        // --- Fields ---
+        public string visualizationName { get; } = "Graph Coloring Visualization";
+        public string visualizationDefinition { get; } = "This is a default visualization for Graph Coloring";
+        public string source { get; } = "";
+        public string[] contributors { get; } = { "Andrija Sevaljevic", "Russell Phillips" };
+        public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
+        public ISolver solver { get; } = new GraphColoringBruteForce();
 
-    // --- Methods Including Constructors ---
-    public GraphColoringDefaultVisualization() {
-        
-    }
-    public API_JSON visualize(GRAPHCOLORING GRAPHCOLORING)
-    {
-        return GRAPHCOLORING.graph.ToAPIGraph();
-    }
-    
-    public API_JSON SolvedVisualization(GRAPHCOLORING GRAPHCOLORING, string solution)
-    {
-        string[] colors = {"Rose", "Solution", "Sand", "Green", "Cyan", "Wine", "Teal", "Olive"};
-        List<string> solutionList = solution.Replace("{{","").Replace("}}","").Split("},{").ToList();
-        API_GraphJSON apiGraph = GRAPHCOLORING.graph.ToAPIGraph();
-        for(int i=0;i<apiGraph.nodes.Count;i++){
-            int number = 0;
-            foreach(var j in solutionList) {
+        // --- Methods Including Constructors ---
+        public GraphColoringDefaultVisualization() {
 
-            if(j.Split(',').Contains(apiGraph.nodes[i].name)){ //we set the nodes as either having a true or false flag which will indicate to the frontend whether to highlight.
-                apiGraph.nodes[i].color = colors[number]; 
-            }
-
-            number += 1;
-            number = number % 8;    
-        
-            }
+        }
+        public API_JSON visualize(GRAPHCOLORING GRAPHCOLORING) {
+                return GRAPHCOLORING.graph.ToAPIGraph();
         }
 
-        for (int i = 0; i < apiGraph.links.Count; i++)
-        {
-            int number = 0;
-            foreach (var j in solutionList)
-            {
+        public API_JSON SolvedVisualization(GRAPHCOLORING GRAPHCOLORING, string solution) {
+                string[] colors = { "Rose", "Solution", "Sand", "Green", "Cyan", "Wine", "Teal", "Olive" };
+                List<string> solutionList = solution.Replace("{{", "").Replace("}}", "").Split("},{").ToList();
+                API_GraphJSON apiGraph = GRAPHCOLORING.graph.ToAPIGraph();
+                for (int i = 0; i < apiGraph.nodes.Count; i++) {
+                        int number = 0;
+                        foreach (var j in solutionList) {
 
-                foreach (var source in j.Split(','))
-                {
-                    foreach (var target in j.Split(','))
-                    {
-                        if (apiGraph.links[i].source == source && apiGraph.links[i].target == target)
-                        {
-                            apiGraph.links[i].color = colors[number];
+                                if (j.Split(',').Contains(apiGraph.nodes[i].name)) { //we set the nodes as either having a true or false flag which will indicate to the frontend whether to highlight.
+                                        apiGraph.nodes[i].color = colors[number];
+                                }
+
+                                number += 1;
+                                number = number % 8;
+
                         }
-                    }
                 }
 
-                number += 1;
-                number = number % 8;
-            }
-        }
+                for (int i = 0; i < apiGraph.links.Count; i++) {
+                        int number = 0;
+                        foreach (var j in solutionList) {
 
-        return apiGraph;
-    }
+                                foreach (var source in j.Split(',')) {
+                                        foreach (var target in j.Split(',')) {
+                                                if (apiGraph.links[i].source == source && apiGraph.links[i].target == target) {
+                                                        apiGraph.links[i].color = colors[number];
+                                                }
+                                        }
+                                }
+
+                                number += 1;
+                                number = number % 8;
+                        }
+                }
+
+                return apiGraph;
+        }
 }
