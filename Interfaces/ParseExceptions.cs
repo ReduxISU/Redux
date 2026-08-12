@@ -27,3 +27,21 @@ internal class CertificateParseException : Exception {
         Received = received;
     }
 }
+
+// Thrown when a reduction cannot parse the supplied input (either the
+// source-problem instance during construction, or the source-problem
+// certificate during mapSolutions). Controllers translate this to HTTP
+// 400. The `ExpectedFormat` field is passed in at the throw site so the
+// caller can choose between `reductionFrom.instanceFormat` and
+// `reductionFrom.certificateFormat` depending on which input failed.
+internal class ReductionInputException : Exception {
+    public IReduction Reduction { get; }
+    public string Received { get; }
+    public string ExpectedFormat { get; }
+    public ReductionInputException(IReduction reduction, string received, string expectedFormat, string? detail = null)
+        : base(detail ?? $"could not parse input to {reduction.reductionName}") {
+        Reduction = reduction;
+        Received = received;
+        ExpectedFormat = expectedFormat;
+    }
+}

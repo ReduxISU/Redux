@@ -100,4 +100,176 @@ class NFASolver : ISolver<NFA>
 
         return sb.ToString().TrimEnd();
     }
+
+    // GetSteps: The default steps for an NFA are the states of its default run (first accepting
+    // run, or first rejected run if none accept) — needed so that IVisualization's non-generic
+    // `StepsVisualization` guard (which short-circuits to empty when GetSteps is empty) doesn't
+    // skip table-style visualizations that recompute their own step data via GetTableSteps.
+    public List<Object> GetSteps(NFA problem)
+    {
+        var runs = GetPathRuns(problem);
+        return runs.Count > 0 ? runs[0].states.Cast<Object>().ToList() : new List<Object>();
+    }
+
+    // ----- Table Visualization Support ----- //
+
+    public class NFAPathTransition
+    {
+        public string from { get; set; } = "";
+        public string symbol { get; set; } = "";
+        public string to { get; set; } = "";
+    }
+
+    public class NFAPathRun
+    {
+        public List<string> states { get; set; } = new();
+        public List<NFAPathTransition> transitions { get; set; } = new();
+        public bool accepted { get; set; }
+    }
+
+    // GetPathRuns: Re-runs the same nondeterministic DFS as `solve`, but instead of only keeping
+    // the final accepted-paths strings, it records every explored run with full transition detail:
+    // every accepting run (same detection condition as `solve`) plus every rejected "dead end"
+    // (a branch where no further epsilon/symbol transition applies). Rejected leaves are only
+    // discovered here; `solve` already visits them, it just never recorded them.
+    public List<NFAPathRun> GetPathRuns(NFA problem)
+    {
+        string rawInput = problem.inputString ?? "";
+        string input = rawInput == "ε" ? "" : rawInput;
+
+        var edges = problem.edges;
+        var runs = new List<NFAPathRun>();
+
+        void DFS(string state, int pos, List<string> path, List<NFAPathTransition> transitions, HashSet<(string, int)> visitedPerPath)
+        {
+            bool isAcceptingHere = pos >= input.Length && problem.acceptStates.Contains(state);
+            if (isAcceptingHere)
+            {
+                runs.Add(new NFAPathRun
+                {
+                    states = new List<string>(path),
+                    transitions = new List<NFAPathTransition>(transitions),
+                    accepted = true
+                });
+            }
+
+            bool expanded = false;
+
+            // Explore epsilon transitions (do not advance position)
+            foreach (var e in edges.Where(x => x.From == state && x.Symbol == 'ε'))
+            {
+                var key = (e.To, pos);
+                if (visitedPerPath.Contains(key)) continue;
+                visitedPerPath.Add(key);
+                path.Add(e.To);
+                transitions.Add(new NFAPathTransition { from = state, symbol = "ε", to = e.To });
+                expanded = true;
+                DFS(e.To, pos, path, transitions, visitedPerPath);
+                transitions.RemoveAt(transitions.Count - 1);
+                path.RemoveAt(path.Count - 1);
+                visitedPerPath.Remove(key);
+            }
+
+            // Explore regular symbol transitions (advance position)
+            if (pos < input.Length)
+            {
+                char need = input[pos];
+                foreach (var e in edges.Where(x => x.From == state && x.Symbol == need))
+                {
+                    var key = (e.To, pos + 1);
+                    if (visitedPerPath.Contains(key)) continue;
+                    visitedPerPath.Add(key);
+                    path.Add(e.To);
+                    transitions.Add(new NFAPathTransition { from = state, symbol = need.ToString(), to = e.To });
+                    expanded = true;
+                    DFS(e.To, pos + 1, path, transitions, visitedPerPath);
+                    transitions.RemoveAt(transitions.Count - 1);
+                    path.RemoveAt(path.Count - 1);
+                    visitedPerPath.Remove(key);
+                }
+            }
+
+            if (!expanded && !isAcceptingHere)
+            {
+                runs.Add(new NFAPathRun
+                {
+                    states = new List<string>(path),
+                    transitions = new List<NFAPathTransition>(transitions),
+                    accepted = false
+                });
+            }
+        }
+
+        var startPath = new List<string> { problem.startState };
+        var startVisited = new HashSet<(string, int)> { (problem.startState, 0) };
+        DFS(problem.startState, 0, startPath, new List<NFAPathTransition>(), startVisited);
+
+        // Accepting runs first (in discovery order), rejected runs after, so the default/first
+        // entry is the first accepting run, or the first rejected run if none accept.
+        return runs.Where(r => r.accepted).Concat(runs.Where(r => !r.accepted)).ToList();
+    }
+
+    public class NFATableStepRow
+    {
+        public int step { get; set; }
+        public string symbol { get; set; } = "-";
+        public string fromState { get; set; } = "-";
+        public string toState { get; set; } = "";
+        public bool accepting { get; set; }
+    }
+
+    public class NFATableStep
+    {
+        public int pathIndex { get; set; }
+        public int pathCount { get; set; }
+        public bool accepted { get; set; }
+        public List<NFATableStepRow> rows { get; set; } = new();
+    }
+
+    // GetTableSteps: One table per explored path/run (not a time-progression within a single run,
+    // since NFA has no single run). Each table lists every transition in that run, in full, so it
+    // can be shown at once in a scrollable table. Stepping through the existing step slider pages
+    // between runs.
+    public List<Object> GetTableSteps(NFA problem)
+    {
+        var runs = GetPathRuns(problem);
+        var steps = new List<Object>();
+
+        for (int i = 0; i < runs.Count; i++)
+        {
+            var run = runs[i];
+            var rows = new List<NFATableStepRow>
+            {
+                new NFATableStepRow
+                {
+                    step = 0,
+                    toState = run.states[0],
+                    accepting = problem.acceptStates.Contains(run.states[0])
+                }
+            };
+
+            for (int t = 0; t < run.transitions.Count; t++)
+            {
+                var tr = run.transitions[t];
+                rows.Add(new NFATableStepRow
+                {
+                    step = t + 1,
+                    symbol = tr.symbol,
+                    fromState = tr.from,
+                    toState = tr.to,
+                    accepting = problem.acceptStates.Contains(tr.to)
+                });
+            }
+
+            steps.Add(new NFATableStep
+            {
+                pathIndex = i,
+                pathCount = runs.Count,
+                accepted = run.accepted,
+                rows = rows
+            });
+        }
+
+        return steps;
+    }
 }

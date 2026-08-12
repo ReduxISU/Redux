@@ -1,4 +1,5 @@
 using Xunit;
+using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_ARCSET;
 using API.Problems.NPComplete.NPC_VERTEXCOVER.Verifiers;
@@ -46,7 +47,50 @@ public class VERTEXCOVER_Tests
     }
 
 
-    [Theory] //tests with default graph string Certificates of this test represent junk or empty data. 
+    // -------------------------------------------------------------------------
+    // Self-describing formats (§1.5)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void VERTEXCOVER_Declares_Formats()
+    {
+        VERTEXCOVER vCov = new VERTEXCOVER();
+        Assert.False(string.IsNullOrWhiteSpace(vCov.instanceFormat));
+        Assert.False(string.IsNullOrWhiteSpace(vCov.certificateFormat));
+    }
+
+    // -------------------------------------------------------------------------
+    // Constructor — invalid instances (all must throw ProblemParseException)
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("")]                                    // empty
+    [InlineData("   ")]                                 // whitespace only
+    [InlineData("{{a,b,c} : {(a,b)} : 3}")]             // old colon format
+    [InlineData("abc")]                                 // bare string
+    [InlineData("(({a,b,c},{{a,b}}),x)")]               // non-integer K
+    [InlineData("(({a,b,c},{{a,b}})")]                  // unbalanced / truncated
+    public void VERTEXCOVER_Constructor_Throws_On_Invalid_Instance(string instance)
+    {
+        Assert.Throws<ProblemParseException>(() => new VERTEXCOVER(instance));
+    }
+
+    // -------------------------------------------------------------------------
+    // Verifier — malformed certificates (must throw CertificateParseException)
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("")]        // empty
+    [InlineData("   ")]     // whitespace only
+    [InlineData("{}")]      // parses to a single empty token
+    public void VERTEXCOVER_Verifier_Throws_On_Malformed_Certificate(string certificate)
+    {
+        VERTEXCOVER testVert = new VERTEXCOVER();
+        VCVerifier verifier = testVert.defaultVerifier;
+        Assert.Throws<CertificateParseException>(() => verifier.verify(testVert, certificate));
+    }
+
+    [Theory] //tests with default graph string Certificates of this test represent junk or empty data.
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{a}")] //four node graph dependent on a with a in cert
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c,d}")] //four node graph dependent on a with all nodes except a in cert
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)","{a,b,c,d}}")] //five node connected graph, test four nodes

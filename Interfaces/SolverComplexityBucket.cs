@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace API.Interfaces;
 
@@ -16,7 +15,6 @@ namespace API.Interfaces;
 /// says <see cref="Polynomial"/>, the string carries the nuance).
 /// </para>
 /// </summary>
-[Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
 [JsonConverter(typeof(JsonStringEnumConverter<SolverComplexityBucket>))]
 public enum SolverComplexityBucket
 {

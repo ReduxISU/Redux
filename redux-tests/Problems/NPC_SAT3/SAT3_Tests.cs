@@ -203,4 +203,17 @@ public class SAT3_Tests
         CliqueVerifier cliqueVerifier = new CliqueVerifier();
         Assert.True(cliqueVerifier.verify(clique, cliqueCertificate));
     }
+
+    [Fact]
+    public void SAT3_To_CLIQUE_Reduction_MalformedCertificate_Throws_ReductionInputException()
+    {
+        // Regression: a CLIQUE-shaped certificate (items missing the ':' separator)
+        // once threw IndexOutOfRangeException from Split(":"), surfacing as an
+        // opaque HTTP 500. It must now throw the typed ReductionInputException so
+        // the controller can return a 400 with a format hint.
+        SAT3 sat3 = new SAT3("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)");
+        SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
+        Assert.Throws<API.Interfaces.ReductionInputException>(
+            () => reduction.mapSolutions("{x1_0,x2_1,!x3_3}"));
+    }
 }

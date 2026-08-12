@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace API.Interfaces;
 
@@ -10,7 +9,6 @@ namespace API.Interfaces;
 /// derived" convention as <see cref="ComplexityClass"/>, <see cref="VisualizationType"/>,
 /// and <see cref="ReductionCost"/>.
 /// </summary>
-[Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
 [JsonConverter(typeof(JsonStringEnumConverter<SolverType>))]
 public enum SolverType
 {
@@ -42,4 +40,11 @@ public enum SolverType
     /// because these prune the search space and brute force does not.
     /// </summary>
     Backtracking,
+    /// <summary>
+    /// Builds a valid solution directly from a closed-form rule or formula, without
+    /// searching the candidate space at all (e.g. the explicit mod-12 N-Queens placement).
+    /// Distinct from <see cref="Greedy"/> because there are no per-step candidate choices to
+    /// make, and from <see cref="Backtracking"/> because nothing is ever tried and undone.
+    /// </summary>
+    Constructive,
 }

@@ -1,6 +1,6 @@
 ﻿using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_NQUEENS.Solvers;
+namespace API.Problems.P.P_NQUEENS.Solvers;
 
 class NQueensBacktracking : ISolver<NQUEENS> {
 
