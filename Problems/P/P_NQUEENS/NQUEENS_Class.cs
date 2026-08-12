@@ -1,11 +1,11 @@
 using API.Interfaces;
 using API.DummyClasses;
-using API.Problems.NPComplete.NPC_NQUEENS.Solvers;
-using API.Problems.NPComplete.NPC_NQUEENS.Verifiers;
+using API.Problems.P.P_NQUEENS.Solvers;
+using API.Problems.P.P_NQUEENS.Verifiers;
 
-namespace API.Problems.NPComplete.NPC_NQUEENS;
+namespace API.Problems.P.P_NQUEENS;
 
-class NQUEENS : IProblem<NQueensBacktracking, NQueensVerifier, DummyVisualization> {
+class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "N-Queens";
@@ -15,7 +15,9 @@ class NQUEENS : IProblem<NQueensBacktracking, NQueensVerifier, DummyVisualizatio
         "NQUEENS = {<n> | there exists a placement of n queens on an n x n chessboard such that no two queens attack each other}";
 
     public string problemDefinition { get; } =
-        "Given an integer n, determine whether n queens can be placed on an n x n chessboard so that no two queens share a row, column, or diagonal.";
+        "Given an integer n, determine whether n queens can be placed on an n x n chessboard so that no two queens share a row, column, or diagonal. "
+        + "Although finding a placement is often taught alongside NP-complete search problems, the decision version is trivial (a solution exists for every n except 2 and 3) "
+        + "and an explicit placement can be constructed in O(n) time, so N-Queens lies in P.";
 
     public string source { get; } = "Classic combinatorial problem.";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Eight_queens_puzzle";
@@ -34,12 +36,18 @@ class NQUEENS : IProblem<NQueensBacktracking, NQueensVerifier, DummyVisualizatio
     private static readonly string _defaultInstance = "4";
     public string defaultInstance { get; } = _defaultInstance;
 
+    public string instanceFormat { get; } =
+        "A single non-negative integer n giving the board size / number of queens — e.g. \"8\".";
+
+    public string certificateFormat { get; } =
+        "Set of (row,col) queen positions, 0-indexed, one per row and column: {(row,col),...} — e.g. {(0,1),(1,3),(2,0),(3,2)}.";
+
     public string wikiName { get; } = "Eight queens puzzle";
 
     // Problem variable
     public int n { get; set; }
 
-    public NQueensBacktracking defaultSolver { get; } = new NQueensBacktracking();
+    public NQueensConstructive defaultSolver { get; } = new NQueensConstructive();
     public NQueensVerifier defaultVerifier { get; } = new NQueensVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
 

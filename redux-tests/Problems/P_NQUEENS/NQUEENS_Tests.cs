@@ -1,7 +1,7 @@
 using Xunit;
-using API.Problems.NPComplete.NPC_NQUEENS;
-using API.Problems.NPComplete.NPC_NQUEENS.Solvers;
-using API.Problems.NPComplete.NPC_NQUEENS.Verifiers;
+using API.Problems.P.P_NQUEENS;
+using API.Problems.P.P_NQUEENS.Solvers;
+using API.Problems.P.P_NQUEENS.Verifiers;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -133,5 +133,78 @@ public class NQUEENS_Tests
         string certificate = solver.solve(problem);
 
         Assert.Equal("{}", certificate);
+    }
+
+    // --- Constructive solver ---
+
+    [Fact]
+    public void NQUEENS_Default_Solver_Is_Constructive()
+    {
+        NQUEENS problem = new NQUEENS();
+        Assert.IsType<NQueensConstructive>(problem.defaultSolver);
+    }
+
+    [Fact]
+    public void NQUEENS_Constructive_Solves_Single_Queen()
+    {
+        NQUEENS problem = new NQUEENS("1");
+        NQueensConstructive solver = new NQueensConstructive();
+        NQueensVerifier verifier = new NQueensVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{(0,0)}", certificate);
+        Assert.True(verifier.verify(problem, certificate));
+    }
+
+    [Fact]
+    public void NQUEENS_Constructive_Returns_No_Solution_For_2()
+    {
+        NQUEENS problem = new NQUEENS("2");
+        NQueensConstructive solver = new NQueensConstructive();
+
+        Assert.Equal("{}", solver.solve(problem));
+    }
+
+    [Fact]
+    public void NQUEENS_Constructive_Returns_No_Solution_For_3()
+    {
+        NQUEENS problem = new NQUEENS("3");
+        NQueensConstructive solver = new NQueensConstructive();
+
+        Assert.Equal("{}", solver.solve(problem));
+    }
+
+    // The construction must produce a valid placement for every n >= 4 (and n = 1).
+    // Sweeping across all mod-12 remainders exercises each rearrangement branch.
+    [Theory]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(8)]
+    [InlineData(9)]
+    [InlineData(10)]
+    [InlineData(11)]
+    [InlineData(12)]
+    [InlineData(13)]
+    [InlineData(14)]
+    [InlineData(15)]
+    [InlineData(16)]
+    [InlineData(20)]
+    [InlineData(25)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void NQUEENS_Constructive_Produces_Verifiable_Solution(int n)
+    {
+        NQUEENS problem = new NQUEENS(n.ToString());
+        NQueensConstructive solver = new NQueensConstructive();
+        NQueensVerifier verifier = new NQueensVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.NotEqual("{}", certificate);
+        Assert.True(verifier.verify(problem, certificate),
+            $"Constructive solution for n={n} failed verification: {certificate}");
     }
 }
