@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace API.Interfaces;
 
@@ -24,7 +23,6 @@ namespace API.Interfaces;
 /// <c>ReductionEfficiency.IsFasterThan</c>.
 /// </para>
 /// </summary>
-[Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
 [JsonConverter(typeof(JsonStringEnumConverter<ReductionComplexityBucket>))]
 public enum ReductionComplexityBucket
 {
