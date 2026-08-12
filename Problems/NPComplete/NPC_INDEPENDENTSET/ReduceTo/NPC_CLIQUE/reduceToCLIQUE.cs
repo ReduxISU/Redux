@@ -24,6 +24,12 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     // in the input) — up to O(n^2) edges even when the input only encodes O(n+m).
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
 
+    // Declared, not derived. Same certificate reinterpreted on the complement graph --
+    // the canonical Garey & Johnson restriction between Independent Set and Clique.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. Nested node x node loop building the complement edge set.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     public List<Gadget> gadgets { get; }
     private INDEPENDENTSET _reductionFrom;
     private CLIQUE _reductionTo;

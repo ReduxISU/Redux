@@ -14,6 +14,13 @@ class GareyJohnson : IReduction<SAT3, DM3> {
     // The garbage-collection gadget loop ("for i in 0..(literals-clauses): foreach j in
     // Z") unconditionally emits one M-triple per (i,j) pair — O(n^2) matching triples.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
+    // Declared, not derived. Per its own reductionDefinition: variable "wheel" gadgets,
+    // clause gadgets, and garbage-collection gadgets are all constructed to interact --
+    // the canonical Garey & Johnson component-design reduction.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. The garbage-collection loop emits one M-triple per
+    // (literal, Z-entry) pair.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 
     private SAT3 _reductionFrom;

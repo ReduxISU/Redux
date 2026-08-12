@@ -22,6 +22,14 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
     // so output size tracks input size rather than blowing up beyond it.
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Transposes the input's own subset/element incidence
+    // structure into EXACTCOVER's shape -- the same combinatorial object re-expressed,
+    // no new gadgetry built.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. One pass over subsets to number them, then one pass over
+    // universalSet x subSets to transpose the incidence relation.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
 

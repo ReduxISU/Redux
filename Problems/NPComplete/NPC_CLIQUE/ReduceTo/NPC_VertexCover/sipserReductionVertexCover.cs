@@ -21,6 +21,14 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
     // clique's own edges) — up to O(n^2) edges even when the input only encodes O(n+m).
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
 
+    // Declared, not derived. Same certificate reinterpreted on the complement graph --
+    // the canonical Garey & Johnson restriction between Clique/Independent Set/Vertex
+    // Cover, not a gadget construction.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. Two nested node x node passes to build then dedupe the
+    // complement edge set.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     public List<Gadget> gadgets { get; }
     private CLIQUE _reductionFrom;
     private VERTEXCOVER _reductionTo;

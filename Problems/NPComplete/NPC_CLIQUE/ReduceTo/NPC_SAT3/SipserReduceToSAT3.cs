@@ -34,6 +34,12 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
     // number of input nodes.
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Each node is placed into its clause bucket independently
+    // by parsing its own suffix -- no coordination needed between nodes/clauses.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. Single pass over the input's nodes, grouping by suffix.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+
     public List<Gadget> gadgets { get; set; }
 
     private CLIQUE _reductionFrom;

@@ -13,6 +13,13 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
     // explicitly filled (0, 1, or -1), not just the 3 literals actually present per
     // clause, so output size is O(clauses * variables) even for sparse SAT3 input.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
+    // Declared, not derived. Each clause is independently replaced by one inequality
+    // row, built from a fixed coefficient rule (-1/1/0) with no coordination needed
+    // across rows.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. Nested loop over clauses x variables to fill the dense
+    // coefficient matrix.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 
     private SAT3 _reductionFrom;

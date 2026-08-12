@@ -15,6 +15,13 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
     // reduce() copies S (one pass) and appends exactly 2 derived numbers — O(n).
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Reuses S essentially unchanged, appending two padding
+    // numbers to force the partition point -- a minimal augmentation, not a gadget
+    // construction.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. One pass copying S plus two appended derived numbers.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();

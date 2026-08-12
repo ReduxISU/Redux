@@ -16,6 +16,13 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
     // straight 1:1 mapping, O(n).
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. SUBSETSUM is essentially KNAPSACK restricted to the
+    // sub-space where each item's value equals its weight -- a straight 1:1 mapping,
+    // not a gadget construction.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. One pass over the input integers.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+
     private string _complexity ="O(n)";
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
 

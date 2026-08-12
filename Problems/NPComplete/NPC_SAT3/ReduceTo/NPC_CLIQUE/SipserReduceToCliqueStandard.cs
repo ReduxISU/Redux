@@ -22,6 +22,12 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
     // edge for almost every pair (excluding same-clause / inverse-literal pairs) — O(n^2)
     // edges from O(n) literal-nodes.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
+    // Declared, not derived. Literal-nodes are grouped into per-clause triangles whose
+    // edges depend on cross-clause same-literal/inverse-literal checks -- the textbook
+    // Garey & Johnson component-design example for 3SAT-to-Clique.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. Double loop over all literal-node pairs.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
     private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
     private SAT3 _reductionFrom;
     private CLIQUE _reductionTo;

@@ -20,6 +20,13 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
     // `complexity` field below (that's an unrelated, unverified runtime-complexity note).
     public ReductionCost cost { get; } = ReductionCost.Cubic;
 
+    // Declared, not derived. Per-node "exactly one color" OR-gadgets and per-edge
+    // "not both same color" clauses are coordinated to enforce a global proper
+    // coloring, not built independently per literal.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. Nested K x K loop per node plus a K x K loop per edge.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     private GRAPHCOLORING _reductionFrom;
     private SAT _reductionTo;
     private string _complexity = "O(n^2)";

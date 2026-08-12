@@ -16,6 +16,13 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER>
     // entry per edge touching a node) — total elements are bounded by O(m) (sum of
     // node degrees), already implied by the input's own edge list.
     public ReductionCost cost { get; } = ReductionCost.Linear;
+    // Declared, not derived. Transposes the input's own node/edge incidence structure
+    // into one subset per node -- the same incidence relation re-expressed, no new
+    // gadgetry built.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. Nested loop over nodes x edges to build each node's
+    // incident-edge subset.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private VERTEXCOVER _reductionFrom;
