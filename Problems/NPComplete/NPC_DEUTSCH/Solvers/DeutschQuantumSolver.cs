@@ -10,53 +10,52 @@ namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 /// </summary>
 class DeutschQuantumSolver : ISolver<DEUTSCH> {
 
-        // --- Fields ---
-        public string solverName { get; } = "Deutsch Problem Quantum API Solver";
-        public string solverDefinition { get; } = "This solver constructs a quantum circuit for f(x) and then uses phase kickback to determine whether the oracle is constant or balanced with a single invocation of a quantum simulator (qiskit)";
-        public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
-        public string[] contributors { get; } = { "Grant Gardner" };
-        public bool timerHasExpired { get; set; }
-        // Declared, not derived. Delegates to the external quantum-simulator service.
-        public SolverType solverType { get; } = SolverType.Quantum;
-        // solverDefinition itself states this determines constant/balanced "with a single
-        // invocation of a quantum simulator" -- one oracle query via phase kickback.
-        public string complexity { get; } = "O(1) oracle queries";
+    // --- Fields ---
+    public string solverName { get; } = "Deutsch Problem Quantum API Solver";
+    public string solverDefinition { get; } = "This solver constructs a quantum circuit for f(x) and then uses phase kickback to determine whether the oracle is constant or balanced with a single invocation of a quantum simulator (qiskit)";
+    public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
+    public string[] contributors { get; } = { "Grant Gardner" };
+    public bool timerHasExpired { get; set; }
+    // Declared, not derived. Delegates to the external quantum-simulator service.
+    public SolverType solverType { get; } = SolverType.Quantum;
+    // solverDefinition itself states this determines constant/balanced "with a single
+    // invocation of a quantum simulator" -- one oracle query via phase kickback.
+    public string complexity { get; } = "O(1) oracle queries";
 
-        // --- Constructors ---
+    // --- Constructors ---
 
-        /// <summary>
-        /// Creates a new DeutschQuantumSolver
-        /// </summary>
-        public DeutschQuantumSolver() {
+    /// <summary>
+    /// Creates a new DeutschQuantumSolver
+    /// </summary>
+    public DeutschQuantumSolver() {
+    }
+
+    // --- Methods ---
+
+    public string solve(DEUTSCH problem) {
+        try {
+            // Get the function values directly from the problem instance
+            bool[] requestBody = problem.funcValues;
+
+            // Create the API client
+            var client = new QuantumServerAPI();
+
+            // Make the API call to the quantum endpoint
+            string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
+
+            // Parse the JSON response and extract just the answer
+            using JsonDocument doc = JsonDocument.Parse(response);
+            JsonElement root = doc.RootElement;
+
+            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
+                return answerElement.GetString() ?? "No answer found";
+            }
+
+            // If no answer field, return the whole response
+            return response;
+        } catch (Exception ex) {
+            // Return error information in case of failure
+            return $"{{\"error\": \"{ex.Message}\"}}";
         }
-
-        // --- Methods ---
-
-        public string solve(DEUTSCH problem) {
-                try {
-                        // Get the function values directly from the problem instance
-                        bool[] requestBody = problem.funcValues;
-
-                        // Create the API client
-                        var client = new QuantumServerAPI();
-
-                        // Make the API call to the quantum endpoint
-                        string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
-
-                        // Parse the JSON response and extract just the answer
-                        using JsonDocument doc = JsonDocument.Parse(response);
-                        JsonElement root = doc.RootElement;
-
-                        if (root.TryGetProperty("answer", out JsonElement answerElement)) {
-                                return answerElement.GetString() ?? "No answer found";
-                        }
-
-                        // If no answer field, return the whole response
-                        return response;
-                }
-                catch (Exception ex) {
-                        // Return error information in case of failure
-                        return $"{{\"error\": \"{ex.Message}\"}}";
-                }
-        }
+    }
 }

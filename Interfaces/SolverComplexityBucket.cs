@@ -17,12 +17,12 @@ namespace API.Interfaces;
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<SolverComplexityBucket>))]
 public enum SolverComplexityBucket {
-        /// <summary>No complexity bucket has been declared for this solver yet.</summary>
-        Unclassified = 0,
-        /// <summary>Worst-case running time is polynomial in instance size.</summary>
-        Polynomial,
-        /// <summary>Worst-case running time is exponential in instance size.</summary>
-        Exponential,
-        /// <summary>Worst-case running time is factorial in instance size.</summary>
-        Factorial,
+    /// <summary>No complexity bucket has been declared for this solver yet.</summary>
+    Unclassified = 0,
+    /// <summary>Worst-case running time is polynomial in instance size.</summary>
+    Polynomial,
+    /// <summary>Worst-case running time is exponential in instance size.</summary>
+    Exponential,
+    /// <summary>Worst-case running time is factorial in instance size.</summary>
+    Factorial,
 }

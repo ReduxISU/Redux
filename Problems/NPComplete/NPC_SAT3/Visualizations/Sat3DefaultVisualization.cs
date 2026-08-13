@@ -4,41 +4,41 @@ using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 
 class Sat3DefaultVisualization : IVisualization<SAT3> {
-        public string visualizationName { get; } = "3SAT visualization";
-        public string visualizationDefinition { get; } = "This is a default visualization for 3SAT";
-        public string source { get; } = "";
-        public string[] contributors { get; } = { "Kaden Marchetti" };
-        public VisualizationType visualizationType { get; } = VisualizationType.BooleanSatisfiability;
-        public ISolver solver { get; } = new Sat3BacktrackingSolver();
+    public string visualizationName { get; } = "3SAT visualization";
+    public string visualizationDefinition { get; } = "This is a default visualization for 3SAT";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Kaden Marchetti" };
+    public VisualizationType visualizationType { get; } = VisualizationType.BooleanSatisfiability;
+    public ISolver solver { get; } = new Sat3BacktrackingSolver();
 
-        // --- Methods Including Constructors ---
-        public Sat3DefaultVisualization() {
+    // --- Methods Including Constructors ---
+    public Sat3DefaultVisualization() {
 
+    }
+    public API_JSON visualize(SAT3 instance) {
+        return new API_SAT(instance);
+    }
+
+    public API_JSON SolvedVisualization(SAT3 instance, string solution) {
+        List<string> items = solution.TrimStart('(').TrimEnd(')').Split(",").ToList();
+        HashSet<string> highlight = new();
+        foreach (string item in items) {
+            List<string> split = item.Split(":").ToList();
+            if (split[1] == "True")
+                highlight.Add(split[0]);
+            else
+                highlight.Add("!" + split[0]);
         }
-        public API_JSON visualize(SAT3 instance) {
-                return new API_SAT(instance);
-        }
 
-        public API_JSON SolvedVisualization(SAT3 instance, string solution) {
-                List<string> items = solution.TrimStart('(').TrimEnd(')').Split(",").ToList();
-                HashSet<string> highlight = new();
-                foreach (string item in items) {
-                        List<string> split = item.Split(":").ToList();
-                        if (split[1] == "True")
-                                highlight.Add(split[0]);
-                        else
-                                highlight.Add("!" + split[0]);
+        API_SAT sat = new API_SAT(instance);
+
+        foreach (var clause in sat.clauses)
+            foreach (var literal in clause.literals) {
+                if (highlight.Contains(literal.literal)) {
+                    literal.color = "Solution";
                 }
+            }
 
-                API_SAT sat = new API_SAT(instance);
-
-                foreach (var clause in sat.clauses)
-                        foreach (var literal in clause.literals) {
-                                if (highlight.Contains(literal.literal)) {
-                                        literal.color = "Solution";
-                                }
-                        }
-
-                return sat;
-        }
+        return sat;
+    }
 }

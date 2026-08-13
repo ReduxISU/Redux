@@ -12,24 +12,24 @@ namespace API.Interfaces;
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ComplexityClass>))]
 public enum ComplexityClass {
-        /// <summary>No complexity class has been declared for this problem yet.</summary>
-        Unclassified = 0,
-        /// <summary>Solvable in polynomial time.</summary>
-        P,
-        /// <summary>In NP, and every problem in NP polynomial-time reduces to it.</summary>
-        NPComplete,
-        /// <summary>At least as hard as every problem in NP, but not (known to be) in NP itself.</summary>
-        NPHard,
-        /// <summary>In NP, not known to be NP-complete, and not known to be in P (e.g. integer factorization).</summary>
-        NPIntermediate,
-        /// <summary>
-        /// Query/oracle-complexity promise problem. Deutsch, Deutsch-Jozsa,
-        /// Bernstein-Vazirani, Simon, and Grover/UNSTRUCTUREDSEARCH belong here rather
-        /// than being tagged "BQP": they are defined over an oracle, and given an
-        /// explicit input instead of an oracle, unstructured search is trivially in P.
-        /// Incomparable with the classical P/NP hierarchy — reduction-validity checks
-        /// against those classes must skip members of this class rather than compare
-        /// against them.
-        /// </summary>
-        QuantumOracle,
+    /// <summary>No complexity class has been declared for this problem yet.</summary>
+    Unclassified = 0,
+    /// <summary>Solvable in polynomial time.</summary>
+    P,
+    /// <summary>In NP, and every problem in NP polynomial-time reduces to it.</summary>
+    NPComplete,
+    /// <summary>At least as hard as every problem in NP, but not (known to be) in NP itself.</summary>
+    NPHard,
+    /// <summary>In NP, not known to be NP-complete, and not known to be in P (e.g. integer factorization).</summary>
+    NPIntermediate,
+    /// <summary>
+    /// Query/oracle-complexity promise problem. Deutsch, Deutsch-Jozsa,
+    /// Bernstein-Vazirani, Simon, and Grover/UNSTRUCTUREDSEARCH belong here rather
+    /// than being tagged "BQP": they are defined over an oracle, and given an
+    /// explicit input instead of an oracle, unstructured search is trivially in P.
+    /// Incomparable with the classical P/NP hierarchy — reduction-validity checks
+    /// against those classes must skip members of this class rather than compare
+    /// against them.
+    /// </summary>
+    QuantumOracle,
 }

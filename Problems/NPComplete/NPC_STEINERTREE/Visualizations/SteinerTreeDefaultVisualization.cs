@@ -9,41 +9,41 @@ namespace API.Problems.NPComplete.NPC_STEINERTREE.Visualizations;
 
 class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE> {
 
-        // --- Fields ---
-        public string visualizationName { get; } = "Steiner Tree Visualization";
-        public string visualizationDefinition { get; } = "This is a default visualization for Steiner Tree";
-        public string source { get; } = "";
-        public string[] contributors { get; } = { "Andrija Sevaljevic" };
-        public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
-        public ISolver solver { get; } = new SteinerTreeBruteForce();
+    // --- Fields ---
+    public string visualizationName { get; } = "Steiner Tree Visualization";
+    public string visualizationDefinition { get; } = "This is a default visualization for Steiner Tree";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
+    public ISolver solver { get; } = new SteinerTreeBruteForce();
 
-        // --- Methods Including Constructors ---
-        public SteinerTreeDefaultVisualization() {
+    // --- Methods Including Constructors ---
+    public SteinerTreeDefaultVisualization() {
 
+    }
+    public API_JSON visualize(STEINERTREE steinerTree) {
+        return steinerTree.graph.ToAPIGraph();
+    }
+
+    public API_JSON SolvedVisualization(STEINERTREE steinerTree, string solution) {
+        List<KeyValuePair<string, string>> solutionEdges = GraphParser.parseUndirectedEdgeListWithStringFunctions(solution);
+
+        API_GraphJSON apiGraph = steinerTree.graph.ToAPIGraph();
+        foreach (var kv in solutionEdges)
+            foreach (var node in apiGraph.nodes) {
+                if (node.name == kv.Key || node.name == kv.Value) node.color = "Solution";
+                if (steinerTree.terminals.Contains(node.name)) node.outline = "Red";
+            }
+
+        foreach (var kv in solutionEdges) {
+            var link = apiGraph.links.FirstOrDefault(l =>
+                (l.source == kv.Key && l.target == kv.Value) ||
+                (l.source == kv.Value && l.target == kv.Key)
+            );
+
+            if (link != null)
+                link.color = "Solution";
         }
-        public API_JSON visualize(STEINERTREE steinerTree) {
-                return steinerTree.graph.ToAPIGraph();
-        }
-
-        public API_JSON SolvedVisualization(STEINERTREE steinerTree, string solution) {
-                List<KeyValuePair<string, string>> solutionEdges = GraphParser.parseUndirectedEdgeListWithStringFunctions(solution);
-
-                API_GraphJSON apiGraph = steinerTree.graph.ToAPIGraph();
-                foreach (var kv in solutionEdges)
-                        foreach (var node in apiGraph.nodes) {
-                                if (node.name == kv.Key || node.name == kv.Value) node.color = "Solution";
-                                if (steinerTree.terminals.Contains(node.name)) node.outline = "Red";
-                        }
-
-                foreach (var kv in solutionEdges) {
-                        var link = apiGraph.links.FirstOrDefault(l =>
-                            (l.source == kv.Key && l.target == kv.Value) ||
-                            (l.source == kv.Value && l.target == kv.Key)
-                        );
-
-                        if (link != null)
-                                link.color = "Solution";
-                }
-                return apiGraph;
-        }
+        return apiGraph;
+    }
 }

@@ -9,36 +9,36 @@ namespace API.Problems.NPComplete.NPC_NODESET.Visualizations;
 
 class NodeSetDefaultVisualization : IVisualization<NODESET> {
 
-        // --- Fields ---
-        public string visualizationName { get; } = "Node Set Visualization";
-        public string visualizationDefinition { get; } = "This is a default visualization for Node Set";
-        public string source { get; } = "";
-        public string[] contributors { get; } = { "Andrija Sevaljevic" };
-        public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
-        public ISolver solver { get; } = new NodeSetBruteForce();
+    // --- Fields ---
+    public string visualizationName { get; } = "Node Set Visualization";
+    public string visualizationDefinition { get; } = "This is a default visualization for Node Set";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
+    public ISolver solver { get; } = new NodeSetBruteForce();
 
-        // --- Methods Including Constructors ---
-        public NodeSetDefaultVisualization() {
+    // --- Methods Including Constructors ---
+    public NodeSetDefaultVisualization() {
 
-        }
-        public API_JSON visualize(NODESET nodeSet) {
-                return nodeSet.graph.ToAPIGraph();
-        }
+    }
+    public API_JSON visualize(NODESET nodeSet) {
+        return nodeSet.graph.ToAPIGraph();
+    }
 
-        public API_JSON SolvedVisualization(NODESET nodeSet, string solution) {
-                List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
+    public API_JSON SolvedVisualization(NODESET nodeSet, string solution) {
+        List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
 
-                API_GraphJSON apiGraph = nodeSet.graph.ToAPIGraph();
+        API_GraphJSON apiGraph = nodeSet.graph.ToAPIGraph();
 
-                for (int i = 0; i < apiGraph.nodes.Count; i++)
-                        if (solutionNodes.Contains(apiGraph.nodes[i].name))
-                                apiGraph.nodes[i].color = "Solution";
+        for (int i = 0; i < apiGraph.nodes.Count; i++)
+            if (solutionNodes.Contains(apiGraph.nodes[i].name))
+                apiGraph.nodes[i].color = "Solution";
 
-                foreach (var node in solutionNodes)
-                        foreach (var link in apiGraph.links)
-                                if (link.source == node || link.target == node)
-                                        link.color = "Red";
+        foreach (var node in solutionNodes)
+            foreach (var link in apiGraph.links)
+                if (link.source == node || link.target == node)
+                    link.color = "Red";
 
-                return apiGraph;
-        }
+        return apiGraph;
+    }
 }

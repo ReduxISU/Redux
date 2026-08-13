@@ -12,9 +12,9 @@ namespace redux_tests;
 // ProjectSourcePath.Value is resolved at compile time via [CallerFilePath], so it
 // is correct on both local machines and CI.
 public class AppFactory : WebApplicationFactory<Program> {
-        public AppFactory() {
-                Environment.SetEnvironmentVariable(
-                    "ASPNETCORE_TEST_CONTENTROOT_API",
-                    ProjectSourcePath.Value);
-        }
+    public AppFactory() {
+        Environment.SetEnvironmentVariable(
+            "ASPNETCORE_TEST_CONTENTROOT_API",
+            ProjectSourcePath.Value);
+    }
 }

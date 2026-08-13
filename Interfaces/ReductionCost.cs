@@ -21,14 +21,14 @@ namespace API.Interfaces;
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ReductionCost>))]
 public enum ReductionCost {
-        /// <summary>No cost has been declared for this reduction yet.</summary>
-        Unclassified = 0,
-        /// <summary>Output instance size is O(n) in input instance size.</summary>
-        Linear,
-        /// <summary>Output instance size is O(n^2) in input instance size.</summary>
-        Quadratic,
-        /// <summary>Output instance size is O(n^3) in input instance size.</summary>
-        Cubic,
-        /// <summary>Output instance size is O(n^k) in input instance size, for some k &gt; 3.</summary>
-        HigherPolynomial,
+    /// <summary>No cost has been declared for this reduction yet.</summary>
+    Unclassified = 0,
+    /// <summary>Output instance size is O(n) in input instance size.</summary>
+    Linear,
+    /// <summary>Output instance size is O(n^2) in input instance size.</summary>
+    Quadratic,
+    /// <summary>Output instance size is O(n^3) in input instance size.</summary>
+    Cubic,
+    /// <summary>Output instance size is O(n^k) in input instance size, for some k &gt; 3.</summary>
+    HigherPolynomial,
 }
