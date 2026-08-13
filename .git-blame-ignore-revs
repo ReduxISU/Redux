@@ -1,2 +1,5 @@
 # Repo-wide reformat to KNF/8-space per .editorconfig — see PR #398.
 c0639e5d5d20192f92785e80b31b079a75b41f3d
+
+# Repo-wide reformat from 8-space to 4-space indent.
+db9010753bfb2a0a5d5d1ab9df2b23d92495517b
