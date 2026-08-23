@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class PrimSolver : ISolver<MINIMUMSPANNINGTREE>
-{
+class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
     public string solverName { get; } = "Prim's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by repeatedly adding the lowest-weight edge that connects the growing tree to a new vertex.";
     public string source { get; } = "Prim, R. C. \"Shortest connection networks and some generalizations.\" Bell System Technical Journal 36, no. 6 (1957): 1389-1401.";
@@ -24,8 +23,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE>
     // times O(E log E) per iteration, not the textbook O(E log V) (heap) or O(V^2) (array).
     public string complexity { get; } = "O(V * E log E)";
 
-    public string solve(MINIMUMSPANNINGTREE problem)
-    {
+    public string solve(MINIMUMSPANNINGTREE problem) {
         // Sort once so equal-weight instances still produce deterministic certificates.
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().OrderBy(n => n).ToList();
         var edges = KruskalSolver.ExtractEdges(problem.graph);
@@ -37,8 +35,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE>
         var visited = new HashSet<string> { nodes[0] };
         var selected = new List<(string u, string v, int weight)>();
 
-        while (selected.Count < nodes.Count - 1)
-        {
+        while (selected.Count < nodes.Count - 1) {
             if (timerHasExpired)
                 return "{}";
 
@@ -66,12 +63,10 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE>
 
     private static Dictionary<string, List<(string from, string to, int weight)>> BuildAdjacency(
         List<string> nodes,
-        List<(string u, string v, int weight)> edges)
-    {
+        List<(string u, string v, int weight)> edges) {
         var adjacency = nodes.ToDictionary(node => node, _ => new List<(string from, string to, int weight)>());
 
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             if (edge.u == edge.v || !adjacency.ContainsKey(edge.u) || !adjacency.ContainsKey(edge.v))
                 continue;
 

@@ -12,7 +12,7 @@ namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Visualizations;
 record EmPumpStatusEntry(string name, bool isOn, double flowGph, double powerKw);
 
 record EmPumpFrameMetrics(
-    int    hour,
+    int hour,
     double stepCost,
     double cumulativeCost,
     double budgetLimit,
@@ -23,29 +23,26 @@ record EmPumpFrameMetrics(
     double tankFillRatio,
     double flowIn,
     double demand,
-    bool   isPeakHour
+    bool isPeakHour
 );
 
 record EmPumpFrameState(List<EmPumpStatusEntry> pumps);
 
-class API_EmPumpFrame : API_JSON
-{
-    public string            action  { get; }
+class API_EmPumpFrame : API_JSON {
+    public string action { get; }
     public EmPumpFrameMetrics metrics { get; }
-    public EmPumpFrameState  state   { get; }
+    public EmPumpFrameState state { get; }
 
-    public API_EmPumpFrame(string action, EmPumpFrameMetrics metrics, EmPumpFrameState state)
-    {
-        this.action  = action;
+    public API_EmPumpFrame(string action, EmPumpFrameMetrics metrics, EmPumpFrameState state) {
+        this.action = action;
         this.metrics = metrics;
-        this.state   = state;
+        this.state = state;
     }
 }
 
 // --- Visualization ---
 
-class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM>
-{
+class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM> {
     public string visualizationName { get; } =
         "Pump Scheduling Emergency Resilience — DAG Animation";
     public string visualizationDefinition { get; } =
@@ -65,8 +62,7 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM>
     List<API_JSON> IVisualization.StepsVisualization(string instance, List<object> steps)
         => StepsVisualization(new PUMPSCHEDULINGEM(instance), steps);
 
-    public List<API_JSON> StepsVisualization(PUMPSCHEDULINGEM problem, List<object> _steps)
-    {
+    public List<API_JSON> StepsVisualization(PUMPSCHEDULINGEM problem, List<object> _steps) {
         string certificate = new PumpSchedulingEMSolver().solve(problem);
         if (string.IsNullOrEmpty(certificate))
             return new List<API_JSON>();
@@ -76,9 +72,8 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM>
         int n = problem.Pumps.Count;
         int[] schedMasks = new int[24];
 
-        try
-        {
-            var cert     = new UtilCollection(certificate);
+        try {
+            var cert = new UtilCollection(certificate);
             var certList = cert.ToList();
 
             double.TryParse(certList[0].ToString().Trim(),
@@ -88,45 +83,39 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM>
 
             var schedSection = (UtilCollection)certList[2];
             int pumpIdx = 0;
-            foreach (UtilCollection pumpRow in schedSection)
-            {
+            foreach (UtilCollection pumpRow in schedSection) {
                 var parts = pumpRow.ToList();
                 for (int h = 0; h < 24 && h + 1 < parts.Count; h++)
                     if (parts[h + 1].ToString().Trim() == "1")
                         schedMasks[h] |= (1 << pumpIdx);
                 pumpIdx++;
             }
-        }
-        catch
-        {
+        } catch {
             return new List<API_JSON>();
         }
 
         // Build one frame per hour.
         var frames = new List<API_JSON>();
-        double tankLevel       = problem.TankCurrentLevel;
-        double cumulativeCost  = 0.0;
-        int    prevMask        = 0;
-        int    nMasks          = 1 << n;
+        double tankLevel = problem.TankCurrentLevel;
+        double cumulativeCost = 0.0;
+        int prevMask = 0;
+        int nMasks = 1 << n;
 
-        for (int h = 0; h < 24; h++)
-        {
-            int    mask      = schedMasks[h];
-            bool   isPeak    = problem.PeakHours.Contains(h);
-            double rate      = isPeak ? problem.OnPeakCostPerKwh : problem.OffPeakCostPerKwh;
+        for (int h = 0; h < 24; h++) {
+            int mask = schedMasks[h];
+            bool isPeak = problem.PeakHours.Contains(h);
+            double rate = isPeak ? problem.OnPeakCostPerKwh : problem.OffPeakCostPerKwh;
             double hourDemand = problem.DemandGph[h];
 
-            double energyCost  = 0.0;
-            double flowIn      = 0.0;
+            double energyCost = 0.0;
+            double flowIn = 0.0;
             double startupCost = 0.0;
             int startups = (~prevMask) & mask & (nMasks - 1);
 
-            for (int p = 0; p < n; p++)
-            {
-                if ((mask & (1 << p)) != 0)
-                {
+            for (int p = 0; p < n; p++) {
+                if ((mask & (1 << p)) != 0) {
                     energyCost += problem.Pumps[p].PowerKw * rate;
-                    flowIn     += problem.Pumps[p].FlowRateGph;
+                    flowIn += problem.Pumps[p].FlowRateGph;
                 }
                 if ((startups & (1 << p)) != 0)
                     startupCost += problem.Pumps[p].StartupCostDollars;
@@ -142,9 +131,8 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM>
             double budgetRemaining = Math.Max(0.0, effectiveBudget - cumulativeCost);
 
             var pumpStatuses = new List<EmPumpStatusEntry>();
-            var activeNames  = new List<string>();
-            for (int p = 0; p < n; p++)
-            {
+            var activeNames = new List<string>();
+            for (int p = 0; p < n; p++) {
                 bool isOn = (mask & (1 << p)) != 0;
                 if (isOn) activeNames.Add(problem.Pumps[p].Name);
                 pumpStatuses.Add(new EmPumpStatusEntry(

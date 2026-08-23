@@ -20,20 +20,17 @@ namespace redux_tests;
 // attributes pinned on the ReductionCost enum type (Interfaces/ReductionCost.cs) are the
 // actual fix for that path; the facts below are the regression guard for it. Must never go
 // back to failing.
-public class ReductionCost_Tests : IClassFixture<AppFactory>
-{
+public class ReductionCost_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
-    public ReductionCost_Tests(AppFactory factory)
-    {
+    public ReductionCost_Tests(AppFactory factory) {
         _client = factory.CreateClient();
     }
 
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
 
     [Fact]
-    public async Task Reductions_SerializesCostAsStringOnEveryEdge()
-    {
+    public async Task Reductions_SerializesCostAsStringOnEveryEdge() {
         var response = await _client.GetAsync("/Navigation/Reductions", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -41,12 +38,9 @@ public class ReductionCost_Tests : IClassFixture<AppFactory>
         using var doc = JsonDocument.Parse(body);
 
         int checkedCount = 0;
-        foreach (var fromProp in doc.RootElement.EnumerateObject())
-        {
-            foreach (var toProp in fromProp.Value.EnumerateObject())
-            {
-                foreach (var edge in toProp.Value.EnumerateArray())
-                {
+        foreach (var fromProp in doc.RootElement.EnumerateObject()) {
+            foreach (var toProp in fromProp.Value.EnumerateObject()) {
+                foreach (var edge in toProp.Value.EnumerateArray()) {
                     Assert.True(edge.TryGetProperty("cost", out var costProp),
                         $"Expected a cost property on every edge in /Navigation/Reductions. Edge:\n{edge}");
                     checkedCount++;
@@ -67,8 +61,7 @@ public class ReductionCost_Tests : IClassFixture<AppFactory>
     // the real Newtonsoft-enum-as-int risk path; the ReductionEdge.cost string mirror
     // above is already safe by construction and doesn't exercise it.
     [Fact]
-    public async Task Info_SerializesReductionCostAsString()
-    {
+    public async Task Info_SerializesReductionCostAsString() {
         var response = await _client.GetAsync(
             "/ProblemProvider/info?interface=KarpVertexCoverToSetCover",
             TestContext.Current.CancellationToken);
@@ -87,8 +80,7 @@ public class ReductionCost_Tests : IClassFixture<AppFactory>
     // (Nav_Batch.InfoJson), including reductions — same raw-instance risk path as
     // ProblemProvider.info above, exercised across every reduction class instead of one.
     [Fact]
-    public async Task AllInfo_SerializesEveryReductionCostAsString()
-    {
+    public async Task AllInfo_SerializesEveryReductionCostAsString() {
         var response = await _client.GetAsync("/Navigation/Batch/allInfo", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -97,8 +89,7 @@ public class ReductionCost_Tests : IClassFixture<AppFactory>
         Assert.NotNull(map);
 
         int checkedCount = 0;
-        foreach (var (className, element) in map!)
-        {
+        foreach (var (className, element) in map!) {
             if (element.ValueKind != JsonValueKind.Object) continue;
             if (!element.TryGetProperty("cost", out var costProp)) continue;
             // reductionFrom/reductionTo are IProblem, not IReduction — they don't carry
@@ -138,8 +129,7 @@ public class ReductionCost_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclared()
-    {
+    public void NoNewUndeclared() {
         var actual = ActualUndeclared();
         var allowlist = new HashSet<string>(UnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -151,8 +141,7 @@ public class ReductionCost_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleEntries()
-    {
+    public void AllowlistHasNoStaleEntries() {
         var actual = ActualUndeclared();
         var stale = UnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 

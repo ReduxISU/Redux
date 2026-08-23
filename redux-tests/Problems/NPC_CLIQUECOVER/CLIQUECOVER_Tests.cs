@@ -7,8 +7,7 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class CLIQUECOVER_tests
-{
+public class CLIQUECOVER_tests {
     private const string DefaultInstance =
         "(({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8}}),3)";
 
@@ -18,8 +17,7 @@ public class CLIQUECOVER_tests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void CLIQUECOVER_Default_Instantiation()
-    {
+    public void CLIQUECOVER_Default_Instantiation() {
         var problem = new CLIQUECOVER();
 
         Assert.Equal(DefaultInstance, problem.instance);
@@ -28,8 +26,7 @@ public class CLIQUECOVER_tests
 
 
     [Fact]
-    public void CLIQUECOVER_Custom_Instantiation()
-    {
+    public void CLIQUECOVER_Custom_Instantiation() {
         string instance =
             "(({1,2,3,4},{{1,2},{2,3},{1,3},{3,4}}),2)";
 
@@ -60,8 +57,7 @@ public class CLIQUECOVER_tests
     public void CLIQUECOVER_Verifier_Valid_Certificates(
         string instance,
         string certificate,
-        bool expected)
-    {
+        bool expected) {
         var problem = new CLIQUECOVER(instance);
 
         var verifier = new CliqueCoverVerifier();
@@ -91,8 +87,7 @@ public class CLIQUECOVER_tests
     )]
     public void CLIQUECOVER_Verifier_Invalid_Certificates(
         string instance,
-        string certificate)
-    {
+        string certificate) {
         var problem = new CLIQUECOVER(instance);
 
         var verifier = new CliqueCoverVerifier();
@@ -108,8 +103,7 @@ public class CLIQUECOVER_tests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void CLIQUECOVER_Solver_Returns_Valid_Certificate()
-    {
+    public void CLIQUECOVER_Solver_Returns_Valid_Certificate() {
         var problem = new CLIQUECOVER();
 
         var solver = problem.defaultSolver;
@@ -125,8 +119,7 @@ public class CLIQUECOVER_tests
 
 
     [Fact]
-    public void CLIQUECOVER_Custom_Solver_Returns_Valid_Certificate()
-    {
+    public void CLIQUECOVER_Custom_Solver_Returns_Valid_Certificate() {
         string instance =
             "(({1,2,3,4},{{1,2},{2,3},{1,3},{3,4}}),2)";
 
@@ -143,8 +136,7 @@ public class CLIQUECOVER_tests
         Assert.True(result);
     }
     [Fact]
-    public void CLIQUECOVER_Verifier_Rejects_Too_Many_Cliques()
-    {
+    public void CLIQUECOVER_Verifier_Rejects_Too_Many_Cliques() {
         var problem = new CLIQUECOVER();
 
         var verifier = new CliqueCoverVerifier();

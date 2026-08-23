@@ -9,13 +9,11 @@ using API.Problems.NPComplete.NPC_VERTEXCOVER;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class VERTEXCOVER_Tests
-{
+public class VERTEXCOVER_Tests {
 
 
     [Fact]
-    public void defaultInstance_Test()
-    {
+    public void defaultInstance_Test() {
         VERTEXCOVER vCov = new VERTEXCOVER();
         string defaultInstance = vCov.defaultInstance;
         Assert.Equal("(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)", defaultInstance);
@@ -32,8 +30,7 @@ public class VERTEXCOVER_Tests
     ///</summary>
     [Fact]
 
-    public void VCSolver_Test()
-    {
+    public void VCSolver_Test() {
         string fiveClique = "(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)";
         VERTEXCOVER vCov = new VERTEXCOVER(fiveClique);
         VCSolverJanita vcSolver = new VCSolverJanita();
@@ -52,8 +49,7 @@ public class VERTEXCOVER_Tests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void VERTEXCOVER_Declares_Formats()
-    {
+    public void VERTEXCOVER_Declares_Formats() {
         VERTEXCOVER vCov = new VERTEXCOVER();
         Assert.False(string.IsNullOrWhiteSpace(vCov.instanceFormat));
         Assert.False(string.IsNullOrWhiteSpace(vCov.certificateFormat));
@@ -70,8 +66,7 @@ public class VERTEXCOVER_Tests
     [InlineData("abc")]                                 // bare string
     [InlineData("(({a,b,c},{{a,b}}),x)")]               // non-integer K
     [InlineData("(({a,b,c},{{a,b}})")]                  // unbalanced / truncated
-    public void VERTEXCOVER_Constructor_Throws_On_Invalid_Instance(string instance)
-    {
+    public void VERTEXCOVER_Constructor_Throws_On_Invalid_Instance(string instance) {
         Assert.Throws<ProblemParseException>(() => new VERTEXCOVER(instance));
     }
 
@@ -83,8 +78,7 @@ public class VERTEXCOVER_Tests
     [InlineData("")]        // empty
     [InlineData("   ")]     // whitespace only
     [InlineData("{}")]      // parses to a single empty token
-    public void VERTEXCOVER_Verifier_Throws_On_Malformed_Certificate(string certificate)
-    {
+    public void VERTEXCOVER_Verifier_Throws_On_Malformed_Certificate(string certificate) {
         VERTEXCOVER testVert = new VERTEXCOVER();
         VCVerifier verifier = testVert.defaultVerifier;
         Assert.Throws<CertificateParseException>(() => verifier.verify(testVert, certificate));
@@ -93,9 +87,9 @@ public class VERTEXCOVER_Tests
     [Theory] //tests with default graph string Certificates of this test represent junk or empty data.
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{a}")] //four node graph dependent on a with a in cert
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c,d}")] //four node graph dependent on a with all nodes except a in cert
-    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)","{a,b,c,d}}")] //five node connected graph, test four nodes
-    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)","{e,b,c,d}}")] //five node connected graph, test four nodes
-    public void VERTEXCOVER_verify_theory_true(string VERTEXCOVER_Instance, string testCertificate){
+    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{a,b,c,d}}")] //five node connected graph, test four nodes
+    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{e,b,c,d}}")] //five node connected graph, test four nodes
+    public void VERTEXCOVER_verify_theory_true(string VERTEXCOVER_Instance, string testCertificate) {
         VERTEXCOVER testVert = new VERTEXCOVER(VERTEXCOVER_Instance);
         VCVerifier verifier = testVert.defaultVerifier;
         bool isValidCover = verifier.verify(testVert, testCertificate);
@@ -104,9 +98,9 @@ public class VERTEXCOVER_Tests
 
     [Theory] //tests with default graph string and various certificates, this shows that certificates can be accepted in many formats. (false case)
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c}")] //four node graph dependent on a without a, or all other nodes in cert
-    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)","{a,b}}")] //five node connected graph, test two nodes (ideal solution is 3 nodes, two is impossible)
-    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)","{e,b}}")] //five node connected graph, test two nodes
-     public void VERTEXCOVER_verify_theory_false(string VERTEXCOVER_Instance, string testCertificate){
+    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{a,b}}")] //five node connected graph, test two nodes (ideal solution is 3 nodes, two is impossible)
+    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{e,b}}")] //five node connected graph, test two nodes
+    public void VERTEXCOVER_verify_theory_false(string VERTEXCOVER_Instance, string testCertificate) {
         VERTEXCOVER testVert = new VERTEXCOVER(VERTEXCOVER_Instance);
         VCVerifier verifier = testVert.defaultVerifier;
         bool isValidCover = verifier.verify(testVert, testCertificate);
