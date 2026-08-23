@@ -97,8 +97,7 @@ namespace redux_tests.Problems.P {
         // -------------------------------------------------------------------------
 
         [Fact]
-        public void STRONGLYCONNECTEDCOMPONENTS_Instance_Format_Described()
-        {
+        public void STRONGLYCONNECTEDCOMPONENTS_Instance_Format_Described() {
             var problem = new STRONGLYCONNECTEDCOMPONENTS();
             Assert.NotNull(problem.instanceFormat);
             Assert.NotEmpty(problem.instanceFormat);
@@ -106,8 +105,7 @@ namespace redux_tests.Problems.P {
         }
 
         [Fact]
-        public void STRONGLYCONNECTEDCOMPONENTS_Certificate_Format_Described()
-        {
+        public void STRONGLYCONNECTEDCOMPONENTS_Certificate_Format_Described() {
             var problem = new STRONGLYCONNECTEDCOMPONENTS();
             Assert.NotNull(problem.certificateFormat);
             Assert.NotEmpty(problem.certificateFormat);
@@ -115,8 +113,7 @@ namespace redux_tests.Problems.P {
         }
 
         [Fact]
-        public void STRONGLYCONNECTEDCOMPONENTS_Certificate_Format_Example_Is_Actually_Valid()
-        {
+        public void STRONGLYCONNECTEDCOMPONENTS_Certificate_Format_Example_Is_Actually_Valid() {
             // The example quoted in certificateFormat must be a real, verifiable
             // certificate for defaultInstance — not just descriptive prose.
             var problem = new STRONGLYCONNECTEDCOMPONENTS();
