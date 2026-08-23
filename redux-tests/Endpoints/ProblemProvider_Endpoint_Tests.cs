@@ -194,8 +194,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Visualize_KnownVisualization_Returns200WithNonEmptyResult()
-    {
+    public async Task Visualize_KnownVisualization_Returns200WithNonEmptyResult() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=sat3defaultvisualization", content, TestContext.Current.CancellationToken);
@@ -205,8 +204,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Visualize_UnknownVisualization_Returns400()
-    {
+    public async Task Visualize_UnknownVisualization_Returns400() {
         var instance = "\"(x1 | !x2 | x3)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=nosuchvisualization", content, TestContext.Current.CancellationToken);
@@ -218,8 +216,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     // ── /ProblemProvider/visualizeReduction ───────────────────────────────────
 
     [Fact]
-    public async Task VisualizeReduction_SAT3ToClique_Returns200WithNonEmptyResult()
-    {
+    public async Task VisualizeReduction_SAT3ToClique_Returns200WithNonEmptyResult() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var solution = Uri.EscapeDataString("(x1:True,x2:False,x3:True)");
@@ -230,8 +227,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task VisualizeReduction_UnknownReduction_Returns400()
-    {
+    public async Task VisualizeReduction_UnknownReduction_Returns400() {
         var instance = "\"(x1 | !x2 | x3)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=nosuchreduction&solution=x", content, TestContext.Current.CancellationToken);
@@ -243,8 +239,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     // ── /ProblemProvider/reduce, mapSolution, gadgets: unknown_reduction ──────
 
     [Fact]
-    public async Task Reduce_UnknownReduction_Returns400()
-    {
+    public async Task Reduce_UnknownReduction_Returns400() {
         var instance = "\"(x1 | !x2 | x3)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=nosuchreduction", content, TestContext.Current.CancellationToken);
@@ -254,8 +249,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task MapSolution_UnknownReduction_Returns400()
-    {
+    public async Task MapSolution_UnknownReduction_Returns400() {
         var instance = "\"(x1 | !x2 | x3)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/mapSolution?reduction=nosuchreduction&solution=x", content, TestContext.Current.CancellationToken);
@@ -265,8 +259,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Gadgets_SAT3ToClique_Returns200WithNonEmptyResult()
-    {
+    public async Task Gadgets_SAT3ToClique_Returns200WithNonEmptyResult() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/gadgets?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
@@ -276,8 +269,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Gadgets_UnknownReduction_Returns400()
-    {
+    public async Task Gadgets_UnknownReduction_Returns400() {
         var instance = "\"(x1 | !x2 | x3)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/gadgets?reduction=nosuchreduction", content, TestContext.Current.CancellationToken);
@@ -289,8 +281,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     // ── /ProblemProvider/info: unknown interface ──────────────────────────────
 
     [Fact]
-    public async Task Info_UnknownInterface_Returns400()
-    {
+    public async Task Info_UnknownInterface_Returns400() {
         var response = await _client.GetAsync("/ProblemProvider/info?interface=nosuchinterface", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -300,8 +291,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     // ── /ProblemProvider/solve: error paths ───────────────────────────────────
 
     [Fact]
-    public async Task Solve_UnknownSolver_Returns400()
-    {
+    public async Task Solve_UnknownSolver_Returns400() {
         var instance = "\"(x1 | !x2 | x3)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/solve?solver=nosuchsolver", content, TestContext.Current.CancellationToken);
@@ -311,8 +301,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Solve_InvalidInstance_Returns400WithParseError()
-    {
+    public async Task Solve_InvalidInstance_Returns400WithParseError() {
         var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -323,8 +312,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     // ── /ProblemProvider/verify: error paths ──────────────────────────────────
 
     [Fact]
-    public async Task Verify_InvalidInstance_Returns400WithParseError()
-    {
+    public async Task Verify_InvalidInstance_Returns400WithParseError() {
         var body = new { Certificate = "x1:True", ProblemInstance = "(1 | 2 | 3)" };
         var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -333,8 +321,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Verify_EmptyCertificate_Returns400WithCertificateParseError()
-    {
+    public async Task Verify_EmptyCertificate_Returns400WithCertificateParseError() {
         var body = new { Certificate = "", ProblemInstance = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)" };
         var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -345,8 +332,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     // ── /ProblemProvider/problemInstance ──────────────────────────────────────
 
     [Fact]
-    public async Task ProblemInstance_ValidSAT3Instance_Returns200WithNonEmptyResult()
-    {
+    public async Task ProblemInstance_ValidSAT3Instance_Returns200WithNonEmptyResult() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/problemInstance?problem=sat3", content, TestContext.Current.CancellationToken);
@@ -356,8 +342,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task ProblemInstance_InvalidInstance_Returns400WithParseError()
-    {
+    public async Task ProblemInstance_InvalidInstance_Returns400WithParseError() {
         var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/problemInstance?problem=sat3", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
