@@ -12,8 +12,7 @@ class DOMINATINGSET
         DominatingSetVerifier,
         DominatingSetDefaultVisualization,
         UtilCollectionGraph
-    >
-{
+    > {
     // --- Properties ---
     public string problemName { get; } = "Dominating Set";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Dominating_set";
@@ -37,8 +36,7 @@ class DOMINATINGSET
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
 
-    public List<KeyValuePair<string, string>> edges
-    {
+    public List<KeyValuePair<string, string>> edges {
         get { return _edges; }
         set { _edges = value; }
     }
@@ -55,14 +53,12 @@ class DOMINATINGSET
 
     public string wikiName { get; } = string.Empty;
 
-    public List<string> nodes
-    {
+    public List<string> nodes {
         get { return _nodes; }
         set { _nodes = value; }
     }
 
-    public int K
-    {
+    public int K {
         get { return _K; }
         set { _K = value; }
     }
@@ -71,8 +67,7 @@ class DOMINATINGSET
     public DOMINATINGSET()
         : this(_defaultInstance) { }
 
-    public DOMINATINGSET(string GInput)
-    {
+    public DOMINATINGSET(string GInput) {
         instance = GInput;
 
         StringParser dominatingSetGraph = new(
@@ -82,8 +77,7 @@ class DOMINATINGSET
         nodes = dominatingSetGraph["N"].ToList().Select(node => node.ToString()).ToList();
         edges = dominatingSetGraph["E"]
             .ToList()
-            .Select(edge =>
-            {
+            .Select(edge => {
                 List<UtilCollection> cast = edge.ToList();
                 return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
             })

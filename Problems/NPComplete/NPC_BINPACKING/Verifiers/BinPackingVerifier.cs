@@ -51,7 +51,7 @@ class BinPackingVerifier : IVerifier<BINPACKING> {
         get { return _certificate; }
     }
 
-    
+
 
     public BinPackingVerifier() {
     }
@@ -65,8 +65,7 @@ class BinPackingVerifier : IVerifier<BINPACKING> {
         List<List<int>> bins;
         try {
             bins = ParseCertificate(certificate);
-        }
-        catch {
+        } catch {
             return false;
         }
 
@@ -165,7 +164,7 @@ class BinPackingVerifier : IVerifier<BINPACKING> {
 
         for (int i = 0; i < s.Length; i++) {
             char c = s[i];
-            if      (c == '(') depth++;
+            if (c == '(') depth++;
             else if (c == ')') depth--;
             else if (c == ',' && depth == 0) {
                 // Found a top-level comma — everything from start to here is one bin.
