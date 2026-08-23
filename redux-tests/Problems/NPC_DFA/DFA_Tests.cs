@@ -253,8 +253,7 @@ public class DFA_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void DFA_Instance_Format_Described()
-    {
+    public void DFA_Instance_Format_Described() {
         DFA dfa = new DFA();
         Assert.NotNull(dfa.instanceFormat);
         Assert.NotEmpty(dfa.instanceFormat);
@@ -262,17 +261,15 @@ public class DFA_Tests {
     }
 
     [Fact]
-    public void DFA_Certificate_Format_Described()
-    {
+    public void DFA_Certificate_Format_Described() {
         DFA dfa = new DFA();
         Assert.NotNull(dfa.certificateFormat);
         Assert.NotEmpty(dfa.certificateFormat);
-        Assert.Contains("node names", dfa.certificateFormat);
+        Assert.Contains("q0 = S", dfa.certificateFormat);
     }
 
     [Fact]
-    public void DFA_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void DFA_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: 1,2" quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         DFA dfa = new DFA();

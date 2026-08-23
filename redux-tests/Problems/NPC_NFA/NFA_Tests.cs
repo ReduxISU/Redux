@@ -276,8 +276,7 @@ public class NFA_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void NFA_Instance_Format_Described()
-    {
+    public void NFA_Instance_Format_Described() {
         NFA nfa = new NFA();
         Assert.NotNull(nfa.instanceFormat);
         Assert.NotEmpty(nfa.instanceFormat);
@@ -286,17 +285,15 @@ public class NFA_Tests {
     }
 
     [Fact]
-    public void NFA_Certificate_Format_Described()
-    {
+    public void NFA_Certificate_Format_Described() {
         NFA nfa = new NFA();
         Assert.NotNull(nfa.certificateFormat);
         Assert.NotEmpty(nfa.certificateFormat);
-        Assert.Contains("node names", nfa.certificateFormat);
+        Assert.Contains("q0 = S", nfa.certificateFormat);
     }
 
     [Fact]
-    public void NFA_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void NFA_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: 1,2" quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         NFA nfa = new NFA();
