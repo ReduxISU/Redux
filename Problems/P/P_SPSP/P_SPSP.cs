@@ -11,8 +11,7 @@ using System.Text;
 
 namespace API.Problems.P.P_SPSP;
 
-class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilCollectionGraph>
-{
+class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
     public string problemName { get; } = "Single Pair Shortest Path Problem";
@@ -43,13 +42,11 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // --- Properties ---
-    public List<string> nodes
-    {
+    public List<string> nodes {
         get => _nodes;
         set => _nodes = value;
     }
-    public List<KeyValuePair<string, string>> edges
-    {
+    public List<KeyValuePair<string, string>> edges {
         get => _edges;
         set => _edges = value;
     }
@@ -57,8 +54,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     // --- Methods Including Constructors ---
     public SPSP() : this(_defaultInstance) { }
 
-    public SPSP(string GInput)
-    {
+    public SPSP(string GInput) {
         instance = GInput;
 
         ParsedShortestPathInstance parsed = ParseInstance(GInput);
@@ -71,21 +67,17 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         graph = new UtilCollectionGraph(parsed.NodeCollection, parsed.EdgeCollection);
     }
 
-    private static ParsedShortestPathInstance ParseInstance(string rawInstance)
-    {
+    private static ParsedShortestPathInstance ParseInstance(string rawInstance) {
         string graphInput = rawInstance;
         string? explicitSource = null;
         string? explicitTarget = null;
 
         List<string> outerTerms = SplitOuterTuple(rawInstance);
-        if (outerTerms.Count == 4)
-        {
+        if (outerTerms.Count == 4) {
             graphInput = $"({outerTerms[0]},{outerTerms[1]})";
             explicitSource = outerTerms[2];
             explicitTarget = outerTerms[3];
-        }
-        else if (outerTerms.Count == 3 && LooksLikeTuple(outerTerms[0]))
-        {
+        } else if (outerTerms.Count == 3 && LooksLikeTuple(outerTerms[0])) {
             graphInput = outerTerms[0];
             explicitSource = outerTerms[1];
             explicitTarget = outerTerms[2];
@@ -114,8 +106,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
             graphParse.IsWeighted);
     }
 
-    private static GraphParseResult ParseGraph(string graphInput)
-    {
+    private static GraphParseResult ParseGraph(string graphInput) {
         (string Pattern, bool IsDirected, bool IsWeighted)[] parseAttempts =
         {
             ("{(N,E) | N is set, E subset {(e,w) | e is N cross N, w is int}}", true, true),
@@ -125,16 +116,12 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         };
 
         Exception? lastError = null;
-        foreach (var attempt in parseAttempts)
-        {
-            try
-            {
+        foreach (var attempt in parseAttempts) {
+            try {
                 StringParser parser = new(attempt.Pattern);
                 parser.parse(graphInput);
                 return new GraphParseResult(parser, attempt.IsDirected, attempt.IsWeighted);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 lastError = ex;
             }
         }
@@ -146,8 +133,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         List<string> parsedNodes,
         UtilCollection edgeCollection,
         string? explicitSource,
-        string? explicitTarget)
-    {
+        string? explicitTarget) {
         HashSet<string> nodeSet = parsedNodes.ToHashSet();
 
         if (explicitSource != null && !nodeSet.Contains(explicitSource))
@@ -156,8 +142,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         if (explicitTarget != null && !nodeSet.Contains(explicitTarget))
             throw new InvalidOperationException($"Target node '{explicitTarget}' is not in N.");
 
-        foreach (UtilCollection rawEdge in edgeCollection.ToList())
-        {
+        foreach (UtilCollection rawEdge in edgeCollection.ToList()) {
             ParsedEdge edge = ParseEdge(rawEdge);
 
             if (!nodeSet.Contains(edge.From))
@@ -171,23 +156,19 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         }
     }
 
-    private static List<KeyValuePair<string, string>> ToEdgePairs(UtilCollection edgeCollection)
-    {
-        return edgeCollection.ToList().Select(rawEdge =>
-        {
+    private static List<KeyValuePair<string, string>> ToEdgePairs(UtilCollection edgeCollection) {
+        return edgeCollection.ToList().Select(rawEdge => {
             ParsedEdge edge = ParseEdge(rawEdge);
             return new KeyValuePair<string, string>(edge.From, edge.To);
         }).ToList();
     }
 
-    private static ParsedEdge ParseEdge(UtilCollection rawEdge)
-    {
+    private static ParsedEdge ParseEdge(UtilCollection rawEdge) {
         bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
         bool secondLooksLikeCollection = rawEdge.Count() > 1 && LooksLikeCollection(rawEdge[1]);
         bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
 
-        if (isWeighted)
-        {
+        if (isWeighted) {
             UtilCollection endpoints = rawEdge[0];
             int weight = int.Parse(rawEdge[1].ToString());
 
@@ -200,8 +181,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         return new ParsedEdge(GetFrom(rawEdge), GetTo(rawEdge), 1);
     }
 
-    private static string GetFrom(UtilCollection endpoints)
-    {
+    private static string GetFrom(UtilCollection endpoints) {
         if (endpoints.IsOrdered())
             return endpoints[0].ToString();
 
@@ -209,8 +189,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         return cast[0].ToString();
     }
 
-    private static string GetTo(UtilCollection endpoints)
-    {
+    private static string GetTo(UtilCollection endpoints) {
         if (endpoints.IsOrdered())
             return endpoints[1].ToString();
 
@@ -221,19 +200,16 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         return cast[1].ToString();
     }
 
-    private static bool LooksLikeCollection(UtilCollection value)
-    {
+    private static bool LooksLikeCollection(UtilCollection value) {
         string text = value.ToString().TrimStart();
         return text.StartsWith("{") || text.StartsWith("(");
     }
 
-    private static bool LooksLikeTuple(string value)
-    {
+    private static bool LooksLikeTuple(string value) {
         return value.TrimStart().StartsWith("(");
     }
 
-    private static List<string> SplitOuterTuple(string input)
-    {
+    private static List<string> SplitOuterTuple(string input) {
         string trimmed = input.Trim();
         if (trimmed.Length < 2 || trimmed[0] != '(' || trimmed[^1] != ')')
             return new List<string>();
@@ -245,18 +221,15 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         int braceDepth = 0;
         int bracketDepth = 0;
 
-        foreach (char ch in inner)
-        {
-            if (ch == ',' && parenDepth == 0 && braceDepth == 0 && bracketDepth == 0)
-            {
+        foreach (char ch in inner) {
+            if (ch == ',' && parenDepth == 0 && braceDepth == 0 && bracketDepth == 0) {
                 parts.Add(current.ToString().Trim());
                 current.Clear();
                 continue;
             }
 
             current.Append(ch);
-            switch (ch)
-            {
+            switch (ch) {
                 case '(':
                     parenDepth++;
                     break;

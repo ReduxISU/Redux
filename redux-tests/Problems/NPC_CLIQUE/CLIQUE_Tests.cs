@@ -10,14 +10,12 @@ using SPADE;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class CLIQUE_Tests
-{
+public class CLIQUE_Tests {
     private const string DefaultInstance =
         "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)";
 
     [Fact]
-    public void CLIQUE_Default_Instantiation()
-    {
+    public void CLIQUE_Default_Instantiation() {
         CLIQUE clique = new CLIQUE();
         UtilCollectionGraph graph = clique.graph;
         Assert.Equal(4, clique.K);
@@ -27,8 +25,7 @@ public class CLIQUE_Tests
     }
 
     [Fact]
-    public void CLIQUE_Custom_Instantiation()
-    {
+    public void CLIQUE_Custom_Instantiation() {
         CLIQUE clique = new CLIQUE("(({1,2,3,4,5},{{4,1},{1,2},{4,3},{3,2},{2,4}}),1)");
         UtilCollectionGraph graph = clique.graph;
         Assert.Equal(1, clique.K);
@@ -37,8 +34,7 @@ public class CLIQUE_Tests
     }
 
     [Fact]
-    public void CLIQUE_Formats_Reflect_Spade_Grammars()
-    {
+    public void CLIQUE_Formats_Reflect_Spade_Grammars() {
         CLIQUE clique = new CLIQUE();
         Assert.Contains(CLIQUE.InstanceGrammar, clique.instanceFormat);
         Assert.Contains(CliqueVerifier.CertificateGrammar, clique.certificateFormat);
@@ -60,16 +56,14 @@ public class CLIQUE_Tests
     [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),1)", "{99}", false)]
     [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),1)", "{1}", true)]
     [InlineData("(({1,2,3,4},{{1,2},{2,3},{3,4},{3,1},{1,4},{2,4}}),3)", "{1,2,99}", false)]
-    public void CLIQUE_verifier(string instance, string certificate, bool expected)
-    {
+    public void CLIQUE_verifier(string instance, string certificate, bool expected) {
         CLIQUE clique = new CLIQUE(instance);
         CliqueVerifier verifier = new CliqueVerifier();
         Assert.Equal(expected, verifier.verify(clique, certificate));
     }
 
     [Fact]
-    public void CLIQUE_verifier_rejects_empty_certificate()
-    {
+    public void CLIQUE_verifier_rejects_empty_certificate() {
         CLIQUE clique = new CLIQUE();
         CliqueVerifier verifier = new CliqueVerifier();
         Assert.Throws<CertificateParseException>(() => verifier.verify(clique, ""));
@@ -79,16 +73,14 @@ public class CLIQUE_Tests
     [InlineData(DefaultInstance, "{2,3,4,5}")]
     [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),3)", "{1,2,3}")]
     [InlineData("(({1,2,3,4},{{1,2},{3,4}}),2)", "{1,2}")]
-    public void CLIQUE_solver(string instance, string certificate)
-    {
+    public void CLIQUE_solver(string instance, string certificate) {
         CLIQUE clique = new CLIQUE(instance);
         CliqueBruteForce solver = clique.defaultSolver;
         Assert.Equal(certificate, solver.solve(clique));
     }
 
     [Fact] // a satisfiable SAT3 reduces to a clique whose solution verifies
-    public void SAT3_To_CLIQUE_Reduction_Is_Sound()
-    {
+    public void SAT3_To_CLIQUE_Reduction_Is_Sound() {
         SAT3 sat = new SAT3();
         SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat);
         CLIQUE reduced = reduction.reductionTo;

@@ -6,8 +6,7 @@ using SPADE;
 using API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 namespace API.Problems.NPComplete.NPC_SETCOVER.Visualizations;
 
-class SetCoverDefaultVisualization : IVisualization<SETCOVER>
-{
+class SetCoverDefaultVisualization : IVisualization<SETCOVER> {
     public string visualizationName { get; } = "Set Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Set Cover";
     public string source { get; } = "";
@@ -16,16 +15,13 @@ class SetCoverDefaultVisualization : IVisualization<SETCOVER>
     public ISolver solver { get; } = new SetCoverBruteForce();
 
     // --- Methods Including Constructors ---
-    public SetCoverDefaultVisualization()
-    {
+    public SetCoverDefaultVisualization() {
 
     }
-    public API_JSON visualize(SETCOVER setcover)
-    {
+    public API_JSON visualize(SETCOVER setcover) {
         return new API_SET(new UtilCollection(setcover.instance));
     }
-    public API_JSON SolvedVisualization(SETCOVER setcover, string solution)
-    {
+    public API_JSON SolvedVisualization(SETCOVER setcover, string solution) {
         //return new API_SET(new UtilCollection(setcover.instance));
         API_SET sc = new API_SET(new UtilCollection(setcover.instance));
 
