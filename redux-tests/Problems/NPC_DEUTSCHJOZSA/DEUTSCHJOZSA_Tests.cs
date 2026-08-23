@@ -8,12 +8,11 @@ namespace redux_tests;
 
 public class DEUTSCHJOZSA_tests {
     [Fact]
-    public void DEUTSCH_Default_Instantiation()
-    {
+    public void DEUTSCH_Default_Instantiation() {
         var problem = new DEUTSCHJOZSA();
         Assert.Equal("(1, 1, 1, 1)", problem.instance);
         Assert.Equal("(1, 1, 1, 1)", problem.defaultInstance);
-    } 
+    }
 
     [Fact]
     public void DEUTSCH_Custom_Instantiation() {
@@ -39,8 +38,7 @@ public class DEUTSCHJOZSA_tests {
     [InlineData("(0,1,0,1)", "balanced", true)]
     [InlineData("(0,0,1,1)", "balanced", true)]
     [InlineData("(1,1,1,1)", "constant", true)]
-    public void DEUTSCHJOZSA_verifier(string instance, string certificate, bool expected)
-    {
+    public void DEUTSCHJOZSA_verifier(string instance, string certificate, bool expected) {
         var problem = new DEUTSCHJOZSA(instance);
         var verifier = new DeutschJozsaVerifier();
         bool result = verifier.verify(problem, certificate);
@@ -60,8 +58,7 @@ public class DEUTSCHJOZSA_tests {
     [InlineData("(0,1,0,1)", "balanced")]
     [InlineData("(0,0,1,1)", "balanced")]
     [InlineData("(1,1,1,1)", "constant")]
-    public void DEUTSCHJOZSA_solver(string instance, string certificate)
-    {
+    public void DEUTSCHJOZSA_solver(string instance, string certificate) {
         var problem = new DEUTSCHJOZSA(instance);
         var solver = new DeutschJozsaClassicalSolver();
         string solvedString = solver.solve(problem);

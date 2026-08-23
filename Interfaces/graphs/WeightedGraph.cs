@@ -13,8 +13,7 @@ abstract class WeightedGraph : Graph {
     protected List<Node> _nodeList;
     protected List<WeightedEdge> _edgeList;
 
-    public WeightedGraph()
-    {
+    public WeightedGraph() {
         _nodeList = new List<Node>();
         _edgeList = new List<WeightedEdge>();
     }

@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Visualizations;
 
-class MaxCutVisualization : IVisualization<MAXCUT>
-{
+class MaxCutVisualization : IVisualization<MAXCUT> {
     public string visualizationName { get; } = "Max Cut Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted undirected graph and highlights the edges belonging to the maximum cut, coloring S-side nodes and crossing edges.";
     public string source { get; } = "";
@@ -18,8 +17,7 @@ class MaxCutVisualization : IVisualization<MAXCUT>
 
     public API_JSON visualize(MAXCUT problem) => problem.graph.ToAPIGraph();
 
-    public API_JSON SolvedVisualization(MAXCUT problem, string solution)
-    {
+    public API_JSON SolvedVisualization(MAXCUT problem, string solution) {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
             return visualize(problem);
 
@@ -34,12 +32,10 @@ class MaxCutVisualization : IVisualization<MAXCUT>
             .ToHashSet();
 
         // Color edges crossing the cut (one endpoint in S, one in T).
-        foreach (var link in apiGraph.links)
-        {
+        foreach (var link in apiGraph.links) {
             bool srcInS = sNodes.Contains(link.source);
             bool dstInS = sNodes.Contains(link.target);
-            if (srcInS != dstInS)
-            {
+            if (srcInS != dstInS) {
                 link.color = "Solution";
                 link.dashed = "True";
             }

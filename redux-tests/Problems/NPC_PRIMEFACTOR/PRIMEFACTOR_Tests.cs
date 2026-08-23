@@ -8,12 +8,11 @@ namespace redux_tests;
 
 public class PRIMEFACTOR_tests {
     [Fact]
-    public void DEUTSCH_Default_Instantiation()
-    {
+    public void DEUTSCH_Default_Instantiation() {
         var problem = new PRIMEFACTOR();
         Assert.Equal("15", problem.instance);
         Assert.Equal("15", problem.defaultInstance);
-    } 
+    }
 
     [Fact]
     public void PRIMEFACTOR_Custom_Instantiation() {
@@ -45,8 +44,7 @@ public class PRIMEFACTOR_tests {
     [InlineData("97", "(97)")]
     [InlineData("3072", "(2,2,2,2,2,2,2,2,2,2,3)")]
     [InlineData("87625999", "(71,839,1471)")]
-    public void PRIMEFACTOR_solver(string instance, string certificate)
-    {
+    public void PRIMEFACTOR_solver(string instance, string certificate) {
         var problem = new PRIMEFACTOR(instance);
         var solver = new PrimeFactorSolver();
         string solvedString = solver.solve(problem);

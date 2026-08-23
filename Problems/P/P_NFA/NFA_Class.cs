@@ -1,4 +1,5 @@
 ﻿namespace API.Problems.P.P_NFA;
+
 using API.Interfaces;
 using API.Problems.P.P_NFA.Solvers;
 using API.Problems.P.P_NFA.Verifiers;
@@ -8,8 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using API.Interfaces.Graphs;
 
-class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDirectedGraph>
-{
+class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDirectedGraph> {
     // ----- Fields ----- //
     public string problemName { get; } = "NFA Acceptance";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton";
@@ -38,7 +38,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // Edge Structures //
-    public record NFAEdge (string From, char Symbol, string To);
+    public record NFAEdge(string From, char Symbol, string To);
     //public record CombinedDFAEdge (string From, string Symbols, string To);
 
     // ----- Internal Graph ----- //
@@ -71,8 +71,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     // ----- Constructors ----- //
     public NFA() : this(_defaultInstance) { }
 
-    public NFA(string instance)
-    {
+    public NFA(string instance) {
         this.instance = instance;
 
         // ---- SPADE grammar: edges as ordered triples (cross) ----
@@ -104,26 +103,19 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
 
         // Parse and Validate Edges //
         edges = new List<NFAEdge>();
-        foreach (var e in E.ToList())
-        {
-            if (e is UtilCollection tuple && tuple.Count() == 3)
-            {
+        foreach (var e in E.ToList()) {
+            if (e is UtilCollection tuple && tuple.Count() == 3) {
                 string from = tuple[0].ToString();
                 string symbolText = tuple[1].ToString();
                 string to = tuple[2].ToString();
 
                 // Normalize common epsilon representations to the single char U+03B5
                 char symbol;
-                if (symbolText == "ε" || string.Equals(symbolText, "\\u03B5", StringComparison.OrdinalIgnoreCase) || string.Equals(symbolText, "epsilon", StringComparison.OrdinalIgnoreCase) || symbolText == "eps")
-                {
+                if (symbolText == "ε" || string.Equals(symbolText, "\\u03B5", StringComparison.OrdinalIgnoreCase) || string.Equals(symbolText, "epsilon", StringComparison.OrdinalIgnoreCase) || symbolText == "eps") {
                     symbol = '\u03B5';
-                }
-                else if (symbolText.Length >= 1)
-                {
+                } else if (symbolText.Length >= 1) {
                     symbol = symbolText[0];
-                }
-                else
-                {
+                } else {
                     throw new InvalidOperationException("Edge symbol empty");
                 }
 
@@ -136,8 +128,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
                     throw new InvalidOperationException($"Edge To node '{to}' not in N.");
 
                 edges.Add(new NFAEdge(from, symbol, to));
-            }
-            else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
+            } else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
         }
 
         // Parse Remaining Components //
@@ -146,8 +137,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
             throw new InvalidOperationException($"Start state '{startState}' not in N.");
 
         acceptStates = F.ToList().Select(x => x.ToString()).ToList();
-        foreach (var f in acceptStates)
-        {
+        foreach (var f in acceptStates) {
             if (!nodes.Contains(f))
                 throw new InvalidOperationException($"Accept state '{f}' not in N.");
         }
@@ -163,21 +153,16 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
         var connections = new Dictionary<(string From, string To), string>();
 
         // Join Edges That Have the Same From and To Destination //
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             var from = edge.From;
             var to = edge.To;
 
             var edgeValue = edge.Symbol == 'ε' ? "epsilon" : edge.Symbol.ToString();
 
-            if (!connections.ContainsKey((from, to)))
-            {
+            if (!connections.ContainsKey((from, to))) {
                 connections.Add((from, to), edgeValue);
-            }
-            else
-            {
-                if (connections[(from, to)].Contains(edgeValue)) { continue; }
-                else { connections[(from, to)] = connections[(from, to)] += "," + edgeValue; }
+            } else {
+                if (connections[(from, to)].Contains(edgeValue)) { continue; } else { connections[(from, to)] = connections[(from, to)] += "," + edgeValue; }
             }
         }
 
