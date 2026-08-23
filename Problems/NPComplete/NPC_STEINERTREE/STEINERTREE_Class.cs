@@ -18,6 +18,8 @@ class STEINERTREE : IGraphProblem<SteinerTreeBruteForce, SteinerTreeVerifier, St
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public static string _defaultInstance = "(({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8},{6,1}}),{5,2,8},6)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "((N,E),R,K) where N is the set of node names, E is the set of undirected edges as {node,node} pairs, R is the set of terminal nodes that must be connected, and K is the maximum allowed tree weight. Example: (({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8},{6,1}}),{5,2,8},6)";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated list of {node,node} edges forming a connected subgraph that includes every terminal node in R. Example: {{8,6},{6,1},{1,2},{2,3},{3,5}}";
     public string instance {get;set;} = string.Empty;
 
     public string wikiName {get;} = "";
