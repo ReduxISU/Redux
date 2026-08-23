@@ -16,8 +16,7 @@ using System.Dynamic;
 [ApiController]
 [Route("[controller]")]
 [Tags("Problem Provider")]
-public class ProblemProvider : ControllerBase
-{
+public class ProblemProvider : ControllerBase {
     /// <summary>A dictionary of all of the problems mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Problems = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IProblem).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
 
@@ -37,7 +36,7 @@ public class ProblemProvider : ControllerBase
     public static readonly Dictionary<string, Type> Reductions = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IReduction).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
 
     /// <summary>A dictionary of all problems, verifiers, solvers, visualizers and reductions in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Interfaces = (new[] { Problems, Verifiers, Solvers, Visualizers,Reductions }).SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
+    public static readonly Dictionary<string, Type> Interfaces = (new[] { Problems, Verifiers, Solvers, Visualizers, Reductions }).SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
 
     /// <summary>
     /// Serializer options for the <c>info</c> and <c>problemInstance</c> endpoints, which reflect over an
@@ -48,43 +47,35 @@ public class ProblemProvider : ControllerBase
     private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
 
 #pragma warning disable CS8603 // Possible null reference return.
-    static IProblem Problem(string name)
-    {
+    static IProblem Problem(string name) {
         return Activator.CreateInstance(Problems[name.ToLower()]) as IProblem; // guaranteed success by `IsAssignableFrom`
     }
 
-    static IProblem ProblemInstance(string name, string instance)
-    {
+    static IProblem ProblemInstance(string name, string instance) {
         return Activator.CreateInstance(Problems[name.ToLower()], instance) as IProblem; // guaranteed success by `IsAssignableFrom`
     }
 
-    static IGraphProblem GraphProblem(string name, string instance)
-    {
+    static IGraphProblem GraphProblem(string name, string instance) {
         return Activator.CreateInstance(GraphProblems[name.ToLower()], instance) as IGraphProblem; // guaranteed success by `IsAssignableFrom`
     }
 
-    static IVerifier Verifier(string name)
-    {
+    static IVerifier Verifier(string name) {
         return Activator.CreateInstance(Verifiers[name.ToLower()]) as IVerifier; // guaranteed success by `IsAssignableFrom`
     }
 
-    static ISolver Solver(string name)
-    {
+    static ISolver Solver(string name) {
         return Activator.CreateInstance(Solvers[name.ToLower()]) as ISolver; // guaranteed success by `IsAssignableFrom`
     }
 
-    static IVisualization Visualization(string name)
-    {
+    static IVisualization Visualization(string name) {
         return Activator.CreateInstance(Visualizers[name.ToLower()]) as IVisualization;
     }
 
-    static IReduction Reduction(string name, string instance)
-    {
+    static IReduction Reduction(string name, string instance) {
         return Activator.CreateInstance(Reductions[name.ToLower()], instance) as IReduction;
     }
 
-    static IReduction Reduction(string name)
-    {
+    static IReduction Reduction(string name) {
         return Activator.CreateInstance(Reductions[name.ToLower()]) as IReduction;
     }
 
@@ -99,8 +90,7 @@ public class ProblemProvider : ControllerBase
     [ProducesResponseType(typeof(bool), 200)]
     [ProducesResponseType(400)]
     [HttpPost("verify")]
-    public IActionResult verify(string verifier, [FromBody] Verify verify)
-    {
+    public IActionResult verify(string verifier, [FromBody] Verify verify) {
         try {
             string result = JsonSerializer.Serialize(
                 Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate).ToString(),
@@ -140,9 +130,9 @@ public class ProblemProvider : ControllerBase
 
     /// <summary>Maps a parse exception to a 400 BadRequest with the matching structured body.</summary>
     private IActionResult ParseError(Exception ex) => Unwrap(ex) switch {
-        ProblemParseException p     => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
+        ProblemParseException p => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
                                            LookupInstanceFormat(p.ProblemName), p.Received, p.Message)),
-        ReductionInputException r   => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
+        ReductionInputException r => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
                                            r.Reduction, r.ExpectedFormat, r.Received, r.Message)),
         CertificateParseException c => BadRequest(ParseErrorBody("certificate_parse_error",
                                            c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message)),
@@ -153,8 +143,7 @@ public class ProblemProvider : ControllerBase
         // problemName may be either the class name (Problems key) or the
         // friendly problemName property — scan both. Error path: O(N) is fine.
         if (Problems.TryGetValue(problemName.ToLower(), out var type)) {
-            try { return (Activator.CreateInstance(type) as IProblem)?.instanceFormat ?? ""; }
-            catch { /* fall through */ }
+            try { return (Activator.CreateInstance(type) as IProblem)?.instanceFormat ?? ""; } catch { /* fall through */ }
         }
         foreach (var kv in Problems) {
             try {
@@ -175,8 +164,7 @@ public class ProblemProvider : ControllerBase
     /// <returns>solution certificate</returns>
     [HttpPost("solve")]
     [ProducesResponseType(400)]
-    public IActionResult solve(string solver, [FromBody] string problemInstance)
-    {
+    public IActionResult solve(string solver, [FromBody] string problemInstance) {
         if (!Solvers.TryGetValue(solver.ToLower(), out _))
             return BadRequest(new { error = "unknown_solver", received = solver });
         try {
@@ -202,8 +190,7 @@ public class ProblemProvider : ControllerBase
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(400)]
     [HttpGet("info")]
-    public IActionResult info(string @interface)
-    {
+    public IActionResult info(string @interface) {
         if (string.IsNullOrEmpty(@interface) || !Interfaces.TryGetValue(@interface.ToLower(), out var type))
             return BadRequest(new { error = "unknown_interface", received = @interface });
         object? obj = Activator.CreateInstance(type);
@@ -221,8 +208,7 @@ public class ProblemProvider : ControllerBase
     [ProducesResponseType(typeof(IProblem), 200)]
     [ProducesResponseType(400)]
     [HttpPost("problemInstance")]
-    public IActionResult problemInstance(string problem, [FromBody] string problemInstance)
-    {
+    public IActionResult problemInstance(string problem, [FromBody] string problemInstance) {
         try {
             IProblem p = ProblemInstance(problem, problemInstance);
             // Serialize by the runtime type; see the note in `info`.
@@ -238,12 +224,10 @@ public class ProblemProvider : ControllerBase
         }
     }
 
-    private static bool IsEmptyVisualization(API_JSON item)
-    {
+    private static bool IsEmptyVisualization(API_JSON item) {
         if (item is API_empty) return true;
 
-        if (item is API_QUANTUMCIRCUIT circuit)
-        {
+        if (item is API_QUANTUMCIRCUIT circuit) {
             bool hasSolution = !string.IsNullOrWhiteSpace(circuit.solution);
             bool hasQasm = !string.IsNullOrWhiteSpace(circuit.qasm);
             bool hasD3 = circuit.d3.HasValue && circuit.d3.Value.ValueKind != JsonValueKind.Undefined && circuit.d3.Value.ValueKind != JsonValueKind.Null;
@@ -254,10 +238,8 @@ public class ProblemProvider : ControllerBase
         return false;
     }
 
-    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance)
-    {
-        var options = new JsonSerializerOptions
-        {
+    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance) {
+        var options = new JsonSerializerOptions {
             WriteIndented = true,
         };
         options.Converters.Add(new API_JSON_Converter());
@@ -287,8 +269,7 @@ public class ProblemProvider : ControllerBase
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualize")]
     [ProducesResponseType(400)]
-    public IActionResult visualize(string visualization, [FromBody] string instance)
-    {
+    public IActionResult visualize(string visualization, [FromBody] string instance) {
         if (!Visualizers.TryGetValue(visualization.ToLower(), out _))
             return BadRequest(new { error = "unknown_visualization", received = visualization });
         var vis = Visualization(visualization);
@@ -308,8 +289,7 @@ public class ProblemProvider : ControllerBase
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
     [ProducesResponseType(400)]
-    public IActionResult visualizeReduction(string reduction, string solution, [FromBody] string instance)
-    {
+    public IActionResult visualizeReduction(string reduction, string solution, [FromBody] string instance) {
         List<string> reds = reduction.Split("-").ToList();
         foreach (string r in reds)
             if (!Reductions.TryGetValue(r.ToLower(), out _))
@@ -317,8 +297,7 @@ public class ProblemProvider : ControllerBase
 
         IReduction? red = null;
         try {
-            foreach (string reductionname in reds)
-            {
+            foreach (string reductionname in reds) {
                 red = Reduction(reductionname, instance);
                 solution = red.mapSolutions(solution);
                 instance = red.reductionTo.instance;
@@ -341,8 +320,7 @@ public class ProblemProvider : ControllerBase
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
     [ProducesResponseType(400)]
-    public IActionResult reduce(string reduction, [FromBody] string instance)
-    {
+    public IActionResult reduce(string reduction, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
@@ -361,8 +339,7 @@ public class ProblemProvider : ControllerBase
     /// <returns>solution certificate of the reduction</returns>
     [HttpPost("mapSolution")]
     [ProducesResponseType(400)]
-    public IActionResult mapSolution(string reduction, string solution, [FromBody] string instance)
-    {
+    public IActionResult mapSolution(string reduction, string solution, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
@@ -396,8 +373,7 @@ public class ProblemProvider : ControllerBase
     /// <returns>gadget map</returns>
     [HttpPost("gadgets")]
     [ProducesResponseType(400)]
-    public IActionResult gadgets(string reduction, [FromBody] string instance)
-    {
+    public IActionResult gadgets(string reduction, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {

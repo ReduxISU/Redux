@@ -19,8 +19,7 @@ namespace redux_tests;
 // either a real mislabel bug or a legitimately new complexity relationship someone needs
 // to reason about — report it, don't silently patch the assertion or the underlying
 // ComplexityClass declaration to make the failure disappear. ***
-public class ReductionValidity_Tests
-{
+public class ReductionValidity_Tests {
     // Explicit rank table — deliberately NOT the enum's ordinal position (ComplexityClass
     // declares NPHard after NPComplete, which would rank them differently by ordinal even
     // though they're the same "hard" tier and no violation should be flagged between them
@@ -32,8 +31,7 @@ public class ReductionValidity_Tests
     // reduction-validity checks must skip members of this class rather than compare
     // against them (query/oracle-complexity promise problems are incomparable with the
     // classical P/NP hierarchy).
-    private static readonly Dictionary<ComplexityClass, int> Rank = new()
-    {
+    private static readonly Dictionary<ComplexityClass, int> Rank = new() {
         [ComplexityClass.P] = 0,
         [ComplexityClass.NPIntermediate] = 1,
         [ComplexityClass.NPComplete] = 2,
@@ -46,13 +44,11 @@ public class ReductionValidity_Tests
     // already on ViolationAllowlist below: an allowlisted edge is a known, sign-off-pending
     // violation — it stays visible via AllowlistHasNoStaleEntries instead of failing this
     // Theory on every run once it has already been reported.
-    public static IEnumerable<object[]> RankedReductionEdges()
-    {
+    public static IEnumerable<object[]> RankedReductionEdges() {
         var allowlist = new HashSet<string>(ViolationAllowlist, StringComparer.OrdinalIgnoreCase);
         foreach (var (_, tos) in ReductionGraphData.Graph)
             foreach (var (_, edges) in tos)
-                foreach (var edge in edges)
-                {
+                foreach (var edge in edges) {
                     if (!TryGetEndpointRanks(edge.className, out _, out _, out _, out _))
                         continue;
                     if (allowlist.Contains(edge.className))
@@ -71,8 +67,7 @@ public class ReductionValidity_Tests
         out ComplexityClass fromClass,
         out ComplexityClass toClass,
         out int fromRank,
-        out int toRank)
-    {
+        out int toRank) {
         fromClass = toClass = ComplexityClass.Unclassified;
         fromRank = toRank = -1;
 
@@ -101,8 +96,7 @@ public class ReductionValidity_Tests
 
     [Theory]
     [MemberData(nameof(RankedReductionEdges))]
-    public void Reduction_DoesNotGoFromHarderToEasierComplexityClass(string reductionClassName)
-    {
+    public void Reduction_DoesNotGoFromHarderToEasierComplexityClass(string reductionClassName) {
         bool ok = TryGetEndpointRanks(reductionClassName, out var fromClass, out var toClass, out var fromRank, out var toRank);
         Assert.True(ok,
             $"{reductionClassName}: RankedReductionEdges() yielded this case, but its endpoints could not be " +
@@ -134,13 +128,11 @@ public class ReductionValidity_Tests
     };
 
     [Fact]
-    public void AllowlistHasNoStaleEntries()
-    {
+    public void AllowlistHasNoStaleEntries() {
         var actuallyViolating = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (_, tos) in ReductionGraphData.Graph)
             foreach (var (_, edges) in tos)
-                foreach (var edge in edges)
-                {
+                foreach (var edge in edges) {
                     if (!TryGetEndpointRanks(edge.className, out _, out _, out var fromRank, out var toRank))
                         continue;
                     if (fromRank > toRank)

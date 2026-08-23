@@ -10,8 +10,7 @@ namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM;
 
 record EmPumpData(string Name, double FlowRateGph, double PowerKw, double StartupCostDollars);
 
-class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifier, PumpSchedulingEMVisualization>
-{
+class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifier, PumpSchedulingEMVisualization> {
     public string problemName { get; } = "Pump Scheduling Emergency Resilience";
     public string problemLink { get; } = "";
     public string formalDefinition { get; } =
@@ -79,25 +78,24 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
         $"Format: {PumpSchedulingEMVerifier.CertificateGrammar}  Example: {PumpSchedulingEMVerifier.CertificateExample}";
 
     // --- Parsed properties ---
-    public double TankCapacity     { get; private set; }
+    public double TankCapacity { get; private set; }
     public double TankCurrentLevel { get; private set; }
-    public double TankMinLevel     { get; private set; }
-    public List<double> DemandGph  { get; private set; } = new();
-    public HashSet<int> PeakHours  { get; private set; } = new();
-    public double OnPeakCostPerKwh  { get; private set; }
+    public double TankMinLevel { get; private set; }
+    public List<double> DemandGph { get; private set; } = new();
+    public HashSet<int> PeakHours { get; private set; } = new();
+    public double OnPeakCostPerKwh { get; private set; }
     public double OffPeakCostPerKwh { get; private set; }
-    public List<EmPumpData> Pumps   { get; private set; } = new();
+    public List<EmPumpData> Pumps { get; private set; } = new();
     // 0 means auto-compute budget as 1.5× cost-minimization optimum.
     public double BudgetLimitDollars { get; private set; }
 
-    public PumpSchedulingEMSolver       defaultSolver        { get; } = new();
-    public PumpSchedulingEMVerifier     defaultVerifier      { get; } = new();
+    public PumpSchedulingEMSolver defaultSolver { get; } = new();
+    public PumpSchedulingEMVerifier defaultVerifier { get; } = new();
     public PumpSchedulingEMVisualization defaultVisualization { get; } = new();
 
     public PUMPSCHEDULINGEM() : this(DefaultInstance) { }
 
-    public PUMPSCHEDULINGEM(string input)
-    {
+    public PUMPSCHEDULINGEM(string input) {
         instance = input;
 
         UtilCollection parsed;
@@ -118,9 +116,9 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
             if (tank.Count != 3)
                 throw new ProblemParseException(problemName, input,
                     "Tank section must have exactly 3 values: (capacity,currentLevel,minLevel).");
-            TankCapacity     = ParseDouble(tank[0].ToString());
+            TankCapacity = ParseDouble(tank[0].ToString());
             TankCurrentLevel = ParseDouble(tank[1].ToString());
-            TankMinLevel     = ParseDouble(tank[2].ToString());
+            TankMinLevel = ParseDouble(tank[2].ToString());
 
             if (TankCapacity <= 0)
                 throw new ProblemParseException(problemName, input, "Tank capacity must be positive.");
@@ -153,20 +151,19 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
             if (costs.Count != 2)
                 throw new ProblemParseException(problemName, input,
                     "Rate sub-list must have exactly 2 values: (on_peak_rate,off_peak_rate).");
-            OnPeakCostPerKwh  = ParseDouble(costs[0].ToString());
+            OnPeakCostPerKwh = ParseDouble(costs[0].ToString());
             OffPeakCostPerKwh = ParseDouble(costs[1].ToString());
 
             // Section 2: Pumps — ((name,flow_gph,kw,startup_cost),...)
-            foreach (UtilCollection pump in (UtilCollection)sections[2])
-            {
+            foreach (UtilCollection pump in (UtilCollection)sections[2]) {
                 var parts = pump.ToList();
                 if (parts.Count != 4)
                     throw new ProblemParseException(problemName, input,
                         $"Each pump needs 4 fields (name,flow_gph,kw,startup_cost); got {parts.Count}.");
                 Pumps.Add(new EmPumpData(
-                    Name:               parts[0].ToString().Trim(),
-                    FlowRateGph:        ParseDouble(parts[1].ToString()),
-                    PowerKw:            ParseDouble(parts[2].ToString()),
+                    Name: parts[0].ToString().Trim(),
+                    FlowRateGph: ParseDouble(parts[1].ToString()),
+                    PowerKw: ParseDouble(parts[2].ToString()),
                     StartupCostDollars: ParseDouble(parts[3].ToString())
                 ));
             }
@@ -178,9 +175,7 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
             if (BudgetLimitDollars < 0)
                 throw new ProblemParseException(problemName, input,
                     "Budget must be >= 0 (use 0 to auto-compute as 1.5× the cost-minimization optimum).");
-        }
-        catch (ProblemParseException) { throw; }
-        catch (Exception ex) {
+        } catch (ProblemParseException) { throw; } catch (Exception ex) {
             throw new ProblemParseException(problemName, input, ex.Message);
         }
     }
