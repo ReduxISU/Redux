@@ -19,6 +19,8 @@ class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, Ha
     private static string _defaultInstance = "({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = "(N,E) where N is the set of node names and E is the set of undirected edges as {node,node} pairs. Example: ({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}})";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated sequence of node names giving a Hamiltonian cycle, visiting every node exactly once and returning to the start (the closing edge from the last node back to the first is checked automatically; the starting node may optionally be repeated at the end). Example: {1,2,4,5,3}";
 
     public string wikiName { get; } = "";
     private List<string> _nodes = new List<string>();
