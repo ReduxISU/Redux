@@ -19,7 +19,9 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public string source {get;} = "";
     private static string _defaultInstance { get; } = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
     public string defaultInstance { get; } = _defaultInstance;
-                                      
+    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of weighted undirected edges as ({node,node},weight) pairs, and K is the maximum total tour weight allowed. Example: (({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated cycle visiting every node exactly once (the starting node may optionally be repeated at the end to close the cycle explicitly), whose total edge weight is at most K. Example: {New York,Chicago,Denver,Los Angeles,Miami}";
+
     public string instance {get;set;} = string.Empty;
     
     private List<string> _nodes = new List<string>();

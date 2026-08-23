@@ -126,4 +126,36 @@ public class TSP_Tests {
             Assert.NotEqual("{}", bnbResult);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void TSP_Instance_Format_Described()
+    {
+        TSP tsp = new TSP();
+        Assert.NotNull(tsp.instanceFormat);
+        Assert.NotEmpty(tsp.instanceFormat);
+        Assert.Contains("N,E),K", tsp.instanceFormat);
+    }
+
+    [Fact]
+    public void TSP_Certificate_Format_Described()
+    {
+        TSP tsp = new TSP();
+        Assert.NotNull(tsp.certificateFormat);
+        Assert.NotEmpty(tsp.certificateFormat);
+        Assert.Contains("cycle", tsp.certificateFormat);
+    }
+
+    [Fact]
+    public void TSP_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        TSP tsp = new TSP();
+        TSPVerifier verifier = new TSPVerifier();
+        Assert.True(verifier.verify(tsp, "{New York,Chicago,Denver,Los Angeles,Miami}"));
+    }
 }
