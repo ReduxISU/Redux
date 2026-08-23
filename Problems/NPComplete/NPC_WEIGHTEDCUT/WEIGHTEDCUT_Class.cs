@@ -25,6 +25,8 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public static string _defaultInstance { get; } = "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of weighted undirected edges as ({node,node},weight) pairs, and K is the exact total weight that edges crossing the cut must sum to. Example: (({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated list of ({node,node},weight) edges from the graph, matching both endpoints and weight exactly, whose weights sum to exactly K. Example: {({2,1},5)}";
     public string instance { get; set; } = string.Empty;
 
     private List<string> _nodes = new List<string>();
