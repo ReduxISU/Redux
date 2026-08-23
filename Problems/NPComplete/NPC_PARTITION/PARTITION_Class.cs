@@ -20,6 +20,8 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     private static string _defaultInstance = "{1,7,12,15,33,12,11,5,6,9,21,18}";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "Brace-wrapped, comma-separated set of positive integers S (duplicate values in the input collapse to one, since S is parsed as a set). Example: {1,7,12,15,33,12,11,5,6,9,21,18}";
+    public string certificateFormat { get; } = "Two parenthesized, comma-separated lists (S1),(S2) whose combined values equal S exactly (every element of S used exactly once, across either list) and whose sums are equal. Example: (33,21,15),(1,7,12,11,5,6,9,18)";
     public string instance { get; set; } = string.Empty;
     private List<string> _S = new List<string>();
     public string wikiName { get; } = "";
