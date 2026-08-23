@@ -87,8 +87,7 @@ public class ARCSET_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void ARCSET_Instance_Format_Described()
-    {
+    public void ARCSET_Instance_Format_Described() {
         ARCSET arc = new ARCSET();
         Assert.NotNull(arc.instanceFormat);
         Assert.NotEmpty(arc.instanceFormat);
@@ -96,8 +95,7 @@ public class ARCSET_Tests {
     }
 
     [Fact]
-    public void ARCSET_Certificate_Format_Described()
-    {
+    public void ARCSET_Certificate_Format_Described() {
         ARCSET arc = new ARCSET();
         Assert.NotNull(arc.certificateFormat);
         Assert.NotEmpty(arc.certificateFormat);
@@ -105,8 +103,7 @@ public class ARCSET_Tests {
     }
 
     [Fact]
-    public void ARCSET_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void ARCSET_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: {(2,3)}" quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         ARCSET arc = new ARCSET();

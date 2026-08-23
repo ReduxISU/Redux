@@ -32,9 +32,11 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     //Mathmatical notation of the following default instance: "A = {1,2,3,4} r = {(4,1),(1,2),(4,3),(3,2),(2,4)} k = 1"; 
     private static string _defaultInstance = "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)"; //final formal version. This is standard mathmatical digraph notation with a K element appended. 
     public string defaultInstance { get; } = _defaultInstance;
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N cross N, K is int}";
     public string instance { get; set; } = string.Empty;
-    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of directed edges as (from,to) pairs, and K is the maximum number of edges that may be removed to break every cycle. Example: (({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)";
-    public string certificateFormat { get; } = "Set of directed edges to remove, as (from,to) pairs, containing at most K edges, such that removing them from the graph leaves it acyclic. Example: {(2,3)}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {ArcSetVerifier.CertificateGrammar} Example: {ArcSetVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
     public UtilCollectionGraph graph { get; set; }
@@ -58,7 +60,7 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     public ARCSET(string arcInput) {
         instance = arcInput;
 
-        StringParser arcset = new("{((N,E),K) | N is set, E subset N cross N, K is int}");
+        StringParser arcset = new(InstanceGrammar);
         arcset.parse(arcInput);
         graph = new UtilCollectionGraph(arcset["N"], arcset["E"]);
         K = int.Parse(arcset["K"].ToString());

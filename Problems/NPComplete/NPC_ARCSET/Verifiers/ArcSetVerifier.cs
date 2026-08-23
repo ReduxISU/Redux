@@ -5,6 +5,9 @@ namespace API.Problems.NPComplete.NPC_ARCSET.Verifiers;
 
 
 class ArcSetVerifier : IVerifier<ARCSET> {
+    public const string CertificateGrammar = "{(u,v)} subset E | at most K edges, removing them leaves the graph acyclic";
+    public const string CertificateExample = "{(2,3)}";
+
     public string verifierDefinition { get; } = @"This Verifier takes in an arcset problem and a list of edges to remove from that problem. It removes those edges and then checks if the problem is still an instance of ARCSET
                                             ie. Does this input graph no longer have cycles after these input edges are removed? Returns true or false ";
 
