@@ -5,6 +5,9 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
     class LosslessDataCompressionVerifier : IVerifier<LOSSLESSDATACOMPRESSION> {
+        public const string CertificateGrammar = "(asciiCode1=code1;asciiCode2=code2;...) encoded:<bitstring> | prefix-free code table, then S encoded with it";
+        public const string CertificateExample = "(97=0;98=10;99=11) encoded:01011";
+
         public string verifierName { get; } = "Lossless Data Compression Verifier";
         public string verifierDefinition { get; } = "Verifies a proposed encoding by checking prefix-free property, decoding the bitstring, and comparing with original input.";
         public string source { get; } = "Sayood, K. (2018). Introduction to data compression (5th ed.). Morgan Kaufmann.";

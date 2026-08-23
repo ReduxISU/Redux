@@ -5,23 +5,20 @@ using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers;
 
 namespace redux_tests;
 
-public class LOSSLESSDATACOMPRESSION_Tests
-{
+public class LOSSLESSDATACOMPRESSION_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void LOSSLESSDATACOMPRESSION_Instance_Format_Described()
-    {
+    public void LOSSLESSDATACOMPRESSION_Instance_Format_Described() {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
     }
 
     [Fact]
-    public void LOSSLESSDATACOMPRESSION_Certificate_Format_Described()
-    {
+    public void LOSSLESSDATACOMPRESSION_Certificate_Format_Described() {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -29,8 +26,7 @@ public class LOSSLESSDATACOMPRESSION_Tests
     }
 
     [Fact]
-    public void LOSSLESSDATACOMPRESSION_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void LOSSLESSDATACOMPRESSION_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat ("(97=0;98=10;99=11) encoded:01011")
         // is illustrative on "abc", not on defaultInstance: defaultInstance is a full
         // sentence whose real Huffman certificate is a ~300-character code table +
