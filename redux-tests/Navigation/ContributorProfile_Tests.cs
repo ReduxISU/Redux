@@ -240,4 +240,48 @@ public class ContributorProfile_Tests {
         Assert.NotNull(portfolio);
         Assert.True(portfolio.TotalContributions >= 0);
     }
+
+    [Fact]
+    public void GetContributorProfile_JasonWright_FindsKnownReduction() {
+        // Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_SAT3/SipserReduceToSAT3.cs credits
+        // "Jason Wright" — a real, known-good match for the ReduceTo directory walk.
+        var ok = _controller.GetContributorProfile("Jason Wright") as OkObjectResult;
+        Assert.NotNull(ok);
+        var portfolio = ok.Value as ContributorPortfolio;
+        Assert.NotNull(portfolio);
+        Assert.Contains("SipserReduceToSAT3", portfolio.ReductionsCreated);
+    }
+
+    [Fact]
+    public void GetContributorProfile_JasonWright_FindsKnownSolvers() {
+        // ShorsQuantumSolver.cs (NPC_PRIMEFACTOR) and NQueensConstructive.cs (P_NQUEENS)
+        // both credit "Jason Wright" — real matches for the Solvers directory walk.
+        var ok = _controller.GetContributorProfile("Jason Wright") as OkObjectResult;
+        Assert.NotNull(ok);
+        var portfolio = ok.Value as ContributorPortfolio;
+        Assert.NotNull(portfolio);
+        Assert.Contains("ShorsQuantumSolver", portfolio.SolversCreated);
+        Assert.Contains("NQueensConstructive", portfolio.SolversCreated);
+    }
+
+    // ─── GET /all ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void GetAllContributors_Returns200() {
+        var result = _controller.GetAllContributors();
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public void GetAllContributors_ReturnsKnownComplexityFolders() {
+        var ok = _controller.GetAllContributors() as OkObjectResult;
+        Assert.NotNull(ok);
+        var json = ok.Value as string;
+        Assert.NotNull(json);
+        var folders = JsonSerializer.Deserialize<string[]>(json);
+        Assert.NotNull(folders);
+        Assert.Contains("NPComplete", folders);
+        Assert.Contains("P", folders);
+        Assert.Contains("NPHard", folders);
+    }
 }

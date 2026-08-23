@@ -271,7 +271,9 @@ public class ContributorProfileController : ControllerBase {
             foreach (var problemDir in allProblemDirs) {
                 string reductionsPath = Path.Combine(problemDir, "ReduceTo");
                 if (Directory.Exists(reductionsPath)) {
-                    var reductionFiles = Directory.GetFiles(reductionsPath, "*.cs");
+                    // Reduction files live one level deeper, under ReduceTo/<TargetProblem>/*.cs,
+                    // not directly in ReduceTo/ — must recurse or this never matches anything.
+                    var reductionFiles = Directory.GetFiles(reductionsPath, "*.cs", SearchOption.AllDirectories);
                     foreach (var file in reductionFiles) {
                         string content = System.IO.File.ReadAllText(file);
                         if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
