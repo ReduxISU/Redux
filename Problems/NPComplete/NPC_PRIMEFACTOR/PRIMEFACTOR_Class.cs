@@ -15,10 +15,13 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public string problemDefinition { get; } = "The prime factorization algorithm solves the decomposition of a positive integer into a product of prime integers."; // plaintext description of the problem
     public string source { get; } = "Gauss, Carl Friedrich (1801), Disquisitiones Arithmeticae (in Latin), Leipzig: Gerh. Fleischer"; // Academic paper proper citation
     public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
+    public const string InstanceGrammar = "{i | i is int}";
     private static readonly string _defaultInstance = "15";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = "A single positive integer to factor. Example: 15";
-    public string certificateFormat { get; } = "Parenthesized, comma-separated list of integer factors whose product equals the original number (the verifier checks only the product, not that each factor is itself prime). Example: (3,5)";
+    public string instanceFormat { get; } =
+        $"Format: {InstanceGrammar} (a single positive integer to factor) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {PrimeFactorVerifier.CertificateGrammar} Example: {PrimeFactorVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
     public ShorsQuantumSolver defaultSolver { get; } = new ShorsQuantumSolver();
@@ -75,7 +78,7 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
         //
 
 
-        StringParser parser = new("{ i | i is int}");
+        StringParser parser = new(InstanceGrammar);
 
         parser.parse(instance);
 

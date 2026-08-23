@@ -56,8 +56,7 @@ public class PRIMEFACTOR_tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void PRIMEFACTOR_Instance_Format_Described()
-    {
+    public void PRIMEFACTOR_Instance_Format_Described() {
         var problem = new PRIMEFACTOR();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -65,8 +64,7 @@ public class PRIMEFACTOR_tests {
     }
 
     [Fact]
-    public void PRIMEFACTOR_Certificate_Format_Described()
-    {
+    public void PRIMEFACTOR_Certificate_Format_Described() {
         var problem = new PRIMEFACTOR();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -74,8 +72,7 @@ public class PRIMEFACTOR_tests {
     }
 
     [Fact]
-    public void PRIMEFACTOR_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void PRIMEFACTOR_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: (3,5)" quoted in certificateFormat must be a real,
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new PRIMEFACTOR();
