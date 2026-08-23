@@ -24,6 +24,8 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_BINPACKING.Verifiers;
 
 class BinPackingVerifier : IVerifier<BINPACKING> {
+    public const string CertificateGrammar = "(bin1,...,binM) | each bin is (item,...), S partitioned exactly across bins, sum(bin) <= C, M <= K";
+    public const string CertificateExample = "((8,2),(7,3),(6,4))";
 
     //  Metadata
     public string verifierName { get; } = "Bin Packing Verifier";
