@@ -1,11 +1,46 @@
 ﻿#pragma warning disable CS1591
 using Xunit;
 using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION;
+using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers;
 
 namespace redux_tests;
 
 public class LOSSLESSDATACOMPRESSION_Tests
 {
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void LOSSLESSDATACOMPRESSION_Instance_Format_Described()
+    {
+        LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+    }
+
+    [Fact]
+    public void LOSSLESSDATACOMPRESSION_Certificate_Format_Described()
+    {
+        LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("encoded:", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void LOSSLESSDATACOMPRESSION_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat ("(97=0;98=10;99=11) encoded:01011")
+        // is illustrative on "abc", not on defaultInstance: defaultInstance is a full
+        // sentence whose real Huffman certificate is a ~300-character code table +
+        // bitstring, too unwieldy to serve as a readable format hint. "abc" keeps the
+        // example short while still being a real, verifiable certificate.
+        LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION("abc");
+        LosslessDataCompressionVerifier verifier = new LosslessDataCompressionVerifier();
+        Assert.True(verifier.verify(problem, "(97=0;98=10;99=11) encoded:01011"));
+    }
+
     [Fact]
     public void LOSSLESS_Default_Instantiation()
     {
