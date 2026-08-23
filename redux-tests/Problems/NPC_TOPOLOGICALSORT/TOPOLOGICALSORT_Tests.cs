@@ -111,4 +111,36 @@ public class TOPOLOGICALSORT_Tests
         string solution = solver.solve(problem);
         Assert.True(verifier.verify(problem, solution));
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void TOPOLOGICALSORT_Instance_Format_Described()
+    {
+        var problem = new TOPOLOGICALSORT();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void TOPOLOGICALSORT_Certificate_Format_Described()
+    {
+        var problem = new TOPOLOGICALSORT();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("ordering", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void TOPOLOGICALSORT_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        var problem = new TOPOLOGICALSORT();
+        var verifier = new TopologicalSortVerifier();
+        Assert.True(verifier.verify(problem, "{1,2,3,4,5,6}"));
+    }
 }

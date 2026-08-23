@@ -17,6 +17,8 @@ class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, T
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/368996.369025";
     private static string _defaultInstance = "({1,2,3,4,5,6},{(1,2),(1,3),(2,4),(3,4),(4,5),(3,6)})";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(N,E) where N is the set of node names and E is the set of directed edges as (from,to) pairs. Example: ({1,2,3,4,5,6},{(1,2),(1,3),(2,4),(3,4),(4,5),(3,6)})";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated linear ordering of all node names such that for every edge (u,v), u appears before v. Example: {1,2,3,4,5,6}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "";
     private List<string> _nodes = new List<string>();
