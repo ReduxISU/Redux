@@ -4,6 +4,9 @@ using API.Problems.P.P_DFA;
 namespace API.Problems.P.P_DFA.Verifiers;
 
 class DFAVerifier : IVerifier<DFA> {
+    public const string CertificateGrammar = "q0,...,qn | q0 = S, each (qi,I[i],qi+1) in E, qn in F";
+    public const string CertificateExample = "1,2";
+
     // --- Fields ---
     public string verifierName { get; } = "DFA Verifier";
     public string verifierDefinition { get; } = "This is a solver for DFAs";
