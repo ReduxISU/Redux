@@ -1,9 +1,7 @@
 ﻿using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
-{
-    class DominatingSetSolver : ISolver<DOMINATINGSET>
-    {
+namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers {
+    class DominatingSetSolver : ISolver<DOMINATINGSET> {
         // --- Fields ---
         private string _solverName = "Dominating Set Solver";
         private string _solverDefinition =
@@ -34,35 +32,30 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
         // --- Methods Including Constructors ---
         public DominatingSetSolver() { }
 
-        public string solve(DOMINATINGSET problem)
-        {
+        public string solve(DOMINATINGSET problem) {
             //Get problem data
             int n = problem.nodes.Count;
             int K = problem.K;
 
             // Empty graph case
-            if (n == 0)
-            {
+            if (n == 0) {
                 const string emptyCert = "{}";
                 return problem.defaultVerifier.verify(problem, emptyCert) ? emptyCert : "{}";
             }
 
             var indexOf = new Dictionary<string, int>(n);
-            for (int i = 0; i < n; i++)
-            {
+            for (int i = 0; i < n; i++) {
                 indexOf[problem.nodes[i]] = i;
             }
 
             // Build Adjacency list
             var adj = new List<int>[n];
 
-            for (int i = 0; i < n; i++)
-            {
+            for (int i = 0; i < n; i++) {
                 adj[i] = new List<int>();
             }
 
-            foreach (var edge in problem.edges)
-            {
+            foreach (var edge in problem.edges) {
                 int u = indexOf[edge.Key],
                     v = indexOf[edge.Value];
                 if (u == v)
@@ -71,8 +64,7 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
                 adj[v].Add(u);
             }
             var closed = new List<int>[n];
-            for (int v = 0; v < n; v++)
-            {
+            for (int v = 0; v < n; v++) {
                 var set = new HashSet<int>(adj[v]) { v };
                 closed[v] = set.ToList();
             }
@@ -97,13 +89,11 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
             bool[] dominated,
             List<int> chosen,
             out List<int> solution
-        )
-        {
+        ) {
             solution = null!;
 
             // Fast check: are we done?
-            if (AllDominated(dominated))
-            {
+            if (AllDominated(dominated)) {
                 solution = new List<int>(chosen);
                 return true;
             }
@@ -113,25 +103,21 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
                 return false; // no picks left but not fully dominated
 
             bool forcedApplied;
-            do
-            {
+            do {
                 forcedApplied = false;
 
                 // find an undominated vertex with no neighbors that can cover it except itself (i.e., deg == 0)
                 int forced = -1;
-                for (int v = 0; v < n; v++)
-                {
+                for (int v = 0; v < n; v++) {
                     if (dominated[v])
                         continue;
-                    if (adj[v].Count == 0)
-                    {
+                    if (adj[v].Count == 0) {
                         forced = v;
                         break;
                     } // isolated vertex, must pick it
                 }
 
-                if (forced != -1)
-                {
+                if (forced != -1) {
                     // pick 'forced'
                     chosen.Add(forced);
                     ApplyPick(closed, forced, dominated);
@@ -141,8 +127,7 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
                     forcedApplied = true;
 
                     // if everything is dominated now, we can finish early
-                    if (AllDominated(dominated))
-                    {
+                    if (AllDominated(dominated)) {
                         solution = new List<int>(chosen);
                         return true;
                     }
@@ -151,26 +136,22 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
 
             int uPick = -1;
             int bestDeg = -1;
-            for (int v = 0; v < n; v++)
-            {
+            for (int v = 0; v < n; v++) {
                 if (dominated[v])
                     continue;
                 int deg = adj[v].Count;
-                if (deg > bestDeg)
-                {
+                if (deg > bestDeg) {
                     bestDeg = deg;
                     uPick = v;
                 }
             }
 
-            if (uPick == -1)
-            {
+            if (uPick == -1) {
                 solution = new List<int>(chosen);
                 return true;
             }
 
-            foreach (int w in closed[uPick])
-            {
+            foreach (int w in closed[uPick]) {
                 var dominated2 = (bool[])dominated.Clone();
                 var chosen2 = new List<int>(chosen) { w };
                 ApplyPick(closed, w, dominated2);
@@ -182,14 +163,12 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers
             return false; // no choice worked
         }
 
-        private void ApplyPick(List<int>[] closed, int v, bool[] dominated)
-        {
+        private void ApplyPick(List<int>[] closed, int v, bool[] dominated) {
             foreach (int u in closed[v])
                 dominated[u] = true;
         }
 
-        private bool AllDominated(bool[] dominated)
-        {
+        private bool AllDominated(bool[] dominated) {
             for (int i = 0; i < dominated.Length; i++)
                 if (!dominated[i])
                     return false;

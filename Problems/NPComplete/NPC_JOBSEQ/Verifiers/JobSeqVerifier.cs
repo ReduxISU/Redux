@@ -3,15 +3,15 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_JOBSEQ.Verifiers;
 
 class JobSeqVerifier : IVerifier<JOBSEQ> {
-    public string verifierName {get;} = "Job Sequencing Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for Job Sequencing";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"Russell Phillips"};
+    public string verifierName { get; } = "Job Sequencing Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for Job Sequencing";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Russell Phillips" };
 
 
-    private string _certificate =  "";
+    private string _certificate = "";
 
-      public string certificate {
+    public string certificate {
         get {
             return _certificate;
         }
@@ -20,7 +20,7 @@ class JobSeqVerifier : IVerifier<JOBSEQ> {
 
     // --- Methods Including Constructors ---
     public JobSeqVerifier() {
-        
+
     }
 
     public bool verify(JOBSEQ jobseq, List<int> indices) {
@@ -41,7 +41,7 @@ class JobSeqVerifier : IVerifier<JOBSEQ> {
                                        .Split(',')
                                        .Select(int.Parse)
                                        .ToList();
-        
+
         return verify(problem, indices);
     }
 }

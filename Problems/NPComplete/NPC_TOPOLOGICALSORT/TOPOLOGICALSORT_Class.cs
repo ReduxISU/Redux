@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT;
 
-class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, TopologicalSortDefaultVisualization, UtilCollectionGraph>
-{
+class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, TopologicalSortDefaultVisualization, UtilCollectionGraph> {
     // --- Fields ---
     public string problemName { get; } = "Topological Sort";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Topological_sorting";
@@ -34,14 +33,12 @@ class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, T
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // --- Properties ---
-    public List<string> nodes
-    {
+    public List<string> nodes {
         get { return _nodes; }
         set { _nodes = value; }
     }
 
-    public List<KeyValuePair<string, string>> edges
-    {
+    public List<KeyValuePair<string, string>> edges {
         get { return _edges; }
         set { _edges = value; }
     }
@@ -49,14 +46,12 @@ class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, T
     // --- Constructors ---
     public TOPOLOGICALSORT() : this(_defaultInstance) { }
 
-    public TOPOLOGICALSORT(string GInput)
-    {
+    public TOPOLOGICALSORT(string GInput) {
         instance = GInput;
         StringParser parser = new("{(N,E) | N is set, E subset N cross N}");
         parser.parse(GInput);
         nodes = parser["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = parser["E"].ToList().Select(edge =>
-        {
+        edges = parser["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
         }).ToList();

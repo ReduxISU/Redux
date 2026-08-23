@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Verifiers;
 
-class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
-{
+class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
     public const string CertificateGrammar = "{(cost,S) | cost is string, S is list}";
     public const string CertificateExample =
         "(29.72,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
@@ -25,8 +24,7 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
 
     private const double CostTolerance = 0.01;
 
-    public bool verify(PUMPSCHEDULINGCM problem, string certificate)
-    {
+    public bool verify(PUMPSCHEDULINGCM problem, string certificate) {
         this.certificate = certificate ?? string.Empty;
 
         UtilCollection parsed;
@@ -54,16 +52,14 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
 
         bool[,] on = new bool[n, 24];
 
-        for (int p = 0; p < n; p++)
-        {
+        for (int p = 0; p < n; p++) {
             var parts = ((UtilCollection)pumpTuples[p]).ToList();
             if (parts.Count != 25) return false;
 
             if (!string.Equals(parts[0].ToString().Trim(), problem.Pumps[p].Name, StringComparison.Ordinal))
                 return false;
 
-            for (int h = 0; h < 24; h++)
-            {
+            for (int h = 0; h < 24; h++) {
                 string v = parts[h + 1].ToString().Trim();
                 if (v != "0" && v != "1") return false;
                 on[p, h] = v == "1";
@@ -74,14 +70,12 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM>
         double totalCost = 0.0;
         int prevMask = 0;
 
-        for (int h = 0; h < 24; h++)
-        {
+        for (int h = 0; h < 24; h++) {
             int mask = 0;
             double flowIn = 0.0;
             double kw = 0.0;
 
-            for (int p = 0; p < n; p++)
-            {
+            for (int p = 0; p < n; p++) {
                 if (!on[p, h]) continue;
                 mask |= (1 << p);
                 flowIn += problem.Pumps[p].FlowRateGph;

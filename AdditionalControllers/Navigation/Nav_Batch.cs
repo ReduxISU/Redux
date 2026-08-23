@@ -21,8 +21,7 @@ using System.Text.Json.Serialization;
 [Route("Navigation/[controller]")]
 [Tags("- Navigation (Batch)")]
 #pragma warning disable CS1591
-public class BatchController : ControllerBase
-{
+public class BatchController : ControllerBase {
 #pragma warning restore CS1591
 
     private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
@@ -31,8 +30,7 @@ public class BatchController : ControllerBase
     // fields serialize (System.Text.Json omits them by default, whereas the previous
     // Newtonsoft path serialized them), plus cycle handling to replace the old
     // ReferenceLoopHandling.Ignore now that arbitrary reflected instances are serialized.
-    private static readonly JsonSerializerOptions ReflectedIndented = new()
-    {
+    private static readonly JsonSerializerOptions ReflectedIndented = new() {
         WriteIndented = true,
         IncludeFields = true,
         ReferenceHandler = ReferenceHandler.IgnoreCycles
@@ -64,18 +62,13 @@ public class BatchController : ControllerBase
     // Instances of every reflected interface type, mirroring ProblemProvider.info
     // (Newtonsoft + reference-loop ignore) but for all interfaces at once. Types that
     // cannot be default-constructed are skipped rather than failing the whole payload.
-    private static readonly Lazy<string> InfoJson = new(() =>
-    {
+    private static readonly Lazy<string> InfoJson = new(() => {
         var result = new Dictionary<string, object>();
-        foreach (var (_, type) in ProblemProvider.Interfaces)
-        {
-            try
-            {
+        foreach (var (_, type) in ProblemProvider.Interfaces) {
+            try {
                 if (Activator.CreateInstance(type) is object instance)
                     result[type.Name] = instance;
-            }
-            catch
-            {
+            } catch {
                 // Skip an interface that has no parameterless constructor instead of
                 // failing the whole response.
             }
