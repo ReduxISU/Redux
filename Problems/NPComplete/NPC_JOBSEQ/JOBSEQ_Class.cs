@@ -19,6 +19,8 @@ class JOBSEQ : IProblem<JobSeqBruteForce,JobSeqVerifier, DummyVisualization> {
 
     public static string _defaultInstance { get; } = "((4,2,5,9,4,3),(9,13,2,17,21,16),(1,4,3,2,5,8),4)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(T,D,P,K) where T is the list of job execution times, D is the list of job deadlines, P is the list of job penalties (all indexed by job, 0-based), and K is the maximum total penalty allowed. Example: ((4,2,5,9,4,3),(9,13,2,17,21,16),(1,4,3,2,5,8),4)";
+    public string certificateFormat { get; } = "Parenthesized, comma-separated permutation of 0-based job indices giving the order jobs are run in, such that the sum of penalties for jobs that miss their deadline is at most K. Example: (1,3,5,4,0,2)";
     public string instance {get;set;} = string.Empty;
     private List<int> _T = new List<int>();
     private List<int> _D = new List<int>();

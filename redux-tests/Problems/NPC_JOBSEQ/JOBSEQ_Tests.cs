@@ -45,4 +45,36 @@ public class JOBSEQ_tests {
         string solvedString = solver.solve(jobSeq);
         Assert.Equal(certificate, solvedString);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void JOBSEQ_Instance_Format_Described()
+    {
+        JOBSEQ jobSeq = new JOBSEQ();
+        Assert.NotNull(jobSeq.instanceFormat);
+        Assert.NotEmpty(jobSeq.instanceFormat);
+        Assert.Contains("T,D,P,K", jobSeq.instanceFormat);
+    }
+
+    [Fact]
+    public void JOBSEQ_Certificate_Format_Described()
+    {
+        JOBSEQ jobSeq = new JOBSEQ();
+        Assert.NotNull(jobSeq.certificateFormat);
+        Assert.NotEmpty(jobSeq.certificateFormat);
+        Assert.Contains("permutation", jobSeq.certificateFormat);
+    }
+
+    [Fact]
+    public void JOBSEQ_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        JOBSEQ jobSeq = new JOBSEQ();
+        JobSeqVerifier verifier = new JobSeqVerifier();
+        Assert.True(verifier.verify(jobSeq, "(1,3,5,4,0,2)"));
+    }
 }
