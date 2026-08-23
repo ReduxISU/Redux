@@ -10,11 +10,9 @@ namespace redux_tests;
 // allInfo endpoint (InfoJson, :56-60) silently swallows exactly this class of failure
 // today via a bare try/catch, so a problem whose default constructor throws simply
 // vanishes from every reflection-based endpoint with no signal to anyone.
-public class ProblemInstantiation_Tests
-{
+public class ProblemInstantiation_Tests {
     [Fact]
-    public void EveryTopLevelProblem_IsDefaultConstructible()
-    {
+    public void EveryTopLevelProblem_IsDefaultConstructible() {
         var failedTopLevel = MetadataReflection.TopLevelClassNames
             .Where(name => MetadataReflection.Failures.ContainsKey(name))
             .OrderBy(name => name, StringComparer.Ordinal)
@@ -28,8 +26,7 @@ public class ProblemInstantiation_Tests
     }
 
     [Fact]
-    public void AtLeastOneTopLevelProblem_WasFound()
-    {
+    public void AtLeastOneTopLevelProblem_WasFound() {
         // Guards against MetadataReflection.TopLevelClassNames silently becoming empty
         // (e.g. the namespace-shape filter breaking), which would make the assertion
         // above a no-op that always passes.

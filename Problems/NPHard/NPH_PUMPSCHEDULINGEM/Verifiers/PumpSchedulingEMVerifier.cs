@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Verifiers;
 
-class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM>
-{
+class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM> {
     public const string CertificateGrammar = "{(budget,cost,S) | budget and cost are numbers, S is list}";
     public const string CertificateExample =
         "(45.72,38.15,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
@@ -29,8 +28,7 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM>
 
     private const double CostTolerance = 0.01;
 
-    public bool verify(PUMPSCHEDULINGEM problem, string certificate)
-    {
+    public bool verify(PUMPSCHEDULINGEM problem, string certificate) {
         this.certificate = certificate ?? string.Empty;
 
         UtilCollection parsed;
@@ -65,8 +63,7 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM>
         if (pumpTuples.Count != n) return false;
 
         bool[,] on = new bool[n, 24];
-        for (int p = 0; p < n; p++)
-        {
+        for (int p = 0; p < n; p++) {
             var parts = ((UtilCollection)pumpTuples[p]).ToList();
             if (parts.Count != 25) return false;
 
@@ -74,8 +71,7 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM>
                     StringComparison.Ordinal))
                 return false;
 
-            for (int h = 0; h < 24; h++)
-            {
+            for (int h = 0; h < 24; h++) {
                 string v = parts[h + 1].ToString().Trim();
                 if (v != "0" && v != "1") return false;
                 on[p, h] = v == "1";
@@ -83,23 +79,21 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM>
         }
 
         // Simulate the 24-hour schedule.
-        double level    = problem.TankCurrentLevel;
+        double level = problem.TankCurrentLevel;
         double computed = 0.0;
-        int prevMask    = 0;
-        int nMasks      = 1 << n;
+        int prevMask = 0;
+        int nMasks = 1 << n;
 
-        for (int h = 0; h < 24; h++)
-        {
-            int mask   = 0;
+        for (int h = 0; h < 24; h++) {
+            int mask = 0;
             double flowIn = 0.0;
-            double kw     = 0.0;
+            double kw = 0.0;
 
-            for (int p = 0; p < n; p++)
-            {
+            for (int p = 0; p < n; p++) {
                 if (!on[p, h]) continue;
-                mask   |= (1 << p);
+                mask |= (1 << p);
                 flowIn += problem.Pumps[p].FlowRateGph;
-                kw     += problem.Pumps[p].PowerKw;
+                kw += problem.Pumps[p].PowerKw;
             }
 
             double rate = problem.PeakHours.Contains(h)

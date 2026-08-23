@@ -7,8 +7,7 @@ using System.Text.Json;
 /// <summary>
 /// Supported output formats for quantum circuit visualizations.
 /// </summary>
-public enum QuantumCircuitFormat
-{
+public enum QuantumCircuitFormat {
     /// <summary>
     /// Raw OpenQASM string representation.
     /// </summary>
@@ -24,8 +23,7 @@ public enum QuantumCircuitFormat
 /// Common response object for quantum circuit visualizations.
 /// A visualization may provide either a QASM string or a structured D3 payload.
 /// </summary>
-public sealed class API_QUANTUMCIRCUIT : API_JSON
-{
+public sealed class API_QUANTUMCIRCUIT : API_JSON {
     /// <summary>
     /// The solution to the quantum problem
     /// </summary>

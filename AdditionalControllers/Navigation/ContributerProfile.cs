@@ -48,8 +48,7 @@ public class ContributorProfileController : ControllerBase {
             };
 
             return Ok(portfolio);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -75,8 +74,7 @@ public class ContributorProfileController : ControllerBase {
             }
 
             return Ok(allContributors.Keys.ToArray());
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -107,8 +105,7 @@ public class ContributorProfileController : ControllerBase {
             }).ToArray();
 
             return Ok(directory);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -135,8 +132,7 @@ public class ContributorProfileController : ControllerBase {
             string jsonString = JsonSerializer.Serialize(problemFolders, options);
 
             return Ok(jsonString);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -178,8 +174,7 @@ public class ContributorProfileController : ControllerBase {
                     }
                 }
             }
-        }
-        catch { }
+        } catch { }
 
         return problems.Distinct();
     }
@@ -218,8 +213,7 @@ public class ContributorProfileController : ControllerBase {
                     }
                 }
             }
-        }
-        catch { }
+        } catch { }
 
         return false;
     }
@@ -249,8 +243,7 @@ public class ContributorProfileController : ControllerBase {
                     }
                 }
             }
-        }
-        catch { }
+        } catch { }
 
         return solvers.Distinct();
     }
@@ -280,8 +273,7 @@ public class ContributorProfileController : ControllerBase {
                     }
                 }
             }
-        }
-        catch { }
+        } catch { }
 
         return reductions.Distinct();
     }
@@ -308,8 +300,7 @@ public class ContributorProfileController : ControllerBase {
                     return contributor.Value;
                 }
             }
-        }
-        catch { }
+        } catch { }
 
         return null;
     }
