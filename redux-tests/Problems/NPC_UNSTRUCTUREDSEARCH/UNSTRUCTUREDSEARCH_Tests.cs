@@ -8,12 +8,11 @@ namespace redux_tests;
 
 public class UNSTRUCTUREDSEARCH_tests {
     [Fact]
-    public void DEUTSCH_Default_Instantiation()
-    {
+    public void DEUTSCH_Default_Instantiation() {
         var problem = new UNSTRUCTUREDSEARCH();
         Assert.Equal("(0, 1, 0, 0)", problem.instance);
         Assert.Equal("(0, 1, 0, 0)", problem.defaultInstance);
-    } 
+    }
 
     [Fact]
     public void DEUTSCH_Custom_Instantiation() {
@@ -43,8 +42,7 @@ public class UNSTRUCTUREDSEARCH_tests {
     [InlineData("(0,1,0,0)", 1)]
     [InlineData("(0,0,1,0)", 2)]
     [InlineData("(0,0,0,1)", 3)]
-    public void UNSTRUCTUREDSEARCH_solver(string instance, int certificate)
-    {
+    public void UNSTRUCTUREDSEARCH_solver(string instance, int certificate) {
         var problem = new UNSTRUCTUREDSEARCH(instance);
         var solver = new UnstructuredSearchSolver();
         string solvedString = solver.solve(problem);
