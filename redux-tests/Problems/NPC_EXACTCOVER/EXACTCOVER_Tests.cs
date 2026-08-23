@@ -18,7 +18,7 @@ public class EXACTCOVER_Tests
         EXACTCOVER problem = new EXACTCOVER();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
-        Assert.Contains("(X,S)", problem.instanceFormat);
+        Assert.Contains("(U,S)", problem.instanceFormat);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class EXACTCOVER_Tests
         EXACTCOVER problem = new EXACTCOVER();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
-        Assert.Contains("partitions X", problem.certificateFormat);
+        Assert.Contains("pairwise disjoint", problem.certificateFormat);
     }
 
     [Fact]

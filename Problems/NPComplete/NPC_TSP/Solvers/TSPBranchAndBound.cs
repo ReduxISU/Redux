@@ -7,10 +7,10 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 class TSPBranchAndBound : ISolver<TSP> {
 
     // --- Fields ---
-    public string solverName {get;} = "Traveling Sales Person Branch and Bound Solver";
-    public string solverDefinition {get;} = "This is a Branch and Bound solver for the NP-Complete Traveling Sales Person problem";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Corbin Hay" };
+    public string solverName { get; } = "Traveling Sales Person Branch and Bound Solver";
+    public string solverDefinition { get; } = "This is a Branch and Bound solver for the NP-Complete Traveling Sales Person problem";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning/bounding (branch-and-bound) -- distinct from
     // TSPBruteForce, which does not prune.
@@ -59,9 +59,9 @@ class TSPBranchAndBound : ISolver<TSP> {
         }
     }
     // --- Methods Including Constructors ---
-    public TSPBranchAndBound() {}
+    public TSPBranchAndBound() { }
 
-    public string solve(TSP problem){
+    public string solve(TSP problem) {
         if (timerHasExpired)
             return "timeout";
 
@@ -111,8 +111,7 @@ class TSPBranchAndBound : ISolver<TSP> {
                 continue;
             }
             int lastNode = current.path[^1];
-            for (int next = 0; next < n; next++)
-            {
+            for (int next = 0; next < n; next++) {
                 if (current.visited![next])
                     continue;
 
@@ -157,16 +156,14 @@ class TSPBranchAndBound : ISolver<TSP> {
         }
         if (bestPath is not null && IsCompleteTour(bestPath, originalMatrix)) {
             string certificate = PathToCertificate(bestPath, nodes);
-            if (problem.defaultVerifier.verify(problem, certificate))
-            {
+            if (problem.defaultVerifier.verify(problem, certificate)) {
                 return certificate;
             }
         }
         return "{}";
     }
 
-    private void Enqueue(PriorityQueue<SearchState, PQPriority> pq, SearchState state)
-    {
+    private void Enqueue(PriorityQueue<SearchState, PQPriority> pq, SearchState state) {
         int depth = state.path!.Count;
         double score = state.bound / depth;
 
@@ -230,7 +227,7 @@ class TSPBranchAndBound : ISolver<TSP> {
     private static double ComputeTourCost(List<int> path, double[,] costMatrix) {
         double totalCost = 0;
         int n = path.Count;
-        if (n == 0) 
+        if (n == 0)
             return INF;
         for (int i = 0; i < n - 1; i++) {   // Sum edge costs along the path
             double edgeCost = costMatrix[path[i], path[i + 1]];
@@ -257,8 +254,7 @@ class TSPBranchAndBound : ISolver<TSP> {
     private static string PathToCertificate(List<int> path, List<string> nodes) {
         string certificate = "";
         // Convert path of indices back to node names
-        foreach (int i in path)
-        {
+        foreach (int i in path) {
             certificate += nodes[i] + ",";
         }
         // Add return to start
@@ -267,13 +263,12 @@ class TSPBranchAndBound : ISolver<TSP> {
 
     private List<int>? GetInitialBSSF(TSP problem, List<string> nodes) {
         string greedyCertificate = new TSPGreedy() {
-          timerHasExpired = timerHasExpired
+            timerHasExpired = timerHasExpired
         }.solve(problem);
         return CertificateToPath(greedyCertificate, nodes);
     }
 
-    private static List<int>? CertificateToPath(string certificate, List<string> nodes)
-    {
+    private static List<int>? CertificateToPath(string certificate, List<string> nodes) {
         if (string.IsNullOrWhiteSpace(certificate) || certificate == "{}" || certificate == "timeout")
             return null;
         // Remove braces and split by commas
@@ -285,15 +280,13 @@ class TSPBranchAndBound : ISolver<TSP> {
 
         // Build mapping from node names to indices
         Dictionary<string, int> nodeToIndex = new Dictionary<string, int>();
-        for (int i = 0; i < nodes.Count; i++)
-        {
+        for (int i = 0; i < nodes.Count; i++) {
             nodeToIndex[nodes[i]] = i;
         }
 
         List<int> path = new List<int>();
         // Convert node names to indices, ignoring the last one since it's a repeat of the start
-        for (int i = 0; i < parts.Length - 1; i++)
-        {
+        for (int i = 0; i < parts.Length - 1; i++) {
             string node = parts[i].Trim();
 
             if (!nodeToIndex.TryGetValue(node, out int index))
@@ -305,28 +298,23 @@ class TSPBranchAndBound : ISolver<TSP> {
         return path;
     }
 
-    private static double[,] BuildCostMatrix(TSP problem, List<string> nodes)
-    {
+    private static double[,] BuildCostMatrix(TSP problem, List<string> nodes) {
         int n = nodes.Count;
         double[,] matrix = new double[n, n];
 
         // Initialize all entries to infinity
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-            {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
                 matrix[i, j] = INF;
             }
         }
         // Build mapping from node names to indices
         Dictionary<string, int> nodeToIndex = new Dictionary<string, int>();
-        for (int i = 0; i < n; i++)
-        {
+        for (int i = 0; i < n; i++) {
             nodeToIndex[nodes[i]] = i;
         }
         // Fill in the cost matrix based on edges
-        foreach (var edge in problem.edges)
-        {
+        foreach (var edge in problem.edges) {
             int i = nodeToIndex[edge.source];
             int j = nodeToIndex[edge.target];
             matrix[i, j] = edge.weight;

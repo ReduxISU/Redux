@@ -2,8 +2,7 @@
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Solvers;
 
-class KahnsAlgorithm : ISolver<TOPOLOGICALSORT>
-{
+class KahnsAlgorithm : ISolver<TOPOLOGICALSORT> {
     // --- Fields ---
     public string solverName { get; } = "Kahn's Algorithm";
     public string solverDefinition { get; } = "Kahn's algorithm is a BFS-based approach to topological sorting. It repeatedly removes vertices with zero in-degree from the graph, appending them to the output ordering. If all vertices are removed, the ordering is valid; otherwise, the graph contains a cycle and no topological sort exists.";
@@ -24,39 +23,33 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT>
     public KahnsAlgorithm() { }
 
     // --- Methods ---
-    public string solve(TOPOLOGICALSORT problem)
-    {
+    public string solve(TOPOLOGICALSORT problem) {
         // Build in-degree map
         Dictionary<string, int> inDegree = new Dictionary<string, int>();
         foreach (var node in problem.nodes)
             inDegree[node] = 0;
 
-        foreach (var edge in problem.edges)
-        {
+        foreach (var edge in problem.edges) {
             if (inDegree.ContainsKey(edge.Value))
                 inDegree[edge.Value]++;
         }
 
         // Enqueue all zero in-degree nodes
         Queue<string> queue = new Queue<string>();
-        foreach (var node in problem.nodes)
-        {
+        foreach (var node in problem.nodes) {
             if (inDegree[node] == 0)
                 queue.Enqueue(node);
         }
 
         List<string> order = new List<string>();
 
-        while (queue.Count > 0)
-        {
+        while (queue.Count > 0) {
             string current = queue.Dequeue();
             order.Add(current);
 
             // Reduce in-degree of neighbors
-            foreach (var edge in problem.edges)
-            {
-                if (edge.Key == current)
-                {
+            foreach (var edge in problem.edges) {
+                if (edge.Key == current) {
                     inDegree[edge.Value]--;
                     if (inDegree[edge.Value] == 0)
                         queue.Enqueue(edge.Value);

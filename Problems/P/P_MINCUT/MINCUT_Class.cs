@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.P.P_MINCUT;
 
-class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualization, UtilCollectionGraph>
-{
+class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualization, UtilCollectionGraph> {
     public string problemName { get; } = "Minimum Cut";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_cut";
     public string formalDefinition { get; } = "MinCut = {<G> | G is a weighted undirected graph} — find the partition of V into non-empty S and T minimizing the total weight of edges between S and T.";
@@ -38,14 +37,12 @@ class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualizat
 
     public MINCUT() : this(_defaultInstance) { }
 
-    public MINCUT(string instanceString)
-    {
+    public MINCUT(string instanceString) {
         instance = instanceString;
         StringParser parser = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
         parser.parse(instanceString);
         nodes = parser["N"].ToList().Select(n => n.ToString()).ToList();
-        edges = parser["E"].ToList().Select(edge =>
-        {
+        edges = parser["E"].ToList().Select(edge => {
             List<UtilCollection> endpoints = edge[0].ToList();
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();

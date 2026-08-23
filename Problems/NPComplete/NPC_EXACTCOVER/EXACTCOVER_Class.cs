@@ -8,26 +8,28 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER;
 
-class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDefaultVisualization> {
+class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCoverDefaultVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Exact Cover";
+    public string problemName { get; } = "Exact Cover";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Exact_cover";
-    public string formalDefinition {get;} = "Exact Cover = {<S, X> | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ";
-    public string problemDefinition {get;} = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string formalDefinition { get; } = "Exact Cover = {<S, X> | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ";
+    public string problemDefinition { get; } = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Caleb Eardley", "Alex Diviney" };
+    public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney" };
 
-    
+
+    public const string InstanceGrammar = "{(U,S) | U is set, S subset {a | a subset U}}";
     private static string _defaultInstance = "({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instance {get;set;} = string.Empty;
-    public string instanceFormat { get; } = "(X,S) where X is the set to cover and S is a set of subsets of X. Example: ({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
-    public string certificateFormat { get; } = "Set of subsets chosen from S, written as {{sub1},{sub2},...}, whose union exactly partitions X (each element of X appears in exactly one chosen subset). Example: {{2,3},{4,1}}";
+    public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {ExactCoverVerifier.CertificateGrammar} Example: {ExactCoverVerifier.CertificateExample}";
 
-    public string wikiName {get;} = "";
-    public ExactCoverBruteForce defaultSolver {get;} = new ExactCoverBruteForce();
+    public string wikiName { get; } = "";
+    public ExactCoverBruteForce defaultSolver { get; } = new ExactCoverBruteForce();
     public ExactCoverVerifier defaultVerifier { get; } = new ExactCoverVerifier();
     public ExactCoverDefaultVisualization defaultVisualization { get; } = new ExactCoverDefaultVisualization();
     // Declared, not derived. EXACTCOVER is NP-complete (Karp, 1972).
@@ -40,16 +42,16 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDe
         get {
             return _S;
         }
-        set{
+        set {
             _S = value;
         }
     }
 
     public List<string> X {
-        get{
+        get {
             return _X;
         }
-        set{
+        set {
             _X = value;
         }
     }
@@ -60,7 +62,7 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDe
     public EXACTCOVER(string input) {
         instance = input;
 
-        StringParser exactcover = new("{(U,S) | U is set, S subset {a | a subset U}}");
+        StringParser exactcover = new(InstanceGrammar);
         exactcover.parse(input);
         X = exactcover["U"].ToList().Select(node => node.ToString()).ToList();
         S = exactcover["S"].ToList().Select(subset => subset.ToList().Select(item => item.ToString()).ToList()).ToList();

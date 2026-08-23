@@ -3,13 +3,14 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_JOBSEQ.Solvers;
+
 class JobSeqBruteForce : ISolver<JOBSEQ> {
 
     // --- Fields ---
-    public string solverName {get;} = "Job Sequencing Set Brute Force Solver";
-    public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Job Sequencing problem";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"Russell Phillips"};
+    public string solverName { get; } = "Job Sequencing Set Brute Force Solver";
+    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Job Sequencing problem";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.
     public SolverType solverType { get; } = SolverType.BruteForce;
@@ -21,27 +22,21 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
 
     // --- Methods Including Constructors ---
     public JobSeqBruteForce() {
-        
+
     }
-    public static List<List<int>> GenerateCombinations(int x)
-    {
+    public static List<List<int>> GenerateCombinations(int x) {
         List<int> currentCombination = new List<int>();
-        for (int i = 0; i < x; i++)
-        {
+        for (int i = 0; i < x; i++) {
             currentCombination.Add(i);
         }
 
         List<List<int>> combinations = new List<List<int>>();
         combinations.Add(new List<int>(currentCombination));
 
-        while (true)
-        {
-            if (GetNextCombination(currentCombination))
-            {
+        while (true) {
+            if (GetNextCombination(currentCombination)) {
                 combinations.Add(new List<int>(currentCombination));
-            }
-            else
-            {
+            } else {
                 break; // All combinations have been generated
             }
         }
@@ -49,23 +44,19 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
         return combinations;
     }
 
-    private static bool GetNextCombination(List<int> combination)
-    {
+    private static bool GetNextCombination(List<int> combination) {
         int x = combination.Count;
         int i = x - 2;
-        while (i >= 0 && combination[i] >= combination[i + 1])
-        {
+        while (i >= 0 && combination[i] >= combination[i + 1]) {
             i--;
         }
 
-        if (i < 0)
-        {
+        if (i < 0) {
             return false; // No more combinations
         }
 
         int j = x - 1;
-        while (combination[j] <= combination[i])
-        {
+        while (combination[j] <= combination[i]) {
             j--;
         }
 
@@ -86,7 +77,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
         }
         return certificate.TrimEnd(',') + ")";
     }
-    public string solve(JOBSEQ jobseq){
+    public string solve(JOBSEQ jobseq) {
         foreach (List<int> permutation in GenerateCombinations(jobseq.T.Count())) {
             if (jobseq.defaultVerifier.verify(jobseq, permutation)) {
                 return permToCertificate(permutation);
@@ -102,7 +93,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     /// <param name="problemInstance"></param>
     /// <param name="solutionString"></param>
     /// <returns></returns>
-    public Dictionary<string,bool> getSolutionDict(string problemInstance, string solutionString){
+    public Dictionary<string, bool> getSolutionDict(string problemInstance, string solutionString) {
         throw new NotImplementedException();
     }
 }

@@ -9,15 +9,15 @@ class CliqueVerifier : IVerifier<CLIQUE> {
     public const string CertificateExample = "{1,2,4}";
 
     // --- Fields ---
-    public string verifierName {get;} = "Clique Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for Clique";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"Caleb Eardley", "Kaden Marchetti"};
+    public string verifierName { get; } = "Clique Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for Clique";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Caleb Eardley", "Kaden Marchetti" };
 
 
-    private string _certificate =  "";
+    private string _certificate = "";
 
-      public string certificate {
+    public string certificate {
         get {
             return _certificate;
         }
@@ -28,7 +28,7 @@ class CliqueVerifier : IVerifier<CLIQUE> {
     public CliqueVerifier() {
 
     }
-    public bool verify(CLIQUE problem, string certificate){
+    public bool verify(CLIQUE problem, string certificate) {
 
         if (string.IsNullOrWhiteSpace(certificate)) {
             throw new CertificateParseException(problem, certificate, "certificate is empty");
@@ -49,20 +49,20 @@ class CliqueVerifier : IVerifier<CLIQUE> {
                 "certificate did not parse to a non-empty list of node names");
         }
         //Check k value
-        if(nodeList.Count != problem.K){
+        if (nodeList.Count != problem.K) {
             return false;
         }
         // Every certificate node must belong to the graph. The pairwise-adjacency
         // loop below skips the i==j case, so without this a single non-member node
         // (K==1) would be accepted as a trivial clique.
-        if(nodeList.Any(node => !problem.nodes.Contains(node))){
+        if (nodeList.Any(node => !problem.nodes.Contains(node))) {
             return false;
         }
-        foreach(var i in nodeList){
-            foreach(var j in nodeList){
-                KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i,j);
-                KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j,i);
-                if(!(problem.edges.Contains(pairCheck1) || problem.edges.Contains(pairCheck2) || i.Equals(j))){
+        foreach (var i in nodeList) {
+            foreach (var j in nodeList) {
+                KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i, j);
+                KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j, i);
+                if (!(problem.edges.Contains(pairCheck1) || problem.edges.Contains(pairCheck2) || i.Equals(j))) {
                     return false;
                 }
             }

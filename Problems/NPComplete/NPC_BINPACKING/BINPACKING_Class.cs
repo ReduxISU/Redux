@@ -36,7 +36,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
 
     public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta" };
 
-    
+
 
     // The current instance string (set by the constructor or by Redux when a user
     // types a custom input into the UI).
@@ -50,7 +50,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
 
     public string wikiName { get; } = "";
 
-    
+
 
     // S — the multiset of item sizes parsed from the instance string.
     // Using "multiset" rather than "set" is important: duplicate sizes are allowed.
@@ -62,7 +62,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // K — the maximum number of bins we are allowed to use.
     private int _K;
 
-  
+
 
     // Brute force is the default solver because it is always correct.
     // FFD is registered separately as a named heuristic solver.
@@ -91,7 +91,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
         set { _K = value; }
     }
 
-  
+
 
     // Default constructor — loads the built-in example instance.
     public BINPACKING() : this(_defaultInstance) {

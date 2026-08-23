@@ -3,13 +3,14 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
+
 class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
 
     // --- Fields ---
-    public string solverName {get;} = "Graph Coloring Brute Force";
-    public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Graph Coloring problem";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string solverName { get; } = "Graph Coloring Brute Force";
+    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Graph Coloring problem";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
@@ -27,22 +28,17 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
     public string complexity { get; } = "O((numColors+1)^n * n^2 * m), n = |nodes|, m = |edges|, numColors = min(K, n)";
 
     // --- Methods Including Constructors ---
-    public GraphColoringBruteForce()
-    {
+    public GraphColoringBruteForce() {
 
     }
 
 
-    private string BinaryToCertificate(List<int> binary, List<string> S, int K)
-    {
+    private string BinaryToCertificate(List<int> binary, List<string> S, int K) {
         string certificate = "{";
 
-        for (int j = 0; j < K; j++)
-        {
-            for (int i = 0; i < binary.Count; i++)
-            {
-                if (binary[i] == j)
-                {
+        for (int j = 0; j < K; j++) {
+            for (int i = 0; i < binary.Count; i++) {
+                if (binary[i] == j) {
                     certificate += S[i] + ",";
                 }
             }
@@ -57,44 +53,35 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
     }
 
 
-    private void nextBinary(List<int> binary, int K)
-    {
-        for (int i = 0; i < binary.Count; i++)
-        {
-            if (binary[i] != K)
-            {
+    private void nextBinary(List<int> binary, int K) {
+        for (int i = 0; i < binary.Count; i++) {
+            if (binary[i] != K) {
                 binary[i] += 1;
                 return;
-            }
-            else if (binary[i] == K)
-            {
+            } else if (binary[i] == K) {
                 binary[i] = 0;
             }
         }
     }
 
 
-    public string solve(GRAPHCOLORING gColor)
-    {
+    public string solve(GRAPHCOLORING gColor) {
 
         int numColors = gColor.K;
         if (gColor.K > gColor.nodes.Count) numColors = gColor.nodes.Count();
-       
+
 
         List<int> binary = new List<int>();
-        foreach (var i in gColor.nodes)
-        {
+        foreach (var i in gColor.nodes) {
             binary.Add(0);
         }
 
-        while (binary.Count(n => n == (numColors - 1)) < gColor.nodes.Count)
-        {
+        while (binary.Count(n => n == (numColors - 1)) < gColor.nodes.Count) {
             string certificate = BinaryToCertificate(binary, gColor.nodes, numColors);
-            if (gColor.defaultVerifier.verify(gColor, certificate))
-            {
+            if (gColor.defaultVerifier.verify(gColor, certificate)) {
                 return certificate;
             }
-            nextBinary(binary,numColors);
+            nextBinary(binary, numColors);
 
         }
 
