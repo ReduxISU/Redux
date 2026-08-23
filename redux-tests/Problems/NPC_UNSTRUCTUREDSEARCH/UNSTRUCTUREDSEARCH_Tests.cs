@@ -54,8 +54,7 @@ public class UNSTRUCTUREDSEARCH_tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void UNSTRUCTUREDSEARCH_Instance_Format_Described()
-    {
+    public void UNSTRUCTUREDSEARCH_Instance_Format_Described() {
         var problem = new UNSTRUCTUREDSEARCH();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -63,8 +62,7 @@ public class UNSTRUCTUREDSEARCH_tests {
     }
 
     [Fact]
-    public void UNSTRUCTUREDSEARCH_Certificate_Format_Described()
-    {
+    public void UNSTRUCTUREDSEARCH_Certificate_Format_Described() {
         var problem = new UNSTRUCTUREDSEARCH();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -72,8 +70,7 @@ public class UNSTRUCTUREDSEARCH_tests {
     }
 
     [Fact]
-    public void UNSTRUCTUREDSEARCH_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void UNSTRUCTUREDSEARCH_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: 1" quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new UNSTRUCTUREDSEARCH();

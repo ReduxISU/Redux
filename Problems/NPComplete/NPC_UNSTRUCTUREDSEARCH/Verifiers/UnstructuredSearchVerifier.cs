@@ -3,6 +3,8 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Verifiers;
 
 class UnstructuredSearchVerifier : IVerifier<UNSTRUCTUREDSEARCH> {
+    public const string CertificateGrammar = "i | integer index such that f(i) != 0";
+    public const string CertificateExample = "1";
 
     // --- Fields ---
     public string verifierName { get; } = "Unstructured search verifier";
