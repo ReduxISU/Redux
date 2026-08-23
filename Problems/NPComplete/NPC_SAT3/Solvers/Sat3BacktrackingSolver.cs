@@ -4,13 +4,14 @@ using API.Problems.NPComplete.NPC_SAT3;
 
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
+
 class Sat3BacktrackingSolver : ISolver<SAT3> {
 
     // --- Fields ---
-    public string solverName {get;} = "3SAT Backtracking Solver";
+    public string solverName { get; } = "3SAT Backtracking Solver";
     public string solverDefinition { get; } = "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"David Lindeman","Kaden Marchetti"};
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "David Lindeman", "Kaden Marchetti" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact constraint-backtracking search WITH pruning -- distinct from an
     // unpruned brute-force enumeration.
@@ -35,18 +36,16 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         }
 
         // fill in any variables the backtracker left unassigned
-        foreach (string literal in sat3.literals)
-        {
+        foreach (string literal in sat3.literals) {
             string varName = literal.TrimStart('!');
-            if (!solution.ContainsKey(varName))
-            {
+            if (!solution.ContainsKey(varName)) {
                 // value doesn't matter, choose false
                 solution[varName] = false;
             }
         }
 
         string solutionString = "(";
-        foreach(KeyValuePair<string,bool> kvp in solution){
+        foreach (KeyValuePair<string, bool> kvp in solution) {
             solutionString = solutionString + kvp.Key + ":" + kvp.Value.ToString() + ",";
         }
         solutionString = solutionString.TrimEnd(',');
@@ -55,8 +54,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
     }
 
     // Return type varies
-    public Dictionary<string, bool>? findSolution(SAT3 sat3)
-    {
+    public Dictionary<string, bool>? findSolution(SAT3 sat3) {
         ////O(n!)
         // while(!solutionFound && !satQueue.isEmpty()):
         // 	var = varQueue.pop() //O(1)
@@ -72,11 +70,11 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
 
         //CATCHES INVALID INPUTS
         // Console.WriteLine(sat3.literals.Count);
-        if (sat3.literals.Count < 2){
+        if (sat3.literals.Count < 2) {
             // Console.WriteLine("No literals provided");
             return null;
         }
-        
+
         bool solutionFound = false;
         PriorityQueue<SAT3PQObject, int> satPQ = new PriorityQueue<SAT3PQObject, int>();
         Dictionary<string, bool>? solution = null;
@@ -94,21 +92,20 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         curSat.initVarWeights();
         curSat.removeDuplicatesFromClauses();
         satPQ.Enqueue(curSat, curSat.getPQWeight());
-        
+
         //O(n!)
-        while(!solutionFound && satPQ.Count > 0){
+        while (!solutionFound && satPQ.Count > 0) {
             curSat = satPQ.Dequeue();
             // Console.WriteLine("curSat's nextVar is : " + curSat.nextVar);
             List<SAT3PQObject> childSATs = curSat.createSATChildren(curSat.depth, totalNumberOfVariables); //ADD VARIABLE TO INPUT
-            foreach(SAT3PQObject childSAT in childSATs){
+            foreach (SAT3PQObject childSAT in childSATs) {
                 //Invalid statements are evaluated upon creation and returned as null
-                if(childSAT != null){
+                if (childSAT != null) {
                     eval = evaluateBooleanExpression(childSAT.SATState.clauses);
-                    if(eval == 0){
+                    if (eval == 0) {
                         //undecided
                         satPQ.Enqueue(childSAT, childSAT.getPQWeight());
-                    }
-                    else if(eval == 1){
+                    } else if (eval == 1) {
                         //satisfiable
                         //WRITE ASSIGNMENTS OF VARIABLES
                         solutionFound = true;
@@ -126,25 +123,25 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
     //Invalid expressions are filtered at the creation of the expressions and do not make it to this point of the process
     //Returns 0 if undecided
     //Returns 1 if satisfiable
-    private int evaluateBooleanExpression(List<List<string>> boolExp){
+    private int evaluateBooleanExpression(List<List<string>> boolExp) {
         //Check for satisfiablility
         int retVal = 0;
-        if(boolExp.Count == 1 && string.IsNullOrEmpty(boolExp[0][0])){
+        if (boolExp.Count == 1 && string.IsNullOrEmpty(boolExp[0][0])) {
             retVal = 1;
         }
-        
+
         //variables for looping through boolExp
         int index = 0;
         string exp;
         //evaluates the string representation of each clause, if the expression is empty then it is unsatisfiable
-        while(retVal == 0 && index < boolExp.Count){
+        while (retVal == 0 && index < boolExp.Count) {
             exp = "";
-            foreach(string clause in boolExp[index]){
+            foreach (string clause in boolExp[index]) {
                 exp += clause;
             }
 
             // Console.WriteLine(exp);
-            if(exp.Equals("()")){
+            if (exp.Equals("()")) {
                 retVal = -1;
             }
             index++;
@@ -157,11 +154,11 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
 
     //code that generates the variable priority queue
     //modifies the priority value so it sorts high to low
-    private int findVariables(List<string> literals){
+    private int findVariables(List<string> literals) {
         Dictionary<string, int> numbVars = new Dictionary<string, int>();
         int count = 0;
-        foreach(string literal in literals){
-            if(!numbVars.ContainsKey(literal[literal.Length - 1].ToString())){
+        foreach (string literal in literals) {
+            if (!numbVars.ContainsKey(literal[literal.Length - 1].ToString())) {
                 numbVars.Add(literal[literal.Length - 1].ToString(), 1);
                 count++;
             }

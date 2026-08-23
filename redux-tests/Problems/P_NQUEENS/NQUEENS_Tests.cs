@@ -6,27 +6,23 @@ using API.Problems.P.P_NQUEENS.Verifiers;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class NQUEENS_Tests
-{
+public class NQUEENS_Tests {
     [Fact]
-    public void NQUEENS_Default_Constructor_Sets_N_To_4()
-    {
+    public void NQUEENS_Default_Constructor_Sets_N_To_4() {
         NQUEENS problem = new NQUEENS();
         Assert.Equal(4, problem.n);
         Assert.Equal("4", problem.defaultInstance);
     }
 
     [Fact]
-    public void NQUEENS_Custom_Constructor_Sets_N_Correctly()
-    {
+    public void NQUEENS_Custom_Constructor_Sets_N_Correctly() {
         NQUEENS problem = new NQUEENS("8");
         Assert.Equal(8, problem.n);
         Assert.Equal("8", problem.instance);
     }
 
     [Fact]
-    public void NQUEENS_Verifier_Validates_Single_Queen()
-    {
+    public void NQUEENS_Verifier_Validates_Single_Queen() {
         NQUEENS problem = new NQUEENS("1");
         NQueensVerifier verifier = new NQueensVerifier();
 
@@ -36,8 +32,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Verifier_Validates_Known_4Queen_Solution()
-    {
+    public void NQUEENS_Verifier_Validates_Known_4Queen_Solution() {
         NQUEENS problem = new NQUEENS("4");
         NQueensVerifier verifier = new NQueensVerifier();
 
@@ -47,8 +42,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Verifier_Rejects_Duplicate_Column()
-    {
+    public void NQUEENS_Verifier_Rejects_Duplicate_Column() {
         NQUEENS problem = new NQUEENS("4");
         NQueensVerifier verifier = new NQueensVerifier();
 
@@ -58,8 +52,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Verifier_Rejects_Diagonal_Conflict()
-    {
+    public void NQUEENS_Verifier_Rejects_Diagonal_Conflict() {
         NQUEENS problem = new NQUEENS("4");
         NQueensVerifier verifier = new NQueensVerifier();
 
@@ -69,8 +62,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Verifier_Rejects_Out_Of_Bounds()
-    {
+    public void NQUEENS_Verifier_Rejects_Out_Of_Bounds() {
         NQUEENS problem = new NQUEENS("4");
         NQueensVerifier verifier = new NQueensVerifier();
 
@@ -80,8 +72,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Verifier_Rejects_Wrong_Number_Of_Queens()
-    {
+    public void NQUEENS_Verifier_Rejects_Wrong_Number_Of_Queens() {
         NQUEENS problem = new NQUEENS("4");
         NQueensVerifier verifier = new NQueensVerifier();
 
@@ -91,8 +82,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Verifier_Rejects_Empty_Certificate()
-    {
+    public void NQUEENS_Verifier_Rejects_Empty_Certificate() {
         NQUEENS problem = new NQUEENS("4");
         NQueensVerifier verifier = new NQueensVerifier();
 
@@ -102,8 +92,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Solver_Finds_Valid_Solution_For_4()
-    {
+    public void NQUEENS_Solver_Finds_Valid_Solution_For_4() {
         NQUEENS problem = new NQUEENS("4");
         NQueensBacktracking solver = new NQueensBacktracking();
         NQueensVerifier verifier = new NQueensVerifier();
@@ -114,8 +103,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Solver_Returns_No_Solution_For_2()
-    {
+    public void NQUEENS_Solver_Returns_No_Solution_For_2() {
         NQUEENS problem = new NQUEENS("2");
         NQueensBacktracking solver = new NQueensBacktracking();
 
@@ -125,8 +113,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Solver_Returns_No_Solution_For_3()
-    {
+    public void NQUEENS_Solver_Returns_No_Solution_For_3() {
         NQUEENS problem = new NQUEENS("3");
         NQueensBacktracking solver = new NQueensBacktracking();
 
@@ -138,15 +125,13 @@ public class NQUEENS_Tests
     // --- Constructive solver ---
 
     [Fact]
-    public void NQUEENS_Default_Solver_Is_Constructive()
-    {
+    public void NQUEENS_Default_Solver_Is_Constructive() {
         NQUEENS problem = new NQUEENS();
         Assert.IsType<NQueensConstructive>(problem.defaultSolver);
     }
 
     [Fact]
-    public void NQUEENS_Constructive_Solves_Single_Queen()
-    {
+    public void NQUEENS_Constructive_Solves_Single_Queen() {
         NQUEENS problem = new NQUEENS("1");
         NQueensConstructive solver = new NQueensConstructive();
         NQueensVerifier verifier = new NQueensVerifier();
@@ -158,8 +143,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Constructive_Returns_No_Solution_For_2()
-    {
+    public void NQUEENS_Constructive_Returns_No_Solution_For_2() {
         NQUEENS problem = new NQUEENS("2");
         NQueensConstructive solver = new NQueensConstructive();
 
@@ -167,8 +151,7 @@ public class NQUEENS_Tests
     }
 
     [Fact]
-    public void NQUEENS_Constructive_Returns_No_Solution_For_3()
-    {
+    public void NQUEENS_Constructive_Returns_No_Solution_For_3() {
         NQUEENS problem = new NQUEENS("3");
         NQueensConstructive solver = new NQueensConstructive();
 
@@ -195,8 +178,7 @@ public class NQUEENS_Tests
     [InlineData(25)]
     [InlineData(50)]
     [InlineData(100)]
-    public void NQUEENS_Constructive_Produces_Verifiable_Solution(int n)
-    {
+    public void NQUEENS_Constructive_Produces_Verifiable_Solution(int n) {
         NQUEENS problem = new NQUEENS(n.ToString());
         NQueensConstructive solver = new NQueensConstructive();
         NQueensVerifier verifier = new NQueensVerifier();

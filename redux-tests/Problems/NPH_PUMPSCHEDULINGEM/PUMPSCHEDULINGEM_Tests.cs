@@ -8,8 +8,7 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class PUMPSCHEDULINGEM_Tests
-{
+public class PUMPSCHEDULINGEM_Tests {
     // ── Shared instances ──────────────────────────────────────────────────────
 
     // Simple instance: 1 pump, zero demand, no peak hours, explicit budget.
@@ -33,53 +32,49 @@ public class PUMPSCHEDULINGEM_Tests
     // ── Instantiation ─────────────────────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Default_Instantiation()
-    {
+    public void PUMPSCHEDULINGEM_Default_Instantiation() {
         PUMPSCHEDULINGEM p = new();
         Assert.Equal(10000, p.TankCapacity);
-        Assert.Equal(5000,  p.TankCurrentLevel);
-        Assert.Equal(2000,  p.TankMinLevel);
-        Assert.Equal(24,    p.DemandGph.Count);
-        Assert.Equal(8,     p.PeakHours.Count);
-        Assert.Equal(0.12,  p.OnPeakCostPerKwh);
-        Assert.Equal(0.06,  p.OffPeakCostPerKwh);
-        Assert.Equal(3,     p.Pumps.Count);
+        Assert.Equal(5000, p.TankCurrentLevel);
+        Assert.Equal(2000, p.TankMinLevel);
+        Assert.Equal(24, p.DemandGph.Count);
+        Assert.Equal(8, p.PeakHours.Count);
+        Assert.Equal(0.12, p.OnPeakCostPerKwh);
+        Assert.Equal(0.06, p.OffPeakCostPerKwh);
+        Assert.Equal(3, p.Pumps.Count);
         Assert.Equal("PumpA", p.Pumps[0].Name);
-        Assert.Equal(200,   p.Pumps[0].FlowRateGph);
-        Assert.Equal(5.0,   p.Pumps[0].PowerKw);
-        Assert.Equal(2.5,   p.Pumps[0].StartupCostDollars);
-        Assert.Equal(0.0,   p.BudgetLimitDollars); // 0 = auto
+        Assert.Equal(200, p.Pumps[0].FlowRateGph);
+        Assert.Equal(5.0, p.Pumps[0].PowerKw);
+        Assert.Equal(2.5, p.Pumps[0].StartupCostDollars);
+        Assert.Equal(0.0, p.BudgetLimitDollars); // 0 = auto
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Custom_Instantiation()
-    {
+    public void PUMPSCHEDULINGEM_Custom_Instantiation() {
         PUMPSCHEDULINGEM p = new(SimpleInstance);
-        Assert.Equal(1000,  p.TankCapacity);
-        Assert.Equal(500,   p.TankCurrentLevel);
-        Assert.Equal(0,     p.TankMinLevel);
-        Assert.Equal(24,    p.DemandGph.Count);
+        Assert.Equal(1000, p.TankCapacity);
+        Assert.Equal(500, p.TankCurrentLevel);
+        Assert.Equal(0, p.TankMinLevel);
+        Assert.Equal(24, p.DemandGph.Count);
         Assert.All(p.DemandGph, d => Assert.Equal(0.0, d));
         Assert.Empty(p.PeakHours);
-        Assert.Equal(0.10,  p.OnPeakCostPerKwh);
-        Assert.Equal(0.05,  p.OffPeakCostPerKwh);
+        Assert.Equal(0.10, p.OnPeakCostPerKwh);
+        Assert.Equal(0.05, p.OffPeakCostPerKwh);
         Assert.Single(p.Pumps);
         Assert.Equal("PumpA", p.Pumps[0].Name);
-        Assert.Equal(200,   p.Pumps[0].FlowRateGph);
-        Assert.Equal(5.0,   p.Pumps[0].PowerKw);
-        Assert.Equal(0.0,   p.Pumps[0].StartupCostDollars);
-        Assert.Equal(10.0,  p.BudgetLimitDollars);
+        Assert.Equal(200, p.Pumps[0].FlowRateGph);
+        Assert.Equal(5.0, p.Pumps[0].PowerKw);
+        Assert.Equal(0.0, p.Pumps[0].StartupCostDollars);
+        Assert.Equal(10.0, p.BudgetLimitDollars);
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Bad_Instance_Throws()
-    {
+    public void PUMPSCHEDULINGEM_Bad_Instance_Throws() {
         Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGEM("not-an-instance"));
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Wrong_Section_Count_Throws()
-    {
+    public void PUMPSCHEDULINGEM_Wrong_Section_Count_Throws() {
         // Only 3 sections, missing budget.
         string bad =
             "((1000,500,0)," +
@@ -89,8 +84,7 @@ public class PUMPSCHEDULINGEM_Tests
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Wrong_Demand_Count_Throws()
-    {
+    public void PUMPSCHEDULINGEM_Wrong_Demand_Count_Throws() {
         // Only 3 demand values instead of 24.
         string bad =
             "((1000,500,0),((100,100,100),(),(0.10,0.05)),((PumpA,200,5.0,0.0)),10.0)";
@@ -98,8 +92,7 @@ public class PUMPSCHEDULINGEM_Tests
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Negative_Budget_Throws()
-    {
+    public void PUMPSCHEDULINGEM_Negative_Budget_Throws() {
         string bad =
             "((1000,500,0)," +
             "((0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0),()," +
@@ -110,8 +103,7 @@ public class PUMPSCHEDULINGEM_Tests
     // ── Verifier — valid certificates ─────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Verifier_True_AllOff()
-    {
+    public void PUMPSCHEDULINGEM_Verifier_True_AllOff() {
         PUMPSCHEDULINGEM p = new(SimpleInstance);
         PumpSchedulingEMVerifier v = new();
         Assert.True(v.verify(p, SimpleCertValid));
@@ -128,8 +120,7 @@ public class PUMPSCHEDULINGEM_Tests
     [InlineData("(5.0,0.0,())", false)]
     // Pump on all hours — cost = 24×5×0.05 = 6.0 but budget cert says 5.0 — exceeds budget.
     [InlineData("(5.0,6.0,((PumpA,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)))", false)]
-    public void PUMPSCHEDULINGEM_Verifier_False_With_Tighter_Budget(string certificate, bool expected)
-    {
+    public void PUMPSCHEDULINGEM_Verifier_False_With_Tighter_Budget(string certificate, bool expected) {
         // Use an instance that has an explicit $5 budget.
         const string tightBudgetInstance =
             "((1000,500,0)," +
@@ -147,8 +138,7 @@ public class PUMPSCHEDULINGEM_Tests
     // Tank would drop below min level (min=200, capacity=1000, initial=500, demand=300/hr).
     // All pumps off: tank goes 500→200 at h=1, then 200-300=-100 < min=200 at h=2 → invalid.
     [InlineData(false)]
-    public void PUMPSCHEDULINGEM_Verifier_False_TankBelowMin(bool expected)
-    {
+    public void PUMPSCHEDULINGEM_Verifier_False_TankBelowMin(bool expected) {
         const string highDemandInstance =
             "((1000,500,200)," +
             "((300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300)," +
@@ -168,8 +158,7 @@ public class PUMPSCHEDULINGEM_Tests
     [InlineData("")]
     [InlineData("not-a-cert")]
     [InlineData("(bad")]
-    public void PUMPSCHEDULINGEM_Verifier_Malformed_Throws(string certificate)
-    {
+    public void PUMPSCHEDULINGEM_Verifier_Malformed_Throws(string certificate) {
         PUMPSCHEDULINGEM p = new(SimpleInstance);
         PumpSchedulingEMVerifier v = new();
         Assert.Throws<CertificateParseException>(() => v.verify(p, certificate));
@@ -178,8 +167,7 @@ public class PUMPSCHEDULINGEM_Tests
     // ── Solver ────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Solver_Returns_NonEmpty_Simple()
-    {
+    public void PUMPSCHEDULINGEM_Solver_Returns_NonEmpty_Simple() {
         PUMPSCHEDULINGEM p = new(SimpleInstance);
         PumpSchedulingEMSolver solver = new();
         string cert = solver.solve(p);
@@ -187,8 +175,7 @@ public class PUMPSCHEDULINGEM_Tests
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_Solver_Returns_NonEmpty_Default()
-    {
+    public void PUMPSCHEDULINGEM_Solver_Returns_NonEmpty_Default() {
         PUMPSCHEDULINGEM p = new();
         PumpSchedulingEMSolver solver = new();
         string cert = solver.solve(p);
@@ -198,8 +185,7 @@ public class PUMPSCHEDULINGEM_Tests
     // ── Round-trip ────────────────────────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGEM_SolverOutput_PassesVerifier_Simple()
-    {
+    public void PUMPSCHEDULINGEM_SolverOutput_PassesVerifier_Simple() {
         PUMPSCHEDULINGEM p = new(SimpleInstance);
         PumpSchedulingEMSolver solver = new();
         PumpSchedulingEMVerifier verifier = new();
@@ -209,8 +195,7 @@ public class PUMPSCHEDULINGEM_Tests
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_SolverOutput_PassesVerifier_Default()
-    {
+    public void PUMPSCHEDULINGEM_SolverOutput_PassesVerifier_Default() {
         PUMPSCHEDULINGEM p = new();
         PumpSchedulingEMSolver solver = new();
         PumpSchedulingEMVerifier verifier = new();
@@ -220,8 +205,7 @@ public class PUMPSCHEDULINGEM_Tests
     }
 
     [Fact]
-    public void PUMPSCHEDULINGEM_SolverOutput_PassesVerifier_AutoBudget()
-    {
+    public void PUMPSCHEDULINGEM_SolverOutput_PassesVerifier_AutoBudget() {
         // Auto-budget: solver computes CM optimal then sets budget = 1.5× that cost.
         // Three pumps (total 1050 gph) comfortably exceed the 1000 gph peak demand,
         // ensuring the CM sub-solve finds a feasible positive-cost solution.

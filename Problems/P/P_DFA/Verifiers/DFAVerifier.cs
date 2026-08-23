@@ -3,8 +3,7 @@ using API.Problems.P.P_DFA;
 
 namespace API.Problems.P.P_DFA.Verifiers;
 
-class DFAVerifier : IVerifier<DFA>
-{
+class DFAVerifier : IVerifier<DFA> {
     // --- Fields ---
     public string verifierName { get; } = "DFA Verifier";
     public string verifierDefinition { get; } = "This is a solver for DFAs";
@@ -15,10 +14,9 @@ class DFAVerifier : IVerifier<DFA>
     public string certificate { get => _certificate; }
 
     // --- Methods Including Constructors ---
-    public DFAVerifier() {}
+    public DFAVerifier() { }
 
-    public bool verify(DFA problem, string certificate)
-    {
+    public bool verify(DFA problem, string certificate) {
         // Trim Unwanted Space //
         certificate.Trim();
         // Get Each Node //
@@ -33,16 +31,13 @@ class DFAVerifier : IVerifier<DFA>
         if (!currentNode.Equals(problem.startState)) return false;
 
         // For Each Node //
-        for (int i = 0; i < nodes.Count() - 1; i++)
-        {
+        for (int i = 0; i < nodes.Count() - 1; i++) {
             // Check If Character Is In Alphabet //
             if (!problem.nodes.Contains(nodes[i])) { return false; }
 
-            if (problem.nodes.Contains(nodes[i]))
-            {
+            if (problem.nodes.Contains(nodes[i])) {
                 foundEdge = false;
-                foreach (var edge in problem.edges)
-                {
+                foreach (var edge in problem.edges) {
                     if (!edge.From.Equals(currentNode)) continue;
                     else if (edge.From.Equals(nodes[i]) && !edge.To.Equals(nodes[i + 1])) continue;
                     else if (!edge.From.Equals(nodes[i]) && !edge.To.Equals(nodes[i + 1])) continue;
