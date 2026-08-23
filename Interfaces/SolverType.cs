@@ -10,8 +10,7 @@ namespace API.Interfaces;
 /// and <see cref="ReductionCost"/>.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<SolverType>))]
-public enum SolverType
-{
+public enum SolverType {
     /// <summary>No solver type has been declared for this solver yet.</summary>
     Unclassified = 0,
     /// <summary>Exhaustive enumeration of the candidate space with no pruning.</summary>

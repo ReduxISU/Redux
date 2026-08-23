@@ -7,8 +7,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PARTITION;
 
-class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefaultVisualization>
-{
+class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefaultVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Partition";
@@ -30,24 +29,19 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
-    public List<string> S
-    {
-        get
-        {
+    public List<string> S {
+        get {
             return _S;
         }
-        set
-        {
+        set {
             _S = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public PARTITION() : this(_defaultInstance)
-    {
+    public PARTITION() : this(_defaultInstance) {
     }
-    public PARTITION(string instance)
-    {
+    public PARTITION(string instance) {
         this.instance = instance;
 
         StringParser partition = new("{N | N is set}");
@@ -55,4 +49,4 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
         S = partition["N"].ToList().Select(node => node.ToString()).ToList();
     }
 
-}   
+}

@@ -11,8 +11,7 @@ namespace API.Interfaces.JSON_Objects.Graphs;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(API_Node_Programmable_Automata))]
 
-class API_Node_Programmable_Small
-{
+class API_Node_Programmable_Small {
     private string _name;
     private string _color;
     private string _outline;
@@ -20,8 +19,7 @@ class API_Node_Programmable_Small
     private string _dashed;
     private string _additional;
 
-    public API_Node_Programmable_Small()
-    {
+    public API_Node_Programmable_Small() {
         this._name = "APINODE";
         this._color = "";
         this._outline = "";
@@ -30,8 +28,7 @@ class API_Node_Programmable_Small
         this._additional = "";
     }
 
-    public API_Node_Programmable_Small(string nm, string color = "", string outline = "", string delay = "", string dashed = "", string additional = "")
-    {
+    public API_Node_Programmable_Small(string nm, string color = "", string outline = "", string delay = "", string dashed = "", string additional = "") {
         _name = nm;
         _color = color;
         _outline = outline;
@@ -41,77 +38,58 @@ class API_Node_Programmable_Small
     }
 
 
-    public string name
-    {
-        get
-        {
+    public string name {
+        get {
             return _name;
         }
     }
-    public string color
-    {
-        get
-        {
+    public string color {
+        get {
             return _color;
         }
-        set
-        {
+        set {
             _color = value;
         }
     }
 
-    public string outline
-    {
-        get
-        {
+    public string outline {
+        get {
             return _outline;
         }
-        set
-        {
+        set {
             _outline = value;
         }
     }
 
-    public string delay
-    {
-        get
-        {
+    public string delay {
+        get {
             return _delay;
         }
-        set
-        {
+        set {
             _delay = value;
         }
     }
 
-    public string dashed
-    {
-        get
-        {
+    public string dashed {
+        get {
             return _dashed;
         }
-        set
-        {
+        set {
             _dashed = value;
         }
     }
 
-    public string additional
-    {
-        get
-        {
+    public string additional {
+        get {
             return _additional;
         }
-        set
-        {
+        set {
             _additional = value;
         }
     }
 
-    public string id
-    {
-        get
-        {
+    public string id {
+        get {
             return name;
         }
     }

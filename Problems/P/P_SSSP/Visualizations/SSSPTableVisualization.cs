@@ -6,8 +6,7 @@ using SSSPTableStep = API.Problems.P.P_SSSP.Solvers.SSSPSolver.SSSPTableStep;
 
 namespace API.Problems.P.P_SSSP.Visualizations;
 
-class SSSPTableVisualization : IVisualization<SSSP>
-{
+class SSSPTableVisualization : IVisualization<SSSP> {
     public string visualizationName { get; } = "SSSP Table Visualization";
     public string visualizationDefinition { get; } = "Displays a step-by-step table visualization of Dijkstra's alogrithm execution, showing each vertex's cost/predecessor and reconstructed path at each stage";
     public string source { get; } = "";
@@ -17,31 +16,26 @@ class SSSPTableVisualization : IVisualization<SSSP>
 
     public SSSPTableVisualization() { }
 
-    public API_JSON visualize(SSSP problem)
-    {
+    public API_JSON visualize(SSSP problem) {
         var solver = new SSSPSolver();
         var steps = solver.GetTableSteps(problem);
-        return steps.Count > 0 ? TranslateToTableJSON((SSSPTableStep)steps[0]) : new API_empty(); 
+        return steps.Count > 0 ? TranslateToTableJSON((SSSPTableStep)steps[0]) : new API_empty();
     }
 
-    public API_JSON SolvedVisualization(SSSP problem)
-    {
+    public API_JSON SolvedVisualization(SSSP problem) {
         var solver = new SSSPSolver();
         var steps = solver.GetTableSteps(problem);
         return steps.Count > 0 ? TranslateToTableJSON((SSSPTableStep)steps[steps.Count - 1]) : new API_empty();
     }
 
-    public List<API_JSON> StepsVisualization(SSSP problem, List<Object> steps)
-    {
+    public List<API_JSON> StepsVisualization(SSSP problem, List<Object> steps) {
         var solver = new SSSPSolver();
         var tableSteps = solver.GetTableSteps(problem);
         return tableSteps.Select(s => (API_JSON)TranslateToTableJSON((SSSPTableStep)s)).ToList();
     }
 
-    private static API_TableJSON TranslateToTableJSON(SSSPTableStep step)
-    {
-        var result = new API_TableJSON
-        {
+    private static API_TableJSON TranslateToTableJSON(SSSPTableStep step) {
+        var result = new API_TableJSON {
             columns = new List<TableColumn>
             {
                 new TableColumn {key = "vertex", label = "Vertex"},
@@ -54,13 +48,11 @@ class SSSPTableVisualization : IVisualization<SSSP>
 
         var knownSet = new HashSet<string>(step.knownSet);
 
-        foreach (var vertex in step.vertices)
-        {
+        foreach (var vertex in step.vertices) {
             bool isKnown = knownSet.Contains(vertex.name);
             bool isCurrent = vertex.name == step.currentVertex;
 
-            var row = new TableRow
-            {
+            var row = new TableRow {
                 id = vertex.name,
                 cells = new Dictionary<string, string>
                {
@@ -70,7 +62,7 @@ class SSSPTableVisualization : IVisualization<SSSP>
                    {"costPredecessor", vertex.display },
                    {"path", vertex.path ?? "-" }
                },
-               cellColors = isCurrent ? new Dictionary<string, string> {{ "costPredecessor", "ElementHighlight" } } : null 
+                cellColors = isCurrent ? new Dictionary<string, string> { { "costPredecessor", "ElementHighlight" } } : null
             };
             result.rows.Add(row);
         }
