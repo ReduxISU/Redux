@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 
-class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
-{
+class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS> {
     public string solverName { get; } = "Kosaraju's Algorithm";
 
     public string solverDefinition { get; } =
@@ -28,16 +27,14 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
     // passes over them, each O(V + E) — the standard bound, no linear edge-list rescans.
     public string complexity { get; } = "O(V + E)";
 
-    public string solve(STRONGLYCONNECTEDCOMPONENTS problem)
-    {
+    public string solve(STRONGLYCONNECTEDCOMPONENTS problem) {
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         var edges = problem.graph.Edges.ToList();
 
         var adj = nodes.ToDictionary(n => n, n => new List<string>());
         var rev = nodes.ToDictionary(n => n, n => new List<string>());
 
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             string from = edge[0].ToString();
             string to = edge[1].ToString();
 
@@ -53,8 +50,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
         var visited = new HashSet<string>();
         var order = new Stack<string>();
 
-        foreach (var node in nodes)
-        {
+        foreach (var node in nodes) {
             if (!visited.Contains(node))
                 FirstDfs(node, adj, visited, order);
         }
@@ -62,12 +58,10 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
         visited.Clear();
         var components = new List<List<string>>();
 
-        while (order.Count > 0)
-        {
+        while (order.Count > 0) {
             var node = order.Pop();
 
-            if (!visited.Contains(node))
-            {
+            if (!visited.Contains(node)) {
                 var component = new List<string>();
                 SecondDfs(node, rev, visited, component);
                 components.Add(component.OrderBy(x => x).ToList());
@@ -83,12 +77,10 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
         string node,
         Dictionary<string, List<string>> adj,
         HashSet<string> visited,
-        Stack<string> order)
-    {
+        Stack<string> order) {
         visited.Add(node);
 
-        foreach (var next in adj[node])
-        {
+        foreach (var next in adj[node]) {
             if (!visited.Contains(next))
                 FirstDfs(next, adj, visited, order);
         }
@@ -100,13 +92,11 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS>
         string node,
         Dictionary<string, List<string>> rev,
         HashSet<string> visited,
-        List<string> component)
-    {
+        List<string> component) {
         visited.Add(node);
         component.Add(node);
 
-        foreach (var next in rev[node])
-        {
+        foreach (var next in rev[node]) {
             if (!visited.Contains(next))
                 SecondDfs(next, rev, visited, component);
         }

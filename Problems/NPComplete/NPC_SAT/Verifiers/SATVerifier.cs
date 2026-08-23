@@ -3,13 +3,13 @@ using API.Problems.NPComplete.NPC_SAT;
 
 namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
 
-    class SATVerifier : IVerifier<SAT> {
+class SATVerifier : IVerifier<SAT> {
 
     #region Fields
-    public string verifierName {get;} = "SAT Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for SAT";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Daniel Igbokwe", "Show Pratoomratana"};
+    public string verifierName { get; } = "SAT Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for SAT";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Daniel Igbokwe", "Show Pratoomratana" };
 
     private string _complexity = " ";
 
@@ -24,12 +24,12 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
             return _complexity;
         }
 
-        set{
+        set {
             _complexity = value;
         }
     }
 
-      public string certificate {
+    public string certificate {
         get {
             return _certificate;
         }
@@ -46,13 +46,13 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
 
     }
 
-    public bool verify(SAT problem, string certificate){
+    public bool verify(SAT problem, string certificate) {
         if (string.IsNullOrWhiteSpace(certificate)) {
             throw new CertificateParseException(problem, certificate, "certificate is empty");
         }
 
         List<List<string>> clauses = problem.clauses;
-        string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")","");
+        string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")", "");
 
         string[] assignments = strippedInput.Split(',');
         List<string> trueLiterals = new List<string>();
@@ -72,18 +72,16 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
 
             if (TF == "True" || TF == "T") {
                 trueLiterals.Add(literalName);
-            }
-            else if (TF == "False" || TF == "F") {
+            } else if (TF == "False" || TF == "F") {
                 string inverseLiteralName = "!" + literalName;
                 trueLiterals.Add(inverseLiteralName);
-            }
-            else {
+            } else {
                 throw new CertificateParseException(problem, certificate,
                     $"assignment '{assignment}' has value '{TF}'; expected True/False (capitalized) or T/F");
             }
         }
 
-        for(int i = 0; i < clauses.Count; i++) {
+        for (int i = 0; i < clauses.Count; i++) {
             bool containedInClause = false;
 
             foreach (string literal in trueLiterals) {
@@ -102,4 +100,4 @@ namespace API.Problems.NPComplete.NPC_SAT.Verifiers;
     }
 
     #endregion
-    }
+}

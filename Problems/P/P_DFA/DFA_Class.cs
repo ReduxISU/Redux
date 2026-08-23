@@ -1,4 +1,5 @@
 ﻿namespace API.Problems.P.P_DFA;
+
 using API.Interfaces;
 using API.Problems.P.P_DFA.Solvers;
 using API.Problems.P.P_DFA.Verifiers;
@@ -8,8 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using API.Interfaces.Graphs;
 
-class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph>
-{
+class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDirectedGraph> {
     // ----- Fields ----- //
     public string problemName { get; } = "DFA Acceptance";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Deterministic_finite_automaton";
@@ -39,7 +39,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
 
     // Edge Structures //
-    public record DFAEdge (string From, char Symbol, string To);
+    public record DFAEdge(string From, char Symbol, string To);
     //public record CombinedDFAEdge (string From, string Symbols, string To);
 
     // ----- Internal Graph ----- //
@@ -72,8 +72,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     // ----- Constructors ----- //
     public DFA() : this(_defaultInstance) { }
 
-    public DFA(string instance)
-    {
+    public DFA(string instance) {
         this.instance = instance;
 
         // ---- SPADE grammar: edges as ordered triples (cross) ----
@@ -105,10 +104,8 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
 
         // Parse and Validate Edges //
         edges = new List<DFAEdge>();
-        foreach (var e in E.ToList())
-        {
-            if (e is UtilCollection tuple && tuple.Count() == 3)
-            {
+        foreach (var e in E.ToList()) {
+            if (e is UtilCollection tuple && tuple.Count() == 3) {
                 string from = tuple[0].ToString();
                 char symbol = tuple[1].ToString()[0];
                 string to = tuple[2].ToString();
@@ -122,8 +119,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
                     throw new InvalidOperationException($"Edge To node '{to}' not in N.");
 
                 edges.Add(new DFAEdge(from, symbol, to));
-            }
-            else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
+            } else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
         }
 
         // Parse Remaining Components //
@@ -132,8 +128,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
             throw new InvalidOperationException($"Start state '{startState}' not in N.");
 
         acceptStates = F.ToList().Select(x => x.ToString()).ToList();
-        foreach (var f in acceptStates)
-        {
+        foreach (var f in acceptStates) {
             if (!nodes.Contains(f))
                 throw new InvalidOperationException($"Accept state '{f}' not in N.");
         }
@@ -149,20 +144,15 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
         var connections = new Dictionary<(string From, string To), string>();
 
         // Join Edges That Have the Same From and To Destination //
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             var from = edge.From;
             var to = edge.To;
             var edgeValue = edge.Symbol.ToString();
 
-            if (!connections.ContainsKey((from, to)))
-            {
+            if (!connections.ContainsKey((from, to))) {
                 connections.Add((from, to), edgeValue);
-            }
-            else
-            {
-                if (connections[(from, to)].Contains(edgeValue)) { continue; }
-                else { connections[(from, to)] = connections[(from, to)] += "," + edgeValue; }
+            } else {
+                if (connections[(from, to)].Contains(edgeValue)) { continue; } else { connections[(from, to)] = connections[(from, to)] += "," + edgeValue; }
             }
         }
 

@@ -6,8 +6,7 @@ namespace API.Tools;
 /// <summary>
 /// Client for making HTTP requests to external API servers.
 /// </summary>
-public class QuantumServerAPI
-{
+public class QuantumServerAPI {
     // --- Fields ---
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
@@ -17,8 +16,7 @@ public class QuantumServerAPI
     /// <summary>
     /// Creates a new QuantumServerAPI instance using the shared IHttpClientFactory.
     /// </summary>
-    public QuantumServerAPI()
-    {
+    public QuantumServerAPI() {
         _baseUrl = QuantumSolverSettingsGlobal.QuantumSolver.BaseURL;
         _httpClient = QuantumSolverSettingsGlobal.HttpClientFactory.CreateClient("quantum");
     }
@@ -32,10 +30,8 @@ public class QuantumServerAPI
     /// <param name="body">The request body object (will be serialized to JSON)</param>
     /// <returns>The JSON response as a string</returns>
     /// <exception cref="HttpRequestException">Thrown when the request fails</exception>
-    public async Task<string> PostAsync(string endpoint, object body)
-    {
-        try
-        {
+    public async Task<string> PostAsync(string endpoint, object body) {
+        try {
             // Serialize the body to JSON
             string jsonBody = JsonSerializer.Serialize(body);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
@@ -49,13 +45,9 @@ public class QuantumServerAPI
             // Read and return the response
             string responseBody = await response.Content.ReadAsStringAsync();
             return responseBody;
-        }
-        catch (HttpRequestException ex)
-        {
+        } catch (HttpRequestException ex) {
             throw new HttpRequestException($"Failed to POST to {_baseUrl}{endpoint}: {ex.Message}", ex);
-        }
-        catch (TaskCanceledException ex)
-        {
+        } catch (TaskCanceledException ex) {
             throw new TimeoutException($"Request to {_baseUrl}{endpoint} timed out after 30 seconds", ex);
         }
     }
@@ -67,8 +59,7 @@ public class QuantumServerAPI
     /// <param name="endpoint">The API endpoint (e.g., "/deutsch")</param>
     /// <param name="body">The request body object (will be serialized to JSON)</param>
     /// <returns>The deserialized response object</returns>
-    public async Task<TResponse?> PostAsync<TResponse>(string endpoint, object body)
-    {
+    public async Task<TResponse?> PostAsync<TResponse>(string endpoint, object body) {
         string responseJson = await PostAsync(endpoint, body);
         return JsonSerializer.Deserialize<TResponse>(responseJson);
     }
@@ -79,21 +70,15 @@ public class QuantumServerAPI
     /// <param name="endpoint">The API endpoint</param>
     /// <param name="jsonBody">The raw JSON string to send</param>
     /// <returns>The JSON response as a string</returns>
-    public async Task<string> PostRawJsonAsync(string endpoint, string jsonBody)
-    {
-        try
-        {
+    public async Task<string> PostRawJsonAsync(string endpoint, string jsonBody) {
+        try {
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _httpClient.PostAsync(endpoint, content);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
-        }
-        catch (HttpRequestException ex)
-        {
+        } catch (HttpRequestException ex) {
             throw new HttpRequestException($"Failed to POST to {_baseUrl}{endpoint}: {ex.Message}", ex);
-        }
-        catch (TaskCanceledException ex)
-        {
+        } catch (TaskCanceledException ex) {
             throw new TimeoutException($"Request to {_baseUrl}{endpoint} timed out after 30 seconds", ex);
         }
     }
@@ -104,8 +89,7 @@ public class QuantumServerAPI
     public string GetBaseUrl() => _baseUrl;
 
     /// <summary>Ensure that the http client is closed</summary>
-    public void Dispose()
-    {
+    public void Dispose() {
         _httpClient?.Dispose();
     }
 }

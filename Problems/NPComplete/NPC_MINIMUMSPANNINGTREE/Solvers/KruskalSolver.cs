@@ -8,8 +8,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
-{
+class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
     public string solverName { get; } = "Kruskal's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by sorting edges by weight and adding each edge if it joins two different components.";
     public string source { get; } = "Kruskal, J. B. \"On the shortest spanning subtree of a graph and the traveling salesman problem.\" Proceedings of the American Mathematical Society 7, no. 1 (1956): 48-50.";
@@ -24,8 +23,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
     // rank, near-O(1) amortized per operation, so the sort dominates.
     public string complexity { get; } = "O(E log E)";
 
-    public string solve(MINIMUMSPANNINGTREE problem)
-    {
+    public string solve(MINIMUMSPANNINGTREE problem) {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         var edges = ExtractEdges(problem.graph);
 
@@ -36,13 +34,11 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
         List<(string u, string v, int weight)> selected = new();
 
         // Deterministic tie-breaking keeps certificates stable across runs.
-        foreach (var edge in edges.OrderBy(e => e.weight).ThenBy(e => CanonicalKey(e.u, e.v)))
-        {
+        foreach (var edge in edges.OrderBy(e => e.weight).ThenBy(e => CanonicalKey(e.u, e.v))) {
             if (timerHasExpired)
                 return "{}";
 
-            if (uf.Find(edge.u) != uf.Find(edge.v))
-            {
+            if (uf.Find(edge.u) != uf.Find(edge.v)) {
                 uf.Union(edge.u, edge.v);
                 selected.Add(edge);
                 if (selected.Count == nodes.Count - 1)
@@ -56,11 +52,9 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
         return EdgeListToCertificate(selected);
     }
 
-    internal static List<(string u, string v, int weight)> ExtractEdges(UtilCollectionGraph graph)
-    {
+    internal static List<(string u, string v, int weight)> ExtractEdges(UtilCollectionGraph graph) {
         var edges = new List<(string u, string v, int weight)>();
-        foreach (UtilCollection rawEdge in graph.Edges.ToList())
-        {
+        foreach (UtilCollection rawEdge in graph.Edges.ToList()) {
             if (rawEdge.Count() != 2)
                 continue;
 
@@ -72,20 +66,14 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
             // Accept the weighted-edge encoding produced by the MST parser and normalize it here.
             UtilCollection endpoints = rawEdge[0];
             int weight = int.Parse(rawEdge[1].ToString());
-            if (endpoints.IsOrdered())
-            {
+            if (endpoints.IsOrdered()) {
                 edges.Add((endpoints[0].ToString(), endpoints[1].ToString(), weight));
-            }
-            else
-            {
+            } else {
                 var cast = endpoints.ToList();
-                if (cast.Count == 1)
-                {
+                if (cast.Count == 1) {
                     string node = cast[0].ToString();
                     edges.Add((node, node, weight));
-                }
-                else
-                {
+                } else {
                     edges.Add((cast[0].ToString(), cast[1].ToString(), weight));
                 }
             }
@@ -93,8 +81,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
         return edges;
     }
 
-    internal static string EdgeListToCertificate(List<(string u, string v, int weight)> edges)
-    {
+    internal static string EdgeListToCertificate(List<(string u, string v, int weight)> edges) {
         if (edges == null || edges.Count == 0)
             return "{}";
 
@@ -109,43 +96,35 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
         return "{" + string.Join(",", sorted) + "}";
     }
 
-    internal static string CanonicalKey(string u, string v)
-    {
+    internal static string CanonicalKey(string u, string v) {
         return string.CompareOrdinal(u, v) <= 0 ? $"{u}|{v}" : $"{v}|{u}";
     }
 
-    internal static string CanonicalFirst(string u, string v)
-    {
+    internal static string CanonicalFirst(string u, string v) {
         return string.CompareOrdinal(u, v) <= 0 ? u : v;
     }
 
-    internal static string CanonicalSecond(string u, string v)
-    {
+    internal static string CanonicalSecond(string u, string v) {
         return string.CompareOrdinal(u, v) <= 0 ? v : u;
     }
 
-    private static bool LooksLikeCollection(UtilCollection u)
-    {
+    private static bool LooksLikeCollection(UtilCollection u) {
         string s = u.ToString().TrimStart();
         return s.StartsWith("{") || s.StartsWith("(");
     }
 
-    private class UnionFind<T> where T : notnull
-    {
+    private class UnionFind<T> where T : notnull {
         private readonly Dictionary<T, T> parent = new();
         private readonly Dictionary<T, int> rank = new();
 
-        public UnionFind(IEnumerable<T> items)
-        {
-            foreach (T item in items)
-            {
+        public UnionFind(IEnumerable<T> items) {
+            foreach (T item in items) {
                 parent[item] = item;
                 rank[item] = 0;
             }
         }
 
-        public T Find(T item)
-        {
+        public T Find(T item) {
             if (!parent.ContainsKey(item))
                 throw new InvalidOperationException("Item is not part of this union-find structure.");
 
@@ -155,8 +134,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
             return parent[item];
         }
 
-        public void Union(T a, T b)
-        {
+        public void Union(T a, T b) {
             T rootA = Find(a);
             T rootB = Find(b);
             if (EqualityComparer<T>.Default.Equals(rootA, rootB))
@@ -166,8 +144,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE>
                 parent[rootA] = rootB;
             else if (rank[rootA] > rank[rootB])
                 parent[rootB] = rootA;
-            else
-            {
+            else {
                 parent[rootB] = rootA;
                 rank[rootA]++;
             }

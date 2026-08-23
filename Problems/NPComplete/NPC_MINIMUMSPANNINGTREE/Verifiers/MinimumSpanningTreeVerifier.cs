@@ -9,8 +9,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
 
-class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
-{
+class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE> {
     public string verifierName { get; } = "Minimum Spanning Tree Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edge set is a valid minimum spanning tree for the input graph.";
     public string source { get; } = "Original verifier implementation for this repository. It checks that a certificate is spanning and acyclic, then compares its total weight against a reference MST produced by Kruskal's algorithm.";
@@ -19,8 +18,7 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
     private string _certificate = string.Empty;
     public string certificate => _certificate;
 
-    public bool verify(MINIMUMSPANNINGTREE problem, string solution)
-    {
+    public bool verify(MINIMUMSPANNINGTREE problem, string solution) {
         _certificate = solution ?? string.Empty;
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         if (nodes.Count == 0)
@@ -41,8 +39,7 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
             return false;
 
         var graphEdges = BuildGraphEdgeMap(problem.graph);
-        foreach (var edge in uniqueEdges)
-        {
+        foreach (var edge in uniqueEdges) {
             if (!graphEdges.ContainsKey(edge))
                 return false;
         }
@@ -60,13 +57,11 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
         return certificateWeight == optimalWeight;
     }
 
-    private static HashSet<(string u, string v)> ParseCertificateEdges(string certificate)
-    {
+    private static HashSet<(string u, string v)> ParseCertificateEdges(string certificate) {
         var edgePairs = GraphParser.parseUndirectedEdgeListWithStringFunctions(certificate);
         var uniqueEdges = new HashSet<(string u, string v)>();
 
-        foreach (var pair in edgePairs)
-        {
+        foreach (var pair in edgePairs) {
             string u = pair.Key;
             string v = pair.Value;
             var canonical = CanonicalPair(u, v);
@@ -76,11 +71,9 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
         return uniqueEdges;
     }
 
-    private static Dictionary<(string u, string v), int> BuildGraphEdgeMap(UtilCollectionGraph graph)
-    {
+    private static Dictionary<(string u, string v), int> BuildGraphEdgeMap(UtilCollectionGraph graph) {
         var map = new Dictionary<(string u, string v), int>();
-        foreach (UtilCollection rawEdge in graph.Edges.ToList())
-        {
+        foreach (UtilCollection rawEdge in graph.Edges.ToList()) {
             if (rawEdge.Count() != 2)
                 continue;
 
@@ -93,21 +86,15 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
             int weight = int.Parse(rawEdge[1].ToString());
             string u;
             string v;
-            if (endpoints.IsOrdered())
-            {
+            if (endpoints.IsOrdered()) {
                 u = endpoints[0].ToString();
                 v = endpoints[1].ToString();
-            }
-            else
-            {
+            } else {
                 var cast = endpoints.ToList();
-                if (cast.Count == 1)
-                {
+                if (cast.Count == 1) {
                     u = cast[0].ToString();
                     v = cast[0].ToString();
-                }
-                else
-                {
+                } else {
                     u = cast[0].ToString();
                     v = cast[1].ToString();
                 }
@@ -121,11 +108,9 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
         return map;
     }
 
-    private static bool IsAcyclicAndSpanning(HashSet<(string u, string v)> edges, List<string> nodes)
-    {
+    private static bool IsAcyclicAndSpanning(HashSet<(string u, string v)> edges, List<string> nodes) {
         var uf = new UnionFind<string>(nodes);
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             if (uf.Find(edge.u) == uf.Find(edge.v))
                 return false;
             uf.Union(edge.u, edge.v);
@@ -135,43 +120,35 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
         return nodes.All(node => uf.Find(node).Equals(root));
     }
 
-    private static int TotalWeight(HashSet<(string u, string v)> edges, Dictionary<(string u, string v), int> weights)
-    {
+    private static int TotalWeight(HashSet<(string u, string v)> edges, Dictionary<(string u, string v), int> weights) {
         int total = 0;
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             total += weights[edge];
         }
         return total;
     }
 
-    private static (string u, string v) CanonicalPair(string u, string v)
-    {
+    private static (string u, string v) CanonicalPair(string u, string v) {
         return string.CompareOrdinal(u, v) <= 0 ? (u, v) : (v, u);
     }
 
-    private static bool LooksLikeCollection(UtilCollection u)
-    {
+    private static bool LooksLikeCollection(UtilCollection u) {
         string s = u.ToString().TrimStart();
         return s.StartsWith("{") || s.StartsWith("(");
     }
 
-    private class UnionFind<T> where T : notnull
-    {
+    private class UnionFind<T> where T : notnull {
         private readonly Dictionary<T, T> parent = new();
         private readonly Dictionary<T, int> rank = new();
 
-        public UnionFind(IEnumerable<T> items)
-        {
-            foreach (T item in items)
-            {
+        public UnionFind(IEnumerable<T> items) {
+            foreach (T item in items) {
                 parent[item] = item;
                 rank[item] = 0;
             }
         }
 
-        public T Find(T item)
-        {
+        public T Find(T item) {
             if (!parent.ContainsKey(item))
                 throw new InvalidOperationException("Item is not part of this union-find structure.");
 
@@ -180,8 +157,7 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
             return parent[item];
         }
 
-        public void Union(T a, T b)
-        {
+        public void Union(T a, T b) {
             T rootA = Find(a);
             T rootB = Find(b);
             if (EqualityComparer<T>.Default.Equals(rootA, rootB))
@@ -191,8 +167,7 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE>
                 parent[rootA] = rootB;
             else if (rank[rootA] > rank[rootB])
                 parent[rootB] = rootA;
-            else
-            {
+            else {
                 parent[rootB] = rootA;
                 rank[rootA]++;
             }
