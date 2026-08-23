@@ -6,15 +6,13 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class WEIGHTEDCUT_Tests
-{
+public class WEIGHTEDCUT_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void WEIGHTEDCUT_Instance_Format_Described()
-    {
+    public void WEIGHTEDCUT_Instance_Format_Described() {
         WEIGHTEDCUT problem = new WEIGHTEDCUT();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -22,8 +20,7 @@ public class WEIGHTEDCUT_Tests
     }
 
     [Fact]
-    public void WEIGHTEDCUT_Certificate_Format_Described()
-    {
+    public void WEIGHTEDCUT_Certificate_Format_Described() {
         WEIGHTEDCUT problem = new WEIGHTEDCUT();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -31,8 +28,7 @@ public class WEIGHTEDCUT_Tests
     }
 
     [Fact]
-    public void WEIGHTEDCUT_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void WEIGHTEDCUT_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         WEIGHTEDCUT problem = new WEIGHTEDCUT();

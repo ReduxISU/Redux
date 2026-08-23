@@ -8,6 +8,9 @@ namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Verifiers;
 
 class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
 
+    public const string CertificateGrammar = "{S | S subset E, sum of edge weights in S = K}";
+    public const string CertificateExample = "{({2,1},5)}";
+
     // --- Fields ---
     public string verifierName { get; } = "Weighted Cut Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Weighted Cut problem";
