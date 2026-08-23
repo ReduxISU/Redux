@@ -17,13 +17,15 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     public string source { get; } = "";
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}";
     private static string _defaultInstance { get; } = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of weighted undirected edges as ({node,node},weight) pairs, and K is the maximum total tour weight allowed. Example: (({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
-    public string certificateFormat { get; } = "Brace-wrapped, comma-separated cycle visiting every node exactly once (the starting node may optionally be repeated at the end to close the cycle explicitly), whose total edge weight is at most K. Example: {New York,Chicago,Denver,Los Angeles,Miami}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {TSPVerifier.CertificateGrammar} Example: {TSPVerifier.CertificateExample}";
 
-    public string instance {get;set;} = string.Empty;
-    
+    public string instance { get; set; } = string.Empty;
+
     private List<string> _nodes = new List<string>();
     private List<(string source, string target, int weight)> _edges = new List<(string source, string destination, int weight)>();
     private int _K;
@@ -72,7 +74,7 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public TSP(string GInput) {
         instance = GInput;
 
-        StringParser tsp = new("{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}");
+        StringParser tsp = new(InstanceGrammar);
         tsp.parse(GInput);
         nodes = tsp["N"].ToList().Select(node => node.ToString()).ToList();
         edges = tsp["E"].ToList().Select(edge => {

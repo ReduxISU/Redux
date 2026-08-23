@@ -132,8 +132,7 @@ public class TSP_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void TSP_Instance_Format_Described()
-    {
+    public void TSP_Instance_Format_Described() {
         TSP tsp = new TSP();
         Assert.NotNull(tsp.instanceFormat);
         Assert.NotEmpty(tsp.instanceFormat);
@@ -141,8 +140,7 @@ public class TSP_Tests {
     }
 
     [Fact]
-    public void TSP_Certificate_Format_Described()
-    {
+    public void TSP_Certificate_Format_Described() {
         TSP tsp = new TSP();
         Assert.NotNull(tsp.certificateFormat);
         Assert.NotEmpty(tsp.certificateFormat);
@@ -150,8 +148,7 @@ public class TSP_Tests {
     }
 
     [Fact]
-    public void TSP_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void TSP_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         TSP tsp = new TSP();
