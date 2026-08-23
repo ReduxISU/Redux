@@ -3,6 +3,8 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_SIMON.Verifiers;
 
 class SimonVerifier : IVerifier<SIMON> {
+    public const string CertificateGrammar = "binary string s (length at most n bits, or empty/all-zero for s = 0)";
+    public const string CertificateExample = "010";
 
     // --- Fields ---
     public string verifierName { get; } = "SimonVerifier";

@@ -55,8 +55,7 @@ public class SIMON_tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void SIMON_Instance_Format_Described()
-    {
+    public void SIMON_Instance_Format_Described() {
         var problem = new SIMON();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -64,8 +63,7 @@ public class SIMON_tests {
     }
 
     [Fact]
-    public void SIMON_Certificate_Format_Described()
-    {
+    public void SIMON_Certificate_Format_Described() {
         var problem = new SIMON();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -73,8 +71,7 @@ public class SIMON_tests {
     }
 
     [Fact]
-    public void SIMON_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void SIMON_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: 010" quoted in certificateFormat must be a real,
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new SIMON();
