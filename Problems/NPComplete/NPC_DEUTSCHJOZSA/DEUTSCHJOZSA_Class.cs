@@ -17,6 +17,8 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
     private static readonly string _defaultInstance = "(1, 1, 1, 1)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string instanceFormat { get; } = "(w_1,w_2,...,w_(2^n)) a comma-separated list of 2^n bits (0 or 1) giving the hidden function's output for every input in {0,1}^n, promised to be either constant or balanced. Example: (1, 1, 1, 1)";
+    public string certificateFormat { get; } = "The literal string 'constant' if the function is constant, or 'balanced' if it is balanced. Example: constant";
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public DeutschJozsaClassicalSolver defaultSolver {get;} = new DeutschJozsaClassicalSolver();
     public DeutschJozsaVerifier defaultVerifier { get; } = new DeutschJozsaVerifier();

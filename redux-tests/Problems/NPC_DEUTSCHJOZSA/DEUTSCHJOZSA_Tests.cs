@@ -70,4 +70,36 @@ public class DEUTSCHJOZSA_tests {
         solvedString = solvedString.Trim('{', '}').ToLower();
         Assert.Equal(certificate, solvedString);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void DEUTSCHJOZSA_Instance_Format_Described()
+    {
+        var problem = new DEUTSCHJOZSA();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("2^n", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void DEUTSCHJOZSA_Certificate_Format_Described()
+    {
+        var problem = new DEUTSCHJOZSA();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("balanced", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void DEUTSCHJOZSA_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: constant" quoted in certificateFormat must be a real,
+        // verifiable certificate for defaultInstance — not just descriptive prose.
+        var problem = new DEUTSCHJOZSA();
+        var verifier = new DeutschJozsaVerifier();
+        Assert.True(verifier.verify(problem, "constant"));
+    }
 }
