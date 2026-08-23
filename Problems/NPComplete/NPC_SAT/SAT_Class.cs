@@ -5,45 +5,42 @@ using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SAT;
 
- class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
+class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
 
 
     #region Fields
 
     // --- Fields ---
-    public string problemName {get;} = "SAT";
+    public string problemName { get; } = "SAT";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Boolean_satisfiability_problem";
-    public string formalDefinition {get;} = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
-    public string problemDefinition {get;} = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
+    public string formalDefinition { get; } = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
+    public string problemDefinition { get; } = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Daniel Igbokwe" };
+    public string[] contributors { get; } = { "Daniel Igbokwe" };
 
     public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat {get;} = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
-    public string certificateFormat {get;} = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
-    public string instance {get;set;} = string.Empty;
+    public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
+    public string certificateFormat { get; } = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
+    public string instance { get; set; } = string.Empty;
 
-    public string wikiName {get;} = "";
+    public string wikiName { get; } = "";
     private List<List<string>> _clauses = new List<List<string>>();
     private List<string> _literals = new List<string>();
 
     private string _circuit = "";
 
-    public string circuit
-    {
-        get
-        {
+    public string circuit {
+        get {
             return _circuit;
         }
-        set
-        {
+        set {
             _circuit = value;
         }
     }
 
-    public SATBruteForceSolver defaultSolver {get;} = new SATBruteForceSolver();
+    public SATBruteForceSolver defaultSolver { get; } = new SATBruteForceSolver();
     public SATVerifier defaultVerifier { get; } = new SATVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     // Declared, not derived. SAT is the canonical NP-complete problem (Cook-Levin).
@@ -54,7 +51,7 @@ namespace API.Problems.NPComplete.NPC_SAT;
 
     #region Properties
     // --- Properties ---
-     public List<List<string>> clauses {
+    public List<List<string>> clauses {
         get {
             return _clauses;
         }
@@ -113,21 +110,21 @@ namespace API.Problems.NPComplete.NPC_SAT;
     public void ParseProblem(string phiInput) {
     }
 
-     public List<List<string>> getClauses(string phiInput) {
-        
+    public List<List<string>> getClauses(string phiInput) {
+
         List<List<string>> clauses = new List<List<string>>();
 
         // Strip extra characters
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")","");
+        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
 
         // Parse on | to collect each clause
         string[] rawClauses = strippedInput.Split('&');
 
-        foreach(string clause in rawClauses) {
+        foreach (string clause in rawClauses) {
             List<string> clauseToAdd = new List<string>();
             string[] literals = clause.Split('|');
 
-            foreach(string literal in literals) {
+            foreach (string literal in literals) {
                 clauseToAdd.Add(literal);
             }
             clauses.Add(clauseToAdd);
@@ -138,17 +135,17 @@ namespace API.Problems.NPComplete.NPC_SAT;
     }
 
     public List<string> getLiterals(string phiInput) {
-        
+
         List<string> literals = new List<string>();
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")","");
+        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
 
         // Parse on | to collect each clause
         string[] rawClauses = strippedInput.Split('|');
 
-        foreach(string clause in rawClauses) {
+        foreach (string clause in rawClauses) {
             string[] rawLiterals = clause.Split('&');
 
-            foreach(string literal in rawLiterals) {
+            foreach (string literal in rawLiterals) {
                 literals.Add(literal);
             }
         }
@@ -156,5 +153,5 @@ namespace API.Problems.NPComplete.NPC_SAT;
     }
 
     #endregion
-        
+
 }

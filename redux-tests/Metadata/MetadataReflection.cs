@@ -12,10 +12,8 @@ namespace redux_tests;
 //
 // Other metadata tests (ProblemInstantiation_Tests, ComplexityClass_Tests, and the
 // characterization report) all read from this cache instead of re-instantiating.
-internal static class MetadataReflection
-{
-    internal sealed class Result
-    {
+internal static class MetadataReflection {
+    internal sealed class Result {
         // className -> constructed instance, for every ProblemProvider.Problems entry
         // that could be default-constructed.
         public Dictionary<string, IProblem> Instances { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -37,11 +35,9 @@ internal static class MetadataReflection
     internal static Dictionary<string, Exception> Failures => _result.Value.Failures;
     internal static HashSet<string> TopLevelClassNames => _result.Value.TopLevelClassNames;
 
-    private static Result Build()
-    {
+    private static Result Build() {
         var result = new Result();
-        foreach (var (_, type) in ProblemProvider.Problems)
-        {
+        foreach (var (_, type) in ProblemProvider.Problems) {
             // Same namespace-shape test as ProblemNavigationData.Build. Duplicated
             // rather than shared because that method is private; both must be kept
             // in sync with the source-of-truth comment in Nav_Problems.cs if the
@@ -51,20 +47,14 @@ internal static class MetadataReflection
             if (i >= 0 && ns.Length == i + 3)
                 result.TopLevelClassNames.Add(type.Name);
 
-            try
-            {
-                if (Activator.CreateInstance(type) is IProblem instance)
-                {
+            try {
+                if (Activator.CreateInstance(type) is IProblem instance) {
                     result.Instances[type.Name] = instance;
-                }
-                else
-                {
+                } else {
                     result.Failures[type.Name] = new InvalidOperationException(
                         $"{type.Name} default-constructed but the result did not implement IProblem.");
                 }
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 result.Failures[type.Name] = ex;
             }
         }

@@ -7,8 +7,7 @@ using API.Problems.P.P_SSSP.Solvers;
 
 namespace API.Problems.P.P_SSSP.Verifiers;
 
-class SSSPVerifier : IVerifier<SSSP>
-{
+class SSSPVerifier : IVerifier<SSSP> {
     public string verifierName { get; } = "Single Source Shortest Path Verifier";
     public string verifierDefinition { get; } = "Verifies the solution for the Single Source Shortest Path problem";
     public string source { get; } = "";
@@ -21,8 +20,7 @@ class SSSPVerifier : IVerifier<SSSP>
     // verify : takes a problem instance and a solution certificate,
     // and returns true if the certificate is a valid solution to the problem instance
     // and false otherwise
-    public bool verify(SSSP problem, string solution)
-    {
+    public bool verify(SSSP problem, string solution) {
         _certificate = solution ?? "";
 
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).ToList();
@@ -38,27 +36,21 @@ class SSSPVerifier : IVerifier<SSSP>
 
         // Parse the certificate as a set of (node, path) tuples
         Dictionary<string, List<string>> certPaths;
-        try
-        {
+        try {
             certPaths = ParseSSSPCertificate(_certificate);
-        }
-        catch
-        {
+        } catch {
             return false; // Invalid certificate format
         }
 
         if (certPaths.Count != nodes.Count || !nodes.All(n => certPaths.ContainsKey(n)))
             return false;
 
-        foreach(string node in nodes)
-        {
+        foreach (string node in nodes) {
             List<string> path = certPaths[node];
             bool trueUnreachable = trueDist[node] == null;
 
-            if(path.Count == 0)
-            {
-                if(!trueUnreachable)
-                {
+            if (path.Count == 0) {
+                if (!trueUnreachable) {
                     return false; // certificate says unreachable, but actually reachable
                 }
                 continue;
@@ -71,8 +63,7 @@ class SSSPVerifier : IVerifier<SSSP>
                 return false; // path must start at the source and end at the node
 
             int length = 0;
-            for(int i = 0; i < path.Count -1; i++)
-            {
+            for (int i = 0; i < path.Count - 1; i++) {
                 string u = path[i];
                 string v = path[i + 1];
 
@@ -92,11 +83,10 @@ class SSSPVerifier : IVerifier<SSSP>
             if (length != trueDist[node])
                 return false; // path exists but is not the shortest
         }
-        return true; 
+        return true;
     }
 
-    private static Dictionary<string, int?> AllShortestDistances(Dictionary<string, List<(string neighbor, int weight)>> adjacency, List<string> allNodes, string source)
-    {
+    private static Dictionary<string, int?> AllShortestDistances(Dictionary<string, List<(string neighbor, int weight)>> adjacency, List<string> allNodes, string source) {
         var dist = allNodes.ToDictionary(n => n, _ => int.MaxValue);
         var visited = new HashSet<string>();
         var pq = new PriorityQueue<string, int>();
@@ -104,8 +94,7 @@ class SSSPVerifier : IVerifier<SSSP>
         dist[source] = 0;
         pq.Enqueue(source, 0);
 
-        while(pq.Count > 0)
-        {
+        while (pq.Count > 0) {
             string current = pq.Dequeue();
             if (visited.Contains(current))
                 continue;
@@ -114,8 +103,7 @@ class SSSPVerifier : IVerifier<SSSP>
             if (!adjacency.TryGetValue(current, out var neighbors))
                 continue;
 
-            foreach(var (next, weight) in neighbors)
-            {
+            foreach (var (next, weight) in neighbors) {
                 if (weight < 0)
                     throw new InvalidOperationException("SSSP using Dijkstra's algorithm cannot handle negative edge weights.");
 
@@ -126,18 +114,16 @@ class SSSPVerifier : IVerifier<SSSP>
                     continue;
 
                 int candidate = dist[current] + weight;
-                if(candidate < dist[next])
-                {
+                if (candidate < dist[next]) {
                     dist[next] = candidate;
                     pq.Enqueue(next, candidate);
-                }    
+                }
             }
         }
         return allNodes.ToDictionary(n => n, n => dist[n] == int.MaxValue ? (int?)null : dist[n]);
     }
 
-    public static Dictionary<string, List<string>> ParseSSSPCertificate(string certificate)
-    {
+    public static Dictionary<string, List<string>> ParseSSSPCertificate(string certificate) {
         var result = new Dictionary<string, List<string>>();
 
         string trimmed = certificate.Trim();
@@ -150,8 +136,7 @@ class SSSPVerifier : IVerifier<SSSP>
 
         List<string> tupleChunks = SplitTopLevel(inner);
 
-        foreach(string chunk in tupleChunks)
-        {
+        foreach (string chunk in tupleChunks) {
             string tupleInner = chunk.Trim();
             if (tupleInner.Length < 2 || tupleInner[0] != '(' || tupleInner[^1] != ')')
                 throw new FormatException($"Malformed tuple: {chunk}");
@@ -174,21 +159,18 @@ class SSSPVerifier : IVerifier<SSSP>
     }
 
     // SplitTopLevel: splits a string on commas that sit at depth 0 (ignoring commas nested inside { } or ( ))
-    private static List<string> SplitTopLevel(string s)
-    {
+    private static List<string> SplitTopLevel(string s) {
         var parts = new List<string>();
         int depth = 0;
         int start = 0;
 
-        for(int i = 0; i < s.Length; i++)
-        {
+        for (int i = 0; i < s.Length; i++) {
             char c = s[i];
             if (c == '{' || c == '(')
                 depth++;
             else if (c == '}' || c == ')')
                 depth--;
-            else if(c == ',' && depth == 0)
-            {
+            else if (c == ',' && depth == 0) {
                 parts.Add(s.Substring(start, i - start));
                 start = i + 1;
             }
