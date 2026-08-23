@@ -6,15 +6,13 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class SETCOVER_Tests
-{
+public class SETCOVER_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void SETCOVER_Instance_Format_Described()
-    {
+    public void SETCOVER_Instance_Format_Described() {
         SETCOVER problem = new SETCOVER();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -22,8 +20,7 @@ public class SETCOVER_Tests
     }
 
     [Fact]
-    public void SETCOVER_Certificate_Format_Described()
-    {
+    public void SETCOVER_Certificate_Format_Described() {
         SETCOVER problem = new SETCOVER();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -31,8 +28,7 @@ public class SETCOVER_Tests
     }
 
     [Fact]
-    public void SETCOVER_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void SETCOVER_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         SETCOVER problem = new SETCOVER();
