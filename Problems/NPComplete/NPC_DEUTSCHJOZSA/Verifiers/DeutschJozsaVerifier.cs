@@ -4,6 +4,8 @@ using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Verifiers;
 
 class DeutschJozsaVerifier : IVerifier<DEUTSCHJOZSA> {
+    public const string CertificateGrammar = "'constant' | f is constant, or 'balanced' | f is balanced";
+    public const string CertificateExample = "constant";
 
     // --- Fields ---
     public string verifierName { get; } = "Deutsch Jozsa Verifier";
