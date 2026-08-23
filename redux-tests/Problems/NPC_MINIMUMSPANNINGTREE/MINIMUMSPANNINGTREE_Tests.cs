@@ -210,4 +210,36 @@ public class MINIMUMSPANNINGTREE_Tests
         string response = new P_ProblemsRefactorController().getDefault();
         Assert.Contains("MINIMUMSPANNINGTREE", response);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_Instance_Format_Described()
+    {
+        MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_Certificate_Format_Described()
+    {
+        MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("spanning tree", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE();
+        MinimumSpanningTreeVerifier verifier = new MinimumSpanningTreeVerifier();
+        Assert.True(verifier.verify(problem, "{{1,2},{3,4},{2,3}}"));
+    }
 }

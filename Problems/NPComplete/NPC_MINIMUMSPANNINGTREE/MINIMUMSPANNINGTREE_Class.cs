@@ -20,6 +20,8 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
     public string wikiName { get; } = "";
     public static string _defaultInstance { get; } = "({1,2,3,4},{({1,2},1),({2,3},2),({3,4},1),({1,4},2),({1,3},3)})";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(N,E) where N is the set of node names and E is the set of weighted undirected edges as ({node,node},weight) pairs. Example: ({1,2,3,4},{({1,2},1),({2,3},2),({3,4},1),({1,4},2),({1,3},3)})";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated set of {node,node} edges forming a spanning tree (n-1 edges, all graph nodes connected, no cycles) whose total weight matches the minimum spanning tree weight. Example: {{1,2},{3,4},{2,3}}";
     public string instance { get; set; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
     // Declared, not derived from the Problems/NPComplete/ folder — MST is solvable in
