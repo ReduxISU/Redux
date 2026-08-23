@@ -22,7 +22,9 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public static string _defaultInstance { get; } = "(horse, ros)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    
+    public string instanceFormat { get; } = "(x, y) where x and y are strings; the problem is to transform x into y using insertions, deletions, and substitutions. Example: (horse, ros)";
+    public string certificateFormat { get; } = "The integer minimum number of single-character edit operations (insert, delete, substitute) required to transform x into y. Example: 3";
+
     public EditDistanceDPSolver defaultSolver {get;} = new EditDistanceDPSolver();
     public EditDistanceVerifier defaultVerifier { get; } = new EditDistanceVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
