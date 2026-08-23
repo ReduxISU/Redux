@@ -8,8 +8,7 @@ using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 
-class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
-{
+class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA> {
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
         "Builds an n-qubit Deutsch-Jozsa circuit with Hadamard prep, highlights the oracle, and shows how one query distinguishes constant vs. balanced functions via interference using D3.js.";
@@ -19,8 +18,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
     public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
     public DeutschJozsaD3Visualization() { }
 
-    private sealed class D3GateOp
-    {
+    private sealed class D3GateOp {
         public string id { get; set; } = "";
         public string type { get; set; } = "";
         public string[] targets { get; set; } = Array.Empty<string>();
@@ -30,8 +28,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         public double time { get; set; }
     }
 
-    private sealed class D3Payload
-    {
+    private sealed class D3Payload {
         public string[] qubits { get; set; } = Array.Empty<string>();
         public string[] classical { get; set; } = Array.Empty<string>();
         public List<D3GateOp> gates { get; set; } = new();
@@ -39,8 +36,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         public Dictionary<string, object?> metadata { get; set; } = new();
     }
 
-    private sealed class D3Overlay
-    {
+    private sealed class D3Overlay {
         public string id { get; set; } = "";
         public string type { get; set; } = "stage";
         public string label { get; set; } = "";
@@ -49,23 +45,19 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         public string[] targets { get; set; } = Array.Empty<string>();
     }
 
-    public API_JSON visualize(DEUTSCHJOZSA instance)
-    {
+    public API_JSON visualize(DEUTSCHJOZSA instance) {
         return BuildVisualization(instance, solution: null);
     }
 
-    public API_JSON SolvedVisualization(DEUTSCHJOZSA instance, string solution)
-    {
+    public API_JSON SolvedVisualization(DEUTSCHJOZSA instance, string solution) {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(DEUTSCHJOZSA instance, string? solution)
-    {
+    private API_JSON BuildVisualization(DEUTSCHJOZSA instance, string? solution) {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 
-        try
-        {
+        try {
             bool[] requestBody = instance.w.Select(v => v != 0).ToArray();
             var client = new QuantumServerAPI();
             string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;
@@ -76,15 +68,12 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
             if (root.TryGetProperty("answer", out JsonElement answerElement))
                 answerFromApi = answerElement.GetString();
 
-            if (root.TryGetProperty("qasm", out JsonElement qasmElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement qasmElement)) {
                 string? qasm = qasmElement.GetString();
                 if (!string.IsNullOrWhiteSpace(qasm))
                     circuitJson = BuildD3FromQasm(qasm, answerFromApi, instance, solution);
             }
-        }
-        catch
-        {
+        } catch {
             // fall back to the static payload
         }
 
@@ -94,20 +83,17 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
 
         string? finalSolution = solution ?? answerFromApi;
 
-        return new API_QUANTUMCIRCUIT
-        {
+        return new API_QUANTUMCIRCUIT {
             solution = finalSolution,
             format = QuantumCircuitFormat.D3,
             d3 = d3Element,
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["oracleType"] = answerFromApi ?? (IsConstant(instance) ? "constant" : "balanced")
             }
         };
     }
 
-    private sealed class Op
-    {
+    private sealed class Op {
         public string Type { get; init; } = "";
         public string Id { get; init; } = "";
         public string[] Targets { get; init; } = Array.Empty<string>();
@@ -115,14 +101,12 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         public double[]? Params { get; init; }
     }
 
-    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCHJOZSA instance, string? solution)
-    {
+    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCHJOZSA instance, string? solution) {
         var qubits = new List<string>();
         var classical = new List<string>();
         var ops = new List<Op>();
 
-        foreach (string rawLine in qasm.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
-        {
+        foreach (string rawLine in qasm.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)) {
             string line = rawLine.Trim();
             if (line.Length == 0 || line.StartsWith("//", StringComparison.Ordinal))
                 continue;
@@ -131,41 +115,34 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
             if (line.StartsWith("include", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            if (line.StartsWith("qreg ", StringComparison.Ordinal))
-            {
+            if (line.StartsWith("qreg ", StringComparison.Ordinal)) {
                 string nameAndSize = line.Replace("qreg", "", StringComparison.Ordinal).Replace(";", "").Trim();
                 string[] parts = nameAndSize.Split('[', ']');
-                if (parts.Length >= 2 && int.TryParse(parts[1], out int size))
-                {
+                if (parts.Length >= 2 && int.TryParse(parts[1], out int size)) {
                     for (int i = 0; i < size; i++)
                         qubits.Add($"{parts[0]}{i}");
                 }
                 continue;
             }
 
-            if (line.StartsWith("creg ", StringComparison.Ordinal))
-            {
+            if (line.StartsWith("creg ", StringComparison.Ordinal)) {
                 string nameAndSize = line.Replace("creg", "", StringComparison.Ordinal).Replace(";", "").Trim();
                 string[] parts = nameAndSize.Split('[', ']');
-                if (parts.Length >= 2 && int.TryParse(parts[1], out int size))
-                {
+                if (parts.Length >= 2 && int.TryParse(parts[1], out int size)) {
                     for (int i = 0; i < size; i++)
                         classical.Add($"{parts[0]}{i}");
                 }
                 continue;
             }
 
-            if (line.StartsWith("measure", StringComparison.Ordinal))
-            {
+            if (line.StartsWith("measure", StringComparison.Ordinal)) {
                 string noSemi = line.TrimEnd(';');
                 string[] arrowSplit = noSemi.Split("->", StringSplitOptions.RemoveEmptyEntries);
-                if (arrowSplit.Length == 2)
-                {
+                if (arrowSplit.Length == 2) {
                     string q = NormalizeQubit(arrowSplit[0].Replace("measure", "", StringComparison.Ordinal).Trim());
                     string c = NormalizeQubit(arrowSplit[1].Trim());
 
-                    ops.Add(new Op
-                    {
+                    ops.Add(new Op {
                         Id = $"m{ops.Count}",
                         Type = "m",
                         Targets = new[] { q },
@@ -175,8 +152,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
                 continue;
             }
 
-            if (line.Contains(' '))
-            {
+            if (line.Contains(' ')) {
                 string noSemi = line.TrimEnd(';');
                 string[] tokens = noSemi.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
                 if (tokens.Length < 2) continue;
@@ -188,11 +164,9 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
                 double[]? gateParams = null;
 
                 int parenStart = gateToken.IndexOf('(');
-                if (parenStart >= 0)
-                {
+                if (parenStart >= 0) {
                     int parenEnd = gateToken.LastIndexOf(')');
-                    if (parenEnd > parenStart)
-                    {
+                    if (parenEnd > parenStart) {
                         gateType = gateToken.Substring(0, parenStart).Trim();
 
                         string inside = gateToken.Substring(parenStart + 1, parenEnd - parenStart - 1);
@@ -201,8 +175,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
                                           .ToArray();
 
                         var parsed = new List<double>();
-                        foreach (var p in parts)
-                        {
+                        foreach (var p in parts) {
                             if (double.TryParse(p, out double val))
                                 parsed.Add(val);
                         }
@@ -215,10 +188,8 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
                                            .Select(a => NormalizeQubit(a.Trim()))
                                            .ToArray();
 
-                if (targets.Length > 0)
-                {
-                    ops.Add(new Op
-                    {
+                if (targets.Length > 0) {
+                    ops.Add(new Op {
                         Id = $"{gateType.ToLower()}{ops.Count}",
                         Type = gateType.ToLower(),
                         Targets = targets,
@@ -230,13 +201,11 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
 
         List<D3GateOp> gates = ScheduleOpsAsap(ops);
 
-        var payload = new D3Payload
-        {
+        var payload = new D3Payload {
             qubits = qubits.Count > 0 ? qubits.ToArray() : BuildDefaultQubits(instance),
             classical = classical.Count > 0 ? classical.ToArray() : BuildDefaultClassical(instance),
             gates = gates,
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["solution"] = solution,
                 ["oracleType"] = answer ?? (IsConstant(instance) ? "constant" : "balanced")
             }
@@ -249,8 +218,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static D3Overlay? DetectDeutschJozsaOracleStage(D3Payload payload)
-    {
+    private static D3Overlay? DetectDeutschJozsaOracleStage(D3Payload payload) {
         var qubits = payload.qubits ?? Array.Empty<string>();
         if (qubits.Length < 2) return null;
 
@@ -290,8 +258,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         double tStart = tPrep.Value + 1;
         double tEnd = tPost.Value - 1;
 
-        if (tEnd < tStart)
-        {
+        if (tEnd < tStart) {
             double candidate = tPrep.Value + 1;
             bool exists = payload.gates.Any(g => Math.Abs(g.time - candidate) < 1e-9);
             if (!exists) return null;
@@ -302,8 +269,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         bool hasOracleOps = payload.gates.Any(g => g.time >= tStart && g.time <= tEnd);
         if (!hasOracleOps) return null;
 
-        return new D3Overlay
-        {
+        return new D3Overlay {
             id = "uf",
             type = "oracle",
             label = "U_f",
@@ -313,26 +279,22 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         };
     }
 
-    private static List<D3GateOp> ScheduleOpsAsap(List<Op> ops)
-    {
+    private static List<D3GateOp> ScheduleOpsAsap(List<Op> ops) {
         var gates = new List<D3GateOp>();
 
         double currentTime = 0;
         var layerUsed = new HashSet<string>(StringComparer.Ordinal);
         string? layerType = null;
 
-        void NextLayer()
-        {
+        void NextLayer() {
             currentTime++;
             layerUsed.Clear();
             layerType = null;
         }
 
-        foreach (var op in ops)
-        {
+        foreach (var op in ops) {
             var resources = new HashSet<string>(op.Targets, StringComparer.Ordinal);
-            if (op.Type == "m" && op.Classical != null)
-            {
+            if (op.Type == "m" && op.Classical != null) {
                 foreach (var c in op.Classical) resources.Add(c);
             }
 
@@ -347,8 +309,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
 
             foreach (var r in resources) layerUsed.Add(r);
 
-            gates.Add(new D3GateOp
-            {
+            gates.Add(new D3GateOp {
                 id = op.Id,
                 type = op.Type,
                 targets = op.Targets,
@@ -363,30 +324,24 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return gates;
     }
 
-    private static void OffsetMeasurementTimes(List<D3GateOp> gates)
-    {
+    private static void OffsetMeasurementTimes(List<D3GateOp> gates) {
         const double eps = 0.01;
         var groups = gates.GroupBy(g => g.time);
-        foreach (var grp in groups)
-        {
+        foreach (var grp in groups) {
             double slot = 0;
-            foreach (var g in grp.Where(x => string.Equals(x.type, "m", StringComparison.OrdinalIgnoreCase)))
-            {
+            foreach (var g in grp.Where(x => string.Equals(x.type, "m", StringComparison.OrdinalIgnoreCase))) {
                 g.time = grp.Key + slot * eps;
                 slot += 1;
             }
         }
     }
 
-    private static string NormalizeQubit(string qasmRef)
-    {
+    private static string NormalizeQubit(string qasmRef) {
         string trimmed = qasmRef.Trim();
         int bracket = trimmed.IndexOf('[');
-        if (bracket >= 0)
-        {
+        if (bracket >= 0) {
             int end = trimmed.IndexOf(']', bracket + 1);
-            if (end > bracket)
-            {
+            if (end > bracket) {
                 string name = trimmed.Substring(0, bracket);
                 string idx = trimmed.Substring(bracket + 1, end - bracket - 1);
                 return $"{name}{idx}";
@@ -395,8 +350,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return trimmed.TrimEnd(';');
     }
 
-    private string BuildStaticD3Payload(DEUTSCHJOZSA instance, string? solution)
-    {
+    private string BuildStaticD3Payload(DEUTSCHJOZSA instance, string? solution) {
         int dataCount = Math.Max(1, instance.n);
         string[] qubits = BuildDefaultQubits(instance);
         string[] classical = BuildDefaultClassical(instance);
@@ -409,35 +363,28 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         gates.Add(new { id = "x0", type = "x", targets = new[] { ancilla }, time = 0 });
 
         // H on all qubits (data + ancilla)
-        for (int i = 0; i < qubits.Length; i++)
-        {
+        for (int i = 0; i < qubits.Length; i++) {
             gates.Add(new { id = $"h{i}", type = "h", targets = new[] { qubits[i] }, time = 1 });
         }
 
         // Placeholder oracle column
         int oracleTime = 2;
-        if (IsConstant(instance))
-        {
+        if (IsConstant(instance)) {
             gates.Add(new { id = "oracle_const", type = "i", targets = new[] { ancilla }, label = "U_f", time = oracleTime });
-        }
-        else
-        {
+        } else {
             gates.Add(new { id = "oracle_bal", type = "cx", targets = new[] { qubits[0], ancilla }, label = "U_f", time = oracleTime });
         }
 
         // H on data qubits
         int postHTime = 3;
-        for (int i = 0; i < dataCount; i++)
-        {
+        for (int i = 0; i < dataCount; i++) {
             gates.Add(new { id = $"h_post_{i}", type = "h", targets = new[] { qubits[i] }, time = postHTime });
         }
 
         // Measure data qubits
         int measureTime = 4;
-        for (int i = 0; i < dataCount; i++)
-        {
-            gates.Add(new
-            {
+        for (int i = 0; i < dataCount; i++) {
+            gates.Add(new {
                 id = $"m{i}",
                 type = "m",
                 targets = new[] { qubits[i] },
@@ -458,14 +405,12 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
             }
         };
 
-        var payload = new
-        {
+        var payload = new {
             qubits,
             classical,
             gates,
             overlays,
-            metadata = new
-            {
+            metadata = new {
                 solution,
                 oracleType = IsConstant(instance) ? "constant" : "balanced"
             }
@@ -474,15 +419,13 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static bool IsConstant(DEUTSCHJOZSA instance)
-    {
+    private static bool IsConstant(DEUTSCHJOZSA instance) {
         if (instance.w.Count == 0) return true;
         int first = instance.w[0];
         return instance.w.All(v => v == first);
     }
 
-    private static string[] BuildDefaultQubits(DEUTSCHJOZSA instance)
-    {
+    private static string[] BuildDefaultQubits(DEUTSCHJOZSA instance) {
         int dataCount = Math.Max(1, instance.n);
         var qubits = new List<string>();
         for (int i = 0; i < dataCount; i++)
@@ -491,8 +434,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return qubits.ToArray();
     }
 
-    private static string[] BuildDefaultClassical(DEUTSCHJOZSA instance)
-    {
+    private static string[] BuildDefaultClassical(DEUTSCHJOZSA instance) {
         int dataCount = Math.Max(1, instance.n);
         var classical = new List<string>();
         for (int i = 0; i < dataCount; i++)

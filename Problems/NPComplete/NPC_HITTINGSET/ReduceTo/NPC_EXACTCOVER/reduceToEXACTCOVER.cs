@@ -7,8 +7,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace API.Problems.NPComplete.NPC_HITTINGSET.ReduceTo.NPC_EXACTCOVER;
 
-class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
-{
+class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER> {
 
     // --- Fields ---
     public string reductionName { get; } = "Hitting Set Reduction";
@@ -31,25 +30,19 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
 
 
     // --- Properties ---
-    public HITTINGSET reductionFrom
-    {
-        get
-        {
+    public HITTINGSET reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public EXACTCOVER reductionTo
-    {
-        get
-        {
+    public EXACTCOVER reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
@@ -57,34 +50,28 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
 
 
     // --- Methods Including Constructors ---
-    public reduceToEXACTCOVER(HITTINGSET from)
-    {
+    public reduceToEXACTCOVER(HITTINGSET from) {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
     public reduceToEXACTCOVER(string instance) : this(new HITTINGSET(instance)) { }
     public reduceToEXACTCOVER() : this(new HITTINGSET()) { }
-    public EXACTCOVER reduce()
-    {
+    public EXACTCOVER reduce() {
         UtilCollection universal = new UtilCollection("{}");
         Dictionary<UtilCollection, int> setsToElement = new Dictionary<UtilCollection, int>();
         int elementNum = 1;
-        foreach (UtilCollection set in _reductionFrom.subSets)
-        {
+        foreach (UtilCollection set in _reductionFrom.subSets) {
             setsToElement.Add(set, elementNum);
             universal.Add(new UtilCollection(elementNum.ToString()));
             elementNum++;
         }
 
         UtilCollection subsets = new UtilCollection("{}");
-        foreach (UtilCollection item in _reductionFrom.universalSet)
-        {
+        foreach (UtilCollection item in _reductionFrom.universalSet) {
             UtilCollection newSubset = new UtilCollection("{}");
-            foreach (UtilCollection set in _reductionFrom.subSets)
-            {
-                if (set.Contains(item))
-                {
+            foreach (UtilCollection set in _reductionFrom.subSets) {
+                if (set.Contains(item)) {
                     newSubset.Add(new UtilCollection(setsToElement.GetValueOrDefault(set).ToString()));
                 }
             }
@@ -97,8 +84,7 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER>
         return reductionTo;
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return "";
     }
 }

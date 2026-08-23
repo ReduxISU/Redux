@@ -6,8 +6,7 @@ using System;
 
 namespace API.Problems.P.P_SPSP.Solvers;
 
-class SPSPSolver : ISolver<SPSP>
-{
+class SPSPSolver : ISolver<SPSP> {
     // ----- Fields ----- //
     public string solverName { get; } = "Dijkstra's Algorithm";
     public string solverDefinition { get; } = "";
@@ -24,21 +23,18 @@ class SPSPSolver : ISolver<SPSP>
     public string complexity { get; } = "O((V + E) log V)";
     PriorityQueue<string, int>? pq;
 
-    public string solve(SPSP problem)
-    {
+    public string solve(SPSP problem) {
         UtilCollectionGraph graph = problem.graph;
         List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
 
-        if (nodes.Count == 0)
-        {
+        if (nodes.Count == 0) {
             return "{}"; // No nodes, return empty path
         }
 
         string sourceNode = problem.sourceNode;
         string targetNode = problem.targetNode;
 
-        if (!nodes.Contains(sourceNode) || !nodes.Contains(targetNode))
-        {
+        if (!nodes.Contains(sourceNode) || !nodes.Contains(targetNode)) {
             return "{}";
         }
 
@@ -52,8 +48,7 @@ class SPSPSolver : ISolver<SPSP>
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
 
-        while (pq.Count > 0)
-        {
+        while (pq.Count > 0) {
             if (timerHasExpired)
                 return "{}";
 
@@ -69,8 +64,7 @@ class SPSPSolver : ISolver<SPSP>
             if (!adjacency.TryGetValue(current, out var neighbors))
                 continue; // No neighbors, so skip
 
-            foreach (var (next, weight) in neighbors)
-            {
+            foreach (var (next, weight) in neighbors) {
                 if (visited.Contains(next))
                     continue; // Skip visited neighbors
 
@@ -78,8 +72,7 @@ class SPSPSolver : ISolver<SPSP>
                     continue; // Skip if current node is unreachable
 
                 int candidate = dist[current] + weight;
-                if (candidate < dist[next])
-                {
+                if (candidate < dist[next]) {
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
@@ -94,61 +87,50 @@ class SPSPSolver : ISolver<SPSP>
     }
 
     //Helper method to build an adjacent list from the graph
-    internal static Dictionary<string, List<(string neighbor, int weight)>> BuildAdjacencyList(UtilCollectionGraph graph)
-    {
+    internal static Dictionary<string, List<(string neighbor, int weight)>> BuildAdjacencyList(UtilCollectionGraph graph) {
         var adjacency = new Dictionary<string, List<(string neighbor, int weight)>>();
 
         if (graph.Nodes.Count() == 0)
             return adjacency; // No edges, so return empty adjacency list
 
-        foreach (UtilCollection rawEdge in graph.Edges.ToList())
-        {
+        foreach (UtilCollection rawEdge in graph.Edges.ToList()) {
             // check if edge is weighted
             bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
             bool secondLooksLikeCollection = LooksLikeCollection(rawEdge[1]);
             bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
 
-            if (isWeighted)
-            {
+            if (isWeighted) {
                 UtilCollection endpoints = rawEdge[0];
                 int w = int.Parse(rawEdge[1].ToString()); // Assuming the weight is an integer
 
                 if (endpoints.IsOrdered())
                     AddDirected(adjacency, endpoints[0].ToString(), endpoints[1].ToString(), w);
-                else
-                {
+                else {
                     var cast = endpoints.ToList();
                     if (cast.Count == 1) // Add directed edge from the node to itself
                     {
                         string v = cast[0].ToString();
                         AddDirected(adjacency, v, v, w);
-                    }
-                    else // Undirected edge, add in both directions
-                    {
+                    } else // Undirected edge, add in both directions
+                      {
                         string a = cast[0].ToString();
                         string b = cast[1].ToString();
                         AddDirected(adjacency, a, b, w);
                         AddDirected(adjacency, b, a, w);
                     }
                 }
-            }
-            else
-            {
+            } else {
                 int w = 1;
 
                 if (rawEdge.IsOrdered())
                     AddDirected(adjacency, rawEdge[0].ToString(), rawEdge[1].ToString(), w);
-                else
-                {
+                else {
                     // If it's an unordered pair, treat it as an undirected edge
                     var cast = rawEdge.ToList();
-                    if (cast.Count() == 1)
-                    {
+                    if (cast.Count() == 1) {
                         string v = cast[0].ToString();
                         AddDirected(adjacency, v, v, w);
-                    }
-                    else
-                    {
+                    } else {
                         string a = cast[0].ToString();
                         string b = cast[1].ToString();
                         AddDirected(adjacency, a, b, w);
@@ -161,10 +143,8 @@ class SPSPSolver : ISolver<SPSP>
     }
 
     // AddDirected: Adds a directed edge to the adjacency list
-    private static void AddDirected(Dictionary<string, List<(string neighbor, int weight)>> adjacency, string from, string to, int weight)
-    {
-        if (!adjacency.TryGetValue(from, out var list))
-        {
+    private static void AddDirected(Dictionary<string, List<(string neighbor, int weight)>> adjacency, string from, string to, int weight) {
+        if (!adjacency.TryGetValue(from, out var list)) {
             list = new List<(string neighbor, int weight)>();
             adjacency[from] = list;
         }
@@ -175,16 +155,13 @@ class SPSPSolver : ISolver<SPSP>
     }
 
     // ReconstructPath: Reconstructs the path from source to target using the previous dictionary
-    internal static List<string> ReconstructPath(Dictionary<string, string?> prev, string source, string target)
-    {
+    internal static List<string> ReconstructPath(Dictionary<string, string?> prev, string source, string target) {
         var path = new List<string>();
         string? current = target;
 
-        while (current != null)
-        {
+        while (current != null) {
             path.Add(current);
-            if (current == source)
-            {
+            if (current == source) {
                 break; // Stop if we've reached the source node
             }
             current = prev[current];
@@ -192,31 +169,27 @@ class SPSPSolver : ISolver<SPSP>
 
         path.Reverse();
 
-        if (path.Count() == 0 || path[0] != source)
-        {
+        if (path.Count() == 0 || path[0] != source) {
             return new List<string>(); // No valid path
         }
         return path;
     }
 
     // NodeListCertificate: Converts a list of nodes into the certificate format
-    internal static string NodeListToCertificate(List<string> nodes)
-    {
+    internal static string NodeListToCertificate(List<string> nodes) {
         if (nodes == null || nodes.Count() == 0)
             return "{}"; // No path found, empty certificate
         return "{" + string.Join(",", nodes) + "}";
     }
 
     // LooksLikeCollection: Helper method to determine if a UtilCollection looks like a collection
-    private static bool LooksLikeCollection(UtilCollection u)
-    {
+    private static bool LooksLikeCollection(UtilCollection u) {
         string s = u.ToString().TrimStart();
         return s.StartsWith("{") || s.StartsWith("(");
     }
 
     // GetSteps: The steps are returned as a list of strings, where each string representing a path in the certificate format
-    public List<Object> GetSteps(SPSP problem)
-    {
+    public List<Object> GetSteps(SPSP problem) {
         var steps = new List<Object>();
         UtilCollectionGraph graph = problem.graph;
 
@@ -237,8 +210,7 @@ class SPSPSolver : ISolver<SPSP>
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
 
-        while (pq.Count > 0)
-        {
+        while (pq.Count > 0) {
             if (timerHasExpired)
                 return steps;
 
@@ -259,8 +231,7 @@ class SPSPSolver : ISolver<SPSP>
             if (!adjacency.TryGetValue(current, out var neighbors))
                 continue;
 
-            foreach (var (next, weight) in neighbors)
-            {
+            foreach (var (next, weight) in neighbors) {
                 if (visited.Contains(next))
                     continue;
 
@@ -271,8 +242,7 @@ class SPSPSolver : ISolver<SPSP>
                     continue;
 
                 int candidate = dist[current] + weight;
-                if (candidate < dist[next])
-                {
+                if (candidate < dist[next]) {
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
@@ -282,16 +252,14 @@ class SPSPSolver : ISolver<SPSP>
         return steps;
     }
 
-    public class SPSPTableStepVertex
-    {
+    public class SPSPTableStepVertex {
         public string name { get; set; } = "";
         public bool known { get; set; }
         public string cost { get; set; } = "\u221E"; // Infinity symbol
         public string? path { get; set; }
     }
 
-    public class SPSPTableStep : API_JSON
-    {
+    public class SPSPTableStep : API_JSON {
         public List<SPSPTableStepVertex> vertices { get; set; } = new();
         public string? currentVertex { get; set; }
         public List<string> knownSet { get; set; } = new();
@@ -299,8 +267,7 @@ class SPSPSolver : ISolver<SPSP>
         public string? targetVertex { get; set; }
     }
 
-    public List<Object> GetTableSteps(SPSP problem)
-    {
+    public List<Object> GetTableSteps(SPSP problem) {
         var steps = new List<Object>();
         UtilCollectionGraph graph = problem.graph;
 
@@ -326,8 +293,7 @@ class SPSPSolver : ISolver<SPSP>
 
         steps.Add(BuildTableStep(nodes, dist, prev, visited, currentVertex: null, sourceVertex: sourceNode, targetVertex: targetNode));
 
-        while (pq.Count > 0)
-        {
+        while (pq.Count > 0) {
             if (timerHasExpired)
                 return steps;
 
@@ -347,8 +313,7 @@ class SPSPSolver : ISolver<SPSP>
             if (!adjacency.TryGetValue(current, out var neighbors))
                 continue; // No neighbors, so skip
 
-            foreach (var (next, weight) in neighbors)
-            {
+            foreach (var (next, weight) in neighbors) {
                 if (visited.Contains(next))
                     continue; // Skip visited neighbors
 
@@ -356,8 +321,7 @@ class SPSPSolver : ISolver<SPSP>
                     continue; // Skip if current node is unreachable
 
                 int candidate = dist[current] + weight;
-                if (candidate < dist[next])
-                {
+                if (candidate < dist[next]) {
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
@@ -375,16 +339,13 @@ class SPSPSolver : ISolver<SPSP>
         HashSet<string> visited,
         string? currentVertex,
         string? sourceVertex,
-        string? targetVertex)
-    {
-        return new SPSPTableStep
-        {
+        string? targetVertex) {
+        return new SPSPTableStep {
             currentVertex = currentVertex,
             sourceVertex = sourceVertex,
             targetVertex = targetVertex,
             knownSet = visited.ToList(),
-            vertices = nodes.Select(n => new SPSPTableStepVertex
-            {
+            vertices = nodes.Select(n => new SPSPTableStepVertex {
                 name = n,
                 known = visited.Contains(n),
                 cost = dist[n] == int.MaxValue ? "\u221E" : dist[n].ToString(),

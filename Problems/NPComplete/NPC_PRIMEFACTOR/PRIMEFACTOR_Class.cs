@@ -10,19 +10,19 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
 
     // --- Fields ---
     public string problemName { get; } = "Prime Factorization"; // Name as it appears in the dropdown selection panel
-    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic";
-    public string formalDefinition {get;} =  "Prime Factorization = {<i> | i is int}"; // Mathematical description of the problem (todo later)
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic";
+    public string formalDefinition { get; } = "Prime Factorization = {<i> | i is int}"; // Mathematical description of the problem (todo later)
     public string problemDefinition { get; } = "The prime factorization algorithm solves the decomposition of a positive integer into a product of prime integers."; // plaintext description of the problem
     public string source { get; } = "Gauss, Carl Friedrich (1801), Disquisitiones Arithmeticae (in Latin), Leipzig: Gerh. Fleischer"; // Academic paper proper citation
     public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
     private static readonly string _defaultInstance = "15";
-    public string defaultInstance {get;} = _defaultInstance;
-    public string instance {get;set;} = string.Empty;
-    public string wikiName {get;} = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
-    public ShorsQuantumSolver defaultSolver {get;} = new ShorsQuantumSolver();
+    public string defaultInstance { get; } = _defaultInstance;
+    public string instance { get; set; } = string.Empty;
+    public string wikiName { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
+    public ShorsQuantumSolver defaultSolver { get; } = new ShorsQuantumSolver();
     public PrimeFactorVerifier defaultVerifier { get; } = new PrimeFactorVerifier();
     public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
-    public string[] contributors {get;} = { "Paul Gilbreath", "Alex Svancara" };
+    public string[] contributors { get; } = { "Paul Gilbreath", "Alex Svancara" };
     // Declared, not derived. Integer factorization is in NP and co-NP but not known
     // NP-complete and not known to be in P — the textbook example of NPIntermediate.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPIntermediate;
