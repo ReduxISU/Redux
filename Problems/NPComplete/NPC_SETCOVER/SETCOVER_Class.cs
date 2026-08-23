@@ -18,6 +18,8 @@ class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier,DummyVisualization
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     private static string _defaultInstance = "({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(U,S,K) where U is the universal set, S is a set of subsets of U, and K is the target maximum number of subsets to select. Example: ({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)";
+    public string certificateFormat { get; } = "Set of chosen subsets from S, written as {{sub1},{sub2},...}, whose union covers every element of the universal set U. Example: {{1,2,3},{4,5}}";
     public string instance {get;set;} = string.Empty;
     private List<string> _universal = new List<string>();
     private List<List<string>> _subsets = new List<List<string>>();
