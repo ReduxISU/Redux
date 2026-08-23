@@ -61,8 +61,7 @@ public class EDITDISTANCE_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void EDITDISTANCE_Instance_Format_Described()
-    {
+    public void EDITDISTANCE_Instance_Format_Described() {
         var problem = new EDITDISTANCE();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -70,8 +69,7 @@ public class EDITDISTANCE_Tests {
     }
 
     [Fact]
-    public void EDITDISTANCE_Certificate_Format_Described()
-    {
+    public void EDITDISTANCE_Certificate_Format_Described() {
         var problem = new EDITDISTANCE();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -79,8 +77,7 @@ public class EDITDISTANCE_Tests {
     }
 
     [Fact]
-    public void EDITDISTANCE_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void EDITDISTANCE_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: 3" quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new EDITDISTANCE();

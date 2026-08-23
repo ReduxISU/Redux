@@ -9,6 +9,9 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_EDITDISTANCE.Verifiers;
 
 class EditDistanceVerifier : IVerifier<EDITDISTANCE> {
+    public const string CertificateGrammar = "k | minimum number of single-character edit operations (insert, delete, substitute) to transform x into y";
+    public const string CertificateExample = "3";
+
     public string verifierName { get; } = "Edit Distance Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edit distance is correct for the input strings.";
     public string source { get; } = "https://en.wikipedia.org/wiki/Edit_distance";

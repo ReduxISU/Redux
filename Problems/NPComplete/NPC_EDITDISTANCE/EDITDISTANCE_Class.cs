@@ -21,7 +21,7 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public static string _defaultInstance { get; } = "(horse, ros)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    public const string InstanceGrammar = "(x,y) | x,y are strings";
+    public const string InstanceGrammar = "(x, y) | x,y are strings";
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
     public string certificateFormat { get; } =
         $"Format: {EditDistanceVerifier.CertificateGrammar} Example: {EditDistanceVerifier.CertificateExample}";
