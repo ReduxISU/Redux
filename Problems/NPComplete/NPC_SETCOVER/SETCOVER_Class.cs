@@ -7,29 +7,29 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SETCOVER;
 
-class SETCOVER : IProblem<SetCoverBruteForce,SetCoverVerifier,DummyVisualization> {
+class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, DummyVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Set Cover";
+    public string problemName { get; } = "Set Cover";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Set_cover_problem";
-    public string formalDefinition {get;} = "Sub Cover = {<S,T,k> | S is a set of elements, and there exists a grouping of k T subsetse equal to S}";
-    public string problemDefinition {get;} = "Given a set of elements and a collection S of m sets whose union equals the universe, the set cover problem is to identify the smallest sub-collection of S whose union equals the universe";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string formalDefinition { get; } = "Sub Cover = {<S,T,k> | S is a set of elements, and there exists a grouping of k T subsetse equal to S}";
+    public string problemDefinition { get; } = "Given a set of elements and a collection S of m sets whose union equals the universe, the set cover problem is to identify the smallest sub-collection of S whose union equals the universe";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     private static string _defaultInstance = "({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = "(U,S,K) where U is the universal set, S is a set of subsets of U, and K is the target maximum number of subsets to select. Example: ({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)";
     public string certificateFormat { get; } = "Set of chosen subsets from S, written as {{sub1},{sub2},...}, whose union covers every element of the universal set U. Example: {{1,2,3},{4,5}}";
-    public string instance {get;set;} = string.Empty;
+    public string instance { get; set; } = string.Empty;
     private List<string> _universal = new List<string>();
     private List<List<string>> _subsets = new List<List<string>>();
 
-    public string wikiName {get;} = "";
+    public string wikiName { get; } = "";
     private int _K = 3;
-    public SetCoverBruteForce defaultSolver {get;} = new SetCoverBruteForce();
+    public SetCoverBruteForce defaultSolver { get; } = new SetCoverBruteForce();
     public SetCoverVerifier defaultVerifier { get; } = new SetCoverVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // Declared, not derived. SETCOVER is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 

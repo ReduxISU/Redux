@@ -2,13 +2,14 @@
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
+
 class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
 
     // --- Fields ---
-    public string solverName {get;} = "Bernstein Vazirani Classical Solver";
+    public string solverName { get; } = "Bernstein Vazirani Classical Solver";
     public string solverDefinition { get; } = "This is a classical verifier for the Bernstein-Vazirani problem which runs in O(n) time.";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Jason L. Wright" };
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Classical baseline paired with BernsteinVaziraniQuantumSolver; no
     // SolverType bucket fits so solverType stays Unclassified per user decision. O(n) classical
@@ -18,7 +19,7 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
     public string complexity { get; } = "O(n)";
 
     // --- Methods Including Constructors ---
-    public BernsteinVaziraniClassicalSolver() {}
+    public BernsteinVaziraniClassicalSolver() { }
 
     public string solve(BERNSTEINVAZIRANI problem) {
         UtilCollection result = new("()");

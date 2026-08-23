@@ -6,8 +6,7 @@ using API.Problems.P.P_SPSP.Solvers;
 
 namespace API.Problems.P.P_SPSP.Visualizations;
 
-class SPSPVisualization : IVisualization<SPSP>
-{
+class SPSPVisualization : IVisualization<SPSP> {
     public string visualizationName { get; } = "Single Pair Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Pair Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
@@ -17,8 +16,7 @@ class SPSPVisualization : IVisualization<SPSP>
 
     public SPSPVisualization() { }
 
-    public API_JSON visualize(SPSP problem)
-    {
+    public API_JSON visualize(SPSP problem) {
         // For simplicity, we will just return a JSON representation of the graph
         // In a real implementation, this would be more complex and would include visual elements
         return problem.graph.ToAPIGraph();
@@ -26,20 +24,16 @@ class SPSPVisualization : IVisualization<SPSP>
 
     // SolvedVisualization: takes a problem instance and a solution certificate,
     // and returns a visualization of the problem instance with the solution highlighted
-    public API_JSON SolvedVisualization(SPSP problem, string solution)
-    {
+    public API_JSON SolvedVisualization(SPSP problem, string solution) {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
             // No path found, return graph with no highlights
             return visualize(problem);
 
         List<string> path;
-        try
-        {
+        try {
             // Parse the solution as a path
             path = GraphParser.parseNodeListWithStringFunctions(solution);
-        }
-        catch
-        {
+        } catch {
             // Invalid solution format, return graph with no highlights
             return visualize(problem);
         }
@@ -55,8 +49,7 @@ class SPSPVisualization : IVisualization<SPSP>
         for (int i = 0; i < path.Count - 1; i++)
             pathEdges.Add((path[i], path[i + 1]));
 
-        for (int i = 0; i < graph.links.Count; i++)
-        {
+        for (int i = 0; i < graph.links.Count; i++) {
             var link = graph.links[i];
             bool isForwardPathEdge = pathEdges.Contains((link.source, link.target));
             bool isReversePathEdge = !problem.isDirected && pathEdges.Contains((link.target, link.source));
@@ -69,27 +62,21 @@ class SPSPVisualization : IVisualization<SPSP>
         return graph;
     }
 
-    public List<API_JSON> StepsVisualization(SPSP problem, List<Object> steps)
-    {
+    public List<API_JSON> StepsVisualization(SPSP problem, List<Object> steps) {
         var result = new List<API_JSON>();
 
-        for (int s = 0; s < steps.Count; s++)
-        {
+        for (int s = 0; s < steps.Count; s++) {
             string? step = steps[s].ToString();
 
-            if (string.IsNullOrWhiteSpace(step) || step.Trim() == "{}")
-            {
+            if (string.IsNullOrWhiteSpace(step) || step.Trim() == "{}") {
                 result.Add(visualize(problem));
                 continue;
             }
 
             List<string> path;
-            try
-            {
+            try {
                 path = GraphParser.parseNodeListWithStringFunctions(step);
-            }
-            catch
-            {
+            } catch {
                 result.Add(visualize(problem));
                 continue;
             }
@@ -99,19 +86,13 @@ class SPSPVisualization : IVisualization<SPSP>
             string? currentNode = path.Count > 0 ? path[path.Count - 1] : null;
             var pathNodes = new HashSet<string>(path);
 
-            for (int i = 0; i < graph.nodes.Count; i++)
-            {
-                if (graph.nodes[i].name == currentNode)
-                {
+            for (int i = 0; i < graph.nodes.Count; i++) {
+                if (graph.nodes[i].name == currentNode) {
                     graph.nodes[i].color = "ElementHighlight";
                     graph.nodes[i].outline = "Purple";
-                }
-                else if (pathNodes.Contains(graph.nodes[i].name))
-                {
+                } else if (pathNodes.Contains(graph.nodes[i].name)) {
                     graph.nodes[i].color = "Solution";
-                }
-                else
-                {
+                } else {
                     graph.nodes[i].color = "Background";
                 }
             }
@@ -120,8 +101,7 @@ class SPSPVisualization : IVisualization<SPSP>
             for (int i = 0; i < path.Count - 1; i++)
                 pathEdges.Add((path[i], path[i + 1]));
 
-            for (int i = 0; i < graph.links.Count; i++)
-            {
+            for (int i = 0; i < graph.links.Count; i++) {
                 var link = graph.links[i];
                 bool isForwardPathEdge = pathEdges.Contains((link.source, link.target));
                 bool isReversedPathEdge = !problem.isDirected && pathEdges.Contains((link.target, link.source));
