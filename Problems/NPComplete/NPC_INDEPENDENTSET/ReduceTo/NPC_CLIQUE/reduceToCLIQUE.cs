@@ -14,12 +14,12 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
 
     // --- Fields ---
-    public string reductionName {get;} = "Clique reduction";
-    public string reductionDefinition {get;} = @"This reduction converts an independent set problem into a clique problem, 
+    public string reductionName { get; } = "Clique reduction";
+    public string reductionDefinition { get; } = @"This reduction converts an independent set problem into a clique problem, 
                                             by taking the complement of the graph, or inverting all the edges.";
-    public string source {get;} = "";
+    public string source { get; } = "";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)#Relationship_to_other_graph_parameters";
-    public string[] contributors {get;} = {"Russell Phillips"};
+    public string[] contributors { get; } = { "Russell Phillips" };
     // reduce() materializes the complement graph (all node pairs that are NOT edges
     // in the input) — up to O(n^2) edges even when the input only encodes O(n+m).
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
@@ -51,16 +51,14 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     }
 
     // --- Methods Including Constructors ---
-    public reduceToCLIQUE(INDEPENDENTSET from)
-    {
+    public reduceToCLIQUE(INDEPENDENTSET from) {
         gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
 
-    public reduceToCLIQUE(string from) : this(new INDEPENDENTSET(from))
-    {
+    public reduceToCLIQUE(string from) : this(new INDEPENDENTSET(from)) {
 
     }
     public reduceToCLIQUE() : this(new INDEPENDENTSET()) { }
@@ -79,22 +77,18 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
-        foreach (var i in INDPENDENTSETInstance.nodes)
-        {
-            foreach (var j in INDPENDENTSETInstance.nodes)
-            {
+        foreach (var i in INDPENDENTSETInstance.nodes) {
+            foreach (var j in INDPENDENTSETInstance.nodes) {
                 KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i, j);
                 KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j, i);
-                if (!(INDPENDENTSETInstance.edges.Contains(pairCheck1) || INDPENDENTSETInstance.edges.Contains(pairCheck2) || i.Equals(j) || edges.Contains(pairCheck1) || edges.Contains(pairCheck2)))
-                {
+                if (!(INDPENDENTSETInstance.edges.Contains(pairCheck1) || INDPENDENTSETInstance.edges.Contains(pairCheck2) || i.Equals(j) || edges.Contains(pairCheck1) || edges.Contains(pairCheck2))) {
                     edges.Add(pairCheck1);
                 }
             }
         }
 
         //set up gadgets
-        foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes)
-        {
+        foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes) {
             gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
 
@@ -106,7 +100,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
         nodesString = nodesString.Trim(',');
 
         string edgesString = "";
-        foreach (KeyValuePair<string,string> edge in edges) {
+        foreach (KeyValuePair<string, string> edge in edges) {
             edgesString += "{" + edge.Key + "," + edge.Value + "}" + ",";
         }
         edgesString = edgesString.Trim(',');
@@ -119,8 +113,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return problemFromSolution;
     }
 

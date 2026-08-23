@@ -2,9 +2,9 @@
 namespace API.Interfaces;
 
 interface ISolver {
-    string solverName{get;}
-    string solverDefinition{get;}
-    string source {get;}
+    string solverName { get; }
+    string solverDefinition { get; }
+    string source { get; }
     string[] contributors { get; }
 
     bool timerHasExpired { get; set; }
@@ -39,18 +39,15 @@ interface ISolver {
     /// expected to check the "timerHasExpired" periodically and abandon the solution
     /// if the flag is found to be true.
     /// </summary>
-    public void TimerExpired()
-    {
+    public void TimerExpired() {
         timerHasExpired = true;
     }
-    public void ResetTimer()
-    {
+    public void ResetTimer() {
         timerHasExpired = false;
     }
     string solve(string problem);
 
-    List<Object> GetSteps(string instance)
-    {
+    List<Object> GetSteps(string instance) {
         return new List<Object>();
     }
 }
@@ -69,8 +66,7 @@ interface ISolver<T> : ISolver where T : IProblem {
 
     string solve(T problem);
 
-    List<Object> ISolver.GetSteps(string instance)
-    {
+    List<Object> ISolver.GetSteps(string instance) {
         object? problemInstance = Activator.CreateInstance(typeof(T), instance);
         if (problemInstance == null)
             throw new ArgumentException($"Could not create problem instance for {instance}.");
@@ -78,8 +74,7 @@ interface ISolver<T> : ISolver where T : IProblem {
         return GetSteps((T)problemInstance);
     }
 
-    List<Object> GetSteps(T problem)
-    {
+    List<Object> GetSteps(T problem) {
         return new List<Object>();
     }
 }

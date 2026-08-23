@@ -23,14 +23,12 @@ record PumpFrameMetrics(
 
 record PumpFrameState(List<PumpStatusEntry> pumps);
 
-class API_PumpFrame : API_JSON
-{
+class API_PumpFrame : API_JSON {
     public string action { get; }
     public PumpFrameMetrics metrics { get; }
     public PumpFrameState state { get; }
 
-    public API_PumpFrame(string action, PumpFrameMetrics metrics, PumpFrameState state)
-    {
+    public API_PumpFrame(string action, PumpFrameMetrics metrics, PumpFrameState state) {
         this.action = action;
         this.metrics = metrics;
         this.state = state;
@@ -39,8 +37,7 @@ class API_PumpFrame : API_JSON
 
 // --- Visualization ---
 
-class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
-{
+class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM> {
     public string visualizationName { get; } = "Pump Scheduling Cost Minimization — DAG Animation";
     public string visualizationDefinition { get; } =
         "Animates the 24-hour optimal pump schedule, showing per-hour pump states, " +
@@ -59,8 +56,7 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
     List<API_JSON> IVisualization.StepsVisualization(string instance, List<object> steps)
         => StepsVisualization(new PUMPSCHEDULINGCM(instance), steps);
 
-    public List<API_JSON> StepsVisualization(PUMPSCHEDULINGCM problem, List<object> _steps)
-    {
+    public List<API_JSON> StepsVisualization(PUMPSCHEDULINGCM problem, List<object> _steps) {
         string certificate = new PumpSchedulingCMSolver().solve(problem);
         if (string.IsNullOrEmpty(certificate))
             return new List<API_JSON>();
@@ -69,26 +65,21 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
         int n = problem.Pumps.Count;
         int[] schedMasks = new int[24];
 
-        try
-        {
+        try {
             var cert = new UtilCollection(certificate);
             var certParts = cert.ToList();
             var schedSection = (UtilCollection)certParts[1];
 
             int pumpIdx = 0;
-            foreach (UtilCollection pumpRow in schedSection)
-            {
+            foreach (UtilCollection pumpRow in schedSection) {
                 var parts = pumpRow.ToList();
-                for (int h = 0; h < 24 && h + 1 < parts.Count; h++)
-                {
+                for (int h = 0; h < 24 && h + 1 < parts.Count; h++) {
                     if (parts[h + 1].ToString().Trim() == "1")
                         schedMasks[h] |= (1 << pumpIdx);
                 }
                 pumpIdx++;
             }
-        }
-        catch
-        {
+        } catch {
             return new List<API_JSON>();
         }
 
@@ -99,8 +90,7 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
         int prevMask = 0;
         int nMasks = 1 << n;
 
-        for (int h = 0; h < 24; h++)
-        {
+        for (int h = 0; h < 24; h++) {
             int mask = schedMasks[h];
             bool isPeak = problem.PeakHours.Contains(h);
             double rate = isPeak ? problem.OnPeakCostPerKwh : problem.OffPeakCostPerKwh;
@@ -110,10 +100,8 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
             double startupCost = 0.0;
             int startups = (~prevMask) & mask & (nMasks - 1);
 
-            for (int p = 0; p < n; p++)
-            {
-                if ((mask & (1 << p)) != 0)
-                {
+            for (int p = 0; p < n; p++) {
+                if ((mask & (1 << p)) != 0) {
                     energyCost += problem.Pumps[p].PowerKw * rate;
                     flowIn += problem.Pumps[p].FlowRateGph;
                 }
@@ -128,8 +116,7 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM>
 
             var pumpStatuses = new List<PumpStatusEntry>();
             var activeNames = new List<string>();
-            for (int p = 0; p < n; p++)
-            {
+            for (int p = 0; p < n; p++) {
                 bool isOn = (mask & (1 << p)) != 0;
                 if (isOn) activeNames.Add(problem.Pumps[p].Name);
                 pumpStatuses.Add(new PumpStatusEntry(
