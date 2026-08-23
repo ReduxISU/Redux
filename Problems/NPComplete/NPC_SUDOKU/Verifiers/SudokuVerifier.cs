@@ -6,10 +6,10 @@ class SudokuVerifier : IVerifier<SUDOKU> {
 
     // --- Fields ---
     public string verifierName { get; } = "Sudoku Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for Sudoku. It takes the certificate from the user and validates that it follows the rules of Sudoku and matches the initial clues from the problem instance.";
-    public string source {get;} = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
+    public string verifierDefinition { get; } = "This is a verifier for Sudoku. It takes the certificate from the user and validates that it follows the rules of Sudoku and matches the initial clues from the problem instance.";
+    public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
     public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };
-    private readonly string _certificate =  "";
+    private readonly string _certificate = "";
 
     public string certificate {
         get {
@@ -21,10 +21,10 @@ class SudokuVerifier : IVerifier<SUDOKU> {
     private int GRID_SIZE;
     private int BLOCK_SIZE;
     public SudokuVerifier() {
-        
+
     }
 
-    public bool verify(SUDOKU problem, string certificate){
+    public bool verify(SUDOKU problem, string certificate) {
         // int i = Convert.ToInt32(certificate);
         // // All we need to do is see if funcValues[certificate] is non-zero
         // return problem.funcValues[i] != 0;
@@ -78,7 +78,7 @@ class SudokuVerifier : IVerifier<SUDOKU> {
                 // Check for duplicates in the same 3x3 block
                 int blockRowStart = i / BLOCK_SIZE * BLOCK_SIZE;
                 int blockColStart = j / BLOCK_SIZE * BLOCK_SIZE;
-                if(isDuplicateInBlock(certificateGrid, blockRowStart, blockColStart, currentValue, i, j)) {
+                if (isDuplicateInBlock(certificateGrid, blockRowStart, blockColStart, currentValue, i, j)) {
                     return false;
                 }
 
@@ -103,7 +103,7 @@ class SudokuVerifier : IVerifier<SUDOKU> {
                 grid[i][j] = int.Parse(parsedString[i * GRID_SIZE + j].ToString());
             }
         }
-        
+
         return grid;*/
 
         input = input.ReplaceLineEndings(string.Empty);
@@ -112,8 +112,7 @@ class SudokuVerifier : IVerifier<SUDOKU> {
 
         int[][] grid = new int[rows.Length][];
 
-        for (int i = 0; i < rows.Length; i++)
-        {
+        for (int i = 0; i < rows.Length; i++) {
             var nums = rows[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
             grid[i] = Array.ConvertAll(nums, int.Parse);
         }
