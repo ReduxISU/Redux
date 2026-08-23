@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class DeutschDefaultVisualization : IVisualization<DEUTSCH>
-{
+class DeutschDefaultVisualization : IVisualization<DEUTSCH> {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests the QASM for the two-qubit Deutsch circuit, showing the oracle call and measurement that separates constant vs. balanced functions in one query for Q.js rendering.";
 
@@ -16,14 +15,11 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
     public ISolver solver { get; } = new DeutschClassicalSolver();
 
     // --- Methods Including Constructors ---
-    public DeutschDefaultVisualization()
-    {
+    public DeutschDefaultVisualization() {
 
     }
-    public API_JSON visualize(DEUTSCH instance)
-    {
-        return new API_QUANTUMCIRCUIT
-        {
+    public API_JSON visualize(DEUTSCH instance) {
+        return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",
             solution = ""
@@ -31,16 +27,13 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
 
     }
 
-    public API_JSON SolvedVisualization(DEUTSCH instance, string solution)
-    {
-        var qc = new API_QUANTUMCIRCUIT
-        {
+    public API_JSON SolvedVisualization(DEUTSCH instance, string solution) {
+        var qc = new API_QUANTUMCIRCUIT {
             solution = solution,
             format = QuantumCircuitFormat.QASM
         };
 
-        try
-        {
+        try {
             // Get the function values from the problem instance
             bool[] requestBody = instance.funcValues;
 
@@ -54,13 +47,10 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH>
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("qasm", out JsonElement qasmElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement qasmElement)) {
                 qc.qasm = qasmElement.GetString() ?? "";
             }
-        }
-        catch (Exception)
-        {
+        } catch (Exception) {
             // If API call fails, leave circuit empty
             qc.qasm = "";
         }

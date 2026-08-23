@@ -12,7 +12,7 @@ public class SIMON_tests {
         SIMON jobSeq = new SIMON();
         Assert.Equal("(5, 6, 5, 6, 3, 2, 3, 2)", jobSeq.instance);
         Assert.Equal("(5, 6, 5, 6, 3, 2, 3, 2)", jobSeq.defaultInstance);
-    } 
+    }
 
     [Fact]
     public void SIMON_Custom_Instantiation() {
