@@ -7,6 +7,8 @@ using API.Problems.NPComplete.NPC_DOMINATINGSET;
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Verifiers;
 
 class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
+    public const string CertificateGrammar = "D subset N | every node not in D has a neighbor in D (dominating set), |D| <= K";
+    public const string CertificateExample = "{1,3}";
 
     // --- Fields ---
     private string _verifierName = "Dominating Set Verifier";
