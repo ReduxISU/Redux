@@ -11,26 +11,26 @@ namespace API.Problems.NPComplete.NPC_KNAPSACK;
 class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Knapsack (Binary)";
+    public string problemName { get; } = "Knapsack (Binary)";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Knapsack_problem";
 
-    public string formalDefinition {get;} = "KNAPSACK = {<H, W, V> | H is a set of items (w,v) and there is a subset of items in H whose collective weight is less than or equal to W and whose collective value is equal or greater than V.}";
+    public string formalDefinition { get; } = "KNAPSACK = {<H, W, V> | H is a set of items (w,v) and there is a subset of items in H whose collective weight is less than or equal to W and whose collective value is equal or greater than V.}";
 
-    public string problemDefinition {get;} = "The 0-1 KNAPSACK decision problem is given a knapsack with a maximum capacity W and target value V and a set of n items x_1, x_2,... x_n with weights w_1,w_2,... w_n and values v_1,v_2,... v_n find the combination of singular items that provide greater than V value while staying under W. ";
+    public string problemDefinition { get; } = "The 0-1 KNAPSACK decision problem is given a knapsack with a maximum capacity W and target value V and a set of n items x_1, x_2,... x_n with weights w_1,w_2,... w_n and values v_1,v_2,... v_n find the combination of singular items that provide greater than V value while staying under W. ";
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
 
-    public string[] contributors {get;} = { "Garret Stouffer", "Daniel Igbokwe"};
-    
-    public string instance {get;set;} = string.Empty;
+    public string[] contributors { get; } = { "Garret Stouffer", "Daniel Igbokwe" };
+
+    public string instance { get; set; } = string.Empty;
 
 
     private static readonly string _defaultInstance = "({(10,60),(20,100),(30,120)},50,220)";
-    public string defaultInstance {get;} = _defaultInstance;
- 
+    public string defaultInstance { get; } = _defaultInstance;
 
-    public string wikiName {get;} = "Knapsack";
+
+    public string wikiName { get; } = "Knapsack";
 
     public UtilCollection items { get; set; }
 
@@ -39,7 +39,7 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
     public int V { get; set; }
 
 
-    public KnapsackBruteForce defaultSolver {get;} = new KnapsackBruteForce();
+    public KnapsackBruteForce defaultSolver { get; } = new KnapsackBruteForce();
     public KnapsackVerifier defaultVerifier { get; } = new KnapsackVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     // Declared, not derived. KNAPSACK is NP-complete (Karp, 1972).

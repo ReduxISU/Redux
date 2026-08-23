@@ -12,12 +12,10 @@ namespace redux_tests;
 // content flows transitively into the redux-tests output dir, so these tests
 // exercise the real packaging + path-resolution fix rather than the build-time
 // source tree — i.e. they would fail the same way a deployed container did.
-public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
-{
+public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
-    public ProblemTemplate_Endpoint_Tests(AppFactory factory)
-    {
+    public ProblemTemplate_Endpoint_Tests(AppFactory factory) {
         _client = factory.CreateClient();
     }
 
@@ -27,8 +25,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
         "{NAME", "{PROBLEM", "{SOLVER", "{VERIFIER", "{VISUALIZATION", "{REDUCE", "{REDUCTION",
     };
 
-    private async Task<Dictionary<string, string>> GetZipEntries(string url)
-    {
+    private async Task<Dictionary<string, string>> GetZipEntries(string url) {
         var response = await _client.GetAsync(url, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -37,18 +34,15 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
 
         using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
         var entries = new Dictionary<string, string>();
-        foreach (var entry in archive.Entries)
-        {
+        foreach (var entry in archive.Entries) {
             using var reader = new StreamReader(entry.Open());
             entries[entry.FullName] = reader.ReadToEnd();
         }
         return entries;
     }
 
-    private static void AssertNoPlaceholders(string content)
-    {
-        foreach (var token in Placeholders)
-        {
+    private static void AssertNoPlaceholders(string content) {
+        foreach (var token in Placeholders) {
             Assert.DoesNotContain(token, content);
         }
     }
@@ -56,8 +50,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
     // ── GET /ProblemTemplate ──────────────────────────────────────────────────
 
     [Fact]
-    public async Task ProblemTemplate_Returns200WithExpectedEntries()
-    {
+    public async Task ProblemTemplate_Returns200WithExpectedEntries() {
         var entries = await GetZipEntries("/ProblemTemplate?problemName=Traveling%20Sales%20Person");
 
         Assert.Contains("README.md", entries.Keys);
@@ -68,8 +61,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task ProblemTemplate_SubstitutesAllPlaceholders()
-    {
+    public async Task ProblemTemplate_SubstitutesAllPlaceholders() {
         var entries = await GetZipEntries("/ProblemTemplate?problemName=Traveling%20Sales%20Person");
         var classFile = entries["NPC_TRAVELINGSALESPERSON/TRAVELINGSALESPERSON_Class.cs"];
 
@@ -81,8 +73,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
     // ── GET /ProblemTemplate/reduction ────────────────────────────────────────
 
     [Fact]
-    public async Task Reduction_Returns200WithSubstitutedFile()
-    {
+    public async Task Reduction_Returns200WithSubstitutedFile() {
         var entries = await GetZipEntries(
             "/ProblemTemplate/reduction?problemFrom=SAT3&problemTo=CLIQUE&reductionName=Sat3%20To%20Clique");
 
@@ -97,8 +88,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
     // ── GET /ProblemTemplate/solver ───────────────────────────────────────────
 
     [Fact]
-    public async Task Solver_Returns200WithExpectedEntries()
-    {
+    public async Task Solver_Returns200WithExpectedEntries() {
         var entries = await GetZipEntries(
             "/ProblemTemplate/solver?problemName=CLIQUE&solverName=My%20Clique%20Solver");
 
@@ -110,8 +100,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
     // ── GET /ProblemTemplate/verifier ─────────────────────────────────────────
 
     [Fact]
-    public async Task Verifier_Returns200WithExpectedEntries()
-    {
+    public async Task Verifier_Returns200WithExpectedEntries() {
         var entries = await GetZipEntries(
             "/ProblemTemplate/verifier?problemName=CLIQUE&verifierName=My%20Clique%20Verifier");
 
@@ -125,8 +114,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory>
     // on any case-sensitive filesystem before the fix.
 
     [Fact]
-    public async Task Visualization_Returns200WithExpectedEntries()
-    {
+    public async Task Visualization_Returns200WithExpectedEntries() {
         var entries = await GetZipEntries(
             "/ProblemTemplate/visualization?problemName=CLIQUE&visualizationName=My%20Clique%20Visualization");
 

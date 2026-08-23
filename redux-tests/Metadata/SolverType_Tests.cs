@@ -15,8 +15,7 @@ namespace redux_tests;
 // *** These declarations are public correctness claims the API begins serving the moment
 // this merges. Which solvers are Unclassified — on any axis — needs advisor sign-off
 // before merge, same as prior classification passes. ***
-public class SolverType_Tests : IClassFixture<AppFactory>
-{
+public class SolverType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
@@ -28,8 +27,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
     // are the actual fix; these are the regression guard.
 
     [Fact]
-    public async Task Info_SerializesSolverTypeAndComplexityBucketAsString()
-    {
+    public async Task Info_SerializesSolverTypeAndComplexityBucketAsString() {
         var response = await _client.GetAsync(
             "/ProblemProvider/info?interface=KnapsackDP",
             TestContext.Current.CancellationToken);
@@ -50,8 +48,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task AllInfo_SerializesEverySolverTypeAndComplexityBucketAsString()
-    {
+    public async Task AllInfo_SerializesEverySolverTypeAndComplexityBucketAsString() {
         var response = await _client.GetAsync("/Navigation/Batch/allInfo", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -61,12 +58,10 @@ public class SolverType_Tests : IClassFixture<AppFactory>
 
         int checkedSolverType = 0;
         int checkedComplexityBucket = 0;
-        foreach (var (className, element) in map!)
-        {
+        foreach (var (className, element) in map!) {
             if (element.ValueKind != JsonValueKind.Object) continue;
 
-            if (element.TryGetProperty("solverType", out var typeProp))
-            {
+            if (element.TryGetProperty("solverType", out var typeProp)) {
                 checkedSolverType++;
                 Assert.True(typeProp.ValueKind == JsonValueKind.String,
                     $"{className}.solverType serialized as {typeProp.ValueKind}, expected String. This is " +
@@ -74,8 +69,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
                     "StringEnumConverter is pinned on SolverType.");
             }
 
-            if (element.TryGetProperty("complexityBucket", out var bucketProp))
-            {
+            if (element.TryGetProperty("complexityBucket", out var bucketProp)) {
                 checkedComplexityBucket++;
                 Assert.True(bucketProp.ValueKind == JsonValueKind.String,
                     $"{className}.complexityBucket serialized as {bucketProp.ValueKind}, expected String. " +
@@ -123,8 +117,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclaredSolverType()
-    {
+    public void NoNewUndeclaredSolverType() {
         var actual = ActualSolverTypeUndeclared();
         var allowlist = new HashSet<string>(SolverTypeUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -137,8 +130,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleSolverTypeEntries()
-    {
+    public void AllowlistHasNoStaleSolverTypeEntries() {
         var actual = ActualSolverTypeUndeclared();
         var stale = SolverTypeUnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 
@@ -179,8 +171,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclaredComplexityBucket()
-    {
+    public void NoNewUndeclaredComplexityBucket() {
         var actual = ActualComplexityBucketUndeclared();
         var allowlist = new HashSet<string>(ComplexityBucketUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -193,8 +184,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleComplexityBucketEntries()
-    {
+    public void AllowlistHasNoStaleComplexityBucketEntries() {
         var actual = ActualComplexityBucketUndeclared();
         var stale = ComplexityBucketUnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 
@@ -229,8 +219,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclaredComplexity()
-    {
+    public void NoNewUndeclaredComplexity() {
         var actual = ActualComplexityUndeclared();
         var allowlist = new HashSet<string>(ComplexityUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -243,8 +232,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleComplexityEntries()
-    {
+    public void AllowlistHasNoStaleComplexityEntries() {
         var actual = ActualComplexityUndeclared();
         var stale = ComplexityUnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 
@@ -263,15 +251,13 @@ public class SolverType_Tests : IClassFixture<AppFactory>
 
     private readonly Xunit.ITestOutputHelper _output;
 
-    public SolverType_Tests(AppFactory factory, Xunit.ITestOutputHelper output)
-    {
+    public SolverType_Tests(AppFactory factory, Xunit.ITestOutputHelper output) {
         _client = factory.CreateClient();
         _output = output;
     }
 
     [Fact]
-    public void CharacterizationReport_DumpsPerSolverMetadata()
-    {
+    public void CharacterizationReport_DumpsPerSolverMetadata() {
         var solverTypeByClassName = SolverTypeCatalog.SolverTypeByClassName.Value;
         var complexityBucketByClassName = SolverTypeCatalog.ComplexityBucketByClassName.Value;
         var complexityByClassName = SolverTypeCatalog.ComplexityByClassName.Value;
@@ -286,8 +272,7 @@ public class SolverType_Tests : IClassFixture<AppFactory>
         _output.WriteLine($"Solvers reflected: {allClassNames.Count}");
         _output.WriteLine("");
 
-        foreach (var className in allClassNames)
-        {
+        foreach (var className in allClassNames) {
             string solverType = solverTypeByClassName.TryGetValue(className, out var st) ? st : "<not instantiated>";
             string complexityBucket = complexityBucketByClassName.TryGetValue(className, out var cb) ? cb : "<not instantiated>";
             string complexity = complexityByClassName.TryGetValue(className, out var c)

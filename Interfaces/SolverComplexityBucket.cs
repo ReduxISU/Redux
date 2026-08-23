@@ -16,8 +16,7 @@ namespace API.Interfaces;
 /// </para>
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<SolverComplexityBucket>))]
-public enum SolverComplexityBucket
-{
+public enum SolverComplexityBucket {
     /// <summary>No complexity bucket has been declared for this solver yet.</summary>
     Unclassified = 0,
     /// <summary>Worst-case running time is polynomial in instance size.</summary>

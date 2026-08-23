@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_HAMILTONIAN;
 
-class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, HamiltonianDefaultVisualization, UtilCollectionGraph>
-{
+class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, HamiltonianDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
     public string problemName { get; } = "Hamiltonian Path";
@@ -34,43 +33,34 @@ class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, Ha
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
-    public List<string> nodes
-    {
-        get
-        {
+    public List<string> nodes {
+        get {
             return _nodes;
         }
-        set
-        {
+        set {
             _nodes = value;
         }
     }
-    public List<KeyValuePair<string, string>> edges
-    {
-        get
-        {
+    public List<KeyValuePair<string, string>> edges {
+        get {
             return _edges;
         }
-        set
-        {
+        set {
             _edges = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public HAMILTONIAN() : this(_defaultInstance)
-    {
+    public HAMILTONIAN() : this(_defaultInstance) {
 
     }
-    public HAMILTONIAN(string GInput)
-    {
+    public HAMILTONIAN(string GInput) {
         instance = GInput;
 
         StringParser hamiltonian = new("{(N,E) | N is set, E subset N unorderedcross N}");
         hamiltonian.parse(GInput);
         nodes = hamiltonian["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = hamiltonian["E"].ToList().Select(edge =>
-        {
+        edges = hamiltonian["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
         }).ToList();
