@@ -70,8 +70,7 @@ public class INDPENDENTSET_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void INDEPENDENTSET_Instance_Format_Described()
-    {
+    public void INDEPENDENTSET_Instance_Format_Described() {
         INDEPENDENTSET problem = new INDEPENDENTSET();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -79,8 +78,7 @@ public class INDPENDENTSET_Tests {
     }
 
     [Fact]
-    public void INDEPENDENTSET_Certificate_Format_Described()
-    {
+    public void INDEPENDENTSET_Certificate_Format_Described() {
         INDEPENDENTSET problem = new INDEPENDENTSET();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -88,8 +86,7 @@ public class INDPENDENTSET_Tests {
     }
 
     [Fact]
-    public void INDEPENDENTSET_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void INDEPENDENTSET_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         INDEPENDENTSET problem = new INDEPENDENTSET();
