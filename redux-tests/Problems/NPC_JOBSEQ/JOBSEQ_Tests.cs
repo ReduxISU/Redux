@@ -51,8 +51,7 @@ public class JOBSEQ_tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void JOBSEQ_Instance_Format_Described()
-    {
+    public void JOBSEQ_Instance_Format_Described() {
         JOBSEQ jobSeq = new JOBSEQ();
         Assert.NotNull(jobSeq.instanceFormat);
         Assert.NotEmpty(jobSeq.instanceFormat);
@@ -60,8 +59,7 @@ public class JOBSEQ_tests {
     }
 
     [Fact]
-    public void JOBSEQ_Certificate_Format_Described()
-    {
+    public void JOBSEQ_Certificate_Format_Described() {
         JOBSEQ jobSeq = new JOBSEQ();
         Assert.NotNull(jobSeq.certificateFormat);
         Assert.NotEmpty(jobSeq.certificateFormat);
@@ -69,8 +67,7 @@ public class JOBSEQ_tests {
     }
 
     [Fact]
-    public void JOBSEQ_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void JOBSEQ_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         JOBSEQ jobSeq = new JOBSEQ();
