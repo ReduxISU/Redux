@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_CLIQUECOVER;
 
-class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
-{
+class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
 
     // --- Fields ---
     public string reductionName {get;} = "Clique Cover Reduction";
@@ -34,25 +33,19 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
 
 
     // --- Properties ---
-    public GRAPHCOLORING reductionFrom
-    {
-        get
-        {
+    public GRAPHCOLORING reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public CLIQUECOVER reductionTo
-    {
-        get
-        {
+    public CLIQUECOVER reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
@@ -60,8 +53,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
 
 
     // --- Methods Including Constructors ---
-    public GraphColoringToCliqueCover(GRAPHCOLORING from)
-    {
+    public GraphColoringToCliqueCover(GRAPHCOLORING from) {
         gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
@@ -69,32 +61,26 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
     }
     public GraphColoringToCliqueCover(string instance) : this(new GRAPHCOLORING(instance)) { }
     public GraphColoringToCliqueCover() : this(new GRAPHCOLORING()) { }
-    public CLIQUECOVER reduce()
-    {
+    public CLIQUECOVER reduce() {
         CLIQUECOVER reducedCLIQUECOVER = new CLIQUECOVER();
 
         string instance = "(({";
-        foreach (var node in reductionFrom.nodes)
-        {
+        foreach (var node in reductionFrom.nodes) {
             instance += node + ',';
         }
 
         instance = instance.TrimEnd(',') + "},{{";
-        foreach (var node in reductionFrom.nodes)
-        {
-            foreach (var node2 in reductionFrom.nodes)
-            {
+        foreach (var node in reductionFrom.nodes) {
+            foreach (var node2 in reductionFrom.nodes) {
                 KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(node, node2);
                 KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(node2, node);
-                if (!(reductionFrom.edges.Contains(pairCheck1) || reductionFrom.edges.Contains(pairCheck1)) && node != node2)
-                {
+                if (!(reductionFrom.edges.Contains(pairCheck1) || reductionFrom.edges.Contains(pairCheck1)) && node != node2) {
                     instance += node + ',' + node2 + "},{";
                 }
             }
         }
 
-        foreach (UtilCollection node in reductionFrom.graph.Nodes)
-        {
+        foreach (UtilCollection node in reductionFrom.graph.Nodes) {
             gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
         // --- Generate G string for new CLIQUE ---
@@ -109,8 +95,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER>
         return reducedCLIQUECOVER;
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return "";
     }
 }

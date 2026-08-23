@@ -17,22 +17,16 @@ using API.Interfaces;
 // Activator.CreateInstance per-type try/catch, read instance.cost.ToString() off the
 // constructed IReduction. One reduction with a throwing/missing default constructor
 // must not take down the whole catalog.
-internal static class ReductionCostCatalog
-{
+internal static class ReductionCostCatalog {
     internal static readonly Lazy<Dictionary<string, string>> ByClassName = new(Build);
 
-    private static Dictionary<string, string> Build()
-    {
+    private static Dictionary<string, string> Build() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (_, type) in ProblemProvider.Reductions)
-        {
-            try
-            {
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
                 if (Activator.CreateInstance(type) is IReduction instance)
                     result[type.Name] = instance.cost.ToString();
-            }
-            catch
-            {
+            } catch {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to Unclassified at the call site
                 // (ReductionGraphData.Build).
@@ -126,8 +120,7 @@ internal static class ReductionTypeCatalog
 /// A reduction graph edge, representing a reduction from one problem type to another.
 /// </summary>
 
-public class ReductionEdge
-{
+public class ReductionEdge {
     /// <summary>The name of the class implementing the reduction.</summary>
     /// <example>KarpVertexCoverToSetCover</example>
     public string className { get; set; } = "";
@@ -160,8 +153,7 @@ public class ReductionEdge
 /// <summary>
 /// Represents a reduction graph data structure as a dictionary of dictionaries.
 /// </summary>
-public static class ReductionGraphData
-{
+public static class ReductionGraphData {
     // Alias so existing internal usages (Build, PathBetween, etc.) keep
     // compiling unchanged while the public API surface uses ReductionEdge.
     internal class Edge : ReductionEdge { }
@@ -229,11 +221,9 @@ public static class ReductionGraphData
         [nameof(API.Interfaces.ReductionCost.Unclassified)] = 4,
     };
 
-    private static Dictionary<string, Dictionary<string, List<ReductionEdge>>> Build()
-    {
+    private static Dictionary<string, Dictionary<string, List<ReductionEdge>>> Build() {
         var graph = new Dictionary<string, Dictionary<string, List<ReductionEdge>>>();
-        foreach (var (_, type) in ProblemProvider.Reductions)
-        {
+        foreach (var (_, type) in ProblemProvider.Reductions) {
             var generic = type.GetInterfaces()
                 .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReduction<,>));
             if (generic == null) continue;
@@ -253,8 +243,7 @@ public static class ReductionGraphData
             string from = args[0].Name;
             string to = args[1].Name;
             string className = type.Name;
-            var edge = new ReductionEdge
-            {
+            var edge = new ReductionEdge {
                 className = className,
                 endpoint = $"POST /ProblemProvider/reduce?reduction={className}",
                 inputType = from,
@@ -289,8 +278,7 @@ public static class ReductionGraphData
 
     /// <summary>Resolve a caller-supplied name (any case) to its canonical key as it
     /// appears in Graph. Searches source nodes first, then target nodes.</summary>
-    public static string? ResolveKey(string name)
-    {
+    public static string? ResolveKey(string name) {
         foreach (var k in Graph.Keys)
             if (string.Equals(k, name, StringComparison.OrdinalIgnoreCase)) return k;
         foreach (var outs in Graph.Values)
@@ -300,8 +288,7 @@ public static class ReductionGraphData
     }
 
     /// <summary>Transitively reachable problems from source via BFS. Excludes source.</summary>
-    public static List<string> ReachableFrom(string source)
-    {
+    public static List<string> ReachableFrom(string source) {
         var result = new List<string>();
         string? start = ResolveKey(source);
         if (start == null) return result;
@@ -309,14 +296,11 @@ public static class ReductionGraphData
         var visited = new HashSet<string> { start };
         var queue = new Queue<string>();
         queue.Enqueue(start);
-        while (queue.Count > 0)
-        {
+        while (queue.Count > 0) {
             string cur = queue.Dequeue();
             if (!Graph.TryGetValue(cur, out var outs)) continue;
-            foreach (var next in outs.Keys)
-            {
-                if (visited.Add(next))
-                {
+            foreach (var next in outs.Keys) {
+                if (visited.Add(next)) {
                     result.Add(next);
                     queue.Enqueue(next);
                 }
@@ -335,8 +319,7 @@ public static class ReductionGraphData
     /// The hops from source to target, or an empty list if either name is unknown,
     /// source equals target, or no path exists.
     /// </returns>
-    public static List<List<string>> PathBetween(string source, string target)
-    {
+    public static List<List<string>> PathBetween(string source, string target) {
         string? s = ResolveKey(source);
         string? t = ResolveKey(target);
         if (s == null || t == null) return new List<List<string>>();
@@ -347,16 +330,13 @@ public static class ReductionGraphData
         var queue = new Queue<string>();
         queue.Enqueue(s);
         bool found = false;
-        while (queue.Count > 0 && !found)
-        {
+        while (queue.Count > 0 && !found) {
             string cur = queue.Dequeue();
             if (!Graph.TryGetValue(cur, out var outs)) continue;
-            foreach (var next in outs.Keys)
-            {
+            foreach (var next in outs.Keys) {
                 if (!visited.Add(next)) continue;
                 parent[next] = cur;
-                if (string.Equals(next, t, StringComparison.OrdinalIgnoreCase))
-                {
+                if (string.Equals(next, t, StringComparison.OrdinalIgnoreCase)) {
                     found = true;
                     break;
                 }
@@ -367,8 +347,7 @@ public static class ReductionGraphData
 
         var hops = new List<List<string>>();
         string node = t;
-        while (parent.TryGetValue(node, out string? prev))
-        {
+        while (parent.TryGetValue(node, out string? prev)) {
             hops.Add(Graph[prev][node].Select(e => e.className).ToList());
             node = prev;
         }
@@ -381,8 +360,7 @@ public static class ReductionGraphData
 [Route("Navigation/[controller]")]
 [Tags("- Navigation (Reductions)")]
 #pragma warning disable CS1591
-public class ReductionsController : ControllerBase
-{
+public class ReductionsController : ControllerBase {
 #pragma warning restore CS1591
 
     /// <summary>Returns the reduction graph as an adjacency map: from -> to -> list of reduction edges.</summary>
@@ -396,18 +374,15 @@ public class ReductionsController : ControllerBase
     /// <response code="200">Adjacency map of reduction edges.</response>
     [ProducesResponseType(typeof(Dictionary<string, Dictionary<string, List<ReductionEdge>>>), 200)]
     [HttpGet]
-    public string getDefault([FromQuery] string? source = null, [FromQuery] string? target = null)
-    {
+    public string getDefault([FromQuery] string? source = null, [FromQuery] string? target = null) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         if (source == null && target == null)
             return JsonSerializer.Serialize(ReductionGraphData.Graph, options);
 
         var result = new Dictionary<string, Dictionary<string, List<ReductionEdge>>>();
-        foreach (var (from, tos) in ReductionGraphData.Graph)
-        {
+        foreach (var (from, tos) in ReductionGraphData.Graph) {
             if (source != null && !string.Equals(from, source, StringComparison.OrdinalIgnoreCase)) continue;
-            foreach (var (to, edges) in tos)
-            {
+            foreach (var (to, edges) in tos) {
                 if (target != null && !string.Equals(to, target, StringComparison.OrdinalIgnoreCase)) continue;
                 if (!result.ContainsKey(from)) result[from] = new Dictionary<string, List<ReductionEdge>>();
                 result[from][to] = edges;

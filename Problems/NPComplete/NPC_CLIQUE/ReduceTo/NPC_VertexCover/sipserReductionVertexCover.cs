@@ -53,8 +53,7 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
     }
 
     // --- Methods Including Constructors ---
-    public sipserReductionVertexCover(CLIQUE from)
-    {
+    public sipserReductionVertexCover(CLIQUE from) {
         gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
@@ -106,8 +105,7 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
             }
         }
 
-        foreach (UtilCollection node in CLIQUEInstance.graph.Nodes)
-        {
+        foreach (UtilCollection node in CLIQUEInstance.graph.Nodes) {
             gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
         // --- Generate G string for new CLIQUE ---

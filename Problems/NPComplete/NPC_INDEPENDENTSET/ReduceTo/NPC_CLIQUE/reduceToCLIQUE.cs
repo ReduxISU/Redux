@@ -57,16 +57,14 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     }
 
     // --- Methods Including Constructors ---
-    public reduceToCLIQUE(INDEPENDENTSET from)
-    {
+    public reduceToCLIQUE(INDEPENDENTSET from) {
         gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
 
-    public reduceToCLIQUE(string from) : this(new INDEPENDENTSET(from))
-    {
+    public reduceToCLIQUE(string from) : this(new INDEPENDENTSET(from)) {
 
     }
     public reduceToCLIQUE() : this(new INDEPENDENTSET()) { }
@@ -85,22 +83,18 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
-        foreach (var i in INDPENDENTSETInstance.nodes)
-        {
-            foreach (var j in INDPENDENTSETInstance.nodes)
-            {
+        foreach (var i in INDPENDENTSETInstance.nodes) {
+            foreach (var j in INDPENDENTSETInstance.nodes) {
                 KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i, j);
                 KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j, i);
-                if (!(INDPENDENTSETInstance.edges.Contains(pairCheck1) || INDPENDENTSETInstance.edges.Contains(pairCheck2) || i.Equals(j) || edges.Contains(pairCheck1) || edges.Contains(pairCheck2)))
-                {
+                if (!(INDPENDENTSETInstance.edges.Contains(pairCheck1) || INDPENDENTSETInstance.edges.Contains(pairCheck2) || i.Equals(j) || edges.Contains(pairCheck1) || edges.Contains(pairCheck2))) {
                     edges.Add(pairCheck1);
                 }
             }
         }
 
         //set up gadgets
-        foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes)
-        {
+        foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes) {
             gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
 
@@ -125,8 +119,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return problemFromSolution;
     }
 

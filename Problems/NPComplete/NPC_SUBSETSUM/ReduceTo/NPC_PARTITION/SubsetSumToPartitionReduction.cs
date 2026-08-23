@@ -92,8 +92,7 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
         return reducedPARTITION;
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return reductionTo.S[0];
     }
 }

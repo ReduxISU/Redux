@@ -14,20 +14,17 @@ namespace redux_tests;
 // visualization in the app goes blank, because the GUI does
 // Visualizations.get(visualizationType) on what it expects to be a string. The first two
 // test groups below are the regression guard for that; they must never go back to failing.
-public class VisualizationType_Tests : IClassFixture<AppFactory>
-{
+public class VisualizationType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
-    public VisualizationType_Tests(AppFactory factory)
-    {
+    public VisualizationType_Tests(AppFactory factory) {
         _client = factory.CreateClient();
     }
 
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
 
     [Fact]
-    public async Task Info_SerializesVisualizationTypeAsString()
-    {
+    public async Task Info_SerializesVisualizationTypeAsString() {
         var response = await _client.GetAsync(
             "/ProblemProvider/info?interface=CliqueDefaultVisualization",
             TestContext.Current.CancellationToken);
@@ -43,8 +40,7 @@ public class VisualizationType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task AllInfo_SerializesEveryVisualizationTypeAsString()
-    {
+    public async Task AllInfo_SerializesEveryVisualizationTypeAsString() {
         var response = await _client.GetAsync("/Navigation/Batch/allInfo", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -55,8 +51,7 @@ public class VisualizationType_Tests : IClassFixture<AppFactory>
         var manifest = new HashSet<string>(ReadManifest(), StringComparer.Ordinal);
         int checkedCount = 0;
 
-        foreach (var (className, element) in map!)
-        {
+        foreach (var (className, element) in map!) {
             if (element.ValueKind != JsonValueKind.Object) continue;
             if (!element.TryGetProperty("visualizationType", out var typeProp)) continue;
 
@@ -80,8 +75,7 @@ public class VisualizationType_Tests : IClassFixture<AppFactory>
     // ── Manifest: enum is the source of truth, JSON is the committed mirror ───
 
     [Fact]
-    public void ManifestMatchesEnum()
-    {
+    public void ManifestMatchesEnum() {
         string manifestJson = ReadManifestRaw();
         string[] manifest = ReadManifest();
         string[] actual = VisualizationTypeCatalog.All();
@@ -128,8 +122,7 @@ public class VisualizationType_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclared()
-    {
+    public void NoNewUndeclared() {
         var actual = ActualUndeclared();
         var allowlist = new HashSet<string>(UnimplementedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -141,8 +134,7 @@ public class VisualizationType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleEntries()
-    {
+    public void AllowlistHasNoStaleEntries() {
         var actual = ActualUndeclared();
         var stale = UnimplementedAllowlist.Where(c => !actual.Contains(c)).ToList();
 

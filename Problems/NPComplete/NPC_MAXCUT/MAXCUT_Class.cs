@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT;
 
-class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, UtilCollectionGraph>
-{
+class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, UtilCollectionGraph> {
     public string problemName { get; } = "Max Cut";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Maximum_cut";
     public string formalDefinition { get; } = "MaxCut = {<G> | G is a weighted undirected graph} — find the partition of V into non-empty S and T maximizing the total weight of edges between S and T.";
@@ -38,14 +37,12 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
 
     public MAXCUT() : this(_defaultInstance) { }
 
-    public MAXCUT(string instanceString)
-    {
+    public MAXCUT(string instanceString) {
         instance = instanceString;
         StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
         maxCut.parse(instance);
         nodes = maxCut["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = maxCut["E"].ToList().Select(edge =>
-        {
+        edges = maxCut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();

@@ -4,8 +4,7 @@ using API.Problems.NPComplete.NPC_SETCOVER;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_SETCOVER;
 
-class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER>
-{
+class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
 
     // --- Fields ---
     public string reductionName {get;} = "Karp's Clique to Set Cover Reduction";
@@ -33,43 +32,33 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER>
 
 
     // --- Properties ---
-    public Dictionary<Object, Object> gadgetMap
-    {
-        get
-        {
+    public Dictionary<Object, Object> gadgetMap {
+        get {
             return _gadgetMap;
         }
-        set
-        {
+        set {
             _gadgetMap = value;
         }
     }
-    public VERTEXCOVER reductionFrom
-    {
-        get
-        {
+    public VERTEXCOVER reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public SETCOVER reductionTo
-    {
-        get
-        {
+    public SETCOVER reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public KarpVertexCoverToSetCover(VERTEXCOVER from)
-    {
+    public KarpVertexCoverToSetCover(VERTEXCOVER from) {
         _reductionFrom = from;
         _reductionTo = reduce();
 
@@ -80,21 +69,17 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER>
      * reduce() called after GareyAndJohnsonReduction reduction, and returns a THREE_DM object, that
      * is a reduction from the VERTEXCOVER object passed into GareyAndJohnsonReduction.
      */
-    public SETCOVER reduce()
-    {
+    public SETCOVER reduce() {
         VERTEXCOVER VERTEXCOVERInstance = _reductionFrom;
         SETCOVER reducedSetCover = new SETCOVER();
 
         List<List<string>> subsets = new List<List<string>>();
         List<string> universal = new List<string>();
 
-        for (int i = 0; i < reductionFrom.nodes.Count; i++)
-        {
+        for (int i = 0; i < reductionFrom.nodes.Count; i++) {
             subsets.Add(new List<string>());
-            foreach (var j in reductionFrom.edges)
-            {
-                if (j.Key == reductionFrom.nodes[i] || j.Value == reductionFrom.nodes[i])
-                {
+            foreach (var j in reductionFrom.edges) {
+                if (j.Key == reductionFrom.nodes[i] || j.Value == reductionFrom.nodes[i]) {
                     subsets[i].Add(j.Key + "_" + j.Value);
                     if(!universal.Contains(j.Key + "_" + j.Value)) universal.Add(j.Key + "_" + j.Value);
                 }
@@ -103,16 +88,13 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER>
 
         string instance = "({";
 
-        foreach (var i in universal)
-        {
+        foreach (var i in universal) {
             instance += i + ",";
         }
         instance = instance.TrimEnd(',') + "},{{";
 
-        foreach (var i in subsets)
-        {
-            foreach (var j in i)
-            {
+        foreach (var i in subsets) {
+            foreach (var j in i) {
                 instance += j + ",";
             }
             instance = instance.TrimEnd(',') + "},{";
@@ -128,8 +110,7 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER>
         return reducedSetCover;
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return "";
     }
 }

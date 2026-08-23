@@ -72,8 +72,7 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
     public FengReduction() : this(new SUBSETSUM()) { }
     public KNAPSACK reduce() {
         SUBSETSUM SUBSETSUMInstance = _reductionFrom;
-        KNAPSACK reducedKNAPSACK = new KNAPSACK
-        {
+        KNAPSACK reducedKNAPSACK = new KNAPSACK {
             //We reduce by setting T from SUBSETSUM equal to both the minimum value and maxmimum weight constraints. 
             W = SUBSETSUMInstance.T,
             V = SUBSETSUMInstance.T 
@@ -96,8 +95,7 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
         return reducedKNAPSACK;
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return "";
     }
 }

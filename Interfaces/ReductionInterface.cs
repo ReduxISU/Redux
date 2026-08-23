@@ -26,8 +26,7 @@ namespace API.Interfaces;
 [AttributeUsage(AttributeTargets.Class)]
 public class NotAGeneralReductionAttribute : Attribute { }
 
-interface IReduction
-{
+interface IReduction {
     string reductionName { get; }
     string reductionDefinition { get; }
     string source { get; }
@@ -54,43 +53,33 @@ interface IReduction
     ReductionComplexityBucket complexityBucket { get => ReductionComplexityBucket.Unclassified; }
 }
 
-interface IReduction<T, U> : IReduction where T : IProblem where U : IProblem
-{
-    IVisualization IReduction.visualization
-    {
-        get
-        {
+interface IReduction<T, U> : IReduction where T : IProblem where U : IProblem {
+    IVisualization IReduction.visualization {
+        get {
             return reductionTo.defaultVisualization;
         }
     }
 
-    IProblem IReduction.reductionFrom
-    {
-        get
-        {
+    IProblem IReduction.reductionFrom {
+        get {
             return reductionFrom;
         }
     }
     new T reductionFrom { get; }
-    IProblem IReduction.reductionTo
-    {
-        get
-        {
+    IProblem IReduction.reductionTo {
+        get {
             return reductionTo;
         }
     }
     new U reductionTo { get; }
 
-    IProblem IReduction.reduce()
-    {
+    IProblem IReduction.reduce() {
         return reduce();
     }
     new U reduce();
 
-    List<Gadget> IReduction.gadgets
-    {
-        get
-        {
+    List<Gadget> IReduction.gadgets {
+        get {
             return new List<Gadget>();
         }
     }

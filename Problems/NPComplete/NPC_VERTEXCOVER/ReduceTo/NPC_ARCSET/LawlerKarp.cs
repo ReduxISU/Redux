@@ -10,6 +10,7 @@ using SPADE;
 using System.Collections;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_ARCSET;
+
 class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
 
   
@@ -77,8 +78,7 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
     public ARCSET reduce() {
         VERTEXCOVER vertexcover = new VERTEXCOVER(_reductionFrom.instance);
         List<Node> newNodes = new List<Node>();
-        foreach (UtilCollection n in vertexcover.graph.Nodes)
-        {
+        foreach (UtilCollection n in vertexcover.graph.Nodes) {
             string name = n.ToString();
             Node newNode1 = new Node(name);
             Node newNode2 = new Node(name);

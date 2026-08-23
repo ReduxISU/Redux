@@ -2,8 +2,7 @@
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
 
-class ConvexHullSolver : ISolver<CONVEXHULL>
-{
+class ConvexHullSolver : ISolver<CONVEXHULL> {
 
     public string solverName { get; } = "Convex Hull Solver";
     public string solverDefinition { get; } = "Computes the convex hull of a set of 2D points using divide and conquer.";
@@ -20,8 +19,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
 
     public ConvexHullSolver() { }
 
-    public string solve(CONVEXHULL problem)
-    {
+    public string solve(CONVEXHULL problem) {
         if (timerHasExpired)
             return "timeout";
 
@@ -39,8 +37,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
 
     // Divide & Conquer
 
-    private List<(double x, double y)> ConvexHullDC(List<(double x, double y)> pts)
-    {
+    private List<(double x, double y)> ConvexHullDC(List<(double x, double y)> pts) {
         if (pts.Count <= 1)
             return new List<(double x, double y)>(pts);
 
@@ -55,8 +52,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
         return Merge(left, right);
     }
 
-    private List<(double x, double y)> Merge(List<(double x, double y)> left, List<(double x, double y)> right)
-    {
+    private List<(double x, double y)> Merge(List<(double x, double y)> left, List<(double x, double y)> right) {
         int iL = RightmostP(left);
         int iR = LeftmostP(right);
 
@@ -65,12 +61,10 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
 
         // upper tangent
         bool done = false;
-        while (!done)
-        {
+        while (!done) {
             done = true;
             // move left counterclockwise
-            while (true)
-            {
+            while (true) {
                 int next = (upperL == 0 ? left.Count - 1 : upperL - 1);
                 double o = Orientation(right[upperR], left[upperL], left[next]);
 
@@ -79,27 +73,22 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
                 else break;
             }
             // move right clockwise
-            while (true)
-            {
+            while (true) {
                 int next = (upperR + 1) % right.Count;
                 double o = Orientation(left[upperL], right[upperR], right[next]);
-                if (o < 0 || (o == 0 && DistSq(left[upperL], right[next]) > DistSq(left[upperL], right[upperR])))
-                {
+                if (o < 0 || (o == 0 && DistSq(left[upperL], right[next]) > DistSq(left[upperL], right[upperR]))) {
                     upperR = next;
                     done = false;
-                }
-                else break;
+                } else break;
             }
         }
 
         // lower tangent
         done = false;
-        while (!done)
-        {
+        while (!done) {
             done = true;
             // move left clockwise
-            while (true)
-            {
+            while (true) {
                 int next = (lowerL + 1) % left.Count;
                 double o = Orientation(right[lowerR], left[lowerL], left[next]);
 
@@ -108,39 +97,33 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
                 else break;
             }
             // move right counterclockwise
-            while (true)
-            {
+            while (true) {
                 int next = (lowerR == 0 ? right.Count - 1 : lowerR - 1);
                 double o = Orientation(left[lowerL], right[lowerR], right[next]);
-                if (o > 0 || (o == 0 && DistSq(left[lowerL], right[next]) > DistSq(left[lowerL], right[lowerR])))
-                {
+                if (o > 0 || (o == 0 && DistSq(left[lowerL], right[next]) > DistSq(left[lowerL], right[lowerR]))) {
                     lowerR = next;
                     done = false;
-                }
-                else break;
+                } else break;
             }
         }
         // build merged hull
         List<(double x, double y)> merged = new List<(double x, double y)>();
         int v = upperR;
         merged.Add(right[v]);
-        while (v != lowerR)
-        {
+        while (v != lowerR) {
             v = (v + 1) % right.Count;
             merged.Add(right[v]);
         }
         v = lowerL;
         merged.Add(left[v]);
-        while (v != upperL)
-        {
+        while (v != upperL) {
             v = (v + 1) % left.Count;
             merged.Add(left[v]);
         }
         return merged;
     }
 
-    private List<(double x, double y)> BaseHull(List<(double x, double y)> pts)
-    {
+    private List<(double x, double y)> BaseHull(List<(double x, double y)> pts) {
         if (pts.Count <= 1)
             return new List<(double x, double y)>(pts);
         if (pts.Count == 2)
@@ -149,8 +132,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
         var b = pts[1];
         var c = pts[2];
         double o = Orientation(a, b, c);
-        if (o == 0)
-        {
+        if (o == 0) {
             // return only endpoints
             var sorted = pts.OrderBy(p => p.x).ThenBy(p => p.y).ToList();
             return new List<(double x, double y)> { sorted[0], sorted[2] };
@@ -163,20 +145,17 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
     // Helpers
     private double Orientation((double x, double y) a,
                                (double x, double y) b,
-                               (double x, double y) c)
-    {
+                               (double x, double y) c) {
         return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
     }
 
-    private double DistSq((double x, double y) a, (double x, double y) b)
-    {
+    private double DistSq((double x, double y) a, (double x, double y) b) {
         double dx = a.x - b.x;
         double dy = a.y - b.y;
         return dx * dx + dy * dy;
     }
 
-    private int RightmostP(List<(double x, double y)> pts)
-    {
+    private int RightmostP(List<(double x, double y)> pts) {
         int idx = 0;
         for (int i = 1; i < pts.Count; i++)
             if (pts[i].x > pts[idx].x)
@@ -184,8 +163,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
         return idx;
     }
 
-    private int LeftmostP(List<(double x, double y)> pts)
-    {
+    private int LeftmostP(List<(double x, double y)> pts) {
         int idx = 0;
         for (int i = 1; i < pts.Count; i++)
             if (pts[i].x < pts[idx].x)
@@ -193,8 +171,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL>
         return idx;
     }
 
-    private string Format(List<(double x, double y)> pts)
-    {
+    private string Format(List<(double x, double y)> pts) {
         return "(" + string.Join(", ", pts.Select(p => $"({p.x},{p.y})")) + ")";
     }
 }

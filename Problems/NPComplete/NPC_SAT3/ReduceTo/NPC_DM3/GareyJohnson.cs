@@ -149,11 +149,9 @@ class GareyJohnson : IReduction<SAT3, DM3> {
             string[] tempSplit = solutionList[i].Split(":");
             if(tempSplit[1] == "False"){
                 solutionList[i] = "!"+tempSplit[0];
-            }
-            else if(tempSplit[1] == "True"){
+            } else if (tempSplit[1] == "True") {
                 solutionList[i] = tempSplit[0];
-            }
-            else{solutionList[i] = "";}
+            } else { solutionList[i] = ""; }
             
         }
         solutionList.RemoveAll(x => string.IsNullOrEmpty(x));
@@ -175,8 +173,7 @@ class GareyJohnson : IReduction<SAT3, DM3> {
                     mappedSolutionList.Add(string.Format("{{a[{0}][{1}],b[{0}][{1}],[!{0}][{1}]}}",variable,i+1));
                     inverseGC.Add(string.Format("[!{0}][{1}]",variable,i+1));
                 }
-            }
-            else {
+            } else {
                 for(int i=0; i<reductionFrom.clauses.Count; i++){
                     mappedSolutionList.Add(string.Format("{{a[{0}][{1}],b[{0}][{2}],[{0}][{2}]}}",variable,((i+1)%reductionFrom.clauses.Count)+1,i+1));
                     inverseGC.Add(string.Format("[{0}][{1}]",variable,i+1));

@@ -3,8 +3,7 @@ using API.Problems.NPComplete.NPC_SAT;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_SAT;
 
-class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
-{
+class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
     #region Fields
     public string reductionName {get;} = "Karp's SAT Reduction";
@@ -34,40 +33,31 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
     #endregion
 
     #region Properties
-    public string complexity
-    {
-        get
-        {
+    public string complexity {
+        get {
             return _complexity;
         }
 
-        set
-        {
+        set {
             _complexity = value;
         }
     }
 
-    public GRAPHCOLORING reductionFrom
-    {
-        get
-        {
+    public GRAPHCOLORING reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
 
 
-    public SAT reductionTo
-    {
-        get
-        {
+    public SAT reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
@@ -76,8 +66,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
 
 
     #region Constructors
-    public KarpReduceSAT(GRAPHCOLORING from)
-    {
+    public KarpReduceSAT(GRAPHCOLORING from) {
         _reductionFrom = from;
         _reductionTo = reduce();
     }
@@ -117,15 +106,11 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
             // add to gadget dictionary 
             
 
-            for (int i = 0; i < _reductionFrom.K; i++)
-            {
-                for (int j = 0; j < _reductionFrom.K; j++)
-                {
-                    if (i != j)
-                    {
+            for (int i = 0; i < _reductionFrom.K; i++) {
+                for (int j = 0; j < _reductionFrom.K; j++) {
+                    if (i != j) {
                         string reverseClause = $"!({node}{j}&{node}{i})";
-                        if (!reducedNodeClauses.Contains(reverseClause))
-                        {
+                        if (!reducedNodeClauses.Contains(reverseClause)) {
                             clause = $"!({node}{i}&{node}{j})";
                             reducedNodeClauses.Add(clause.Trim());
                         }
@@ -140,18 +125,13 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
         //convert edges to clauses
         List<string> reducedEdgesClauses = new List<string>();
 
-        foreach (var edge in reductionFrom.edges)
-        {
-            for (int i = 0; i < _reductionFrom.K; i++)
-            {
-                for (int j = 0; j < _reductionFrom.K; j++)
-                {
-                    if (i == j)
-                    {
+        foreach (var edge in reductionFrom.edges) {
+            for (int i = 0; i < _reductionFrom.K; i++) {
+                for (int j = 0; j < _reductionFrom.K; j++) {
+                    if (i == j) {
 
                         string reverseClause = $"!({edge.Value}{j}&{edge.Key}{i})";
-                        if (!reducedEdgesClauses.Contains(reverseClause))
-                        {
+                        if (!reducedEdgesClauses.Contains(reverseClause)) {
                             string clauseEdge = $"!({edge.Key}{i}&{edge.Value}{j})";
                             reducedEdgesClauses.Add(clauseEdge.Trim());
                         }
@@ -174,13 +154,10 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
         return new SAT(phiInstance);
     }
 
-    private void DeMorgansLaw(List<string> clauses)
-    {
+    private void DeMorgansLaw(List<string> clauses) {
 
-        for (int i = 0; i < clauses.Count; i++)
-        {
-            if (clauses[i].Contains("!("))
-            {
+        for (int i = 0; i < clauses.Count; i++) {
+            if (clauses[i].Contains("!(")) {
                 string clause = clauses[i].Replace(" ", "").Replace("(", "").Replace(")", "").Replace("!", "");
                 string[] literals = clause.Split('&');
                 clauses[i] = $"(!{literals[0]}|!{literals[1]})";
@@ -189,8 +166,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT>
 
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return "";
     }
     #endregion

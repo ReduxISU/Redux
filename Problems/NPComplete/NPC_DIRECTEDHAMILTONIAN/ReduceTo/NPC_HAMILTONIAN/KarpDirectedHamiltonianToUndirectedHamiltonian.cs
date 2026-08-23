@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_HAMILTONIAN;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.ReduceTo.NPC_HAMILTONIAN;
 
-class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILTONIAN, HAMILTONIAN>
-{
+class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILTONIAN, HAMILTONIAN> {
 
     // --- Fields ---
     public string reductionName { get; } = "Karp Directed Hamiltonian To Undirected Hamiltonian";
@@ -29,33 +28,26 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
 
 
     // --- Properties ---
-    public DIRECTEDHAMILTONIAN reductionFrom
-    {
-        get
-        {
+    public DIRECTEDHAMILTONIAN reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public HAMILTONIAN reductionTo
-    {
-        get
-        {
+    public HAMILTONIAN reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
 
     // --- Methods Including Constructors ---
 
-    public KarpDirectedHamiltonianToUndirectedHamiltonian(DIRECTEDHAMILTONIAN from)
-    {
+    public KarpDirectedHamiltonianToUndirectedHamiltonian(DIRECTEDHAMILTONIAN from) {
         gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
@@ -63,8 +55,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
     public KarpDirectedHamiltonianToUndirectedHamiltonian(string instance) : this(new DIRECTEDHAMILTONIAN(instance)) { }
     public KarpDirectedHamiltonianToUndirectedHamiltonian() : this(new DIRECTEDHAMILTONIAN()) { }
 
-    public HAMILTONIAN reduce()
-    {
+    public HAMILTONIAN reduce() {
         // Part 1: Create necessary data structures
         DIRECTEDHAMILTONIAN DH = _reductionFrom;
         HAMILTONIAN UH = new HAMILTONIAN();
@@ -73,8 +64,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
         List<KeyValuePair<string, string>> newEdges = new List<KeyValuePair<string, string>>();
 
         // Part 2: Convert nodes from directed graph to undirected graph
-        foreach (string v in DH.nodes)
-        {
+        foreach (string v in DH.nodes) {
             string v1 = v + "1";
             string v2 = v + "2";
             string v3 = v + "3";
@@ -89,8 +79,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
         }
 
         // For every directed edge (u → v), add undirected edge (u3, v1)
-        foreach (var e in DH.edges)
-        {
+        foreach (var e in DH.edges) {
             string u = e.Key;
             string v = e.Value;
 
@@ -104,8 +93,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
         string nodesString = string.Join(",", newNodes);
 
         string edgesString = "";
-        foreach (var edge in newEdges)
-        {
+        foreach (var edge in newEdges) {
             edgesString += "{" + edge.Key + "," + edge.Value + "},";
         }
         edgesString = edgesString.Trim(',');
@@ -118,8 +106,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
         return UH;
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return "";
     }
 }

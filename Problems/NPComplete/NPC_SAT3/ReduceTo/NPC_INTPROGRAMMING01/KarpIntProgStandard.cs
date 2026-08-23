@@ -3,6 +3,7 @@ using API.Interfaces;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_INTPROGRAMMING01;
+
 class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
 
     // --- Fields ---
@@ -86,11 +87,9 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
             for(int j=0; j<variables.Count; j++){
                 if(SAT3Instance.clauses[i].Contains(variables[j]) && !SAT3Instance.clauses[i].Contains("!"+variables[j])){
                     row.Add(-1);
-                }
-                else if(!SAT3Instance.clauses[i].Contains(variables[j]) && SAT3Instance.clauses[i].Contains("!"+variables[j])){
+                } else if (!SAT3Instance.clauses[i].Contains(variables[j]) && SAT3Instance.clauses[i].Contains("!" + variables[j])) {
                     row.Add(1);
-                }
-                else{row.Add(0);}
+                } else { row.Add(0); }
                 //constructs dVector
                 if(SAT3Instance.clauses[i].Contains("!"+variables[j])){
                     dVector[i] += 1;
@@ -128,11 +127,9 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
             string[] tempSplit = solutionList[i].Split(":");
             if(tempSplit[1] == "False"){
                 solutionList[i] = "!"+tempSplit[0];
-            }
-            else if(tempSplit[1] == "True"){
+            } else if (tempSplit[1] == "True") {
                 solutionList[i] = tempSplit[0];
-            }
-            else{solutionList[i] = "";}
+            } else { solutionList[i] = ""; }
         }
         solutionList.RemoveAll(x => string.IsNullOrEmpty(x));
 
@@ -147,8 +144,7 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
         foreach(string variable in variables){
             if(solutionList.Contains(variable)){
                 mappedSolutionList.Add("1");
-            }
-            else{
+            } else {
                 mappedSolutionList.Add("0");
             }
         }

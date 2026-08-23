@@ -7,8 +7,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_NODESET;
 
-class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
-{
+class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
 
     // --- Fields ---
     public string reductionName {get;} = "Karp Vertex Cover to Node Set Reduction";
@@ -34,25 +33,19 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
 
 
     // --- Properties ---
-    public VERTEXCOVER reductionFrom
-    {
-        get
-        {
+    public VERTEXCOVER reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public NODESET reductionTo
-    {
-        get
-        {
+    public NODESET reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
@@ -60,8 +53,7 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
 
 
     // --- Methods Including Constructors ---
-    public KarpVertexCoverToNodeSet(VERTEXCOVER from)
-    {
+    public KarpVertexCoverToNodeSet(VERTEXCOVER from) {
         gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
@@ -69,32 +61,26 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
     }
     public KarpVertexCoverToNodeSet(string instance) : this(new VERTEXCOVER(instance)) { }
     public KarpVertexCoverToNodeSet() : this(new VERTEXCOVER()) { }
-    public NODESET reduce()
-    {
+    public NODESET reduce() {
         VERTEXCOVER VERTEXCOVERInstance = _reductionFrom;
         NODESET reducedNODESET = new NODESET();
 
         string instance = "(({";
-        foreach (var node in reductionFrom.nodes)
-        {
+        foreach (var node in reductionFrom.nodes) {
             instance += node + ',';
         }
 
-        foreach (UtilCollection node in VERTEXCOVERInstance.graph.Nodes)
-        {
+        foreach (UtilCollection node in VERTEXCOVERInstance.graph.Nodes) {
             gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
         // --- Generate G string for new CLIQUE ---
 
         instance = instance.TrimEnd(',') + "},{(";
-        foreach (var node in reductionFrom.nodes)
-        {
-            foreach (var node2 in reductionFrom.nodes)
-            {
+        foreach (var node in reductionFrom.nodes) {
+            foreach (var node2 in reductionFrom.nodes) {
                 KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(node, node2);
                 KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(node2, node);
-                if ((reductionFrom.edges.Contains(pairCheck1) || reductionFrom.edges.Contains(pairCheck1)) && node != node2)
-                {
+                if ((reductionFrom.edges.Contains(pairCheck1) || reductionFrom.edges.Contains(pairCheck1)) && node != node2) {
                     instance += node + ',' + node2 + "),(";
                     instance += node2 + ',' + node + "),(";
                 }
@@ -111,8 +97,7 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET>
         return reducedNODESET;
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         return "";
     }
 }

@@ -6,8 +6,7 @@ using API.Problems.NPComplete.NPC_EXACTCOVER;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_EXACTCOVER;
 
-class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
-{
+class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
 
     // --- Fields ---
     public string reductionName {get;} = "Exact Cover Reduction";
@@ -36,36 +35,27 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
 
 
     // --- Properties ---
-    public Dictionary<Object, Object> gadgetMap
-    {
-        get
-        {
+    public Dictionary<Object, Object> gadgetMap {
+        get {
             return _gadgetMap;
         }
-        set
-        {
+        set {
             _gadgetMap = value;
         }
     }
-    public GRAPHCOLORING reductionFrom
-    {
-        get
-        {
+    public GRAPHCOLORING reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public EXACTCOVER reductionTo
-    {
-        get
-        {
+    public EXACTCOVER reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
@@ -73,16 +63,14 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
 
 
     // --- Methods Including Constructors ---
-    public KarpGraphColorToExactCover(GRAPHCOLORING from)
-    {
+    public KarpGraphColorToExactCover(GRAPHCOLORING from) {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
     public KarpGraphColorToExactCover(string instance) : this(new GRAPHCOLORING(instance)) { }
     public KarpGraphColorToExactCover() : this(new GRAPHCOLORING()) { }
-    public EXACTCOVER reduce()
-    {
+    public EXACTCOVER reduce() {
         GRAPHCOLORING GRAPHCOLORINGInstance = _reductionFrom;
         EXACTCOVER reducedExactCover = new EXACTCOVER();
 
@@ -90,25 +78,19 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
         List<List<string>> subsets = new List<List<string>>();
         List<string> currentSubset = new List<string>();
 
-        foreach (var i in reductionFrom.nodes)
-        { //adding nodes to universal
+        foreach (var i in reductionFrom.nodes) { //adding nodes to universal
             universalSet.Add(i);
         }
 
-        foreach (var i in reductionFrom.edges)
-        {//adding edges to universal
+        foreach (var i in reductionFrom.edges) {//adding edges to universal
             universalSet.Add(i.Key + '_' + i.Value);
         }
 
-        foreach (var u in reductionFrom.nodes)
-        {
-            foreach (var e in reductionFrom.edges)
-            {
+        foreach (var u in reductionFrom.nodes) {
+            foreach (var e in reductionFrom.edges) {
                 //adding edges to universal
-                if (e.Key == u || e.Value == u)
-                {
-                    for (int j = 1; j <= reductionFrom.K; j++)
-                    {
+                if (e.Key == u || e.Value == u) {
+                    for (int j = 1; j <= reductionFrom.K; j++) {
                         universalSet.Add(u + "_" + e.Key + '_' + e.Value + "_" + j.ToString());
                     }
                 }
@@ -116,16 +98,12 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
             }
         }
 
-        foreach (var u in reductionFrom.nodes)
-        {
-            for (int j = 1; j <= reductionFrom.K; j++)
-            {
+        foreach (var u in reductionFrom.nodes) {
+            for (int j = 1; j <= reductionFrom.K; j++) {
                 currentSubset.Add(u);
-                foreach (var e in reductionFrom.edges)
-                {
+                foreach (var e in reductionFrom.edges) {
 
-                    if (e.Key == u || e.Value == u)
-                    {
+                    if (e.Key == u || e.Value == u) {
                         currentSubset.Add(u + "_" + e.Key + '_' + e.Value + "_" + j.ToString());
 
                     }
@@ -137,14 +115,10 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
 
         }
 
-        foreach (var e in reductionFrom.edges)
-        {//adding edge, edge,color1, edge,color2
-            for (int f1 = 1; f1 <= reductionFrom.K; f1++)
-            {
-                for (int f2 = 1; f2 <= reductionFrom.K; f2++)
-                {
-                    if (f1 != f2)
-                    {
+        foreach (var e in reductionFrom.edges) {//adding edge, edge,color1, edge,color2
+            for (int f1 = 1; f1 <= reductionFrom.K; f1++) {
+                for (int f2 = 1; f2 <= reductionFrom.K; f2++) {
+                    if (f1 != f2) {
                         currentSubset.Add(e.Key + '_' + e.Value);
                         for(int i = 1; i <= reductionFrom.K; i++)
                             if(i != f1)
@@ -176,8 +150,7 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER>
         return reducedExactCover;
     }
 
-    public string mapSolutions(string reductionFromSolution)
-    {
+    public string mapSolutions(string reductionFromSolution) {
         return "";
     }
 

@@ -4,8 +4,7 @@ using API.Problems.NPComplete.NPC_SUBSETSUM;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.ReduceTo.NPC_SUBSETSUM;
 
-class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
-{
+class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM> {
 
     // --- Fields ---
     public string reductionName {get;} = "Karp's Subset Sum Reduction";
@@ -35,36 +34,27 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
 
 
     // --- Properties ---
-    public Dictionary<Object, Object> gadgetMap
-    {
-        get
-        {
+    public Dictionary<Object, Object> gadgetMap {
+        get {
             return _gadgetMap;
         }
-        set
-        {
+        set {
             _gadgetMap = value;
         }
     }
-    public EXACTCOVER reductionFrom
-    {
-        get
-        {
+    public EXACTCOVER reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public SUBSETSUM reductionTo
-    {
-        get
-        {
+    public SUBSETSUM reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
@@ -72,16 +62,14 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
 
 
     // --- Methods Including Constructors ---
-    public KarpExactCoverToSubsetSum(EXACTCOVER from)
-    {
+    public KarpExactCoverToSubsetSum(EXACTCOVER from) {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
     public KarpExactCoverToSubsetSum(string instance) : this(new EXACTCOVER(instance)) { }
     public KarpExactCoverToSubsetSum() : this(new EXACTCOVER()) { }
-    public SUBSETSUM reduce()
-    {
+    public SUBSETSUM reduce() {
         EXACTCOVER ExactCoverInstance = _reductionFrom;
         SUBSETSUM reducedSUBSETSUM = new SUBSETSUM();
 
@@ -117,8 +105,7 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM>
         return reducedSUBSETSUM;
     }
 
-    public string mapSolutions(string reductionFromSolution)
-    {
+    public string mapSolutions(string reductionFromSolution) {
         return "";
     }
 

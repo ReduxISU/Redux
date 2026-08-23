@@ -12,7 +12,7 @@ public class BERNSTEINVAZIRANI_tests {
         var problem = new BERNSTEINVAZIRANI();
         Assert.Equal("(0,1,0,1,1,0,1,0)", problem.instance);
         Assert.Equal("(0,1,0,1,1,0,1,0)", problem.defaultInstance);
-    } 
+    }
 
     [Fact]
     public void BERNSTEINVAZIRANI_Custom_Instantiation() {

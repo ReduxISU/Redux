@@ -19,8 +19,7 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 // /ProblemProvider/reduce for its actual purpose (mapping a solution back through a
 // paired SipserReduceToCliqueStandard run).
 [NotAGeneralReduction]
-class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.SAT3>
-{
+class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.SAT3> {
     // --- Fields ---
     public string reductionName { get; } = "Sipser's Inverse Clique-to-3SAT Reduction";
     public string reductionDefinition { get; } =
@@ -49,20 +48,17 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
     private API.Problems.NPComplete.NPC_SAT3.SAT3 _reductionTo;
 
     // --- Properties ---
-    public CLIQUE reductionFrom
-    {
+    public CLIQUE reductionFrom {
         get { return _reductionFrom; }
         set { _reductionFrom = value; }
     }
-    public API.Problems.NPComplete.NPC_SAT3.SAT3 reductionTo
-    {
+    public API.Problems.NPComplete.NPC_SAT3.SAT3 reductionTo {
         get { return _reductionTo; }
         set { _reductionTo = value; }
     }
 
     // --- Constructors ---
-    public SipserReduceToSAT3(CLIQUE from)
-    {
+    public SipserReduceToSAT3(CLIQUE from) {
         gadgets = new();
         _reductionFrom = from;
         try {
@@ -81,13 +77,11 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
     public SipserReduceToSAT3() : this(new CLIQUE()) { }
 
     // --- Methods ---
-    public API.Problems.NPComplete.NPC_SAT3.SAT3 reduce()
-    {
+    public API.Problems.NPComplete.NPC_SAT3.SAT3 reduce() {
         // Group nodes back into clauses by their trailing '_<clauseIdx>' suffix,
         // preserving within-clause literal order.
         var clauseMap = new SortedDictionary<int, List<string>>();
-        foreach (string node in _reductionFrom.nodes)
-        {
+        foreach (string node in _reductionFrom.nodes) {
             (string literal, int idx) = ParseSipserNode(node);
             if (!clauseMap.ContainsKey(idx))
                 clauseMap[idx] = new List<string>();
@@ -100,21 +94,18 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         return new API.Problems.NPComplete.NPC_SAT3.SAT3(formula);
     }
 
-    public string mapSolutions(string problemFromSolution)
-    {
+    public string mapSolutions(string problemFromSolution) {
         // problemFromSolution is a clique certificate like "{x1_0,x2_1,x1_2}".
         try {
             var assigned = new Dictionary<string, bool>();
             var order = new List<string>();
-            foreach (string raw in problemFromSolution.Trim('{', '}', '(', ')', ' ').Split(','))
-            {
+            foreach (string raw in problemFromSolution.Trim('{', '}', '(', ')', ' ').Split(',')) {
                 string node = raw.Trim();
                 if (node.Length == 0) continue;
                 (string literal, int _) = ParseSipserNode(node);
                 bool positive = !literal.StartsWith("!");
                 string varName = positive ? literal : literal.Substring(1);
-                if (!assigned.ContainsKey(varName))
-                {
+                if (!assigned.ContainsKey(varName)) {
                     assigned[varName] = positive;
                     order.Add(varName);
                 }
@@ -129,8 +120,7 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         }
     }
 
-    private static (string literal, int clauseIdx) ParseSipserNode(string node)
-    {
+    private static (string literal, int clauseIdx) ParseSipserNode(string node) {
         int u = node.LastIndexOf('_');
         if (u < 0)
             throw new ArgumentException(
