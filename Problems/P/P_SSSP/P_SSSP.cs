@@ -23,6 +23,8 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     private static string _defaultInstance = "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = "(N,E,s) where N is the set of node names, E is the set of edges (either unweighted (from,to) pairs or weighted ((from,to),weight) pairs, directed or undirected, non-negative weights only), and s is the source node. Example: ({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1)";
+    public string certificateFormat { get; } = "Braces-wrapped, comma-separated set of (node,path) pairs, one per node in the graph, where path is the braces-wrapped, comma-separated node sequence of the shortest path from the source to that node, or {} if the node is unreachable from the source. Example: {(1,{1}),(2,{1,2}),(3,{1,3}),(4,{1,2,4}),(5,{1,3,5})}";
     public string wikiName { get; } = "";
     public string sourceNode { get; private set; } = string.Empty;
     public bool isDirected { get; private set; }
