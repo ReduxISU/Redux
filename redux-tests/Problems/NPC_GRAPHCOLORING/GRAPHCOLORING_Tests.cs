@@ -100,8 +100,7 @@ public class GRAPHCOLORING_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void GRAPHCOLORING_Instance_Format_Described()
-    {
+    public void GRAPHCOLORING_Instance_Format_Described() {
         GRAPHCOLORING problem = new GRAPHCOLORING();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -109,8 +108,7 @@ public class GRAPHCOLORING_Tests {
     }
 
     [Fact]
-    public void GRAPHCOLORING_Certificate_Format_Described()
-    {
+    public void GRAPHCOLORING_Certificate_Format_Described() {
         GRAPHCOLORING problem = new GRAPHCOLORING();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -118,8 +116,7 @@ public class GRAPHCOLORING_Tests {
     }
 
     [Fact]
-    public void GRAPHCOLORING_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void GRAPHCOLORING_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         GRAPHCOLORING problem = new GRAPHCOLORING();

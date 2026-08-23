@@ -5,6 +5,8 @@ using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Verifiers;
 
 class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
+    public const string CertificateGrammar = "{c1,...,cK} | color classes partition N, no edge in E has both endpoints in the same class";
+    public const string CertificateExample = "{{a},{b,d,f,h},{c,e,g,i}}";
 
 
 
