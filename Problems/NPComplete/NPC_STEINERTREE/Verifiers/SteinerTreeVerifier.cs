@@ -5,6 +5,8 @@ namespace API.Problems.NPComplete.NPC_STEINERTREE.Verifiers;
 
 
 class SteinerTreeVerifier : IVerifier<STEINERTREE> {
+    public const string CertificateGrammar = "{node,node},... | edges form a connected subgraph including every terminal node in R";
+    public const string CertificateExample = "{{8,6},{6,1},{1,2},{2,3},{3,5}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Steiner Tree Verifier";
