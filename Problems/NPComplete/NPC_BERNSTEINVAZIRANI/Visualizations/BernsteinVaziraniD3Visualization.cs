@@ -8,8 +8,7 @@ using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Tools;
 
-class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
-{
+class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI> {
     public string visualizationName { get; } = "Bernstein-Vazirani Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
         "Builds the Bernstein-Vazirani circuit with ancilla, highlights the oracle that encodes the secret string, and shows how a single query plus phase kickback reveals the hidden bits in D3.js.";
@@ -20,23 +19,19 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
 
     public BernsteinVaziraniD3Visualization() { }
 
-    public API_JSON visualize(BERNSTEINVAZIRANI instance)
-    {
+    public API_JSON visualize(BERNSTEINVAZIRANI instance) {
         return BuildVisualization(instance, solution: null);
     }
 
-    public API_JSON SolvedVisualization(BERNSTEINVAZIRANI instance, string solution)
-    {
+    public API_JSON SolvedVisualization(BERNSTEINVAZIRANI instance, string solution) {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(BERNSTEINVAZIRANI instance, string? solution)
-    {
+    private API_JSON BuildVisualization(BERNSTEINVAZIRANI instance, string? solution) {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 
-        try
-        {
+        try {
             bool[] requestBody = instance.funcValues.ToArray();
             var client = new QuantumServerAPI();
             string response = client.PostAsync("/bernstein-vazirani-quantum", requestBody).Result;
@@ -47,15 +42,12 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
             if (root.TryGetProperty("answer", out JsonElement answerElement))
                 answerFromApi = answerElement.GetString();
 
-            if (root.TryGetProperty("qasm", out JsonElement qasmElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement qasmElement)) {
                 string? qasm = qasmElement.GetString();
                 if (!string.IsNullOrWhiteSpace(qasm))
                     circuitJson = BuildD3FromQasm(qasm, answerFromApi, instance, solution);
             }
-        }
-        catch
-        {
+        } catch {
             // fall back to static payload
         }
 
@@ -65,31 +57,26 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
 
         string? finalSolution = solution ?? answerFromApi;
 
-        return new API_QUANTUMCIRCUIT
-        {
+        return new API_QUANTUMCIRCUIT {
             solution = finalSolution,
             format = QuantumCircuitFormat.D3,
             d3 = d3Element,
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["secretString"] = finalSolution,
                 ["oracleType"] = "linear"
             }
         };
     }
 
-    private string BuildD3FromQasm(string qasm, string? answer, BERNSTEINVAZIRANI instance, string? solution)
-    {
+    private string BuildD3FromQasm(string qasm, string? answer, BERNSTEINVAZIRANI instance, string? solution) {
         var (qubits, classical, ops) = QasmD3Scheduler.ParseQasm(qasm);
         List<QasmD3GateOp> gates = QasmD3Scheduler.ScheduleAsap(ops);
 
-        var payload = new QasmD3Payload
-        {
+        var payload = new QasmD3Payload {
             qubits = qubits.Count > 0 ? qubits.ToArray() : BuildDefaultQubits(instance),
             classical = classical.Count > 0 ? classical.ToArray() : BuildDefaultClassical(instance),
             gates = gates,
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["solution"] = solution ?? answer,
                 ["oracleType"] = "linear"
             }
@@ -102,8 +89,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static QasmD3Overlay? DetectOracleStage(QasmD3Payload payload)
-    {
+    private static QasmD3Overlay? DetectOracleStage(QasmD3Payload payload) {
         // Heuristic: first full layer of H on data+ancilla, then next full layer of H on data only
         var qubits = payload.qubits ?? Array.Empty<string>();
         if (qubits.Length < 2) return null;
@@ -121,8 +107,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
             .Where(g => IsHOn(g, g.targets.FirstOrDefault() ?? string.Empty))
             .GroupBy(g => g.time)
             .OrderBy(g => g.Key)
-            .Select(grp => new
-            {
+            .Select(grp => new {
                 Time = grp.Key,
                 Targets = grp.Select(g => g.targets[0]).ToHashSet()
             })
@@ -137,8 +122,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         double tStart = tPrep.Value + 1;
         double tEnd = tPost.Value - 1;
 
-        if (tEnd < tStart)
-        {
+        if (tEnd < tStart) {
             double candidate = tPrep.Value + 1;
             bool exists = payload.gates.Any(g => Math.Abs(g.time - candidate) < 1e-9);
             if (!exists) return null;
@@ -149,8 +133,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         bool hasOracleOps = payload.gates.Any(g => g.time >= tStart && g.time <= tEnd);
         if (!hasOracleOps) return null;
 
-        return new QasmD3Overlay
-        {
+        return new QasmD3Overlay {
             id = "uf",
             type = "oracle",
             label = "U_f",
@@ -160,8 +143,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         };
     }
 
-    private string BuildStaticD3Payload(BERNSTEINVAZIRANI instance, string? solution)
-    {
+    private string BuildStaticD3Payload(BERNSTEINVAZIRANI instance, string? solution) {
         string[] qubits = BuildDefaultQubits(instance);
         string[] classical = BuildDefaultClassical(instance);
 
@@ -173,8 +155,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         gates.Add(new { id = "x0", type = "x", targets = new[] { ancilla }, time = 0 });
 
         // Hadamard on all qubits
-        for (int i = 0; i < qubits.Length; i++)
-        {
+        for (int i = 0; i < qubits.Length; i++) {
             gates.Add(new { id = $"h{i}", type = "h", targets = new[] { qubits[i] }, time = 1 });
         }
 
@@ -184,17 +165,14 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
 
         // Hadamard on data qubits
         int postHTime = 3;
-        for (int i = 0; i < qubits.Length - 1; i++)
-        {
+        for (int i = 0; i < qubits.Length - 1; i++) {
             gates.Add(new { id = $"h_post_{i}", type = "h", targets = new[] { qubits[i] }, time = postHTime });
         }
 
         // Measurements on data qubits
         int measureTime = 4;
-        for (int i = 0; i < qubits.Length - 1; i++)
-        {
-            gates.Add(new
-            {
+        for (int i = 0; i < qubits.Length - 1; i++) {
+            gates.Add(new {
                 id = $"m{i}",
                 type = "m",
                 targets = new[] { qubits[i] },
@@ -215,14 +193,12 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
             }
         };
 
-        var payload = new
-        {
+        var payload = new {
             qubits,
             classical,
             gates,
             overlays,
-            metadata = new
-            {
+            metadata = new {
                 solution,
                 oracleType = "linear"
             }
@@ -231,8 +207,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static string[] BuildDefaultQubits(BERNSTEINVAZIRANI instance)
-    {
+    private static string[] BuildDefaultQubits(BERNSTEINVAZIRANI instance) {
         int dataCount = Math.Max(1, instance.NBits);
         var qubits = new List<string>();
         for (int i = 0; i < dataCount; i++)
@@ -241,8 +216,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI>
         return qubits.ToArray();
     }
 
-    private static string[] BuildDefaultClassical(BERNSTEINVAZIRANI instance)
-    {
+    private static string[] BuildDefaultClassical(BERNSTEINVAZIRANI instance) {
         int dataCount = Math.Max(1, instance.NBits);
         var classical = new List<string>();
         for (int i = 0; i < dataCount; i++)

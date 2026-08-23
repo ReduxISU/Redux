@@ -6,14 +6,12 @@ using API.Tools;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class QasmD3Scheduler_Tests
-{
+public class QasmD3Scheduler_Tests {
 
     // --- ParseQasm ---
 
     [Fact]
-    public void ParseQasm_HeaderQregCreg_ProducesQubitsAndClassicalNoOps()
-    {
+    public void ParseQasm_HeaderQregCreg_ProducesQubitsAndClassicalNoOps() {
         string qasm = "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c[1];\n";
 
         var (qubits, classical, ops) = QasmD3Scheduler.ParseQasm(qasm);
@@ -24,8 +22,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ParseQasm_PlainGateLine_ProducesSingleOpWithTypeAndTarget()
-    {
+    public void ParseQasm_PlainGateLine_ProducesSingleOpWithTypeAndTarget() {
         string qasm = "qreg q[1];\nh q[0];\n";
 
         var (_, _, ops) = QasmD3Scheduler.ParseQasm(qasm);
@@ -36,8 +33,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ParseQasm_MeasureLine_ProducesMeasureOpWithClassical()
-    {
+    public void ParseQasm_MeasureLine_ProducesMeasureOpWithClassical() {
         string qasm = "qreg q[1];\ncreg c[1];\nmeasure q[0] -> c[0];\n";
 
         var (_, _, ops) = QasmD3Scheduler.ParseQasm(qasm);
@@ -49,8 +45,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ParseQasm_ParametrizedGate_ParsesParamValue()
-    {
+    public void ParseQasm_ParametrizedGate_ParsesParamValue() {
         string qasm = "qreg q[1];\nrz(0.5) q[0];\n";
 
         var (_, _, ops) = QasmD3Scheduler.ParseQasm(qasm);
@@ -62,8 +57,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ParseQasm_MultiTargetGate_ProducesBothTargets()
-    {
+    public void ParseQasm_MultiTargetGate_ProducesBothTargets() {
         string qasm = "qreg q[2];\ncx q[0],q[1];\n";
 
         var (_, _, ops) = QasmD3Scheduler.ParseQasm(qasm);
@@ -76,8 +70,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ParseQasm_CommentsAndHeaders_AreSkippedWithoutProducingOpsOrThrowing()
-    {
+    public void ParseQasm_CommentsAndHeaders_AreSkippedWithoutProducingOpsOrThrowing() {
         string qasm = "// this is a comment\nOPENQASM 2.0;\ninclude \"qelib1.inc\";\n// another comment\nqreg q[1];\nh q[0];\n";
 
         var (qubits, _, ops) = QasmD3Scheduler.ParseQasm(qasm);
@@ -91,8 +84,7 @@ public class QasmD3Scheduler_Tests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("\n\n  \n")]
-    public void ParseQasm_EmptyOrWhitespaceInput_ProducesEmptyListsWithoutThrowing(string qasm)
-    {
+    public void ParseQasm_EmptyOrWhitespaceInput_ProducesEmptyListsWithoutThrowing(string qasm) {
         var (qubits, classical, ops) = QasmD3Scheduler.ParseQasm(qasm);
 
         Assert.Empty(qubits);
@@ -103,8 +95,7 @@ public class QasmD3Scheduler_Tests
     // --- ScheduleAsap ---
 
     [Fact]
-    public void ScheduleAsap_DifferentQubitsSameType_ShareSameTimeSlot()
-    {
+    public void ScheduleAsap_DifferentQubitsSameType_ShareSameTimeSlot() {
         var qasm = "qreg q[2];\nh q[0];\nh q[1];\n";
         var (_, _, ops) = QasmD3Scheduler.ParseQasm(qasm);
 
@@ -115,8 +106,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ScheduleAsap_SameQubitConflict_ForcesIncreasingTimeSlots()
-    {
+    public void ScheduleAsap_SameQubitConflict_ForcesIncreasingTimeSlots() {
         var qasm = "qreg q[1];\nh q[0];\nx q[0];\n";
         var (_, _, ops) = QasmD3Scheduler.ParseQasm(qasm);
 
@@ -127,8 +117,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ScheduleAsap_TypeMismatchWithoutResourceOverlap_StillForcesNewLayer()
-    {
+    public void ScheduleAsap_TypeMismatchWithoutResourceOverlap_StillForcesNewLayer() {
         // Two ops on disjoint qubits, different gate types: no resource conflict,
         // but the type-mismatch rule should still force a new layer.
         var ops = new List<QasmOp>
@@ -145,8 +134,7 @@ public class QasmD3Scheduler_Tests
     }
 
     [Fact]
-    public void ScheduleAsap_MultipleMeasurementsInSameLayer_GetDistinctCloseIncreasingOffsets()
-    {
+    public void ScheduleAsap_MultipleMeasurementsInSameLayer_GetDistinctCloseIncreasingOffsets() {
         var ops = new List<QasmOp>
         {
             new QasmOp { Id = "m0", Type = "m", Targets = new[] { "q0" }, Classical = new[] { "c0" } },
@@ -178,8 +166,7 @@ public class QasmD3Scheduler_Tests
     [InlineData("q0", "q0")]
     [InlineData("q[1];", "q1")]
     [InlineData(" q[2] ", "q2")]
-    public void NormalizeQubit_HandlesBracketsAndTrimming(string input, string expected)
-    {
+    public void NormalizeQubit_HandlesBracketsAndTrimming(string input, string expected) {
         string result = QasmD3Scheduler.NormalizeQubit(input);
 
         Assert.Equal(expected, result);

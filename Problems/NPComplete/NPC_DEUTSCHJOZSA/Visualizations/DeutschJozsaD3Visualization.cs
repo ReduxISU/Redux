@@ -8,8 +8,7 @@ using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 
-class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
-{
+class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA> {
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
         "Builds an n-qubit Deutsch-Jozsa circuit with Hadamard prep, highlights the oracle, and shows how one query distinguishes constant vs. balanced functions via interference using D3.js.";
@@ -19,23 +18,19 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
     public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
     public DeutschJozsaD3Visualization() { }
 
-    public API_JSON visualize(DEUTSCHJOZSA instance)
-    {
+    public API_JSON visualize(DEUTSCHJOZSA instance) {
         return BuildVisualization(instance, solution: null);
     }
 
-    public API_JSON SolvedVisualization(DEUTSCHJOZSA instance, string solution)
-    {
+    public API_JSON SolvedVisualization(DEUTSCHJOZSA instance, string solution) {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(DEUTSCHJOZSA instance, string? solution)
-    {
+    private API_JSON BuildVisualization(DEUTSCHJOZSA instance, string? solution) {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 
-        try
-        {
+        try {
             bool[] requestBody = instance.w.Select(v => v != 0).ToArray();
             var client = new QuantumServerAPI();
             string response = client.PostAsync("/deutsch-jozsa-quantum", requestBody).Result;
@@ -46,15 +41,12 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
             if (root.TryGetProperty("answer", out JsonElement answerElement))
                 answerFromApi = answerElement.GetString();
 
-            if (root.TryGetProperty("qasm", out JsonElement qasmElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement qasmElement)) {
                 string? qasm = qasmElement.GetString();
                 if (!string.IsNullOrWhiteSpace(qasm))
                     circuitJson = BuildD3FromQasm(qasm, answerFromApi, instance, solution);
             }
-        }
-        catch
-        {
+        } catch {
             // fall back to the static payload
         }
 
@@ -64,30 +56,25 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
 
         string? finalSolution = solution ?? answerFromApi;
 
-        return new API_QUANTUMCIRCUIT
-        {
+        return new API_QUANTUMCIRCUIT {
             solution = finalSolution,
             format = QuantumCircuitFormat.D3,
             d3 = d3Element,
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["oracleType"] = answerFromApi ?? (IsConstant(instance) ? "constant" : "balanced")
             }
         };
     }
 
-    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCHJOZSA instance, string? solution)
-    {
+    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCHJOZSA instance, string? solution) {
         var (qubits, classical, ops) = QasmD3Scheduler.ParseQasm(qasm);
         List<QasmD3GateOp> gates = QasmD3Scheduler.ScheduleAsap(ops);
 
-        var payload = new QasmD3Payload
-        {
+        var payload = new QasmD3Payload {
             qubits = qubits.Count > 0 ? qubits.ToArray() : BuildDefaultQubits(instance),
             classical = classical.Count > 0 ? classical.ToArray() : BuildDefaultClassical(instance),
             gates = gates,
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["solution"] = solution,
                 ["oracleType"] = answer ?? (IsConstant(instance) ? "constant" : "balanced")
             }
@@ -100,8 +87,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static QasmD3Overlay? DetectDeutschJozsaOracleStage(QasmD3Payload payload)
-    {
+    private static QasmD3Overlay? DetectDeutschJozsaOracleStage(QasmD3Payload payload) {
         var qubits = payload.qubits ?? Array.Empty<string>();
         if (qubits.Length < 2) return null;
 
@@ -141,8 +127,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         double tStart = tPrep.Value + 1;
         double tEnd = tPost.Value - 1;
 
-        if (tEnd < tStart)
-        {
+        if (tEnd < tStart) {
             double candidate = tPrep.Value + 1;
             bool exists = payload.gates.Any(g => Math.Abs(g.time - candidate) < 1e-9);
             if (!exists) return null;
@@ -153,8 +138,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         bool hasOracleOps = payload.gates.Any(g => g.time >= tStart && g.time <= tEnd);
         if (!hasOracleOps) return null;
 
-        return new QasmD3Overlay
-        {
+        return new QasmD3Overlay {
             id = "uf",
             type = "oracle",
             label = "U_f",
@@ -164,8 +148,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         };
     }
 
-    private string BuildStaticD3Payload(DEUTSCHJOZSA instance, string? solution)
-    {
+    private string BuildStaticD3Payload(DEUTSCHJOZSA instance, string? solution) {
         int dataCount = Math.Max(1, instance.n);
         string[] qubits = BuildDefaultQubits(instance);
         string[] classical = BuildDefaultClassical(instance);
@@ -178,35 +161,28 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         gates.Add(new { id = "x0", type = "x", targets = new[] { ancilla }, time = 0 });
 
         // H on all qubits (data + ancilla)
-        for (int i = 0; i < qubits.Length; i++)
-        {
+        for (int i = 0; i < qubits.Length; i++) {
             gates.Add(new { id = $"h{i}", type = "h", targets = new[] { qubits[i] }, time = 1 });
         }
 
         // Placeholder oracle column
         int oracleTime = 2;
-        if (IsConstant(instance))
-        {
+        if (IsConstant(instance)) {
             gates.Add(new { id = "oracle_const", type = "i", targets = new[] { ancilla }, label = "U_f", time = oracleTime });
-        }
-        else
-        {
+        } else {
             gates.Add(new { id = "oracle_bal", type = "cx", targets = new[] { qubits[0], ancilla }, label = "U_f", time = oracleTime });
         }
 
         // H on data qubits
         int postHTime = 3;
-        for (int i = 0; i < dataCount; i++)
-        {
+        for (int i = 0; i < dataCount; i++) {
             gates.Add(new { id = $"h_post_{i}", type = "h", targets = new[] { qubits[i] }, time = postHTime });
         }
 
         // Measure data qubits
         int measureTime = 4;
-        for (int i = 0; i < dataCount; i++)
-        {
-            gates.Add(new
-            {
+        for (int i = 0; i < dataCount; i++) {
+            gates.Add(new {
                 id = $"m{i}",
                 type = "m",
                 targets = new[] { qubits[i] },
@@ -227,14 +203,12 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
             }
         };
 
-        var payload = new
-        {
+        var payload = new {
             qubits,
             classical,
             gates,
             overlays,
-            metadata = new
-            {
+            metadata = new {
                 solution,
                 oracleType = IsConstant(instance) ? "constant" : "balanced"
             }
@@ -243,15 +217,13 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static bool IsConstant(DEUTSCHJOZSA instance)
-    {
+    private static bool IsConstant(DEUTSCHJOZSA instance) {
         if (instance.w.Count == 0) return true;
         int first = instance.w[0];
         return instance.w.All(v => v == first);
     }
 
-    private static string[] BuildDefaultQubits(DEUTSCHJOZSA instance)
-    {
+    private static string[] BuildDefaultQubits(DEUTSCHJOZSA instance) {
         int dataCount = Math.Max(1, instance.n);
         var qubits = new List<string>();
         for (int i = 0; i < dataCount; i++)
@@ -260,8 +232,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA>
         return qubits.ToArray();
     }
 
-    private static string[] BuildDefaultClassical(DEUTSCHJOZSA instance)
-    {
+    private static string[] BuildDefaultClassical(DEUTSCHJOZSA instance) {
         int dataCount = Math.Max(1, instance.n);
         var classical = new List<string>();
         for (int i = 0; i < dataCount; i++)

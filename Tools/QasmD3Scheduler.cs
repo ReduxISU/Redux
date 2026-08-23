@@ -8,8 +8,7 @@ namespace API.Tools;
 // visualizations (Deutsch, Deutsch-Jozsa, Bernstein-Vazirani). These were previously
 // triplicated as identical private nested classes in each visualization file.
 
-internal sealed class QasmOp
-{
+internal sealed class QasmOp {
     public string Type { get; init; } = "";
     public string Id { get; init; } = "";
     public string[] Targets { get; init; } = Array.Empty<string>();
@@ -17,8 +16,7 @@ internal sealed class QasmOp
     public double[]? Params { get; init; }
 }
 
-internal sealed class QasmD3GateOp
-{
+internal sealed class QasmD3GateOp {
     public string id { get; set; } = "";
     public string type { get; set; } = "";          // "h", "x", "cx", "m", "oracle", ...
     public string[] targets { get; set; } = Array.Empty<string>();
@@ -28,8 +26,7 @@ internal sealed class QasmD3GateOp
     public double time { get; set; }                // assigned by scheduler (offset for measurements)
 }
 
-internal sealed class QasmD3Payload
-{
+internal sealed class QasmD3Payload {
     public string[] qubits { get; set; } = Array.Empty<string>();
     public string[] classical { get; set; } = Array.Empty<string>();
     public List<QasmD3GateOp> gates { get; set; } = new();
@@ -37,8 +34,7 @@ internal sealed class QasmD3Payload
     public Dictionary<string, object?> metadata { get; set; } = new();
 }
 
-internal sealed class QasmD3Overlay
-{
+internal sealed class QasmD3Overlay {
     public string id { get; set; } = "";
     public string type { get; set; } = "stage";     // e.g. "oracle", "stage"
     public string label { get; set; } = "";
@@ -50,16 +46,13 @@ internal sealed class QasmD3Overlay
 // Shared QASM-text parsing + ASAP gate scheduling for the D3 quantum-circuit visualizations.
 // Extracted from what was byte-for-byte-identical private logic in DeutschD3Visualization,
 // DeutschJozsaD3Visualization, and BernsteinVaziraniD3Visualization.
-internal static class QasmD3Scheduler
-{
-    internal static (List<string> Qubits, List<string> Classical, List<QasmOp> Ops) ParseQasm(string qasm)
-    {
+internal static class QasmD3Scheduler {
+    internal static (List<string> Qubits, List<string> Classical, List<QasmOp> Ops) ParseQasm(string qasm) {
         var qubits = new List<string>();
         var classical = new List<string>();
         var ops = new List<QasmOp>();
 
-        foreach (string rawLine in qasm.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
-        {
+        foreach (string rawLine in qasm.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)) {
             string line = rawLine.Trim();
             if (line.Length == 0 || line.StartsWith("//", StringComparison.Ordinal))
                 continue;
@@ -68,41 +61,34 @@ internal static class QasmD3Scheduler
             if (line.StartsWith("include", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            if (line.StartsWith("qreg ", StringComparison.Ordinal))
-            {
+            if (line.StartsWith("qreg ", StringComparison.Ordinal)) {
                 string nameAndSize = line.Replace("qreg", "", StringComparison.Ordinal).Replace(";", "").Trim();
                 string[] parts = nameAndSize.Split('[', ']');
-                if (parts.Length >= 2 && int.TryParse(parts[1], out int size))
-                {
+                if (parts.Length >= 2 && int.TryParse(parts[1], out int size)) {
                     for (int i = 0; i < size; i++)
                         qubits.Add($"{parts[0]}{i}");
                 }
                 continue;
             }
 
-            if (line.StartsWith("creg ", StringComparison.Ordinal))
-            {
+            if (line.StartsWith("creg ", StringComparison.Ordinal)) {
                 string nameAndSize = line.Replace("creg", "", StringComparison.Ordinal).Replace(";", "").Trim();
                 string[] parts = nameAndSize.Split('[', ']');
-                if (parts.Length >= 2 && int.TryParse(parts[1], out int size))
-                {
+                if (parts.Length >= 2 && int.TryParse(parts[1], out int size)) {
                     for (int i = 0; i < size; i++)
                         classical.Add($"{parts[0]}{i}");
                 }
                 continue;
             }
 
-            if (line.StartsWith("measure", StringComparison.Ordinal))
-            {
+            if (line.StartsWith("measure", StringComparison.Ordinal)) {
                 string noSemi = line.TrimEnd(';');
                 string[] arrowSplit = noSemi.Split("->", StringSplitOptions.RemoveEmptyEntries);
-                if (arrowSplit.Length == 2)
-                {
+                if (arrowSplit.Length == 2) {
                     string q = NormalizeQubit(arrowSplit[0].Replace("measure", "", StringComparison.Ordinal).Trim());
                     string c = NormalizeQubit(arrowSplit[1].Trim());
 
-                    ops.Add(new QasmOp
-                    {
+                    ops.Add(new QasmOp {
                         Id = $"m{ops.Count}",
                         Type = "m",
                         Targets = new[] { q },
@@ -113,8 +99,7 @@ internal static class QasmD3Scheduler
             }
 
             // Generic "gate args;" lines
-            if (line.Contains(' '))
-            {
+            if (line.Contains(' ')) {
                 string noSemi = line.TrimEnd(';');
                 string[] tokens = noSemi.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
                 if (tokens.Length < 2) continue;
@@ -127,11 +112,9 @@ internal static class QasmD3Scheduler
                 double[]? gateParams = null;
 
                 int parenStart = gateToken.IndexOf('(');
-                if (parenStart >= 0)
-                {
+                if (parenStart >= 0) {
                     int parenEnd = gateToken.LastIndexOf(')');
-                    if (parenEnd > parenStart)
-                    {
+                    if (parenEnd > parenStart) {
                         gateType = gateToken.Substring(0, parenStart).Trim();
 
                         string inside = gateToken.Substring(parenStart + 1, parenEnd - parenStart - 1);
@@ -141,8 +124,7 @@ internal static class QasmD3Scheduler
 
                         // Best effort parse: numeric parameters (for your D3 label rendering)
                         var parsed = new List<double>();
-                        foreach (var p in parts)
-                        {
+                        foreach (var p in parts) {
                             if (double.TryParse(p, out double val))
                                 parsed.Add(val);
                         }
@@ -155,10 +137,8 @@ internal static class QasmD3Scheduler
                                            .Select(a => NormalizeQubit(a.Trim()))
                                            .ToArray();
 
-                if (targets.Length > 0)
-                {
-                    ops.Add(new QasmOp
-                    {
+                if (targets.Length > 0) {
+                    ops.Add(new QasmOp {
                         Id = $"{gateType.ToLower()}{ops.Count}",
                         Type = gateType.ToLower(),
                         Targets = targets,
@@ -171,26 +151,22 @@ internal static class QasmD3Scheduler
         return (qubits, classical, ops);
     }
 
-    internal static List<QasmD3GateOp> ScheduleAsap(List<QasmOp> ops)
-    {
+    internal static List<QasmD3GateOp> ScheduleAsap(List<QasmOp> ops) {
         var gates = new List<QasmD3GateOp>();
 
         double currentTime = 0;
         var layerUsed = new HashSet<string>(StringComparer.Ordinal);
         string? layerType = null;
 
-        void NextLayer()
-        {
+        void NextLayer() {
             currentTime++;
             layerUsed.Clear();
             layerType = null;
         }
 
-        foreach (var op in ops)
-        {
+        foreach (var op in ops) {
             var resources = new HashSet<string>(op.Targets, StringComparer.Ordinal);
-            if (op.Type == "m" && op.Classical != null)
-            {
+            if (op.Type == "m" && op.Classical != null) {
                 foreach (var c in op.Classical) resources.Add(c);
             }
 
@@ -206,8 +182,7 @@ internal static class QasmD3Scheduler
             foreach (var r in resources) layerUsed.Add(r);
 
             // Emit typed gate (no anonymous objects)
-            gates.Add(new QasmD3GateOp
-            {
+            gates.Add(new QasmD3GateOp {
                 id = op.Id,
                 type = op.Type,
                 targets = op.Targets,
@@ -222,30 +197,24 @@ internal static class QasmD3Scheduler
         return gates;
     }
 
-    private static void OffsetMeasurementTimes(List<QasmD3GateOp> gates)
-    {
+    private static void OffsetMeasurementTimes(List<QasmD3GateOp> gates) {
         const double eps = 0.01;
         var groups = gates.GroupBy(g => g.time);
-        foreach (var grp in groups)
-        {
+        foreach (var grp in groups) {
             double slot = 0;
-            foreach (var g in grp.Where(x => string.Equals(x.type, "m", StringComparison.OrdinalIgnoreCase)))
-            {
+            foreach (var g in grp.Where(x => string.Equals(x.type, "m", StringComparison.OrdinalIgnoreCase))) {
                 g.time = grp.Key + slot * eps;
                 slot += 1;
             }
         }
     }
 
-    internal static string NormalizeQubit(string qasmRef)
-    {
+    internal static string NormalizeQubit(string qasmRef) {
         string trimmed = qasmRef.Trim();
         int bracket = trimmed.IndexOf('[');
-        if (bracket >= 0)
-        {
+        if (bracket >= 0) {
             int end = trimmed.IndexOf(']', bracket + 1);
-            if (end > bracket)
-            {
+            if (end > bracket) {
                 string name = trimmed.Substring(0, bracket);
                 string idx = trimmed.Substring(bracket + 1, end - bracket - 1);
                 return $"{name}{idx}";

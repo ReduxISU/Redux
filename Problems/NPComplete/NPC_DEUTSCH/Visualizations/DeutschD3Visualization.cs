@@ -8,8 +8,7 @@ using API.Problems.NPComplete.NPC_DEUTSCH;
 using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 
-class DeutschD3Visualization : IVisualization<DEUTSCH>
-{
+class DeutschD3Visualization : IVisualization<DEUTSCH> {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (D3)";
     public string visualizationDefinition { get; } = "Builds a two-qubit Deutsch circuit, highlights the oracle block, and illustrates how interference distinguishes constant vs. balanced functions in one query using D3.js.";
     public string source { get; } = "https://d3js.org/";
@@ -19,23 +18,19 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
 
     public DeutschD3Visualization() { }
 
-    public API_JSON visualize(DEUTSCH instance)
-    {
+    public API_JSON visualize(DEUTSCH instance) {
         return BuildVisualization(instance, solution: null);
     }
 
-    public API_JSON SolvedVisualization(DEUTSCH instance, string solution)
-    {
+    public API_JSON SolvedVisualization(DEUTSCH instance, string solution) {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(DEUTSCH instance, string? solution)
-    {
+    private API_JSON BuildVisualization(DEUTSCH instance, string? solution) {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 
-        try
-        {
+        try {
             bool[] requestBody = instance.funcValues;
             var client = new QuantumServerAPI();
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
@@ -46,15 +41,12 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
             if (root.TryGetProperty("answer", out JsonElement answerElement))
                 answerFromApi = answerElement.GetString();
 
-            if (root.TryGetProperty("qasm", out JsonElement qasmElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement qasmElement)) {
                 string? qasm = qasmElement.GetString();
                 if (!string.IsNullOrWhiteSpace(qasm))
                     circuitJson = BuildD3FromQasm(qasm, answerFromApi, instance, solution);
             }
-        }
-        catch
-        {
+        } catch {
             // fallback to static payload in circuitJson
         }
 
@@ -64,15 +56,13 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
 
         string? finalSolution = solution ?? answerFromApi;
 
-        return new API_QUANTUMCIRCUIT
-        {
+        return new API_QUANTUMCIRCUIT {
             solution = finalSolution,
             format = QuantumCircuitFormat.D3,
             d3 = d3Element,
 
             // Optional: carry metadata at top level too
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["oracleType"] = answerFromApi
                     ?? ((instance.funcValues[0] == instance.funcValues[1]) ? "constant" : "balanced")
             },
@@ -81,19 +71,16 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
 
     // QASM -> ops -> ASAP schedule
 
-    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCH instance, string? solution)
-    {
+    private string BuildD3FromQasm(string qasm, string? answer, DEUTSCH instance, string? solution) {
         var (qubits, classical, ops) = QasmD3Scheduler.ParseQasm(qasm);
         List<QasmD3GateOp> gates = QasmD3Scheduler.ScheduleAsap(ops);
 
         // Build payload
-        var payload = new QasmD3Payload
-        {
+        var payload = new QasmD3Payload {
             qubits = qubits.Count > 0 ? qubits.ToArray() : new[] { "q0", "q1" },
             classical = classical.Count > 0 ? classical.ToArray() : new[] { "c0" },
             gates = gates,
-            metadata = new Dictionary<string, object?>
-            {
+            metadata = new Dictionary<string, object?> {
                 ["solution"] = solution,
                 ["oracleType"] = answer ?? ((instance.funcValues[0] == instance.funcValues[1]) ? "constant" : "balanced")
             }
@@ -106,8 +93,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         return JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    private static QasmD3Overlay? DetectDeutschOracleStage(QasmD3Payload payload)
-    {
+    private static QasmD3Overlay? DetectDeutschOracleStage(QasmD3Payload payload) {
         // Expect q0,q1 exist, but don’t hard-fail if naming differs
         var qubits = payload.qubits ?? Array.Empty<string>();
         if (qubits.Length < 2) return null;
@@ -145,8 +131,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         double tStart = tPrep + 1;
         double tEnd = tPost.Value - 1;
 
-        if (tEnd < tStart)
-        {
+        if (tEnd < tStart) {
             // Sometimes the oracle collapses to exactly one column and your schedule might put post-H immediately next.
             // In that case, treat oracle as the single column tPrep+1 if it exists.
             double candidate = tPrep + 1;
@@ -161,8 +146,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         bool hasOracleOps = payload.gates.Any(g => g.time >= tStart && g.time <= tEnd);
         if (!hasOracleOps) return null;
 
-        return new QasmD3Overlay
-        {
+        return new QasmD3Overlay {
             id = "uf",
             type = "oracle",
             label = "U_f",
@@ -172,8 +156,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
         };
     }
 
-    private string BuildStaticD3Payload(DEUTSCH instance, string? solution)
-    {
+    private string BuildStaticD3Payload(DEUTSCH instance, string? solution) {
         bool[] f = instance.funcValues;
         bool isConstant = (f[0] == f[1]);
 
@@ -189,8 +172,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
             }
         };
 
-        var payload = new
-        {
+        var payload = new {
             qubits = new[] { "q0", "q1" },
             classical = new[] { "c0" },
             gates = new object[]
@@ -217,8 +199,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH>
                 }
             },
             overlays,
-            metadata = new
-            {
+            metadata = new {
                 solution,
                 oracleType = isConstant ? "constant" : "balanced"
             }
