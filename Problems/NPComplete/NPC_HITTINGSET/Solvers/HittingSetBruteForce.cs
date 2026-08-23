@@ -7,10 +7,10 @@ namespace API.Problems.NPComplete.NPC_HITTINGSET.Solvers;
 class HittingSetBruteForce : ISolver<HITTINGSET> {
 
     // --- Fields ---
-    public string solverName {get;} = "Hitting Set Brute Force";
-    public string solverDefinition {get;} = "This is a brute force solver for Hitting Set";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"Russell Phillips"};
+    public string solverName { get; } = "Hitting Set Brute Force";
+    public string solverDefinition { get; } = "This is a brute force solver for Hitting Set";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
@@ -23,16 +23,13 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
 
     // --- Methods Including Constructors ---
     public HittingSetBruteForce() {
-        
+
     }
 
-    public IEnumerable<List<int>> possibleSolutions(int len)
-    {
-        for (int i = 0; i < Math.Pow(2, len); i++) 
-        {
-            List<int> solution = new List<int>(); 
-            for (int solBin = i + (int)Math.Pow(2, len); solBin != 1; solBin >>= 1)
-            {
+    public IEnumerable<List<int>> possibleSolutions(int len) {
+        for (int i = 0; i < Math.Pow(2, len); i++) {
+            List<int> solution = new List<int>();
+            for (int solBin = i + (int)Math.Pow(2, len); solBin != 1; solBin >>= 1) {
                 if ((solBin & 1) == 0)
                     solution.Add(0);
                 else
@@ -42,14 +39,11 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
         }
     }
 
-    public string solve(HITTINGSET hittingSet)
-    {
+    public string solve(HITTINGSET hittingSet) {
         List<UtilCollection> items = hittingSet.universalSet.ToList();
-        foreach (List<int> possibleSolution in possibleSolutions(items.Count()))
-        {
+        foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
             UtilCollection certificate = new UtilCollection("{}");
-            for (int i = 0; i < items.Count; i++)
-            {
+            for (int i = 0; i < items.Count; i++) {
                 if (possibleSolution[i] == 1) certificate.Add(items[i]);
             }
             string strCertificate = certificate.ToString();
@@ -67,8 +61,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
     /// <param name="problemInstance"></param>
     /// <param name="solutionString"></param>
     /// <returns></returns>
-    public Dictionary<string,bool> getSolutionDict(string problemInstance, string solutionString)
-    {
+    public Dictionary<string, bool> getSolutionDict(string problemInstance, string solutionString) {
         throw new NotImplementedException();
     }
 }

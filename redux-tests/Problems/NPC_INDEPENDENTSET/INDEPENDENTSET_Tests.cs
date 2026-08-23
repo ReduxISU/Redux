@@ -11,8 +11,8 @@ namespace redux_tests;
 
 public class INDPENDENTSET_Tests {
 
-   [Fact]
-   public void INDEPENDENTSET_Default_Instantiation() {
+    [Fact]
+    public void INDEPENDENTSET_Default_Instantiation() {
         INDEPENDENTSET independentset = new INDEPENDENTSET();
         UtilCollectionGraph graph = independentset.graph;
         Assert.Equal(independentset.instance, "(" + graph.ToString() + ",3)");
@@ -22,8 +22,7 @@ public class INDPENDENTSET_Tests {
     }
 
     [Fact]
-    public void INDEPENDENTSET_Custom_Instantiation()
-    {
+    public void INDEPENDENTSET_Custom_Instantiation() {
         INDEPENDENTSET independentset = new INDEPENDENTSET("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)");
         UtilCollectionGraph graph = independentset.graph;
         Assert.Equal(independentset.instance, "(" + graph.ToString() + ",2)");
@@ -31,13 +30,13 @@ public class INDPENDENTSET_Tests {
         Assert.Equal("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", independentset.instance);
     }
 
-   [Theory] //Tests independent set verifier with a few certificates
+    [Theory] //Tests independent set verifier with a few certificates
 
-   [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1,3}", true)]
-   [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1,4}", false)]
-   [InlineData("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}}),4)", "{b,d,f,h}", true)]
-   [InlineData("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}}),4)", "{c,i,g,e}", true)]
-   [InlineData("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}}),4)", "{b,c,f,h}", false)]
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1,3}", true)]
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1,4}", false)]
+    [InlineData("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}}),4)", "{b,d,f,h}", true)]
+    [InlineData("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}}),4)", "{c,i,g,e}", true)]
+    [InlineData("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,a},{b,c},{c,a},{a,c},{c,b},{a,d},{d,a},{d,e},{e,a},{a,e},{e,d},{a,f},{f,a},{f,g},{g,a},{a,g},{g,f},{a,h},{h,a},{h,i},{i,a},{a,i},{i,h}}),4)", "{b,c,f,h}", false)]
     public void INDEPENDENTSET_verifier(string instance, string certificate, bool expected) {
         INDEPENDENTSET independentset = new INDEPENDENTSET(instance);
         IndependentSetVerifier verifier = new IndependentSetVerifier();

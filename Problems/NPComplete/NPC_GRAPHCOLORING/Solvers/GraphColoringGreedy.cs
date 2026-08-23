@@ -7,11 +7,11 @@ using System.Collections.Generic;
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
 class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
- 
-    public string solverName {get;} = "Graph Coloring Greedy";
-    public string solverDefinition {get;} = "A greedy algorithm that iterates through each vertex and assigns the smallest color not used by any of its neighbors.";
-    public string source {get;} = "Dasgupta, S, Papadimitriou, C, & Vazirani, U. (2006). Algorithms. McGraw-Hill. Chapter 9.2";
-    public string[] contributors {get;} = { "Pramesh Shah" };
+
+    public string solverName { get; } = "Graph Coloring Greedy";
+    public string solverDefinition { get; } = "A greedy algorithm that iterates through each vertex and assigns the smallest color not used by any of its neighbors.";
+    public string source { get; } = "Dasgupta, S, Papadimitriou, C, & Vazirani, U. (2006). Algorithms. McGraw-Hill. Chapter 9.2";
+    public string[] contributors { get; } = { "Pramesh Shah" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Irrevocable locally-optimal choice each step.
     public SolverType solverType { get; } = SolverType.Greedy;
@@ -27,19 +27,16 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
     public GraphColoringGreedy() { }
 
     // Builds certificate string in format {{a,d},{b},{c}}
-    private string BuildCertificate(Dictionary<string, int> colorAssignment, List<string> nodes, int numColors)
-    {
+    private string BuildCertificate(Dictionary<string, int> colorAssignment, List<string> nodes, int numColors) {
         List<string> colorGroups = new List<string>();
-        for (int i = 0; i < numColors; i++)
-        {
+        for (int i = 0; i < numColors; i++) {
             List<string> group = nodes.Where(node => colorAssignment[node] == i).ToList();
             colorGroups.Add("{" + string.Join(",", group) + "}");
         }
         return "{" + string.Join(",", colorGroups) + "}";
     }
 
-    public string solve(GRAPHCOLORING gColor)
-    {
+    public string solve(GRAPHCOLORING gColor) {
         List<string> nodes = gColor.nodes;
         List<KeyValuePair<string, string>> edges = gColor.edges;
 
@@ -59,8 +56,7 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
 
         // For each vertex assign smallest color not used by neighbors
         Dictionary<string, int> colorAssignment = new Dictionary<string, int>();
-        foreach (string node in nodes)
-        {
+        foreach (string node in nodes) {
             HashSet<int> usedColors = new HashSet<int>();
             foreach (string neighbor in adjacency[node])
                 if (colorAssignment.ContainsKey(neighbor))
