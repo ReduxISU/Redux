@@ -132,6 +132,36 @@ public class SPSP_Tests
         Assert.Contains(frame.nodes, n => n.name == "5" && (n.color == "Solution" || n.color == "ElementHighlight"));
     }
 
+    // ----- Format declarations ----- //
+
+    [Fact]
+    public void SPSP_Instance_Format_Described()
+    {
+        SPSP problem = new SPSP();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E,s,t", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void SPSP_Certificate_Format_Described()
+    {
+        SPSP problem = new SPSP();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("node names", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void SPSP_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: {1,3,5}" quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        SPSP problem = new SPSP();
+        SPSPVerifier verifier = new SPSPVerifier();
+        Assert.True(verifier.verify(problem, "{1,3,5}"));
+    }
+
     // ----- Helper ----- //
     // The purpose of this helper function is to parse a certificate like "{1,3,5}" and sums the edge weights along the path
     private static int TotalPathWeight(SPSP problem, string certificate)

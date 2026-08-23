@@ -25,6 +25,8 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = "(N,E,s,t) where N is the set of node names, E is the set of edges (either unweighted (from,to) pairs or weighted ((from,to),weight) pairs, directed or undirected, non-negative weights only), s is the source node, and t is the target node. Example: ({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
+    public string certificateFormat { get; } = "Braces-wrapped, comma-separated sequence of node names giving the shortest path from source to target, or {} if the target is unreachable. Example: {1,3,5}";
 
     public string wikiName { get; } = "";
     public string sourceNode { get; private set; } = string.Empty;
