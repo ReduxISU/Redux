@@ -23,6 +23,8 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDe
     private static string _defaultInstance = "({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string instanceFormat { get; } = "(X,S) where X is the set to cover and S is a set of subsets of X. Example: ({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
+    public string certificateFormat { get; } = "Set of subsets chosen from S, written as {{sub1},{sub2},...}, whose union exactly partitions X (each element of X appears in exactly one chosen subset). Example: {{2,3},{4,1}}";
 
     public string wikiName {get;} = "";
     public ExactCoverBruteForce defaultSolver {get;} = new ExactCoverBruteForce();
