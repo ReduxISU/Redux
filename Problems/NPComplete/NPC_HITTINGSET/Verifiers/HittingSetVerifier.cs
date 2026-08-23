@@ -4,6 +4,8 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_HITTINGSET.Verifiers;
 
 class HittingSetVerifier : IVerifier<HITTINGSET> {
+    public const string CertificateGrammar = "W subset U | W intersects every subset in S in exactly one element";
+    public const string CertificateExample = "{1,2}";
 
     // --- Fields ---
     public string verifierName { get; } = "Hitting Set Verifier";
