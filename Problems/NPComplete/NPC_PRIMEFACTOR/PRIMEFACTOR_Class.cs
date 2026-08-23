@@ -17,6 +17,8 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
     private static readonly string _defaultInstance = "15";
     public string defaultInstance {get;} = _defaultInstance;
+    public string instanceFormat { get; } = "A single positive integer to factor. Example: 15";
+    public string certificateFormat { get; } = "Parenthesized, comma-separated list of integer factors whose product equals the original number (the verifier checks only the product, not that each factor is itself prime). Example: (3,5)";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
     public ShorsQuantumSolver defaultSolver {get;} = new ShorsQuantumSolver();

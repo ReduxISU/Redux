@@ -52,4 +52,36 @@ public class PRIMEFACTOR_tests {
         string solvedString = solver.solve(problem);
         Assert.Equal(certificate, solvedString);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void PRIMEFACTOR_Instance_Format_Described()
+    {
+        var problem = new PRIMEFACTOR();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("integer", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void PRIMEFACTOR_Certificate_Format_Described()
+    {
+        var problem = new PRIMEFACTOR();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("factors", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void PRIMEFACTOR_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: (3,5)" quoted in certificateFormat must be a real,
+        // verifiable certificate for defaultInstance — not just descriptive prose.
+        var problem = new PRIMEFACTOR();
+        var verifier = new PrimeFactorVerifier();
+        Assert.True(verifier.verify(problem, "(3,5)"));
+    }
 }
