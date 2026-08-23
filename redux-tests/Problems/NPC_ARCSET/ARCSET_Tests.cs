@@ -85,8 +85,40 @@ public class ARCSET_Tests
     }
 
 
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void ARCSET_Instance_Format_Described()
+    {
+        ARCSET arc = new ARCSET();
+        Assert.NotNull(arc.instanceFormat);
+        Assert.NotEmpty(arc.instanceFormat);
+        Assert.Contains("N,E),K", arc.instanceFormat);
+    }
+
+    [Fact]
+    public void ARCSET_Certificate_Format_Described()
+    {
+        ARCSET arc = new ARCSET();
+        Assert.NotNull(arc.certificateFormat);
+        Assert.NotEmpty(arc.certificateFormat);
+        Assert.Contains("edges", arc.certificateFormat);
+    }
+
+    [Fact]
+    public void ARCSET_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: {(2,3)}" quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        ARCSET arc = new ARCSET();
+        ArcSetVerifier verifier = new ArcSetVerifier();
+        Assert.True(verifier.verify(arc, "{(2,3)}"));
+    }
+
     [Theory]
-    //default instance test. 
+    //default instance test.
     [InlineData("(({a,b,c,d,e,f,g},{{a,b},{a,c},{c,d},{c,e},{d,f},{e,f},{e,g}}),3)","(({a0,a1,b0,b1,c0,c1,d0,d1,e0,e1,f0,f1,g0,g1},{(a0,a1),(a1,b0),(a1,c0),(b0,b1),(b1,a0),(c0,c1),(c1,a0),(c1,d0),(c1,e0),(d0,d1),(d1,c0),(d1,f0),(e0,e1),(e1,c0),(e1,f0),(e1,g0),(f0,f1),(f1,d0),(f1,e0),(g0,g1),(g1,e0)}),3)")]
     public void Vertex_To_Arcset_Reduction(string vertexInstance,string expectedArcsetInstance){
         VERTEXCOVER testVCover = new VERTEXCOVER(vertexInstance);
