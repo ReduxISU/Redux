@@ -6,15 +6,13 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class DM3_Tests
-{
+public class DM3_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void DM3_Instance_Format_Described()
-    {
+    public void DM3_Instance_Format_Described() {
         DM3 problem = new DM3();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -22,8 +20,7 @@ public class DM3_Tests
     }
 
     [Fact]
-    public void DM3_Certificate_Format_Described()
-    {
+    public void DM3_Certificate_Format_Described() {
         DM3 problem = new DM3();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -31,8 +28,7 @@ public class DM3_Tests
     }
 
     [Fact]
-    public void DM3_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void DM3_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         DM3 problem = new DM3();

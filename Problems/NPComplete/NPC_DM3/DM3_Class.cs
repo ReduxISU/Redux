@@ -20,7 +20,7 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     public static string _defaultInstance { get; } = "{Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}"; // simply a list of sets with the elements divided by commas, the first three are asumed to be X, Y, and Z, and all subsequent sets are sets in M
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    public const string CertificateGrammar = "{x,y,z},... | each tuple names one element of X, one of Y, one of Z, no value repeated across tuples";
+    public const string CertificateGrammar = "One or more 3-tuples {x,y,z} | each names one element of X, one of Y, one of Z, no value repeated across tuples";
     public const string CertificateExample = "{Paul,Austin,Jake}";
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
     public string certificateFormat { get; } = $"Format: {CertificateGrammar} Example: {CertificateExample}";
