@@ -19,6 +19,8 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3, Dumm
     public static string _defaultInstance { get; } = "{Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}"; // simply a list of sets with the elements divided by commas, the first three are asumed to be X, Y, and Z, and all subsequent sets are sets in M
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string instanceFormat { get; } = "Concatenated brace-wrapped sets {x1,x2,...}{y1,y2,...}{z1,z2,...} followed by one brace-wrapped 3-tuple {x,y,z} per constraint in M, each tuple naming one element from X, one from Y, and one from Z. Example: {Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}";
+    public string certificateFormat { get; } = "One or more brace-wrapped 3-tuples {x,y,z}, each naming one element of X, one of Y, and one of Z, with no value repeated anywhere in the certificate. Example: {Paul,Austin,Jake}";
 
     public string wikiName {get;} = "";
     private List<string> _X;
