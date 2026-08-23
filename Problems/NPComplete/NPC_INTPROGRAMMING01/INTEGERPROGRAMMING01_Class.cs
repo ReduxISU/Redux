@@ -18,6 +18,8 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public static string _defaultInstance { get; } = "(-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(row1),(row2),...,(rowM)<=(d1 d2 ... dM) where each row is a space-separated list of n integer coefficients (one matrix row of C), and the right-hand side after <= is the space-separated m-vector d. Example: (-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)";
+    public string certificateFormat { get; } = "Parenthesized, space-separated vector of n bits (0 or 1) -- the assignment x such that Cx <= d holds for every row. Example: (0 0 0)";
     private List<List<int>> _C = new List<List<int>>();
     private List<int> _d = new List<int>();
     public string wikiName { get; } = "";
