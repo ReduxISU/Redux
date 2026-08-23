@@ -5,12 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace API.Interfaces.Graphs.GraphParser;
 
-class GraphParser
-{
+class GraphParser {
 
 
-    public GraphParser()
-    {
+    public GraphParser() {
     }
 
     /// <summary>
@@ -21,8 +19,7 @@ class GraphParser
     /// <remarks>
     /// only supports word characters  (multicharacter supported) currently, not special characters or ! symbols.
     /// </remarks>
-    public List<string> getNodesFromNodeListString(string input)
-    {
+    public List<string> getNodesFromNodeListString(string input) {
         string pattern = @"{(\w+)(,\w+)*}";
         MatchCollection matches = Regex.Matches(input, pattern);
         if (matches.Count == 0)
@@ -43,17 +40,14 @@ class GraphParser
     /// </summary>
     /// <param name="input"></param>
     /// <returns> A list of strings</returns>
-    public static List<string> parseNodeListWithStringFunctions(string input)
-    {
+    public static List<string> parseNodeListWithStringFunctions(string input) {
         return input.Replace("{", "").Replace("}", "").Split(",").ToList();
     }
 
-    public static List<KeyValuePair<string, string>> parseDirectedEdgeListWithStringFunctions(string input)
-    {
+    public static List<KeyValuePair<string, string>> parseDirectedEdgeListWithStringFunctions(string input) {
         List<KeyValuePair<string, string>> retList = new List<KeyValuePair<string, string>>();
         List<string> sList = input.Replace("{", "").Replace("}", "").Replace(" ", "").Replace("),(", "|").Split("|").ToList();
-        foreach (string s in sList)
-        {
+        foreach (string s in sList) {
             string[] parts = s.Split(",");
             if (parts.Length < 2)
                 throw new ArgumentException($"Expected directed edge pair '(a,b)', got '{s}'.", nameof(input));
@@ -65,12 +59,10 @@ class GraphParser
     }
 
 
-    public static List<KeyValuePair<string, string>> parseUndirectedEdgeListWithStringFunctions(string input)
-    {
+    public static List<KeyValuePair<string, string>> parseUndirectedEdgeListWithStringFunctions(string input) {
         List<KeyValuePair<string, string>> retList = new List<KeyValuePair<string, string>>();
         List<string> sList = input.Replace("{{", "").Replace("}}", "").Split("},{").ToList();
-        foreach (string s in sList)
-        {
+        foreach (string s in sList) {
             string[] currentEdge = s.Split(",");
             if (currentEdge.Length < 2)
                 throw new ArgumentException($"Expected undirected edge pair 'a,b', got '{s}'.", nameof(input));
