@@ -18,6 +18,8 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization>
     public string sourceLink { get; } = "https://epubs.siam.org/doi/abs/10.1137/S0097539796298637?casa_token=q1_RWPmvpQ0AAAAA:vmai1NwqSJEUGwydbsrdvH1tsKxcE_MoWfiTwQda9yJKhC0prizshyidP4VcDZK8n5CuqoeaqlQ"; // Link to the academic paper
     private static readonly string _defaultInstance = "(5, 6, 5, 6, 3, 2, 3, 2)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(f(0), f(1), ..., f(2^n - 1)) a comma-separated list of 2^n integers giving the hidden function's output for every input in {0,...,2^n-1}, promised to satisfy f(x) = f(x XOR s) for a secret n-bit string s. Example: (5, 6, 5, 6, 3, 2, 3, 2)";
+    public string certificateFormat { get; } = "A binary string (of length at most n bits) giving the secret string s, or all-zero/empty for s = 0. Example: 010";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public SimonSolver defaultSolver { get; } = new SimonSolver();

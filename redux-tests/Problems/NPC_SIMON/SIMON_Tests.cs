@@ -49,4 +49,36 @@ public class SIMON_tests {
         string solvedString = solver.solve(problem);
         Assert.Equal(certificate, solvedString);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void SIMON_Instance_Format_Described()
+    {
+        var problem = new SIMON();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("2^n", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void SIMON_Certificate_Format_Described()
+    {
+        var problem = new SIMON();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("binary string", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void SIMON_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: 010" quoted in certificateFormat must be a real,
+        // verifiable certificate for defaultInstance — not just descriptive prose.
+        var problem = new SIMON();
+        var verifier = new SimonVerifier();
+        Assert.True(verifier.verify(problem, "010"));
+    }
 }
