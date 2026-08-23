@@ -14,8 +14,7 @@ namespace redux_tests;
 // a direct result — see the membership tests in Navigation_Endpoint_Tests.cs). This
 // file — specifically which problems were moved off Unclassified and onto which class
 // — needs advisor sign-off before merge, not after. ***
-public class ComplexityClass_Tests : IClassFixture<AppFactory>
-{
+public class ComplexityClass_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
@@ -26,8 +25,7 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
     // (Interfaces/ComplexityClass.cs) are the actual fix; these are the regression guard.
 
     [Fact]
-    public async Task Info_SerializesComplexityClassAsString()
-    {
+    public async Task Info_SerializesComplexityClassAsString() {
         var response = await _client.GetAsync(
             "/ProblemProvider/info?interface=SAT3",
             TestContext.Current.CancellationToken);
@@ -43,8 +41,7 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task AllInfo_SerializesEveryComplexityClassAsString()
-    {
+    public async Task AllInfo_SerializesEveryComplexityClassAsString() {
         var response = await _client.GetAsync("/Navigation/Batch/allInfo", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -53,8 +50,7 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
         Assert.NotNull(map);
 
         int checkedCount = 0;
-        foreach (var (className, element) in map!)
-        {
+        foreach (var (className, element) in map!) {
             if (element.ValueKind != JsonValueKind.Object) continue;
             if (!element.TryGetProperty("complexityClass", out var classProp)) continue;
 
@@ -97,8 +93,7 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclared()
-    {
+    public void NoNewUndeclared() {
         var actual = ActualUndeclared();
         var allowlist = new HashSet<string>(UnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -111,8 +106,7 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleEntries()
-    {
+    public void AllowlistHasNoStaleEntries() {
         var actual = ActualUndeclared();
         var stale = UnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 
@@ -131,15 +125,13 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
 
     private readonly Xunit.ITestOutputHelper _output;
 
-    public ComplexityClass_Tests(AppFactory factory, Xunit.ITestOutputHelper output)
-    {
+    public ComplexityClass_Tests(AppFactory factory, Xunit.ITestOutputHelper output) {
         _client = factory.CreateClient();
         _output = output;
     }
 
     [Fact]
-    public void CharacterizationReport_DumpsPerProblemMetadata()
-    {
+    public void CharacterizationReport_DumpsPerProblemMetadata() {
         var solversByProblem = SolverNavigationData.Entries
             .GroupBy(e => e.problemName, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Select(e => e.className).OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList(), StringComparer.OrdinalIgnoreCase);
@@ -155,12 +147,10 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
         _output.WriteLine($"Instantiation failures: {MetadataReflection.Failures.Count}");
         _output.WriteLine("");
 
-        foreach (var name in MetadataReflection.TopLevelClassNames.OrderBy(n => n, StringComparer.Ordinal))
-        {
+        foreach (var name in MetadataReflection.TopLevelClassNames.OrderBy(n => n, StringComparer.Ordinal)) {
             _output.WriteLine($"--- {name} ---");
 
-            if (!MetadataReflection.Instances.TryGetValue(name, out var instance))
-            {
+            if (!MetadataReflection.Instances.TryGetValue(name, out var instance)) {
                 var ex = MetadataReflection.Failures.TryGetValue(name, out var failure) ? failure.Message : "(unknown)";
                 _output.WriteLine($"  complexityClass: <could not instantiate: {ex}>");
                 continue;
@@ -168,29 +158,21 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory>
 
             _output.WriteLine($"  complexityClass: {instance.complexityClass}");
 
-            if (visualizationsByProblem.TryGetValue(name, out var visClasses) && visClasses.Count > 0)
-            {
-                foreach (var visClass in visClasses)
-                {
+            if (visualizationsByProblem.TryGetValue(name, out var visClasses) && visClasses.Count > 0) {
+                foreach (var visClass in visClasses) {
                     string type = visTypeByClassName.TryGetValue(visClass, out var t) ? t : "<unknown>";
                     bool renderable = type != nameof(VisualizationType.Unimplemented) && type != "<unknown>";
                     _output.WriteLine($"  visualization: {visClass} (type={type}, renderable={renderable})");
                 }
-            }
-            else
-            {
+            } else {
                 _output.WriteLine("  visualization: <none>");
             }
 
-            if (solversByProblem.TryGetValue(name, out var solverClasses) && solverClasses.Count > 0)
-            {
-                foreach (var solverClass in solverClasses)
-                {
+            if (solversByProblem.TryGetValue(name, out var solverClasses) && solverClasses.Count > 0) {
+                foreach (var solverClass in solverClasses) {
                     _output.WriteLine($"  solver: {solverClass}");
                 }
-            }
-            else
-            {
+            } else {
                 _output.WriteLine("  solver: <none>");
             }
         }

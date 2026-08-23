@@ -7,8 +7,7 @@ using API.Problems.P.P_SPSP.Solvers;
 
 namespace API.Problems.P.P_SPSP.Verifiers;
 
-class SPSPVerifier : IVerifier<SPSP>
-{
+class SPSPVerifier : IVerifier<SPSP> {
     public string verifierName { get; } = "Single Pair Shortest Path Verifier";
     public string verifierDefinition { get; } = "Verifies the solution for the Single Pair Shortest Path problem";
     public string source { get; } = "";
@@ -21,8 +20,7 @@ class SPSPVerifier : IVerifier<SPSP>
     // verify: takes a problem instance and a solution certificate,
     // and returns true if the certificate is a valid solution to the problem instance,
     // false otherwise
-    public bool verify(SPSP problem, string solution)
-    {
+    public bool verify(SPSP problem, string solution) {
         _certificate = solution ?? ""; // Reset certificate before verification
 
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).ToList();
@@ -43,13 +41,10 @@ class SPSPVerifier : IVerifier<SPSP>
             return shortest is null; // Valid if and only if target is unreachable
 
         List<string> path;
-        try
-        {
+        try {
             // Parse the certificate as a path
             path = GraphParser.parseNodeListWithStringFunctions(solution);
-        }
-        catch
-        {
+        } catch {
             return false; // Invalid certificate format
         }
 
@@ -61,8 +56,7 @@ class SPSPVerifier : IVerifier<SPSP>
 
         // Validate each hop is an edge, and compute total path length
         int length = 0;
-        for (int i = 0; i < path.Count - 1; i++)
-        {
+        for (int i = 0; i < path.Count - 1; i++) {
             string u = path[i];
             string v = path[i + 1];
 
@@ -88,8 +82,7 @@ class SPSPVerifier : IVerifier<SPSP>
         Dictionary<string, List<(string neighbor, int weight)>> adjacency,
         List<string> allNodes,
         string source,
-        string target)
-    {
+        string target) {
         var dist = allNodes.ToDictionary(n => n, _ => int.MaxValue);
         var visited = new HashSet<string>();
         PriorityQueue<string, int> pq = new PriorityQueue<string, int>();
@@ -97,8 +90,7 @@ class SPSPVerifier : IVerifier<SPSP>
         dist[source] = 0;
         pq.Enqueue(source, 0);
 
-        while (pq.Count > 0)
-        {
+        while (pq.Count > 0) {
             string current = pq.Dequeue();
             if (visited.Contains(current))
                 continue;
@@ -110,8 +102,7 @@ class SPSPVerifier : IVerifier<SPSP>
             if (!adjacency.TryGetValue(current, out var neighbors))
                 continue; // No neighbors, skip
 
-            foreach (var (next, weight) in neighbors)
-            {
+            foreach (var (next, weight) in neighbors) {
                 if (weight < 0)
                     throw new InvalidOperationException("SPSP does not allow negative edge weights.");
 
@@ -122,8 +113,7 @@ class SPSPVerifier : IVerifier<SPSP>
                     continue; // Skip if current node is unreachable
 
                 int candidate = dist[current] + weight;
-                if (candidate < dist[next])
-                {
+                if (candidate < dist[next]) {
                     dist[next] = candidate;
                     pq.Enqueue(next, candidate); // Update priority in the queue
                 }
