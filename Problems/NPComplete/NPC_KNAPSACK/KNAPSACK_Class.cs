@@ -28,7 +28,9 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
 
     private static readonly string _defaultInstance = "({(10,60),(20,100),(30,120)},50,220)";
     public string defaultInstance {get;} = _defaultInstance;
- 
+    public string instanceFormat { get; } = "({(w1,v1),(w2,v2),...},W,V) where each (w,v) pair is an item's weight and value, W is the maximum total weight, and V is the target minimum total value. Example: ({(10,60),(20,100),(30,120)},50,220)";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated subset of the instance's (weight,value) item pairs whose total weight is at most W and total value is at least V. Example: {(20,100),(30,120)}";
+
 
     public string wikiName {get;} = "Knapsack";
 
