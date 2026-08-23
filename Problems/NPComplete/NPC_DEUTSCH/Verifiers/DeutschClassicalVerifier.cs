@@ -3,6 +3,8 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_DEUTSCH.Verifiers;
 
 class DeutschClassicalVerifier : IVerifier<DEUTSCH> {
+    public const string CertificateGrammar = "'constant' | f(0) = f(1), or 'balanced' | f(0) != f(1)";
+    public const string CertificateExample = "balanced";
 
     // --- Fields ---
     public string verifierName { get; } = "Deutsch Classical Verifier";

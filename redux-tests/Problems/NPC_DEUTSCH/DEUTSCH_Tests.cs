@@ -42,8 +42,7 @@ public class DEUTSCH_tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void DEUTSCH_Instance_Format_Described()
-    {
+    public void DEUTSCH_Instance_Format_Described() {
         var problem = new DEUTSCH();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -51,8 +50,7 @@ public class DEUTSCH_tests {
     }
 
     [Fact]
-    public void DEUTSCH_Certificate_Format_Described()
-    {
+    public void DEUTSCH_Certificate_Format_Described() {
         var problem = new DEUTSCH();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -60,8 +58,7 @@ public class DEUTSCH_tests {
     }
 
     [Fact]
-    public void DEUTSCH_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void DEUTSCH_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: balanced" quoted in certificateFormat must be a real,
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new DEUTSCH();
