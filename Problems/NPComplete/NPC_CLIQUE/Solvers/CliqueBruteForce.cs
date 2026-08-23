@@ -5,13 +5,14 @@ using System.Numerics;
 using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
+
 class CliqueBruteForce : ISolver<CLIQUE> {
 
     // --- Fields ---
-    public string solverName {get;} = "Clique Brute Force Solver";
-    public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Clique problem";
-    public string source {get;} = "";
-    public string[] contributors {get;} = {"Caleb Eardley", "Kaden Marchetti"};
+    public string solverName { get; } = "Clique Brute Force Solver";
+    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Clique problem";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Caleb Eardley", "Kaden Marchetti" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
@@ -23,44 +24,44 @@ class CliqueBruteForce : ISolver<CLIQUE> {
 
     // --- Methods Including Constructors ---
     public CliqueBruteForce() {
-        
+
     }
-    private BigInteger factorial(BigInteger x){
+    private BigInteger factorial(BigInteger x) {
         BigInteger y = 1;
-        for(BigInteger i=1; i<=x; i++){
+        for (BigInteger i = 1; i <= x; i++) {
             y *= i;
         }
         return y;
     }
-    private string indexListToCertificate(List<int> indecies, List<string> nodes){
+    private string indexListToCertificate(List<int> indecies, List<string> nodes) {
         string certificate = "";
-        foreach(int i in indecies){
-            certificate += nodes[i]+",";
+        foreach (int i in indecies) {
+            certificate += nodes[i] + ",";
         }
         certificate = certificate.TrimEnd(',');
-        return "{" + certificate + "}"; 
+        return "{" + certificate + "}";
     }
-    private List<int> nextComb(List<int> combination, int size){
-        for(int i=combination.Count-1; i>=0; i--){
-            if(combination[i]+1 <= (i + size - combination.Count)){
+    private List<int> nextComb(List<int> combination, int size) {
+        for (int i = combination.Count - 1; i >= 0; i--) {
+            if (combination[i] + 1 <= (i + size - combination.Count)) {
                 combination[i] += 1;
-                for(int j = i+1; j < combination.Count; j++){
-                    combination[j] = combination[j-1]+1;
+                for (int j = i + 1; j < combination.Count; j++) {
+                    combination[j] = combination[j - 1] + 1;
                 }
                 return combination;
             }
         }
         return combination;
     }
-    public string solve(CLIQUE clique){
+    public string solve(CLIQUE clique) {
         List<int> combination = new List<int>();
-        for(int i=0; i<clique.K; i++){
+        for (int i = 0; i < clique.K; i++) {
             combination.Add(i);
         }
         BigInteger reps = factorial(clique.nodes.Count) / (factorial(clique.K) * factorial(clique.nodes.Count - clique.K));
-        for(int i=0; i<reps; i++){
-            string certificate = indexListToCertificate(combination,clique.nodes);
-            if(clique.defaultVerifier.verify(clique, certificate)){
+        for (int i = 0; i < reps; i++) {
+            string certificate = indexListToCertificate(combination, clique.nodes);
+            if (clique.defaultVerifier.verify(clique, certificate)) {
                 return certificate;
             }
             combination = nextComb(combination, clique.nodes.Count);
@@ -69,20 +70,20 @@ class CliqueBruteForce : ISolver<CLIQUE> {
         return "{}";
     }
 
-    public List<string> getSteps(CLIQUE clique){
+    public List<string> getSteps(CLIQUE clique) {
         List<int> combination = new List<int>();
         List<string> steps = new List<string>();
-        for(int i=0; i<clique.K; i++){
+        for (int i = 0; i < clique.K; i++) {
             combination.Add(i);
         }
         BigInteger reps = factorial(clique.nodes.Count) / (factorial(clique.K) * factorial(clique.nodes.Count - clique.K));
-        for(int i=0; i<reps; i++){
-            string certificate = indexListToCertificate(combination,clique.nodes);
-            
-            if(clique.defaultVerifier.verify(clique, certificate) || steps.Count == 99){
+        for (int i = 0; i < reps; i++) {
+            string certificate = indexListToCertificate(combination, clique.nodes);
+
+            if (clique.defaultVerifier.verify(clique, certificate) || steps.Count == 99) {
                 return steps;
             }
-            if(steps.Count < 99) steps.Add(certificate);
+            if (steps.Count < 99) steps.Add(certificate);
             combination = nextComb(combination, clique.nodes.Count);
 
         }
@@ -97,20 +98,20 @@ class CliqueBruteForce : ISolver<CLIQUE> {
     /// <param name="problemInstance"></param>
     /// <param name="solutionString"></param>
     /// <returns></returns>
-    public Dictionary<string,bool> getSolutionDict(string problemInstance, string solutionString){
+    public Dictionary<string, bool> getSolutionDict(string problemInstance, string solutionString) {
 
         Dictionary<string, bool> solutionDict = new Dictionary<string, bool>();
         GraphParser gParser = new GraphParser();
         CLIQUE clique = new CLIQUE(problemInstance);
         List<string> problemInstanceNodes = clique.nodes;
         List<string> solvedNodes = gParser.getNodesFromNodeListString(solutionString);
-        
+
         // Remove solvedNodes from instanceNodes
-        foreach(string node in solvedNodes){
+        foreach (string node in solvedNodes) {
             problemInstanceNodes.Remove(node);
             solutionDict.Add(node, true);
         }
-        foreach(string node in problemInstanceNodes){
+        foreach (string node in problemInstanceNodes) {
             solutionDict.Add(node, false);
         }
         return solutionDict;

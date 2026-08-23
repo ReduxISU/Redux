@@ -5,8 +5,7 @@ using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
 
-class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
-{
+class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
     public string solverName { get; } = "Pump Scheduling Cost Minimization — DAG Dynamic Programming";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents " +
@@ -36,8 +35,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
     private const int Hours = 24;
     private const double Inf = double.PositiveInfinity;
 
-    public string solve(PUMPSCHEDULINGCM problem)
-    {
+    public string solve(PUMPSCHEDULINGCM problem) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double cap = problem.TankCapacity;
@@ -55,8 +53,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
                 if ((mask & (1 << p)) != 0)
                     maskFlow[mask] += problem.Pumps[p].FlowRateGph;
 
-        double EnergyCost(int mask, int h)
-        {
+        double EnergyCost(int mask, int h) {
             double rate = problem.PeakHours.Contains(h)
                 ? problem.OnPeakCostPerKwh
                 : problem.OffPeakCostPerKwh;
@@ -67,8 +64,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
             return kw * rate;
         }
 
-        double StartupCost(int prevMask, int currMask)
-        {
+        double StartupCost(int prevMask, int currMask) {
             double cost = 0;
             int startups = (~prevMask) & currMask & (nMasks - 1);
             for (int p = 0; p < n; p++)
@@ -78,15 +74,14 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
         }
 
         int stateB = buckets + 1;
-        double[,,] dp      = new double[Hours + 1, stateB, nMasks];
-        int[,,]    parentB = new int   [Hours + 1, stateB, nMasks];
-        int[,,]    parentM = new int   [Hours + 1, stateB, nMasks];
+        double[,,] dp = new double[Hours + 1, stateB, nMasks];
+        int[,,] parentB = new int[Hours + 1, stateB, nMasks];
+        int[,,] parentM = new int[Hours + 1, stateB, nMasks];
 
         for (int h = 0; h <= Hours; h++)
             for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++)
-                {
-                    dp[h, b, m]      = Inf;
+                for (int m = 0; m < nMasks; m++) {
+                    dp[h, b, m] = Inf;
                     parentB[h, b, m] = -1;
                     parentM[h, b, m] = -1;
                 }
@@ -94,23 +89,19 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
         int initB = ToBucket(problem.TankCurrentLevel);
         dp[0, initB, 0] = 0.0;
 
-        for (int h = 0; h < Hours; h++)
-        {
+        for (int h = 0; h < Hours; h++) {
             if (timerHasExpired) return string.Empty;
 
             double demand = problem.DemandGph[h];
 
-            for (int b = 0; b < stateB; b++)
-            {
+            for (int b = 0; b < stateB; b++) {
                 double levelNow = ToLevel(b);
 
-                for (int prevMask = 0; prevMask < nMasks; prevMask++)
-                {
+                for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     double stateCost = dp[h, b, prevMask];
                     if (stateCost >= Inf) continue;
 
-                    for (int mask = 0; mask < nMasks; mask++)
-                    {
+                    for (int mask = 0; mask < nMasks; mask++) {
                         double newLevel = levelNow - demand + maskFlow[mask];
                         if (newLevel < 0 || newLevel > cap) continue;
 
@@ -118,9 +109,8 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
                         double stepCost = EnergyCost(mask, h) + StartupCost(prevMask, mask);
                         double candidate = stateCost + stepCost;
 
-                        if (candidate < dp[h + 1, newB, mask])
-                        {
-                            dp[h + 1, newB, mask]      = candidate;
+                        if (candidate < dp[h + 1, newB, mask]) {
+                            dp[h + 1, newB, mask] = candidate;
                             parentB[h + 1, newB, mask] = b;
                             parentM[h + 1, newB, mask] = prevMask;
                         }
@@ -133,8 +123,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
         int bestB = -1, bestM = -1;
         for (int b = 0; b < stateB; b++)
             for (int m = 0; m < nMasks; m++)
-                if (dp[Hours, b, m] < minCost)
-                {
+                if (dp[Hours, b, m] < minCost) {
                     minCost = dp[Hours, b, m];
                     bestB = b;
                     bestM = m;
@@ -144,8 +133,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
 
         int[] schedMasks = new int[Hours];
         int curB = bestB, curM = bestM;
-        for (int h = Hours; h > 0; h--)
-        {
+        for (int h = Hours; h > 0; h--) {
             schedMasks[h - 1] = curM;
             int pb = parentB[h, curB, curM];
             int pm = parentM[h, curB, curM];
@@ -159,8 +147,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM>
             Math.Round(minCost, 2).ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
         UtilCollection sched = new("()");
-        for (int p = 0; p < n; p++)
-        {
+        for (int p = 0; p < n; p++) {
             UtilCollection pumpSched = new("()");
             pumpSched.Add(new UtilCollection(problem.Pumps[p].Name));
             for (int h = 0; h < Hours; h++)

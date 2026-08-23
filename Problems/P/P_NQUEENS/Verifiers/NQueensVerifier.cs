@@ -29,8 +29,7 @@ class NQueensVerifier : IVerifier<NQUEENS> {
 
         try {
             solution = parseCertificate(certificate);
-        }
-        catch {
+        } catch {
             return false;
         }
 
