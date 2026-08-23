@@ -19,6 +19,8 @@ class DIRECTEDHAMILTONIAN : IGraphProblem<DirectedHamiltonianBruteForce, Directe
     private static string _defaultInstance = "({1,2,3,4,5},{(2,1),(1,3),(2,3),(3,5),(4,2),(5,4)})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = "(N,E) where N is the set of node names and E is the set of directed edges as (from,to) pairs. Example: ({1,2,3,4,5},{(2,1),(1,3),(2,3),(3,5),(4,2),(5,4)})";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated sequence of node names giving a Hamiltonian cycle: it must include every node exactly once, follow directed edges from each node to the next, and end by repeating the starting node to close the cycle. Example: {2,1,3,5,4,2}";
 
     public string wikiName { get; } = "";
     private List<string> _nodes = new List<string>();
