@@ -6,8 +6,7 @@ using API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizations;
 
-class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
-{
+class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET> {
     public string visualizationName { get; } = "Dominating Set Visualization";
     public string visualizationDefinition { get; } =
         "This is a default visualization for dominating set";
@@ -22,25 +21,19 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET>
     // --- Methods Including Constructors ---
     public DominatingSetDefaultVisualization() { }
 
-    public API_JSON visualize(DOMINATINGSET dominatingSet)
-    {
+    public API_JSON visualize(DOMINATINGSET dominatingSet) {
         return dominatingSet.graph.ToAPIGraph();
     }
 
-    public API_JSON SolvedVisualization(DOMINATINGSET dominatingSet, string solution)
-    {
+    public API_JSON SolvedVisualization(DOMINATINGSET dominatingSet, string solution) {
         List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(solution);
 
         API_GraphJSON apiGraph = dominatingSet.graph.ToAPIGraph();
 
-        for (int i = 0; i < apiGraph.nodes.Count; i++)
-        {
-            if (solutionList.Contains(apiGraph.nodes[i].name))
-            {
+        for (int i = 0; i < apiGraph.nodes.Count; i++) {
+            if (solutionList.Contains(apiGraph.nodes[i].name)) {
                 apiGraph.nodes[i].color = "Solution";
-            }
-            else
-            {
+            } else {
                 apiGraph.nodes[i].color = "Background";
             }
         }

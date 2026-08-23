@@ -9,8 +9,7 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
-class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph>
-{
+class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVerifier, MinimumSpanningTreeVisualization, UtilCollectionGraph> {
     public string problemName { get; } = "Minimum Spanning Tree";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
     public string formalDefinition { get; } = "Given a weighted undirected graph G = (V, E, w), find a subset T \u2286 E such that T is a spanning tree of G and the sum of weights in T is minimum.";
@@ -35,22 +34,19 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
     public MinimumSpanningTreeVisualization defaultVisualization { get; } = new MinimumSpanningTreeVisualization();
     public UtilCollectionGraph graph { get; set; }
 
-    public List<string> nodes
-    {
+    public List<string> nodes {
         get => _nodes;
         set => _nodes = value;
     }
 
-    public List<(string source, string destination, int weight)> edges
-    {
+    public List<(string source, string destination, int weight)> edges {
         get => _edges;
         set => _edges = value;
     }
 
     public MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
 
-    public MINIMUMSPANNINGTREE(string instanceString)
-    {
+    public MINIMUMSPANNINGTREE(string instanceString) {
         instance = instanceString;
 
         // Parse weighted undirected graph instances of the form ({V},{({u,v},w),...}).
@@ -58,8 +54,7 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
         mstParser.parse(instanceString);
 
         nodes = mstParser["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = mstParser["E"].ToList().Select(edge =>
-        {
+        edges = mstParser["E"].ToList().Select(edge => {
             List<UtilCollection> endpoints = edge[0].ToList();
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();
@@ -69,11 +64,9 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
         graph = new UtilCollectionGraph(mstParser["N"], mstParser["E"]);
     }
 
-    private static void ValidateInstance(List<string> nodes, UtilCollection edgeCollection)
-    {
+    private static void ValidateInstance(List<string> nodes, UtilCollection edgeCollection) {
         HashSet<string> nodeSet = nodes.ToHashSet();
-        foreach (UtilCollection rawEdge in edgeCollection.ToList())
-        {
+        foreach (UtilCollection rawEdge in edgeCollection.ToList()) {
             List<UtilCollection> endpoints = rawEdge[0].ToList();
             string u = endpoints[0].ToString();
             string v = endpoints[1].ToString();

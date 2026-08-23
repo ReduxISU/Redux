@@ -9,24 +9,21 @@ using API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class SAT3_Tests
-{
+public class SAT3_Tests {
 
     // -------------------------------------------------------------------------
     // Instantiation
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void SAT3_Default_Instantiation()
-    {
+    public void SAT3_Default_Instantiation() {
         SAT3 sat3 = new SAT3();
         Assert.Equal("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)", sat3.defaultInstance);
         Assert.Equal(sat3.defaultInstance, sat3.instance);
     }
 
     [Fact]
-    public void SAT3_Custom_Instance()
-    {
+    public void SAT3_Custom_Instance() {
         string instance = "(x1 | x2 | x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)";
         SAT3 sat3 = new SAT3(instance);
         Assert.Equal(instance, sat3.instance);
@@ -40,8 +37,7 @@ public class SAT3_Tests
     [InlineData("(x1 | x2 | x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)", 3)]
     [InlineData("(x1 | x2 | x3) & (!x1 | !x2 | !x3)", 2)]
     [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)", 3)]
-    public void SAT3_Parses_Correct_Clause_Count(string instance, int expectedCount)
-    {
+    public void SAT3_Parses_Correct_Clause_Count(string instance, int expectedCount) {
         SAT3 sat3 = new SAT3(instance);
         Assert.Equal(expectedCount, sat3.clauses.Count);
     }
@@ -49,11 +45,9 @@ public class SAT3_Tests
     [Theory]
     [InlineData("(x1 | x2 | x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)", 3)]
     [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)", 3)]
-    public void SAT3_Each_Clause_Has_Three_Literals(string instance, int expectedLiteralsPerClause)
-    {
+    public void SAT3_Each_Clause_Has_Three_Literals(string instance, int expectedLiteralsPerClause) {
         SAT3 sat3 = new SAT3(instance);
-        foreach (var clause in sat3.clauses)
-        {
+        foreach (var clause in sat3.clauses) {
             Assert.Equal(expectedLiteralsPerClause, clause.Count);
         }
     }
@@ -66,8 +60,7 @@ public class SAT3_Tests
     [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)")]  // default instance
     [InlineData("(x1 | x2 | x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)")]
     [InlineData("(!x1 | !x2 | !x3) & (x1 | x2 | x3) & (x1 | !x2 | x3)")]
-    public void SAT3_Solver_Finds_Solution_For_Satisfiable_Instance(string instance)
-    {
+    public void SAT3_Solver_Finds_Solution_For_Satisfiable_Instance(string instance) {
         SAT3 sat3 = new SAT3(instance);
         Sat3BacktrackingSolver solver = new Sat3BacktrackingSolver();
         string result = solver.solve(sat3);
@@ -79,8 +72,7 @@ public class SAT3_Tests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void SAT3_Solver_Returns_NoSolution_For_UNSAT_Instance()
-    {
+    public void SAT3_Solver_Returns_NoSolution_For_UNSAT_Instance() {
         // All 8 possible 3-literal clauses over x1, x2, x3 — negates every
         // possible truth assignment, so the formula is trivially UNSAT.
         string instance = "(x1 | x2 | x3) & (!x1 | !x2 | x3) & (x1 | !x2 | !x3) & (!x1 | x2 | !x3)" +
@@ -99,8 +91,7 @@ public class SAT3_Tests
     [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)", "(x1:True,x2:True,x3:False)")]
     [InlineData("(x1 | x2 | x3) & (!x1 | x2 | x3)", "(x1:False,x2:True,x3:False)")]
     [InlineData("(!x1 | !x2 | !x3) & (x1 | x2 | x3)", "(x1:True,x2:False,x3:False)")]
-    public void SAT3_Verifier_Accepts_Valid_Certificate(string instance, string certificate)
-    {
+    public void SAT3_Verifier_Accepts_Valid_Certificate(string instance, string certificate) {
         SAT3 sat3 = new SAT3(instance);
         SAT3Verifier verifier = new SAT3Verifier();
         Assert.True(verifier.verify(sat3, certificate));
@@ -113,8 +104,7 @@ public class SAT3_Tests
     [Theory]
     [InlineData("(x1 | x2 | x3) & (!x1 | !x2 | !x3)", "(x1:True,x2:True,x3:True)")]   // fails clause 2
     [InlineData("(x1 | x2 | x3) & (!x1 | !x2 | !x3)", "(x1:False,x2:False,x3:False)")] // fails clause 1
-    public void SAT3_Verifier_Rejects_Invalid_Certificate(string instance, string certificate)
-    {
+    public void SAT3_Verifier_Rejects_Invalid_Certificate(string instance, string certificate) {
         SAT3 sat3 = new SAT3(instance);
         SAT3Verifier verifier = new SAT3Verifier();
         Assert.False(verifier.verify(sat3, certificate));
@@ -127,8 +117,7 @@ public class SAT3_Tests
     [Theory]
     [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)")]
     [InlineData("(!x1 | !x2 | !x3) & (x1 | x2 | x3) & (x1 | !x2 | x3)")]
-    public void SAT3_Solver_Certificate_Passes_Verifier(string instance)
-    {
+    public void SAT3_Solver_Certificate_Passes_Verifier(string instance) {
         SAT3 sat3 = new SAT3(instance);
         Sat3BacktrackingSolver solver = new Sat3BacktrackingSolver();
         SAT3Verifier verifier = new SAT3Verifier();
@@ -150,8 +139,7 @@ public class SAT3_Tests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void SAT3_Solver_Certificate_Contains_All_Variables()
-    {
+    public void SAT3_Solver_Certificate_Contains_All_Variables() {
         // Every clause contains x1, so x1=True satisfies the formula without
         // the solver ever needing to assign x2 or x3. The returned certificate
         // should still include all three variables.
@@ -174,8 +162,7 @@ public class SAT3_Tests
     [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)", 3, 9)]
     [InlineData("(x1 | x2 | x3) & (!x1 | !x2 | !x3)", 2, 6)]
     [InlineData("(x1 | x2 | x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3) & (x1 | x2 | !x3)", 4, 12)]
-    public void SAT3_To_CLIQUE_Reduction_Structure(string sat3Instance, int expectedK, int expectedNodes)
-    {
+    public void SAT3_To_CLIQUE_Reduction_Structure(string sat3Instance, int expectedK, int expectedNodes) {
         // K must equal the number of SAT3 clauses; one node per literal per clause.
         SAT3 sat3 = new SAT3(sat3Instance);
         SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
@@ -187,8 +174,7 @@ public class SAT3_Tests
     [Theory]
     [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)")]
     [InlineData("(x1 | x2 | x3) & (!x1 | !x2 | !x3) & (x1 | !x2 | x3)")]
-    public void SAT3_To_CLIQUE_Reduction_SAT3_Solution_Maps_To_Valid_Clique_Certificate(string sat3Instance)
-    {
+    public void SAT3_To_CLIQUE_Reduction_SAT3_Solution_Maps_To_Valid_Clique_Certificate(string sat3Instance) {
         // A valid SAT3 assignment must map to a valid k-clique certificate.
         SAT3 sat3 = new SAT3(sat3Instance);
         SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
@@ -205,8 +191,7 @@ public class SAT3_Tests
     }
 
     [Fact]
-    public void SAT3_To_CLIQUE_Reduction_MalformedCertificate_Throws_ReductionInputException()
-    {
+    public void SAT3_To_CLIQUE_Reduction_MalformedCertificate_Throws_ReductionInputException() {
         // Regression: a CLIQUE-shaped certificate (items missing the ':' separator)
         // once threw IndexOutOfRangeException from Split(":"), surfacing as an
         // opaque HTTP 500. It must now throw the typed ReductionInputException so

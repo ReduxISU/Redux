@@ -59,9 +59,9 @@ public class BINPACKING_Tests {
     // brute force output for the default instance (traced by hand)
     [InlineData("((4,7,3,6,2,8),10,3)", "((8,2),(7,3),(6,4))", true)]
     // FFD output for the default instance (sorted descending placement)
-    [InlineData("((1,2,3),6,2)",         "((3,2),(1))",         true)]
+    [InlineData("((1,2,3),6,2)", "((3,2),(1))", true)]
     // simple 3-item instance: bin 0 sum=5 ≤ 6, bin 1 sum=1 ≤ 6, 2 bins ≤ K=2
-    [InlineData("((5),10,1)",            "((5))",               true)]
+    [InlineData("((5),10,1)", "((5))", true)]
     // single item that fits exactly — minimum possible case
     public void BINPACKING_Verifier_True(string instance, string certificate, bool expected) {
         BINPACKING bp = new BINPACKING(instance);
@@ -73,15 +73,15 @@ public class BINPACKING_Tests {
     // Each case targets a different failure mode so we know every check works.
 
     [Theory]
-    [InlineData("((1,2,3),3,2)",         "((3,1),(2))",         false)]
+    [InlineData("((1,2,3),3,2)", "((3,1),(2))", false)]
     // Checking capacity violation handling.
-    [InlineData("((1,2,3),6,1)",         "((1,2),(3))",         false)]
+    [InlineData("((1,2,3),6,1)", "((1,2),(3))", false)]
     // Verifying bin limit validation.
-    [InlineData("((4,7,3,6,2,8),10,3)", "((10),(10),(10))",    false)]
+    [InlineData("((4,7,3,6,2,8),10,3)", "((10),(10),(10))", false)]
     // multiset check fails: certificate items {10,10,10} ≠ S {4,7,3,6,2,8}
-    [InlineData("((4,7,3,6,2,8),10,3)", "",                    false)]
+    [InlineData("((4,7,3,6,2,8),10,3)", "", false)]
     // malformed input: empty string has no outer parentheses
-    [InlineData("((4,7,3,6,2,8),10,3)", "not-a-cert",          false)]
+    [InlineData("((4,7,3,6,2,8),10,3)", "not-a-cert", false)]
     // malformed input: plain text doesn't match the expected format at all
     public void BINPACKING_Verifier_False(string instance, string certificate, bool expected) {
         BINPACKING bp = new BINPACKING(instance);
@@ -101,9 +101,9 @@ public class BINPACKING_Tests {
     [Theory]
     [InlineData("((4,7,3,6,2,8),10,3)", "((4,6),(7,3),(2,8))")]
     // default instance — certificate traced step by step above
-    [InlineData("((1,1,1),2,2)",         "((1,1),(1))")]
+    [InlineData("((1,1,1),2,2)", "((1,1),(1))")]
     // 3 items of size 1, capacity 2, 2 bins: first two items share bin 0
-    [InlineData("((5,5,5),10,2)",        "((5,5),(5))")]
+    [InlineData("((5,5,5),10,2)", "((5,5),(5))")]
     // two items of size 5 fit together (sum=10=C), the third goes alone
     public void BINPACKING_BruteForce_Feasible(string instance, string expectedCert) {
         BINPACKING bp = new BINPACKING(instance);
@@ -138,7 +138,7 @@ public class BINPACKING_Tests {
     [Theory]
     [InlineData("((4,7,3,6,2,8),10,3)", "((8,2),(7,3),(6,4))")]
     // default instance — FFD sorts to [8,7,6,4,3,2] and fills bins perfectly
-    [InlineData("((1,2,3,4),5,2)",       "((4,1),(3,2))")]
+    [InlineData("((1,2,3,4),5,2)", "((4,1),(3,2))")]
     // sorted [4,3,2,1]: 4→bin0, 3→bin1, 2→bin1(5=C), 1→bin0(5=C) → "((4,1),(3,2))"
     public void BINPACKING_FFD_Feasible(string instance, string expectedCert) {
         BINPACKING bp = new BINPACKING(instance);

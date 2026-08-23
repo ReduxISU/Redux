@@ -8,13 +8,11 @@ using API.Problems.P.P_MINSTCUT.Visualizations;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class MINSTCUT_Tests
-{
+public class MINSTCUT_Tests {
     // ----- Instantiation ----- //
 
     [Fact]
-    public void MINSTCUT_Default_Instantiation()
-    {
+    public void MINSTCUT_Default_Instantiation() {
         MINSTCUT problem = new MINSTCUT();
         Assert.Equal(MINSTCUT._defaultInstance, problem.instance);
         Assert.Equal(MINSTCUT._defaultInstance, problem.defaultInstance);
@@ -25,8 +23,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_Custom_Instantiation()
-    {
+    public void MINSTCUT_Custom_Instantiation() {
         string instance = "({s,a,t},{((s,a),3),((a,t),5)},s,t)";
         MINSTCUT problem = new MINSTCUT(instance);
         Assert.Equal(instance, problem.instance);
@@ -37,15 +34,13 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_Rejects_Source_Outside_Node_Set()
-    {
+    public void MINSTCUT_Rejects_Source_Outside_Node_Set() {
         string instance = "({1,2,3},{((1,2),5),((2,3),3)},9,3)";
         Assert.Throws<InvalidOperationException>(() => new MINSTCUT(instance));
     }
 
     [Fact]
-    public void MINSTCUT_Rejects_Target_Outside_Node_Set()
-    {
+    public void MINSTCUT_Rejects_Target_Outside_Node_Set() {
         string instance = "({1,2,3},{((1,2),5),((2,3),3)},1,9)";
         Assert.Throws<InvalidOperationException>(() => new MINSTCUT(instance));
     }
@@ -59,8 +54,7 @@ public class MINSTCUT_Tests
     [InlineData("({1,2},{((1,2),7)},1,2)", 7)]
     // chain: min cut = 2 (bottleneck is (2,3)=2)
     [InlineData("({1,2,3},{((1,2),4),((2,3),2)},1,3)", 2)]
-    public void MINSTCUT_Solver_Returns_Correct_Min_Cut_Capacity(string instance, int expectedCapacity)
-    {
+    public void MINSTCUT_Solver_Returns_Correct_Min_Cut_Capacity(string instance, int expectedCapacity) {
         MINSTCUT problem = new MINSTCUT(instance);
         MinSTCutSolver solver = new MinSTCutSolver();
         string solution = solver.solve(problem);
@@ -69,16 +63,14 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_Solver_Default_Instance_Min_Cut_Is_5()
-    {
+    public void MINSTCUT_Solver_Default_Instance_Min_Cut_Is_5() {
         MINSTCUT problem = new MINSTCUT();
         string solution = new MinSTCutSolver().solve(problem);
         Assert.Equal(5, ComputeCutCapacity(problem, solution));
     }
 
     [Fact]
-    public void MINSTCUT_Solver_Source_In_Result()
-    {
+    public void MINSTCUT_Solver_Source_In_Result() {
         MINSTCUT problem = new MINSTCUT();
         string solution = new MinSTCutSolver().solve(problem);
         HashSet<string> sNodes = ParseNodeSet(solution);
@@ -86,8 +78,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_Solver_Target_Not_In_Result()
-    {
+    public void MINSTCUT_Solver_Target_Not_In_Result() {
         MINSTCUT problem = new MINSTCUT();
         string solution = new MinSTCutSolver().solve(problem);
         HashSet<string> sNodes = ParseNodeSet(solution);
@@ -95,16 +86,14 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_Solver_Output_Passes_Verifier()
-    {
+    public void MINSTCUT_Solver_Output_Passes_Verifier() {
         string[] instances = {
             MINSTCUT._defaultInstance,
             "({1,2},{((1,2),7)},1,2)",
             "({1,2,3},{((1,2),4),((2,3),2)},1,3)",
             "({s,a,b,t},{((s,a),4),((s,b),3),((a,t),3),((b,t),4)},s,t)"
         };
-        foreach (string inst in instances)
-        {
+        foreach (string inst in instances) {
             MINSTCUT problem = new MINSTCUT(inst);
             string solution = new MinSTCutSolver().solve(problem);
             Assert.True(new MinSTCutVerifier().verify(problem, solution), $"Solver output failed verifier for: {inst}");
@@ -120,8 +109,7 @@ public class MINSTCUT_Tests
     [InlineData("({1,2},{((1,2),7)},1,2)", "{1}", true)]
     // chain: min cut = 2, S={1,2}
     [InlineData("({1,2,3},{((1,2),4),((2,3),2)},1,3)", "{1,2}", true)]
-    public void MINSTCUT_Verifier_Accepts_Valid_Minimum_Cut(string instance, string certificate, bool expected)
-    {
+    public void MINSTCUT_Verifier_Accepts_Valid_Minimum_Cut(string instance, string certificate, bool expected) {
         MINSTCUT problem = new MINSTCUT(instance);
         MinSTCutVerifier verifier = new MinSTCutVerifier();
         Assert.Equal(expected, verifier.verify(problem, certificate));
@@ -132,16 +120,14 @@ public class MINSTCUT_Tests
     [InlineData("({1,2,3,4},{((1,2),10),((1,3),2),((2,4),3),((3,4),5)},1,4)", "{1}")]
     // S={1,2,3}: (2,4)+(3,4)=3+5=8, not min cut (5)
     [InlineData("({1,2,3,4},{((1,2),10),((1,3),2),((2,4),3),((3,4),5)},1,4)", "{1,2,3}")]
-    public void MINSTCUT_Verifier_Rejects_Non_Minimum_Cut(string instance, string certificate)
-    {
+    public void MINSTCUT_Verifier_Rejects_Non_Minimum_Cut(string instance, string certificate) {
         MINSTCUT problem = new MINSTCUT(instance);
         MinSTCutVerifier verifier = new MinSTCutVerifier();
         Assert.False(verifier.verify(problem, certificate));
     }
 
     [Fact]
-    public void MINSTCUT_Verifier_Rejects_Missing_Source()
-    {
+    public void MINSTCUT_Verifier_Rejects_Missing_Source() {
         // S={2} does not contain source=1
         MINSTCUT problem = new MINSTCUT("({1,2,3},{((1,2),4),((2,3),2)},1,3)");
         MinSTCutVerifier verifier = new MinSTCutVerifier();
@@ -149,8 +135,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_Verifier_Rejects_Target_In_S()
-    {
+    public void MINSTCUT_Verifier_Rejects_Target_In_S() {
         // S={1,3} contains target=3
         MINSTCUT problem = new MINSTCUT("({1,2,3},{((1,2),4),((2,3),2)},1,3)");
         MinSTCutVerifier verifier = new MinSTCutVerifier();
@@ -158,16 +143,14 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_Verifier_Rejects_Node_Not_In_Graph()
-    {
+    public void MINSTCUT_Verifier_Rejects_Node_Not_In_Graph() {
         MINSTCUT problem = new MINSTCUT("({1,2,3},{((1,2),4),((2,3),2)},1,3)");
         MinSTCutVerifier verifier = new MinSTCutVerifier();
         Assert.False(verifier.verify(problem, "{1,99}"));
     }
 
     [Fact]
-    public void MINSTCUT_Verifier_Rejects_Empty_Certificate()
-    {
+    public void MINSTCUT_Verifier_Rejects_Empty_Certificate() {
         MINSTCUT problem = new MINSTCUT();
         MinSTCutVerifier verifier = new MinSTCutVerifier();
         Assert.False(verifier.verify(problem, "{}"));
@@ -176,8 +159,7 @@ public class MINSTCUT_Tests
     // ----- Visualization ----- //
 
     [Fact]
-    public void MINSTCUT_Visualization_Returns_Graph()
-    {
+    public void MINSTCUT_Visualization_Returns_Graph() {
         MINSTCUT problem = new MINSTCUT();
         MinSTCutVisualization viz = new MinSTCutVisualization();
         var graph = (API_GraphJSON)viz.visualize(problem);
@@ -186,8 +168,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_SolvedVisualization_Colors_Cut_Edges()
-    {
+    public void MINSTCUT_SolvedVisualization_Colors_Cut_Edges() {
         // S={1,2}: cut edges are (1,3) and (2,4)
         MINSTCUT problem = new MINSTCUT();
         MinSTCutVisualization viz = new MinSTCutVisualization();
@@ -203,8 +184,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_SolvedVisualization_Does_Not_Color_Internal_Edges()
-    {
+    public void MINSTCUT_SolvedVisualization_Does_Not_Color_Internal_Edges() {
         // S={1,2}: (1,2) goes from S to S, not a cut edge
         MINSTCUT problem = new MINSTCUT();
         MinSTCutVisualization viz = new MinSTCutVisualization();
@@ -216,8 +196,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_SolvedVisualization_Colors_S_Nodes()
-    {
+    public void MINSTCUT_SolvedVisualization_Colors_S_Nodes() {
         MINSTCUT problem = new MINSTCUT();
         MinSTCutVisualization viz = new MinSTCutVisualization();
         var graph = (API_GraphJSON)viz.SolvedVisualization(problem, "{1,2}");
@@ -227,8 +206,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_SolvedVisualization_Colors_T_Nodes_As_Background()
-    {
+    public void MINSTCUT_SolvedVisualization_Colors_T_Nodes_As_Background() {
         MINSTCUT problem = new MINSTCUT();
         MinSTCutVisualization viz = new MinSTCutVisualization();
         var graph = (API_GraphJSON)viz.SolvedVisualization(problem, "{1,2}");
@@ -238,8 +216,7 @@ public class MINSTCUT_Tests
     }
 
     [Fact]
-    public void MINSTCUT_SolvedVisualization_Empty_Solution_Returns_Plain_Graph()
-    {
+    public void MINSTCUT_SolvedVisualization_Empty_Solution_Returns_Plain_Graph() {
         MINSTCUT problem = new MINSTCUT();
         MinSTCutVisualization viz = new MinSTCutVisualization();
         var graph = (API_GraphJSON)viz.SolvedVisualization(problem, "{}");
@@ -249,15 +226,13 @@ public class MINSTCUT_Tests
 
     // ----- Helpers ----- //
 
-    private static int ComputeCutCapacity(MINSTCUT problem, string certificate)
-    {
+    private static int ComputeCutCapacity(MINSTCUT problem, string certificate) {
         if (string.IsNullOrWhiteSpace(certificate) || certificate.Trim() == "{}") return 0;
         HashSet<string> sNodes = ParseNodeSet(certificate);
         return MinSTCutSolver.CutCapacity(problem.edges, sNodes);
     }
 
-    private static HashSet<string> ParseNodeSet(string certificate)
-    {
+    private static HashSet<string> ParseNodeSet(string certificate) {
         return certificate.Trim()
             .TrimStart('{').TrimEnd('}')
             .Split(',')
