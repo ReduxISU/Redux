@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT;
 
-class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, WeightedCutDefaultVisualization, UtilCollectionGraph>
-{
+class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, WeightedCutDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
     public string problemName { get; } = "Weighted Cut";
@@ -44,55 +43,43 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     //private List<string> _literals = new List<string>();
 
     // --- Properties ---
-    public List<string> nodes
-    {
-        get
-        {
+    public List<string> nodes {
+        get {
             return _nodes;
         }
-        set
-        {
+        set {
             _nodes = value;
         }
     }
-    public List<(string source, string destination, int weight)> edges
-    {
-        get
-        {
+    public List<(string source, string destination, int weight)> edges {
+        get {
             return _edges;
         }
-        set
-        {
+        set {
             _edges = value;
         }
     }
 
-    public int K
-    {
-        get
-        {
+    public int K {
+        get {
             return _K;
         }
-        set
-        {
+        set {
             _K = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public WEIGHTEDCUT() : this(_defaultInstance)
-    {
+    public WEIGHTEDCUT() : this(_defaultInstance) {
 
     }
-    public WEIGHTEDCUT(string GInput)
-    {
+    public WEIGHTEDCUT(string GInput) {
         instance = GInput;
 
         StringParser weightedCut = new("{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}");
         weightedCut.parse(GInput);
         nodes = weightedCut["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = weightedCut["E"].ToList().Select(edge =>
-        {
+        edges = weightedCut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();

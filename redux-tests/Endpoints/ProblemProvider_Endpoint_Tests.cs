@@ -8,12 +8,10 @@ using Xunit;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
-{
+public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
-    public ProblemProvider_Endpoint_Tests(AppFactory factory)
-    {
+    public ProblemProvider_Endpoint_Tests(AppFactory factory) {
         _client = factory.CreateClient();
     }
 
@@ -24,8 +22,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     [InlineData("clique")]
     [InlineData("vertexcover")]
     [InlineData("independentset")]
-    public async Task Info_KnownProblem_Returns200(string name)
-    {
+    public async Task Info_KnownProblem_Returns200(string name) {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -33,8 +30,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     [Theory]
     [InlineData("sat3")]
     [InlineData("clique")]
-    public async Task Info_KnownProblem_ReturnsNonEmptyBody(string name)
-    {
+    public async Task Info_KnownProblem_ReturnsNonEmptyBody(string name) {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.False(string.IsNullOrWhiteSpace(body));
@@ -43,8 +39,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     // ── /ProblemProvider/verify ───────────────────────────────────────────────
 
     [Fact]
-    public async Task Verify_ValidSAT3Certificate_ReturnsTrue()
-    {
+    public async Task Verify_ValidSAT3Certificate_ReturnsTrue() {
         var body = new { Certificate = "x1:True,x2:False,x3:True", ProblemInstance = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)" };
         var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -53,8 +48,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task Verify_InvalidSAT3Certificate_ReturnsFalse()
-    {
+    public async Task Verify_InvalidSAT3Certificate_ReturnsFalse() {
         var body = new { Certificate = "x1:False,x2:False,x3:False", ProblemInstance = "(x1 | x2 | x3) & (!x1 | !x2 | !x3) & (x1 | !x2 | x3)" };
         var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -65,8 +59,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     // ── /ProblemProvider/solve ────────────────────────────────────────────────
 
     [Fact]
-    public async Task Solve_SAT3BacktrackingSolver_Returns200()
-    {
+    public async Task Solve_SAT3BacktrackingSolver_Returns200() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content, TestContext.Current.CancellationToken);
@@ -74,8 +67,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task Solve_SAT3BacktrackingSolver_ReturnsNonEmptyResult()
-    {
+    public async Task Solve_SAT3BacktrackingSolver_ReturnsNonEmptyResult() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content, TestContext.Current.CancellationToken);
@@ -86,8 +78,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     // ── /ProblemProvider/reduce ───────────────────────────────────────────────
 
     [Fact]
-    public async Task Reduce_SAT3ToClique_Returns200()
-    {
+    public async Task Reduce_SAT3ToClique_Returns200() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
@@ -95,8 +86,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task Reduce_SAT3ToClique_ReturnsNonEmptyResult()
-    {
+    public async Task Reduce_SAT3ToClique_ReturnsNonEmptyResult() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
@@ -107,8 +97,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     // ── /ProblemProvider/mapSolution ──────────────────────────────────────────
 
     [Fact]
-    public async Task MapSolution_ValidSAT3Solution_Returns200()
-    {
+    public async Task MapSolution_ValidSAT3Solution_Returns200() {
         var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");
         var solution = Uri.EscapeDataString("(x1:True,x2:False,x3:True)");
@@ -117,8 +106,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task MapSolution_CliqueShapedCertificate_Returns400WithParseError()
-    {
+    public async Task MapSolution_CliqueShapedCertificate_Returns400WithParseError() {
         // The original gut-check: a CLIQUE-shaped certificate fed to the SAT3→CLIQUE
         // forward mapper used to throw IndexOutOfRangeException → HTTP 500. It must
         // now surface as a structured 400.
@@ -132,8 +120,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task MapSolution_NonSipserInstance_Returns400WithParseError()
-    {
+    public async Task MapSolution_NonSipserInstance_Returns400WithParseError() {
         // SipserReduceToSAT3 requires Sipser-formatted CLIQUE node names. A plain
         // numeric-node CLIQUE instance is well-formed as a CLIQUE but invalid for
         // this reduction, and must surface as a 400 rather than a 500.
@@ -147,8 +134,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task MapSolution_BadCertificate_Returns400WithParseError()
-    {
+    public async Task MapSolution_BadCertificate_Returns400WithParseError() {
         // Valid Sipser-formatted CLIQUE instance, but the certificate carries
         // non-Sipser node names — the certificate-side throw site.
         var instance = "\"(({x1_0,x2_1,x3_2},{{x1_0,x2_1},{x2_1,x3_2},{x1_0,x3_2}}),3)\"";
@@ -171,8 +157,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     private const string InvalidSat3Instance = "\"(1 | 2 | 3)\"";
 
     [Fact]
-    public async Task Reduce_InvalidInstance_Returns400WithParseError()
-    {
+    public async Task Reduce_InvalidInstance_Returns400WithParseError() {
         var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -181,8 +166,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task Gadgets_InvalidInstance_Returns400WithParseError()
-    {
+    public async Task Gadgets_InvalidInstance_Returns400WithParseError() {
         var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/gadgets?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -191,8 +175,7 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task VisualizeReduction_InvalidInstance_Returns400WithParseError()
-    {
+    public async Task VisualizeReduction_InvalidInstance_Returns400WithParseError() {
         var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
         var solution = Uri.EscapeDataString("(x1:True)");
         var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction=sipserreducetocliquestandard&solution={solution}", content, TestContext.Current.CancellationToken);
@@ -202,10 +185,181 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task Visualize_InvalidInstance_Returns400WithParseError()
-    {
+    public async Task Visualize_InvalidInstance_Returns400WithParseError() {
         var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=sat3defaultvisualization", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("instance_parse_error", body);
+    }
+
+    [Fact]
+    public async Task Visualize_KnownVisualization_Returns200WithNonEmptyResult()
+    {
+        var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=sat3defaultvisualization", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.False(string.IsNullOrWhiteSpace(body));
+    }
+
+    [Fact]
+    public async Task Visualize_UnknownVisualization_Returns400()
+    {
+        var instance = "\"(x1 | !x2 | x3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=nosuchvisualization", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("unknown_visualization", body);
+    }
+
+    // ── /ProblemProvider/visualizeReduction ───────────────────────────────────
+
+    [Fact]
+    public async Task VisualizeReduction_SAT3ToClique_Returns200WithNonEmptyResult()
+    {
+        var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("(x1:True,x2:False,x3:True)");
+        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction=sipserreducetocliquestandard&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.False(string.IsNullOrWhiteSpace(body));
+    }
+
+    [Fact]
+    public async Task VisualizeReduction_UnknownReduction_Returns400()
+    {
+        var instance = "\"(x1 | !x2 | x3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=nosuchreduction&solution=x", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("unknown_reduction", body);
+    }
+
+    // ── /ProblemProvider/reduce, mapSolution, gadgets: unknown_reduction ──────
+
+    [Fact]
+    public async Task Reduce_UnknownReduction_Returns400()
+    {
+        var instance = "\"(x1 | !x2 | x3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=nosuchreduction", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("unknown_reduction", body);
+    }
+
+    [Fact]
+    public async Task MapSolution_UnknownReduction_Returns400()
+    {
+        var instance = "\"(x1 | !x2 | x3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/mapSolution?reduction=nosuchreduction&solution=x", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("unknown_reduction", body);
+    }
+
+    [Fact]
+    public async Task Gadgets_SAT3ToClique_Returns200WithNonEmptyResult()
+    {
+        var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/gadgets?reduction=sipserreducetocliquestandard", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.False(string.IsNullOrWhiteSpace(body));
+    }
+
+    [Fact]
+    public async Task Gadgets_UnknownReduction_Returns400()
+    {
+        var instance = "\"(x1 | !x2 | x3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/gadgets?reduction=nosuchreduction", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("unknown_reduction", body);
+    }
+
+    // ── /ProblemProvider/info: unknown interface ──────────────────────────────
+
+    [Fact]
+    public async Task Info_UnknownInterface_Returns400()
+    {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=nosuchinterface", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("unknown_interface", body);
+    }
+
+    // ── /ProblemProvider/solve: error paths ───────────────────────────────────
+
+    [Fact]
+    public async Task Solve_UnknownSolver_Returns400()
+    {
+        var instance = "\"(x1 | !x2 | x3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=nosuchsolver", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("unknown_solver", body);
+    }
+
+    [Fact]
+    public async Task Solve_InvalidInstance_Returns400WithParseError()
+    {
+        var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=sat3backtrackingsolver", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("instance_parse_error", body);
+    }
+
+    // ── /ProblemProvider/verify: error paths ──────────────────────────────────
+
+    [Fact]
+    public async Task Verify_InvalidInstance_Returns400WithParseError()
+    {
+        var body = new { Certificate = "x1:True", ProblemInstance = "(1 | 2 | 3)" };
+        var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("instance_parse_error", result);
+    }
+
+    [Fact]
+    public async Task Verify_EmptyCertificate_Returns400WithCertificateParseError()
+    {
+        var body = new { Certificate = "", ProblemInstance = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)" };
+        var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=sat3verifier", body, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("certificate_parse_error", result);
+    }
+
+    // ── /ProblemProvider/problemInstance ──────────────────────────────────────
+
+    [Fact]
+    public async Task ProblemInstance_ValidSAT3Instance_Returns200WithNonEmptyResult()
+    {
+        var instance = "\"(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/problemInstance?problem=sat3", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.False(string.IsNullOrWhiteSpace(body));
+    }
+
+    [Fact]
+    public async Task ProblemInstance_InvalidInstance_Returns400WithParseError()
+    {
+        var content = new StringContent(InvalidSat3Instance, Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/problemInstance?problem=sat3", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("instance_parse_error", body);

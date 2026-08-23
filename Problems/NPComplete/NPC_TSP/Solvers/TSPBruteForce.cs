@@ -3,13 +3,14 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
+
 class TSPBruteForce : ISolver<TSP> {
 
     // --- Fields ---
-    public string solverName {get;} = "Traveling Sales Person Brute Force Solver";
-    public string solverDefinition {get;} = "This is a brute force solver for the NP-Complete Traveling Sales Person problem";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string solverName { get; } = "Traveling Sales Person Brute Force Solver";
+    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Traveling Sales Person problem";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.
     public SolverType solverType { get; } = SolverType.BruteForce;
@@ -20,38 +21,31 @@ class TSPBruteForce : ISolver<TSP> {
     public string complexity { get; } = "O(n! * n * m), n = |nodes|, m = |edges|";
 
     // --- Methods Including Constructors ---
-    public TSPBruteForce()
-    {
+    public TSPBruteForce() {
 
     }
 
     private string combinationToCertificate(List<int> combination, List<string> nodes) {
         string certificate = "";
-        foreach(int i in combination) {
+        foreach (int i in combination) {
             certificate += nodes[i - 1] + ',';
         }
         return "{" + certificate + certificate.Split(',')[0] + "}";
     }
-    
-    public static List<List<int>> GenerateCombinations(int x)
-    {
+
+    public static List<List<int>> GenerateCombinations(int x) {
         List<int> currentCombination = new List<int>();
-        for (int i = 1; i <= x; i++)
-        {
+        for (int i = 1; i <= x; i++) {
             currentCombination.Add(i);
         }
 
         List<List<int>> combinations = new List<List<int>>();
         combinations.Add(new List<int>(currentCombination));
 
-        while (true)
-        {
-            if (GetNextCombination(currentCombination))
-            {
+        while (true) {
+            if (GetNextCombination(currentCombination)) {
                 combinations.Add(new List<int>(currentCombination));
-            }
-            else
-            {
+            } else {
                 break; // All combinations have been generated
             }
         }
@@ -59,23 +53,19 @@ class TSPBruteForce : ISolver<TSP> {
         return combinations;
     }
 
-    private static bool GetNextCombination(List<int> combination)
-    {
+    private static bool GetNextCombination(List<int> combination) {
         int x = combination.Count;
         int i = x - 2;
-        while (i >= 0 && combination[i] >= combination[i + 1])
-        {
+        while (i >= 0 && combination[i] >= combination[i + 1]) {
             i--;
         }
 
-        if (i < 0)
-        {
+        if (i < 0) {
             return false; // No more combinations
         }
 
         int j = x - 1;
-        while (combination[j] <= combination[i])
-        {
+        while (combination[j] <= combination[i]) {
             j--;
         }
 
@@ -91,15 +81,12 @@ class TSPBruteForce : ISolver<TSP> {
     }
 
 
-    public string solve(TSP tsp)
-    {
+    public string solve(TSP tsp) {
         List<List<int>> combinations = GenerateCombinations(tsp.nodes.Count);
 
-        foreach (List<int> combination in combinations)
-        {
+        foreach (List<int> combination in combinations) {
             string certificate = combinationToCertificate(combination, tsp.nodes);
-            if (tsp.defaultVerifier.verify(tsp, certificate))
-            {
+            if (tsp.defaultVerifier.verify(tsp, certificate)) {
                 return certificate;
             }
         }

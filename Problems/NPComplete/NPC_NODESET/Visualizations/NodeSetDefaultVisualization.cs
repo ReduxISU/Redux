@@ -7,8 +7,7 @@ using API.Problems.NPComplete.NPC_NODESET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Visualizations;
 
-class NodeSetDefaultVisualization : IVisualization<NODESET>
-{
+class NodeSetDefaultVisualization : IVisualization<NODESET> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Node Set Visualization";
@@ -19,23 +18,20 @@ class NodeSetDefaultVisualization : IVisualization<NODESET>
     public ISolver solver { get; } = new NodeSetBruteForce();
 
     // --- Methods Including Constructors ---
-    public NodeSetDefaultVisualization()
-    {
+    public NodeSetDefaultVisualization() {
 
     }
-    public API_JSON visualize(NODESET nodeSet)
-    {
+    public API_JSON visualize(NODESET nodeSet) {
         return nodeSet.graph.ToAPIGraph();
     }
 
-    public API_JSON SolvedVisualization(NODESET nodeSet, string solution)
-    {
+    public API_JSON SolvedVisualization(NODESET nodeSet, string solution) {
         List<string> solutionNodes = GraphParser.parseNodeListWithStringFunctions(solution);
 
         API_GraphJSON apiGraph = nodeSet.graph.ToAPIGraph();
-        
+
         for (int i = 0; i < apiGraph.nodes.Count; i++)
-            if(solutionNodes.Contains(apiGraph.nodes[i].name))
+            if (solutionNodes.Contains(apiGraph.nodes[i].name))
                 apiGraph.nodes[i].color = "Solution";
 
         foreach (var node in solutionNodes)

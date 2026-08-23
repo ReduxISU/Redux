@@ -9,7 +9,6 @@ namespace API.Interfaces.JSON_Objects;
 /// common base so they can be handled polymorphically — held in a single
 /// <c>List&lt;API_JSON&gt;</c> and serialized through <see cref="API.Interfaces.Tools.API_JSON_Converter"/>.
 /// </summary>
-public interface API_JSON
-{
+public interface API_JSON {
 
 }

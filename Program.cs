@@ -8,8 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.Configure<QuantumSolverSettings>(
     builder.Configuration.GetSection("QuantumSolver"));
-builder.Services.AddHttpClient("quantum", (sp, client) =>
-{
+builder.Services.AddHttpClient("quantum", (sp, client) => {
     var settings = sp.GetRequiredService<IOptionsMonitor<QuantumSolverSettings>>().CurrentValue;
     client.BaseAddress = new Uri(settings.BaseURL);
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -17,10 +16,8 @@ builder.Services.AddHttpClient("quantum", (sp, client) =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
+builder.Services.AddSwaggerGen(options => {
+    options.SwaggerDoc("v1", new OpenApiInfo {
         Version = "v1",
         Title = "Redux API",
         Description = "An ASP.NET Core Web API for reducing, verifying, and solving NP-Complete problems",
@@ -54,11 +51,10 @@ QuantumSolverSettingsGlobal.QuantumSolver = optionsMonitor.CurrentValue;
 QuantumSolverSettingsGlobal.HttpClientFactory = app.Services.GetRequiredService<IHttpClientFactory>();
 
 // Somewhat of a security concern. But since we are not doing POSTS im not concerned about it
-app.Use((context, next) =>
-    {
-        context.Response.Headers["Access-Control-Allow-Origin"] = "*";
-        return next.Invoke();
-    });
+app.Use((context, next) => {
+    context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+    return next.Invoke();
+});
 
 // app.UseHttpsRedirection();
 app.UseCors(x => x
@@ -66,7 +62,7 @@ app.UseCors(x => x
                 .AllowAnyHeader()
                 .SetIsOriginAllowed(origin => true) // allow any origin
                 .AllowCredentials()); // allow credentials
-    
+
 app.UseAuthorization();
 
 app.UseSwagger();
