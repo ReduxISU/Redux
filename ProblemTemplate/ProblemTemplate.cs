@@ -6,8 +6,7 @@ using System.Text.RegularExpressions;
 [Route("[controller]")]
 [Tags("Problem Template")]
 #pragma warning disable CS1591
-public class ProblemTemplate : ControllerBase
-{
+public class ProblemTemplate : ControllerBase {
 #pragma warning restore CS1591
 
     // Templates ship alongside the app (see the <Content> include in API.csproj),
@@ -20,8 +19,7 @@ public class ProblemTemplate : ControllerBase
     ///<response code="200">Returns the problem template with the given name.</response>
     [ProducesResponseType(typeof(ActionResult), 200)]
     [HttpGet]
-    public ActionResult DownloadProblemTemplate([FromQuery] string problemName)
-    {
+    public ActionResult DownloadProblemTemplate([FromQuery] string problemName) {
         string problemNameUpper = ToUpperCase(problemName);
         string problemNamePascal = ToPascalCase(problemName);
 
@@ -45,8 +43,7 @@ public class ProblemTemplate : ControllerBase
     ///<response code="200">Returns the reduction template with the given name.</response>
     [ProducesResponseType(typeof(ActionResult), 200)]
     [HttpGet("reduction")]
-    public ActionResult DownloadReductionTemplate([FromQuery] string problemFrom, [FromQuery] string problemTo, [FromQuery] string reductionName)
-    {
+    public ActionResult DownloadReductionTemplate([FromQuery] string problemFrom, [FromQuery] string problemTo, [FromQuery] string reductionName) {
         string reductionNamePascal = ToPascalCase(reductionName);
 
         byte[] zip = ZipFiles(
@@ -64,8 +61,7 @@ public class ProblemTemplate : ControllerBase
     ///<response code="200">Returns the solver template with the given name.</response>
     [ProducesResponseType(typeof(ActionResult), 200)]
     [HttpGet("solver")]
-    public ActionResult DownloadSolverTemplate([FromQuery] string problemName, [FromQuery] string solverName)
-    {
+    public ActionResult DownloadSolverTemplate([FromQuery] string problemName, [FromQuery] string solverName) {
         string solverNamePascal = ToPascalCase(solverName);
 
         byte[] zip = ZipFiles(
@@ -84,8 +80,7 @@ public class ProblemTemplate : ControllerBase
     ///<response code="200">Returns the verifier template with the given name.</response>
     [ProducesResponseType(typeof(ActionResult), 200)]
     [HttpGet("verifier")]
-    public ActionResult DownloadVerifierTemplate([FromQuery] string problemName, [FromQuery] string verifierName)
-    {
+    public ActionResult DownloadVerifierTemplate([FromQuery] string problemName, [FromQuery] string verifierName) {
         string verifierNamePascal = ToPascalCase(verifierName);
 
         byte[] zip = ZipFiles(
@@ -104,8 +99,7 @@ public class ProblemTemplate : ControllerBase
     ///<response code="200">Returns the visualization template with the given name.</response>
     [ProducesResponseType(typeof(ActionResult), 200)]
     [HttpGet("visualization")]
-    public ActionResult DownloadVisualizationTemplate([FromQuery] string problemName, [FromQuery] string visualizationName)
-    {
+    public ActionResult DownloadVisualizationTemplate([FromQuery] string problemName, [FromQuery] string visualizationName) {
         string visualizationNamePascal = ToPascalCase(visualizationName);
 
         byte[] zip = ZipFiles(
@@ -118,10 +112,8 @@ public class ProblemTemplate : ControllerBase
         return File(zip, "application/force-download", "VisualizationTemplate.zip");
     }
 
-    static string GenerateProblemTemplate(string problemName, string template)
-    {
-        if (string.IsNullOrEmpty(problemName))
-        {
+    static string GenerateProblemTemplate(string problemName, string template) {
+        if (string.IsNullOrEmpty(problemName)) {
             problemName = "Problem";
         }
 
@@ -132,14 +124,11 @@ public class ProblemTemplate : ControllerBase
             .Replace("{NAME}", problemName);
     }
 
-    static string GenerateSolverTemplate(string problemName, string solverName, string template)
-    {
-        if (string.IsNullOrEmpty(problemName))
-        {
+    static string GenerateSolverTemplate(string problemName, string solverName, string template) {
+        if (string.IsNullOrEmpty(problemName)) {
             problemName = "Problem";
         }
-        if (string.IsNullOrEmpty(solverName))
-        {
+        if (string.IsNullOrEmpty(solverName)) {
             solverName = "Problem";
         }
 
@@ -149,14 +138,11 @@ public class ProblemTemplate : ControllerBase
             .Replace("{SOLVER_PASCAL_CASE}", ToPascalCase(solverName));
     }
 
-    static string GenerateVerifierTemplate(string problemName, string verifierName, string template)
-    {
-        if (string.IsNullOrEmpty(problemName))
-        {
+    static string GenerateVerifierTemplate(string problemName, string verifierName, string template) {
+        if (string.IsNullOrEmpty(problemName)) {
             problemName = "Problem";
         }
-        if (string.IsNullOrEmpty(verifierName))
-        {
+        if (string.IsNullOrEmpty(verifierName)) {
             verifierName = "Problem";
         }
 
@@ -166,14 +152,11 @@ public class ProblemTemplate : ControllerBase
             .Replace("{VERIFIER_PASCAL_CASE}", ToPascalCase(verifierName));
     }
 
-    static string GenerateVisualizationTemplate(string problemName, string visualizationName, string template)
-    {
-        if (string.IsNullOrEmpty(problemName))
-        {
+    static string GenerateVisualizationTemplate(string problemName, string visualizationName, string template) {
+        if (string.IsNullOrEmpty(problemName)) {
             problemName = "Problem";
         }
-        if (string.IsNullOrEmpty(visualizationName))
-        {
+        if (string.IsNullOrEmpty(visualizationName)) {
             visualizationName = "Problem";
         }
 
@@ -183,18 +166,14 @@ public class ProblemTemplate : ControllerBase
             .Replace("{VISUALIZATION_PASCAL_CASE}", ToPascalCase(visualizationName));
     }
 
-    static string GenerateReductionTemplate(string problemFrom, string problemTo, string reductionName, string template)
-    {
-        if (string.IsNullOrEmpty(reductionName))
-        {
+    static string GenerateReductionTemplate(string problemFrom, string problemTo, string reductionName, string template) {
+        if (string.IsNullOrEmpty(reductionName)) {
             reductionName = "Reduction";
         }
-        if (string.IsNullOrEmpty(problemFrom))
-        {
+        if (string.IsNullOrEmpty(problemFrom)) {
             problemFrom = "ReduceFrom";
         }
-        if (string.IsNullOrEmpty(problemTo))
-        {
+        if (string.IsNullOrEmpty(problemTo)) {
             problemTo = "ReduceTo";
         }
 
@@ -205,13 +184,10 @@ public class ProblemTemplate : ControllerBase
             .Replace("{REDUCTION}", reductionName);
     }
 
-    static byte[] ZipFiles(Dictionary<string, string> files)
-    {
+    static byte[] ZipFiles(Dictionary<string, string> files) {
         using var memoryStream = new MemoryStream();
-        using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
-        {
-            foreach (var file in files)
-            {
+        using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true)) {
+            foreach (var file in files) {
                 var entry = archive.CreateEntry(file.Key);
                 using var entryStream = entry.Open();
                 using var streamWriter = new StreamWriter(entryStream);
@@ -225,8 +201,7 @@ public class ProblemTemplate : ControllerBase
 
     // String manipulation
 
-    static string RemoveInvalidIdentifierChars(string name)
-    {
+    static string RemoveInvalidIdentifierChars(string name) {
         return new string((
             from c in name
             where char.IsLetterOrDigit(c) || c == '_'
@@ -234,34 +209,27 @@ public class ProblemTemplate : ControllerBase
        ).ToArray());
     }
 
-    static string ToPascalCase(string name)
-    {
+    static string ToPascalCase(string name) {
         return FirstToUpper(RemoveInvalidIdentifierChars(Regex.Replace(name, " [a-z]", m => m.Value.ToUpper()[1..])));
     }
 
-    static string ToCamelCase(string name)
-    {
+    static string ToCamelCase(string name) {
         return FirstToLower(ToPascalCase(name));
     }
 
-    static string ToUpperCase(string s)
-    {
+    static string ToUpperCase(string s) {
         return RemoveInvalidIdentifierChars(s).ToUpper();
     }
 
-    static string FirstToUpper(string s)
-    {
-        if (string.IsNullOrEmpty(s))
-        {
+    static string FirstToUpper(string s) {
+        if (string.IsNullOrEmpty(s)) {
             return s;
         }
         return s.First().ToString().ToUpper() + s[1..];
     }
 
-    static string FirstToLower(string s)
-    {
-        if (string.IsNullOrEmpty(s))
-        {
+    static string FirstToLower(string s) {
+        if (string.IsNullOrEmpty(s)) {
             return s;
         }
         return s.First().ToString().ToLower() + s[1..];
