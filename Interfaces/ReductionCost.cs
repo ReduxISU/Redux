@@ -20,8 +20,7 @@ namespace API.Interfaces;
 /// </para>
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ReductionCost>))]
-public enum ReductionCost
-{
+public enum ReductionCost {
     /// <summary>No cost has been declared for this reduction yet.</summary>
     Unclassified = 0,
     /// <summary>Output instance size is O(n) in input instance size.</summary>

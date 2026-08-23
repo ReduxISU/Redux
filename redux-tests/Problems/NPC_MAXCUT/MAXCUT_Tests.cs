@@ -8,13 +8,11 @@ using API.Problems.NPComplete.NPC_MAXCUT.Visualizations;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class MAXCUT_Tests
-{
+public class MAXCUT_Tests {
     // ----- Instantiation ----- //
 
     [Fact]
-    public void MAXCUT_Default_Instantiation()
-    {
+    public void MAXCUT_Default_Instantiation() {
         MAXCUT problem = new MAXCUT();
         Assert.Equal(MAXCUT._defaultInstance, problem.instance);
         Assert.Equal(MAXCUT._defaultInstance, problem.defaultInstance);
@@ -23,8 +21,7 @@ public class MAXCUT_Tests
     }
 
     [Fact]
-    public void MAXCUT_Custom_Instantiation()
-    {
+    public void MAXCUT_Custom_Instantiation() {
         string instance = "({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})";
         MAXCUT problem = new MAXCUT(instance);
         Assert.Equal(instance, problem.instance);
@@ -33,8 +30,7 @@ public class MAXCUT_Tests
     }
 
     [Fact]
-    public void MAXCUT_Two_Node_Graph()
-    {
+    public void MAXCUT_Two_Node_Graph() {
         string instance = "({1,2},{({1,2},7)})";
         MAXCUT problem = new MAXCUT(instance);
         Assert.Equal(2, problem.nodes.Count);
@@ -47,8 +43,7 @@ public class MAXCUT_Tests
     [InlineData("({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})", 15)]
     [InlineData("({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})", 5)]
     [InlineData("({1,2},{({1,2},7)})", 7)]
-    public void MAXCUT_Solver_Returns_Correct_Weight(string instance, int expectedWeight)
-    {
+    public void MAXCUT_Solver_Returns_Correct_Weight(string instance, int expectedWeight) {
         MAXCUT problem = new MAXCUT(instance);
         MaxCutSolver solver = new MaxCutSolver();
         string solution = solver.solve(problem);
@@ -57,16 +52,14 @@ public class MAXCUT_Tests
     }
 
     [Fact]
-    public void MAXCUT_Solver_Default_Instance_Weight_Is_15()
-    {
+    public void MAXCUT_Solver_Default_Instance_Weight_Is_15() {
         MAXCUT problem = new MAXCUT();
         string solution = new MaxCutSolver().solve(problem);
         Assert.Equal(15, ComputeCutWeight(problem, solution));
     }
 
     [Fact]
-    public void MAXCUT_Solver_Single_Node_Returns_Empty()
-    {
+    public void MAXCUT_Solver_Single_Node_Returns_Empty() {
         string instance = "({1},{})";
         MAXCUT problem = new MAXCUT(instance);
         string solution = new MaxCutSolver().solve(problem);
@@ -74,16 +67,14 @@ public class MAXCUT_Tests
     }
 
     [Fact]
-    public void MAXCUT_Solver_Output_Passes_Verifier()
-    {
+    public void MAXCUT_Solver_Output_Passes_Verifier() {
         string[] instances = {
             MAXCUT._defaultInstance,
             "({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})",
             "({1,2},{({1,2},7)})",
             "({A,B,C,D},{({A,B},4),({B,C},3),({C,D},4),({D,A},3)})"
         };
-        foreach (string inst in instances)
-        {
+        foreach (string inst in instances) {
             MAXCUT problem = new MAXCUT(inst);
             string solution = new MaxCutSolver().solve(problem);
             Assert.True(new MaxCutVerifier().verify(problem, solution), $"Solver output failed verifier for: {inst}");
@@ -103,8 +94,7 @@ public class MAXCUT_Tests
     [InlineData("({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})", "{1,2}", true)]
     // 2-node: max cut = 7.
     [InlineData("({1,2},{({1,2},7)})", "{1}", true)]
-    public void MAXCUT_Verifier_Accepts_Valid_Maximum_Cut(string instance, string certificate, bool expected)
-    {
+    public void MAXCUT_Verifier_Accepts_Valid_Maximum_Cut(string instance, string certificate, bool expected) {
         MAXCUT problem = new MAXCUT(instance);
         MaxCutVerifier verifier = new MaxCutVerifier();
         Assert.Equal(expected, verifier.verify(problem, certificate));
@@ -115,32 +105,28 @@ public class MAXCUT_Tests
     [InlineData("({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})", "{1,2}")]
     // S={2} for 3-node graph gives weight 3, not max cut (5).
     [InlineData("({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})", "{2}")]
-    public void MAXCUT_Verifier_Rejects_Non_Maximum_Cut(string instance, string certificate)
-    {
+    public void MAXCUT_Verifier_Rejects_Non_Maximum_Cut(string instance, string certificate) {
         MAXCUT problem = new MAXCUT(instance);
         MaxCutVerifier verifier = new MaxCutVerifier();
         Assert.False(verifier.verify(problem, certificate));
     }
 
     [Fact]
-    public void MAXCUT_Verifier_Rejects_Node_Not_In_Graph()
-    {
+    public void MAXCUT_Verifier_Rejects_Node_Not_In_Graph() {
         MAXCUT problem = new MAXCUT("({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})");
         MaxCutVerifier verifier = new MaxCutVerifier();
         Assert.False(verifier.verify(problem, "{99}"));
     }
 
     [Fact]
-    public void MAXCUT_Verifier_Rejects_Full_Node_Set()
-    {
+    public void MAXCUT_Verifier_Rejects_Full_Node_Set() {
         MAXCUT problem = new MAXCUT("({1,2},{({1,2},7)})");
         MaxCutVerifier verifier = new MaxCutVerifier();
         Assert.False(verifier.verify(problem, "{1,2}"));
     }
 
     [Fact]
-    public void MAXCUT_Verifier_Rejects_Empty_Certificate()
-    {
+    public void MAXCUT_Verifier_Rejects_Empty_Certificate() {
         MAXCUT problem = new MAXCUT();
         MaxCutVerifier verifier = new MaxCutVerifier();
         Assert.False(verifier.verify(problem, "{}"));
@@ -149,8 +135,7 @@ public class MAXCUT_Tests
     // ----- Visualization ----- //
 
     [Fact]
-    public void MAXCUT_Visualization_Returns_Graph()
-    {
+    public void MAXCUT_Visualization_Returns_Graph() {
         MAXCUT problem = new MAXCUT();
         MaxCutVisualization viz = new MaxCutVisualization();
         var graph = (API_GraphJSON)viz.visualize(problem);
@@ -159,8 +144,7 @@ public class MAXCUT_Tests
     }
 
     [Fact]
-    public void MAXCUT_SolvedVisualization_Colors_Crossing_Edges()
-    {
+    public void MAXCUT_SolvedVisualization_Colors_Crossing_Edges() {
         // ({1,2,3},{({1,2},1),({2,3},2),({1,3},3)}), S={3}: crossing edges are (1-3) and (2-3).
         string instance = "({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})";
         MAXCUT problem = new MAXCUT(instance);
@@ -180,8 +164,7 @@ public class MAXCUT_Tests
     }
 
     [Fact]
-    public void MAXCUT_SolvedVisualization_Colors_S_Nodes()
-    {
+    public void MAXCUT_SolvedVisualization_Colors_S_Nodes() {
         string instance = "({1,2,3},{({1,2},1),({2,3},2),({1,3},3)})";
         MAXCUT problem = new MAXCUT(instance);
         MaxCutVisualization viz = new MaxCutVisualization();
@@ -193,8 +176,7 @@ public class MAXCUT_Tests
     }
 
     [Fact]
-    public void MAXCUT_SolvedVisualization_Empty_Solution_Returns_Plain_Graph()
-    {
+    public void MAXCUT_SolvedVisualization_Empty_Solution_Returns_Plain_Graph() {
         MAXCUT problem = new MAXCUT();
         MaxCutVisualization viz = new MaxCutVisualization();
         var graph = (API_GraphJSON)viz.SolvedVisualization(problem, "{}");
@@ -204,8 +186,7 @@ public class MAXCUT_Tests
 
     // ----- Helper ----- //
 
-    private static int ComputeCutWeight(MAXCUT problem, string certificate)
-    {
+    private static int ComputeCutWeight(MAXCUT problem, string certificate) {
         if (string.IsNullOrWhiteSpace(certificate) || certificate.Trim() == "{}") return 0;
 
         HashSet<string> sNodes = certificate.Trim()

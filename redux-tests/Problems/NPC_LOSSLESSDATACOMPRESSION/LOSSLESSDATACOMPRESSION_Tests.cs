@@ -42,16 +42,14 @@ public class LOSSLESSDATACOMPRESSION_Tests
     }
 
     [Fact]
-    public void LOSSLESS_Default_Instantiation()
-    {
+    public void LOSSLESS_Default_Instantiation() {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
         string actual_result = problem.defaultSolver.solve(problem);
         Assert.Contains("encoded:", actual_result);
     }
 
     [Fact]
-    public void LOSSLESS_Custom_String_Input_Test()
-    {
+    public void LOSSLESS_Custom_String_Input_Test() {
         string input = "banana";
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(input);
 
@@ -69,8 +67,7 @@ public class LOSSLESSDATACOMPRESSION_Tests
     [InlineData("abc", "(97=0;98=01;99=1) encoded:001", false)] // not prefix-free
     [InlineData("abc", "(97=0;98=0;99=1) encoded:000", false)]  // invalid encoding
     [InlineData("a", "(97=0) encoded:1", false)]                // wrong encoding
-    public void LOSSLESS_Verifier(string instance, string certificate, bool expected)
-    {
+    public void LOSSLESS_Verifier(string instance, string certificate, bool expected) {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
 
         bool result = problem.defaultVerifier.verify(problem, certificate);
@@ -81,8 +78,7 @@ public class LOSSLESSDATACOMPRESSION_Tests
     // multiple valid encodings
 
     [Fact]
-    public void LOSSLESS_Verifier_Allows_Different_Valid_Encodings()
-    {
+    public void LOSSLESS_Verifier_Allows_Different_Valid_Encodings() {
         string instance = "banana";
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
 
@@ -99,8 +95,7 @@ public class LOSSLESSDATACOMPRESSION_Tests
     // solver tests
 
     [Fact]
-    public void LOSSLESS_Solver_Returns_Valid_Format()
-    {
+    public void LOSSLESS_Solver_Returns_Valid_Format() {
         string input = "Lossless data compression";
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(input);
         string result = problem.defaultSolver.solve(problem);
@@ -110,8 +105,7 @@ public class LOSSLESSDATACOMPRESSION_Tests
     }
 
     [Fact]
-    public void LOSSLESS_Empty_Input_Test()
-    {
+    public void LOSSLESS_Empty_Input_Test() {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION("");
 
         string result = problem.defaultSolver.solve(problem);

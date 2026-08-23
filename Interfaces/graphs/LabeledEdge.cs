@@ -7,33 +7,28 @@
 
 namespace API.Interfaces.Graphs;
 
-class LabeledEdge
-{
+class LabeledEdge {
     private string _from;
     private string _to;
     private string _value;
 
-    public LabeledEdge(string from, string to, string value)
-    {
+    public LabeledEdge(string from, string to, string value) {
         _from = from;
         _to = to;
         _value = value;
     }
 
-    public string from
-    {
+    public string from {
         get => _from;
         set => _from = value;
     }
 
-    public string to
-    {
+    public string to {
         get => _to;
         set => _to = value;
     }
 
-    public string value
-    {
+    public string value {
         get => _value;
         set => _value = value;
     }

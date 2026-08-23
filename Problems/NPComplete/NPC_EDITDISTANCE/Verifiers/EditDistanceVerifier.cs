@@ -18,9 +18,9 @@ class EditDistanceVerifier : IVerifier<EDITDISTANCE> {
 
 
     // --- Methods Including Constructors ---
-    public EditDistanceVerifier(){ }
+    public EditDistanceVerifier() { }
 
-    public bool verify(EDITDISTANCE problem, string certificate){
+    public bool verify(EDITDISTANCE problem, string certificate) {
         if (!int.TryParse(certificate.Trim(), out int claimed))
             return false;
 

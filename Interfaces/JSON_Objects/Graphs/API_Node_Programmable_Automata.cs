@@ -3,32 +3,27 @@
 
 namespace API.Interfaces.JSON_Objects.Graphs;
 
-class API_Node_Programmable_Automata : API_Node_Programmable_Small
-{
+class API_Node_Programmable_Automata : API_Node_Programmable_Small {
     private string _initial;
     private string _accept_state;
 
-    public API_Node_Programmable_Automata() : base()
-    {
+    public API_Node_Programmable_Automata() : base() {
         _initial = "";
         _accept_state = "";
     }
 
     public API_Node_Programmable_Automata(string nm, string color = "", string outline = "", string delay = "", string dashed = "", string initial = "", string accept_state = "", string additional = "")
-        : base(nm, color, outline, delay, dashed, additional)
-    {
+        : base(nm, color, outline, delay, dashed, additional) {
         _initial = initial;
         _accept_state = accept_state;
     }
 
-    public string initial
-    {
+    public string initial {
         get => _initial;
         set => _initial = value;
     }
 
-    public string accept_state
-    {
+    public string accept_state {
         get => _accept_state;
         set => _accept_state = value;
     }

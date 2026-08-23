@@ -2,6 +2,7 @@
 using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
+
 class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
 
     // --- Fields ---
@@ -24,32 +25,27 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
     // O(2^(b/2)): exponential in input size, matching the Exponential bucket above.
     public string complexity { get; } = "O(sqrt(n)) in the value of n (exponential in n's bit-length)";
     // --- Methods Including Constructors ---
-    public PrimeFactorSolver() {}
+    public PrimeFactorSolver() { }
 
-    public string solve(PRIMEFACTOR problem)
-    {
+    public string solve(PRIMEFACTOR problem) {
         var numberToFactor = BigInteger.Parse(problem.instance);
 
         var factors = new List<BigInteger>();
 
         var i = new BigInteger(2);
-        while (i * i <= numberToFactor)
-        {
-            if (timerHasExpired)
-            {
+        while (i * i <= numberToFactor) {
+            if (timerHasExpired) {
                 return "TIMEOUT";
             }
 
-            while (numberToFactor % i == 0)
-            {
+            while (numberToFactor % i == 0) {
                 factors.Add(i);
                 numberToFactor /= i;
             }
             i++;
         }
 
-        if (numberToFactor > 1)
-        {
+        if (numberToFactor > 1) {
             factors.Add(numberToFactor);
         }
 

@@ -9,10 +9,10 @@ class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
 
 
     #region Fields
-    public string verifierName {get;} = "Graph Coloring Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for Graph Coloring.";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string verifierName { get; } = "Graph Coloring Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for Graph Coloring.";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     private string _complexity = "";
     private string _certificate = "";
@@ -23,49 +23,38 @@ class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
     #endregion
 
     #region Properties
-    public string complexity
-    {
-        get
-        {
+    public string complexity {
+        get {
             return _complexity;
         }
 
-        set
-        {
+        set {
             _complexity = value;
         }
     }
 
-    public string certificate
-    {
-        get
-        {
+    public string certificate {
+        get {
             return _certificate;
         }
     }
 
-    public Dictionary<string, string> coloring
-    {
-        get
-        {
+    public Dictionary<string, string> coloring {
+        get {
             return _coloring;
         }
 
-        set
-        {
+        set {
             _coloring = value;
         }
     }
 
-    public int k
-    {
-        get
-        {
+    public int k {
+        get {
             return _k;
         }
 
-        set
-        {
+        set {
             _k = value;
         }
     }
@@ -75,55 +64,48 @@ class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
     #endregion
 
     #region Constructors
-    public GraphColoringVerifier()
-    {
+    public GraphColoringVerifier() {
 
     }
     #endregion
 
 
     #region Methods
-    private List<string> parseCertificate(string certificate)
-    {
+    private List<string> parseCertificate(string certificate) {
 
         List<string> nodeList = GraphParser.parseNodeListWithStringFunctions(certificate);
         return nodeList;
     }
 
-    public bool verify(GRAPHCOLORING problem, string certificate)
-    {
+    public bool verify(GRAPHCOLORING problem, string certificate) {
         List<string> bandAid = new List<string>(problem.nodes);
         List<string> nodeSet = certificate.Split("},{").ToList();
-        foreach (var k in nodeSet)
-        {
+        foreach (var k in nodeSet) {
             List<string> nodeList = parseCertificate(k);
-    
-            foreach (var i in nodeList)
-            {
+
+            foreach (var i in nodeList) {
                 if (!bandAid.Contains(i)) {
                     return false;
                 }
 
                 bandAid.Remove(i);
 
-                foreach (var j in nodeList)
-                {
+                foreach (var j in nodeList) {
                     KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i, j);
                     KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j, i);
-                    if ((problem.edges.Contains(pairCheck1) || problem.edges.Contains(pairCheck2)) && !i.Equals(j))
-                    {
+                    if ((problem.edges.Contains(pairCheck1) || problem.edges.Contains(pairCheck2)) && !i.Equals(j)) {
                         return false;
                     }
                 }
             }
         }
 
-        if(bandAid.Any()) {
+        if (bandAid.Any()) {
             return false;
         }
         return true;
     }
 
-    
+
     #endregion
 }
