@@ -1,6 +1,7 @@
 ﻿using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
+
 class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
 
     // --- Fields ---
@@ -20,13 +21,12 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
     public string complexity { get; } = "O(2^n) queries";
 
     // --- Methods Including Constructors ---
-    public UnstructuredSearchSolver() {}
+    public UnstructuredSearchSolver() { }
 
-    public string solve(UNSTRUCTUREDSEARCH problem){
+    public string solve(UNSTRUCTUREDSEARCH problem) {
         // For a classical solution, we just need to loop over the values and
         // find the first non-zero value.
-        for (int i = 0; i < problem.funcValues.Count; i++)
-        {
+        for (int i = 0; i < problem.funcValues.Count; i++) {
             if (problem.funcValues[i] != 0)
                 return Convert.ToString(i);
         }

@@ -12,10 +12,10 @@ namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
 
     // --- Fields ---
-    public string solverName {get;} = "Bernstein-Vazirani Quantum API Solver";
-    public string solverDefinition {get;} = "Calls external quantum computing API to solve Bernstein-Vazirani's algorithm";
-    public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
-    public string[] contributors {get;} = { "Grant Gardner" };
+    public string solverName { get; } = "Bernstein-Vazirani Quantum API Solver";
+    public string solverDefinition { get; } = "Calls external quantum computing API to solve Bernstein-Vazirani's algorithm";
+    public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
+    public string[] contributors { get; } = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Delegates to the external quantum-simulator service.
     public SolverType solverType { get; } = SolverType.Quantum;
@@ -28,16 +28,13 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
     /// <summary>
     /// Creates a new BernsteinVaziraniQuantumSolver
     /// </summary>
-    public BernsteinVaziraniQuantumSolver()
-    {
+    public BernsteinVaziraniQuantumSolver() {
     }
 
     // --- Methods ---
 
-    public string solve(BERNSTEINVAZIRANI problem)
-    {
-        try
-        {
+    public string solve(BERNSTEINVAZIRANI problem) {
+        try {
             // Get the function values as a boolean array
             bool[] requestBody = problem.funcValues.ToArray();
 
@@ -51,8 +48,7 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement))
-            {
+            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
                 string answer = answerElement.GetString() ?? "No answer found";
                 // Quantum server returns a bare bit string ("101"); translate to certificate format
                 UtilCollection result = new("()");
@@ -63,9 +59,7 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
 
             // If no answer field, return the whole response
             return response;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Return error information in case of failure
             return $"{{\"error\": \"{ex.Message}\"}}";
         }

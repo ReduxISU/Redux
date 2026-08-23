@@ -9,11 +9,11 @@ class BernsteinVaziraniClassicalVerifier : IVerifier<BERNSTEINVAZIRANI> {
     public const string CertificateExample = "(1,0,1)";
 
     // --- Fields ---
-    public string verifierName {get;} = "Bernstein Vazirani Classical Verifier";
-    public string verifierDefinition {get;} = "Verify that a proposed solution bit string fulfills the promise of the Bernstein-Vazirani problem: f(x) = s · x for all x.";
-    public string source {get;} = " ";
-    public string[] contributors {get;} = { "Jason L. Wright" };
-    private string _certificate =  "";
+    public string verifierName { get; } = "Bernstein Vazirani Classical Verifier";
+    public string verifierDefinition { get; } = "Verify that a proposed solution bit string fulfills the promise of the Bernstein-Vazirani problem: f(x) = s · x for all x.";
+    public string source { get; } = " ";
+    public string[] contributors { get; } = { "Jason L. Wright" };
+    private string _certificate = "";
 
     public string certificate {
         get {

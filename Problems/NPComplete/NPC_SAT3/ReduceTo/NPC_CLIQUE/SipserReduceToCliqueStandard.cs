@@ -10,51 +10,43 @@ using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
 
-class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
-{
+class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
 
     // --- Fields ---
-    public string reductionName {get;} = "Sipser's Clique Reduction";
-    public string reductionDefinition {get;} = "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist";
-    public string source {get;} = "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.";
-    public string[] contributors {get;} = { "Kaden Marchetti", "Alex Diviney", "Caleb Eardley", "Russell Phillips"};
+    public string reductionName { get; } = "Sipser's Clique Reduction";
+    public string reductionDefinition { get; } = "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist";
+    public string source { get; } = "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.";
+    public string[] contributors { get; } = { "Kaden Marchetti", "Alex Diviney", "Caleb Eardley", "Russell Phillips" };
     // reduce()'s double loop over all literal-node pairs (3 nodes per clause) adds an
     // edge for almost every pair (excluding same-clause / inverse-literal pairs) — O(n^2)
     // edges from O(n) literal-nodes.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
-    private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
+    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
     private SAT3 _reductionFrom;
     private CLIQUE _reductionTo;
 
 
     // --- Properties ---
     public List<Gadget> gadgets { get; set; }
-    public SAT3 reductionFrom
-    {
-        get
-        {
+    public SAT3 reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public CLIQUE reductionTo
-    {
-        get
-        {
+    public CLIQUE reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public SipserReduceToCliqueStandard(SAT3 from)
-    {
+    public SipserReduceToCliqueStandard(SAT3 from) {
         gadgets = new();
         _reductionFrom = from;
         _reductionTo = reduce();
@@ -63,14 +55,12 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
     public SipserReduceToCliqueStandard(string instance) : this(new SAT3(instance)) { }
     public SipserReduceToCliqueStandard() : this(new SAT3()) { }
 
-    private bool fromSameClause(UtilCollection node1, UtilCollection node2)
-    {
+    private bool fromSameClause(UtilCollection node1, UtilCollection node2) {
         List<string> node1List = node1.ToString().Split("_").ToList();
         List<string> node2List = node2.ToString().Split("_").ToList();
         return node1List[node1List.Count - 1] == node2List[node2List.Count - 1]; // node names may contain underscores, but clause number will always be the very last
     }
-    private string removeClauseNumber(string s)
-    {
+    private string removeClauseNumber(string s) {
 
         int underscore = s.LastIndexOf('_');
         if (underscore == -1)
@@ -78,8 +68,7 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
 
         return s.Substring(0, underscore);
     }
-    private bool isSameLiteral(UtilCollection node1, UtilCollection node2)
-    {
+    private bool isSameLiteral(UtilCollection node1, UtilCollection node2) {
         string coreA = removeClauseNumber(node1.ToString());
         if (coreA.StartsWith("!"))
             coreA = coreA.Substring(1);
@@ -89,34 +78,29 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         return coreA == coreB;
     }
 
-    private bool isInverse(UtilCollection node1, UtilCollection node2)
-    {
+    private bool isInverse(UtilCollection node1, UtilCollection node2) {
         if (!isSameLiteral(node1, node2)) return false;
         return node1.ToString()[0] == '!' ^ node2.ToString()[0] == '!';
     }
 
-    public CLIQUE reduce()
-    {
+    public CLIQUE reduce() {
         UtilCollection nodes = new("{}");
         UtilCollection edges = new("{}");
-        for (int i = 0; i < reductionFrom.clauses.Count; i++)
-        {
+        for (int i = 0; i < reductionFrom.clauses.Count; i++) {
             List<string> nodesInClause = new();
-            for (int j = 0; j < reductionFrom.clauses[i].Count; j++)
-            {
+            for (int j = 0; j < reductionFrom.clauses[i].Count; j++) {
                 string literal = reductionFrom.clauses[i][j];
                 string nodeName = literal + "_" + i;
                 nodes.Add(new UtilCollection(nodeName));
 
-                gadgets.Add(new Gadget("ElementHighlight", new List<string>() {i + "-" + j }, new List<string> { nodeName }));
+                gadgets.Add(new Gadget("ElementHighlight", new List<string>() { i + "-" + j }, new List<string> { nodeName }));
                 nodesInClause.Add(nodeName);
             }
-            gadgets.Add(new Gadget("ClauseHighlight", new List<string>() {i.ToString() }, nodesInClause));
+            gadgets.Add(new Gadget("ClauseHighlight", new List<string>() { i.ToString() }, nodesInClause));
         }
 
         foreach (UtilCollection node1 in nodes)
-            foreach (UtilCollection node2 in nodes)
-            {
+            foreach (UtilCollection node2 in nodes) {
                 if (node1.Equals(node2)) continue;
                 if (fromSameClause(node1, node2)) continue; //no edges between nodes of the same clause
                 if (isInverse(node1, node2)) continue; //no edges between literals that are always opposite of eachother
@@ -127,44 +111,42 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
                 edges.Add(edge);
             }
         reductionTo = new CLIQUE($"(({nodes},{edges}),{reductionFrom.clauses.Count})");
-        
+
         return reductionTo;
 
     }
-    public SipserClique reduce2()
-    {
+    public SipserClique reduce2() {
         SAT3 SAT3Instance = _reductionFrom;
 
         _gadgetMap = new Dictionary<object, object>();
 
         //number literals of sat before reduction
         List<List<String>> newClauses = new List<List<string>>();
-        foreach(var clause in SAT3Instance.clauses){
+        foreach (var clause in SAT3Instance.clauses) {
             List<String> temp = new List<String>();
-            foreach(var element in clause){
+            foreach (var element in clause) {
                 temp.Add(element);
             }
             newClauses.Add(temp);
         }
-        for (int i = 0; i < SAT3Instance.clauses.Count; i++){
-            for (int j = 0; j < SAT3Instance.clauses[i].Count; j++){
+        for (int i = 0; i < SAT3Instance.clauses.Count; i++) {
+            for (int j = 0; j < SAT3Instance.clauses[i].Count; j++) {
                 int count = 0;
-                for( int k = 0; k<i; k++){
-                    foreach(var element in SAT3Instance.clauses[k]){
-                        if(element == SAT3Instance.clauses[i][j]){
-                            count ++;
+                for (int k = 0; k < i; k++) {
+                    foreach (var element in SAT3Instance.clauses[k]) {
+                        if (element == SAT3Instance.clauses[i][j]) {
+                            count++;
                         }
                     }
                 }
-                for( int k = 0; k<j; k++){
-                    if(SAT3Instance.clauses[i][j] == SAT3Instance.clauses[i][k]){
-                        count ++;
+                for (int k = 0; k < j; k++) {
+                    if (SAT3Instance.clauses[i][j] == SAT3Instance.clauses[i][k]) {
+                        count++;
                     }
                 }
-                if(count >0){
-                    newClauses[i][j] = SAT3Instance.clauses[i][j] + "_" +count;
-                }
-                else{
+                if (count > 0) {
+                    newClauses[i][j] = SAT3Instance.clauses[i][j] + "_" + count;
+                } else {
                     newClauses[i][j] = SAT3Instance.clauses[i][j];
                 }
             }
@@ -173,8 +155,8 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         // SAT3 literals become nodes.
         reducedCLIQUE.nodes = SAT3Instance.literals;
 
-      
-       
+
+
 
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
         List<string> usedNames = new List<string>(); // Used to track what names have been used for nodes
@@ -182,11 +164,9 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         // define what makes the edges. Not in same cluster & not inverse
 
         // I is the cluster
-        for (int i = 0; i < newClauses.Count; i++)
-        {
+        for (int i = 0; i < newClauses.Count; i++) {
             reducedCLIQUE.numberOfClusters = newClauses.Count;
-            for (int j = 0; j < newClauses[i].Count; j++)
-            {
+            for (int j = 0; j < newClauses[i].Count; j++) {
                 string nodeFrom = newClauses[i][j];
                 // nodeFrom = duplicateName(nodeFrom, usedNames, 1, nodeFrom);
 
@@ -194,34 +174,29 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
                 reducedCLIQUE.clusterNodes.Add(newNode);
                 // usedNames.Add(nodeFrom);
                 //Four loops? Sounds efficent
-                for (int a = 0; a < newClauses.Count; a++)
-                {
+                for (int a = 0; a < newClauses.Count; a++) {
 
-                    for (int b = 0; b < newClauses[a].Count; b++)
-                    {
-                        
+                    for (int b = 0; b < newClauses[a].Count; b++) {
+
                         string nodeTo = newClauses[a][b];
                         bool inverse = false;
                         bool samecluser = false;
 
                         // Check if nodes are inverse of one another
 
-                        if (removeIndex(nodeFrom) != removeIndex(nodeTo) && removeIndex(nodeFrom.Replace("!", "")) == removeIndex(nodeTo.Replace("!", "")))
-                        {
+                        if (removeIndex(nodeFrom) != removeIndex(nodeTo) && removeIndex(nodeFrom.Replace("!", "")) == removeIndex(nodeTo.Replace("!", ""))) {
                             inverse = true;
                         }
                         // Check if nodes belong to same cluster
-                        if (i == a)
-                        {
+                        if (i == a) {
                             samecluser = true;
                         }
 
                         KeyValuePair<string, string> fullEdge = new KeyValuePair<string, string>(nodeFrom, nodeTo);
 
-                        if (!inverse && !samecluser && nodeFrom != nodeTo)
-                        {
-                            if(i == 0 && a ==1 && j == 0 && b == 1){
-                                foreach(var name in usedNames){
+                        if (!inverse && !samecluser && nodeFrom != nodeTo) {
+                            if (i == 0 && a == 1 && j == 0 && b == 1) {
+                                foreach (var name in usedNames) {
                                 }
                             }
                             edges.Add(fullEdge);
@@ -237,8 +212,7 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         string nodesString = "";
         string literalName = String.Empty;
         List<string> usedNamesLiterals = new List<string>();
-        foreach (string literal in SAT3Instance.literals)
-        {
+        foreach (string literal in SAT3Instance.literals) {
             literalName = duplicateName(literal, usedNamesLiterals, 1, literal);
             nodesString += literalName + ",";
             usedNamesLiterals.Add(literalName);
@@ -246,8 +220,7 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         nodesString = nodesString.TrimEnd(',');
 
         string edgesString = "";
-        foreach (KeyValuePair<string, string> edge in edges)
-        {
+        foreach (KeyValuePair<string, string> edge in edges) {
             edgesString += "{" + edge.Key + "," + edge.Value + "}" + ",";
         }
         edgesString = edgesString.Trim(' ').TrimEnd(',');
@@ -265,37 +238,35 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         List<string> satGadgetList = new List<string>();
         List<string> cliqueGadgetList = new List<string>();
         int id = 0;
-        foreach(string l in SAT3Instance.literals ){
+        foreach (string l in SAT3Instance.literals) {
             id++;
-            SAT3Gadget sGadget = new SAT3Gadget("SipserReduceToCliqueStandard",l,id);
+            SAT3Gadget sGadget = new SAT3Gadget("SipserReduceToCliqueStandard", l, id);
             // string[] sGadget = new string[] {l};
             string serializedGadget = JsonSerializer.Serialize(sGadget, options);
             satGadgetList.Add(serializedGadget);
         }
         id = 0;
-        foreach(string l in usedNamesLiterals ){
+        foreach (string l in usedNamesLiterals) {
             id++;
-            CLIQUEGadget cGadget = new CLIQUEGadget("SipserReduceToCliqueStandard",l,id);
+            CLIQUEGadget cGadget = new CLIQUEGadget("SipserReduceToCliqueStandard", l, id);
             // string[] cGadget = new string[] { l };
             string serializedGadget = JsonSerializer.Serialize(cGadget, options);
             cliqueGadgetList.Add(serializedGadget);
         }
-    
-        for (int i = 0; i < satGadgetList.Count;i++){
+
+        for (int i = 0; i < satGadgetList.Count; i++) {
             _gadgetMap.Add(satGadgetList[i], cliqueGadgetList[i]);
         }
 
         CLIQUE clique = new CLIQUE(G);
-        reducedCLIQUE.graph = clique.graph; 
+        reducedCLIQUE.graph = clique.graph;
         reducedCLIQUE.instance = G;
         reductionTo = reducedCLIQUE;
         return reducedCLIQUE;
     }
 
-    private string duplicateName(string name, List<string> usedNames, int version, string originalName)
-    {
-        if (usedNames.Contains(name))
-        {
+    private string duplicateName(string name, List<string> usedNames, int version, string originalName) {
+        if (usedNames.Contains(name)) {
             // usedNames.Add(name);
             string newName = originalName + '_' + version;
             version = version + 1;
@@ -311,11 +282,10 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
     /// <param name="sipserInput"></param>
     /// <param name="solution"></param>
     /// <returns> A Sipser Clique with a cluster nodes attribute (list of SipserNodes) that has a solution state mapped to each node.</returns>
-    public SipserClique solutionMappedToClusterNodes(SipserClique sipserInput, List<string> solution)
-    {
+    public SipserClique solutionMappedToClusterNodes(SipserClique sipserInput, List<string> solution) {
 
-        foreach (var s in sipserInput.clusterNodes){
-            if(solution.Contains(s.name)){
+        foreach (var s in sipserInput.clusterNodes) {
+            if (solution.Contains(s.name)) {
                 s.solutionState = true.ToString();
             }
         }
@@ -330,44 +300,37 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
     /// <param name="primaryName"></param>
     /// <param name="amountOfClusters"></param>
     /// <returns> A list of possible names</returns>
-    private List<string> getclusterNodeSearchList(string primaryName, int amountOfClusters)
-    {
+    private List<string> getclusterNodeSearchList(string primaryName, int amountOfClusters) {
         List<string> searchList = new List<string>();
         searchList.Add(primaryName);
-        for (int i = 1; i < amountOfClusters; i++)
-        {
+        for (int i = 1; i < amountOfClusters; i++) {
             searchList.Add(primaryName + "_" + i);
             //Console.WriteLine(primaryName + "_" + i);
         }
         return searchList;
 
     }
-    private string removeIndex(string node){
-        if(node.Contains("_")){
+    private string removeIndex(string node) {
+        if (node.Contains("_")) {
             return node.Split("_")[0];
         }
         return node;
     }
 
-    private bool alreadyContainsNodeFromClause(string node, List<string> potentialNodes)
-    {
-        foreach (string selNode in potentialNodes)
-        {
+    private bool alreadyContainsNodeFromClause(string node, List<string> potentialNodes) {
+        foreach (string selNode in potentialNodes) {
             List<string> selNodeSplit = selNode.Split("_").ToList();
             List<string> nodeSplit = node.Split("_").ToList();
-            if (selNodeSplit[selNodeSplit.Count - 1] == nodeSplit[nodeSplit.Count - 1])
-            {
+            if (selNodeSplit[selNodeSplit.Count - 1] == nodeSplit[nodeSplit.Count - 1]) {
                 return true;
             }
         }
         return false;
     }
-    public string mapSolutions(string solution)
-    {
+    public string mapSolutions(string solution) {
         List<string> items = solution.TrimStart('(').TrimEnd(')').Split(",").ToList();
         HashSet<string> trueLiterals = new();
-        foreach (string item in items)
-        {
+        foreach (string item in items) {
             List<string> split = item.Split(":").ToList();
             if (split.Count < 2) {
                 throw new ReductionInputException(this, solution,
@@ -381,17 +344,15 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE>
         }
 
         List<string> potentialNodes = new();
-        foreach (string node in reductionTo.nodes)
-        {
-            if (trueLiterals.Contains(removeClauseNumber(node)))
-            {
+        foreach (string node in reductionTo.nodes) {
+            if (trueLiterals.Contains(removeClauseNumber(node))) {
                 if (alreadyContainsNodeFromClause(node, potentialNodes))
                     continue;
                 potentialNodes.Add(node);
             }
         }
 
-    string mappedSol = "{";
+        string mappedSol = "{";
         foreach (string node in potentialNodes)
             mappedSol += node + ",";
         return mappedSol.TrimEnd(',') + "}";
