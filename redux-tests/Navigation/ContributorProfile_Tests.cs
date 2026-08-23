@@ -136,12 +136,12 @@ public class ContributorProfile_Tests {
     }
 
     [Theory]
-    [InlineData("Himanshu Jha",    "himanshujha05")]
-    [InlineData("Pratham Khanal",  "pkprathamkhanal")]
-    [InlineData("Sansar Kharal",   "kharsans")]
+    [InlineData("Himanshu Jha", "himanshujha05")]
+    [InlineData("Pratham Khanal", "pkprathamkhanal")]
+    [InlineData("Sansar Kharal", "kharsans")]
     [InlineData("Andrija Sevaljevic", "Andrija-Sevaljevic")]
-    [InlineData("Jason Wright",    "wrigjl")]
-    [InlineData("Alex Svancara",   "svanalex")]
+    [InlineData("Jason Wright", "wrigjl")]
+    [InlineData("Alex Svancara", "svanalex")]
     public void GetContributorDirectory_KnownGithubUsernamesAreCorrect(string name, string expectedUsername) {
         var ok = _controller.GetContributorDirectory() as OkObjectResult;
         Assert.NotNull(ok);

@@ -8,8 +8,7 @@ namespace API.Interfaces;
 /// Redux_GUI/components/Visualization/svgs/Visualizations.js. CI enforces this.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<VisualizationType>))]
-public enum VisualizationType
-{
+public enum VisualizationType {
     /// <summary>No renderer is claimed. The GUI shows an explicit "not renderable" state.</summary>
     Unimplemented = 0,
     /// <summary>Force-directed D3 graph.</summary>

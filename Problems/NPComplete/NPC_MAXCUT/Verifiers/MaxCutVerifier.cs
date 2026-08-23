@@ -3,8 +3,7 @@ using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Verifiers;
 
-class MaxCutVerifier : IVerifier<MAXCUT>
-{
+class MaxCutVerifier : IVerifier<MAXCUT> {
     public string verifierName { get; } = "Max Cut Verifier";
     public string verifierDefinition { get; } = "Verifies that the certificate represents a valid non-trivial partition S whose crossing-edge weight equals the true maximum cut weight computed by brute force enumeration.";
     public string source { get; } = "";
@@ -15,8 +14,7 @@ class MaxCutVerifier : IVerifier<MAXCUT>
 
     public MaxCutVerifier() { }
 
-    public bool verify(MAXCUT problem, string certificate)
-    {
+    public bool verify(MAXCUT problem, string certificate) {
         _certificate = certificate ?? "";
 
         if (string.IsNullOrWhiteSpace(_certificate) || _certificate.Trim() == "{}")

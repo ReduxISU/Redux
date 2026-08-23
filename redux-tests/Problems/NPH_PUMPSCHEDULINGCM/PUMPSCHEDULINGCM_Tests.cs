@@ -8,8 +8,7 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class PUMPSCHEDULINGCM_Tests
-{
+public class PUMPSCHEDULINGCM_Tests {
     // ── Shared instances ──────────────────────────────────────────────────────
 
     // Simple instance: 1 pump, zero demand, no peak hours.
@@ -28,28 +27,26 @@ public class PUMPSCHEDULINGCM_Tests
     // ── Instantiation ─────────────────────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGCM_Default_Instantiation()
-    {
+    public void PUMPSCHEDULINGCM_Default_Instantiation() {
         PUMPSCHEDULINGCM p = new();
         Assert.Equal(10000, p.TankCapacity);
-        Assert.Equal(5000,  p.TankCurrentLevel);
+        Assert.Equal(5000, p.TankCurrentLevel);
         Assert.Equal(24, p.DemandGph.Count);
-        Assert.Equal(8,  p.PeakHours.Count);
+        Assert.Equal(8, p.PeakHours.Count);
         Assert.Equal(0.12, p.OnPeakCostPerKwh);
         Assert.Equal(0.06, p.OffPeakCostPerKwh);
         Assert.Equal(3, p.Pumps.Count);
         Assert.Equal("PumpA", p.Pumps[0].Name);
-        Assert.Equal(200,  p.Pumps[0].FlowRateGph);
-        Assert.Equal(5.0,  p.Pumps[0].PowerKw);
-        Assert.Equal(2.5,  p.Pumps[0].StartupCostDollars);
+        Assert.Equal(200, p.Pumps[0].FlowRateGph);
+        Assert.Equal(5.0, p.Pumps[0].PowerKw);
+        Assert.Equal(2.5, p.Pumps[0].StartupCostDollars);
     }
 
     [Fact]
-    public void PUMPSCHEDULINGCM_Custom_Instantiation()
-    {
+    public void PUMPSCHEDULINGCM_Custom_Instantiation() {
         PUMPSCHEDULINGCM p = new(SimpleInstance);
         Assert.Equal(1000, p.TankCapacity);
-        Assert.Equal(500,  p.TankCurrentLevel);
+        Assert.Equal(500, p.TankCurrentLevel);
         Assert.Equal(24, p.DemandGph.Count);
         Assert.All(p.DemandGph, d => Assert.Equal(0.0, d));
         Assert.Empty(p.PeakHours);
@@ -63,14 +60,12 @@ public class PUMPSCHEDULINGCM_Tests
     }
 
     [Fact]
-    public void PUMPSCHEDULINGCM_Bad_Instance_Throws()
-    {
+    public void PUMPSCHEDULINGCM_Bad_Instance_Throws() {
         Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM("not-an-instance"));
     }
 
     [Fact]
-    public void PUMPSCHEDULINGCM_Wrong_Demand_Count_Throws()
-    {
+    public void PUMPSCHEDULINGCM_Wrong_Demand_Count_Throws() {
         // Only 3 demand values instead of 24.
         string bad = "((1000,500),((100,100,100),(),(0.10,0.05)),((PumpA,200,5.0,0.0)))";
         Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM(bad));
@@ -79,8 +74,7 @@ public class PUMPSCHEDULINGCM_Tests
     // ── Verifier — valid certificates ─────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGCM_Verifier_True_ZeroDemand()
-    {
+    public void PUMPSCHEDULINGCM_Verifier_True_ZeroDemand() {
         PUMPSCHEDULINGCM p = new(SimpleInstance);
         PumpSchedulingCMVerifier v = new();
         Assert.True(v.verify(p, SimpleCertValid));
@@ -95,8 +89,7 @@ public class PUMPSCHEDULINGCM_Tests
     [InlineData("(0,())", false)]
     // Pump on for all hours against zero demand: tank overflows (1000+200=1200>1000 at h=0).
     [InlineData("(0,((PumpA,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)))", false)]
-    public void PUMPSCHEDULINGCM_Verifier_False(string certificate, bool expected)
-    {
+    public void PUMPSCHEDULINGCM_Verifier_False(string certificate, bool expected) {
         PUMPSCHEDULINGCM p = new(SimpleInstance);
         PumpSchedulingCMVerifier v = new();
         Assert.Equal(expected, v.verify(p, certificate));
@@ -106,8 +99,7 @@ public class PUMPSCHEDULINGCM_Tests
     [InlineData("")]
     [InlineData("not-a-cert")]
     [InlineData("(bad")]
-    public void PUMPSCHEDULINGCM_Verifier_Malformed_Throws(string certificate)
-    {
+    public void PUMPSCHEDULINGCM_Verifier_Malformed_Throws(string certificate) {
         PUMPSCHEDULINGCM p = new(SimpleInstance);
         PumpSchedulingCMVerifier v = new();
         Assert.Throws<CertificateParseException>(() => v.verify(p, certificate));
@@ -116,8 +108,7 @@ public class PUMPSCHEDULINGCM_Tests
     // ── Solver ────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGCM_Solver_ZeroDemand_Returns_ZeroCost()
-    {
+    public void PUMPSCHEDULINGCM_Solver_ZeroDemand_Returns_ZeroCost() {
         PUMPSCHEDULINGCM p = new(SimpleInstance);
         PumpSchedulingCMSolver solver = new();
         string cert = solver.solve(p);
@@ -127,8 +118,7 @@ public class PUMPSCHEDULINGCM_Tests
     // ── Round-trip ────────────────────────────────────────────────────────────
 
     [Fact]
-    public void PUMPSCHEDULINGCM_SolverOutput_PassesVerifier_Simple()
-    {
+    public void PUMPSCHEDULINGCM_SolverOutput_PassesVerifier_Simple() {
         PUMPSCHEDULINGCM p = new(SimpleInstance);
         PumpSchedulingCMSolver solver = new();
         PumpSchedulingCMVerifier verifier = new();
@@ -138,8 +128,7 @@ public class PUMPSCHEDULINGCM_Tests
     }
 
     [Fact]
-    public void PUMPSCHEDULINGCM_SolverOutput_PassesVerifier_Default()
-    {
+    public void PUMPSCHEDULINGCM_SolverOutput_PassesVerifier_Default() {
         PUMPSCHEDULINGCM p = new();
         PumpSchedulingCMSolver solver = new();
         PumpSchedulingCMVerifier verifier = new();

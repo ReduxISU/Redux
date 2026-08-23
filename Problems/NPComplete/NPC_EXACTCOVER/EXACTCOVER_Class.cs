@@ -8,24 +8,24 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER;
 
-class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDefaultVisualization> {
+class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCoverDefaultVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Exact Cover";
+    public string problemName { get; } = "Exact Cover";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Exact_cover";
-    public string formalDefinition {get;} = "Exact Cover = {<S, X> | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ";
-    public string problemDefinition {get;} = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string formalDefinition { get; } = "Exact Cover = {<S, X> | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ";
+    public string problemDefinition { get; } = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Caleb Eardley", "Alex Diviney" };
+    public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney" };
 
-    
+
     private static string _defaultInstance = "({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instance {get;set;} = string.Empty;
+    public string instance { get; set; } = string.Empty;
 
-    public string wikiName {get;} = "";
-    public ExactCoverBruteForce defaultSolver {get;} = new ExactCoverBruteForce();
+    public string wikiName { get; } = "";
+    public ExactCoverBruteForce defaultSolver { get; } = new ExactCoverBruteForce();
     public ExactCoverVerifier defaultVerifier { get; } = new ExactCoverVerifier();
     public ExactCoverDefaultVisualization defaultVisualization { get; } = new ExactCoverDefaultVisualization();
     // Declared, not derived. EXACTCOVER is NP-complete (Karp, 1972).
@@ -38,16 +38,16 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce,ExactCoverVerifier,ExactCoverDe
         get {
             return _S;
         }
-        set{
+        set {
             _S = value;
         }
     }
 
     public List<string> X {
-        get{
+        get {
             return _X;
         }
-        set{
+        set {
             _X = value;
         }
     }
