@@ -1,6 +1,7 @@
 using Xunit;
 using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH;
 using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
+using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Verifiers;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -46,5 +47,34 @@ public class UNSTRUCTUREDSEARCH_tests {
         var solver = new UnstructuredSearchSolver();
         string solvedString = solver.solve(problem);
         Assert.Equal($"{certificate}", solvedString);
+    }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void UNSTRUCTUREDSEARCH_Instance_Format_Described() {
+        var problem = new UNSTRUCTUREDSEARCH();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("f(0)", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void UNSTRUCTUREDSEARCH_Certificate_Format_Described() {
+        var problem = new UNSTRUCTUREDSEARCH();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("index", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void UNSTRUCTUREDSEARCH_Certificate_Format_Example_Is_Actually_Valid() {
+        // The "Example: 1" quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        var problem = new UNSTRUCTUREDSEARCH();
+        var verifier = new UnstructuredSearchVerifier();
+        Assert.True(verifier.verify(problem, "1"));
     }
 }
