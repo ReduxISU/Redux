@@ -5,8 +5,7 @@ using API.Problems.P.P_MINSTCUT.Solvers;
 
 namespace API.Problems.P.P_MINSTCUT.Visualizations;
 
-class MinSTCutVisualization : IVisualization<MINSTCUT>
-{
+class MinSTCutVisualization : IVisualization<MINSTCUT> {
     public string visualizationName { get; } = "Minimum S-T Cut Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted directed graph and highlights the minimum S-T cut: S-side nodes are colored and cut edges (directed from S to T) are colored and dashed.";
     public string source { get; } = "";
@@ -18,8 +17,7 @@ class MinSTCutVisualization : IVisualization<MINSTCUT>
 
     public API_JSON visualize(MINSTCUT problem) => problem.graph.ToAPIGraph();
 
-    public API_JSON SolvedVisualization(MINSTCUT problem, string solution)
-    {
+    public API_JSON SolvedVisualization(MINSTCUT problem, string solution) {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
             return visualize(problem);
 
@@ -33,12 +31,10 @@ class MinSTCutVisualization : IVisualization<MINSTCUT>
             .ToHashSet();
 
         // Color cut edges directed from S to T.
-        foreach (var link in apiGraph.links)
-        {
+        foreach (var link in apiGraph.links) {
             bool srcInS = sNodes.Contains(link.source);
             bool dstInS = sNodes.Contains(link.target);
-            if (srcInS && !dstInS)
-            {
+            if (srcInS && !dstInS) {
                 link.color = "Solution";
                 link.dashed = "True";
             }

@@ -4,8 +4,7 @@ using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
 
-class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS>
-{
+class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS> {
     public string verifierName { get; } = "Strongly Connected Components Verifier";
 
     public string verifierDefinition { get; } =
@@ -21,8 +20,7 @@ class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS>
 
     public string certificate { get; set; } = string.Empty;
 
-    public bool verify(STRONGLYCONNECTEDCOMPONENTS problem, string certificate)
-    {
+    public bool verify(STRONGLYCONNECTEDCOMPONENTS problem, string certificate) {
         if (string.IsNullOrWhiteSpace(certificate))
             return false;
 
@@ -32,16 +30,14 @@ class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS>
         return NormalizeSccs(expected).SetEquals(NormalizeSccs(certificate));
     }
 
-    private static HashSet<string> NormalizeSccs(string value)
-    {
+    private static HashSet<string> NormalizeSccs(string value) {
         var components = new HashSet<string>();
         var clean = value.Replace(" ", "")
                          .Replace("\n", "")
                          .Replace("\r", "")
                          .Replace("\t", "");
 
-        foreach (var part in clean.Split("},{"))
-        {
+        foreach (var part in clean.Split("},{")) {
             var trimmed = part.Replace("{", "").Replace("}", "");
 
             if (string.IsNullOrWhiteSpace(trimmed))

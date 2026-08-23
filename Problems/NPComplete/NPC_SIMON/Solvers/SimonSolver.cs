@@ -2,8 +2,7 @@
 
 namespace API.Problems.NPComplete.NPC_SIMON.Solvers;
 
-class SimonSolver : ISolver<SIMON>
-{
+class SimonSolver : ISolver<SIMON> {
 
     // --- Fields ---
     public string solverName { get; } = "Simon's Problem - Classical Solver";
@@ -23,28 +22,24 @@ class SimonSolver : ISolver<SIMON>
     // --- Methods Including Constructors ---
     public SimonSolver() { }
 
-    public string solve(SIMON problem)
-    {
+    public string solve(SIMON problem) {
         int nbits = SIMON.PowerOfTwo(problem.funcValues.Length);
 
         var fmap = new Dictionary<int, HashSet<int>>();
-        for (int s = 0; s < problem.funcValues.Length; s++)
-        {
+        for (int s = 0; s < problem.funcValues.Length; s++) {
             int y = problem.Func(s);
             if (!fmap.ContainsKey(y))
                 fmap[y] = new HashSet<int>();
             fmap[y].Add(s);
         }
 
-        if (fmap.Count == problem.funcValues.Length)
-        {
+        if (fmap.Count == problem.funcValues.Length) {
             // one to one mapping, secret is all zeros
             return string.Concat(Enumerable.Repeat("0", nbits));
         }
 
         var candidates = new HashSet<int>();
-        foreach (var ys in fmap.Values)
-        {
+        foreach (var ys in fmap.Values) {
             if (ys.Count != 2)
                 return "invalid func: not 2-to-1 mapping";
             int candidate = 0;

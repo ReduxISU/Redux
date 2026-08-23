@@ -7,35 +7,30 @@ namespace API.Problems.NPComplete.NPC_STEINERTREE.Verifiers;
 class SteinerTreeVerifier : IVerifier<STEINERTREE> {
 
     // --- Fields ---
-    public string verifierName {get;} = "Steiner Tree Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for Steiner Tree";
-    public string source {get;} = "Andrija Sevaljevic";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string verifierName { get; } = "Steiner Tree Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for Steiner Tree";
+    public string source { get; } = "Andrija Sevaljevic";
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 
     private string _certificate = "";
 
-    public string certificate
-    {
-        get
-        {
+    public string certificate {
+        get {
             return _certificate;
         }
     }
 
 
     // --- Methods Including Constructors ---
-    public SteinerTreeVerifier()
-    {
+    public SteinerTreeVerifier() {
 
     }
 
-    private Dictionary<string, List<string>> BuildAdjacencyList(List<KeyValuePair<string, string>> edges)
-    {
+    private Dictionary<string, List<string>> BuildAdjacencyList(List<KeyValuePair<string, string>> edges) {
         Dictionary<string, List<string>> adjacencyList = new Dictionary<string, List<string>>();
 
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             if (!adjacencyList.ContainsKey(edge.Key))
                 adjacencyList[edge.Key] = new List<string>();
 
@@ -49,19 +44,16 @@ class SteinerTreeVerifier : IVerifier<STEINERTREE> {
         return adjacencyList;
     }
 
-    private void DFS(string v, HashSet<string> visited, Dictionary<string, List<string>> adjacencyList)
-    {
+    private void DFS(string v, HashSet<string> visited, Dictionary<string, List<string>> adjacencyList) {
         visited.Add(v);
 
-        foreach (string neighbor in adjacencyList[v])
-        {
+        foreach (string neighbor in adjacencyList[v]) {
             if (!visited.Contains(neighbor))
                 DFS(neighbor, visited, adjacencyList);
         }
     }
 
-    public bool IsConnected(List<KeyValuePair<string, string>> edges)
-    {
+    public bool IsConnected(List<KeyValuePair<string, string>> edges) {
         Dictionary<string, List<string>> adjacencyList = BuildAdjacencyList(edges);
         HashSet<string> visited = new HashSet<string>();
 
@@ -72,8 +64,7 @@ class SteinerTreeVerifier : IVerifier<STEINERTREE> {
         DFS(startVertex, visited, adjacencyList);
 
         // Check if all vertices were visited
-        foreach (string vertex in adjacencyList.Keys)
-        {
+        foreach (string vertex in adjacencyList.Keys) {
             if (!visited.Contains(vertex))
                 return false; // Graph is not connected
         }
@@ -82,37 +73,34 @@ class SteinerTreeVerifier : IVerifier<STEINERTREE> {
     }
 
 
-    public bool verify(STEINERTREE problem, string certificate)
-    {
+    public bool verify(STEINERTREE problem, string certificate) {
         List<string> order = certificate.Replace("{{", "").Replace("}}", "").Split("},{").ToList();
         List<string> check = new List<string>(problem.terminals);
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
-        for (int i = 0; i < order.Count; i++)
-        {
+        for (int i = 0; i < order.Count; i++) {
             string edgeValues = order[i];
             string t = edgeValues.Split(',').ToList()[1];
             string s = edgeValues.Split(',').ToList()[0];
-          
+
             KeyValuePair<string, string> edgePair = new KeyValuePair<string, string>(s, t);
-            
+
             edges.Add(edgePair);
         }
 
-        order = certificate.Replace("{","").Replace("}","").Split(',').ToList();
+        order = certificate.Replace("{", "").Replace("}", "").Split(',').ToList();
 
-        foreach(var i in order) {
-            if(check.Contains(i)) {
+        foreach (var i in order) {
+            if (check.Contains(i)) {
                 check.Remove(i);
             }
         }
 
 
-        if (IsConnected(edges) && !check.Any())
-        {
+        if (IsConnected(edges) && !check.Any()) {
             return true;
         }
-        
+
         return false;
     }
 

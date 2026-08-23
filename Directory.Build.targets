@@ -1,0 +1,6 @@
+<Project>
+  <Target Name="EnforceFormatting" BeforeTargets="Build"
+          Condition="'$(MSBuildProjectName)' == 'API' AND ('$(Configuration)' == 'Release' OR '$(CI)' == 'true')">
+    <Exec Command="dotnet format &quot;$(MSBuildThisFileDirectory)Redux.slnx&quot; --verify-no-changes" />
+  </Target>
+</Project>
