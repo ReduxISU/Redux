@@ -124,8 +124,7 @@ public class SPSP_Tests {
     // ----- Format declarations ----- //
 
     [Fact]
-    public void SPSP_Instance_Format_Described()
-    {
+    public void SPSP_Instance_Format_Described() {
         SPSP problem = new SPSP();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -133,8 +132,7 @@ public class SPSP_Tests {
     }
 
     [Fact]
-    public void SPSP_Certificate_Format_Described()
-    {
+    public void SPSP_Certificate_Format_Described() {
         SPSP problem = new SPSP();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -142,8 +140,7 @@ public class SPSP_Tests {
     }
 
     [Fact]
-    public void SPSP_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void SPSP_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: {1,3,5}" quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         SPSP problem = new SPSP();

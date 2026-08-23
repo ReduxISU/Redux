@@ -8,6 +8,9 @@ using API.Problems.P.P_SPSP.Solvers;
 namespace API.Problems.P.P_SPSP.Verifiers;
 
 class SPSPVerifier : IVerifier<SPSP> {
+    public const string CertificateGrammar = "{q0,...,qn} | qi are node names, q0 = s, qn = t, each (qi,qi+1) in E; {} if unreachable";
+    public const string CertificateExample = "{1,3,5}";
+
     public string verifierName { get; } = "Single Pair Shortest Path Verifier";
     public string verifierDefinition { get; } = "Verifies the solution for the Single Pair Shortest Path problem";
     public string source { get; } = "";

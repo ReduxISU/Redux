@@ -20,12 +20,14 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     public string problemDefinition { get; } = "Single Pair Shortest Path (SPSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s and target vertex t in the graph, such that the sum of edge weights along the path is minimized.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
+    public const string InstanceGrammar = "(N,E,s,t) | N is set, E subset N unorderedcross N or N cross N (edges optionally weighted as (edge,weight), non-negative only), s,t in N";
     private static string _defaultInstance =
     "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    public string instanceFormat { get; } = "(N,E,s,t) where N is the set of node names, E is the set of edges (either unweighted (from,to) pairs or weighted ((from,to),weight) pairs, directed or undirected, non-negative weights only), s is the source node, and t is the target node. Example: ({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
-    public string certificateFormat { get; } = "Braces-wrapped, comma-separated sequence of node names giving the shortest path from source to target, or {} if the target is unreachable. Example: {1,3,5}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SPSPVerifier.CertificateGrammar} Example: {SPSPVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
     public string sourceNode { get; private set; } = string.Empty;
