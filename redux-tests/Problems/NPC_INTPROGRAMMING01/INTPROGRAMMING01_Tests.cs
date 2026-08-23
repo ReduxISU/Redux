@@ -6,15 +6,13 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class INTPROGRAMMING01_Tests
-{
+public class INTPROGRAMMING01_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void INTPROGRAMMING01_Instance_Format_Described()
-    {
+    public void INTPROGRAMMING01_Instance_Format_Described() {
         INTPROGRAMMING01 problem = new INTPROGRAMMING01();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -22,8 +20,7 @@ public class INTPROGRAMMING01_Tests
     }
 
     [Fact]
-    public void INTPROGRAMMING01_Certificate_Format_Described()
-    {
+    public void INTPROGRAMMING01_Certificate_Format_Described() {
         INTPROGRAMMING01 problem = new INTPROGRAMMING01();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -31,8 +28,7 @@ public class INTPROGRAMMING01_Tests
     }
 
     [Fact]
-    public void INTPROGRAMMING01_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void INTPROGRAMMING01_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: (0 0 0)" quoted in certificateFormat must be a real,
         // verifiable certificate for defaultInstance — not just descriptive prose.
         INTPROGRAMMING01 problem = new INTPROGRAMMING01();
