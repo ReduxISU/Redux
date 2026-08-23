@@ -3,13 +3,14 @@ using System;
 using System.Collections.Generic;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
+
 class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
 
     // --- Fields ---
-    public string solverName {get;} = "Deutsch Jozsa Problem - Classical Solver";
+    public string solverName { get; } = "Deutsch Jozsa Problem - Classical Solver";
     public string solverDefinition { get; } = "This solver classically solves the Deutsch-Jozsa problem by querying the oracle up to (n/2) + 1 times to determine if the function is constant or balanced.";
     public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558";
-    public string[] contributors {get;} = { "George Lake", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
+    public string[] contributors { get; } = { "George Lake", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Classical baseline paired with DeutschJozsaQuantumSolver; no SolverType
     // bucket fits so solverType stays Unclassified per user decision. Natural parameter is
@@ -22,9 +23,9 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
     public string complexity { get; } = "O(2^n) queries";
 
     // --- Methods Including Constructors ---
-    public DeutschJozsaClassicalSolver() {}
+    public DeutschJozsaClassicalSolver() { }
 
-    public string solve(DEUTSCHJOZSA problem){
+    public string solve(DEUTSCHJOZSA problem) {
         //
         // Solves the Deutsch-Jozsa problem by classically querying the oracle.
         // Queries up to (n/2) + 1 times.
@@ -53,14 +54,12 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
             return "Breaks DJ Promise";
 
         // check the inputs
-        for (int i = 1; i <queries_to_be_certain; i++)
-        {
+        for (int i = 1; i < queries_to_be_certain; i++) {
             // query the oracle
             int current_value = oracle[i];
 
             // check if different than first
-            if (current_value != first_value)
-            {
+            if (current_value != first_value) {
                 return "balanced";
             }
         }

@@ -22,7 +22,7 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
     // Fills the full (m+1) x (n+1) DP table with one O(1) transition per cell.
     public string complexity { get; } = "O(m * n)";
 
-     public EditDistanceDPSolver() {}
+    public EditDistanceDPSolver() { }
 
     public string solve(EDITDISTANCE problem) {
         string s1 = problem.sourceString;
@@ -36,15 +36,11 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
         for (int i = 0; i <= m; i++) dp[i, 0] = i;
         for (int j = 0; j <= n; j++) dp[0, j] = j;
 
-        for (int i = 1; i <= m; i++)
-        {
-            for (int j = 1; j <= n; j++)
-            {
-                if (s1[i - 1] == s2[j - 1])
-                {
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (s1[i - 1] == s2[j - 1]) {
                     dp[i, j] = dp[i - 1, j - 1];
-                } 
-                else
+                } else
                     dp[i, j] = 1 + Math.Min(dp[i - 1, j - 1], // substitute
                                  Math.Min(dp[i - 1, j],        // delete
                                  dp[i, j - 1]));            // insert
@@ -54,4 +50,4 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
         return dp[m, n].ToString();
     }
 }
-    
+

@@ -6,15 +6,15 @@ namespace API.Problems.NPComplete.NPC_SAT3.Verifiers;
 class SAT3Verifier : IVerifier<SAT3> {
 
     // --- Fields ---
-    public string verifierName {get;} = "3SAT Verifier";
-    public string verifierDefinition {get;} = "This is a verifier for 3SAT. It takes the certificate from " + 
+    public string verifierName { get; } = "3SAT Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for 3SAT. It takes the certificate from " +
                                          "the user and validates that every clause contains a true literal";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Kaden Marchetti"};
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Kaden Marchetti" };
 
     private string _certificate = "";
 
-      public string certificate {
+    public string certificate {
         get {
             return _certificate;
         }
@@ -23,11 +23,11 @@ class SAT3Verifier : IVerifier<SAT3> {
 
 
 
-    
+
 
     // --- Methods Including Constructors ---
     public SAT3Verifier() {
-        
+
     }
 
     // Take in a problem and a possible solution and evaluate it. Expected certificate follows the format (LiteralName = Assignement, LiteralName = Assignment, ...)
@@ -41,7 +41,7 @@ class SAT3Verifier : IVerifier<SAT3> {
 
         // User input is effectively asking for the list of variables assigned to "True"
         List<List<string>> clauses = problem.clauses;
-        string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")","");
+        string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")", "");
 
         // Get user input and parse out true literals (including inverses)
         string[] assignments = strippedInput.Split(',');
@@ -50,7 +50,7 @@ class SAT3Verifier : IVerifier<SAT3> {
         // If True, just add literalName, if False, add literalName with ! prepending. Then add it to the trueLiterals list
         foreach (string assignment in assignments) {
             string[] assignmentParts = assignment.Split(':');
-            if (assignmentParts.Length <= 1){
+            if (assignmentParts.Length <= 1) {
                 assignmentParts = assignment.Split('=');
             }
             if (assignmentParts.Length < 2) {
@@ -62,19 +62,17 @@ class SAT3Verifier : IVerifier<SAT3> {
 
             if (TF == "True" || TF == "T") {
                 trueLiterals.Add(literalName);
-            }
-            else if (TF == "False" || TF == "F") {
+            } else if (TF == "False" || TF == "F") {
                 string inverseLiteralName = "!" + literalName;
                 trueLiterals.Add(inverseLiteralName);
-            }
-            else {
+            } else {
                 throw new CertificateParseException(problem, certificate,
                     $"assignment '{assignment}' has value '{TF}'; expected True/False (capitalized) or T/F");
             }
         }
 
         // Check if each clause is satisfied after some basic checks
-        for(int i = 0; i < clauses.Count; i++) {
+        for (int i = 0; i < clauses.Count; i++) {
             bool containedInClause = false;
 
             foreach (string literal in trueLiterals) {
@@ -88,7 +86,7 @@ class SAT3Verifier : IVerifier<SAT3> {
             if (containedInClause == false) {
                 return false;
             }
-            
+
         }
 
         // Backup just in case

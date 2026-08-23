@@ -6,8 +6,7 @@ using API.Problems.NPComplete.NPC_DOMINATINGSET;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Verifiers;
 
-class DominatingSetVerifier : IVerifier<DOMINATINGSET>
-{
+class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
 
     // --- Fields ---
     private string _verifierName = "Dominating Set Verifier";
@@ -29,19 +28,16 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET>
 
 
     // --- Methods Including Constructors ---
-    public DominatingSetVerifier()
-    {
+    public DominatingSetVerifier() {
 
     }
 
     // Builds an adjacency list from the edge list
-    private Dictionary<string, List<string>> BuildAdjacencyList(List<KeyValuePair<string, string>> edges)
-    {
+    private Dictionary<string, List<string>> BuildAdjacencyList(List<KeyValuePair<string, string>> edges) {
 
         var adjacencyList = new Dictionary<string, List<string>>();
 
-        foreach (var e in edges)
-        {
+        foreach (var e in edges) {
             if (!adjacencyList.ContainsKey(e.Key)) adjacencyList[e.Key] = new List<string>();
             if (!adjacencyList.ContainsKey(e.Value)) adjacencyList[e.Value] = new List<string>();
 
@@ -52,18 +48,15 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET>
     }
 
     // Gets all vertices from the problem and edges
-    private HashSet<string> GetAllVertices(DOMINATINGSET problem, List<KeyValuePair<string, string>> edges)
-    {
+    private HashSet<string> GetAllVertices(DOMINATINGSET problem, List<KeyValuePair<string, string>> edges) {
 
         var V = new HashSet<string>();
-        foreach (var e in edges)
-        {
+        foreach (var e in edges) {
             V.Add(e.Key);
             V.Add(e.Value);
         }
 
-        foreach (var label in problem.nodes)
-        {
+        foreach (var label in problem.nodes) {
             V.Add(label);
         }
 
@@ -71,21 +64,17 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET>
     }
 
     // Parses the certificate string into a list of strings
-    private List<string> ParseCertificate(string certificate)
-    {
-        if (string.IsNullOrWhiteSpace(certificate))
-        {
+    private List<string> ParseCertificate(string certificate) {
+        if (string.IsNullOrWhiteSpace(certificate)) {
             return new List<string>();
         }
         certificate = certificate.Trim();
 
-        if (certificate.StartsWith("{") && certificate.EndsWith("}"))
-        {
+        if (certificate.StartsWith("{") && certificate.EndsWith("}")) {
             certificate = certificate.Substring(1, certificate.Length - 2);
         }
 
-        if (string.IsNullOrWhiteSpace(certificate))
-        {
+        if (string.IsNullOrWhiteSpace(certificate)) {
             return new List<string>();
         }
 
@@ -95,10 +84,8 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET>
     private bool CandidateVerticesExist(HashSet<string> allVertices, IEnumerable<string> candidate)
              => candidate.All(v => allVertices.Contains(v));
 
-    private bool IsDominating(HashSet<string> allVertices, Dictionary<string, List<string>> adj, HashSet<string> D)
-    {
-        foreach (var u in allVertices)
-        {
+    private bool IsDominating(HashSet<string> allVertices, Dictionary<string, List<string>> adj, HashSet<string> D) {
+        foreach (var u in allVertices) {
             if (D.Contains(u)) continue;
             if (!adj.TryGetValue(u, out var nbrs)) nbrs = new List<string>();
             bool dominated = nbrs.Any(D.Contains);
@@ -106,11 +93,10 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET>
         }
         return true;
     }
-  
 
 
-    public bool verify(DOMINATINGSET problem, string certificate)
-    {
+
+    public bool verify(DOMINATINGSET problem, string certificate) {
         _certificate = certificate ?? string.Empty;
 
         var chosen = new HashSet<string>(ParseCertificate(_certificate));

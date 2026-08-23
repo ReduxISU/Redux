@@ -7,33 +7,36 @@ using System.Collections;
 
 namespace API.Problems.NPComplete.NPC_DM3;
 
-class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3, DummyVisualization> {
+class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, DummyVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "3-Dimensional Matching";
+    public string problemName { get; } = "3-Dimensional Matching";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/3-dimensional_matching";
-    public string formalDefinition {get;} = "{<M,X,Y,Z> | M is a subset of X*Y*Z,|X|=|Y|=|Z| and a subset of M, M', exists, where |M'| = |A|,|B|,|C|, and no two elements of M' agree in any cooridinate}" ;
-    public string problemDefinition {get;} = "3-Dimensional Matching is when, given 3 equally sized sets, X, Y, and Z, and a set of constraints M, being a subset of XxYxZ, are you able to select a set of constraints which contain each element of X, Y, and Z in one and only one 3-tuple.";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string formalDefinition { get; } = "{<M,X,Y,Z> | M is a subset of X*Y*Z,|X|=|Y|=|Z| and a subset of M, M', exists, where |M'| = |A|,|B|,|C|, and no two elements of M' agree in any cooridinate}";
+    public string problemDefinition { get; } = "3-Dimensional Matching is when, given 3 equally sized sets, X, Y, and Z, and a set of constraints M, being a subset of XxYxZ, are you able to select a set of constraints which contain each element of X, Y, and Z in one and only one 3-tuple.";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+    public const string InstanceGrammar = "{x1,...}{y1,...}{z1,...}{x,y,z},... | X,Y,Z are the three sets, followed by one 3-tuple per constraint in M";
     public static string _defaultInstance { get; } = "{Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}"; // simply a list of sets with the elements divided by commas, the first three are asumed to be X, Y, and Z, and all subsequent sets are sets in M
     public string defaultInstance { get; } = _defaultInstance;
-    public string instance {get;set;} = string.Empty;
-    public string instanceFormat { get; } = "Concatenated brace-wrapped sets {x1,x2,...}{y1,y2,...}{z1,z2,...} followed by one brace-wrapped 3-tuple {x,y,z} per constraint in M, each tuple naming one element from X, one from Y, and one from Z. Example: {Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}";
-    public string certificateFormat { get; } = "One or more brace-wrapped 3-tuples {x,y,z}, each naming one element of X, one of Y, and one of Z, with no value repeated anywhere in the certificate. Example: {Paul,Austin,Jake}";
+    public string instance { get; set; } = string.Empty;
+    public const string CertificateGrammar = "{x,y,z},... | each tuple names one element of X, one of Y, one of Z, no value repeated across tuples";
+    public const string CertificateExample = "{Paul,Austin,Jake}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } = $"Format: {CertificateGrammar} Example: {CertificateExample}";
 
-    public string wikiName {get;} = "";
+    public string wikiName { get; } = "";
     private List<string> _X;
     private List<string> _Y;
     private List<string> _Z;
     private List<List<string>> _M;
-    public ThreeDimensionalMatchingBruteForce defaultSolver {get;} = new ThreeDimensionalMatchingBruteForce();
+    public ThreeDimensionalMatchingBruteForce defaultSolver { get; } = new ThreeDimensionalMatchingBruteForce();
     public GenericVerifierDM3 defaultVerifier { get; } = new GenericVerifierDM3();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     // Declared, not derived. DM3 (3-Dimensional Matching) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
-    public string[] contributors {get;} = { "Caleb Eardley" };
+    public string[] contributors { get; } = { "Caleb Eardley" };
 
 
     // --- Properties ---
@@ -71,14 +74,13 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3, Dumm
     }
 
     // --- Methods Including Constructors ---
-    public DM3() : this(_defaultInstance)
-    {
+    public DM3() : this(_defaultInstance) {
     }
     public DM3(string instanceInput) {
         instance = instanceInput;
-        _X = ParseProblem(instance,"X");
-        _Y = ParseProblem(instance,"Y");
-        _Z = ParseProblem(instance,"Z");
+        _X = ParseProblem(instance, "X");
+        _Y = ParseProblem(instance, "Y");
+        _Z = ParseProblem(instance, "Z");
         _M = ParseM(instance);
     }
     /*************************************************
@@ -86,22 +88,22 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce,GenericVerifierDM3, Dumm
    3 dimensional list, the first depths of list, contains two lists, one with the sets X,Y,and Z, and the other containing all the sets in M.
    ***************************************************/
     public List<string> ParseProblem(string instanceInput, string set) {
-        List<string> input = instanceInput.Replace("}{",",").Replace("{","").Replace("}","").Split(',').ToList();
+        List<string> input = instanceInput.Replace("}{", ",").Replace("{", "").Replace("}", "").Split(',').ToList();
         int index = 0;
-        if(set == "Y") index = 1;
-        if(set == "Z") index = 2;
+        if (set == "Y") index = 1;
+        if (set == "Z") index = 2;
         List<string> variables = new List<string>();
-        for(int i = index; i < input.Count(); i = i + 3) {
-            if(!variables.Contains(input[i])) variables.Add(input[i]);  
+        for (int i = index; i < input.Count(); i = i + 3) {
+            if (!variables.Contains(input[i])) variables.Add(input[i]);
         }
         return variables;
     }
     public List<List<string>> ParseM(string instanceInput) {
-        List<string> input = instanceInput.Replace("}{",",").Replace("{","").Replace("}","").Split(',').ToList();
+        List<string> input = instanceInput.Replace("}{", ",").Replace("{", "").Replace("}", "").Split(',').ToList();
         List<List<string>> M = new List<List<string>>();
-        if(input.Count % 3 != 0) return M;
-        for(int i = 0; i < input.Count(); i = i + 3) {
-            M.Add(new List<string>{input[i], input[i + 1], input[i + 2]});
+        if (input.Count % 3 != 0) return M;
+        for (int i = 0; i < input.Count(); i = i + 3) {
+            M.Add(new List<string> { input[i], input[i + 1], input[i + 2] });
         }
         return M;
     }
