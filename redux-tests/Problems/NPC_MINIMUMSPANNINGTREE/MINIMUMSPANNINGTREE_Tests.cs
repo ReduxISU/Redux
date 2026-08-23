@@ -194,8 +194,7 @@ public class MINIMUMSPANNINGTREE_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void MINIMUMSPANNINGTREE_Instance_Format_Described()
-    {
+    public void MINIMUMSPANNINGTREE_Instance_Format_Described() {
         MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -203,8 +202,7 @@ public class MINIMUMSPANNINGTREE_Tests {
     }
 
     [Fact]
-    public void MINIMUMSPANNINGTREE_Certificate_Format_Described()
-    {
+    public void MINIMUMSPANNINGTREE_Certificate_Format_Described() {
         MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -212,8 +210,7 @@ public class MINIMUMSPANNINGTREE_Tests {
     }
 
     [Fact]
-    public void MINIMUMSPANNINGTREE_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void MINIMUMSPANNINGTREE_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE();
