@@ -6,6 +6,8 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_KNAPSACK.Verifiers;
 
 class KnapsackVerifier : IVerifier<KNAPSACK> {
+    public const string CertificateGrammar = "{(weight,value),...} subset i | total weight <= W, total value >= V";
+    public const string CertificateExample = "{(20,100),(30,120)}";
 
     // --- Fields ---
     public string verifierName { get; } = "Knapsack Verifier";

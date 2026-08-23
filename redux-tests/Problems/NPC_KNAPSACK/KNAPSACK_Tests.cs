@@ -74,8 +74,7 @@ public class KNAPSACK_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void KNAPSACK_Instance_Format_Described()
-    {
+    public void KNAPSACK_Instance_Format_Described() {
         KNAPSACK problem = new KNAPSACK();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -83,8 +82,7 @@ public class KNAPSACK_Tests {
     }
 
     [Fact]
-    public void KNAPSACK_Certificate_Format_Described()
-    {
+    public void KNAPSACK_Certificate_Format_Described() {
         KNAPSACK problem = new KNAPSACK();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -92,8 +90,7 @@ public class KNAPSACK_Tests {
     }
 
     [Fact]
-    public void KNAPSACK_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void KNAPSACK_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         KNAPSACK problem = new KNAPSACK();
