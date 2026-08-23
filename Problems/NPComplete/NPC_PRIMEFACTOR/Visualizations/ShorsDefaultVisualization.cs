@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
-{
+class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR> {
     public string visualizationName { get; } = "Shor's Algorithm Quantum Visualization";
     public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent Shor's algorithm for prime factorization and simulates the circuit to find the prime factors.";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
@@ -15,31 +14,25 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
     public ISolver solver { get; } = new PrimeFactorSolver();
 
     // --- Methods Including Constructors ---
-    public ShorsDefaultVisualization()
-    {
+    public ShorsDefaultVisualization() {
 
     }
 
-    public API_JSON visualize(PRIMEFACTOR instance)
-    {
-        return new API_QUANTUMCIRCUIT
-        {
+    public API_JSON visualize(PRIMEFACTOR instance) {
+        return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",
             solution = ""
         };
     }
 
-    public API_JSON SolvedVisualization(PRIMEFACTOR instance, string solution)
-    {
-        var qc = new API_QUANTUMCIRCUIT
-        {
+    public API_JSON SolvedVisualization(PRIMEFACTOR instance, string solution) {
+        var qc = new API_QUANTUMCIRCUIT {
             solution = solution,
             format = QuantumCircuitFormat.QASM
         };
 
-        try
-        {
+        try {
             // Parse the integer from the problem instance
             int numberToFactor = int.Parse(instance.instance);
 
@@ -54,13 +47,10 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR>
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("qasm", out JsonElement qasmElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement qasmElement)) {
                 qc.qasm = qasmElement.GetString() ?? "";
             }
-        }
-        catch (Exception)
-        {
+        } catch (Exception) {
             // If API call fails, leave circuit empty
             qc.qasm = "";
         }

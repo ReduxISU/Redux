@@ -7,23 +7,20 @@ using API.Interfaces;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-public class EDITDISTANCE_Tests
-{
-     [Fact]
-    public void EDITDISTANCE_Default_Instantiation()
-    {
+public class EDITDISTANCE_Tests {
+    [Fact]
+    public void EDITDISTANCE_Default_Instantiation() {
         var problem = new EDITDISTANCE();
         Assert.Equal("(horse, ros)", problem.instance);
         Assert.Equal("(horse, ros)", problem.defaultInstance);
-    } 
+    }
 
-     [Fact]
-    public void EDITDISTANCE_Custom_Instantiation()
-    {
+    [Fact]
+    public void EDITDISTANCE_Custom_Instantiation() {
         var problem = new EDITDISTANCE("(intention, execution, 5)");
         Assert.Equal("(intention, execution, 5)", problem.instance);
 
-    } 
+    }
 
     [Theory] //tests verifier
     [InlineData("(horse, ros, 3)", "3")]
@@ -52,8 +49,7 @@ public class EDITDISTANCE_Tests
     [InlineData("(abc, def, 3)", "3")]
     [InlineData("(cat, cut, 1)", "1")]
     [InlineData("(a, a, 0)", "0")]
-    public void EDITDISTANCE_solver(string instance, string certificate)
-    {
+    public void EDITDISTANCE_solver(string instance, string certificate) {
         var problem = new EDITDISTANCE(instance);
         var solver = new EditDistanceDPSolver();
         string solvedString = solver.solve(problem);

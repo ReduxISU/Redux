@@ -10,8 +10,7 @@ namespace API.Problems.NPComplete.NPC_EDITDISTANCE;
 // --- Fields, Properties, and Constructors ---
 // Note: Edit Distance is a P problem, but we are treating it as NP-Complete Temporarily
 // bc frontend not yet set up to handle P problems. 
-class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyVisualization>
-{
+class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyVisualization> {
     public string problemName { get; } = "Edit Distance";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Edit_distance";
     public string formalDefinition { get; } = "{(x,y,k) | x and y are strings, k is int, and there exists a sequence of k operations to transform x into y}";
@@ -22,10 +21,12 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public static string _defaultInstance { get; } = "(horse, ros)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    public string instanceFormat { get; } = "(x, y) where x and y are strings; the problem is to transform x into y using insertions, deletions, and substitutions. Example: (horse, ros)";
-    public string certificateFormat { get; } = "The integer minimum number of single-character edit operations (insert, delete, substitute) required to transform x into y. Example: 3";
+    public const string InstanceGrammar = "(x,y) | x,y are strings";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {EditDistanceVerifier.CertificateGrammar} Example: {EditDistanceVerifier.CertificateExample}";
 
-    public EditDistanceDPSolver defaultSolver {get;} = new EditDistanceDPSolver();
+    public EditDistanceDPSolver defaultSolver { get; } = new EditDistanceDPSolver();
     public EditDistanceVerifier defaultVerifier { get; } = new EditDistanceVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors { get; } = { "Kaosi Ibeabuchi", "Diya Pandey", "Srijan Pant" };
@@ -39,8 +40,7 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
 
     public EDITDISTANCE() : this(_defaultInstance) { }
 
-    public EDITDISTANCE(string instanceString)
-    {
+    public EDITDISTANCE(string instanceString) {
         instance = instanceString;
 
         string trimmed = instanceString.Trim().TrimStart('(').TrimEnd(')');
