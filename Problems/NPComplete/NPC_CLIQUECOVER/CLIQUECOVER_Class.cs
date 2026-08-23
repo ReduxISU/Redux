@@ -20,6 +20,8 @@ class CLIQUECOVER : IGraphProblem<CliqueCoverBruteForce,CliqueCoverVerifier,Cliq
     public static string _defaultInstance = "(({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of undirected edges as {node,node} pairs, and K is the maximum number of cliques allowed to cover all nodes. Example: (({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8}}),3)";
+    public string certificateFormat { get; } = "Comma-separated list of cliques, each clique a brace-wrapped set of node names, covering every node exactly once with at most K cliques, where every pair of nodes within a clique is connected by an edge. Example: {1,2,3},{4,5},{6,7,8}";
 
     public string wikiName {get;} = "";
     private List<string> _nodes = new List<string>();
