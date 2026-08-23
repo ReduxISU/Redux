@@ -6,15 +6,13 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class DIRECTEDHAMILTONIAN_Tests
-{
+public class DIRECTEDHAMILTONIAN_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void DIRECTEDHAMILTONIAN_Instance_Format_Described()
-    {
+    public void DIRECTEDHAMILTONIAN_Instance_Format_Described() {
         DIRECTEDHAMILTONIAN problem = new DIRECTEDHAMILTONIAN();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -22,8 +20,7 @@ public class DIRECTEDHAMILTONIAN_Tests
     }
 
     [Fact]
-    public void DIRECTEDHAMILTONIAN_Certificate_Format_Described()
-    {
+    public void DIRECTEDHAMILTONIAN_Certificate_Format_Described() {
         DIRECTEDHAMILTONIAN problem = new DIRECTEDHAMILTONIAN();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -31,8 +28,7 @@ public class DIRECTEDHAMILTONIAN_Tests
     }
 
     [Fact]
-    public void DIRECTEDHAMILTONIAN_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void DIRECTEDHAMILTONIAN_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         DIRECTEDHAMILTONIAN problem = new DIRECTEDHAMILTONIAN();

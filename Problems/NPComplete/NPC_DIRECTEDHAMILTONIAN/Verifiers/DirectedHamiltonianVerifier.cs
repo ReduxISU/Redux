@@ -4,6 +4,8 @@ using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Verifiers;
 
 class DirectedHamiltonianVerifier : IVerifier<DIRECTEDHAMILTONIAN> {
+    public const string CertificateGrammar = "{q0,...,qn,q0} | Hamiltonian cycle: every node exactly once, each (qi,qi+1) in E, ends by repeating q0";
+    public const string CertificateExample = "{2,1,3,5,4,2}";
 
     // --- Fields ---
     public string verifierName { get; } = "Directed Hamiltonian Path Verifier";
