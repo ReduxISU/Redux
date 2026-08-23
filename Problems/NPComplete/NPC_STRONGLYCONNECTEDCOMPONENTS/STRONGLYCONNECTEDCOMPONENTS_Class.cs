@@ -34,6 +34,8 @@ class STRONGLYCONNECTEDCOMPONENTS
         "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})";
 
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(N,E) where N is the set of node names and E is the set of directed edges as (from,to) pairs. Example: ({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})";
+    public string certificateFormat { get; } = "Comma-separated list of components in braces, each component a brace-wrapped set of node names, one set per strongly connected component (order of components and order of nodes within each does not matter). Example: {{1,2,3},{4,5}}";
 
     public string instance { get; set; } = string.Empty;
 
