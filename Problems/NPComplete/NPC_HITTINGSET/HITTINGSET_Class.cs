@@ -22,6 +22,8 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
 
     private static string _defaultInstance {get;} = "({1,2,3,4},{{1,3},{2,3,4},{1,4}})";
     public string defaultInstance {get;} = _defaultInstance;
+    public string instanceFormat { get; } = "(U,S) where U is the universal set and S is a set of subsets of U. Example: ({1,2,3,4},{{1,3},{2,3,4},{1,4}})";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated set W of elements from U such that W intersects every subset in S in exactly one element. Example: {1,2}";
 
     public string instance {get;set;} = string.Empty;
 
