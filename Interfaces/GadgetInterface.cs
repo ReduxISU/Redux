@@ -1,7 +1,6 @@
 namespace API.Interfaces;
 
-interface IGadget
-{
+interface IGadget {
 
     string reductionType { get; }
 
@@ -9,5 +8,5 @@ interface IGadget
 
     string gadgetString { get; }
 
-    
+
 }

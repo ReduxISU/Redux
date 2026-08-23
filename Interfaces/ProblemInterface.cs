@@ -4,14 +4,14 @@ using API.Interfaces.JSON_Objects.Graphs;
 namespace API.Interfaces;
 
 interface IProblem {
-    string problemName{get;}
+    string problemName { get; }
 
-    string formalDefinition{get;}
-    string problemDefinition{get;}
-    string source {get;}
-    string wikiName {get;}
-    string defaultInstance{get;}
-    string instance{ get; }
+    string formalDefinition { get; }
+    string problemDefinition { get; }
+    string source { get; }
+    string wikiName { get; }
+    string defaultInstance { get; }
+    string instance { get; }
 
     // Format descriptors consumed by /ProblemProvider/info. Each should be a
     // short descriptive sentence with an embedded concrete example so a
@@ -25,15 +25,14 @@ interface IProblem {
     // wrong for at least a dozen problems; this is the source of truth.
     ComplexityClass complexityClass { get => ComplexityClass.Unclassified; }
 
-    string[] contributors{ get; }
+    string[] contributors { get; }
 
-    ISolver defaultSolver {get;}
-    IVerifier defaultVerifier {get;}
+    ISolver defaultSolver { get; }
+    IVerifier defaultVerifier { get; }
     IVisualization defaultVisualization { get; }
 }
 
-interface IProblem<T, U, V> : IProblem where T : ISolver where U : IVerifier where V : IVisualization
-{
+interface IProblem<T, U, V> : IProblem where T : ISolver where U : IVerifier where V : IVisualization {
     new T defaultSolver { get; }
     ISolver IProblem.defaultSolver { get => defaultSolver; }
     new U defaultVerifier { get; }
@@ -43,10 +42,10 @@ interface IProblem<T, U, V> : IProblem where T : ISolver where U : IVerifier whe
 }
 
 interface IGraphProblem : IProblem {
-    Graph graph {get;}
+    Graph graph { get; }
 }
 
-interface IGraphProblem<T,U,V,W> : IProblem<T,U,V>, IGraphProblem where T : ISolver where U : IVerifier where V : IVisualization where W : Graph {
-    new W graph {get;}
-    Graph IGraphProblem.graph {get => graph;}
+interface IGraphProblem<T, U, V, W> : IProblem<T, U, V>, IGraphProblem where T : ISolver where U : IVerifier where V : IVisualization where W : Graph {
+    new W graph { get; }
+    Graph IGraphProblem.graph { get => graph; }
 }

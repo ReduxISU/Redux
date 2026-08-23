@@ -7,8 +7,7 @@ using API.Problems.NPComplete.NPC_HAMILTONIAN.Solvers;
 
 namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Visualizations;
 
-class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN>
-{
+class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN> {
 
     // --- Fields ---
     public string visualizationName { get; } = " Hamiltonian Path Visualization";
@@ -19,17 +18,14 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN>
     public ISolver solver { get; } = new HamiltonianBruteForce();
 
     // --- Methods Including Constructors ---
-    public HamiltonianDefaultVisualization()
-    {
+    public HamiltonianDefaultVisualization() {
 
     }
-    public API_JSON visualize(HAMILTONIAN hamiltonian)
-    {
+    public API_JSON visualize(HAMILTONIAN hamiltonian) {
         return hamiltonian.graph.ToAPIGraph();
     }
 
-    public API_JSON SolvedVisualization(HAMILTONIAN hamiltonian, string solution)
-    {
+    public API_JSON SolvedVisualization(HAMILTONIAN hamiltonian, string solution) {
         if (string.IsNullOrWhiteSpace(solution) || solution == "{}")
             return hamiltonian.graph.ToAPIGraph();
 
@@ -40,9 +36,8 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN>
             return hamiltonian.graph.ToAPIGraph();
 
         API_GraphJSON apiGraph = hamiltonian.graph.ToAPIGraph();
-       
-        for (int i = 0; i < solutionNodes.Count - 1; i++)
-        {
+
+        for (int i = 0; i < solutionNodes.Count - 1; i++) {
             var from = solutionNodes[i];
             var to = solutionNodes[i + 1];
 
@@ -51,14 +46,12 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN>
             );
             var node = apiGraph.nodes.FirstOrDefault(n => n.name == solutionNodes[i]);
 
-            if (link != null)
-            {
+            if (link != null) {
                 link.color = "Solution";
                 link.delay = ((i + 1) * 5000 / apiGraph.nodes.Count).ToString();
             }
 
-            if (node != null)
-            {
+            if (node != null) {
                 node.color = "Solution";
                 node.delay = ((i + 1) * 5000 / solutionNodes.Count).ToString();
             }

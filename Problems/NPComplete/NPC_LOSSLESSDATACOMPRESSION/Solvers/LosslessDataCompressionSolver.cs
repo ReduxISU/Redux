@@ -173,8 +173,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         });
     }
 
-    private void BuildCodeTable(HuffmanNode? node, string currentCode, Dictionary<char, string> codes)
-    {
+    private void BuildCodeTable(HuffmanNode? node, string currentCode, Dictionary<char, string> codes) {
         if (node == null) {
             return;
         }

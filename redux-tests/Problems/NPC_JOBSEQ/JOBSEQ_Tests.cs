@@ -12,7 +12,7 @@ public class JOBSEQ_tests {
         JOBSEQ jobSeq = new JOBSEQ();
         Assert.Equal("((4,2,5,9,4,3),(9,13,2,17,21,16),(1,4,3,2,5,8),4)", jobSeq.instance);
         Assert.Equal("((4,2,5,9,4,3),(9,13,2,17,21,16),(1,4,3,2,5,8),4)", jobSeq.defaultInstance);
-    } 
+    }
 
     [Fact]
     public void JOBSEQ_Custom_Instantiation() {
