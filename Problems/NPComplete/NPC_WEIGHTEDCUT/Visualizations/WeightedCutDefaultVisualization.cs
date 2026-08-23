@@ -8,8 +8,7 @@ using API.Problems.NPComplete.NPC_WEIGHTEDCUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Visualizations;
 
-class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT>
-{
+class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Weighted Cut Visualization";
@@ -20,52 +19,43 @@ class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT>
     public ISolver solver { get; } = new WeightedCutBruteForce(); //TODO fill in solver to use for this visualization
 
     // --- Methods Including Constructors ---
-    public WeightedCutDefaultVisualization()
-    {
+    public WeightedCutDefaultVisualization() {
 
     }
-    public API_JSON visualize(WEIGHTEDCUT weightedCut)
-    {
+    public API_JSON visualize(WEIGHTEDCUT weightedCut) {
         return weightedCut.graph.ToAPIGraph();
     }
 
-    public List<KeyValuePair<string, string>> parseSolution(string solution)
-    {
+    public List<KeyValuePair<string, string>> parseSolution(string solution) {
         UtilCollection sol = new(solution);
-        return sol.ToList().Select(edge =>
-        {
+        return sol.ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
-            return new KeyValuePair<string, string>(cast[0].ToString(),cast[1].ToString());
+            return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
         }).ToList();
     }
-    public API_JSON SolvedVisualization(WEIGHTEDCUT weightedCut, string solution)
-    {
+    public API_JSON SolvedVisualization(WEIGHTEDCUT weightedCut, string solution) {
         List<KeyValuePair<string, string>> solutionEdges = parseSolution(solution);
 
         API_GraphJSON apiGraph = weightedCut.graph.ToAPIGraph();
 
-        foreach (var edge in solutionEdges)
-        {
+        foreach (var edge in solutionEdges) {
             var link = apiGraph.links.FirstOrDefault(l =>
                 (l.source == edge.Key && l.target == edge.Value) || (l.source == edge.Value && l.target == edge.Key)
             );
 
             var node = apiGraph.nodes.FirstOrDefault(n => n.name == edge.Key);
 
-            if (link != null)
-            {
+            if (link != null) {
                 link.color = "Solution";
                 link.dashed = "True";
             }
 
-            if (node != null)
-            {
+            if (node != null) {
                 node.color = "Solution";
             }
         }
 
-        foreach (var link in apiGraph.links)
-        {
+        foreach (var link in apiGraph.links) {
             var node1 = apiGraph.nodes.FirstOrDefault(n => n.name == link.source);
             var node2 = apiGraph.nodes.FirstOrDefault(n => n.name == link.target);
             if (node1 != null && node2 != null && node1.color == "Solution" && node2.color == "Solution")

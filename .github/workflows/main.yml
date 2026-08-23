@@ -26,6 +26,8 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore Redux.slnx
 
+      # Directory.Build.targets runs `dotnet format --verify-no-changes` before
+      # Build in Release/CI, so this also gates on formatting.
       - name: Build
         run: dotnet build Redux.slnx --no-restore --configuration Release
 

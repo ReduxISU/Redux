@@ -11,8 +11,7 @@ namespace API.Interfaces;
 /// citizens at all). This enum is the source of truth instead.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ComplexityClass>))]
-public enum ComplexityClass
-{
+public enum ComplexityClass {
     /// <summary>No complexity class has been declared for this problem yet.</summary>
     Unclassified = 0,
     /// <summary>Solvable in polynomial time.</summary>

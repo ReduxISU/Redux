@@ -13,7 +13,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
     // --- Fields ---
     // Solver metadata
     public string solverName { get; } = "Shor's Quantum API Solver";
-    public string solverDefinition { get; } = 
+    public string solverDefinition { get; } =
         "Calls external quantum computing API to solve prime factorization using Shor's algorithm. " +
         "Shor's algorithm uses quantum phase estimation to efficiently find the period of a " +
         "modular exponential function, which can then be used to determine the prime factors of a " +
@@ -37,16 +37,13 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
     /// <summary>
     /// Creates a new ShorsQuantumSolver
     /// </summary>
-    public ShorsQuantumSolver()
-    {
+    public ShorsQuantumSolver() {
     }
 
     // --- Methods ---
 
-    public string solve(PRIMEFACTOR problem)
-    {
-        try
-        {
+    public string solve(PRIMEFACTOR problem) {
+        try {
             // Parse the integer from the problem instance
             int numberToFactor = int.Parse(problem.instance);
 
@@ -61,20 +58,14 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement))
-            {
+            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
                 // Check if answer is a string or an array
-                if (answerElement.ValueKind == JsonValueKind.String)
-                {
+                if (answerElement.ValueKind == JsonValueKind.String) {
                     return answerElement.GetString() ?? "No answer found";
-                }
-                else if (answerElement.ValueKind == JsonValueKind.Array)
-                {
+                } else if (answerElement.ValueKind == JsonValueKind.Array) {
                     // If it's an array of factors, serialize it back to a JSON string
                     return "(" + string.Join(",", answerElement.EnumerateArray().Select(e => e.GetInt32())) + ")";
-                }
-                else
-                {
+                } else {
                     // For any other type, convert to string
                     return answerElement.ToString();
                 }
@@ -82,9 +73,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
 
             // If no answer field, return the whole response
             return response;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Return error information in case of failure
             return $"{{\"error\": \"{ex.Message}\"}}";
         }
