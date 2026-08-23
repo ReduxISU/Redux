@@ -355,8 +355,7 @@ public class SUDOKU_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void SUDOKU_Instance_Format_Described()
-    {
+    public void SUDOKU_Instance_Format_Described() {
         SUDOKU problem = new SUDOKU();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -364,8 +363,7 @@ public class SUDOKU_Tests {
     }
 
     [Fact]
-    public void SUDOKU_Certificate_Format_Described()
-    {
+    public void SUDOKU_Certificate_Format_Described() {
         SUDOKU problem = new SUDOKU();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -373,8 +371,7 @@ public class SUDOKU_Tests {
     }
 
     [Fact]
-    public void SUDOKU_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void SUDOKU_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         SUDOKU problem = new SUDOKU();

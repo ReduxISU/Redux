@@ -23,15 +23,17 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     public string problemDefinition { get; } = "Sudoku is a logic-based, combinatorial number-placement puzzle where the goal is to fill a 9x9 grid with digits so that each column, row, and 3x3 box contains all of the digits from 1 to 9."; //"The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)";
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
     public string sourceLink { get; } = "https://doi.org/10.48550/arXiv.2507.09708";
+    public const string InstanceGrammar = "9 rows of 9 comma-separated digits (0 for empty, 1-9 for clues), rows separated by semicolons";
     private static readonly string _defaultInstance = "0,0,0,1,0,0,2,0,3;\n0,2,0,0,4,0,5,0,6;\n0,7,0,0,0,6,4,0,0;\n5,0,0,6,0,0,8,0,0;\n0,6,0,4,0,2,0,5,0;\n0,0,4,0,0,9,0,0,7;\n0,0,9,5,0,0,0,4,0;\n7,0,6,0,8,0,0,1,0;\n4,0,3,0,0,7,0,0,0";
-    public string defaultInstance {get;} = _defaultInstance;
-    public string instanceFormat { get; } = "9 rows of 9 comma-separated digits (0 for empty cells, 1-9 for given clues), rows separated by semicolons. Example: 0,0,0,1,0,0,2,0,3;0,2,0,0,4,0,5,0,6;0,7,0,0,0,6,4,0,0;5,0,0,6,0,0,8,0,0;0,6,0,4,0,2,0,5,0;0,0,4,0,0,9,0,0,7;0,0,9,5,0,0,0,4,0;7,0,6,0,8,0,0,1,0;4,0,3,0,0,7,0,0,0";
-    public string certificateFormat { get; } = "Same 9-rows-of-9-comma-separated-digits, semicolon-separated format as the instance, but fully filled in (no zeros) such that every row, column, and 3x3 block contains each digit 1-9 exactly once, and matching every given clue from the instance. Example: 6,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5";
-    public string instance {get;set;} = string.Empty;
-    public string wikiName {get;} = "Sudoku";
-    public SudokuSolver defaultSolver {get;} = new SudokuSolver();
-    public SudokuVerifier defaultVerifier {get;} = new SudokuVerifier();
-    public SudokuVisualization defaultVisualization {get;} = new SudokuVisualization();
+    public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SudokuVerifier.CertificateGrammar} Example: {SudokuVerifier.CertificateExample}";
+    public string instance { get; set; } = string.Empty;
+    public string wikiName { get; } = "Sudoku";
+    public SudokuSolver defaultSolver { get; } = new SudokuSolver();
+    public SudokuVerifier defaultVerifier { get; } = new SudokuVerifier();
+    public SudokuVisualization defaultVisualization { get; } = new SudokuVisualization();
     // Declared, not derived. Generalized (n x n) Sudoku is NP-complete
     // (Yato & Seta, 2003); the standard 9x9 board is a fixed-size instance of the
     // same NP-complete family.
