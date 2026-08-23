@@ -56,8 +56,7 @@ public class CONVEXHULL_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void CONVEXHULL_Instance_Format_Described()
-    {
+    public void CONVEXHULL_Instance_Format_Described() {
         CONVEXHULL hull = new CONVEXHULL();
         Assert.NotNull(hull.instanceFormat);
         Assert.NotEmpty(hull.instanceFormat);
@@ -65,8 +64,7 @@ public class CONVEXHULL_Tests {
     }
 
     [Fact]
-    public void CONVEXHULL_Certificate_Format_Described()
-    {
+    public void CONVEXHULL_Certificate_Format_Described() {
         CONVEXHULL hull = new CONVEXHULL();
         Assert.NotNull(hull.certificateFormat);
         Assert.NotEmpty(hull.certificateFormat);
@@ -74,8 +72,7 @@ public class CONVEXHULL_Tests {
     }
 
     [Fact]
-    public void CONVEXHULL_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void CONVEXHULL_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         CONVEXHULL hull = new CONVEXHULL();
