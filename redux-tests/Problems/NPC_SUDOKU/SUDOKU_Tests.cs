@@ -368,6 +368,39 @@ public class SUDOKU_Tests
     }
 
     #endregion
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void SUDOKU_Instance_Format_Described()
+    {
+        SUDOKU problem = new SUDOKU();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("semicolons", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void SUDOKU_Certificate_Format_Described()
+    {
+        SUDOKU problem = new SUDOKU();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("3x3 block", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void SUDOKU_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        SUDOKU problem = new SUDOKU();
+        SudokuVerifier verifier = new SudokuVerifier();
+        string certificate = "6,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5";
+        Assert.True(verifier.verify(problem, certificate));
+    }
 }
 
 

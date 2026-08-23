@@ -25,6 +25,8 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     public string sourceLink {get;} = "https://doi.org/10.48550/arXiv.2507.09708"; 
     private static readonly string _defaultInstance = "0,0,0,1,0,0,2,0,3;\n0,2,0,0,4,0,5,0,6;\n0,7,0,0,0,6,4,0,0;\n5,0,0,6,0,0,8,0,0;\n0,6,0,4,0,2,0,5,0;\n0,0,4,0,0,9,0,0,7;\n0,0,9,5,0,0,0,4,0;\n7,0,6,0,8,0,0,1,0;\n4,0,3,0,0,7,0,0,0";
     public string defaultInstance {get;} = _defaultInstance;
+    public string instanceFormat { get; } = "9 rows of 9 comma-separated digits (0 for empty cells, 1-9 for given clues), rows separated by semicolons. Example: 0,0,0,1,0,0,2,0,3;0,2,0,0,4,0,5,0,6;0,7,0,0,0,6,4,0,0;5,0,0,6,0,0,8,0,0;0,6,0,4,0,2,0,5,0;0,0,4,0,0,9,0,0,7;0,0,9,5,0,0,0,4,0;7,0,6,0,8,0,0,1,0;4,0,3,0,0,7,0,0,0";
+    public string certificateFormat { get; } = "Same 9-rows-of-9-comma-separated-digits, semicolon-separated format as the instance, but fully filled in (no zeros) such that every row, column, and 3x3 block contains each digit 1-9 exactly once, and matching every given clue from the instance. Example: 6,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "Sudoku";
     public SudokuSolver defaultSolver {get;} = new SudokuSolver();
