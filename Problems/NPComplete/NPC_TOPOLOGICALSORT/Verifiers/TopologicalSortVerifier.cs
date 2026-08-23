@@ -3,6 +3,9 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Verifiers;
 
 class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT> {
+    public const string CertificateGrammar = "{q0,...,qn} | linear ordering of all nodes, each qi appears once, u before v for every (u,v) in E";
+    public const string CertificateExample = "{1,2,3,4,5,6}";
+
     // --- Fields ---
     public string verifierName { get; } = "Topological Order Verifier";
     public string verifierDefinition { get; } = "Given a proposed ordering of vertices, the verifier checks that (1) every vertex in the graph appears exactly once in the ordering, and (2) for every directed edge (u,v) in the graph, u appears before v in the ordering.";

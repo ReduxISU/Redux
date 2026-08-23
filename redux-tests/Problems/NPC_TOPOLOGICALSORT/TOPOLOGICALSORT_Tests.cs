@@ -107,8 +107,7 @@ public class TOPOLOGICALSORT_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void TOPOLOGICALSORT_Instance_Format_Described()
-    {
+    public void TOPOLOGICALSORT_Instance_Format_Described() {
         var problem = new TOPOLOGICALSORT();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -116,8 +115,7 @@ public class TOPOLOGICALSORT_Tests {
     }
 
     [Fact]
-    public void TOPOLOGICALSORT_Certificate_Format_Described()
-    {
+    public void TOPOLOGICALSORT_Certificate_Format_Described() {
         var problem = new TOPOLOGICALSORT();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -125,8 +123,7 @@ public class TOPOLOGICALSORT_Tests {
     }
 
     [Fact]
-    public void TOPOLOGICALSORT_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void TOPOLOGICALSORT_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new TOPOLOGICALSORT();
