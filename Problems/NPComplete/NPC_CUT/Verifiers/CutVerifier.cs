@@ -4,6 +4,8 @@ using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_CUT.Verifiers;
 
 class CutVerifier : IVerifier<CUT> {
+    public const string CertificateGrammar = "{S} subset E | S has no duplicate edges (either orientation), |S| = K";
+    public const string CertificateExample = "{{2,1},{1,3},{2,3},{3,5},{2,4}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Cut Verifier";

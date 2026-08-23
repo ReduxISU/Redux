@@ -6,15 +6,13 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class CUT_Tests
-{
+public class CUT_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void CUT_Instance_Format_Described()
-    {
+    public void CUT_Instance_Format_Described() {
         CUT cut = new CUT();
         Assert.NotNull(cut.instanceFormat);
         Assert.NotEmpty(cut.instanceFormat);
@@ -22,8 +20,7 @@ public class CUT_Tests
     }
 
     [Fact]
-    public void CUT_Certificate_Format_Described()
-    {
+    public void CUT_Certificate_Format_Described() {
         CUT cut = new CUT();
         Assert.NotNull(cut.certificateFormat);
         Assert.NotEmpty(cut.certificateFormat);
@@ -31,8 +28,7 @@ public class CUT_Tests
     }
 
     [Fact]
-    public void CUT_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void CUT_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         CUT cut = new CUT();

@@ -23,11 +23,13 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
     // the polynomial global-minimum-cut question already covered separately by
     // P_MINCUT/MinCutStoerWagner. See redux-tests/Metadata/ComplexityClass_Tests.cs.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance = "(({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}}),5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of undirected edges as {node,node} pairs, and K is the exact number of edges that must cross the cut. Example: (({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}}),5)";
-    public string certificateFormat { get; } = "Brace-wrapped, comma-separated list of {node,node} edges from the graph, with no duplicates (in either orientation), whose count exactly equals K. Example: {{2,1},{1,3},{2,3},{3,5},{2,4}}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {CutVerifier.CertificateGrammar} Example: {CutVerifier.CertificateExample}";
 
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
@@ -74,7 +76,7 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
     public CUT(string GInput) {
         instance = GInput;
 
-        StringParser cut = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
+        StringParser cut = new(InstanceGrammar);
         cut.parse(GInput);
         nodes = cut["N"].ToList().Select(node => node.ToString()).ToList();
         edges = cut["E"].ToList().Select(edge => {
