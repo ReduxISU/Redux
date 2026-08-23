@@ -73,8 +73,7 @@ public class DEUTSCHJOZSA_tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void DEUTSCHJOZSA_Instance_Format_Described()
-    {
+    public void DEUTSCHJOZSA_Instance_Format_Described() {
         var problem = new DEUTSCHJOZSA();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -82,8 +81,7 @@ public class DEUTSCHJOZSA_tests {
     }
 
     [Fact]
-    public void DEUTSCHJOZSA_Certificate_Format_Described()
-    {
+    public void DEUTSCHJOZSA_Certificate_Format_Described() {
         var problem = new DEUTSCHJOZSA();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -91,8 +89,7 @@ public class DEUTSCHJOZSA_tests {
     }
 
     [Fact]
-    public void DEUTSCHJOZSA_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void DEUTSCHJOZSA_Certificate_Format_Example_Is_Actually_Valid() {
         // The "Example: constant" quoted in certificateFormat must be a real,
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new DEUTSCHJOZSA();
