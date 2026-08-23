@@ -193,4 +193,33 @@ public class BINPACKING_Tests {
         // FFD found a valid packing for these instances, so the verifier must accept it.
         Assert.True(verifier.verify(bp, cert));
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void BINPACKING_Instance_Format_Described() {
+        BINPACKING bp = new BINPACKING();
+        Assert.NotNull(bp.instanceFormat);
+        Assert.NotEmpty(bp.instanceFormat);
+        Assert.Contains("S,C,K", bp.instanceFormat);
+    }
+
+    [Fact]
+    public void BINPACKING_Certificate_Format_Described() {
+        BINPACKING bp = new BINPACKING();
+        Assert.NotNull(bp.certificateFormat);
+        Assert.NotEmpty(bp.certificateFormat);
+        Assert.Contains("bins", bp.certificateFormat);
+    }
+
+    [Fact]
+    public void BINPACKING_Certificate_Format_Example_Is_Actually_Valid() {
+        // The "Example: ((8,2),(7,3),(6,4))" quoted in certificateFormat must be a real,
+        // verifiable certificate for defaultInstance — not just descriptive prose.
+        BINPACKING bp = new BINPACKING();
+        BinPackingVerifier verifier = new BinPackingVerifier();
+        Assert.True(verifier.verify(bp, "((8,2),(7,3),(6,4))"));
+    }
 }

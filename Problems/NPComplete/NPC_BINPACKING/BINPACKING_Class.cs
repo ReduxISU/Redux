@@ -47,6 +47,8 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // This is a YES-instance — the items do fit (e.g. bins (4,6), (7,3), (2,8)).
     private static readonly string _defaultInstance = "((4,7,3,6,2,8),10,3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "(S,C,K) where S is the multiset of positive-integer item sizes as a parenthesized list, C is the positive-integer bin capacity, and K is the maximum number of bins allowed. Example: ((4,7,3,6,2,8),10,3)";
+    public string certificateFormat { get; } = "Parenthesized list of bins, each bin a parenthesized list of item sizes, such that every item in S appears exactly once across all bins, each bin's total does not exceed C, and the number of non-empty bins does not exceed K. Example: ((8,2),(7,3),(6,4))";
 
     public string wikiName { get; } = "";
 
