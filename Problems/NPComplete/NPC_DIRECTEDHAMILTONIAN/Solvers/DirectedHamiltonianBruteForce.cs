@@ -6,8 +6,7 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Solvers;
 
-class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN>
-{
+class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
 
     // --- Fields ---
     public string solverName { get; } = "Directed Hamiltonian Path Brute Force Solver";
@@ -31,8 +30,7 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN>
 
     public DirectedHamiltonianBruteForce() { }
 
-    private string CombinationToCertificate(List<string> combination)
-    {
+    private string CombinationToCertificate(List<string> combination) {
         var sb = new StringBuilder();
         sb.Append("{");
         foreach (var node in combination)
@@ -41,26 +39,19 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN>
         return sb.ToString();
     }
 
-    private bool HasEdge(DIRECTEDHAMILTONIAN graph, string fromNode, string toNode)
-    {
+    private bool HasEdge(DIRECTEDHAMILTONIAN graph, string fromNode, string toNode) {
         return graph.edges.Any(e => e.Key == fromNode && e.Value == toNode);
     }
 
-    private IEnumerable<List<string>> PermuteWithPruning(List<string> nodes, DIRECTEDHAMILTONIAN graph, int start = 0)
-    {
-        if (start == nodes.Count - 1)
-        {
+    private IEnumerable<List<string>> PermuteWithPruning(List<string> nodes, DIRECTEDHAMILTONIAN graph, int start = 0) {
+        if (start == nodes.Count - 1) {
             yield return new List<string>(nodes);
-        }
-        else
-        {
-            for (int i = start; i < nodes.Count; i++)
-            {
+        } else {
+            for (int i = start; i < nodes.Count; i++) {
                 (nodes[start], nodes[i]) = (nodes[i], nodes[start]);
 
                 // Early pruning: check edge between last node in partial path and current node
-                if (start == 0 || HasEdge(graph, nodes[start - 1], nodes[start]))
-                {
+                if (start == 0 || HasEdge(graph, nodes[start - 1], nodes[start])) {
                     foreach (var perm in PermuteWithPruning(nodes, graph, start + 1))
                         yield return perm;
                 }
@@ -70,13 +61,10 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN>
         }
     }
 
-    public string solve(DIRECTEDHAMILTONIAN hamiltonian)
-    {
-        foreach (var combination in PermuteWithPruning(hamiltonian.nodes, hamiltonian))
-        {
+    public string solve(DIRECTEDHAMILTONIAN hamiltonian) {
+        foreach (var combination in PermuteWithPruning(hamiltonian.nodes, hamiltonian)) {
             string certificate = CombinationToCertificate(combination);
-            if (hamiltonian.defaultVerifier.verify(hamiltonian, certificate))
-            {
+            if (hamiltonian.defaultVerifier.verify(hamiltonian, certificate)) {
                 return certificate;
             }
         }

@@ -2,8 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Verifiers;
 
-class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT>
-{
+class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT> {
     // --- Fields ---
     public string verifierName { get; } = "Topological Order Verifier";
     public string verifierDefinition { get; } = "Given a proposed ordering of vertices, the verifier checks that (1) every vertex in the graph appears exactly once in the ordering, and (2) for every directed edge (u,v) in the graph, u appears before v in the ordering.";
@@ -17,8 +16,7 @@ class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT>
     public TopologicalSortVerifier() { }
 
     // --- Methods ---
-    public bool verify(TOPOLOGICALSORT problem, string certificate)
-    {
+    public bool verify(TOPOLOGICALSORT problem, string certificate) {
         // Parse the certificate into an ordered list of nodes
         List<string> order = certificate.Replace("{", "").Replace("}", "")
             .Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -28,8 +26,7 @@ class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT>
             return false;
 
         List<string> check = new List<string>(problem.nodes);
-        foreach (string node in order)
-        {
+        foreach (string node in order) {
             if (!check.Contains(node))
                 return false;
             check.Remove(node);
@@ -42,8 +39,7 @@ class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT>
         for (int i = 0; i < order.Count; i++)
             position[order[i]] = i;
 
-        foreach (var edge in problem.edges)
-        {
+        foreach (var edge in problem.edges) {
             if (!position.ContainsKey(edge.Key) || !position.ContainsKey(edge.Value))
                 return false;
             if (position[edge.Key] >= position[edge.Value])
