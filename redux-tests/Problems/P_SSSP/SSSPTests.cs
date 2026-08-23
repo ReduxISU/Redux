@@ -93,8 +93,7 @@ public class SSSP_Tests {
     // ----- Format declarations ----- //
 
     [Fact]
-    public void SSSP_Instance_Format_Described()
-    {
+    public void SSSP_Instance_Format_Described() {
         SSSP problem = new SSSP();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -102,8 +101,7 @@ public class SSSP_Tests {
     }
 
     [Fact]
-    public void SSSP_Certificate_Format_Described()
-    {
+    public void SSSP_Certificate_Format_Described() {
         SSSP problem = new SSSP();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -111,8 +109,7 @@ public class SSSP_Tests {
     }
 
     [Fact]
-    public void SSSP_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void SSSP_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         SSSP problem = new SSSP();
