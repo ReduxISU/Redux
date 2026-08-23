@@ -17,9 +17,13 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     public string problemDefinition { get; } = "Deutsch's algorithm determines whether a given function f: {0,1} -> {0,1} is constant or balanced. The problem has four possible input functions and is represented to the ordered list of outputs, i.e. (f(0), f(1))."; // plaintext description of the problem
     public string source { get; } = "Deutsch, David. 1985. Quantum theory, the Church-Turing principle and the universal quantum computer. Proc. R. Soc. Lond. A40097-117"; // Academic paper proper citation
     public string sourceLink { get; } = "https://royalsocietypublishing.org/doi/10.1098/rspa.1985.0070"; // Link to the academic paper
+    public const string InstanceGrammar = "{(i,w) | i is int, w is int}";
     private static readonly string _defaultInstance = "(0,1)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} (i,w are bits encoding f: f(0) = (i != 0), f(1) = (w != 0)) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {DeutschClassicalVerifier.CertificateGrammar} Example: {DeutschClassicalVerifier.CertificateExample}";
     public string wikiName { get; } = ""; // Wiki name or link? - not used yet
     public DeutschClassicalSolver defaultSolver { get; } = new DeutschClassicalSolver();
     public DeutschClassicalVerifier defaultVerifier { get; } = new DeutschClassicalVerifier();
@@ -53,7 +57,7 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     public DEUTSCH(string input) {
         instance = input;
 
-        StringParser parser = new("{(i, w) | i is int, w is int}");
+        StringParser parser = new(InstanceGrammar);
 
         parser.parse(instance);
 
