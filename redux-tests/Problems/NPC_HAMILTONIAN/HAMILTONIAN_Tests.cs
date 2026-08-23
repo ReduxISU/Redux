@@ -6,15 +6,13 @@ namespace redux_tests;
 
 #pragma warning disable CS1591
 
-public class HAMILTONIAN_Tests
-{
+public class HAMILTONIAN_Tests {
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void HAMILTONIAN_Instance_Format_Described()
-    {
+    public void HAMILTONIAN_Instance_Format_Described() {
         HAMILTONIAN problem = new HAMILTONIAN();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -22,8 +20,7 @@ public class HAMILTONIAN_Tests
     }
 
     [Fact]
-    public void HAMILTONIAN_Certificate_Format_Described()
-    {
+    public void HAMILTONIAN_Certificate_Format_Described() {
         HAMILTONIAN problem = new HAMILTONIAN();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -31,8 +28,7 @@ public class HAMILTONIAN_Tests
     }
 
     [Fact]
-    public void HAMILTONIAN_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void HAMILTONIAN_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         HAMILTONIAN problem = new HAMILTONIAN();
