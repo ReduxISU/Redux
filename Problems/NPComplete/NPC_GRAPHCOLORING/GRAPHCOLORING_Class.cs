@@ -21,6 +21,8 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
 
     private static string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of undirected edges as {node,node} pairs, and K is the target number of colors. Example: (({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
+    public string certificateFormat { get; } = "Outer-brace-wrapped, comma-separated list of color classes, each a brace-wrapped set of node names, together partitioning all nodes such that no two nodes sharing an edge are in the same class. Example: {{a},{b,d,f,h},{c,e,g,i}}";
 
     public string instance {get;set;} = string.Empty;
 

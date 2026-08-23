@@ -94,4 +94,36 @@ public class GRAPHCOLORING_Tests {
         string certificate = solver.solve(problem);
         Assert.True(verifier.verify(problem, certificate));
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void GRAPHCOLORING_Instance_Format_Described()
+    {
+        GRAPHCOLORING problem = new GRAPHCOLORING();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E),K", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void GRAPHCOLORING_Certificate_Format_Described()
+    {
+        GRAPHCOLORING problem = new GRAPHCOLORING();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("color classes", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void GRAPHCOLORING_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        GRAPHCOLORING problem = new GRAPHCOLORING();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
+        Assert.True(verifier.verify(problem, "{{a},{b,d,f,h},{c,e,g,i}}"));
+    }
 }
