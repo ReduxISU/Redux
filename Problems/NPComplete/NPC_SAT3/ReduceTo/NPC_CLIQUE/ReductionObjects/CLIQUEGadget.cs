@@ -3,8 +3,7 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_CLIQUE;
 #pragma warning disable CS1591
 
-public class CLIQUEGadget : IGadget
-{
+public class CLIQUEGadget : IGadget {
 
     private string _reductionType;
 
@@ -14,7 +13,7 @@ public class CLIQUEGadget : IGadget
 
     private int _uniqueId; //NEEDED FOR SERIALIZATION!!!
 
-    public CLIQUEGadget(string reductionType, string gadgetString,int id){
+    public CLIQUEGadget(string reductionType, string gadgetString, int id) {
         _reductionType = reductionType;
         _gadgetString = gadgetString;
         _problemType = "CLIQUE";
@@ -22,52 +21,43 @@ public class CLIQUEGadget : IGadget
     }
 
 
-    public string reductionType
-    {
-        get
-        {
+    public string reductionType {
+        get {
             return _reductionType;
         }
-        set
-        {
+        set {
             _reductionType = value;
         }
     }
 
-    public string problemType
-    {
-        get
-        {
+    public string problemType {
+        get {
             return _problemType;
         }
-        set
-        {
+        set {
             _problemType = value;
         }
     }
 
-    public string gadgetString
-    {
-        get
-        {
+    public string gadgetString {
+        get {
             return _gadgetString;
         }
-        set
-        {
+        set {
             _gadgetString = value;
         }
     }
 
-        public int uniqueId{
-        get{
+    public int uniqueId {
+        get {
             return _uniqueId;
         }
-        set{
+        set {
             _uniqueId = value;
         }
     }
 
-    override public string? ToString(){
+    override public string? ToString() {
 
         return _gadgetString;
     }
