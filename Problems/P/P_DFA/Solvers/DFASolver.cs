@@ -4,8 +4,7 @@ using API.Problems.P.P_DFA;
 
 namespace API.Problems.P.P_DFA.Solvers;
 
-class DFASolver : ISolver<DFA>
-{
+class DFASolver : ISolver<DFA> {
 
     // ----- Fields ----- //
     public string solverName { get; } = "DFA Solver";
@@ -28,8 +27,7 @@ class DFASolver : ISolver<DFA>
     // Methods Including Constructors //
     public DFASolver() { }
 
-    public string solve(DFA problem)
-    {
+    public string solve(DFA problem) {
         // Input String //
         string inputString = problem.inputString;
         // First Node To Be Analyzed //
@@ -37,23 +35,19 @@ class DFASolver : ISolver<DFA>
         // Will Track Path Through Nodes //
         nodePath = new List<string> { currentNode };
 
-        foreach (char character in inputString)
-        {
+        foreach (char character in inputString) {
             // Accept Empty String If Start State Is an Accept State //
             if (character == 'ε' && problem.acceptStates.Contains(currentNode)) return $"The sequence of states to accept is: {currentNode}";
 
             // Check If Character Is In Alphabet //
-            if (!problem.alphabet.Contains(character))
-            {
+            if (!problem.alphabet.Contains(character)) {
                 return $"No Solution: Input contains character '{character}' not in DFA alphabet";
             }
 
             // Follow the Edge //
             bool foundEdge = false;
-            foreach (var edge in problem.edges)
-            {
-                if (edge.From == currentNode && edge.Symbol == character)
-                {
+            foreach (var edge in problem.edges) {
+                if (edge.From == currentNode && edge.Symbol == character) {
                     currentNode = edge.To;
                     nodePath.Add(currentNode);
                     foundEdge = true;
@@ -62,25 +56,20 @@ class DFASolver : ISolver<DFA>
             }
 
             // If No Edge, DFA Stops //
-            if (!foundEdge)
-            {
+            if (!foundEdge) {
                 return "No Solution Exists: DFA cannot transition with this character";
             }
         }
 
         // Check If Last State Is Accept State //
-        if (problem.acceptStates.Contains(currentNode))
-        {
+        if (problem.acceptStates.Contains(currentNode)) {
             return "The sequence of states to accept is: " + string.Join(", ", nodePath);
-        }
-        else
-        {
+        } else {
             return "No Solution Exists: The DFA ended in a non-accepting state";
         }
     }
 
-    public List<Object> GetSteps(string instance)
-    {
+    public List<Object> GetSteps(string instance) {
         solve(new DFA(instance));
 
         return nodePath.Cast<Object>().ToList();
@@ -88,8 +77,7 @@ class DFASolver : ISolver<DFA>
 
     // ----- Table Visualization Support ----- //
 
-    public class DFATableStepRow
-    {
+    public class DFATableStepRow {
         public int step { get; set; }
         public string symbol { get; set; } = "-";
         public string fromState { get; set; } = "-";
@@ -101,16 +89,14 @@ class DFASolver : ISolver<DFA>
     // (`currentRow`). Every frame carries every row, so the table itself never changes shape and
     // only the highlight moves -- the same frame shape SPSP/SSSP feed to the shared DynamicTable
     // renderer, which is why no DFA-specific renderer or first/last-step special case is needed.
-    public class DFATableStep
-    {
+    public class DFATableStep {
         public int currentRow { get; set; }
         public List<DFATableStepRow> rows { get; set; } = new();
     }
 
     // GetTableSteps: Traces the single deterministic path through the DFA once, then emits one
     // frame per row of that trace, walking the highlight down the table.
-    public List<Object> GetTableSteps(DFA problem)
-    {
+    public List<Object> GetTableSteps(DFA problem) {
         string inputString = problem.inputString;
         string currentNode = problem.startState;
 
@@ -125,8 +111,7 @@ class DFASolver : ISolver<DFA>
         };
 
         int stepIndex = 1;
-        foreach (char character in inputString)
-        {
+        foreach (char character in inputString) {
             if (character == 'ε' && problem.acceptStates.Contains(currentNode))
                 break;
 
@@ -138,8 +123,7 @@ class DFASolver : ISolver<DFA>
                 break; // No transition available; DFA rejects, table stops where the trace stalls
 
             currentNode = matchedEdge.To;
-            rows.Add(new DFATableStepRow
-            {
+            rows.Add(new DFATableStepRow {
                 step = stepIndex,
                 symbol = character.ToString(),
                 fromState = matchedEdge.From,

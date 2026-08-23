@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_NODESET;
 
-class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefaultVisualization, UtilCollectionGraph>
-{
+class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
     public string problemName { get; } = "Feedback Node Set";
@@ -35,54 +34,42 @@ class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefault
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
-    public int K
-    {
-        get
-        {
+    public int K {
+        get {
             return _K;
         }
-        set
-        {
+        set {
             _K = value;
         }
     }
-    public List<string> nodes
-    {
-        get
-        {
+    public List<string> nodes {
+        get {
             return _nodes;
         }
-        set
-        {
+        set {
             _nodes = value;
         }
     }
-    public List<KeyValuePair<string, string>> edges
-    {
-        get
-        {
+    public List<KeyValuePair<string, string>> edges {
+        get {
             return _edges;
         }
-        set
-        {
+        set {
             _edges = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public NODESET() : this(_defaultInstance)
-    {
+    public NODESET() : this(_defaultInstance) {
 
     }
-    public NODESET(string GInput)
-    {
+    public NODESET(string GInput) {
         instance = GInput;
 
         StringParser nodeSet = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
         nodeSet.parse(GInput);
         nodes = nodeSet["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = nodeSet["E"].ToList().Select(edge =>
-        {
+        edges = nodeSet["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
         }).ToList();
