@@ -18,6 +18,8 @@ class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefault
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     private static string _defaultInstance = "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of directed edges as (from,to) pairs, and K is the maximum number of nodes that may be removed to break every cycle. Example: (({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)";
+    public string certificateFormat { get; } = "Set of node names to remove, containing at most K nodes, such that removing them (and their incident edges) from the graph leaves it acyclic. Example: {3}";
     public string instance { get; set; } = string.Empty;
     private int _K;
 
