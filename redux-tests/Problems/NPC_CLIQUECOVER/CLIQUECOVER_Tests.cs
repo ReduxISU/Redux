@@ -155,8 +155,7 @@ public class CLIQUECOVER_tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void CLIQUECOVER_Instance_Format_Described()
-    {
+    public void CLIQUECOVER_Instance_Format_Described() {
         var problem = new CLIQUECOVER();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
@@ -164,8 +163,7 @@ public class CLIQUECOVER_tests {
     }
 
     [Fact]
-    public void CLIQUECOVER_Certificate_Format_Described()
-    {
+    public void CLIQUECOVER_Certificate_Format_Described() {
         var problem = new CLIQUECOVER();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
@@ -173,8 +171,7 @@ public class CLIQUECOVER_tests {
     }
 
     [Fact]
-    public void CLIQUECOVER_Certificate_Format_Example_Is_Actually_Valid()
-    {
+    public void CLIQUECOVER_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new CLIQUECOVER();

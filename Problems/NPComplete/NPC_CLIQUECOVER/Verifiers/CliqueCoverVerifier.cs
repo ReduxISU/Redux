@@ -4,6 +4,8 @@ using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_CLIQUECOVER.Verifiers;
 
 class CliqueCoverVerifier : IVerifier<CLIQUECOVER> {
+    public const string CertificateGrammar = "{clique1,...,cliqueM} | cliques partition N, M <= K, each clique fully connected in E";
+    public const string CertificateExample = "{1,2,3},{4,5},{6,7,8}";
 
     // --- Fields ---
     public string verifierName { get; } = "Clique Cover Verifier";
