@@ -274,4 +274,36 @@ public class DFA_Tests
         string result = solver.solve(dfa);
         Assert.Contains(expectedPath, result);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void DFA_Instance_Format_Described()
+    {
+        DFA dfa = new DFA();
+        Assert.NotNull(dfa.instanceFormat);
+        Assert.NotEmpty(dfa.instanceFormat);
+        Assert.Contains("N,A,E,S,F", dfa.instanceFormat);
+    }
+
+    [Fact]
+    public void DFA_Certificate_Format_Described()
+    {
+        DFA dfa = new DFA();
+        Assert.NotNull(dfa.certificateFormat);
+        Assert.NotEmpty(dfa.certificateFormat);
+        Assert.Contains("node names", dfa.certificateFormat);
+    }
+
+    [Fact]
+    public void DFA_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: 1,2" quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        DFA dfa = new DFA();
+        DFAVerifier verifier = new DFAVerifier();
+        Assert.True(verifier.verify(dfa, "1,2"));
+    }
 }

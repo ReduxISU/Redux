@@ -295,4 +295,37 @@ public class NFA_Tests
         string result = solver.solve(nfa);
         Assert.Contains("s, t", result);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void NFA_Instance_Format_Described()
+    {
+        NFA nfa = new NFA();
+        Assert.NotNull(nfa.instanceFormat);
+        Assert.NotEmpty(nfa.instanceFormat);
+        Assert.Contains("N,A,E,S,F", nfa.instanceFormat);
+        Assert.Contains("epsilon", nfa.instanceFormat, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NFA_Certificate_Format_Described()
+    {
+        NFA nfa = new NFA();
+        Assert.NotNull(nfa.certificateFormat);
+        Assert.NotEmpty(nfa.certificateFormat);
+        Assert.Contains("node names", nfa.certificateFormat);
+    }
+
+    [Fact]
+    public void NFA_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: 1,2" quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        NFA nfa = new NFA();
+        NFAVerifier verifier = new NFAVerifier();
+        Assert.True(verifier.verify(nfa, "1,2"));
+    }
 }

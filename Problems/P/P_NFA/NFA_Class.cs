@@ -27,6 +27,8 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,ε,2),(1,b,3),(2,a,2),(2,ε,3),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = "((N,A,E,S,F),I) where N is the set of node names, A is the alphabet (set of single characters), E is the set of transitions as (from,symbol,to) triples (symbol may be 'ε', 'epsilon', or 'eps' for an epsilon-transition), S is the start node, F is the set of accept nodes, and I is the input string to test. Example: (({1,2,3},{a,b},{(1,a,2),(1,ε,2),(1,b,3),(2,a,2),(2,ε,3),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
+    public string certificateFormat { get; } = "Comma-separated sequence of node names giving one accepting run through the NFA on the input string (nondeterministic — any run that consumes the whole input and ends in an accept state is a valid certificate), starting at the start state. Example: 1,2";
     public string wikiName { get; } = "N/A";
     public NFASolver defaultSolver { get; } = new NFASolver();
     public NFAVerifier defaultVerifier { get; } = new NFAVerifier();
