@@ -65,4 +65,36 @@ public class INDPENDENTSET_Tests {
         reduceToCLIQUE reduction = new reduceToCLIQUE(independentset);
         Assert.Equal(result, reduction.reductionTo.instance);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void INDEPENDENTSET_Instance_Format_Described()
+    {
+        INDEPENDENTSET problem = new INDEPENDENTSET();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E),K", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void INDEPENDENTSET_Certificate_Format_Described()
+    {
+        INDEPENDENTSET problem = new INDEPENDENTSET();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("independent set", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void INDEPENDENTSET_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        INDEPENDENTSET problem = new INDEPENDENTSET();
+        IndependentSetVerifier verifier = new IndependentSetVerifier();
+        Assert.True(verifier.verify(problem, "{c,d,g}"));
+    }
 }

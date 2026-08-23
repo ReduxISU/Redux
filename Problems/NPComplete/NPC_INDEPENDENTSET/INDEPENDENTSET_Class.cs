@@ -17,6 +17,8 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce,IndependentSetVeri
     private static string _defaultInstance = "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string instanceFormat { get; } = "((N,E),K) where N is the set of node names, E is the set of undirected edges as {node,node} pairs, and K is the required size of the independent set. Example: (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)";
+    public string certificateFormat { get; } = "Brace-wrapped, comma-separated independent set of exactly K node names, no two of which are joined by an edge. Example: {c,d,g}";
     public string wikiName {get;} = "";
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
