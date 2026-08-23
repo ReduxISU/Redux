@@ -21,6 +21,8 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     private static readonly string _defaultInstance = "(0,1)";
     public string defaultInstance {get;} = _defaultInstance;
     public string instance {get;set;} = string.Empty;
+    public string instanceFormat { get; } = "(i,w) where i and w are bits (0 or 1) encoding the hidden function f: f(0) = (i != 0), f(1) = (w != 0). Example: (0,1)";
+    public string certificateFormat { get; } = "The literal string 'constant' if f(0) equals f(1), or 'balanced' if they differ. Example: balanced";
     public string wikiName {get;} = ""; // Wiki name or link? - not used yet
     public DeutschClassicalSolver defaultSolver {get;} = new DeutschClassicalSolver();
     public DeutschClassicalVerifier defaultVerifier { get; } = new DeutschClassicalVerifier();

@@ -38,6 +38,38 @@ public class DEUTSCH_tests {
 
     }
 
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void DEUTSCH_Instance_Format_Described()
+    {
+        var problem = new DEUTSCH();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("i,w", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void DEUTSCH_Certificate_Format_Described()
+    {
+        var problem = new DEUTSCH();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("balanced", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void DEUTSCH_Certificate_Format_Example_Is_Actually_Valid()
+    {
+        // The "Example: balanced" quoted in certificateFormat must be a real,
+        // verifiable certificate for defaultInstance — not just descriptive prose.
+        var problem = new DEUTSCH();
+        var verifier = new DeutschClassicalVerifier();
+        Assert.True(verifier.verify(problem, "balanced"));
+    }
+
     [Theory] //tests solver
     [InlineData("(0,0)", "constant")]
     [InlineData("(1,1)", "constant")]
