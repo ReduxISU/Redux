@@ -7,8 +7,7 @@ using API.Problems.NPComplete.NPC_TSP.Solvers;
 
 namespace API.Problems.NPComplete.NPC_TSP.Visualizations;
 
-class TSPDefaultVisualization : IVisualization<TSP>
-{
+class TSPDefaultVisualization : IVisualization<TSP> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Travelling Sales Person Visualization";
@@ -19,17 +18,14 @@ class TSPDefaultVisualization : IVisualization<TSP>
     public ISolver solver { get; } = new TSPBruteForce();
 
     // --- Methods Including Constructors ---
-    public TSPDefaultVisualization()
-    {
+    public TSPDefaultVisualization() {
 
     }
-    public API_JSON visualize(TSP tsp)
-    {
+    public API_JSON visualize(TSP tsp) {
         return tsp.graph.ToAPIGraph();
     }
 
-    public API_JSON SolvedVisualization(TSP tsp, string solution)
-    {
+    public API_JSON SolvedVisualization(TSP tsp, string solution) {
         if (string.IsNullOrWhiteSpace(solution) || solution == "{}")
             return tsp.graph.ToAPIGraph();
 
@@ -43,8 +39,7 @@ class TSPDefaultVisualization : IVisualization<TSP>
         for (int i = 0; i < apiGraph.nodes.Count; i++)
             apiGraph.nodes[i].color = "Solution";
 
-        for (int i = 0; i < solutionNodes.Count - 1; i++)
-        {
+        for (int i = 0; i < solutionNodes.Count - 1; i++) {
             var from = solutionNodes[i];
             var to = solutionNodes[i + 1];
 

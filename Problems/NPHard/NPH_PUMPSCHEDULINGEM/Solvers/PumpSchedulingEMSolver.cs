@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Solvers;
 
-class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
-{
+class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
     public string solverName { get; } = "Pump Scheduling Emergency Resilience — DAG Constrained Longest Path";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents\r\n" +
@@ -32,17 +31,15 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
 
     public List<object> GetSteps(PUMPSCHEDULINGEM _) => [true];
 
-    private const int Hours     = 24;
+    private const int Hours = 24;
     private const double BudgetSlack = 1.5;
-    private const double Inf    = double.PositiveInfinity;
+    private const double Inf = double.PositiveInfinity;
     private const double NegInf = double.NegativeInfinity;
 
-    public string solve(PUMPSCHEDULINGEM problem)
-    {
+    public string solve(PUMPSCHEDULINGEM problem) {
         double effectiveBudget = problem.BudgetLimitDollars;
 
-        if (effectiveBudget <= 0)
-        {
+        if (effectiveBudget <= 0) {
             // Auto-compute: run cost-minimization solve first.
             double minCost = RunCostMinimization(problem);
             effectiveBudget = minCost * BudgetSlack;
@@ -51,8 +48,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         int[]? schedMasks = RunEmergencyResilience(problem, effectiveBudget);
 
         // Fallback: no feasible EM path — use all pumps every hour.
-        if (schedMasks == null)
-        {
+        if (schedMasks == null) {
             schedMasks = new int[Hours];
             int fullMask = (1 << problem.Pumps.Count) - 1;
             for (int h = 0; h < Hours; h++)
@@ -67,8 +63,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
     }
 
     // ── Cost-minimization sub-solve (shortest path) — returns total cost ──────
-    private double RunCostMinimization(PUMPSCHEDULINGEM problem)
-    {
+    private double RunCostMinimization(PUMPSCHEDULINGEM problem) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double cap = problem.TankCapacity;
@@ -90,8 +85,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         int initB = ToBucket(problem.TankCurrentLevel);
         dp[initB, 0] = 0.0;
 
-        for (int h = 0; h < Hours; h++)
-        {
+        for (int h = 0; h < Hours; h++) {
             if (timerHasExpired) return 0.0;
 
             double[,] next = new double[stateB, nMasks];
@@ -101,16 +95,13 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
 
             double demand = problem.DemandGph[h];
 
-            for (int b = 0; b < stateB; b++)
-            {
+            for (int b = 0; b < stateB; b++) {
                 double levelNow = ToLevel(b);
-                for (int prevMask = 0; prevMask < nMasks; prevMask++)
-                {
+                for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     double cur = dp[b, prevMask];
                     if (cur >= Inf) continue;
 
-                    for (int mask = 0; mask < nMasks; mask++)
-                    {
+                    for (int mask = 0; mask < nMasks; mask++) {
                         double newLevel = levelNow - demand + maskFlow[mask];
                         if (newLevel < minLevel || newLevel > cap) continue;
 
@@ -137,8 +128,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
     }
 
     // ── Emergency resilience solve (constrained longest path) ─────────────────
-    private int[]? RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit)
-    {
+    private int[]? RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double cap = problem.TankCapacity;
@@ -155,7 +145,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         // dp_cost[b, m]  = cumulative cost of the best path to (b, m)
         //                  "best" = highest score path still within budget
         // dp_score[b, m] = cumulative water stored along that path
-        double[,] dpCost  = new double[stateB, nMasks];
+        double[,] dpCost = new double[stateB, nMasks];
         double[,] dpScore = new double[stateB, nMasks];
 
         // parent arrays indexed by hour (after transition), to allow backtracking
@@ -163,76 +153,68 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         int[,,] parentM = new int[Hours + 1, stateB, nMasks];
 
         for (int b = 0; b < stateB; b++)
-            for (int m = 0; m < nMasks; m++)
-            {
-                dpCost[b, m]  = Inf;
+            for (int m = 0; m < nMasks; m++) {
+                dpCost[b, m] = Inf;
                 dpScore[b, m] = NegInf;
             }
         for (int h = 0; h <= Hours; h++)
             for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++)
-                {
+                for (int m = 0; m < nMasks; m++) {
                     parentB[h, b, m] = -1;
                     parentM[h, b, m] = -1;
                 }
 
         int initB = ToBucket(problem.TankCurrentLevel);
-        dpCost[initB, 0]  = 0.0;
+        dpCost[initB, 0] = 0.0;
         dpScore[initB, 0] = 0.0;
 
-        for (int h = 0; h < Hours; h++)
-        {
+        for (int h = 0; h < Hours; h++) {
             if (timerHasExpired) return null;
 
-            double[,] nextCost  = new double[stateB, nMasks];
+            double[,] nextCost = new double[stateB, nMasks];
             double[,] nextScore = new double[stateB, nMasks];
             for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++)
-                {
-                    nextCost[b, m]  = Inf;
+                for (int m = 0; m < nMasks; m++) {
+                    nextCost[b, m] = Inf;
                     nextScore[b, m] = NegInf;
                 }
 
             double demand = problem.DemandGph[h];
 
-            for (int b = 0; b < stateB; b++)
-            {
+            for (int b = 0; b < stateB; b++) {
                 double levelNow = ToLevel(b);
-                for (int prevMask = 0; prevMask < nMasks; prevMask++)
-                {
+                for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     double curCost = dpCost[b, prevMask];
                     if (curCost >= Inf) continue;
                     double curScore = dpScore[b, prevMask];
 
-                    for (int mask = 0; mask < nMasks; mask++)
-                    {
+                    for (int mask = 0; mask < nMasks; mask++) {
                         double newLevel = levelNow - demand + maskFlow[mask];
                         if (newLevel < minLevel || newLevel > cap) continue;
 
-                        double edgeCost  = EdgeCost(problem, prevMask, mask, h, n, nMasks);
+                        double edgeCost = EdgeCost(problem, prevMask, mask, h, n, nMasks);
                         double totalCost = curCost + edgeCost;
 
                         // Prune paths that exceed the budget.
                         if (totalCost > budgetLimit) continue;
 
-                        double edgeScore  = newLevel; // water stored after this hour
+                        double edgeScore = newLevel; // water stored after this hour
                         double totalScore = curScore + edgeScore;
 
                         int newB = ToBucket(newLevel);
 
                         // Keep the path with the highest cumulative water score.
-                        if (totalScore > nextScore[newB, mask])
-                        {
-                            nextCost[newB, mask]         = totalCost;
-                            nextScore[newB, mask]        = totalScore;
-                            parentB[h + 1, newB, mask]  = b;
-                            parentM[h + 1, newB, mask]  = prevMask;
+                        if (totalScore > nextScore[newB, mask]) {
+                            nextCost[newB, mask] = totalCost;
+                            nextScore[newB, mask] = totalScore;
+                            parentB[h + 1, newB, mask] = b;
+                            parentM[h + 1, newB, mask] = prevMask;
                         }
                     }
                 }
             }
 
-            dpCost  = nextCost;
+            dpCost = nextCost;
             dpScore = nextScore;
         }
 
@@ -241,8 +223,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         int bestB = -1, bestM = -1;
         for (int b = 0; b < stateB; b++)
             for (int m = 0; m < nMasks; m++)
-                if (dpCost[b, m] < Inf && dpScore[b, m] > bestScore)
-                {
+                if (dpCost[b, m] < Inf && dpScore[b, m] > bestScore) {
                     bestScore = dpScore[b, m];
                     bestB = b;
                     bestM = m;
@@ -253,8 +234,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         // Backtrack to recover the per-hour masks.
         int[] schedMasks = new int[Hours];
         int curB = bestB, curM = bestM;
-        for (int h = Hours; h > 0; h--)
-        {
+        for (int h = Hours; h > 0; h--) {
             schedMasks[h - 1] = curM;
             int pb = parentB[h, curB, curM];
             int pm = parentM[h, curB, curM];
@@ -267,8 +247,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static double[] BuildMaskFlow(PUMPSCHEDULINGEM problem, int n, int nMasks)
-    {
+    private static double[] BuildMaskFlow(PUMPSCHEDULINGEM problem, int n, int nMasks) {
         double[] maskFlow = new double[nMasks];
         for (int mask = 0; mask < nMasks; mask++)
             for (int p = 0; p < n; p++)
@@ -277,8 +256,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         return maskFlow;
     }
 
-    private static double EdgeCost(PUMPSCHEDULINGEM problem, int prevMask, int mask, int h, int n, int nMasks)
-    {
+    private static double EdgeCost(PUMPSCHEDULINGEM problem, int prevMask, int mask, int h, int n, int nMasks) {
         double rate = problem.PeakHours.Contains(h)
             ? problem.OnPeakCostPerKwh
             : problem.OffPeakCostPerKwh;
@@ -299,15 +277,13 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
         return energyCost + startupCost;
     }
 
-    internal static double ComputeTotalCost(PUMPSCHEDULINGEM problem, int[] schedMasks)
-    {
+    internal static double ComputeTotalCost(PUMPSCHEDULINGEM problem, int[] schedMasks) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double totalCost = 0.0;
         int prevMask = 0;
 
-        for (int h = 0; h < Hours; h++)
-        {
+        for (int h = 0; h < Hours; h++) {
             int mask = schedMasks[h];
             totalCost += EdgeCost(problem, prevMask, mask, h, n, nMasks);
             prevMask = mask;
@@ -317,8 +293,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
     }
 
     private static string BuildCertificate(PUMPSCHEDULINGEM problem, int[] schedMasks,
-        double effectiveBudget, double totalCost)
-    {
+        double effectiveBudget, double totalCost) {
         string fmt = System.Globalization.CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator == "."
             ? "F2"
             : "F2";
@@ -331,8 +306,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM>
 
         int n = problem.Pumps.Count;
         UtilCollection sched = new("()");
-        for (int p = 0; p < n; p++)
-        {
+        for (int p = 0; p < n; p++) {
             UtilCollection pumpSched = new("()");
             pumpSched.Add(new UtilCollection(problem.Pumps[p].Name));
             for (int h = 0; h < Hours; h++)

@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN;
 
-class DIRECTEDHAMILTONIAN : IGraphProblem<DirectedHamiltonianBruteForce, DirectedHamiltonianVerifier, DirectedHamiltonianDefaultVisualization, UtilCollectionGraph>
-{
+class DIRECTEDHAMILTONIAN : IGraphProblem<DirectedHamiltonianBruteForce, DirectedHamiltonianVerifier, DirectedHamiltonianDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
     public string problemName { get; } = "Directed Hamiltonian Path";
@@ -32,43 +31,34 @@ class DIRECTEDHAMILTONIAN : IGraphProblem<DirectedHamiltonianBruteForce, Directe
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
-    public List<string> nodes
-    {
-        get
-        {
+    public List<string> nodes {
+        get {
             return _nodes;
         }
-        set
-        {
+        set {
             _nodes = value;
         }
     }
-    public List<KeyValuePair<string, string>> edges
-    {
-        get
-        {
+    public List<KeyValuePair<string, string>> edges {
+        get {
             return _edges;
         }
-        set
-        {
+        set {
             _edges = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public DIRECTEDHAMILTONIAN() : this(_defaultInstance)
-    {
+    public DIRECTEDHAMILTONIAN() : this(_defaultInstance) {
 
     }
-    public DIRECTEDHAMILTONIAN(string GInput)
-    {
+    public DIRECTEDHAMILTONIAN(string GInput) {
         instance = GInput;
 
         StringParser directedhamiltonianparser = new("{(N,E) | N is set, E subset N cross N}");
         directedhamiltonianparser.parse(GInput);
         nodes = directedhamiltonianparser["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = directedhamiltonianparser["E"].ToList().Select(edge =>
-        {
+        edges = directedhamiltonianparser["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
         }).ToList();

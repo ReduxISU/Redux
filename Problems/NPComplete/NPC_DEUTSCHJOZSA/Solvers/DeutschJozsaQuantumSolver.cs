@@ -11,10 +11,10 @@ namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
 
     // --- Fields ---
-    public string solverName {get;} = "Deutsch-Jozsa Quantum API Solver";
-    public string solverDefinition {get;} = "Calls external quantum computing API to solve Deutsch-Jozsa's algorithm";
-    public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
-    public string[] contributors {get;} = { "Grant Gardner" };
+    public string solverName { get; } = "Deutsch-Jozsa Quantum API Solver";
+    public string solverDefinition { get; } = "Calls external quantum computing API to solve Deutsch-Jozsa's algorithm";
+    public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
+    public string[] contributors { get; } = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Delegates to the external quantum-simulator service.
     public SolverType solverType { get; } = SolverType.Quantum;
@@ -27,16 +27,13 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
     /// <summary>
     /// Creates a new DeutschJozsaQuantumSolver
     /// </summary>
-    public DeutschJozsaQuantumSolver()
-    {
+    public DeutschJozsaQuantumSolver() {
     }
 
     // --- Methods ---
 
-    public string solve(DEUTSCHJOZSA problem)
-    {
-        try
-        {
+    public string solve(DEUTSCHJOZSA problem) {
+        try {
             // Convert the list of integers to boolean array for the API
             bool[] requestBody = problem.w.Select(val => val != 0).ToArray();
 
@@ -50,16 +47,13 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement))
-            {
+            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
                 return answerElement.GetString() ?? "No answer found";
             }
 
             // If no answer field, return the whole response
             return response;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Return error information in case of failure
             return $"{{\"error\": \"{ex.Message}\"}}";
         }
