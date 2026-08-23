@@ -2,13 +2,14 @@
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
+
 class SubsetSumBruteForce : ISolver<SUBSETSUM> {
 
     // --- Fields ---
-    public string solverName {get;} = "Subset Sum Brute Force Solver";
-    public string solverDefinition {get;} = "This is a brute force solver for Subset Sum";
-    public string source {get;} = "";
-    public string[] contributors {get;} = { "Caleb Eardley","Garret Stouffer"};
+    public string solverName { get; } = "Subset Sum Brute Force Solver";
+    public string solverDefinition { get; } = "This is a brute force solver for Subset Sum";
+    public string source { get; } = "";
+    public string[] contributors { get; } = { "Caleb Eardley", "Garret Stouffer" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
@@ -32,7 +33,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
         return certificate.ToString();
     }
 
-    public string solve(SUBSETSUM subsetSum){
+    public string solve(SUBSETSUM subsetSum) {
         int n = subsetSum.S.Count;
 
         // Enumerate every subset by its bitmask so that all 2^n subsets -- including

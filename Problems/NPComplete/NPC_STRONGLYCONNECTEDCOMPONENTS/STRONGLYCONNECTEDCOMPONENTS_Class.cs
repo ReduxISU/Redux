@@ -8,8 +8,7 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
 class STRONGLYCONNECTEDCOMPONENTS
-    : IGraphProblem<KosarajuSolver, SCCVerifier, DummyVisualization, UtilCollectionGraph>
-{
+    : IGraphProblem<KosarajuSolver, SCCVerifier, DummyVisualization, UtilCollectionGraph> {
     public string problemName { get; } = "Strongly Connected Components";
 
     public string problemLink { get; } =
@@ -58,8 +57,7 @@ class STRONGLYCONNECTEDCOMPONENTS
 
     public STRONGLYCONNECTEDCOMPONENTS() : this(_defaultInstance) { }
 
-    public STRONGLYCONNECTEDCOMPONENTS(string instanceString)
-    {
+    public STRONGLYCONNECTEDCOMPONENTS(string instanceString) {
         instance = instanceString;
 
         StringParser parser = new("{(N,E) | N is set, E subset {(u,v) | u is N, v is N}}");

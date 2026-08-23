@@ -10,13 +10,12 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 /// solution to the instance.
 /// </summary>
 /// 
-class SATGroverSolver : ISolver<SAT>
-{
+class SATGroverSolver : ISolver<SAT> {
     // --- Fields ---
     public string solverName { get; } = "SAT Solver using Grover's Quantum computing algorithm.";
     public string solverDefinition { get; } = "This solver builds the expression as a quantum circuit and then uses Grover's algorithm to probablisticly detemine a solution";
-    public string source {get;} = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
-    public string[] contributors {get;} = { "Jason L. Wright" };
+    public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
+    public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Delegates to the external quantum-simulator service.
     public SolverType solverType { get; } = SolverType.Quantum;
@@ -30,25 +29,20 @@ class SATGroverSolver : ISolver<SAT>
     /// <summary>
     /// Creates a new BernsteinVaziraniQuantumSolver using the ISU AWS server by default
     /// </summary>
-    public SATGroverSolver()
-    {
+    public SATGroverSolver() {
     }
 
-    public class JSON_Sat_Problem
-    {
-        public string boolexpr {get; set;}
-        public JSON_Sat_Problem(string expr)
-        {
+    public class JSON_Sat_Problem {
+        public string boolexpr { get; set; }
+        public JSON_Sat_Problem(string expr) {
             boolexpr = expr;
         }
     }
 
     // --- Methods ---
 
-    public string solve(SAT problem)
-    {
-        try
-        {
+    public string solve(SAT problem) {
+        try {
             var requestBody = new JSON_Sat_Problem(problem.instance);
 
             // Create the API client
@@ -61,21 +55,17 @@ class SATGroverSolver : ISolver<SAT>
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("qasm", out JsonElement circuitElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement circuitElement)) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement))
-            {
+            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
                 return answerElement.GetString() ?? "No answer found";
             }
 
             // If no answer field, return the whole response
             return response;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Return error information in case of failure
             return $"{{\"error\": \"{ex.Message}\"}}";
         }

@@ -2,8 +2,7 @@
 /// Manages configuration settings for the Quantum Solver service.
 /// Provides a default base URL and allows customization through constructors.
 /// </summary>
-public static class QuantumSolverSettingsGlobal
-{
+public static class QuantumSolverSettingsGlobal {
     /// <summary>Global Quantum Solver configuration instance, populated at startup.</summary>
     public static QuantumSolverSettings QuantumSolver { get; internal set; } = null!;
 
@@ -12,8 +11,7 @@ public static class QuantumSolverSettingsGlobal
 }
 
 /// <summary>Configuration settings for the Quantum Solver service.</summary>
-public class QuantumSolverSettings
-{
+public class QuantumSolverSettings {
     /// <summary>
     /// Gets or sets the base URL for the Quantum Solver service.
     /// </summary>
