@@ -18,8 +18,7 @@ namespace API.Interfaces;
 /// </para>
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ReductionType>))]
-public enum ReductionType
-{
+public enum ReductionType {
     /// <summary>No reduction type has been declared for this reduction yet.</summary>
     Unclassified = 0,
     /// <summary>

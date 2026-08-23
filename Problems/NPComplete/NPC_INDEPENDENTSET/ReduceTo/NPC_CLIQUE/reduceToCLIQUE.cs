@@ -14,12 +14,12 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
 
     // --- Fields ---
-    public string reductionName {get;} = "Clique reduction";
-    public string reductionDefinition {get;} = @"This reduction converts an independent set problem into a clique problem, 
+    public string reductionName { get; } = "Clique reduction";
+    public string reductionDefinition { get; } = @"This reduction converts an independent set problem into a clique problem, 
                                             by taking the complement of the graph, or inverting all the edges.";
-    public string source {get;} = "";
+    public string source { get; } = "";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)#Relationship_to_other_graph_parameters";
-    public string[] contributors {get;} = {"Russell Phillips"};
+    public string[] contributors { get; } = { "Russell Phillips" };
     // reduce() materializes the complement graph (all node pairs that are NOT edges
     // in the input) — up to O(n^2) edges even when the input only encodes O(n+m).
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
@@ -106,7 +106,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
         nodesString = nodesString.Trim(',');
 
         string edgesString = "";
-        foreach (KeyValuePair<string,string> edge in edges) {
+        foreach (KeyValuePair<string, string> edge in edges) {
             edgesString += "{" + edge.Key + "," + edge.Value + "}" + ",";
         }
         edgesString = edgesString.Trim(',');

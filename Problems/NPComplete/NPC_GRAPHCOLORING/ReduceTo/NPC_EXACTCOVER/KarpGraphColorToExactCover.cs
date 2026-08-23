@@ -9,11 +9,11 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_EXACTCOVER;
 class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
 
     // --- Fields ---
-    public string reductionName {get;} = "Exact Cover Reduction";
-    public string reductionDefinition {get;} = "Karp's Reduction from Exact Cover to Subset Sum";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string reductionName { get; } = "Exact Cover Reduction";
+    public string reductionDefinition { get; } = "Karp's Reduction from Exact Cover to Subset Sum";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // The final gadget block ("foreach edge: for f1 in 1..K: for f2 in 1..K: build an
     // O(K)-sized subset") unconditionally emits O(m * K^3) new subset elements that
     // have no counterpart already in the GRAPHCOLORING input encoding.
@@ -120,11 +120,11 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
                 for (int f2 = 1; f2 <= reductionFrom.K; f2++) {
                     if (f1 != f2) {
                         currentSubset.Add(e.Key + '_' + e.Value);
-                        for(int i = 1; i <= reductionFrom.K; i++)
-                            if(i != f1)
+                        for (int i = 1; i <= reductionFrom.K; i++)
+                            if (i != f1)
                                 currentSubset.Add(e.Key + '_' + e.Key + '_' + e.Value + '_' + i.ToString());
-                        for(int i = 1; i <= reductionFrom.K; i++)
-                            if(i != f2)
+                        for (int i = 1; i <= reductionFrom.K; i++)
+                            if (i != f2)
                                 currentSubset.Add(e.Value + '_' + e.Key + '_' + e.Value + '_' + i.ToString());
                         subsets.Add(new List<string>(currentSubset));
                         currentSubset.Clear();

@@ -7,11 +7,11 @@ namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_PARTITION;
 class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
 
     // --- Fields ---
-    public string reductionName {get;} = "PARTITION Reduction";
-    public string reductionDefinition {get;} = "Karp's Reduction from Subset Sum to Partition";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string reductionName { get; } = "PARTITION Reduction";
+    public string reductionDefinition { get; } = "Karp's Reduction from Subset Sum to Partition";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = {"Andrija Sevaljevic"};
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // reduce() copies S (one pass) and appends exactly 2 derived numbers — O(n).
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
@@ -24,18 +24,18 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = "O(n), n = |SUBSETSUM.S|";
-    private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
+    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private SUBSETSUM _reductionFrom;
     private PARTITION _reductionTo;
 
 
     // --- Properties ---
-    public Dictionary<Object,Object> gadgetMap {
-        get{
+    public Dictionary<Object, Object> gadgetMap {
+        get {
             return _gadgetMap;
         }
-        set{
+        set {
             _gadgetMap = value;
         }
     }
@@ -55,7 +55,7 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
             _reductionTo = value;
         }
     }
-    
+
 
 
     // --- Methods Including Constructors ---

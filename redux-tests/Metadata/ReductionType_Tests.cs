@@ -11,8 +11,7 @@ namespace redux_tests;
 // Same "declared, not derived" pattern and same ratchet-pair structure as
 // SolverType_Tests.cs / ReductionCost_Tests.cs — see those files' headers for the
 // general rationale.
-public class ReductionType_Tests : IClassFixture<AppFactory>
-{
+public class ReductionType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
@@ -25,8 +24,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     // regression guard.
 
     [Fact]
-    public async Task Reductions_SerializesTypeAndBucketAsStringOnEveryEdge()
-    {
+    public async Task Reductions_SerializesTypeAndBucketAsStringOnEveryEdge() {
         var response = await _client.GetAsync("/Navigation/Reductions", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -34,12 +32,9 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
         using var doc = JsonDocument.Parse(body);
 
         int checkedCount = 0;
-        foreach (var fromProp in doc.RootElement.EnumerateObject())
-        {
-            foreach (var toProp in fromProp.Value.EnumerateObject())
-            {
-                foreach (var edge in toProp.Value.EnumerateArray())
-                {
+        foreach (var fromProp in doc.RootElement.EnumerateObject()) {
+            foreach (var toProp in fromProp.Value.EnumerateObject()) {
+                foreach (var edge in toProp.Value.EnumerateArray()) {
                     Assert.True(edge.TryGetProperty("reductionType", out var typeProp),
                         $"Expected a reductionType property on every edge in /Navigation/Reductions. Edge:\n{edge}");
                     Assert.True(edge.TryGetProperty("complexityBucket", out var bucketProp),
@@ -65,8 +60,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     // the real Newtonsoft-enum-as-int risk path; the ReductionEdge mirror above is
     // already safe by construction and doesn't exercise it.
     [Fact]
-    public async Task Info_SerializesReductionTypeAndBucketAsString()
-    {
+    public async Task Info_SerializesReductionTypeAndBucketAsString() {
         var response = await _client.GetAsync(
             "/ProblemProvider/info?interface=KarpVertexCoverToSetCover",
             TestContext.Current.CancellationToken);
@@ -90,8 +84,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     // (Nav_Batch.InfoJson), including reductions — same raw-instance risk path as
     // ProblemProvider.info above, exercised across every reduction class instead of one.
     [Fact]
-    public async Task AllInfo_SerializesEveryReductionTypeAndBucketAsString()
-    {
+    public async Task AllInfo_SerializesEveryReductionTypeAndBucketAsString() {
         var response = await _client.GetAsync("/Navigation/Batch/allInfo", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -101,16 +94,14 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
 
         int checkedType = 0;
         int checkedBucket = 0;
-        foreach (var (className, element) in map!)
-        {
+        foreach (var (className, element) in map!) {
             if (element.ValueKind != JsonValueKind.Object) continue;
             // reductionFrom/reductionTo are IProblem, not IReduction — they don't carry
             // these properties, but guard against a same-named property elsewhere by
             // also requiring reductionName, which is IReduction-specific.
             if (!element.TryGetProperty("reductionName", out _)) continue;
 
-            if (element.TryGetProperty("reductionType", out var typeProp))
-            {
+            if (element.TryGetProperty("reductionType", out var typeProp)) {
                 checkedType++;
                 Assert.True(typeProp.ValueKind == JsonValueKind.String,
                     $"{className}.reductionType serialized as {typeProp.ValueKind}, expected String. This is " +
@@ -118,8 +109,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
                     "StringEnumConverter is pinned on ReductionType.");
             }
 
-            if (element.TryGetProperty("complexityBucket", out var bucketProp))
-            {
+            if (element.TryGetProperty("complexityBucket", out var bucketProp)) {
                 checkedBucket++;
                 Assert.True(bucketProp.ValueKind == JsonValueKind.String,
                     $"{className}.complexityBucket serialized as {bucketProp.ValueKind}, expected String. This " +
@@ -152,8 +142,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclaredReductionType()
-    {
+    public void NoNewUndeclaredReductionType() {
         var actual = ActualReductionTypeUndeclared();
         var allowlist = new HashSet<string>(ReductionTypeUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -166,8 +155,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleReductionTypeEntries()
-    {
+    public void AllowlistHasNoStaleReductionTypeEntries() {
         var actual = ActualReductionTypeUndeclared();
         var stale = ReductionTypeUnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 
@@ -192,8 +180,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclaredComplexityBucket()
-    {
+    public void NoNewUndeclaredComplexityBucket() {
         var actual = ActualComplexityBucketUndeclared();
         var allowlist = new HashSet<string>(ComplexityBucketUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -206,8 +193,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleComplexityBucketEntries()
-    {
+    public void AllowlistHasNoStaleComplexityBucketEntries() {
         var actual = ActualComplexityBucketUndeclared();
         var stale = ComplexityBucketUnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 
@@ -239,8 +225,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void NoNewUndeclaredComplexity()
-    {
+    public void NoNewUndeclaredComplexity() {
         var actual = ActualComplexityUndeclared();
         var allowlist = new HashSet<string>(ComplexityUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
@@ -253,8 +238,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void AllowlistHasNoStaleComplexityEntries()
-    {
+    public void AllowlistHasNoStaleComplexityEntries() {
         var actual = ActualComplexityUndeclared();
         var stale = ComplexityUnclassifiedAllowlist.Where(c => !actual.Contains(c)).ToList();
 
@@ -286,8 +270,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     // class boundary) makes every catalog's per-type try/catch skip this class, same as
     // any other reduction that can't be default-constructed, while still being callable
     // from test methods in this same assembly.
-    private sealed class FakeReduction : IReduction
-    {
+    private sealed class FakeReduction : IReduction {
         internal FakeReduction() { }
 
         public string reductionName => "Fake";
@@ -305,8 +288,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void MostEfficient_PrefersFasterComplexityBucketOverCheaperCost()
-    {
+    public void MostEfficient_PrefersFasterComplexityBucketOverCheaperCost() {
         var slowButSmall = new FakeReduction { complexityBucket = ReductionComplexityBucket.Exponential, cost = ReductionCost.Linear };
         var fastButBig = new FakeReduction { complexityBucket = ReductionComplexityBucket.Linear, cost = ReductionCost.HigherPolynomial };
 
@@ -316,8 +298,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void MostEfficient_UsesCostAsTiebreakWithinSameComplexityBucket()
-    {
+    public void MostEfficient_UsesCostAsTiebreakWithinSameComplexityBucket() {
         var cheaper = new FakeReduction { complexityBucket = ReductionComplexityBucket.Polynomial, cost = ReductionCost.Linear };
         var pricier = new FakeReduction { complexityBucket = ReductionComplexityBucket.Polynomial, cost = ReductionCost.HigherPolynomial };
 
@@ -327,8 +308,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public void MostEfficient_ClassifiedAlwaysBeatsUnclassified()
-    {
+    public void MostEfficient_ClassifiedAlwaysBeatsUnclassified() {
         var unclassified = new FakeReduction();
         var classified = new FakeReduction { complexityBucket = ReductionComplexityBucket.Exponential, cost = ReductionCost.HigherPolynomial };
 
@@ -346,15 +326,13 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
 
     private readonly Xunit.ITestOutputHelper _output;
 
-    public ReductionType_Tests(AppFactory factory, Xunit.ITestOutputHelper output)
-    {
+    public ReductionType_Tests(AppFactory factory, Xunit.ITestOutputHelper output) {
         _client = factory.CreateClient();
         _output = output;
     }
 
     [Fact]
-    public void CharacterizationReport_DumpsPerReductionMetadata()
-    {
+    public void CharacterizationReport_DumpsPerReductionMetadata() {
         var reductionTypeByClassName = ReductionTypeCatalog.ReductionTypeByClassName.Value;
         var complexityBucketByClassName = ReductionTypeCatalog.ComplexityBucketByClassName.Value;
         var complexityByClassName = ReductionTypeCatalog.ComplexityByClassName.Value;
@@ -371,8 +349,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory>
         _output.WriteLine($"Reductions reflected: {allClassNames.Count}");
         _output.WriteLine("");
 
-        foreach (var className in allClassNames)
-        {
+        foreach (var className in allClassNames) {
             string reductionType = reductionTypeByClassName.TryGetValue(className, out var rt) ? rt : "<not instantiated>";
             string complexityBucket = complexityBucketByClassName.TryGetValue(className, out var cb) ? cb : "<not instantiated>";
             string complexity = complexityByClassName.TryGetValue(className, out var cx)

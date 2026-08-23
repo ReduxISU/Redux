@@ -7,11 +7,11 @@ namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_KNAPSACK;
 class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
 
     // --- Fields ---
-    public string reductionName {get;} = "Feng's Knapsack Reduction";
-    public string reductionDefinition {get;} = "Fengs reduction converts positive integers in SUBSETSUM to items in KNAPSACK";
-    public string source {get;} = "Feng, Thomas";
+    public string reductionName { get; } = "Feng's Knapsack Reduction";
+    public string reductionDefinition { get; } = "Fengs reduction converts positive integers in SUBSETSUM to items in KNAPSACK";
+    public string source { get; } = "Feng, Thomas";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Steiner_tree_problem";
-    public string[] contributors {get;} = {"Garret Stouffer", "Daniel Igbokwe"};
+    public string[] contributors { get; } = { "Garret Stouffer", "Daniel Igbokwe" };
     // reduce() maps each SUBSETSUM integer to exactly one KNAPSACK item (n,n) — a
     // straight 1:1 mapping, O(n).
     public ReductionCost cost { get; } = ReductionCost.Linear;
@@ -23,19 +23,19 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
     // Declared, not derived. One pass over the input integers.
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
 
-    private string _complexity ="O(n)";
-    private Dictionary<Object,Object> _gadgetMap = new Dictionary<Object,Object>();
+    private string _complexity = "O(n)";
+    private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private SUBSETSUM _reductionFrom;
     private KNAPSACK _reductionTo;
 
 
     // --- Properties ---
-    public Dictionary<Object,Object> gadgetMap {
-        get{
+    public Dictionary<Object, Object> gadgetMap {
+        get {
             return _gadgetMap;
         }
-        set{
+        set {
             _gadgetMap = value;
         }
     }
@@ -75,13 +75,13 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
         KNAPSACK reducedKNAPSACK = new KNAPSACK {
             //We reduce by setting T from SUBSETSUM equal to both the minimum value and maxmimum weight constraints. 
             W = SUBSETSUMInstance.T,
-            V = SUBSETSUMInstance.T 
+            V = SUBSETSUMInstance.T
         };
 
         // We reduce the set of integers to a set of items by having each integer n equal (n,n) as an item. 
         List<string> integers = SUBSETSUMInstance.S;
         UtilCollection items = new UtilCollection("{}");
-        for(int i=0; i < SUBSETSUMInstance.S.Count; i++) {
+        for (int i = 0; i < SUBSETSUMInstance.S.Count; i++) {
             UtilCollection item = new UtilCollection($"({integers[i]},{integers[i]})");
             items.Add(item);
             _gadgetMap[integers[i]] = integers[i];

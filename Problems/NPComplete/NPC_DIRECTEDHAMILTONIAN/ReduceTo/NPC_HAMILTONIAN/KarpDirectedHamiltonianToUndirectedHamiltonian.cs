@@ -99,9 +99,9 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
         edgesString = edgesString.Trim(',');
 
         string G = "({" + nodesString + "},{" + edgesString + "})";
-        
+
         UH = new HAMILTONIAN(G);
-        
+
         reductionTo = UH;
         return UH;
     }

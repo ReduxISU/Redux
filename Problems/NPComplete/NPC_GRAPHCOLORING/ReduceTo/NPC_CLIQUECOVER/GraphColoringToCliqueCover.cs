@@ -9,11 +9,11 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_CLIQUECOVER;
 class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
 
     // --- Fields ---
-    public string reductionName {get;} = "Clique Cover Reduction";
-    public string reductionDefinition {get;} = "Karp's Reduction from Graph Coloring to Clique Cover";
-    public string source {get;} = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string reductionName { get; } = "Clique Cover Reduction";
+    public string reductionDefinition { get; } = "Karp's Reduction from Graph Coloring to Clique Cover";
+    public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Andrija Sevaljevic" };
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // reduce() enumerates all non-adjacent node pairs (a complement-graph-like
     // structure) — up to O(n^2) pairs even when the input graph is sparse.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
@@ -85,7 +85,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
         }
         // --- Generate G string for new CLIQUE ---
 
-        instance = instance.TrimEnd('{').TrimEnd(',') +"})," + reductionFrom.K.ToString() + ')';
+        instance = instance.TrimEnd('{').TrimEnd(',') + "})," + reductionFrom.K.ToString() + ')';
 
         reducedCLIQUECOVER.K = reductionFrom.K;
         reducedCLIQUECOVER.nodes = reductionFrom.nodes;

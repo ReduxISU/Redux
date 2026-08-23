@@ -24,8 +24,7 @@ namespace API.Interfaces;
 /// </para>
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ReductionComplexityBucket>))]
-public enum ReductionComplexityBucket
-{
+public enum ReductionComplexityBucket {
     /// <summary>No complexity bucket has been declared for this reduction yet.</summary>
     Unclassified = 0,
     /// <summary>Worst-case running time is O(1) in input instance size.</summary>

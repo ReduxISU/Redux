@@ -377,6 +377,6 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
     }
 }
 
-    #endregion
+#endregion
 
 

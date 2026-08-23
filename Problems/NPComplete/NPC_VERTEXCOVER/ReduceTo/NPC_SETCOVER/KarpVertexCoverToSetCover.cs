@@ -7,11 +7,11 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_SETCOVER;
 class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
 
     // --- Fields ---
-    public string reductionName {get;} = "Karp's Clique to Set Cover Reduction";
-    public string reductionDefinition {get;} = "";
+    public string reductionName { get; } = "Karp's Clique to Set Cover Reduction";
+    public string reductionDefinition { get; } = "";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors {get;} = { "Caleb Eardley" };
+    public string[] contributors { get; } = { "Caleb Eardley" };
     // reduce() transposes the input's own node/edge incidence structure (one subset
     // entry per edge touching a node) — total elements are bounded by O(m) (sum of
     // node degrees), already implied by the input's own edge list.
@@ -81,7 +81,7 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
             foreach (var j in reductionFrom.edges) {
                 if (j.Key == reductionFrom.nodes[i] || j.Value == reductionFrom.nodes[i]) {
                     subsets[i].Add(j.Key + "_" + j.Value);
-                    if(!universal.Contains(j.Key + "_" + j.Value)) universal.Add(j.Key + "_" + j.Value);
+                    if (!universal.Contains(j.Key + "_" + j.Value)) universal.Add(j.Key + "_" + j.Value);
                 }
             }
         }

@@ -11,12 +11,12 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
 
 
     // --- Fields ---
-    public string reductionName {get;} = "Sipser's Vertex Cover Reduction";
-    public string reductionDefinition {get;} = @"This Sipsers reduction converts the Clique problem into a Vertex Cover problem.
+    public string reductionName { get; } = "Sipser's Vertex Cover Reduction";
+    public string reductionDefinition { get; } = @"This Sipsers reduction converts the Clique problem into a Vertex Cover problem.
                                             This is done by first taking all possible edges in the original clique graph, and removing
                                             the edges that are actually in the clique graph from that set.";
     public string source { get; } = "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.";
-    public string[] contributors {get;} = {"Janita Aamir","Alex Diviney","Caleb Eardley"};
+    public string[] contributors { get; } = { "Janita Aamir", "Alex Diviney", "Caleb Eardley" };
     // reduce() explicitly materializes the complement graph (all node pairs minus the
     // clique's own edges) — up to O(n^2) edges even when the input only encodes O(n+m).
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
@@ -81,26 +81,26 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
 
         //this nested loop creates every possible combination of edges that aren't self edges between the nodes in the set and adds them to a list. 
         // ie. nodes 1,2,3 become edges {1,2},{2,1},{1,3},{3,1},{2,3},{3,2}
-        for (int i = 0; i < reducedVERTEXCOVER.nodes.Count; i++){
-            for (int j = 0; j < reducedVERTEXCOVER.nodes.Count; j++){
-                if (reducedVERTEXCOVER.nodes[i] != reducedVERTEXCOVER.nodes[j]){
-                    KeyValuePair<string,string> fullEdge = new KeyValuePair<string,string>(reducedVERTEXCOVER.nodes[i], reducedVERTEXCOVER.nodes[j]);
+        for (int i = 0; i < reducedVERTEXCOVER.nodes.Count; i++) {
+            for (int j = 0; j < reducedVERTEXCOVER.nodes.Count; j++) {
+                if (reducedVERTEXCOVER.nodes[i] != reducedVERTEXCOVER.nodes[j]) {
+                    KeyValuePair<string, string> fullEdge = new KeyValuePair<string, string>(reducedVERTEXCOVER.nodes[i], reducedVERTEXCOVER.nodes[j]);
                     edges.Add(fullEdge);
                 }
             }
         }
-        
+
         //for every edge in clique, removes the edge from the total list of edges.
-        for (int i = 0; i < CLIQUEInstance.edges.Count; i++){
-            edges.Remove(new KeyValuePair<string,string>(CLIQUEInstance.edges[i].Key, CLIQUEInstance.edges[i].Value));
-            edges.Remove(new KeyValuePair<string,string>(CLIQUEInstance.edges[i].Value, CLIQUEInstance.edges[i].Key));
+        for (int i = 0; i < CLIQUEInstance.edges.Count; i++) {
+            edges.Remove(new KeyValuePair<string, string>(CLIQUEInstance.edges[i].Key, CLIQUEInstance.edges[i].Value));
+            edges.Remove(new KeyValuePair<string, string>(CLIQUEInstance.edges[i].Value, CLIQUEInstance.edges[i].Key));
         }
 
         //For every edge in the remaining set, removes any edge that would be redundant. So if we have {1,3} and {3,1} then we only leave {1,3}
-        for (int i = 0; i < edges.Count; i++){
-            for (int j = 0; j < edges.Count; j++){
-                if (edges[i].Key == edges[j].Value && edges[i].Value == edges[j].Key){
-                    edges.Remove(new KeyValuePair<string,string>(edges[j].Key, edges[j].Value));
+        for (int i = 0; i < edges.Count; i++) {
+            for (int j = 0; j < edges.Count; j++) {
+                if (edges[i].Key == edges[j].Value && edges[i].Value == edges[j].Key) {
+                    edges.Remove(new KeyValuePair<string, string>(edges[j].Key, edges[j].Value));
                 }
             }
         }
@@ -115,7 +115,7 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
         }
         nodesString = nodesString.Trim(',');
         string edgesString = "";
-        foreach (KeyValuePair<string,string> edge in edges) {
+        foreach (KeyValuePair<string, string> edge in edges) {
             edgesString += "{" + edge.Key + "," + edge.Value + "}" + ",";
         }
         edgesString = edgesString.Trim(',');
@@ -128,19 +128,19 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
 
     }
 
-    public string mapSolutions(string problemFromSolution){
+    public string mapSolutions(string problemFromSolution) {
         //Parse problemFromSolution into a list of nodes
         List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
 
         //Map solution
         List<string> mappedSolutionList = new List<string>();
-        foreach(string node in reductionFrom.nodes){
-            if(!solutionList.Contains(node)){
+        foreach (string node in reductionFrom.nodes) {
+            if (!solutionList.Contains(node)) {
                 mappedSolutionList.Add(node);
             }
         }
         string problemToSolution = "";
-        foreach(string node in mappedSolutionList){
+        foreach (string node in mappedSolutionList) {
             problemToSolution += node + ',';
         }
         return '{' + problemToSolution.TrimEnd(',') + '}';

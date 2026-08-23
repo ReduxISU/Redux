@@ -6,11 +6,11 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_SAT;
 class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
     #region Fields
-    public string reductionName {get;} = "Karp's SAT Reduction";
-    public string reductionDefinition {get;} = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
-    public string source {get;} = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
-    public string sourceLink {get;} = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
-    public string[] contributors {get;} = {"Daniel Igbokwe"};
+    public string reductionName { get; } = "Karp's SAT Reduction";
+    public string reductionDefinition { get; } = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
+    public string source { get; } = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
+    public string sourceLink { get; } = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
+    public string[] contributors { get; } = { "Daniel Igbokwe" };
     // Dictionary<Object,List<string>> _gadgetMap = new Dictionary<object, List<string>>();
 
     // Per node, the nested "for i in 0..K: for j in 0..K" loop unconditionally emits
@@ -102,9 +102,9 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
             clause += $"{node}{_reductionFrom.K - 1})";
             reducedNodeClauses.Add(clause.Trim());
-            
+
             // add to gadget dictionary 
-            
+
 
             for (int i = 0; i < _reductionFrom.K; i++) {
                 for (int j = 0; j < _reductionFrom.K; j++) {
@@ -118,7 +118,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
                 }
             }
 
-         
+
 
         }
 
@@ -146,7 +146,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
         DeMorgansLaw(reducedClauses);
 
         string phiInstance = "";
-        for (int i = 0; i < reducedClauses.Count - 1; i++){
+        for (int i = 0; i < reducedClauses.Count - 1; i++) {
             phiInstance += $"{reducedClauses[i]}&";
         }
         phiInstance += $"{reducedClauses[reducedClauses.Count - 1]}";
@@ -174,7 +174,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 }
 
 
-   
+
 
 
 

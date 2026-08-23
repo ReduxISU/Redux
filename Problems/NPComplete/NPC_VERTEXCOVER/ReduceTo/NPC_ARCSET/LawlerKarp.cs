@@ -13,11 +13,11 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_ARCSET;
 
 class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
 
-  
+
 
     // --- Fields ---
-    public string reductionName {get;} = "Lawler and Karp Arcset Reduction";
-    public string reductionDefinition {get;} = @"This Reduction is an implementation of Lawler and Karp's reduction as laid out in Karp's 21 NP_Complete Problems. 
+    public string reductionName { get; } = "Lawler and Karp Arcset Reduction";
+    public string reductionDefinition { get; } = @"This Reduction is an implementation of Lawler and Karp's reduction as laid out in Karp's 21 NP_Complete Problems. 
                                             It takes an instance of an undirected graph (specifically an instance of VERTEXCOVER) and returns an instance of ARCSET (ie. a Directed Graph)
                                             Specifically, a reduction follows the following algorithm: 
                                             For an undirected graph H: Where H is made up of <V,E>
@@ -86,70 +86,70 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
             newNode2.name = name + "1";
             newNodes.Add(newNode1);
             newNodes.Add(newNode2);
-            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { name.ToString() }, new List<string>() { name + "0", name + "1"  }));
+            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { name.ToString() }, new List<string>() { name + "0", name + "1" }));
         }
-        
+
         //Turn undirected edges into paired directed edges.
         List<Edge> newEdges = new List<Edge>();
         List<Edge> numberedEdges = new List<Edge>();
-        foreach(UtilCollection e in vertexcover.graph.Edges){
+        foreach (UtilCollection e in vertexcover.graph.Edges) {
             List<UtilCollection> cast = e.ToList();
             Node source = new Node(cast[0].ToString());
             Node target = new Node(cast[1].ToString());
-            Edge newEdge1 = new Edge(source,target);
-            Edge newEdge2 = new Edge(target,source);
+            Edge newEdge1 = new Edge(source, target);
+            Edge newEdge2 = new Edge(target, source);
             newEdges.Add(newEdge1);
             newEdges.Add(newEdge2);
         }
 
         //map edges to to nodes
-        foreach(Edge e in newEdges){
-            Node newNode1 = new Node(e.source.name+"1");
-            Node newNode2 = new Node(e.target.name+"0");
-            Edge numberedEdge = new Edge(newNode1,newNode2);
+        foreach (Edge e in newEdges) {
+            Node newNode1 = new Node(e.source.name + "1");
+            Node newNode2 = new Node(e.target.name + "0");
+            Edge numberedEdge = new Edge(newNode1, newNode2);
             numberedEdges.Add(numberedEdge);
         }
 
         //map from every 0 to 1
-        for(int i=0;i<newNodes.Count;++i){
-            if(i%2==0){
-                Edge newEdge = new Edge(newNodes[i],newNodes[i+1]);
+        for (int i = 0; i < newNodes.Count; ++i) {
+            if (i % 2 == 0) {
+                Edge newEdge = new Edge(newNodes[i], newNodes[i + 1]);
                 numberedEdges.Add(newEdge);
             }
         }
         newEdges.Clear(); //Getting rid of unsplit edges
         newEdges = numberedEdges;
-        
+
         //"{{1,2,3,4},{(4,1),(1,2),(4,3),(3,2),(2,4)},1}" //formatting
         string nodeListStr = "";
-        foreach(Node node in newNodes){
-    
-            nodeListStr= nodeListStr+ node.name +",";
+        foreach (Node node in newNodes) {
+
+            nodeListStr = nodeListStr + node.name + ",";
         }
         nodeListStr = nodeListStr.TrimEnd(',');
         string edgeListStr = "";
-        foreach(Edge edge in newEdges){
-           string edgeStr = edge.directedString() +","; //this line is what makes this class distinct from Undirected Graph
-            edgeListStr = edgeListStr+ edgeStr+""; 
+        foreach (Edge edge in newEdges) {
+            string edgeStr = edge.directedString() + ","; //this line is what makes this class distinct from Undirected Graph
+            edgeListStr = edgeListStr + edgeStr + "";
         }
-        edgeListStr = edgeListStr.TrimEnd(',',' ');
-        string toStr = "(({"+nodeListStr+"}"+ ",{" + edgeListStr+"}"+"),"+vertexcover.K+")";
+        edgeListStr = edgeListStr.TrimEnd(',', ' ');
+        string toStr = "(({" + nodeListStr + "}" + ",{" + edgeListStr + "}" + ")," + vertexcover.K + ")";
         ARCSET arcset = new ARCSET(toStr);
 
         return arcset;
     }
 
-    public string mapSolutions(string problemFromSolution){
+    public string mapSolutions(string problemFromSolution) {
         //Parse problemFromSolution into a list of nodes
         List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
 
         //Map solution 
         List<string> mappedSolutionList = new List<string>();
-        foreach(string node in solutionList){
-            mappedSolutionList.Add(string.Format("({0}0,{0}1)",node));
+        foreach (string node in solutionList) {
+            mappedSolutionList.Add(string.Format("({0}0,{0}1)", node));
         }
         string problemToSolution = "";
-        foreach(string edge in mappedSolutionList){
+        foreach (string edge in mappedSolutionList) {
             problemToSolution += edge + ',';
         }
         return '{' + problemToSolution.TrimEnd(',') + '}';

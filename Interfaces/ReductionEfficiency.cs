@@ -10,8 +10,7 @@ namespace API.Interfaces;
 /// producing the smaller instance leaves less work for the downstream solver.
 /// </para>
 /// </summary>
-static class ReductionEfficiency
-{
+static class ReductionEfficiency {
     /// <summary>
     /// True when <paramref name="candidate"/> is strictly more efficient than
     /// <paramref name="incumbent"/>.
@@ -23,8 +22,7 @@ static class ReductionEfficiency
     /// declaration order as the stable fallback.
     /// </para>
     /// </summary>
-    public static bool IsMoreEfficient(IReduction candidate, IReduction incumbent)
-    {
+    public static bool IsMoreEfficient(IReduction candidate, IReduction incumbent) {
         bool candidateKnown = candidate.complexityBucket != ReductionComplexityBucket.Unclassified;
         bool incumbentKnown = incumbent.complexityBucket != ReductionComplexityBucket.Unclassified;
 
@@ -49,11 +47,9 @@ static class ReductionEfficiency
     /// The most efficient reduction in <paramref name="reductions"/>, or null when the
     /// sequence is empty. Ties keep the first-seen entry, so the result is stable.
     /// </summary>
-    public static IReduction? MostEfficient(IEnumerable<IReduction> reductions)
-    {
+    public static IReduction? MostEfficient(IEnumerable<IReduction> reductions) {
         IReduction? best = null;
-        foreach (var reduction in reductions)
-        {
+        foreach (var reduction in reductions) {
             if (best is null || IsMoreEfficient(reduction, best)) best = reduction;
         }
         return best;

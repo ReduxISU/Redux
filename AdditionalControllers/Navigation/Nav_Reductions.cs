@@ -38,24 +38,18 @@ internal static class ReductionCostCatalog {
 
 // className -> declared ReductionType / ReductionComplexityBucket wire values. Same
 // build shape as ReductionCostCatalog above (issue #376).
-internal static class ReductionTypeCatalog
-{
+internal static class ReductionTypeCatalog {
     internal static readonly Lazy<Dictionary<string, string>> ReductionTypeByClassName = new(BuildReductionType);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityBucketByClassName = new(BuildComplexityBucket);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityByClassName = new(BuildComplexity);
 
-    private static Dictionary<string, string> BuildReductionType()
-    {
+    private static Dictionary<string, string> BuildReductionType() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (_, type) in ProblemProvider.Reductions)
-        {
-            try
-            {
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
                 if (Activator.CreateInstance(type) is IReduction instance)
                     result[type.Name] = instance.reductionType.ToString();
-            }
-            catch
-            {
+            } catch {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to Unclassified at the call site.
             }
@@ -63,18 +57,13 @@ internal static class ReductionTypeCatalog
         return result;
     }
 
-    private static Dictionary<string, string> BuildComplexityBucket()
-    {
+    private static Dictionary<string, string> BuildComplexityBucket() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (_, type) in ProblemProvider.Reductions)
-        {
-            try
-            {
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
                 if (Activator.CreateInstance(type) is IReduction instance)
                     result[type.Name] = instance.complexityBucket.ToString();
-            }
-            catch
-            {
+            } catch {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to Unclassified at the call site.
             }
@@ -88,21 +77,15 @@ internal static class ReductionTypeCatalog
     // vocabulary like cost/reductionType/complexityBucket) -- so it's read via
     // reflection on the concrete type rather than through the interface, same
     // ad-hoc-ness the property itself has on each class.
-    private static Dictionary<string, string> BuildComplexity()
-    {
+    private static Dictionary<string, string> BuildComplexity() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (_, type) in ProblemProvider.Reductions)
-        {
-            try
-            {
-                if (Activator.CreateInstance(type) is IReduction instance)
-                {
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance) {
                     var property = type.GetProperty("complexity");
                     result[type.Name] = property?.GetValue(instance) as string ?? "";
                 }
-            }
-            catch
-            {
+            } catch {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to "" (empty) at the call site.
             }
@@ -201,8 +184,7 @@ public static class ReductionGraphData {
     // (from, to) pair; it is intentionally NOT a re-weighting of PathBetween's BFS
     // (which is unweighted, by hop count only) — a weighted, cheapest-multi-hop
     // PathBetween is a deferred follow-up phase, not in scope here.
-    private static readonly Dictionary<string, int> ComplexityBucketRank = new(StringComparer.OrdinalIgnoreCase)
-    {
+    private static readonly Dictionary<string, int> ComplexityBucketRank = new(StringComparer.OrdinalIgnoreCase) {
         [nameof(API.Interfaces.ReductionComplexityBucket.Constant)] = 0,
         [nameof(API.Interfaces.ReductionComplexityBucket.Logarithmic)] = 1,
         [nameof(API.Interfaces.ReductionComplexityBucket.Linear)] = 2,
@@ -212,8 +194,7 @@ public static class ReductionGraphData {
         [nameof(API.Interfaces.ReductionComplexityBucket.Unclassified)] = 6,
     };
 
-    private static readonly Dictionary<string, int> CostRank = new(StringComparer.OrdinalIgnoreCase)
-    {
+    private static readonly Dictionary<string, int> CostRank = new(StringComparer.OrdinalIgnoreCase) {
         [nameof(API.Interfaces.ReductionCost.Linear)] = 0,
         [nameof(API.Interfaces.ReductionCost.Quadratic)] = 1,
         [nameof(API.Interfaces.ReductionCost.Cubic)] = 2,
