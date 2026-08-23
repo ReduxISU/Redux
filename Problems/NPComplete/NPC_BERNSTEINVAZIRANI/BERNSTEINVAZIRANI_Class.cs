@@ -6,8 +6,7 @@ using System.Reflection;
 
 namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 
-class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, BernsteinVaziraniDefaultVisualization>
-{
+class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVaziraniClassicalVerifier, BernsteinVaziraniDefaultVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Bernstein Vazirani";
@@ -18,16 +17,16 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/167088.167097";
     public const string InstanceGrammar = "{f | f is list}";
     private static readonly string _defaultInstance = "(0,1,0,1,1,0,1,0)";
-    public string defaultInstance {get;} = _defaultInstance;
-    public string instance {get;set;} = string.Empty;
-    public string instanceFormat {get;} = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
-    public string certificateFormat {get;} =
+    public string defaultInstance { get; } = _defaultInstance;
+    public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
         $"Format: {BernsteinVaziraniClassicalVerifier.CertificateGrammar} Example: {BernsteinVaziraniClassicalVerifier.CertificateExample}";
-    public string wikiName {get;} = ""; // Wiki name or link? - not used yet
-    public BernsteinVaziraniClassicalSolver defaultSolver {get;} = new BernsteinVaziraniClassicalSolver();
+    public string wikiName { get; } = ""; // Wiki name or link? - not used yet
+    public BernsteinVaziraniClassicalSolver defaultSolver { get; } = new BernsteinVaziraniClassicalSolver();
     public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
     public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
-    public string[] contributors {get;} = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
+    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
     // Declared, not derived. Bernstein-Vazirani is a query-complexity promise problem
     // over an oracle, not a citizen of the classical P/NP hierarchy — see
     // ComplexityClass.QuantumOracle.
@@ -37,8 +36,8 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public BERNSTEINVAZIRANI() : this(_defaultInstance) {
     }
 
-    private List<bool> _funcValues = new List<bool>{false, true};
-    
+    private List<bool> _funcValues = new List<bool> { false, true };
+
     public List<bool> funcValues {
         get {
             return _funcValues;
@@ -58,15 +57,13 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
         }
     }
 
-    static public int PowerOfTwo(int n)
-    {
+    static public int PowerOfTwo(int n) {
         if (n > 0 && (n & (n - 1)) == 0)
             return (int)Math.Log2(n);
         throw new ArithmeticException("not a power of two");
     }
 
-    public bool Func(int x)
-    {
+    public bool Func(int x) {
         if (x < 0 || x >= funcValues.Count) {
             // XXX deal with error?
             Console.WriteLine($"{this.GetType().Name}:{MethodBase.GetCurrentMethod()?.Name}: input {x} out of range for function values array of length {funcValues.Count}");

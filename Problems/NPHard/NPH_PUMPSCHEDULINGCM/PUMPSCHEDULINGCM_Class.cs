@@ -10,22 +10,21 @@ namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
 
 record PumpData(string Name, double FlowRateGph, double PowerKw, double StartupCostDollars);
 
-class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifier, PumpSchedulingCMVisualization>
-{
+class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifier, PumpSchedulingCMVisualization> {
     public string problemName { get; } = "Pump Scheduling Cost Minimization";
     public string problemLink { get; } = "";
     public string formalDefinition { get; } =
         "An instance of the Pump Scheduling Cost Minimization is defined as a 3-tuple (T,D,P) where:\r\n" +
-        "\tthe tank T=(c,v) is an ordered pair where c is an \r\n" + 
-        "\tinteger representing the capacity of the tank, \r\n" + 
+        "\tthe tank T=(c,v) is an ordered pair where c is an \r\n" +
+        "\tinteger representing the capacity of the tank, \r\n" +
         "\tand v is the current volume within the tank; \r\n" +
-        "\tthe demand configuration D=((d_0,...,d_{23}),\r\n" + 
-        "\t(h_1,...,h_k),(r_on},r_off)) is an ordered triple \r\n" + 
-        "\twhere (d_0,...,d_{23}) is a list of 24 integers \r\n" + 
+        "\tthe demand configuration D=((d_0,...,d_{23}),\r\n" +
+        "\t(h_1,...,h_k),(r_on},r_off)) is an ordered triple \r\n" +
+        "\twhere (d_0,...,d_{23}) is a list of 24 integers \r\n" +
         "\trepresenting the water demand in gallons per hour\r\n" +
         "\tfor each hour of the day, (h_1,...,h_k) is a list \r\n" +
         "\tof integers representing the peak hours (using \r\n" +
-        "\t0-based indexing), and (r_on,r_off) is an ordered\r\n" + 
+        "\t0-based indexing), and (r_on,r_off) is an ordered\r\n" +
         "\tpair of real numbers representing the \r\n" +
         "\ton-peak and off-peak energy costs per kWh; \r\n" +
         "\tand the pumps\r\n" +
@@ -83,8 +82,7 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
 
     public PUMPSCHEDULINGCM() : this(DefaultInstance) { }
 
-    public PUMPSCHEDULINGCM(string input)
-    {
+    public PUMPSCHEDULINGCM(string input) {
         instance = input;
 
         // UtilCollection handles nested bracket/comma structures directly.
@@ -108,7 +106,7 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
             if (tank.Count != 2)
                 throw new ProblemParseException(problemName, input,
                     "Tank section must have exactly 2 values: (capacity,currentLevel).");
-            TankCapacity     = ParseDouble(tank[0].ToString());
+            TankCapacity = ParseDouble(tank[0].ToString());
             TankCurrentLevel = ParseDouble(tank[1].ToString());
             if (TankCapacity <= 0)
                 throw new ProblemParseException(problemName, input, "Tank capacity must be positive.");
@@ -138,28 +136,25 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
             if (costs.Count != 2)
                 throw new ProblemParseException(problemName, input,
                     "Rate sub-list must have exactly 2 values: (on_peak_rate,off_peak_rate).");
-            OnPeakCostPerKwh  = ParseDouble(costs[0].ToString());
+            OnPeakCostPerKwh = ParseDouble(costs[0].ToString());
             OffPeakCostPerKwh = ParseDouble(costs[1].ToString());
 
             // Section 2: Pumps — ((name,flow_gph,kw,startup_cost),...)
-            foreach (UtilCollection pump in (UtilCollection)sections[2])
-            {
+            foreach (UtilCollection pump in (UtilCollection)sections[2]) {
                 var parts = pump.ToList();
                 if (parts.Count != 4)
                     throw new ProblemParseException(problemName, input,
                         $"Each pump needs 4 fields (name,flow_gph,kw,startup_cost); got {parts.Count}.");
                 Pumps.Add(new PumpData(
-                    Name:               parts[0].ToString().Trim(),
-                    FlowRateGph:        ParseDouble(parts[1].ToString()),
-                    PowerKw:            ParseDouble(parts[2].ToString()),
+                    Name: parts[0].ToString().Trim(),
+                    FlowRateGph: ParseDouble(parts[1].ToString()),
+                    PowerKw: ParseDouble(parts[2].ToString()),
                     StartupCostDollars: ParseDouble(parts[3].ToString())
                 ));
             }
             if (Pumps.Count == 0)
                 throw new ProblemParseException(problemName, input, "At least one pump is required.");
-        }
-        catch (ProblemParseException) { throw; }
-        catch (Exception ex) {
+        } catch (ProblemParseException) { throw; } catch (Exception ex) {
             throw new ProblemParseException(problemName, input, ex.Message);
         }
     }

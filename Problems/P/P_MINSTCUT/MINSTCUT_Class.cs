@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.P.P_MINSTCUT;
 
-class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisualization, UtilCollectionGraph>
-{
+class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisualization, UtilCollectionGraph> {
     public string problemName { get; } = "Minimum S-T Cut";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_cut";
     public string formalDefinition { get; } = "MinSTCut = {<G,s,t> | G is a weighted directed graph with source s and sink t} — find the partition of V into S (containing s) and T (containing t) minimizing the total capacity of edges directed from S to T.";
@@ -41,27 +40,21 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
 
     public MINSTCUT() : this(_defaultInstance) { }
 
-    public MINSTCUT(string instanceString)
-    {
+    public MINSTCUT(string instanceString) {
         instance = instanceString;
 
         List<string> outerParts = SplitOuterTuple(instanceString);
 
         string graphPart;
-        if (outerParts.Count == 4)
-        {
+        if (outerParts.Count == 4) {
             graphPart = $"({outerParts[0]},{outerParts[1]})";
             sourceNode = outerParts[2];
             targetNode = outerParts[3];
-        }
-        else if (outerParts.Count == 3 && LooksLikeTuple(outerParts[0]))
-        {
+        } else if (outerParts.Count == 3 && LooksLikeTuple(outerParts[0])) {
             graphPart = outerParts[0];
             sourceNode = outerParts[1];
             targetNode = outerParts[2];
-        }
-        else
-        {
+        } else {
             throw new InvalidOperationException("Invalid Minimum S-T Cut instance format. Expected ({nodes},{((u,v),w),...},source,target).");
         }
 
@@ -69,8 +62,7 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
         sp.parse(graphPart);
 
         nodes = sp["N"].ToList().Select(n => n.ToString()).ToList();
-        edges = sp["E"].ToList().Select(edge =>
-        {
+        edges = sp["E"].ToList().Select(edge => {
             string from = edge[0][0].ToString();
             string to = edge[0][1].ToString();
             int weight = int.Parse(edge[1].ToString());
@@ -85,8 +77,7 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
             throw new InvalidOperationException($"Target node '{targetNode}' is not in the node set.");
     }
 
-    private static List<string> SplitOuterTuple(string input)
-    {
+    private static List<string> SplitOuterTuple(string input) {
         string trimmed = input.Trim();
         if (trimmed.Length < 2 || trimmed[0] != '(' || trimmed[^1] != ')')
             return new List<string>();
@@ -97,18 +88,15 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
         int parenDepth = 0;
         int braceDepth = 0;
 
-        foreach (char ch in inner)
-        {
-            if (ch == ',' && parenDepth == 0 && braceDepth == 0)
-            {
+        foreach (char ch in inner) {
+            if (ch == ',' && parenDepth == 0 && braceDepth == 0) {
                 parts.Add(current.ToString().Trim());
                 current.Clear();
                 continue;
             }
 
             current.Append(ch);
-            switch (ch)
-            {
+            switch (ch) {
                 case '(': parenDepth++; break;
                 case ')': parenDepth--; break;
                 case '{': braceDepth++; break;

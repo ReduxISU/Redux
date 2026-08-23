@@ -2,8 +2,7 @@
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 
-class MaxCutSolver : ISolver<MAXCUT>
-{
+class MaxCutSolver : ISolver<MAXCUT> {
     public string solverName { get; } = "Max Cut Brute Force Solver";
     public string solverDefinition { get; } = "Enumerates all 2^n partitions of the vertex set and returns the S side of the partition whose crossing edges have maximum total weight. Certificate format: {node1,node2,...} representing the S side.";
     public string source { get; } = "";
@@ -19,8 +18,7 @@ class MaxCutSolver : ISolver<MAXCUT>
 
     public MaxCutSolver() { }
 
-    public string solve(MAXCUT problem)
-    {
+    public string solve(MAXCUT problem) {
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
         if (n < 2) return "{}";
@@ -29,8 +27,7 @@ class MaxCutSolver : ISolver<MAXCUT>
         HashSet<string> bestS = new();
 
         int limit = 1 << n;
-        for (int mask = 1; mask < limit - 1; mask++)
-        {
+        for (int mask = 1; mask < limit - 1; mask++) {
             if (timerHasExpired) return "{}";
 
             HashSet<string> S = new();
@@ -38,8 +35,7 @@ class MaxCutSolver : ISolver<MAXCUT>
                 if ((mask >> i & 1) == 1) S.Add(nodes[i]);
 
             int w = CutWeight(problem.edges, S);
-            if (w > bestWeight)
-            {
+            if (w > bestWeight) {
                 bestWeight = w;
                 bestS = S;
             }
@@ -49,16 +45,14 @@ class MaxCutSolver : ISolver<MAXCUT>
         return "{" + string.Join(",", bestS) + "}";
     }
 
-    internal static int GetMaxCutWeight(MAXCUT problem)
-    {
+    internal static int GetMaxCutWeight(MAXCUT problem) {
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
         if (n < 2) return 0;
 
         int bestWeight = 0;
         int limit = 1 << n;
-        for (int mask = 1; mask < limit - 1; mask++)
-        {
+        for (int mask = 1; mask < limit - 1; mask++) {
             HashSet<string> S = new();
             for (int i = 0; i < n; i++)
                 if ((mask >> i & 1) == 1) S.Add(nodes[i]);
@@ -70,11 +64,9 @@ class MaxCutSolver : ISolver<MAXCUT>
         return bestWeight;
     }
 
-    internal static int CutWeight(List<(string source, string destination, int weight)> edges, HashSet<string> S)
-    {
+    internal static int CutWeight(List<(string source, string destination, int weight)> edges, HashSet<string> S) {
         int total = 0;
-        foreach (var edge in edges)
-        {
+        foreach (var edge in edges) {
             bool srcInS = S.Contains(edge.source);
             bool dstInS = S.Contains(edge.destination);
             if (srcInS != dstInS)
