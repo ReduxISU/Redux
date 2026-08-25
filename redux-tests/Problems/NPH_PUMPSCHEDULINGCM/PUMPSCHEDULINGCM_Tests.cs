@@ -2,6 +2,7 @@ using Xunit;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Verifiers;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
+using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Visualizations;
 using API.Interfaces;
 
 namespace redux_tests;
@@ -23,6 +24,10 @@ public class PUMPSCHEDULINGCM_Tests {
     // All-zeros schedule for SimpleInstance (no pumps running).
     private const string SimpleCertValid =
         "(0,((PumpA,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)))";
+
+    // Reusable 24-hour all-zero demand curve for constructing malformed-instance fixtures.
+    private const string ZeroDemand24 =
+        "(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)";
 
     // ── Instantiation ─────────────────────────────────────────────────────────
 
@@ -135,5 +140,146 @@ public class PUMPSCHEDULINGCM_Tests {
         string cert = solver.solve(p);
         Assert.False(string.IsNullOrEmpty(cert));
         Assert.True(verifier.verify(p, cert));
+    }
+
+    [Theory]
+    // 2 pumps, medium tank, moderate constant demand with a peak window.
+    [InlineData("((2000,1000),((300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300,300),(6,7,8),(0.15,0.07)),((PumpA,150,4.0,1.0),(PumpB,250,6.0,2.0)))")]
+    // 3 pumps, large tank, demand swinging between low and high blocks, no peak hours.
+    [InlineData("((5000,2500),((200,200,200,200,200,200,800,800,800,800,800,800,200,200,200,200,200,200,800,800,800,800,800,800),(),(0.20,0.05)),((P1,100,2.0,0.5),(P2,150,3.0,0.5),(P3,300,7.0,1.5)))")]
+    // 4 small pumps, small tank, low flat demand.
+    [InlineData("((500,250),((50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50),(),(0.10,0.10)),((P1,60,1.0,0.1),(P2,40,0.8,0.1),(P3,80,1.5,0.2),(P4,20,0.5,0.05)))")]
+    public void PUMPSCHEDULINGCM_SolverOutput_PassesVerifier_VariedInstances(string instance) {
+        PUMPSCHEDULINGCM p = new(instance);
+        PumpSchedulingCMSolver solver = new();
+        PumpSchedulingCMVerifier verifier = new();
+        string cert = solver.solve(p);
+        Assert.False(string.IsNullOrEmpty(cert));
+        Assert.True(verifier.verify(p, cert));
+    }
+
+    // ── Infeasible instance ──────────────────────────────────────────────────
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_Solver_Infeasible_Returns_Empty() {
+        // Demand of 10000 gph vastly exceeds the tank's starting level (0) plus the
+        // single pump's max flow (100 gph) at every hour, so no reachable state
+        // survives hour 0 — the DAG has no path from source to any sink.
+        string instance =
+            "((1000,0)," +
+            "((10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000," +
+            "10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000,10000)," +
+            "()," +
+            "(0.10,0.10))," +
+            "((PumpA,100,5.0,1.0)))";
+        PUMPSCHEDULINGCM p = new(instance);
+        PumpSchedulingCMSolver solver = new();
+        string cert = solver.solve(p);
+        Assert.Equal(string.Empty, cert);
+    }
+
+    // ── Additional class parse-validation ────────────────────────────────────
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_ZeroPumps_Throws() {
+        string bad = $"((1000,500),({ZeroDemand24},(),(0.10,0.05)),())";
+        Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM(bad));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-100)]
+    public void PUMPSCHEDULINGCM_NonPositiveCapacity_Throws(double capacity) {
+        string bad = $"(({capacity.ToString(System.Globalization.CultureInfo.InvariantCulture)},0),({ZeroDemand24},(),(0.10,0.05)),((PumpA,200,5.0,0.0)))";
+        Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM(bad));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(1500)]
+    public void PUMPSCHEDULINGCM_CurrentLevelOutOfRange_Throws(double currentLevel) {
+        string bad = $"((1000,{currentLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}),({ZeroDemand24},(),(0.10,0.05)),((PumpA,200,5.0,0.0)))";
+        Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM(bad));
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_WrongTopLevelSectionCount_Throws() {
+        // Only 2 sections; missing pumps.
+        string bad = $"((1000,500),({ZeroDemand24},(),(0.10,0.05)))";
+        Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM(bad));
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_MalformedRatesSubsection_Throws() {
+        // Rates sub-list has only 1 value instead of 2.
+        string bad = $"((1000,500),({ZeroDemand24},(),(0.10)),((PumpA,200,5.0,0.0)))";
+        Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM(bad));
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_PumpTupleWrongFieldCount_Throws() {
+        // Pump tuple has 3 fields instead of 4 (missing startup cost).
+        string bad = $"((1000,500),({ZeroDemand24},(),(0.10,0.05)),((PumpA,200,5.0)))";
+        Assert.Throws<ProblemParseException>(() => new PUMPSCHEDULINGCM(bad));
+    }
+
+    // ── Verifier — additional rejection cases ────────────────────────────────
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_Verifier_NonBinaryHourValue_ReturnsFalse() {
+        PUMPSCHEDULINGCM p = new(SimpleInstance);
+        PumpSchedulingCMVerifier v = new();
+        string cert = "(0,((PumpA,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)))";
+        Assert.False(v.verify(p, cert));
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_Verifier_WrongTopLevelSectionCount_Throws() {
+        PUMPSCHEDULINGCM p = new(SimpleInstance);
+        PumpSchedulingCMVerifier v = new();
+        // 3 top-level sections instead of 2.
+        string cert = "(0,(),0)";
+        Assert.Throws<CertificateParseException>(() => v.verify(p, cert));
+    }
+
+    // ── Visualization ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_Visualization_Typed_Returns_24_Frames_InOrder_With_NonDecreasing_CumulativeCost() {
+        PUMPSCHEDULINGCM p = new();
+        PumpSchedulingCMSolver solver = new();
+        PumpSchedulingCMVisualization visualization = new();
+
+        var steps = solver.GetSteps(p);
+        var frames = visualization.StepsVisualization(p, steps);
+
+        Assert.Equal(24, frames.Count);
+
+        double previousCumulative = -1.0;
+        for (int h = 0; h < 24; h++) {
+            var frame = Assert.IsType<API_PumpFrame>(frames[h]);
+            Assert.Equal(h, frame.metrics.hour);
+            Assert.True(frame.metrics.cumulativeCost >= previousCumulative);
+            previousCumulative = frame.metrics.cumulativeCost;
+        }
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_Visualization_InterfaceOverride_ReParsesInstance_Returns_24_Frames() {
+        // Dispatch through the IVisualization reference so the explicit
+        // `IVisualization.StepsVisualization(string,List<object>)` override is exercised
+        // (rather than the typed method called directly), confirming it re-parses the
+        // instance string itself instead of being short-circuited by the default
+        // interface method's empty-steps guard.
+        IVisualization visualization = new PumpSchedulingCMVisualization();
+        var steps = new List<object> { true };
+
+        var frames = visualization.StepsVisualization(PUMPSCHEDULINGCM.DefaultInstance, steps);
+
+        Assert.Equal(24, frames.Count);
+        for (int h = 0; h < 24; h++) {
+            var frame = Assert.IsType<API_PumpFrame>(frames[h]);
+            Assert.Equal(h, frame.metrics.hour);
+        }
     }
 }
