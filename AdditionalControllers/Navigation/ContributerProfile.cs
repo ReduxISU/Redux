@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using API.Interfaces;
 
 [ApiController]
 [Route("Navigation/[controller]")]
@@ -19,19 +20,17 @@ public class ContributorProfileController : ControllerBase {
     [HttpGet("{contributorName}")]
     public IActionResult GetContributorProfile(string contributorName) {
         try {
-            string projectSourcePath = ProjectSourcePath.Value;
-
             // Grab their bio, email, GitHub, etc. from contributorInfo.json
             var contributorInfo = GetContributorInfo(contributorName);
 
-            // Walk the Problems folder and see which NP-Complete problems they worked on
-            var allProblems = GetAllProblems(projectSourcePath, contributorName);
+            // Reflect over every registered problem and check its declared contributors
+            var allProblems = GetAllProblems(contributorName);
 
-            // Same idea — check every Solvers subfolder for their name
-            var allSolvers = GetAllSolvers(projectSourcePath, contributorName);
+            // Reflect over every registered solver and check its declared contributors
+            var allSolvers = GetAllSolvers(contributorName);
 
-            // And every ReduceTo subfolder for reductions they wrote
-            var allReductions = GetAllReductions(projectSourcePath, contributorName);
+            // Reflect over every registered reduction and check its declared contributors
+            var allReductions = GetAllReductions(contributorName);
 
             // Bundle everything together into one tidy portfolio object
             var portfolio = new ContributorPortfolio {
@@ -141,149 +140,70 @@ public class ContributorProfileController : ControllerBase {
         }
     }
 
-    private IEnumerable<string> GetAllProblems(string projectSourcePath, string contributorName) {
-        string problemsPath = Path.Combine(projectSourcePath, "Problems");
-
-        if (!Directory.Exists(problemsPath)) {
-            return new List<string>();
-        }
-
+    private IEnumerable<string> GetAllProblems(string contributorName) {
         var problems = new List<string>();
 
-        try {
-            // Check the NPComplete folder first — that's where most problems live
-            string npcPath = Path.Combine(problemsPath, "NPComplete");
-            if (Directory.Exists(npcPath)) {
-                var npcProblemDirs = Directory.GetDirectories(npcPath);
-                foreach (var problemDir in npcProblemDirs) {
-                    string problemName = "NPC_" + Path.GetFileName(problemDir);
-                    if (ContributorWorkedOnProblem(problemDir, contributorName)) {
-                        problems.Add(problemName);
-                    }
+        // Reflection-derived registry (ProblemProvider.Problems) — every IProblem type
+        // is guaranteed a working parameterless constructor (see Problem(string) in
+        // ProblemProvider.cs), so the try/catch here is defensive only, matching the
+        // Solvers/Reductions lookups for consistency.
+        foreach (var type in ProblemProvider.Problems.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IProblem instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    problems.Add(type.Name);
                 }
             }
-
-            // Also sweep any other complexity folders that aren't NPComplete
-            var otherFolders = Directory.GetDirectories(problemsPath)
-                .Where(d => Path.GetFileName(d) != "NPComplete");
-
-            foreach (var folder in otherFolders) {
-                var folderName = Path.GetFileName(folder);
-                var subProblemDirs = Directory.GetDirectories(folder);
-
-                foreach (var subDir in subProblemDirs) {
-                    string problemName = folderName + "_" + Path.GetFileName(subDir);
-                    if (ContributorWorkedOnProblem(subDir, contributorName)) {
-                        problems.Add(problemName);
-                    }
-                }
+            catch {
             }
         }
-        catch { }
 
         return problems.Distinct();
     }
 
-    private bool ContributorWorkedOnProblem(string problemDir, string contributorName) {
-        try {
-            // Check the .cs files sitting directly in the problem folder
-            var csFiles = Directory.GetFiles(problemDir, "*.cs", SearchOption.TopDirectoryOnly);
-            foreach (var file in csFiles) {
-                string content = System.IO.File.ReadAllText(file);
-                if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                    return true;
-                }
-            }
-
-            // Check the Solvers subfolder
-            string solversPath = Path.Combine(problemDir, "Solvers");
-            if (Directory.Exists(solversPath)) {
-                var solverFiles = Directory.GetFiles(solversPath, "*.cs");
-                foreach (var file in solverFiles) {
-                    string content = System.IO.File.ReadAllText(file);
-                    if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                        return true;
-                    }
-                }
-            }
-
-            // Check the ReduceTo subfolder
-            string reducePath = Path.Combine(problemDir, "ReduceTo");
-            if (Directory.Exists(reducePath)) {
-                var reduceFiles = Directory.GetFiles(reducePath, "*.cs");
-                foreach (var file in reduceFiles) {
-                    string content = System.IO.File.ReadAllText(file);
-                    if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        catch { }
-
-        return false;
-    }
-
-    private IEnumerable<string> GetAllSolvers(string projectSourcePath, string contributorName) {
+    private IEnumerable<string> GetAllSolvers(string contributorName) {
         var solvers = new List<string>();
 
-        try {
-            string problemsPath = Path.Combine(projectSourcePath, "Problems");
-
-            if (!Directory.Exists(problemsPath)) {
-                return solvers;
-            }
-
-            // Dig into every problem's Solvers folder and look for their name
-            var allProblemDirs = Directory.GetDirectories(problemsPath, "*", SearchOption.AllDirectories);
-
-            foreach (var problemDir in allProblemDirs) {
-                string solversPath = Path.Combine(problemDir, "Solvers");
-                if (Directory.Exists(solversPath)) {
-                    var solverFiles = Directory.GetFiles(solversPath, "*.cs");
-                    foreach (var file in solverFiles) {
-                        string content = System.IO.File.ReadAllText(file);
-                        if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                            solvers.Add(Path.GetFileNameWithoutExtension(file));
-                        }
-                    }
+        // Reflection-derived registry (ProblemProvider.Solvers), same mapping used
+        // elsewhere in Navigation — no directory walking, no file-content matching.
+        foreach (var type in ProblemProvider.Solvers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is ISolver instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    solvers.Add(type.Name);
                 }
             }
+            catch {
+                // Skip a solver that can't be default-constructed instead of failing
+                // the whole lookup — same graceful degradation as ReductionCostCatalog
+                // (Nav_Reductions.cs).
+            }
         }
-        catch { }
 
         return solvers.Distinct();
     }
 
-    private IEnumerable<string> GetAllReductions(string projectSourcePath, string contributorName) {
+    private IEnumerable<string> GetAllReductions(string contributorName) {
         var reductions = new List<string>();
 
-        try {
-            string problemsPath = Path.Combine(projectSourcePath, "Problems");
-
-            if (!Directory.Exists(problemsPath)) {
-                return reductions;
-            }
-
-            // Same approach — walk every ReduceTo folder and check for their name
-            var allProblemDirs = Directory.GetDirectories(problemsPath, "*", SearchOption.AllDirectories);
-
-            foreach (var problemDir in allProblemDirs) {
-                string reductionsPath = Path.Combine(problemDir, "ReduceTo");
-                if (Directory.Exists(reductionsPath)) {
-                    // Reduction files live one level deeper, under ReduceTo/<TargetProblem>/*.cs,
-                    // not directly in ReduceTo/ — must recurse or this never matches anything.
-                    var reductionFiles = Directory.GetFiles(reductionsPath, "*.cs", SearchOption.AllDirectories);
-                    foreach (var file in reductionFiles) {
-                        string content = System.IO.File.ReadAllText(file);
-                        if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                            reductions.Add(Path.GetFileNameWithoutExtension(file));
-                        }
-                    }
+        // Reflection-derived registry (ProblemProvider.Reductions) — the same mapping
+        // ReductionGraphData.Build() (Nav_Reductions.cs) iterates to serve
+        // /Navigation/Reductions, so this can never drift from what that endpoint
+        // considers a registered reduction.
+        foreach (var type in ProblemProvider.Reductions.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    reductions.Add(type.Name);
                 }
             }
+            catch {
+                // Some reductions (e.g. SipserReduceToSAT3) have no parameterless
+                // constructor and can't safely be Activator.CreateInstance'd on their
+                // own — skip them instead of failing the whole lookup, same as
+                // ReductionCostCatalog (Nav_Reductions.cs).
+            }
         }
-        catch { }
 
         return reductions.Distinct();
     }
