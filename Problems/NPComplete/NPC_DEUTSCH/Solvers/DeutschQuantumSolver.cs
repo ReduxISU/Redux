@@ -27,16 +27,13 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
     /// <summary>
     /// Creates a new DeutschQuantumSolver
     /// </summary>
-    public DeutschQuantumSolver()
-    {
+    public DeutschQuantumSolver() {
     }
 
     // --- Methods ---
-    
-    public string solve(DEUTSCH problem)
-    {
-        try
-        {
+
+    public string solve(DEUTSCH problem) {
+        try {
             // Get the function values directly from the problem instance
             bool[] requestBody = problem.funcValues;
 
@@ -50,16 +47,13 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement))
-            {
+            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
                 return answerElement.GetString() ?? "No answer found";
             }
 
             // If no answer field, return the whole response
             return response;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Return error information in case of failure
             return $"{{\"error\": \"{ex.Message}\"}}";
         }

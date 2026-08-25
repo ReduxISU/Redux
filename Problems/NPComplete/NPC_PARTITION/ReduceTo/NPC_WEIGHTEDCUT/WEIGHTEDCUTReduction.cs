@@ -4,8 +4,7 @@ using API.Problems.NPComplete.NPC_WEIGHTEDCUT;
 
 namespace API.Problems.NPComplete.NPC_PARTITION.ReduceTo.NPC_WEIGHTEDCUT;
 
-class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT>
-{
+class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT> {
 
     // --- Fields ---
     public string reductionName { get; } = "WEIGHTEDCUT Reduction";
@@ -26,36 +25,27 @@ class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT>
 
 
     // --- Properties ---
-    public Dictionary<Object, Object> gadgetMap
-    {
-        get
-        {
+    public Dictionary<Object, Object> gadgetMap {
+        get {
             return _gadgetMap;
         }
-        set
-        {
+        set {
             _gadgetMap = value;
         }
     }
-    public PARTITION reductionFrom
-    {
-        get
-        {
+    public PARTITION reductionFrom {
+        get {
             return _reductionFrom;
         }
-        set
-        {
+        set {
             _reductionFrom = value;
         }
     }
-    public WEIGHTEDCUT reductionTo
-    {
-        get
-        {
+    public WEIGHTEDCUT reductionTo {
+        get {
             return _reductionTo;
         }
-        set
-        {
+        set {
             _reductionTo = value;
         }
     }
@@ -63,16 +53,14 @@ class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT>
 
 
     // --- Methods Including Constructors ---
-    public WEIGHTEDCUTReduction(PARTITION from)
-    {
+    public WEIGHTEDCUTReduction(PARTITION from) {
         _reductionFrom = from;
         _reductionTo = reduce();
 
     }
     public WEIGHTEDCUTReduction(string instance) : this(new PARTITION(instance)) { }
     public WEIGHTEDCUTReduction() : this(new PARTITION()) { }
-    public WEIGHTEDCUT reduce()
-    {
+    public WEIGHTEDCUT reduce() {
         PARTITION PARTITIONInstance = _reductionFrom;
         WEIGHTEDCUT reducedWEIGHTEDCUT = new WEIGHTEDCUT();
 
@@ -80,8 +68,7 @@ class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT>
         List<(string source, string destination, int weight)> edges = new List<(string source, string destination, int weight)>();
 
         string instance = "(({";
-        for (int i = 1; i <= reductionFrom.S.Count; i++)
-        {
+        for (int i = 1; i <= reductionFrom.S.Count; i++) {
             instance += i + ",";
             nodes.Add(i.ToString());
         }
@@ -89,10 +76,8 @@ class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT>
         // No space after the comma here -- SPADE's parser fails on it (confirmed empirically;
         // WEIGHTEDCUT's own defaultInstance has no space at this position either).
         instance = instance.TrimEnd(',') + "},{(";
-        for (int i = 0; i < reductionFrom.S.Count; i++)
-        {
-            for (int j = i + 1; j < reductionFrom.S.Count; j++)
-            {
+        for (int i = 0; i < reductionFrom.S.Count; i++) {
+            for (int j = i + 1; j < reductionFrom.S.Count; j++) {
                 int weight = int.Parse(reductionFrom.S[i]) * int.Parse(reductionFrom.S[j]);
                 instance += $"{{{i + 1},{j + 1}}},{weight}),(";
                 edges.Add(((i + 1).ToString(), (j + 1).ToString(), weight));
@@ -117,8 +102,7 @@ class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT>
         return reducedWEIGHTEDCUT;
     }
 
-    public string mapSolutions(string reductionFromSolution)
-    {
+    public string mapSolutions(string reductionFromSolution) {
         return "";
     }
 }

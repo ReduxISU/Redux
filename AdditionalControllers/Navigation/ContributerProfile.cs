@@ -47,8 +47,7 @@ public class ContributorProfileController : ControllerBase {
             };
 
             return Ok(portfolio);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -74,8 +73,7 @@ public class ContributorProfileController : ControllerBase {
             }
 
             return Ok(allContributors.Keys.ToArray());
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -106,8 +104,7 @@ public class ContributorProfileController : ControllerBase {
             }).ToArray();
 
             return Ok(directory);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -134,8 +131,7 @@ public class ContributorProfileController : ControllerBase {
             string jsonString = JsonSerializer.Serialize(problemFolders, options);
 
             return Ok(jsonString);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -153,9 +149,7 @@ public class ContributorProfileController : ControllerBase {
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
                     problems.Add(type.Name);
                 }
-            }
-            catch {
-            }
+            } catch { }
         }
 
         return problems.Distinct();
@@ -166,18 +160,15 @@ public class ContributorProfileController : ControllerBase {
 
         // Reflection-derived registry (ProblemProvider.Solvers), same mapping used
         // elsewhere in Navigation — no directory walking, no file-content matching.
+        // Skip a solver that can't be default-constructed instead of failing the whole
+        // lookup — same graceful degradation as ReductionCostCatalog (Nav_Reductions.cs).
         foreach (var type in ProblemProvider.Solvers.Values) {
             try {
                 if (Activator.CreateInstance(type) is ISolver instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
                     solvers.Add(type.Name);
                 }
-            }
-            catch {
-                // Skip a solver that can't be default-constructed instead of failing
-                // the whole lookup — same graceful degradation as ReductionCostCatalog
-                // (Nav_Reductions.cs).
-            }
+            } catch { }
         }
 
         return solvers.Distinct();
@@ -189,20 +180,17 @@ public class ContributorProfileController : ControllerBase {
         // Reflection-derived registry (ProblemProvider.Reductions) — the same mapping
         // ReductionGraphData.Build() (Nav_Reductions.cs) iterates to serve
         // /Navigation/Reductions, so this can never drift from what that endpoint
-        // considers a registered reduction.
+        // considers a registered reduction. Some reductions (e.g. SipserReduceToSAT3)
+        // have no parameterless constructor and can't safely be Activator.CreateInstance'd
+        // on their own — skip them instead of failing the whole lookup, same as
+        // ReductionCostCatalog.
         foreach (var type in ProblemProvider.Reductions.Values) {
             try {
                 if (Activator.CreateInstance(type) is IReduction instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
                     reductions.Add(type.Name);
                 }
-            }
-            catch {
-                // Some reductions (e.g. SipserReduceToSAT3) have no parameterless
-                // constructor and can't safely be Activator.CreateInstance'd on their
-                // own — skip them instead of failing the whole lookup, same as
-                // ReductionCostCatalog (Nav_Reductions.cs).
-            }
+            } catch { }
         }
 
         return reductions.Distinct();
@@ -230,8 +218,7 @@ public class ContributorProfileController : ControllerBase {
                     return contributor.Value;
                 }
             }
-        }
-        catch { }
+        } catch { }
 
         return null;
     }

@@ -9,8 +9,10 @@ using System.Text.RegularExpressions;
 
 namespace API.Problems.P.P_NFA.Verifiers;
 
-class NFAVerifier : IVerifier<NFA>
-{
+class NFAVerifier : IVerifier<NFA> {
+    public const string CertificateGrammar = "q0,...,qn | q0 = S, each (qi,I[i] or ε,qi+1) in E, qn in F";
+    public const string CertificateExample = "1,2";
+
     public string verifierName { get; } = "NFA Verifier";
     public string verifierDefinition { get; } =
         "Verifies one (or many) NFA run certificates against the input string, including ε-transitions, matching solver semantics.";
@@ -24,16 +26,14 @@ class NFAVerifier : IVerifier<NFA>
 
     public NFAVerifier() { }
 
-    public bool verify(NFA problem, string certificate)
-    {
+    public bool verify(NFA problem, string certificate) {
         // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
         string result = "";
 
         // Validate characters
-        foreach (char c in input)
-        {
+        foreach (char c in input) {
             if (!problem.alphabet.Contains(c))
                 return false; // Input contains character not in NFA alphabet
         }
@@ -42,18 +42,15 @@ class NFAVerifier : IVerifier<NFA>
         var acceptPaths = new List<List<string>>();
 
         // DFS exploring nondeterministic runs; visitedPerPath prevents infinite loops for epsilon cycles
-        void DFS(string state, int pos, List<string> path, HashSet<(string, int)> visitedPerPath)
-        {
+        void DFS(string state, int pos, List<string> path, HashSet<(string, int)> visitedPerPath) {
             // If consumed all input and in accept state, record a copy of the path
-            if (pos >= input.Length && problem.acceptStates.Contains(state))
-            {
+            if (pos >= input.Length && problem.acceptStates.Contains(state)) {
                 acceptPaths.Add(new List<string>(path));
                 // Do not return: still allow further epsilon transitions that may produce other accept runs
             }
 
             // Explore epsilon transitions (do not advance position)
-            foreach (var e in edges.Where(x => x.From == state && x.Symbol == 'ε'))
-            {
+            foreach (var e in edges.Where(x => x.From == state && x.Symbol == 'ε')) {
                 var key = (e.To, pos);
                 if (visitedPerPath.Contains(key)) continue;
                 visitedPerPath.Add(key);
@@ -64,11 +61,9 @@ class NFAVerifier : IVerifier<NFA>
             }
 
             // Explore regular symbol transitions (advance position)
-            if (pos < input.Length)
-            {
+            if (pos < input.Length) {
                 char need = input[pos];
-                foreach (var e in edges.Where(x => x.From == state && x.Symbol == need))
-                {
+                foreach (var e in edges.Where(x => x.From == state && x.Symbol == need)) {
                     var key = (e.To, pos + 1);
                     if (visitedPerPath.Contains(key)) continue;
                     visitedPerPath.Add(key);
@@ -79,7 +74,7 @@ class NFAVerifier : IVerifier<NFA>
                 }
             }
         }
-        
+
 
         // Seed DFS with start state
         var startPath = new List<string> { problem.startState };
@@ -87,14 +82,12 @@ class NFAVerifier : IVerifier<NFA>
         DFS(problem.startState, 0, startPath, startVisited);
 
         // Build output
-        if (acceptPaths.Count == 0)
-        {
+        if (acceptPaths.Count == 0) {
             return false; // No Solution Exists: No run accepts the input
         }
 
         var sb = new StringBuilder();
-        foreach (var p in acceptPaths)
-        {
+        foreach (var p in acceptPaths) {
             sb.AppendLine(string.Join(", ", p) + "\r\n");
         }
 
@@ -102,10 +95,8 @@ class NFAVerifier : IVerifier<NFA>
 
         string[] sequences = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         bool hasPath = false;
-        foreach (string seq in sequences)
-        {
-            if (seq.Replace(" ", "").Trim() == certificate.Replace(" ", "").Trim())
-            {
+        foreach (string seq in sequences) {
+            if (seq.Replace(" ", "").Trim() == certificate.Replace(" ", "").Trim()) {
                 hasPath = true;
                 break;
             }

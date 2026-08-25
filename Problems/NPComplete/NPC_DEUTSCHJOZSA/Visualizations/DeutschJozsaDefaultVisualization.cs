@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
-{
+class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA> {
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests the QASM for the Deutsch-Jozsa circuit (data qubits plus ancilla), showing the oracle and measurements that separate constant vs. balanced functions in one query for Q.js.";
     public string source { get; } = "";
@@ -15,14 +14,11 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
     public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
 
     // --- Methods Including Constructors ---
-    public DeutschJozsaDefaultVisualization()
-    {
+    public DeutschJozsaDefaultVisualization() {
 
     }
-    public API_JSON visualize(DEUTSCHJOZSA instance)
-    {
-        return new API_QUANTUMCIRCUIT
-        {
+    public API_JSON visualize(DEUTSCHJOZSA instance) {
+        return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",
             solution = ""
@@ -30,16 +26,13 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
 
     }
 
-    public API_JSON SolvedVisualization(DEUTSCHJOZSA instance, string solution)
-    {
-        var qc = new API_QUANTUMCIRCUIT
-        {
+    public API_JSON SolvedVisualization(DEUTSCHJOZSA instance, string solution) {
+        var qc = new API_QUANTUMCIRCUIT {
             solution = solution,
             format = QuantumCircuitFormat.QASM
         };
 
-        try
-        {
+        try {
             // Convert the list of integers to boolean array for the API
             bool[] requestBody = instance.w.Select(val => val != 0).ToArray();
 
@@ -53,13 +46,10 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA>
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("qasm", out JsonElement qasmElement))
-            {
+            if (root.TryGetProperty("qasm", out JsonElement qasmElement)) {
                 qc.qasm = qasmElement.GetString() ?? "";
             }
-        }
-        catch (Exception)
-        {
+        } catch (Exception) {
             // If API call fails, leave circuit empty
             qc.qasm = "";
         }

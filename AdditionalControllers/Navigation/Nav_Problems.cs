@@ -25,22 +25,16 @@ using API.Interfaces;
 // problem with a throwing/missing default constructor must not take down navigation
 // at startup. Deliberately Lazy<>, never a static readonly field initializer that
 // eagerly instantiates every problem type, for the same reason.
-internal static class ComplexityClassCatalog
-{
+internal static class ComplexityClassCatalog {
     internal static readonly Lazy<Dictionary<string, string>> ByClassName = new(Build);
 
-    private static Dictionary<string, string> Build()
-    {
+    private static Dictionary<string, string> Build() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (_, type) in ProblemProvider.Problems)
-        {
-            try
-            {
+        foreach (var (_, type) in ProblemProvider.Problems) {
+            try {
                 if (Activator.CreateInstance(type) is IProblem instance)
                     result[type.Name] = instance.complexityClass.ToString();
-            }
-            catch
-            {
+            } catch {
                 // Skip a problem that can't be default-constructed instead of
                 // failing the whole catalog. It falls back to Unclassified at the
                 // call site (ProblemNavigationData.Build).
@@ -50,10 +44,8 @@ internal static class ComplexityClassCatalog
     }
 }
 
-internal static class ProblemNavigationData
-{
-    internal class ProblemEntry
-    {
+internal static class ProblemNavigationData {
+    internal class ProblemEntry {
         public string className { get; set; } = "";
         public string complexityClass { get; set; } = "";
     }
@@ -61,11 +53,9 @@ internal static class ProblemNavigationData
     // Built once from reflected problem types.
     internal static readonly List<ProblemEntry> Entries = Build();
 
-    private static List<ProblemEntry> Build()
-    {
+    private static List<ProblemEntry> Build() {
         var entries = new List<ProblemEntry>();
-        foreach (var (_, type) in ProblemProvider.Problems)
-        {
+        foreach (var (_, type) in ProblemProvider.Problems) {
             // Namespace is API . Problems . <ComplexityClass> . <ProblemFolder>.
             // Anything deeper (…<Folder>.Inherited, .ReduceTo.*, …) is a nested helper
             // problem, not a top-level listable one, so require exactly that shape.
@@ -75,8 +65,7 @@ internal static class ProblemNavigationData
             int i = Array.IndexOf(ns, "Problems");
             if (i < 0 || ns.Length != i + 3) continue;
 
-            entries.Add(new ProblemEntry
-            {
+            entries.Add(new ProblemEntry {
                 className = type.Name,
                 complexityClass = ComplexityClassCatalog.ByClassName.Value.TryGetValue(type.Name, out var cc)
                     ? cc
@@ -108,18 +97,16 @@ internal static class ProblemNavigationData
 [Tags("- Navigation (Problems)")]
 #pragma warning disable CS1591
 
-public class ALL_ProblemsRefactorController : ControllerBase
-{
+public class ALL_ProblemsRefactorController : ControllerBase {
 #pragma warning restore CS1591
 
-///<summary>Returns all problems</summary>
-///<response code = "200">Returns string array of all problems regardless of class</response>
+    ///<summary>Returns all problems</summary>
+    ///<response code = "200">Returns string array of all problems regardless of class</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
 
-    public String getDefault()
-    {
+    public String getDefault() {
         var options = new JsonSerializerOptions { WriteIndented = true };
         return JsonSerializer.Serialize(ProblemNavigationData.All(), options);
     }
@@ -131,8 +118,7 @@ public class ALL_ProblemsRefactorController : ControllerBase
 [Tags("- Navigation (Problems)")]
 #pragma warning disable CS1591
 
-public class NPC_ProblemsRefactorController : ControllerBase
-{
+public class NPC_ProblemsRefactorController : ControllerBase {
 #pragma warning restore CS1591
 
     ///<summary>Returns all NP-Complete problems </summary>
@@ -141,8 +127,7 @@ public class NPC_ProblemsRefactorController : ControllerBase
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
 
-    public String getDefault()
-    {
+    public String getDefault() {
         var options = new JsonSerializerOptions { WriteIndented = true };
         return JsonSerializer.Serialize(ProblemNavigationData.ByComplexity("NPComplete"), options);
     }
@@ -154,8 +139,7 @@ public class NPC_ProblemsRefactorController : ControllerBase
 [Tags("- Navigation (Problems)")]
 #pragma warning disable CS1591
 
-public class P_ProblemsRefactorController : ControllerBase
-{
+public class P_ProblemsRefactorController : ControllerBase {
 #pragma warning restore CS1591
 
     ///<summary>Returns all P-Class problems </summary>
@@ -164,8 +148,7 @@ public class P_ProblemsRefactorController : ControllerBase
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
 
-    public String getDefault()
-    {
+    public String getDefault() {
         var options = new JsonSerializerOptions { WriteIndented = true };
         return JsonSerializer.Serialize(ProblemNavigationData.ByComplexity("P"), options);
     }
@@ -178,8 +161,7 @@ public class P_ProblemsRefactorController : ControllerBase
 [Tags("- Navigation (Problems)")]
 #pragma warning disable CS1591
 
-public class NPHard_ProblemsRefactorController : ControllerBase
-{
+public class NPHard_ProblemsRefactorController : ControllerBase {
 #pragma warning restore CS1591
 
     ///<summary>Returns all NPHard problems </summary>
@@ -188,8 +170,7 @@ public class NPHard_ProblemsRefactorController : ControllerBase
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
 
-    public String getDefault()
-    {
+    public String getDefault() {
         var options = new JsonSerializerOptions { WriteIndented = true };
         return JsonSerializer.Serialize(ProblemNavigationData.ByComplexity("NPHard"), options);
     }
@@ -213,7 +194,7 @@ public class NPC_NavGraph : ControllerBase {
     // drift from /Navigation/Reductions. Response shape preserved for callers.
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet("availableReductions")]
-    public string getConnectedProblems([FromQuery]string chosenProblem){
+    public string getConnectedProblems([FromQuery] string chosenProblem) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         return JsonSerializer.Serialize(ReductionGraphData.ReachableFrom(chosenProblem), options);
     }
@@ -226,7 +207,7 @@ public class NPC_NavGraph : ControllerBase {
     // Backed by ReductionGraphData (see Nav_Reductions.cs).
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet("reductionPath")]
-    public string getPaths([FromQuery]string reducingFrom, string reducingTo){
+    public string getPaths([FromQuery] string reducingFrom, string reducingTo) {
         var options = new JsonSerializerOptions { WriteIndented = true };
         return JsonSerializer.Serialize(ReductionGraphData.PathBetween(reducingFrom, reducingTo), options);
     }

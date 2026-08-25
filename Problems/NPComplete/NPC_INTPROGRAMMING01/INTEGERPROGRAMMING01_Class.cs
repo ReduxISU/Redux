@@ -6,8 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01;
 
-class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier01INTP, DummyVisualization>
-{
+class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier01INTP, DummyVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "0-1 Integer Programming";
@@ -30,53 +29,42 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
 
     // --- Properties ---
-    public List<List<int>> C
-    {
-        get
-        {
+    public List<List<int>> C {
+        get {
             return _C;
         }
-        set
-        {
+        set {
             _C = value;
         }
     }
-    public List<int> d
-    {
-        get
-        {
+    public List<int> d {
+        get {
             return _d;
         }
-        set
-        {
+        set {
             _d = value;
         }
     }
 
     // --- Methods Including Constructors ---
-    public INTPROGRAMMING01() : this(_defaultInstance)
-    {
+    public INTPROGRAMMING01() : this(_defaultInstance) {
 
     }
-    public INTPROGRAMMING01(string instanceInput)
-    {
+    public INTPROGRAMMING01(string instanceInput) {
         // TODO Validate there are only a maximum of 3 literals in each clause
         instance = instanceInput;
         C = getMatrixC(instance);
         d = getVectorD(instance);
     }
 
-    public List<List<int>> getMatrixC(string G)
-    {
+    public List<List<int>> getMatrixC(string G) {
         string strippedG = G.Replace(" )", "").Replace("( ", "").Replace("(", "").Replace(")", "");
         string[] matrixString = strippedG.Split("<=")[0].Split(",");
         List<List<int>> C = new List<List<int>>();
-        for (int i = 0; i < matrixString.Length; i++)
-        {
+        for (int i = 0; i < matrixString.Length; i++) {
             string[] stringVariables = matrixString[i].Split(" ");
             List<int> row = new List<int>();
-            for (int j = 0; j < stringVariables.Length; j++)
-            {
+            for (int j = 0; j < stringVariables.Length; j++) {
                 row.Add(int.Parse(stringVariables[j]));
                 //row.Add(stringVariables[j]);
             }
@@ -86,13 +74,11 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
 
     }
 
-    public List<int> getVectorD(string G)
-    {
+    public List<int> getVectorD(string G) {
         string strippedG = G.Replace(" )", "").Replace("( ", "").Replace("(", "").Replace(")", "");
         string[] vectorStringArray = strippedG.Split("<=")[1].Split(" ");
         List<int> d = new List<int>();
-        for (int i = 0; i < vectorStringArray.Length; i++)
-        {
+        for (int i = 0; i < vectorStringArray.Length; i++) {
             d.Add(int.Parse(vectorStringArray[i]));
             //d.Add(vectorStringArray[i]);
         }
