@@ -3,6 +3,8 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
 
 class GenericVerifier01INTP : IVerifier<INTPROGRAMMING01> {
+    public const string CertificateGrammar = "(x1 ... xn) | n space-separated bits (0 or 1), Cx <= d holds for every row";
+    public const string CertificateExample = "(0 0 0)";
 
     // --- Fields ---
     public string verifierName { get; } = "0-1 Integer Programming Verifier";

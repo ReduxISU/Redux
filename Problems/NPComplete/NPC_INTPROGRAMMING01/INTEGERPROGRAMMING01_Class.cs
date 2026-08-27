@@ -15,8 +15,12 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public string problemDefinition { get; } = "0-1 Integer Programming is a system of inequalities, where each variable can be either a 0 or a 1. It is represented by a matrix, where each collumn is a variable, and each row is an inequality. In this implementation the inequality is alway <=. A problem is 0-1 integer programable, if each variable has an assignment of 0 or 1, such that each inequality is satisfiable.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+    public const string InstanceGrammar = "(row1),...,(rowM)<=(d1 ... dM) | each row is n space-separated int coefficients (one row of C), d is the m-vector right-hand side";
     public static string _defaultInstance { get; } = "(-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {GenericVerifier01INTP.CertificateGrammar} Example: {GenericVerifier01INTP.CertificateExample}";
     private List<List<int>> _C = new List<List<int>>();
     private List<int> _d = new List<int>();
     public string wikiName { get; } = "";
