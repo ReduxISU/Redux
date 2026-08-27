@@ -20,9 +20,13 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
     public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney" };
 
 
+    public const string InstanceGrammar = "{(U,S) | U is set, S subset {a | a subset U}}";
     private static string _defaultInstance = "({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {ExactCoverVerifier.CertificateGrammar} Example: {ExactCoverVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
     public ExactCoverBruteForce defaultSolver { get; } = new ExactCoverBruteForce();
@@ -58,7 +62,7 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
     public EXACTCOVER(string input) {
         instance = input;
 
-        StringParser exactcover = new("{(U,S) | U is set, S subset {a | a subset U}}");
+        StringParser exactcover = new(InstanceGrammar);
         exactcover.parse(input);
         X = exactcover["U"].ToList().Select(node => node.ToString()).ToList();
         S = exactcover["S"].ToList().Select(subset => subset.ToList().Select(item => item.ToString()).ToList()).ToList();

@@ -4,6 +4,9 @@ namespace API.Problems.NPComplete.NPC_EXACTCOVER.Verifiers;
 
 class ExactCoverVerifier : IVerifier<EXACTCOVER> {
 
+    public const string CertificateGrammar = "{T | T subset S, union of T = X, T pairwise disjoint}";
+    public const string CertificateExample = "{{2,3},{4,1}}";
+
     // --- Fields ---
     public string verifierName { get; } = "Exact Cover Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Exact Cover";
