@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_CUT.Verifiers;
 class CutVerifier : IVerifier<CUT> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Cut Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Cut problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

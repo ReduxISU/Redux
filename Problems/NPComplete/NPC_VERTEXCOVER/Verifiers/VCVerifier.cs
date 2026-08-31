@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Verifiers;
 class VCVerifier : IVerifier<VERTEXCOVER> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Vertex Cover Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a Vertex Cover Verifier.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Janita Aamir", "Alex Diviney" };

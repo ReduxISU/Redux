@@ -26,7 +26,7 @@ namespace API.Problems.NPComplete.NPC_BINPACKING.Verifiers;
 class BinPackingVerifier : IVerifier<BINPACKING> {
 
     //  Metadata
-    public string verifierName { get; } = "Bin Packing Verifier";
+    public string verifierName { get; } = "Default Verifier";
 
     // Explains all three checks and the overall time complexity.
     public string verifierDefinition { get; } = "Polynomial-time verifier for Bin Packing. Given a problem instance <S, C, K> and a candidate certificate representing a partition of S into bins, the verifier checks three conditions: (1) the multiset of item sizes appearing in the certificate equals S exactly (every item appears the correct number of times, no items missing or added), (2) the sum of sizes in each bin does not exceed C, and (3) the number of non-empty bins does not exceed K. The verifier runs in O(n log n) time, dominated by the sort used for multiset comparison.";

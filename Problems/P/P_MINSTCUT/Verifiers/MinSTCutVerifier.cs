@@ -4,7 +4,7 @@ using API.Problems.P.P_MINSTCUT.Solvers;
 namespace API.Problems.P.P_MINSTCUT.Verifiers;
 
 class MinSTCutVerifier : IVerifier<MINSTCUT> {
-    public string verifierName { get; } = "Minimum S-T Cut Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "Verifies that the certificate represents a valid S side of a minimum S-T cut: source is in S, target is not in S, all nodes exist, no duplicates, and the cut capacity equals the true minimum cut capacity computed by Edmonds-Karp.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };

@@ -8,7 +8,7 @@ class DFAVerifier : IVerifier<DFA> {
     public const string CertificateExample = "1,2";
 
     // --- Fields ---
-    public string verifierName { get; } = "DFA Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a solver for DFAs";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };

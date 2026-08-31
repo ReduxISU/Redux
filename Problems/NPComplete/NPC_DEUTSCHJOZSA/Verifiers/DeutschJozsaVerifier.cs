@@ -8,7 +8,7 @@ class DeutschJozsaVerifier : IVerifier<DEUTSCHJOZSA> {
     public const string CertificateExample = "constant";
 
     // --- Fields ---
-    public string verifierName { get; } = "Deutsch Jozsa Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This verifier uses the classical solver to verify the solution to the Deutsch-Jozsa problem.";
     public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558";
     public string[] contributors { get; } = { "Jason L. Wright", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };

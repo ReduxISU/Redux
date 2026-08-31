@@ -9,7 +9,7 @@ class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
 
 
     #region Fields
-    public string verifierName { get; } = "Graph Coloring Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Graph Coloring.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

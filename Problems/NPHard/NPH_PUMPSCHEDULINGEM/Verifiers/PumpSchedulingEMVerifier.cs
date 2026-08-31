@@ -13,7 +13,7 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM> {
         "(PumpB,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)," +
         "(PumpC,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,1)))";
 
-    public string verifierName { get; } = "Pump Scheduling Emergency Resilience Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string certificate { get; private set; } = string.Empty;
     public string verifierDefinition { get; } =
         "Parses the effective budget and pump schedule from the certificate, simulates the " +

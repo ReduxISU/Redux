@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 namespace API.Problems.NPComplete.NPC_MAXCUT.Verifiers;
 
 class MaxCutVerifier : IVerifier<MAXCUT> {
-    public string verifierName { get; } = "Max Cut Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "Verifies that the certificate represents a valid non-trivial partition S whose crossing-edge weight equals the true maximum cut weight computed by brute force enumeration.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Max Gruenwoldt", "Eric Hill", "Michael Trosper" };

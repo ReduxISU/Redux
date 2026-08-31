@@ -8,7 +8,7 @@ namespace API.Problems.NPComplete.NPC_CONVEXHULL.Verifiers;
 class ConvexHullVerifier : IVerifier<CONVEXHULL> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Convex Hull Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "Verifies a proposed convex hull by recomputing the convex hull of the input points using the default solver and comparing it to the provided certificate.";
     public string source { get; } = "";
     public string sourceLink { get; } = "";

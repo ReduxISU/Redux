@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_SIMON.Verifiers;
 class SimonVerifier : IVerifier<SIMON> {
 
     // --- Fields ---
-    public string verifierName { get; } = "SimonVerifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "Classifcal Verifier for Simon's Problem";
     public string source { get; } = "Simon, Daniel R. (1997-10-01). \"On the Power of Quantum Computation\". SIAM Journal on Computing. 26 (5): 1474–1483. doi:10.1137/S0097539796298637. ISSN 0097-5397";
     public string[] contributors { get; } = { "Jason L. Wright", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };

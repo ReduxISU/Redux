@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_STEINERTREE.Verifiers;
 class SteinerTreeVerifier : IVerifier<STEINERTREE> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Steiner Tree Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Steiner Tree";
     public string source { get; } = "Andrija Sevaljevic";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

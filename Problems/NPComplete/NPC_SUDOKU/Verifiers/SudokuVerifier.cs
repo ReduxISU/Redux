@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_SUDOKU.Verifiers;
 class SudokuVerifier : IVerifier<SUDOKU> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Sudoku Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Sudoku. It takes the certificate from the user and validates that it follows the rules of Sudoku and matches the initial clues from the problem instance.";
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
     public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };

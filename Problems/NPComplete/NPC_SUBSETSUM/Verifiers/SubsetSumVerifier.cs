@@ -9,7 +9,7 @@ class SubsetSumVerifier : IVerifier<SUBSETSUM> {
     public const string CertificateExample = "{1,12,15}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Subset Sum Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Subset Sum";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Garret Stouffer" };

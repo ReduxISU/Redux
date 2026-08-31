@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_SAT3.Verifiers;
 class SAT3Verifier : IVerifier<SAT3> {
 
     // --- Fields ---
-    public string verifierName { get; } = "3SAT Verifier";
+    public string verifierName { get; } = "Default Verifier";
     public string verifierDefinition { get; } = "This is a verifier for 3SAT. It takes the certificate from " +
                                          "the user and validates that every clause contains a true literal";
     public string source { get; } = "";
