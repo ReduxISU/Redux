@@ -24,6 +24,7 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     // SAT-to-3SAT clause-splitting reduction); it is the canonical starting point for
     // most of this repo's NP-completeness reductions.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.Logic;
     public string instance { get; set; } = string.Empty;
 
     public string wikiName { get; } = "";

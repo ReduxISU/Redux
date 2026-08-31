@@ -99,7 +99,7 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory> {
         foreach (var shouldBeGone in new[] { "MINIMUMSPANNINGTREE", "SHORTESTPATH", "TOPOLOGICALSORT", "STRONGLYCONNECTEDCOMPONENTS", "EDITDISTANCE", "CONVEXHULL" })
             Assert.DoesNotContain(shouldBeGone, actual);
 
-        // PRIMEFACTOR (NPIntermediate) and the quantum-oracle problems must NOT be here.
+        // PRIMEFACTOR (NP) and the quantum-oracle problems must NOT be here.
         foreach (var shouldBeGone in new[] { "PRIMEFACTOR", "DEUTSCH", "DEUTSCHJOZSA", "BERNSTEINVAZIRANI", "SIMON", "UNSTRUCTUREDSEARCH" })
             Assert.DoesNotContain(shouldBeGone, actual);
 

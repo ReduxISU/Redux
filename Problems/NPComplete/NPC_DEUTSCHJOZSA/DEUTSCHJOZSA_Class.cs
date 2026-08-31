@@ -26,6 +26,7 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
     // an oracle, not a citizen of the classical P/NP hierarchy — see
     // ComplexityClass.QuantumOracle.
     public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     public int n { get; set; }
     public List<int> w { get; set; } = new List<int>();

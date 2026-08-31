@@ -46,6 +46,7 @@ class DOMINATINGSET
         new DominatingSetDefaultVisualization();
     // Declared, not derived. DOMINATINGSET is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     public UtilCollectionGraph graph { get; set; }
 

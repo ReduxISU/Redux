@@ -8,7 +8,9 @@ namespace API.Interfaces;
 /// convention only, and <c>Problems/NPComplete/</c> misfiles at least twelve of its
 /// entries (e.g. six actually-P problems, one NP-intermediate problem, and five
 /// quantum query-complexity promise problems that aren't classical-hierarchy
-/// citizens at all). This enum is the source of truth instead.
+/// citizens at all). This enum is the source of truth instead. Consumers building
+/// membership-in-NP filters must special-case <see cref="NPComplete"/> onto <see cref="NP"/>
+/// (see the doc comment on <see cref="NP"/>) — no other pair of values here implies another.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ComplexityClass>))]
 public enum ComplexityClass {
@@ -20,8 +22,14 @@ public enum ComplexityClass {
     NPComplete,
     /// <summary>At least as hard as every problem in NP, but not (known to be) in NP itself.</summary>
     NPHard,
-    /// <summary>In NP, not known to be NP-complete, and not known to be in P (e.g. integer factorization).</summary>
-    NPIntermediate,
+    /// <summary>
+    /// In NP. Also implicitly includes every <see cref="NPComplete"/> problem — NP-Complete
+    /// is a subset of NP by definition — so consumers filtering "is this in NP?" should treat
+    /// NPComplete as a match too rather than testing this value for exact equality. Problems
+    /// declaring this value directly are ones known to be in NP but not known to be
+    /// NP-complete or in P (e.g. integer factorization).
+    /// </summary>
+    NP,
     /// <summary>
     /// Query/oracle-complexity promise problem. Deutsch, Deutsch-Jozsa,
     /// Bernstein-Vazirani, Simon, and Grover/UNSTRUCTUREDSEARCH belong here rather

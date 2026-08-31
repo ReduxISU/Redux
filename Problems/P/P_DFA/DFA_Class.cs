@@ -35,6 +35,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     // Declared, not derived. DFA acceptance is decidable in polynomial time (linear
     // in the input string, given the DFA).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.AutomataAndLanguages;
 
     // Edge Structures //
     public record DFAEdge(string From, char Symbol, string To);

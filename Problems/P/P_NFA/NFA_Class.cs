@@ -36,6 +36,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     // though NFA-to-DFA conversion can blow up exponentially — acceptance itself
     // doesn't require that conversion.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.AutomataAndLanguages;
 
     // Edge Structures //
     public record NFAEdge(string From, char Symbol, string To);

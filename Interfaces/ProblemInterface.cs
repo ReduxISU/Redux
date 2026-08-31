@@ -25,6 +25,10 @@ interface IProblem {
     // wrong for at least a dozen problems; this is the source of truth.
     ComplexityClass complexityClass { get => ComplexityClass.Unclassified; }
 
+    // Declared, not derived. Subject-matter category (Garey & Johnson's taxonomy) for
+    // filtering/discovery, independent of complexityClass.
+    ProblemType problemType { get => ProblemType.Unclassified; }
+
     string[] contributors { get; }
 
     ISolver defaultSolver { get; }

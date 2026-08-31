@@ -29,6 +29,7 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     // over an oracle, not a citizen of the classical P/NP hierarchy — see
     // ComplexityClass.QuantumOracle.
     public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     // --- Methods and Constructors ---
     public DEUTSCH() : this(_defaultInstance) {

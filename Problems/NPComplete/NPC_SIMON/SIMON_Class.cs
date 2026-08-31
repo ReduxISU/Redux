@@ -27,6 +27,7 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization> {
     // over an oracle, not a citizen of the classical P/NP hierarchy — see
     // ComplexityClass.QuantumOracle.
     public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     private int[] _funcValues = new int[2] { 0, 1 };
 

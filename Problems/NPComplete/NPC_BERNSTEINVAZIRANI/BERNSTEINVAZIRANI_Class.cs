@@ -31,6 +31,7 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     // over an oracle, not a citizen of the classical P/NP hierarchy — see
     // ComplexityClass.QuantumOracle.
     public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     // --- Methods and Constructors ---
     public BERNSTEINVAZIRANI() : this(_defaultInstance) {

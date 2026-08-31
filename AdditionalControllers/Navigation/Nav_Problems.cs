@@ -10,7 +10,7 @@ using API.Interfaces;
 // A problem's complexity class is DECLARED (IProblem.complexityClass), not derived from
 // its namespace. The namespace (API.Problems.<Folder>.<ProblemFolder>) used to be treated
 // as the source of truth, but Problems/NPComplete/ misfiles at least a dozen entries (six
-// are actually P, one is NPIntermediate, five are quantum query-complexity promise
+// are actually P, one is NP (not NP-complete), five are quantum query-complexity promise
 // problems that aren't classical-hierarchy citizens at all) — the folder is a filing
 // convention, not a correctness claim. See ComplexityClassCatalog below.
 //

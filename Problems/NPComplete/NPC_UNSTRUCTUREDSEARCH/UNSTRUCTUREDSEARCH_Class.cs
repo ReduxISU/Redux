@@ -29,6 +29,7 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     // explicit input instead of an oracle it is trivially in P. See
     // ComplexityClass.QuantumOracle.
     public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     private string _circuit = "";
 

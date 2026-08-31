@@ -33,6 +33,7 @@ class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, DummyVisualization> {
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     // Declared, not derived. JOBSEQ is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.SequencingAndScheduling;
 
     // --- Properties ---
     public List<int> T {

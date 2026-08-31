@@ -33,7 +33,7 @@ public class ReductionValidity_Tests {
     // classical P/NP hierarchy).
     private static readonly Dictionary<ComplexityClass, int> Rank = new() {
         [ComplexityClass.P] = 0,
-        [ComplexityClass.NPIntermediate] = 1,
+        [ComplexityClass.NP] = 1,
         [ComplexityClass.NPComplete] = 2,
         [ComplexityClass.NPHard] = 2,
     };

@@ -34,6 +34,7 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     // (Yato & Seta, 2003); the standard 9x9 board is a fixed-size instance of the
     // same NP-complete family.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
     public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" }; //TODO: keep Eric? I think so but not sure
 
     public int[][] grid { get; set; }

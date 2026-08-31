@@ -15,6 +15,7 @@ class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualizat
     // Declared, not derived. Global minimum cut is solvable in polynomial time
     // (Stoer-Wagner).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     public string source { get; } = "Stoer, Mechthild, and Frank Wagner. \"A simple min-cut algorithm.\" Journal of the ACM 44, no. 4 (1997): 585-591.";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/263867.263872";
     public static string _defaultInstance { get; } = "({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})";
