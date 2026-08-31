@@ -16,7 +16,7 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
 
 
     // --- Fields ---
-    public string reductionName { get; } = "Lawler and Karp Arcset Reduction";
+    public string reductionName { get; } = "Lawler-Karp Arc Set Reduction";
     public string reductionDefinition { get; } = @"This Reduction is an implementation of Lawler and Karp's reduction as laid out in Karp's 21 NP_Complete Problems. 
                                             It takes an instance of an undirected graph (specifically an instance of VERTEXCOVER) and returns an instance of ARCSET (ie. a Directed Graph)
                                             Specifically, a reduction follows the following algorithm: 

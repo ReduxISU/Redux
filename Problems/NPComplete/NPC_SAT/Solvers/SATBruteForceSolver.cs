@@ -13,7 +13,7 @@ public class SATBruteForceSolver : ISolver {
     #region Fields
 
     // --- Fields ---
-    public string solverName { get; } = "SAT Brute Force Solver";
+    public string solverName { get; } = "SAT Brute Force";
     public string solverDefinition { get; } = "This is a simple brute force solver for SAT";
     public string source { get; } = "";
     public bool timerHasExpired { get; set; }

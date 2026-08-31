@@ -14,7 +14,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
 
     // --- Fields ---
-    public string reductionName { get; } = "Clique reduction";
+    public string reductionName { get; } = "Clique Reduction";
     public string reductionDefinition { get; } = @"This reduction converts an independent set problem into a clique problem, 
                                             by taking the complement of the graph, or inverting all the edges.";
     public string source { get; } = "";

@@ -9,7 +9,7 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_EDITDISTANCE.Solvers;
 
 class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
-    public string solverName { get; } = "Dynamic Programming Edit Distance Solver";
+    public string solverName { get; } = "Edit Distance Dynamic Programming";
     public string solverDefinition { get; } = "Finds the edit distance between two strings using dynamic programming.";
     public string source { get; } = "R. A. Wagner and M. J. Fischer, “The String-to-String Correction Problem,” Journal of the ACM, vol. 21, no. 1, pp. 168-173, Jan. 1974";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/321796.321811";

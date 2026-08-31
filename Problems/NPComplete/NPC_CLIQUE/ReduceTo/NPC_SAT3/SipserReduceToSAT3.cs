@@ -20,7 +20,7 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 [NotAGeneralReduction]
 class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.SAT3> {
     // --- Fields ---
-    public string reductionName { get; } = "Sipser's Inverse Clique-to-3SAT Reduction";
+    public string reductionName { get; } = "Sipser's 3SAT Reduction";
     public string reductionDefinition { get; } =
         "Inverse of SipserReduceToCliqueStandard. Reconstructs the 3SAT formula from a "
         + "Sipser-formatted CLIQUE instance (nodes named '<literal>_<clauseIdx>') and "

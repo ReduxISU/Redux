@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_SUDOKU.Solvers;
 class SudokuSolver : ISolver<SUDOKU> {
 
     // --- Fields ---
-    public string solverName { get; } = "Backtrack";
+    public string solverName { get; } = "Sudoku Backtracking";
     public string solverDefinition { get; } = "This solver uses backtracking and heuristic search to solve Sudoku problems.";
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
     public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };

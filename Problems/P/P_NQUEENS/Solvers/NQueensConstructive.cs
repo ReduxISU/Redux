@@ -18,7 +18,7 @@ namespace API.Problems.P.P_NQUEENS.Solvers;
 class NQueensConstructive : ISolver<NQUEENS> {
 
     // --- Fields ---
-    public string solverName { get; } = "N-Queens Constructive Solver";
+    public string solverName { get; } = "N-Queens Constructive";
     public string solverDefinition { get; } =
         "Places all n queens directly from a closed-form (mod 12) formula in O(n) time, "
         + "witnessing that N-Queens is solvable in polynomial time. Returns a valid placement "

@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 class DeutschClassicalSolver : ISolver<DEUTSCH> {
 
     // --- Fields ---
-    public string solverName { get; } = "Deutsch Problem Classical Solver";
+    public string solverName { get; } = "Deutsch Classical";
     public string solverDefinition { get; } = "This is a classical solver for the Deutsch Problem which simply tries both inputs to f(x) and computes whether they are the same (constant) or different (balanced)";
     public string source { get; } = "Deutsch, David. 1985. Quantum theory, the Church-Turing principle and the universal quantum computer. Proc. R. Soc. Lond. A40097-117";
     public string[] contributors { get; } = { "Jason L. Wright" };
