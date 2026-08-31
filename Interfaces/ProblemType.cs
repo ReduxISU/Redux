@@ -35,6 +35,8 @@ public enum ProblemType {
     AutomataAndLanguages,
     /// <summary>Compiler/program-optimization problems (e.g. register allocation, code generation).</summary>
     ProgramOptimization,
+    /// <summary>Geometric problems over point/line/polygon inputs (e.g. convex hull, closest pair).</summary>
+    ComputationalGeometry,
     /// <summary>Doesn't fit any other category — includes problems that predate this taxonomy
     /// (e.g. the quantum query-complexity promise problems).</summary>
     Miscellaneous,
