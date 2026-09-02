@@ -32,4 +32,4 @@ jobs:
         run: dotnet build Redux.slnx --no-restore --configuration Release
 
       - name: Unit tests
-        run: dotnet test Redux.slnx --no-restore --no-build --configuration Release
+        run: dotnet test --solution Redux.slnx --no-restore --no-build --configuration Release
