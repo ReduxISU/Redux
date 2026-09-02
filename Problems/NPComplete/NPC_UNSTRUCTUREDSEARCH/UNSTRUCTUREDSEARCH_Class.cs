@@ -24,11 +24,11 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     public UnstructuredSearchVerifier defaultVerifier { get; } = new UnstructuredSearchVerifier();
     public UnstructuredSearchVisualization defaultVisualization { get; } = new UnstructuredSearchVisualization();
     public string[] contributors { get; } = { "Alex Svancara" };
-    // Declared, not derived. Grover/unstructured search is a query-complexity promise
-    // problem over an oracle, not a citizen of the classical P/NP hierarchy — given an
-    // explicit input instead of an oracle it is trivially in P. See
-    // ComplexityClass.QuantumOracle.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    // Declared, not derived. Grover's algorithm has a small non-zero failure
+    // probability (or needs a tuned iteration count to avoid one) — bounded-error, not
+    // exact — so it belongs in BQP, not the classical P/NP hierarchy; given an explicit
+    // input instead of an oracle it is trivially in P. See ComplexityClass.BQP.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.BQP;
     public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     private string _circuit = "";

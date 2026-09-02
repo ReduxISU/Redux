@@ -27,10 +27,11 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
     public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
     public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
-    // Declared, not derived. Bernstein-Vazirani is a query-complexity promise problem
-    // over an oracle, not a citizen of the classical P/NP hierarchy — see
-    // ComplexityClass.QuantumOracle.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    // Declared, not derived. The Bernstein-Vazirani algorithm solves this promise
+    // problem with a single oracle query and zero error probability — exact, not
+    // merely bounded-error — so it belongs in EQP, not the classical P/NP hierarchy.
+    // See ComplexityClass.EQP.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.EQP;
     public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     // --- Methods and Constructors ---
