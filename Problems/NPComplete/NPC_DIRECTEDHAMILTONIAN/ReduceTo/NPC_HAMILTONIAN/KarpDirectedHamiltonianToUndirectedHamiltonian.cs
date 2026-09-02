@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_HAMILTONIAN;
@@ -14,6 +15,13 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
     // reduce() emits exactly 3 gadget nodes + 2 gadget edges per input node, and 1
     // converted edge per input edge — O(n+m), no cross-product terms.
     public ReductionCost cost { get; } = ReductionCost.Linear;
+    // Declared, not derived. Each node is independently replaced by a fixed 3-node
+    // gadget, and each directed edge independently by a fixed connector edge.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. One pass over nodes, one pass over edges.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n + m), n = |nodes|, m = |edges|";
     public List<Gadget> gadgets { get; }
     private DIRECTEDHAMILTONIAN _reductionFrom;
     private HAMILTONIAN _reductionTo;

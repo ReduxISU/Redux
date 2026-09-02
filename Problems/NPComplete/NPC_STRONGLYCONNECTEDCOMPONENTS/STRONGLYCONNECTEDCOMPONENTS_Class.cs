@@ -46,6 +46,7 @@ class STRONGLYCONNECTEDCOMPONENTS
     // algorithm solves this in polynomial time; it just lives under NPComplete/
     // for filing reasons.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     public KosarajuSolver defaultSolver { get; } = new KosarajuSolver();
 

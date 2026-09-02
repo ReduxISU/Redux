@@ -27,10 +27,12 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
     public DeutschJozsaVerifier defaultVerifier { get; } = new DeutschJozsaVerifier();
     public DeutschJozsaDefaultVisualization defaultVisualization { get; } = new DeutschJozsaDefaultVisualization();
     public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "George Lake" };
-    // Declared, not derived. Deutsch-Jozsa is a query-complexity promise problem over
-    // an oracle, not a citizen of the classical P/NP hierarchy — see
-    // ComplexityClass.QuantumOracle.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    // Declared, not derived. The Deutsch-Jozsa algorithm solves this promise problem
+    // with a single oracle query and zero error probability — exact, not merely
+    // bounded-error — so it belongs in EQP, not the classical P/NP hierarchy. See
+    // ComplexityClass.EQP.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.EQP;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     public int n { get; set; }
     public List<int> w { get; set; } = new List<int>();

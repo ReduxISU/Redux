@@ -27,6 +27,7 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     public PartitionDefaultVisualization defaultVisualization { get; } = new PartitionDefaultVisualization();
     // Declared, not derived. PARTITION is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
 
     // --- Properties ---
     public List<string> S {

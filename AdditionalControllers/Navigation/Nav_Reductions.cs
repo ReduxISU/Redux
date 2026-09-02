@@ -36,6 +36,64 @@ internal static class ReductionCostCatalog {
     }
 }
 
+// className -> declared ReductionType / ReductionComplexityBucket wire values. Same
+// build shape as ReductionCostCatalog above (issue #376).
+internal static class ReductionTypeCatalog {
+    internal static readonly Lazy<Dictionary<string, string>> ReductionTypeByClassName = new(BuildReductionType);
+    internal static readonly Lazy<Dictionary<string, string>> ComplexityBucketByClassName = new(BuildComplexityBucket);
+    internal static readonly Lazy<Dictionary<string, string>> ComplexityByClassName = new(BuildComplexity);
+
+    private static Dictionary<string, string> BuildReductionType() {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance)
+                    result[type.Name] = instance.reductionType.ToString();
+            } catch {
+                // Skip a reduction that can't be default-constructed instead of failing
+                // the whole catalog. It falls back to Unclassified at the call site.
+            }
+        }
+        return result;
+    }
+
+    private static Dictionary<string, string> BuildComplexityBucket() {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance)
+                    result[type.Name] = instance.complexityBucket.ToString();
+            } catch {
+                // Skip a reduction that can't be default-constructed instead of failing
+                // the whole catalog. It falls back to Unclassified at the call site.
+            }
+        }
+        return result;
+    }
+
+    // `complexity` is deliberately NOT part of IReduction (see ReductionCost.cs's own
+    // doc comment: it's "the pre-existing ad-hoc `complexity` string field some
+    // reduction classes already carry", a free-text Big-O note, not a closed
+    // vocabulary like cost/reductionType/complexityBucket) -- so it's read via
+    // reflection on the concrete type rather than through the interface, same
+    // ad-hoc-ness the property itself has on each class.
+    private static Dictionary<string, string> BuildComplexity() {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance) {
+                    var property = type.GetProperty("complexity");
+                    result[type.Name] = property?.GetValue(instance) as string ?? "";
+                }
+            } catch {
+                // Skip a reduction that can't be default-constructed instead of failing
+                // the whole catalog. It falls back to "" (empty) at the call site.
+            }
+        }
+        return result;
+    }
+}
+
 // Top-level so Swagger emits "$ref": "#/components/schemas/ReductionEdge".
 // Must not be nested inside ReductionGraphData — the CLR names nested types
 // with '+' (e.g. "ReductionGraphData+Edge"), which is not a valid JSON pointer
@@ -67,6 +125,12 @@ public class ReductionEdge {
     /// <summary>The declared <see cref="ReductionCost"/> wire value: how much this reduction blows up instance size (output vs input). Already-stringified, same Newtonsoft-enum-as-int mitigation as <see cref="fromComplexity"/>/<see cref="toComplexity"/>.</summary>
     /// <example>Linear</example>
     public string cost { get; set; } = "";
+    /// <summary>The declared <see cref="ReductionType"/> wire value: the Garey &amp; Johnson proof technique this reduction uses. Additive field for issue #376; purely informational here.</summary>
+    /// <example>ComponentDesign</example>
+    public string reductionType { get; set; } = "";
+    /// <summary>The declared <see cref="ReductionComplexityBucket"/> wire value: how long this reduction takes to run, in worst-case Big-O of input instance size. Additive field for issue #376; purely informational here.</summary>
+    /// <example>Polynomial</example>
+    public string complexityBucket { get; set; } = "";
 }
 
 /// <summary>
@@ -99,13 +163,37 @@ public static class ReductionGraphData {
             ? cost
             : nameof(API.Interfaces.ReductionCost.Unclassified);
 
-    // Ascending cost rank for sorting parallel edges (same from->to pair, multiple
-    // reduction classes) cheapest-first, so a caller that just takes edges[0] gets the
-    // cheapest *declared* reduction automatically. Unclassified sorts last — an
-    // undeclared cost is not evidence of being cheap. This only orders parallel edges
-    // between a single (from, to) pair; it is intentionally NOT a re-weighting of
-    // PathBetween's BFS (which is unweighted, by hop count only) — a weighted,
-    // cheapest-multi-hop PathBetween is a deferred follow-up phase, not in scope here.
+    private static string DeclaredReductionType(string className) =>
+        ReductionTypeCatalog.ReductionTypeByClassName.Value.TryGetValue(className, out var reductionType)
+            ? reductionType
+            : nameof(API.Interfaces.ReductionType.Unclassified);
+
+    private static string DeclaredComplexityBucket(string className) =>
+        ReductionTypeCatalog.ComplexityBucketByClassName.Value.TryGetValue(className, out var bucket)
+            ? bucket
+            : nameof(API.Interfaces.ReductionComplexityBucket.Unclassified);
+
+    // Ascending rank for sorting parallel edges (same from->to pair, multiple reduction
+    // classes) most-efficient-first, so a caller that just takes edges[0] gets the most
+    // efficient *declared* reduction automatically (issue #376). Primary key is
+    // complexityBucket (running time), cost (output blow-up) breaks ties — same rule as
+    // ReductionEfficiency.IsMoreEfficient (Interfaces/ReductionEfficiency.cs), just
+    // applied to the already-stringified DTO fields here instead of raw IReduction
+    // instances. Unclassified sorts last on both axes — an undeclared value is not
+    // evidence of being fast/cheap. This only orders parallel edges between a single
+    // (from, to) pair; it is intentionally NOT a re-weighting of PathBetween's BFS
+    // (which is unweighted, by hop count only) — a weighted, cheapest-multi-hop
+    // PathBetween is a deferred follow-up phase, not in scope here.
+    private static readonly Dictionary<string, int> ComplexityBucketRank = new(StringComparer.OrdinalIgnoreCase) {
+        [nameof(API.Interfaces.ReductionComplexityBucket.Constant)] = 0,
+        [nameof(API.Interfaces.ReductionComplexityBucket.Logarithmic)] = 1,
+        [nameof(API.Interfaces.ReductionComplexityBucket.Linear)] = 2,
+        [nameof(API.Interfaces.ReductionComplexityBucket.Linearithmic)] = 3,
+        [nameof(API.Interfaces.ReductionComplexityBucket.Polynomial)] = 4,
+        [nameof(API.Interfaces.ReductionComplexityBucket.Exponential)] = 5,
+        [nameof(API.Interfaces.ReductionComplexityBucket.Unclassified)] = 6,
+    };
+
     private static readonly Dictionary<string, int> CostRank = new(StringComparer.OrdinalIgnoreCase) {
         [nameof(API.Interfaces.ReductionCost.Linear)] = 0,
         [nameof(API.Interfaces.ReductionCost.Quadratic)] = 1,
@@ -144,6 +232,8 @@ public static class ReductionGraphData {
                 fromComplexity = DeclaredComplexity(args[0]),
                 toComplexity = DeclaredComplexity(args[1]),
                 cost = DeclaredCost(className),
+                reductionType = DeclaredReductionType(className),
+                complexityBucket = DeclaredComplexityBucket(className),
             };
             if (!graph.ContainsKey(from))
                 graph[from] = new Dictionary<string, List<ReductionEdge>>();
@@ -153,13 +243,15 @@ public static class ReductionGraphData {
         }
 
         // Sort parallel edges (multiple reduction classes between the same from/to
-        // pair) cheapest-first. Stable sort preserves relative order among equal-cost
-        // edges. Does not affect which (from, to) pairs exist in the graph, and does
-        // not touch PathBetween's hop-count BFS — see CostRank's comment above.
+        // pair) most-efficient-first. Stable sort preserves relative order among
+        // equally-efficient edges. Does not affect which (from, to) pairs exist in the
+        // graph, and does not touch PathBetween's hop-count BFS — see
+        // ComplexityBucketRank's comment above.
         foreach (var tos in graph.Values)
             foreach (var to in tos.Keys.ToList())
                 tos[to] = tos[to]
-                    .OrderBy(e => CostRank.TryGetValue(e.cost, out var r) ? r : int.MaxValue)
+                    .OrderBy(e => ComplexityBucketRank.TryGetValue(e.complexityBucket, out var r) ? r : int.MaxValue)
+                    .ThenBy(e => CostRank.TryGetValue(e.cost, out var r) ? r : int.MaxValue)
                     .ToList();
 
         return graph;

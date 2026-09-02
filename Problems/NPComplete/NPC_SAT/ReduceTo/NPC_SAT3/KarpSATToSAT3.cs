@@ -19,8 +19,16 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
     // literal count) across the whole formula — linear in input size.
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Each over-length clause is split independently by
+    // introducing its own chain of fresh variables -- no coordination needed between
+    // different clauses' splits.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. Total splits (and clauses produced) is O(total literal
+    // count) across the whole formula.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(L), L = total literal count across the SAT formula";
     public List<Gadget> gadgets { get; }
     private SAT _reductionFrom;
     private SAT3 _reductionTo;

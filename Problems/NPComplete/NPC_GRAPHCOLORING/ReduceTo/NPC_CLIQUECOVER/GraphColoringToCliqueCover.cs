@@ -18,8 +18,15 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
     // structure) — up to O(n^2) pairs even when the input graph is sparse.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
 
+    // Declared, not derived. Same certificate reinterpreted on the complement graph --
+    // coloring becomes a partition into independent sets, i.e. a clique cover of the
+    // complement -- a restriction, not a gadget construction.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. Nested node x node loop enumerating non-adjacent pairs.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |GRAPHCOLORING.nodes|";
     public List<Gadget> gadgets { get; }
     private GRAPHCOLORING _reductionFrom;
     private CLIQUECOVER _reductionTo;

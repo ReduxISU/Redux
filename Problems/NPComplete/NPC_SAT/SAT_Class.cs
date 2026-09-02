@@ -45,6 +45,7 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     // Declared, not derived. SAT is the canonical NP-complete problem (Cook-Levin).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.Logic;
 
     #endregion
 
