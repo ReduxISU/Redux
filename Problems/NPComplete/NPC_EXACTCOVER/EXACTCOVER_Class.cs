@@ -17,7 +17,7 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
     public string problemDefinition { get; } = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney" };
+    public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney", "Michael Trosper" };
 
 
     public const string InstanceGrammar = "{(U,S) | U is set, S subset {a | a subset U}}";
