@@ -1,10 +1,12 @@
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_STEINERTREE.Verifiers;
 
 
 class SteinerTreeVerifier : IVerifier<STEINERTREE> {
+    public const string CertificateGrammar = "{node,node},... | edges form a connected subgraph including every terminal node in R";
+    public const string CertificateExample = "{{8,6},{6,1},{1,2},{2,3},{3,5}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Steiner Tree Verifier";
@@ -73,29 +75,31 @@ class SteinerTreeVerifier : IVerifier<STEINERTREE> {
     }
 
 
+    private List<KeyValuePair<string, string>> ParseCertificate(string certificate) {
+        UtilCollection edgeSet = new UtilCollection(certificate);
+        edgeSet.assertUnordered();
+
+        return edgeSet.ToList().Select(edge => {
+            edge.assertUnordered();
+            edge.assertCount(2);
+            List<UtilCollection> pair = edge.ToList();
+            return new KeyValuePair<string, string>(pair[0].ToString(), pair[1].ToString());
+        }).ToList();
+    }
+
     public bool verify(STEINERTREE problem, string certificate) {
-        List<string> order = certificate.Replace("{{", "").Replace("}}", "").Split("},{").ToList();
+        List<KeyValuePair<string, string>> edges;
+        try {
+            edges = ParseCertificate(certificate);
+        } catch {
+            return false;
+        }
+
         List<string> check = new List<string>(problem.terminals);
-        List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
-
-        for (int i = 0; i < order.Count; i++) {
-            string edgeValues = order[i];
-            string t = edgeValues.Split(',').ToList()[1];
-            string s = edgeValues.Split(',').ToList()[0];
-
-            KeyValuePair<string, string> edgePair = new KeyValuePair<string, string>(s, t);
-
-            edges.Add(edgePair);
+        foreach (var edge in edges) {
+            check.Remove(edge.Key);
+            check.Remove(edge.Value);
         }
-
-        order = certificate.Replace("{", "").Replace("}", "").Split(',').ToList();
-
-        foreach (var i in order) {
-            if (check.Contains(i)) {
-                check.Remove(i);
-            }
-        }
-
 
         if (IsConnected(edges) && !check.Any()) {
             return true;
