@@ -1,8 +1,8 @@
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.P.P_SPSP.Solvers;
+using API.Problems.P.P_SPSP.Verifiers;
 
 namespace API.Problems.P.P_SPSP.Visualizations;
 
@@ -32,7 +32,7 @@ class SPSPVisualization : IVisualization<SPSP> {
         List<string> path;
         try {
             // Parse the solution as a path
-            path = GraphParser.parseNodeListWithStringFunctions(solution);
+            path = SPSPVerifier.ParsePath(solution);
         } catch {
             // Invalid solution format, return graph with no highlights
             return visualize(problem);
@@ -75,7 +75,7 @@ class SPSPVisualization : IVisualization<SPSP> {
 
             List<string> path;
             try {
-                path = GraphParser.parseNodeListWithStringFunctions(step);
+                path = SPSPVerifier.ParsePath(step);
             } catch {
                 result.Add(visualize(problem));
                 continue;

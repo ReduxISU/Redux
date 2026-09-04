@@ -20,7 +20,24 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     public string problemDefinition { get; } = "Single Pair Shortest Path (SPSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s and target vertex t in the graph, such that the sum of edge weights along the path is minimized.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
-    public const string InstanceGrammar = "(N,E,s,t) | N is set, E subset N unorderedcross N or N cross N (edges optionally weighted as (edge,weight), non-negative only), s,t in N";
+    // The single source of truth for which graph shapes SPSP accepts -- also used
+    // to generate InstanceGrammar below, so the two can't drift apart. SPADE's
+    // definition-string grammar has no alternation/union construct (no way to say
+    // "edges are either plain pairs or weighted pairs, in a directed or undirected
+    // graph" as one pattern), so each combination needs its own attempt here.
+    private static readonly (string Pattern, bool IsDirected, bool IsWeighted)[] GraphParsePatterns =
+    {
+        ("{(N,E) | N is set, E subset {(e,w) | e is N cross N, w is int}}", true, true),
+        ("{(N,E) | N is set, E subset {(e,w) | e is N unorderedcross N, w is int}}", false, true),
+        ("{(N,E) | N is set, E subset N cross N}", true, false),
+        ("{(N,E) | N is set, E subset N unorderedcross N}", false, false)
+    };
+
+    // Generated from GraphParsePatterns above rather than hand-written, so this
+    // documentation can't silently drift from what the parser actually accepts.
+    public static string InstanceGrammar { get; } =
+        "(N,E,s,t) | s,t in N, optional (default to the first/last node of N when omitted); "
+        + "N,E parsed as one of: " + string.Join(" | ", GraphParsePatterns.Select(p => p.Pattern));
     private static string _defaultInstance =
     "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
     public string defaultInstance { get; } = _defaultInstance;
@@ -111,16 +128,8 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     }
 
     private static GraphParseResult ParseGraph(string graphInput) {
-        (string Pattern, bool IsDirected, bool IsWeighted)[] parseAttempts =
-        {
-            ("{(N,E) | N is set, E subset {(e,w) | e is N cross N, w is int}}", true, true),
-            ("{(N,E) | N is set, E subset {(e,w) | e is N unorderedcross N, w is int}}", false, true),
-            ("{(N,E) | N is set, E subset N cross N}", true, false),
-            ("{(N,E) | N is set, E subset N unorderedcross N}", false, false)
-        };
-
         Exception? lastError = null;
-        foreach (var attempt in parseAttempts) {
+        foreach (var attempt in GraphParsePatterns) {
             try {
                 StringParser parser = new(attempt.Pattern);
                 parser.parse(graphInput);

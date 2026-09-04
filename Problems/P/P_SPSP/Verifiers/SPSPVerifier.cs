@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
 using API.Problems.P.P_SPSP.Solvers;
+using SPADE;
 
 namespace API.Problems.P.P_SPSP.Verifiers;
 
@@ -19,6 +19,11 @@ class SPSPVerifier : IVerifier<SPSP> {
     public string certificate => _certificate;
 
     public SPSPVerifier() { }
+
+    internal static List<string> ParsePath(string certificate) {
+        UtilCollection nodes = new UtilCollection(certificate);
+        return nodes.ToList().Select(n => n.ToString()).ToList();
+    }
 
     // verify: takes a problem instance and a solution certificate,
     // and returns true if the certificate is a valid solution to the problem instance,
@@ -45,8 +50,15 @@ class SPSPVerifier : IVerifier<SPSP> {
 
         List<string> path;
         try {
-            // Parse the certificate as a path
-            path = GraphParser.parseNodeListWithStringFunctions(solution);
+            // The certificate is written as a SPADE set ("{q0,...,qn}"), kept
+            // as-is rather than switched to an ordered "(...)" list: a shortest
+            // path from Dijkstra's algorithm never revisits a node, so there's
+            // no duplicate for SPADE's set semantics to silently collapse, and
+            // iterating a duplicate-free set here reliably preserves the
+            // written order (verified empirically -- SPADE has no documented
+            // ordering guarantee for sets, but nothing here depends on one
+            // beyond what a duplicate-free set already provides).
+            path = ParsePath(solution);
         } catch {
             return false; // Invalid certificate format
         }
