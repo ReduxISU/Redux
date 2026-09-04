@@ -2,10 +2,13 @@ using API.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL.Verifiers;
 
 class ConvexHullVerifier : IVerifier<CONVEXHULL> {
+    public const string CertificateGrammar = "(v1,...,vk) | vi are (x,y) points forming the convex hull's vertices in order";
+    public const string CertificateExample = "((0.2723211656942368,-0.8053758131859647), (0.7674622377407927,-0.21537444528240846), (0.6077591838324792,0.5288040272918157), (-0.32705115386597394,0.6744065707101621), (-0.6984449872706371,0.3857380723376367), (-0.9308276577586132,-0.1423800479224624), (-0.27394905790800017,-0.7488048223660126))";
 
     // --- Fields ---
     public string verifierName { get; } = "Convex Hull Verifier";
@@ -40,31 +43,19 @@ class ConvexHullVerifier : IVerifier<CONVEXHULL> {
 
 
     public List<(double x, double y)> ParsePoints(string s) {
-        var pointsList = new List<(double x, double y)>();
         if (string.IsNullOrWhiteSpace(s)) throw new Exception("Certificate is empty or whitespace.");
 
-        s = s.Trim().Trim('{', '}');
-        // Normalize
-        s = s.Replace("), (", "),(");
+        // SPADE's tokenizer doesn't tolerate whitespace between elements, so
+        // insignificant spacing is stripped before handing the structure
+        // (the ordered list of (x,y) tuples) to UtilCollection to parse.
+        UtilCollection collection = new UtilCollection(s.Replace(" ", ""));
+        collection.assertOrdered();
 
-        // Split points
-        string[] pointsArr = s.Split(new string[] { "),(" }, StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var point in pointsArr) {
-            string cleaned = point.Replace("(", "").Replace(")", "").Trim();
-            string[] coords = cleaned.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            if (coords.Length != 2)
-                throw new Exception("Invalid point format: " + point);
-
-            if (!double.TryParse(coords[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double x))
-                throw new Exception("Invalid X coordinate: " + coords[0]);
-
-            if (!double.TryParse(coords[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
-                throw new Exception("Invalid Y coordinate: " + coords[1]);
-
-            pointsList.Add((x, y));
-        }
-
-        return pointsList;
+        return collection.ToList().Select(point => {
+            point.assertPair();
+            double x = double.Parse(point[0].ToString(), NumberStyles.Float, CultureInfo.InvariantCulture);
+            double y = double.Parse(point[1].ToString(), NumberStyles.Float, CultureInfo.InvariantCulture);
+            return (x, y);
+        }).ToList();
     }
 }
