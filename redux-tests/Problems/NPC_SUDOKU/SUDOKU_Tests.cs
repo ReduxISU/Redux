@@ -349,6 +349,57 @@ public class SUDOKU_Tests {
     }
 
     #endregion
+
+    #region Solver Output Passes Verifier
+
+    [Theory]
+    [InlineData("0,0,0,0,0,0,0,1,0;4,0,0,0,0,0,0,0,0;0,2,0,0,0,0,0,0,0;0,0,0,0,5,0,4,0,7;0,0,8,0,0,0,3,0,0;0,0,1,0,9,0,0,0,0;3,0,0,4,0,0,2,0,0;0,5,0,1,0,0,0,0,0;0,0,0,8,0,6,0,0,0")]
+    [InlineData("0,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5")]
+    public void SudokuSolver_Output_Passes_Verifier(string instance) {
+        var problem = new SUDOKU(instance);
+        string solution = _solver.solve(problem);
+        Assert.True(_verifier.verify(problem, solution), $"Solver output failed verifier for: {instance}");
+    }
+
+    #endregion
+
+    #region Degenerate / Small Grids
+
+    [Fact]
+    public void SudokuSolver_AllZeros_4x4_ProducesVerifiableSolution() {
+        // No givens at all -- exercises the solver with maximum freedom (least pruning
+        // from the pre-scan) on a smaller, faster 2x2-block grid.
+        var problem = new SUDOKU("0,0,0,0;0,0,0,0;0,0,0,0;0,0,0,0");
+        string solution = _solver.solve(problem);
+
+        Assert.NotEqual("", solution);
+        Assert.True(_verifier.verify(problem, solution), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void SudokuSolver_AlreadyComplete_4x4_ReturnsGridUnchanged() {
+        // Every cell is already filled and internally consistent, so SolveHelper should
+        // walk straight to its base case (row == gridSize) without ever entering the
+        // candidate-selection loop (no SetValue/ClearValue calls at all).
+        const string complete = "1,2,3,4;3,4,1,2;2,1,4,3;4,3,2,1";
+        var problem = new SUDOKU(complete);
+
+        string solution = _solver.solve(problem);
+
+        Assert.Equal(complete, solution);
+        Assert.True(_verifier.verify(problem, solution));
+    }
+
+    [Fact]
+    public void SudokuSolver_SingleGiven_4x4_SolvesAndPassesVerifier() {
+        var problem = new SUDOKU("1,0,0,0;0,0,0,0;0,0,0,0;0,0,0,0");
+        string solution = _solver.solve(problem);
+
+        Assert.NotEqual("", solution);
+        Assert.True(_verifier.verify(problem, solution), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    #endregion
 }
 
 
