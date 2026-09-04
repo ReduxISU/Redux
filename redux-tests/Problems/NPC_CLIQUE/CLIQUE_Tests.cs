@@ -79,6 +79,16 @@ public class CLIQUE_Tests {
         Assert.Equal(certificate, solver.solve(clique));
     }
 
+    [Fact] // K==0 asks for the empty clique, which is trivially correct: the
+           // solver must return "{}" directly rather than round-tripping it
+           // through CliqueVerifier, which legitimately rejects "{}" as an
+           // empty/malformed certificate for the general (K>0) case.
+    public void CliqueBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
+        CLIQUE clique = new CLIQUE("(({1,2,3},{{1,2},{2,3},{3,1}}),0)");
+        CliqueBruteForce solver = clique.defaultSolver;
+        Assert.Equal("{}", solver.solve(clique));
+    }
+
     [Fact] // a satisfiable SAT3 reduces to a clique whose solution verifies
     public void SAT3_To_CLIQUE_Reduction_Is_Sound() {
         SAT3 sat = new SAT3();
