@@ -1,9 +1,11 @@
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CUT.Verifiers;
 
 class CutVerifier : IVerifier<CUT> {
+    public const string CertificateGrammar = "{S} subset E | S has no duplicate edges (either orientation), |S| = K";
+    public const string CertificateExample = "{{2,1},{1,3},{2,3},{3,5},{2,4}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Cut Verifier";
@@ -25,27 +27,40 @@ class CutVerifier : IVerifier<CUT> {
     public CutVerifier() {
 
     }
-    private List<string> parseCertificate(string certificate) {
+    private List<List<string>> ParseCertificate(string certificate) {
+        UtilCollection edgeSet = new UtilCollection(certificate);
+        edgeSet.assertUnordered();
 
-        List<string> edgeList = certificate.Replace("{{", "").Replace("}}", "").Replace(" ", "").Split("},{").ToList();
-        return edgeList;
+        return edgeSet.ToList().Select(edge => {
+            edge.assertUnordered();
+            edge.assertCount(2);
+            return edge.ToList().Select(n => n.ToString()).ToList();
+        }).ToList();
     }
-    public bool verify(CUT problem, string certificate) {
 
-        List<string> edgeList = parseCertificate(certificate);
+    public bool verify(CUT problem, string certificate) {
+        List<List<string>> edgeList;
+        try {
+            edgeList = ParseCertificate(certificate);
+        } catch {
+            return false;
+        }
+
+        // Sort each edge's endpoints so {b,c} and {c,b} compare equal --
+        // an undirected edge has no canonical orientation.
+        List<List<string>> canonicalEdges = edgeList.Select(e => e.OrderBy(x => x).ToList()).ToList();
+
         int counter = 0;
-        foreach (var i in edgeList) {
-            string invertedString = new string(i.ToCharArray().Reverse().ToArray());
-            if (edgeList.Count(x => x == i) > 1 || edgeList.Contains(invertedString)) { //makes sure there are no duplicate edges
+        foreach (var edge in canonicalEdges) {
+            //makes sure there are no duplicate edges, regardless of orientation
+            if (canonicalEdges.Count(e => e.SequenceEqual(edge)) > 1) {
                 return false;
             }
-            List<string> currentEdge = i.Split(",").ToList();
-            KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(currentEdge[0], currentEdge[1]);
-            KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(currentEdge[1], currentEdge[0]);
-            if ((problem.edges.Contains(pairCheck1) || problem.edges.Contains(pairCheck2)) && !currentEdge[1].Equals(currentEdge[0])) { //Checks if edge exists, then adds to cut
+            KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(edge[0], edge[1]);
+            KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(edge[1], edge[0]);
+            if ((problem.edges.Contains(pairCheck1) || problem.edges.Contains(pairCheck2)) && !edge[1].Equals(edge[0])) { //Checks if edge exists, then adds to cut
                 counter++;
             }
-
         }
         if (counter != problem.K) {
             return false;
