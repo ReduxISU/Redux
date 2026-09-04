@@ -16,8 +16,12 @@ class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, DummyVisualizati
     public string problemDefinition { get; } = "Given a set of elements and a collection S of m sets whose union equals the universe, the set cover problem is to identify the smallest sub-collection of S whose union equals the universe";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+    public const string InstanceGrammar = "{(U,S,K) | U is set, S subset {a | a subset U}}";
     private static string _defaultInstance = "({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SetCoverVerifier.CertificateGrammar} Example: {SetCoverVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     private List<string> _universal = new List<string>();
     private List<List<string>> _subsets = new List<List<string>>();
@@ -65,7 +69,7 @@ class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, DummyVisualizati
     public SETCOVER(string GInput) {
         instance = GInput;
 
-        StringParser setcover = new("{(U,S,K) | U is set, S subset {a | a subset U}}");
+        StringParser setcover = new(InstanceGrammar);
         setcover.parse(GInput);
         universal = setcover["U"].ToList().Select(node => node.ToString()).ToList();
         subsets = setcover["S"].ToList().Select(subset => subset.ToList().Select(item => item.ToString()).ToList()).ToList();
