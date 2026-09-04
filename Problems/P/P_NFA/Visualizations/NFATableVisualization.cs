@@ -8,7 +8,7 @@ using NFATableStep = API.Problems.P.P_NFA.Solvers.NFASolver.NFATableStep;
 namespace API.Problems.P.P_NFA.Visualizations;
 
 class NFATableVisualization : IVisualization<NFA> {
-    public string visualizationName { get; } = "Non-deterministic Finite Automata Table Visualization";
+    public string visualizationName { get; } = "Non-Deterministic Finite Automata Table Visualization";
     public string visualizationDefinition { get; } = "Displays a table for one explored run of the NFA on the input string at a time, showing the symbol consumed, the state transition, and acceptance at each step of that run. Accepting runs are listed before rejected runs, so the default run shown is the first accepting run, or the first rejected run if none accept.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
