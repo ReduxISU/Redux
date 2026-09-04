@@ -17,23 +17,62 @@ using System.Dynamic;
 [Route("[controller]")]
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase {
+    // Buckets every loaded type into its marker-interface dictionary in a single pass over
+    // AppDomain.GetAssemblies().SelectMany(GetTypes()) instead of one full assembly scan per
+    // dictionary. .Add (not the indexer) preserves the original ToDictionary behavior of
+    // throwing on a duplicate lowercased type name within the same bucket.
+    private static (
+        Dictionary<string, Type> Problems,
+        Dictionary<string, Type> Verifiers,
+        Dictionary<string, Type> Solvers,
+        Dictionary<string, Type> Visualizers,
+        Dictionary<string, Type> Reductions
+    ) ScanTypes() {
+        Dictionary<string, Type> problems = new();
+        Dictionary<string, Type> verifiers = new();
+        Dictionary<string, Type> solvers = new();
+        Dictionary<string, Type> visualizers = new();
+        Dictionary<string, Type> reductions = new();
+
+        foreach (Type type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())) {
+            if (!type.IsClass) continue;
+            string key = type.Name.ToLower();
+
+            if (typeof(IProblem).IsAssignableFrom(type)) problems.Add(key, type);
+            if (typeof(IVerifier).IsAssignableFrom(type)) verifiers.Add(key, type);
+            if (typeof(ISolver).IsAssignableFrom(type)) solvers.Add(key, type);
+            if (typeof(IVisualization).IsAssignableFrom(type)) visualizers.Add(key, type);
+            if (typeof(IReduction).IsAssignableFrom(type)) reductions.Add(key, type);
+        }
+
+        return (problems, verifiers, solvers, visualizers, reductions);
+    }
+
+    private static readonly (
+        Dictionary<string, Type> Problems,
+        Dictionary<string, Type> Verifiers,
+        Dictionary<string, Type> Solvers,
+        Dictionary<string, Type> Visualizers,
+        Dictionary<string, Type> Reductions
+    ) _typeMaps = ScanTypes();
+
     /// <summary>A dictionary of all of the problems mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Problems = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IProblem).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Problems = _typeMaps.Problems;
 
     /// <summary>A dictionary of all of the graph problems in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> GraphProblems = Problems.Where(p => typeof(IGraphProblem).IsAssignableFrom(p.Value)).ToDictionary(x => x.Key, x => x.Value);
 
     /// <summary>A dictionary of all verifiers in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Verifiers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IVerifier).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Verifiers = _typeMaps.Verifiers;
 
     /// <summary>A dictionary of all solvers in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Solvers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(ISolver).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Solvers = _typeMaps.Solvers;
 
     /// <summary>A dictionary of all visualizers in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Visualizers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IVisualization).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Visualizers = _typeMaps.Visualizers;
 
     /// <summary>A dictionary of all reductions in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Reductions = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IReduction).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Reductions = _typeMaps.Reductions;
 
     /// <summary>A dictionary of all problems, verifiers, solvers, visualizers and reductions in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Interfaces = (new[] { Problems, Verifiers, Solvers, Visualizers, Reductions }).SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
