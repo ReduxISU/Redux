@@ -26,10 +26,15 @@ class DOMINATINGSET
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     public string sourceLink { get; } =
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
+    public const string InstanceGrammar =
+        "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance =
         "(({0,1,2,3,4},{{1,0},{0,3},{1,2},{2,4},{1,3},{3,4},{4,1}}),2)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {DominatingSetVerifier.CertificateGrammar} Example: {DominatingSetVerifier.CertificateExample}";
 
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
@@ -68,9 +73,7 @@ class DOMINATINGSET
     public DOMINATINGSET(string GInput) {
         instance = GInput;
 
-        StringParser dominatingSetGraph = new(
-            "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}"
-        );
+        StringParser dominatingSetGraph = new(InstanceGrammar);
         dominatingSetGraph.parse(GInput);
         nodes = dominatingSetGraph["N"].ToList().Select(node => node.ToString()).ToList();
         edges = dominatingSetGraph["E"]
