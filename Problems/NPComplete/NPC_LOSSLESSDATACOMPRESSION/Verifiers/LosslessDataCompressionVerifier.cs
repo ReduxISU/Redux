@@ -5,7 +5,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
     class LosslessDataCompressionVerifier : IVerifier<LOSSLESSDATACOMPRESSION> {
-        public string verifierName { get; } = "Default Verifier";
+        public string verifierName { get; } = "Lossless Data Compression Verifier";
         public string verifierDefinition { get; } = "Verifies a proposed encoding by checking prefix-free property, decoding the bitstring, and comparing with original input.";
         public string source { get; } = "Sayood, K. (2018). Introduction to data compression (5th ed.). Morgan Kaufmann.";
         public string sourceLink { get; } = "https://www.vitalsource.com/products/introduction-to-data-compression-khalid-sayood-v9780128097052?srsltid=AfmBOoqEi_U3xj4PdBt2TaKZYgScGWnKA-v0OVyiworUKPYHJT0RWvPQ";

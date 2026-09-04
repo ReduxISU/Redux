@@ -10,7 +10,7 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Verifiers;
 
 class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE> {
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Minimum Spanning Tree Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edge set is a valid minimum spanning tree for the input graph.";
     public string source { get; } = "Original verifier implementation for this repository. It checks that a certificate is spanning and acyclic, then compares its total weight against a reference MST produced by Kruskal's algorithm.";
     public string sourceLink { get; } = string.Empty;

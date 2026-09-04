@@ -6,7 +6,7 @@ namespace API.Problems.P.P_NQUEENS.Verifiers;
 class NQueensVerifier : IVerifier<NQUEENS> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "N-Queens Verifier";
     public string verifierDefinition { get; } =
         "Checks that no two queens share the same row, column, or diagonal.";
     public string source { get; } = "Standard verification for N-Queens by checking row, column, and diagonal conflicts.";

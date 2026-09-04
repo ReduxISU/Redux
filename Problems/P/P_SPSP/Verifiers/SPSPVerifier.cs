@@ -8,7 +8,7 @@ using API.Problems.P.P_SPSP.Solvers;
 namespace API.Problems.P.P_SPSP.Verifiers;
 
 class SPSPVerifier : IVerifier<SPSP> {
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Single Pair Shortest Path Problem Verifier";
     public string verifierDefinition { get; } = "Verifies the solution for the Single Pair Shortest Path problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };

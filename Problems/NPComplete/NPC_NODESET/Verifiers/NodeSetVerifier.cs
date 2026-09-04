@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_NODESET.Verifiers;
 class NodeSetVerifier : IVerifier<NODESET> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Feedback Node Set Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Node Set problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

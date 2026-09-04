@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_CLIQUECOVER.Verifiers;
 class CliqueCoverVerifier : IVerifier<CLIQUECOVER> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Clique Cover Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the NP-Complete Clique Cover problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

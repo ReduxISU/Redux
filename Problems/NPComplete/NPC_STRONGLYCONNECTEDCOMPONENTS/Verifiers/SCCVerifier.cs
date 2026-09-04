@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
 
 class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS> {
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Strongly Connected Components Verifier";
 
     public string verifierDefinition { get; } =
         "Verifies an SCC certificate by comparing components as unordered sets, since SCC ordering is not unique.";

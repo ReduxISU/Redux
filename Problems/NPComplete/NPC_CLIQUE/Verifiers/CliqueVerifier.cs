@@ -9,7 +9,7 @@ class CliqueVerifier : IVerifier<CLIQUE> {
     public const string CertificateExample = "{1,2,4}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Clique Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Clique";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Caleb Eardley", "Kaden Marchetti" };

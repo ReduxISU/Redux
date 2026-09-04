@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Verifiers;
 class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Weighted Cut Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Weighted Cut problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

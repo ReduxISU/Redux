@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_PARTITION.Verifiers;
 class PartitionVerifier : IVerifier<PARTITION> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Partition Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Partition problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

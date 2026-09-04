@@ -7,7 +7,7 @@ class GenericVerifier01INTP : IVerifier<INTPROGRAMMING01> {
     public const string CertificateExample = "(0 0 0)";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "0-1 Integer Programming Verifier";
     public string verifierDefinition { get; } = "This is a verifier for 0-1 Integer Programming";
     public string source { get; } = " ";
 

@@ -8,7 +8,7 @@ class ExactCoverVerifier : IVerifier<EXACTCOVER> {
     public const string CertificateExample = "{{2,3},{4,1}}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Verifier";
+    public string verifierName { get; } = "Exact Cover Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Exact Cover";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Caleb Eardley" };
