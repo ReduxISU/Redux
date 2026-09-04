@@ -77,4 +77,18 @@ public class UNSTRUCTUREDSEARCH_tests {
         var verifier = new UnstructuredSearchVerifier();
         Assert.True(verifier.verify(problem, "1"));
     }
+
+    [Fact]
+    public void UnstructuredGroverSolver_Solve_Missing_AnswerBitstring_ThrowsClearError() {
+        // UnstructuredGroverSolver delegates to an external quantum service. In this
+        // test environment that service is not running, so the underlying HTTP call
+        // fails/errors out; SolveAsSat must turn that into a clear, typed exception
+        // instead of returning the raw (non-bitstring) response text for solve() to
+        // reverse and parse as a base-2 integer, which used to throw a confusing
+        // FormatException. Regression test for GitHub issue #538.
+        var problem = new UNSTRUCTUREDSEARCH();
+        var solver = new UnstructuredGroverSolver();
+        var ex = Assert.Throws<InvalidOperationException>(() => solver.solve(problem));
+        Assert.NotEmpty(ex.Message);
+    }
 }
