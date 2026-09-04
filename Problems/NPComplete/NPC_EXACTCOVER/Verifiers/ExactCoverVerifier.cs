@@ -1,4 +1,5 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Verifiers;
 
@@ -27,18 +28,21 @@ class ExactCoverVerifier : IVerifier<EXACTCOVER> {
 
     }
     private List<List<string>> parseCertificate(string certificate) {
-        List<List<string>> parsedCertificate = new List<List<string>>();
-        List<string> SubsetStringList = certificate.Replace(" ", "").Split(":")[0].Split("},{").ToList();
-        foreach (string stringSet in SubsetStringList) {
-            List<string> subset = stringSet.Replace("{", "").Replace("}", "").Split(",").ToList();
-            parsedCertificate.Add(subset);
-        }
-
-        return parsedCertificate;
+        UtilCollection subsets = new UtilCollection(certificate);
+        subsets.assertUnordered();
+        return subsets.ToList().Select(subset => {
+            subset.assertUnordered();
+            return subset.ToList().Select(e => e.ToString()).ToList();
+        }).ToList();
     }
     //Example certificate "{{1,2,3},{2,3,4},{1,2}}
     public bool verify(EXACTCOVER problem, string certificate) {
-        List<List<string>> parsedCertificate = parseCertificate(certificate);
+        List<List<string>> parsedCertificate;
+        try {
+            parsedCertificate = parseCertificate(certificate);
+        } catch {
+            return false;
+        }
 
         foreach (var subset_i in parsedCertificate) {
             bool inS = false;
