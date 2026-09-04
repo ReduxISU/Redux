@@ -17,8 +17,13 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
+    public const string InstanceGrammar = "{N | N is set}";
     private static string _defaultInstance = "{1,7,12,15,33,12,11,5,6,9,21,18}";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } =
+        $"Format: {InstanceGrammar} (a set of positive integers S; duplicate values in the input collapse to one) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {PartitionVerifier.CertificateGrammar} Example: {PartitionVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     private List<string> _S = new List<string>();
     public string wikiName { get; } = "";
@@ -44,7 +49,7 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     public PARTITION(string instance) {
         this.instance = instance;
 
-        StringParser partition = new("{N | N is set}");
+        StringParser partition = new(InstanceGrammar);
         partition.parse(instance);
         S = partition["N"].ToList().Select(node => node.ToString()).ToList();
     }

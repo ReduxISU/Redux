@@ -1,9 +1,11 @@
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PARTITION.Verifiers;
 
 class PartitionVerifier : IVerifier<PARTITION> {
+    public const string CertificateGrammar = "(S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2)";
+    public const string CertificateExample = "(33,21,15),(1,7,12,11,5,6,9,18)";
 
     // --- Fields ---
     public string verifierName { get; } = "Partition Verifier";
@@ -25,16 +27,33 @@ class PartitionVerifier : IVerifier<PARTITION> {
 
     }
 
+    // Certificates come in two shapes: the documented bare pair
+    // ("(33,21,15),(1,7,12,11,5,6,9,18)", no enclosing collection) and the form
+    // PartitionBruteForce actually emits, which wraps that pair in an outer
+    // "{...}". Try parsing as-is first (covers the solver's output); if that
+    // isn't a single valid top-level collection, wrap it in parens ourselves.
+    private List<List<string>> ParseCertificate(string certificate) {
+        UtilCollection pair;
+        try {
+            pair = new UtilCollection(certificate);
+            pair.assertCount(2);
+        } catch {
+            pair = new UtilCollection("(" + certificate + ")");
+            pair.assertCount(2);
+        }
+
+        return pair.ToList().Select(group => group.ToList().Select(x => x.ToString()).ToList()).ToList();
+    }
+
     public bool verify(PARTITION problem, string certificate) {
-
-        certificate = certificate.Replace("{", "").Replace("}", "").Replace(" ", "");
-
-        string[] pairs = certificate.Split("),(");
-        string firstPair = pairs[0];
-        string secondPair = pairs[1];
-
-        List<string> c = firstPair.Replace("(", "").Replace(")", "").Replace(" ", "").Split(",").ToList();
-        List<string> c2 = secondPair.Replace("(", "").Replace(")", "").Replace(" ", "").Split(",").ToList();
+        List<List<string>> groups;
+        try {
+            groups = ParseCertificate(certificate);
+        } catch {
+            return false;
+        }
+        List<string> c = groups[0];
+        List<string> c2 = groups[1];
 
         foreach (var a in problem.S) {
             if (problem.S.Count(n => n == a) != (c.Count(n => n == a) + c2.Count(n => n == a))) {
