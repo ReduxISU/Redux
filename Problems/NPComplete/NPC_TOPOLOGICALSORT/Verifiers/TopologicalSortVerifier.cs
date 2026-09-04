@@ -1,8 +1,15 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Verifiers;
 
 class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT> {
+    // Parenthesized, not braced: an ordering is an ORDERED sequence, which a
+    // SPADE set ({...}) cannot represent -- SPADE sets are unordered and dedupe
+    // (which would silently hide a repeated-node certificate that should fail).
+    public const string CertificateGrammar = "(q0,...,qn) | linear ordering of all nodes, each qi appears once, u before v for every (u,v) in E";
+    public const string CertificateExample = "(1,2,3,4,5,6)";
+
     // --- Fields ---
     public string verifierName { get; } = "Topological Order Verifier";
     public string verifierDefinition { get; } = "Given a proposed ordering of vertices, the verifier checks that (1) every vertex in the graph appears exactly once in the ordering, and (2) for every directed edge (u,v) in the graph, u appears before v in the ordering.";
@@ -18,8 +25,14 @@ class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT> {
     // --- Methods ---
     public bool verify(TOPOLOGICALSORT problem, string certificate) {
         // Parse the certificate into an ordered list of nodes
-        List<string> order = certificate.Replace("{", "").Replace("}", "")
-            .Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        List<string> order;
+        try {
+            UtilCollection ordering = new UtilCollection(certificate);
+            ordering.assertOrdered();
+            order = ordering.ToList().Select(n => n.ToString()).ToList();
+        } catch {
+            return false;
+        }
 
         // Check 1: every node appears exactly once
         if (order.Count != problem.nodes.Count)

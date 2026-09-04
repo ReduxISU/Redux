@@ -14,8 +14,12 @@ class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, T
     public string problemDefinition { get; } = "Topological Sort is the problem of arranging the vertices of a directed acyclic graph (DAG) into a linear sequence such that all directed edges point forward in the sequence. If the graph contains a cycle, no valid topological ordering exists.";
     public string source { get; } = "Kahn, A. B. (1962). Topological sorting of large networks. Communications of the ACM, 5(11), 558-562.";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/368996.369025";
+    public const string InstanceGrammar = "{(N,E) | N is set, E subset N cross N}";
     private static string _defaultInstance = "({1,2,3,4,5,6},{(1,2),(1,3),(2,4),(3,4),(4,5),(3,6)})";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {TopologicalSortVerifier.CertificateGrammar} Example: {TopologicalSortVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "";
     private List<string> _nodes = new List<string>();
@@ -46,7 +50,7 @@ class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, T
 
     public TOPOLOGICALSORT(string GInput) {
         instance = GInput;
-        StringParser parser = new("{(N,E) | N is set, E subset N cross N}");
+        StringParser parser = new(InstanceGrammar);
         parser.parse(GInput);
         nodes = parser["N"].ToList().Select(node => node.ToString()).ToList();
         edges = parser["E"].ToList().Select(edge => {

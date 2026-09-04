@@ -59,8 +59,8 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT> {
 
         // If not all nodes processed, graph has a cycle
         if (order.Count != problem.nodes.Count)
-            return "{}";
+            return "()";
 
-        return "{" + string.Join(",", order) + "}";
+        return "(" + string.Join(",", order) + ")";
     }
 }

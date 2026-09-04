@@ -27,15 +27,15 @@ public class TOPOLOGICALSORT_Tests {
     }
 
     [Theory]
-    [InlineData("({1,2,3},{(1,2),(2,3)})", "{1,2,3}", true)]
-    [InlineData("({1,2,3},{(1,2),(2,3)})", "{3,2,1}", false)]
-    [InlineData("({1,2,3},{(1,2),(2,3)})", "{1,3,2}", false)]
-    [InlineData("({1,2,3},{(1,2),(2,3)})", "{1,2}", false)]
-    [InlineData("({1,2,3},{(1,2),(2,3)})", "{1,2,3,3}", false)]
-    [InlineData("({1,2,3,4,5,6},{(1,2),(1,3),(2,4),(3,4),(4,5),(3,6)})", "{1,2,3,4,6,5}", true)]
-    [InlineData("({1,2,3,4,5,6},{(1,2),(1,3),(2,4),(3,4),(4,5),(3,6)})", "{1,3,2,4,6,5}", true)]
-    [InlineData("({A,B,C},{(A,B),(B,C)})", "{A,B,C}", true)]
-    [InlineData("({1,2,3},{(1,2),(2,3)})", "{}", false)]
+    [InlineData("({1,2,3},{(1,2),(2,3)})", "(1,2,3)", true)]
+    [InlineData("({1,2,3},{(1,2),(2,3)})", "(3,2,1)", false)]
+    [InlineData("({1,2,3},{(1,2),(2,3)})", "(1,3,2)", false)]
+    [InlineData("({1,2,3},{(1,2),(2,3)})", "(1,2)", false)]
+    [InlineData("({1,2,3},{(1,2),(2,3)})", "(1,2,3,3)", false)]
+    [InlineData("({1,2,3,4,5,6},{(1,2),(1,3),(2,4),(3,4),(4,5),(3,6)})", "(1,2,3,4,6,5)", true)]
+    [InlineData("({1,2,3,4,5,6},{(1,2),(1,3),(2,4),(3,4),(4,5),(3,6)})", "(1,3,2,4,6,5)", true)]
+    [InlineData("({A,B,C},{(A,B),(B,C)})", "(A,B,C)", true)]
+    [InlineData("({1,2,3},{(1,2),(2,3)})", "()", false)]
     public void TOPOLOGICALSORT_Verifier(string instance, string certificate, bool expected) {
         TOPOLOGICALSORT problem = new TOPOLOGICALSORT(instance);
         TopologicalSortVerifier verifier = new TopologicalSortVerifier();
@@ -71,7 +71,7 @@ public class TOPOLOGICALSORT_Tests {
     public void TOPOLOGICALSORT_Solver_CycleReturnsEmpty(string instance) {
         var problem = new TOPOLOGICALSORT(instance);
         string solution = new KahnsAlgorithm().solve(problem);
-        Assert.Equal("{}", solution);
+        Assert.Equal("()", solution);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class TOPOLOGICALSORT_Tests {
         var solver = new KahnsAlgorithm();
         var verifier = new TopologicalSortVerifier();
         string solution = solver.solve(problem);
-        Assert.Equal("{1}", solution);
+        Assert.Equal("(1)", solution);
         Assert.True(verifier.verify(problem, solution));
     }
 
@@ -100,5 +100,34 @@ public class TOPOLOGICALSORT_Tests {
         var verifier = new TopologicalSortVerifier();
         string solution = solver.solve(problem);
         Assert.True(verifier.verify(problem, solution));
+    }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void TOPOLOGICALSORT_Instance_Format_Described() {
+        var problem = new TOPOLOGICALSORT();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void TOPOLOGICALSORT_Certificate_Format_Described() {
+        var problem = new TOPOLOGICALSORT();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("ordering", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void TOPOLOGICALSORT_Certificate_Format_Example_Is_Actually_Valid() {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        var problem = new TOPOLOGICALSORT();
+        var verifier = new TopologicalSortVerifier();
+        Assert.True(verifier.verify(problem, "(1,2,3,4,5,6)"));
     }
 }
