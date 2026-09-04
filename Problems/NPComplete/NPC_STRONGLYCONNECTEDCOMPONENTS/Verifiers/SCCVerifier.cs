@@ -1,10 +1,14 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
 
 class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS> {
+    public const string CertificateGrammar = "{c1,...,cM} | one set per strongly connected component, order does not matter";
+    public const string CertificateExample = "{{1,2,3},{4,5}}";
+
     public string verifierName { get; } = "Strongly Connected Components Verifier";
 
     public string verifierDefinition { get; } =
@@ -27,30 +31,27 @@ class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS> {
         var solver = new KosarajuSolver();
         string expected = solver.solve(problem);
 
-        return NormalizeSccs(expected).SetEquals(NormalizeSccs(certificate));
+        HashSet<string> given;
+        try {
+            given = NormalizeSccs(certificate);
+        } catch {
+            return false;
+        }
+
+        return NormalizeSccs(expected).SetEquals(given);
     }
 
     private static HashSet<string> NormalizeSccs(string value) {
-        var components = new HashSet<string>();
-        var clean = value.Replace(" ", "")
-                         .Replace("\n", "")
-                         .Replace("\r", "")
-                         .Replace("\t", "");
+        UtilCollection components = new UtilCollection(value);
+        components.assertUnordered();
 
-        foreach (var part in clean.Split("},{")) {
-            var trimmed = part.Replace("{", "").Replace("}", "");
-
-            if (string.IsNullOrWhiteSpace(trimmed))
-                continue;
-
-            var nodes = trimmed.Split(",")
-                               .Where(x => !string.IsNullOrWhiteSpace(x))
-                               .OrderBy(x => x)
-                               .ToList();
-
-            components.Add(string.Join(",", nodes));
+        var result = new HashSet<string>();
+        foreach (UtilCollection component in components) {
+            component.assertUnordered();
+            var nodes = component.ToList().Select(n => n.ToString()).OrderBy(x => x).ToList();
+            result.Add(string.Join(",", nodes));
         }
 
-        return components;
+        return result;
     }
 }

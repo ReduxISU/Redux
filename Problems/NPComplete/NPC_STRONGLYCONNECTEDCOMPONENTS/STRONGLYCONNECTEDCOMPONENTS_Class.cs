@@ -29,10 +29,15 @@ class STRONGLYCONNECTEDCOMPONENTS
     public string wikiName { get; } =
         "Strongly connected component";
 
+    public const string InstanceGrammar = "{(N,E) | N is set, E subset {(u,v) | u is N, v is N}}";
+
     public static string _defaultInstance { get; } =
         "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})";
 
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SCCVerifier.CertificateGrammar} Example: {SCCVerifier.CertificateExample}";
 
     public string instance { get; set; } = string.Empty;
 
@@ -60,7 +65,7 @@ class STRONGLYCONNECTEDCOMPONENTS
     public STRONGLYCONNECTEDCOMPONENTS(string instanceString) {
         instance = instanceString;
 
-        StringParser parser = new("{(N,E) | N is set, E subset {(u,v) | u is N, v is N}}");
+        StringParser parser = new(InstanceGrammar);
         parser.parse(instanceString);
 
         graph = new UtilCollectionGraph(parser["N"], parser["E"]);
