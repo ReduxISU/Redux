@@ -84,10 +84,13 @@ class SSSPSolver : ISolver<SSSP> {
             return adjacency; // No edges, so return empty adjacency list
 
         foreach (UtilCollection rawEdge in graph.Edges.ToList()) {
-            // check if edge is weighted
-            bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
-            bool secondLooksLikeCollection = LooksLikeCollection(rawEdge[1]);
-            bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
+            // check if edge is weighted. An unweighted/undirected raw edge is itself an
+            // unordered node-set (e.g. {1,2}), which cannot be indexed by position -- only
+            // ordered tuples/lists can be. Guard with IsOrdered() before probing
+            // rawEdge[0]/[1] so such edges fall through to the unweighted branch below,
+            // which already handles unordered collections correctly.
+            bool isWeighted = rawEdge.IsOrdered() && rawEdge.Count() == 2
+                && LooksLikeCollection(rawEdge[0]) && !LooksLikeCollection(rawEdge[1]);
 
             if (isWeighted) {
                 UtilCollection endpoints = rawEdge[0];

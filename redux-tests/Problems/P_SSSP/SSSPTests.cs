@@ -79,6 +79,35 @@ public class SSSP_Tests {
         Assert.Equal("{(1,{1}),(2,{1,2}),(3,{})}", result);
     }
 
+    [Fact]
+    public void SSSPSolver_Unweighted_Directed_Graph_Defaults_Edge_Weight_To_One() {
+        // No weights supplied: BuildAdjacencyList's unweighted/ordered branch assigns weight 1.
+        string instance = "({1,2,3},{(1,2),(2,3)},1)";
+        SSSP problem = new SSSP(instance);
+        SSSPSolver solver = new SSSPSolver();
+        string result = solver.solve(problem);
+        Assert.Equal("{(1,{1}),(2,{1,2}),(3,{1,2,3})}", result);
+    }
+
+    [Fact]
+    public void SSSPSolver_Weighted_Undirected_Graph_Adds_Edge_In_Both_Directions() {
+        // Undirected weighted edge {1,2} must be traversable from either endpoint.
+        string instance = "({1,2,3},{({1,2},4),({2,3},1)},3)";
+        SSSP problem = new SSSP(instance);
+        SSSPSolver solver = new SSSPSolver();
+        string result = solver.solve(problem);
+        Assert.Equal("{(1,{3,2,1}),(2,{3,2}),(3,{3})}", result);
+    }
+
+    [Fact]
+    public void SSSPSolver_Unweighted_Undirected_Graph_Defaults_Edge_Weight_To_One() {
+        string instance = "({1,2,3},{{1,2},{2,3}},1)";
+        SSSP problem = new SSSP(instance);
+        SSSPSolver solver = new SSSPSolver();
+        string result = solver.solve(problem);
+        Assert.Equal("{(1,{1}),(2,{1,2}),(3,{1,2,3})}", result);
+    }
+
     // ----- Verifier ----- //
 
     [Theory]

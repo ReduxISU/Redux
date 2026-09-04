@@ -102,7 +102,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
             ("{(N,E) | N is set, E subset {(e,w) | e is N cross N, w is int}}", true, true),
             ("{(N,E) | N is set, E subset {(e,w) | e is unorderedcross N, w is int}}", false, true),
             ("{(N,E) | N is set, E subset N cross N}", true, false),
-            ("{(N,E) | N is set, E subset unorderedcross N", false, false)
+            ("{(N,E) | N is set, E subset N unorderedcross N}", false, false)
         };
 
         Exception? lastError = null;
@@ -150,9 +150,13 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     }
 
     private static ParsedEdge ParseEdge(UtilCollection rawEdge) {
-        bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
-        bool secondLooksLikeCollection = rawEdge.Count() > 1 && LooksLikeCollection(rawEdge[1]);
-        bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
+        // The unweighted/undirected grammar pattern binds a raw edge directly to an
+        // unordered node-set (e.g. {1,2}), which cannot be indexed by position (only
+        // ordered tuples/lists can be). Guard with IsOrdered() before probing rawEdge[0]/[1]
+        // so such edges fall through to the GetFrom/GetTo path below, which already
+        // handles unordered collections correctly.
+        bool isWeighted = rawEdge.IsOrdered() && rawEdge.Count() == 2
+            && LooksLikeCollection(rawEdge[0]) && !LooksLikeCollection(rawEdge[1]);
 
         if (isWeighted) {
             UtilCollection endpoints = rawEdge[0];
