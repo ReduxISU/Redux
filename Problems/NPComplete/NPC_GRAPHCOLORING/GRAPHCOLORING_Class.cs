@@ -19,8 +19,12 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Daniel Igbokwe", "Alex Diviney" };
 
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {GraphColoringVerifier.CertificateGrammar} Example: {GraphColoringVerifier.CertificateExample}";
 
     public string instance { get; set; } = string.Empty;
 
@@ -106,7 +110,7 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
     public GRAPHCOLORING(string GInput) {
         instance = GInput;
 
-        StringParser graphcoloring = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
+        StringParser graphcoloring = new(InstanceGrammar);
         graphcoloring.parse(GInput);
         nodes = graphcoloring["N"].ToList().Select(node => node.ToString()).ToList();
         edges = graphcoloring["E"].ToList().Select(edge => {
