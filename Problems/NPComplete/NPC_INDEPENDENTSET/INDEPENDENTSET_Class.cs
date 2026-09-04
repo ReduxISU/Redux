@@ -15,9 +15,13 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce, IndependentSetVer
     public string problemDefinition { get; } = "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set";
     public string source { get; } = "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)";
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance = "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {IndependentSetVerifier.CertificateGrammar} Example: {IndependentSetVerifier.CertificateExample}";
     public string wikiName { get; } = "";
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
@@ -64,7 +68,7 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce, IndependentSetVer
     public INDEPENDENTSET(string GInput) {
         instance = GInput;
 
-        StringParser independentset = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
+        StringParser independentset = new(InstanceGrammar);
         independentset.parse(GInput);
         nodes = independentset["N"].ToList().Select(node => node.ToString()).ToList();
         edges = independentset["E"].ToList().Select(edge => {
