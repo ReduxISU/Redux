@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Verifiers;
 
@@ -73,18 +73,24 @@ class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
 
 
     #region Methods
-    private List<string> parseCertificate(string certificate) {
-
-        List<string> nodeList = GraphParser.parseNodeListWithStringFunctions(certificate);
-        return nodeList;
+    private List<List<string>> ParseCertificate(string certificate) {
+        UtilCollection colorClasses = new UtilCollection(certificate);
+        colorClasses.assertUnordered();
+        return colorClasses.ToList().Select(cls => {
+            cls.assertUnordered();
+            return cls.ToList().Select(n => n.ToString()).ToList();
+        }).ToList();
     }
 
     public bool verify(GRAPHCOLORING problem, string certificate) {
+        List<List<string>> nodeSet;
+        try {
+            nodeSet = ParseCertificate(certificate);
+        } catch {
+            return false;
+        }
         List<string> bandAid = new List<string>(problem.nodes);
-        List<string> nodeSet = certificate.Split("},{").ToList();
-        foreach (var k in nodeSet) {
-            List<string> nodeList = parseCertificate(k);
-
+        foreach (var nodeList in nodeSet) {
             foreach (var i in nodeList) {
                 if (!bandAid.Contains(i)) {
                     return false;
