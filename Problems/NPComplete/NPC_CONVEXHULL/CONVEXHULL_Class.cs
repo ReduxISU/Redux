@@ -1,7 +1,9 @@
-﻿using API.Interfaces;
+﻿using System.Globalization;
+using API.Interfaces;
 using API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
 using API.Problems.NPComplete.NPC_CONVEXHULL.Verifiers;
 using API.Problems.NPComplete.NPC_CONVEXHULL.Visualizations;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL;
 
@@ -47,22 +49,19 @@ class CONVEXHULL : IProblem<ConvexHullSolver, ConvexHullVerifier, ConvexHullVisu
     }
 
     public List<(double x, double y)> ParsePoints(string s) {
-        List<(double x, double y)> pointsList = new List<(double x, double y)>();
+        // SPADE's tokenizer doesn't tolerate whitespace between elements, so
+        // insignificant spacing is stripped before handing the structure
+        // (the set of (x,y) tuples) to UtilCollection to parse.
+        UtilCollection collection = new UtilCollection(s.Replace(" ", ""));
+        collection.assertUnordered();
 
-        s = s.Trim().Replace("{", "").Replace("}", "");
+        List<(double x, double y)> pointsList = collection.ToList().Select(point => {
+            point.assertPair();
+            double x = double.Parse(point[0].ToString(), CultureInfo.InvariantCulture);
+            double y = double.Parse(point[1].ToString(), CultureInfo.InvariantCulture);
+            return (x, y);
+        }).ToList();
 
-        string[] pointsArr = s.Split("),");
-
-        foreach (string point in pointsArr) {
-            string cleaned = point.Replace("(", "").Replace(")", "").Trim();
-
-            string[] coordinates = cleaned.Split(',');
-
-            double x = double.Parse(coordinates[0].Trim());
-            double y = double.Parse(coordinates[1].Trim());
-
-            pointsList.Add((x, y));
-        }
         this.points = pointsList;
         return pointsList;
     }

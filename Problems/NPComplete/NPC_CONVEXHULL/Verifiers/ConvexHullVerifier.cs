@@ -2,6 +2,7 @@ using API.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL.Verifiers;
 
@@ -42,31 +43,19 @@ class ConvexHullVerifier : IVerifier<CONVEXHULL> {
 
 
     public List<(double x, double y)> ParsePoints(string s) {
-        var pointsList = new List<(double x, double y)>();
         if (string.IsNullOrWhiteSpace(s)) throw new Exception("Certificate is empty or whitespace.");
 
-        s = s.Trim().Trim('{', '}');
-        // Normalize
-        s = s.Replace("), (", "),(");
+        // SPADE's tokenizer doesn't tolerate whitespace between elements, so
+        // insignificant spacing is stripped before handing the structure
+        // (the ordered list of (x,y) tuples) to UtilCollection to parse.
+        UtilCollection collection = new UtilCollection(s.Replace(" ", ""));
+        collection.assertOrdered();
 
-        // Split points
-        string[] pointsArr = s.Split(new string[] { "),(" }, StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var point in pointsArr) {
-            string cleaned = point.Replace("(", "").Replace(")", "").Trim();
-            string[] coords = cleaned.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            if (coords.Length != 2)
-                throw new Exception("Invalid point format: " + point);
-
-            if (!double.TryParse(coords[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double x))
-                throw new Exception("Invalid X coordinate: " + coords[0]);
-
-            if (!double.TryParse(coords[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
-                throw new Exception("Invalid Y coordinate: " + coords[1]);
-
-            pointsList.Add((x, y));
-        }
-
-        return pointsList;
+        return collection.ToList().Select(point => {
+            point.assertPair();
+            double x = double.Parse(point[0].ToString(), NumberStyles.Float, CultureInfo.InvariantCulture);
+            double y = double.Parse(point[1].ToString(), NumberStyles.Float, CultureInfo.InvariantCulture);
+            return (x, y);
+        }).ToList();
     }
 }
