@@ -36,7 +36,11 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
     private static readonly string _defaultInstance =
         "this is an example of lossless data compression using huffman encoding";
 
+    public const string InstanceGrammar = "S | any raw text string to compress";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {LosslessDataCompressionVerifier.CertificateGrammar} Example: {LosslessDataCompressionVerifier.CertificateExample}";
 
     public string instance { get; set; } = string.Empty;
 
