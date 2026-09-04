@@ -164,9 +164,12 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     }
 
     private static ParsedEdge ParseEdge(UtilCollection rawEdge) {
-        bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
-        bool secondLooksLikeCollection = rawEdge.Count() > 1 && LooksLikeCollection(rawEdge[1]);
-        bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
+        // An unordered rawEdge (a plain set like {1,2}) is a genuine SPADE set and
+        // does not support indexing. It can never be the weighted (endpoints, weight)
+        // shape, which is always ordered, so it always takes the unweighted path below.
+        bool isWeighted = rawEdge.IsOrdered() && rawEdge.Count() == 2
+            && LooksLikeCollection(rawEdge[0])
+            && !LooksLikeCollection(rawEdge[1]);
 
         if (isWeighted) {
             UtilCollection endpoints = rawEdge[0];
