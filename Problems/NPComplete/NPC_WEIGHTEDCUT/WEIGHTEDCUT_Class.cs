@@ -22,8 +22,12 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     // Karp's Max-Cut-shaped decision question, not the polynomial global-minimum-cut
     // question. See redux-tests/Metadata/ComplexityClass_Tests.cs.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}";
     public static string _defaultInstance { get; } = "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {WeightedCutVerifier.CertificateGrammar} Example: {WeightedCutVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
 
     private List<string> _nodes = new List<string>();
@@ -74,7 +78,7 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     public WEIGHTEDCUT(string GInput) {
         instance = GInput;
 
-        StringParser weightedCut = new("{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}");
+        StringParser weightedCut = new(InstanceGrammar);
         weightedCut.parse(GInput);
         nodes = weightedCut["N"].ToList().Select(node => node.ToString()).ToList();
         edges = weightedCut["E"].ToList().Select(edge => {
