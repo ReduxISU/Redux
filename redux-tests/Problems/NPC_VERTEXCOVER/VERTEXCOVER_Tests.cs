@@ -107,6 +107,38 @@ public class VERTEXCOVER_Tests {
         Assert.False(isValidCover);
     }
 
+    // -------------------------------------------------------------------------
+    // VertexCoverBruteForce — K=0 regression (GitHub issue #532)
+    // -------------------------------------------------------------------------
 
+    ///<summary>
+    /// K=0 on a graph with no edges: the empty set trivially covers a graph with
+    /// zero edges, so the brute-force solver should return "{}" rather than crash
+    /// building an empty-index certificate.
+    ///</summary>
+    [Fact]
+    public void VertexCoverBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{}),0)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
+
+    ///<summary>
+    /// K=0 on a graph that DOES have edges: no 0-node vertex cover can exist, so the
+    /// solver should sanely report "no solution" ("{}") instead of crashing while
+    /// building the (empty) candidate certificate for K=0.
+    ///</summary>
+    [Fact]
+    public void VertexCoverBruteForce_KZero_WithEdges_DoesNotThrow() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d},{{a,b},{a,c},{a,d}}),0)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
 
 }
