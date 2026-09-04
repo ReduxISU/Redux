@@ -15,8 +15,12 @@ class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefault
     public string problemDefinition { get; } = "Feedback Node Set is solved by removing at most k nodes so that no cycles remain.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance = "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {NodeSetVerifier.CertificateGrammar} Example: {NodeSetVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     private int _K;
 
@@ -64,7 +68,7 @@ class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefault
     public NODESET(string GInput) {
         instance = GInput;
 
-        StringParser nodeSet = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
+        StringParser nodeSet = new(InstanceGrammar);
         nodeSet.parse(GInput);
         nodes = nodeSet["N"].ToList().Select(node => node.ToString()).ToList();
         edges = nodeSet["E"].ToList().Select(edge => {
