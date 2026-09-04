@@ -3,6 +3,8 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_SUDOKU.Verifiers;
 
 class SudokuVerifier : IVerifier<SUDOKU> {
+    public const string CertificateGrammar = "same 9-rows-of-9 semicolon-separated digit format, fully filled (no zeros): each row, column, and 3x3 block has 1-9 exactly once, matching every instance clue";
+    public const string CertificateExample = "6,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5";
 
     // --- Fields ---
     public string verifierName { get; } = "Sudoku Verifier";
