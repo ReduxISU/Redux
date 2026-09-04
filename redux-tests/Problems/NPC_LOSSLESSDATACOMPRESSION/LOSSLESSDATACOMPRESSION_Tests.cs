@@ -22,26 +22,26 @@ public class LOSSLESSDATACOMPRESSION_Tests {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
-        Assert.Contains("encoded:", problem.certificateFormat);
+        Assert.Contains("bitstring", problem.certificateFormat);
     }
 
     [Fact]
     public void LOSSLESSDATACOMPRESSION_Certificate_Format_Example_Is_Actually_Valid() {
-        // The example quoted in certificateFormat ("(97=0;98=10;99=11) encoded:01011")
+        // The example quoted in certificateFormat ("({(97,0),(98,10),(99,11)},01011)")
         // is illustrative on "abc", not on defaultInstance: defaultInstance is a full
         // sentence whose real Huffman certificate is a ~300-character code table +
         // bitstring, too unwieldy to serve as a readable format hint. "abc" keeps the
         // example short while still being a real, verifiable certificate.
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION("abc");
         LosslessDataCompressionVerifier verifier = new LosslessDataCompressionVerifier();
-        Assert.True(verifier.verify(problem, "(97=0;98=10;99=11) encoded:01011"));
+        Assert.True(verifier.verify(problem, "({(97,0),(98,10),(99,11)},01011)"));
     }
 
     [Fact]
     public void LOSSLESS_Default_Instantiation() {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION();
         string actual_result = problem.defaultSolver.solve(problem);
-        Assert.Contains("encoded:", actual_result);
+        Assert.True(problem.defaultVerifier.verify(problem, actual_result));
     }
 
     [Fact]
@@ -51,18 +51,18 @@ public class LOSSLESSDATACOMPRESSION_Tests {
 
         string actual_result = problem.defaultSolver.solve(problem);
 
-        Assert.Contains("encoded:", actual_result);
+        Assert.True(problem.defaultVerifier.verify(problem, actual_result));
     }
 
     // verifier tests
 
     [Theory]
-    [InlineData("aaaaaa", "(97=0) encoded:000000", true)]
-    [InlineData("aaaaaa", "(97=1) encoded:111111", true)]
-    [InlineData("abc", "(97=0;98=10;99=11) encoded:01011", true)]
-    [InlineData("abc", "(97=0;98=01;99=1) encoded:001", false)] // not prefix-free
-    [InlineData("abc", "(97=0;98=0;99=1) encoded:000", false)]  // invalid encoding
-    [InlineData("a", "(97=0) encoded:1", false)]                // wrong encoding
+    [InlineData("aaaaaa", "({(97,0)},000000)", true)]
+    [InlineData("aaaaaa", "({(97,1)},111111)", true)]
+    [InlineData("abc", "({(97,0),(98,10),(99,11)},01011)", true)]
+    [InlineData("abc", "({(97,0),(98,01),(99,1)},001)", false)] // not prefix-free
+    [InlineData("abc", "({(97,0),(98,0),(99,1)},000)", false)]  // invalid encoding
+    [InlineData("a", "({(97,0)},1)", false)]                    // wrong encoding
     public void LOSSLESS_Verifier(string instance, string certificate, bool expected) {
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
 
@@ -78,8 +78,8 @@ public class LOSSLESSDATACOMPRESSION_Tests {
         string instance = "banana";
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
 
-        string cert1 = "(97=0;98=11;110=10) encoded:110100100";
-        string cert2 = "(97=1;98=00;110=01) encoded:001011011";
+        string cert1 = "({(97,0),(98,11),(110,10)},110100100)";
+        string cert2 = "({(97,1),(98,00),(110,01)},001011011)";
 
         bool result1 = problem.defaultVerifier.verify(problem, cert1);
         bool result2 = problem.defaultVerifier.verify(problem, cert2);
@@ -95,9 +95,10 @@ public class LOSSLESSDATACOMPRESSION_Tests {
         string input = "Lossless data compression";
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(input);
         string result = problem.defaultSolver.solve(problem);
-        Assert.Contains("encoded:", result);
-        Assert.Contains("(", result);
-        Assert.Contains(")", result);
+        Assert.StartsWith("({", result);
+        Assert.Contains("},", result);
+        Assert.EndsWith(")", result);
+        Assert.True(problem.defaultVerifier.verify(problem, result));
     }
 
     [Fact]
@@ -106,6 +107,7 @@ public class LOSSLESSDATACOMPRESSION_Tests {
 
         string result = problem.defaultSolver.solve(problem);
 
-        Assert.Equal("( ) encoded:", result);
+        Assert.Equal("()", result);
+        Assert.True(problem.defaultVerifier.verify(problem, result));
     }
 }

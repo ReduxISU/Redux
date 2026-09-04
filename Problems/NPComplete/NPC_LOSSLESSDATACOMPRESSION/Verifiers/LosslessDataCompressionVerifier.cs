@@ -2,11 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
     class LosslessDataCompressionVerifier : IVerifier<LOSSLESSDATACOMPRESSION> {
-        public const string CertificateGrammar = "(asciiCode1=code1;asciiCode2=code2;...) encoded:<bitstring> | prefix-free code table, then S encoded with it";
-        public const string CertificateExample = "(97=0;98=10;99=11) encoded:01011";
+        // A SPADE-parseable pair: a set of (asciiCode,code) tuples (the prefix-free
+        // code table), paired with the resulting bitstring. The previous format --
+        // "(97=0;98=10;99=11) encoded:01011" -- used "=" key/value pairs and a bare
+        // "encoded:" suffix glued on outside any bracket, neither of which SPADE's
+        // set/list grammar can express, so it was hand-parsed with Substring/Split.
+        // "()" (an empty pair) is a special-cased certificate for an empty instance.
+        public const string CertificateGrammar = "({(asciiCode1,code1),(asciiCode2,code2),...},bitstring) | prefix-free code table paired with S encoded using it; () if S is empty";
+        public const string CertificateExample = "({(97,0),(98,10),(99,11)},01011)";
 
         public string verifierName { get; } = "Lossless Data Compression Verifier";
         public string verifierDefinition { get; } = "Verifies a proposed encoding by checking prefix-free property, decoding the bitstring, and comparing with original input.";
@@ -38,38 +45,29 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
             }
         }
 
-        // parsing (UPDATED FORMAT)
+        // parsing (SPADE-based)
         private (Dictionary<char, string>, string) ParseCertificate(string certificate) {
-            int closeParen = certificate.IndexOf(')');
-            if (closeParen == -1)
-                throw new Exception("Invalid certificate format");
+            if (certificate.Trim() == "()")
+                return (new Dictionary<char, string>(), string.Empty);
 
-            string codesContent = certificate.Substring(1, closeParen - 1);
-            string rest = certificate.Substring(closeParen + 1).Trim();
+            UtilCollection cert = new UtilCollection(certificate);
+            cert.assertPair();
 
-            if (!rest.StartsWith("encoded:"))
-                throw new Exception("Missing encoded part");
-
-            string encoded = rest.Substring("encoded:".Length);
+            UtilCollection codeTable = cert[0];
+            codeTable.assertUnordered();
 
             Dictionary<char, string> table = new Dictionary<char, string>();
-
-            foreach (var pair in codesContent.Split(';')) {
-                if (string.IsNullOrWhiteSpace(pair)) continue;
-
-                string[] kv = pair.Split('=');
-                if (kv.Length != 2)
-                    throw new Exception("Invalid pair");
-
-                int ascii = int.Parse(kv[0]);
-                string code = kv[1];
-
+            foreach (UtilCollection entry in codeTable) {
+                entry.assertPair();
+                int ascii = entry[0].parseInt();
+                string code = entry[1].ToString();
                 table[(char)ascii] = code;
             }
 
             if (table.Count == 0)
                 throw new Exception("Empty code table");
 
+            string encoded = cert[1].ToString();
             return (table, encoded);
         }
 
