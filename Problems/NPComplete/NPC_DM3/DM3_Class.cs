@@ -78,27 +78,41 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
         _Z = ParseProblem(instance, "Z");
         _M = ParseM(instance);
     }
+    // The instance is a sequence of brace-delimited groups: {x1,...}{y1,...}{z1,...}{x,y,z},...
+    // The first three groups are X, Y, and Z (each on its own, independent of the other groups'
+    // sizes); every group after that is one 3-tuple candidate for M. Splitting on "}{" preserves
+    // those group boundaries, which is what lets ParseProblem/ParseM stop at the end of their own
+    // group instead of striding by 3 across the whole flattened, boundary-less string.
+    private static List<List<string>> SplitGroups(string instanceInput) {
+        string trimmed = instanceInput.Trim();
+        if (trimmed.StartsWith("{")) trimmed = trimmed.Substring(1);
+        if (trimmed.EndsWith("}")) trimmed = trimmed.Substring(0, trimmed.Length - 1);
+        if (trimmed.Length == 0) return new List<List<string>>();
+        return trimmed.Split(new[] { "}{" }, StringSplitOptions.None)
+            .Select(group => group.Split(',').ToList())
+            .ToList();
+    }
     /*************************************************
-   ParseProblem(string instanceInput) takes the string representation of the 3-Dimensional Matching problem, and returns a 
+   ParseProblem(string instanceInput) takes the string representation of the 3-Dimensional Matching problem, and returns a
    3 dimensional list, the first depths of list, contains two lists, one with the sets X,Y,and Z, and the other containing all the sets in M.
    ***************************************************/
     public List<string> ParseProblem(string instanceInput, string set) {
-        List<string> input = instanceInput.Replace("}{", ",").Replace("{", "").Replace("}", "").Split(',').ToList();
+        List<List<string>> groups = SplitGroups(instanceInput);
         int index = 0;
         if (set == "Y") index = 1;
         if (set == "Z") index = 2;
         List<string> variables = new List<string>();
-        for (int i = index; i < input.Count(); i = i + 3) {
-            if (!variables.Contains(input[i])) variables.Add(input[i]);
+        if (index >= groups.Count) return variables;
+        foreach (string element in groups[index]) {
+            if (!variables.Contains(element)) variables.Add(element);
         }
         return variables;
     }
     public List<List<string>> ParseM(string instanceInput) {
-        List<string> input = instanceInput.Replace("}{", ",").Replace("{", "").Replace("}", "").Split(',').ToList();
+        List<List<string>> groups = SplitGroups(instanceInput);
         List<List<string>> M = new List<List<string>>();
-        if (input.Count % 3 != 0) return M;
-        for (int i = 0; i < input.Count(); i = i + 3) {
-            M.Add(new List<string> { input[i], input[i + 1], input[i + 2] });
+        for (int i = 3; i < groups.Count; i++) {
+            M.Add(groups[i]);
         }
         return M;
     }
