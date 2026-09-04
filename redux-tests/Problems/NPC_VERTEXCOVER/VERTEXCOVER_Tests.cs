@@ -107,6 +107,95 @@ public class VERTEXCOVER_Tests {
         Assert.False(isValidCover);
     }
 
+    // -------------------------------------------------------------------------
+    // VertexCoverBruteForce
+    // -------------------------------------------------------------------------
 
+    [Fact]
+    public void VertexCoverBruteForce_Output_Passes_Verifier() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBruteForce_SingleEdge_MinimalCover() {
+        // Two nodes, one edge: a size-1 cover must exist (either endpoint covers it).
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{{a,b}}),1)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBruteForce_KTooSmall_ReturnsEmptyBraces() {
+        // A triangle needs at least 2 nodes to cover every edge -- K=1 is infeasible.
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c},{{a,b},{b,c},{a,c}}),1)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
+
+    [Fact]
+    public void VertexCoverBruteForce_FullyConnectedGraph_FindsCoverAmongTies() {
+        // A 5-clique has many valid size-4 covers (any 4 of the 5 nodes); the solver only
+        // needs to find one of them, exercising nextComb across several increments.
+        VERTEXCOVER problem = new VERTEXCOVER(
+            "(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),4)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBruteForce_KEqualsFullNodeCount_TrivialSingleCombination() {
+        // K == |nodes| means C(n,n)=1: exactly one combination (all nodes) is ever tried.
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c},{{a,b},{b,c}}),3)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBruteForce_GetSolutionDict_MapsSolvedAndUnsolvedNodes() {
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+        string instance = "(({a,b,c},{{a,b},{b,c}}),1)";
+
+        Dictionary<string, bool> dict = solver.getSolutionDict(instance, "{b}");
+
+        Assert.True(dict["b"]);
+        Assert.False(dict["a"]);
+        Assert.False(dict["c"]);
+    }
+
+    [Fact(Skip = "BUG: VertexCoverBruteForce.solve() throws ArgumentOutOfRangeException for K=0 instead " +
+        "of returning a certificate (e.g. \"{}\" for a graph with no edges, which trivially has a " +
+        "size-0 vertex cover). indexListToCertificate() builds an empty candidate string via string " +
+        "concatenation, then calls certificate.Substring(1) unconditionally -- Substring(1) on an empty " +
+        "string throws because there's no index 1 to start from. This happens before the candidate is " +
+        "even handed to the verifier. See VertexCoverBruteForce.indexListToCertificate().")]
+    public void VertexCoverBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{}),0)");
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
 
 }
