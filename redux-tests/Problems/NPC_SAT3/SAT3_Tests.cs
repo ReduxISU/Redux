@@ -317,12 +317,7 @@ public class SAT3_Tests {
         Assert.False(a.Equals(b));
     }
 
-    [Fact(Skip = "BUG: SAT3Gadget.Equals() sets the SAME local ('reductionTypeSame') in all three" +
-        "field-comparison if-blocks instead of setting 'problemTypeSame' and 'gadgetStringSame' in " +
-        "their respective blocks. Those two locals are therefore always false, so the final " +
-        "'reductionTypeSame && problemTypeSame && gadgetStringSame' check can never be true -- " +
-        "Equals() returns false for every pair of gadgets, even two gadgets built from identical " +
-        "arguments. See SAT3Gadget.Equals().")]
+    [Fact]
     public void SAT3Gadget_Equals_IdenticalGadgets_IncorrectlyReturnsFalse() {
         SAT3Gadget a = new SAT3Gadget("R", "x1", 1);
         SAT3Gadget b = new SAT3Gadget("R", "x1", 1);
@@ -398,17 +393,7 @@ public class SAT3_Tests {
         Assert.Equal("Solution is inccorect", result);
     }
 
-    [Fact(Skip = "BUG: KarpReduceGRAPHCOLORING.mapSolutions builds its certificate as " +
-        "\"{(F:0,T:1,B:2,x1:1,...,C0N5:1):3}\" -- a single node:color list wrapped in parens -- but " +
-        "GraphColoringVerifier.verify() expects the color-GROUPED format GraphColoringGreedy actually " +
-        "produces, e.g. \"{{a,d},{b},{c}}\" (nodes sharing a color grouped into their own {...}, split " +
-        "on \"},{\"). Because mapSolutions' output has no such grouping, every parsed 'node' token still " +
-        "carries its ':N' suffix and stray parens (e.g. '(F:0'), none of which match any real node name, " +
-        "so verify() rejects a certificate built from a genuinely satisfying SAT3 assignment. Separately, " +
-        "mapSolutions computes N0..N4 from which literal is true but then immediately overwrites all of " +
-        "N0..N5 to 1 a few lines later, so even a correctly-formatted certificate would color every " +
-        "clause gadget's mutually-adjacent nodes identically, violating the graph's own edges. See " +
-        "KarpReduceGRAPHCOLORING.mapSolutions().")]
+    [Fact]
     public void SAT3_To_GRAPHCOLORING_Reduction_SAT3Solution_MapsToValidCertificate() {
         SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | x2 | x3)");
         KarpReduceGRAPHCOLORING reduction = new KarpReduceGRAPHCOLORING(sat3);
@@ -476,10 +461,7 @@ public class SAT3_Tests {
         Assert.NotEmpty(certificate);
     }
 
-    [Fact(Skip = "BUG: GareyJohnson.mapSolutions hardcodes 'reductionFrom.clauses[1]' in its clause-" +
-        "gadget mapping loop instead of 'reductionFrom.clauses[i]', so any SAT3 instance with exactly " +
-        "one clause throws IndexOutOfRangeException instead of producing a certificate. See the " +
-        "'mapping solution to clause gadgets' loop in GareyJohnson.mapSolutions().")]
+    [Fact]
     public void SAT3_To_DM3_MapSolutions_SingleClauseInstance_ThrowsInsteadOfMapping() {
         SAT3 sat3 = new SAT3("(x1 | x2 | x3)");
         GareyJohnson reduction = new GareyJohnson(sat3);
@@ -491,11 +473,7 @@ public class SAT3_Tests {
         Assert.NotNull(certificate);
     }
 
-    [Fact(Skip = "BUG: GareyJohnson.mapSolutions builds node names in an entirely different naming " +
-        "scheme ('a[x1][1]', 'b[x1][1]', '[!x1][1]', 's1[...]', 'g1[...]') than reduce() uses for the " +
-        "DM3 instance's own X/Y/Z sets ('x_x1_0', 'y_x1_0', 'z_x1_0', ...). None of mapSolutions' " +
-        "emitted names appear in reductionTo.X/Y/Z, so GenericVerifierDM3.verify() always rejects a " +
-        "certificate built from a genuinely satisfying SAT3 assignment.")]
+    [Fact]
     public void SAT3_To_DM3_Reduction_SAT3Solution_MapsToValidCertificate() {
         SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | x2 | !x3)");
         GareyJohnson reduction = new GareyJohnson(sat3);
@@ -548,17 +526,7 @@ public class SAT3_Tests {
         Assert.True(verifier.verify(reduction.reductionTo, ipCertificate));
     }
 
-    [Fact(Skip = "BUG: Sat3BacktrackingSolver's SAT3PQObject constructor does " +
-        "'SATState.literals.RemoveAt(0)' on the exact List<string> instance backing the SAT3 passed " +
-        "into solve() -- not a copy -- so calling solve() mutates the caller's sat3.literals as a side " +
-        "effect (permanently dropping its first entry). KarpIntProgStandard.reduce() builds its C " +
-        "matrix's column order from sat3.literals BEFORE solve() runs, but mapSolutions() rebuilds its " +
-        "own 'variables' list from reductionFrom.literals AFTER solve() has already removed an entry, " +
-        "so the two variable orderings desync and the mapped 0/1 vector lands in the wrong columns. " +
-        "This is not a bug in KarpIntProgStandard's own logic (see the hand-built-certificate test " +
-        "above, which proves the reduction is correct in isolation) -- it only surfaces when solve() " +
-        "and mapSolutions() are both used against the same SAT3/reduction pair, which is exactly the " +
-        "pattern this reduction's own contributor's code and this repo's other reduction tests use.")]
+    [Fact]
     public void SAT3_To_INTPROGRAMMING01_Reduction_SolverThenMapSolutions_DesyncsVariableOrder() {
         SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | x2 | !x3)");
         KarpIntProgStandard reduction = new KarpIntProgStandard(sat3);
