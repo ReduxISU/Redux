@@ -26,8 +26,13 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
     public string instance { get; set; } = string.Empty;
 
 
+    public const string InstanceGrammar = "{(i, w, v) | i subset int cross int, w is int, v is int}";
     private static readonly string _defaultInstance = "({(10,60),(20,100),(30,120)},50,220)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } =
+        $"Format: {InstanceGrammar} (i is a set of (w1,v1),(w2,v2),... weight/value item pairs) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {KnapsackVerifier.CertificateGrammar} Example: {KnapsackVerifier.CertificateExample}";
 
 
     public string wikiName { get; } = "Knapsack";
@@ -62,7 +67,7 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
 
     public KNAPSACK(string HWVInput) {
         instance = HWVInput;
-        StringParser parser = new("{(i, w, v) | i subset int cross int, w is int, v is int}");
+        StringParser parser = new(InstanceGrammar);
         parser.parse(HWVInput);
         items = parser["i"];
         W = int.Parse(parser["w"].ToString());

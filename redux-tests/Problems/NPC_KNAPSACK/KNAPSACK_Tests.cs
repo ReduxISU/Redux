@@ -68,4 +68,33 @@ public class KNAPSACK_Tests {
         string certificate = new KnapsackDP().solve(problem);
         Assert.True(new KnapsackVerifier().verify(problem, certificate));
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void KNAPSACK_Instance_Format_Described() {
+        KNAPSACK problem = new KNAPSACK();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("(w1,v1)", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void KNAPSACK_Certificate_Format_Described() {
+        KNAPSACK problem = new KNAPSACK();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("weight,value", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void KNAPSACK_Certificate_Format_Example_Is_Actually_Valid() {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        KNAPSACK problem = new KNAPSACK();
+        KnapsackVerifier verifier = new KnapsackVerifier();
+        Assert.True(verifier.verify(problem, "{(20,100),(30,120)}"));
+    }
 }
