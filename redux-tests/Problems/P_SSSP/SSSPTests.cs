@@ -90,6 +90,33 @@ public class SSSP_Tests {
         Assert.Equal(expectedResult, verifier.verify(problem, certificate));
     }
 
+    // ----- Format declarations ----- //
+
+    [Fact]
+    public void SSSP_Instance_Format_Described() {
+        SSSP problem = new SSSP();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E,s", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void SSSP_Certificate_Format_Described() {
+        SSSP problem = new SSSP();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("node,path", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void SSSP_Certificate_Format_Example_Is_Actually_Valid() {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        SSSP problem = new SSSP();
+        SSSPVerifier verifier = new SSSPVerifier();
+        Assert.True(verifier.verify(problem, "{(1,{1}),(2,{1,2}),(3,{1,3}),(4,{1,2,4}),(5,{1,3,5})}"));
+    }
+
     // ----- Visualization ----- //
 
     [Theory]
