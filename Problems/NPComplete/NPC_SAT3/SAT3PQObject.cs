@@ -10,7 +10,13 @@ class SAT3PQObject {
     public string nextVar;
 
     public SAT3PQObject(SAT3 inSAT3, int newDepth, int totalVariables) {
-        SATState = inSAT3;
+        // SATState must NOT alias the caller's SAT3 instance: this constructor removes
+        // the "next" literal from SATState.literals below, which is expected internal
+        // bookkeeping as the recursive backtracking algorithm descends -- but if
+        // SATState were the exact object passed in, that RemoveAt would also mutate the
+        // caller's own SAT3.literals as a side effect of solve(). Clone instead, so the
+        // caller's SAT3 (and its literals list) is left untouched.
+        SATState = CloneSat3(inSAT3);
         depth = newDepth;
         totalVars = totalVariables;
         varWeights = new Dictionary<string, int>();
@@ -20,6 +26,17 @@ class SAT3PQObject {
         string newVar = getVarFromLiteral(SATState.literals[0]);
         SATState.literals.RemoveAt(0);
         nextVar = newVar;
+    }
+
+    //builds an independent copy of a SAT3 instance (own clauses/literals lists) so that
+    //mutating the copy (e.g. literals.RemoveAt, clauses reassignment) never affects the
+    //original instance the caller passed in.
+    private static SAT3 CloneSat3(SAT3 source) {
+        SAT3 clone = new SAT3();
+        clone.instance = source.instance;
+        clone.clauses = source.clauses.Select(clause => new List<string>(clause)).ToList();
+        clone.literals = new List<string>(source.literals);
+        return clone;
     }
 
     //gets the variable witht he highest occurance

@@ -304,25 +304,20 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         }
         solutionList.RemoveAll(x => string.IsNullOrEmpty(x));
 
-        //Map solution
-        List<string> mappedSolutionList = new List<string>();
-        List<string> variables = new List<string>();
-        foreach (string literal in reductionFrom.literals) {
-            if (!variables.Contains(literal.Replace("!", ""))) {
-                variables.Add(literal.Replace("!", ""));
-            }
-        }
-        mappedSolutionList.Add("F:0");
-        mappedSolutionList.Add("T:1");
-        mappedSolutionList.Add("B:2");
-        foreach (string variable in variables) {
-            if (solutionList.Contains(variable)) {
-                mappedSolutionList.Add(string.Format("{0}:1", variable));
-                mappedSolutionList.Add(string.Format("!{0}:0", variable));
-            } else {
-                mappedSolutionList.Add(string.Format("{0}:0", variable));
-                mappedSolutionList.Add(string.Format("!{0}:1", variable));
-            }
+        //Map solution: assign every node a color (0=False,1=True,2=Base), then group
+        //the nodes by color into GraphColoringVerifier's expected "{{n1,n2},{n3},...}"
+        //format (nodes sharing a color grouped into their own "{...}", split on "},{").
+        // reduce() only creates a graph node for each DISTINCT LITERAL TOKEN that
+        // actually occurs (SAT3Instance.literals.Distinct()) -- e.g. if "!x2" never
+        // appears in the instance, there is no "!x2" node. Coloring both polarities of
+        // every variable (rather than just the tokens that actually occur) would emit
+        // colors for nodes that don't exist, which the verifier rejects.
+        Dictionary<string, int> nodeColor = new Dictionary<string, int>();
+        nodeColor["F"] = 0;
+        nodeColor["T"] = 1;
+        nodeColor["B"] = 2;
+        foreach (string literal in reductionFrom.literals.Distinct()) {
+            nodeColor[literal] = solutionList.Contains(literal) ? 1 : 0;
         }
         for (int i = 0; i < reductionFrom.clauses.Count; i++) {
             string l0, l1, l2;
@@ -331,42 +326,45 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
             l2 = reductionFrom.clauses[i][2];
             int N0, N1, N2, N3, N4, N5;
 
-            if (solutionList.Contains(l0) || solutionList.Contains(l1)) {
-                if (solutionList.Contains(l0)) {
-                    N0 = 0;
-                    N1 = 2;
-                } else {
-                    N0 = 2;
-                    N1 = 0;
-                }
+            // reduce() wires this 6-node gadget as two triangles (N0-N1-N2 and N3-N4-N5)
+            // joined by an N2-N3 edge, with N0--l0, N1--l1, N4--l2 (literal edges) and
+            // N2--B, N5--F, N5--B (palette edges). Since N5 is adjacent to both F(0) and
+            // B(2), N5 is forced to T(1) regardless of the assignment. Whichever of
+            // l0/l1 is the satisfying literal drives N0/N1/N2; N3/N4 then just need to
+            // land on the two colors {0,2} with N4 != color(l2).
+            if (solutionList.Contains(l0)) {
+                N0 = 0;
+                N1 = 2;
                 N2 = 1;
-                N3 = 0;
-                N4 = 2;
+            } else if (solutionList.Contains(l1)) {
+                N0 = 2;
+                N1 = 0;
+                N2 = 1;
             } else {
-
+                // l2 must be the satisfying literal.
+                N0 = 1;
+                N1 = 2;
                 N2 = 0;
             }
-            N0 = 1;
-            N1 = 1;
-            N2 = 1;
-            N3 = 1;
-            N4 = 1;
+            N4 = nodeColor[l2] == 0 ? 2 : 0;
+            N3 = 2 - N4;
             N5 = 1;
 
-            mappedSolutionList.Add(string.Format("C{0}N0:{1}", i, N0));
-            mappedSolutionList.Add(string.Format("C{0}N1:{1}", i, N1));
-            mappedSolutionList.Add(string.Format("C{0}N2:{1}", i, N2));
-            mappedSolutionList.Add(string.Format("C{0}N3:{1}", i, N3));
-            mappedSolutionList.Add(string.Format("C{0}N4:{1}", i, N4));
-            mappedSolutionList.Add(string.Format("C{0}N5:{1}", i, N5));
+            nodeColor[string.Format("C{0}N0", i)] = N0;
+            nodeColor[string.Format("C{0}N1", i)] = N1;
+            nodeColor[string.Format("C{0}N2", i)] = N2;
+            nodeColor[string.Format("C{0}N3", i)] = N3;
+            nodeColor[string.Format("C{0}N4", i)] = N4;
+            nodeColor[string.Format("C{0}N5", i)] = N5;
         }
 
-
-        string problemToSolution = "";
-        foreach (string node in mappedSolutionList) {
-            problemToSolution += node + ',';
+        int numColors = nodeColor.Values.Max() + 1;
+        List<string> colorGroups = new List<string>();
+        for (int c = 0; c < numColors; c++) {
+            List<string> group = nodeColor.Where(kvp => kvp.Value == c).Select(kvp => kvp.Key).ToList();
+            colorGroups.Add("{" + string.Join(",", group) + "}");
         }
-        return "{(" + problemToSolution.TrimEnd(',') + "):3}";
+        return "{" + string.Join(",", colorGroups) + "}";
     }
 }
 
