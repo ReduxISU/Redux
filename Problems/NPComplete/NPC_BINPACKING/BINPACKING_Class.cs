@@ -45,8 +45,12 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // The example instance shown to users when the page first loads:
     // 6 items of sizes {4,7,3,6,2,8}, bin capacity 10, and at most 3 bins.
     // This is a YES-instance — the items do fit (e.g. bins (4,6), (7,3), (2,8)).
+    public const string InstanceGrammar = "{(S,C,K) | S is list, C is int, K is int}";
     private static readonly string _defaultInstance = "((4,7,3,6,2,8),10,3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {BinPackingVerifier.CertificateGrammar} Example: {BinPackingVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
 
@@ -104,7 +108,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     public BINPACKING(string input) {
         instance = input;
 
-        StringParser parser = new("{(S,C,K) | S is list, C is int, K is int}");
+        StringParser parser = new(InstanceGrammar);
         parser.parse(input);
 
         // Each element of the parsed list comes back as an object; we cast to int.
