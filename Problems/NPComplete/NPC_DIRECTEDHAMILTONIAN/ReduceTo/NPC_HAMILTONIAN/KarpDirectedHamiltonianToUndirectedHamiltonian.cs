@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.ReduceTo.NPC_HAMILTONI
 class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILTONIAN, HAMILTONIAN> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Karp Directed Hamiltonian To Undirected Hamiltonian";
+    public string reductionName { get; } = "Karp's Hamiltonian Reduction";
     public string reductionDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

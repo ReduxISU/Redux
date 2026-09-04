@@ -24,7 +24,7 @@ class BinPackingFFD : ISolver<BINPACKING> {
 
     // ── Metadata ─────────────────────────────────────────────────────────────
 
-    public string solverName { get; } = "Bin Packing First Fit Decreasing (FFD)";
+    public string solverName { get; } = "Bin Packing First Fit Decreasing";
 
     // The definition explains the algorithm, its complexity, and — importantly —
     // the caveat that FFD is a heuristic, not an exact decider.

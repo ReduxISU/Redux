@@ -8,7 +8,7 @@ namespace API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 class SetCoverBruteForce : ISolver<SETCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Set Cover Brute Force Solver";
+    public string solverName { get; } = "Set Cover Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Set Cover problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

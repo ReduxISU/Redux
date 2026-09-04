@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 class SubsetSumBruteForce : ISolver<SUBSETSUM> {
 
     // --- Fields ---
-    public string solverName { get; } = "Subset Sum Brute Force Solver";
+    public string solverName { get; } = "Subset Sum Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for Subset Sum";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Caleb Eardley", "Garret Stouffer" };

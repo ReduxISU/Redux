@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 class TSPBruteForce : ISolver<TSP> {
 
     // --- Fields ---
-    public string solverName { get; } = "Traveling Sales Person Brute Force Solver";
+    public string solverName { get; } = "Traveling Salesperson Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Traveling Sales Person problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

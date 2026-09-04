@@ -7,7 +7,7 @@ using SPADE;
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Solvers;
 
 class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
-    public string solverName { get; } = "Pump Scheduling Emergency Resilience — DAG Constrained Longest Path";
+    public string solverName { get; } = "Pump Scheduling Emergency Resilience Longest Path";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents\r\n" +
         "(hour, tank-level-bucket, previous-pump-mask). For emergency resilience, a forward\r\n" +
