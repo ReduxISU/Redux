@@ -3,6 +3,9 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_JOBSEQ.Verifiers;
 
 class JobSeqVerifier : IVerifier<JOBSEQ> {
+    public const string CertificateGrammar = "permutation of 0-based job indices | sum of penalties for jobs missing their deadline <= K";
+    public const string CertificateExample = "(1,3,5,4,0,2)";
+
     public string verifierName { get; } = "Job Sequencing Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Job Sequencing";
     public string source { get; } = "";
