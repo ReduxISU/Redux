@@ -20,6 +20,7 @@
 // by returning false rather than throwing an exception to the caller.
 
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_BINPACKING.Verifiers;
 
@@ -105,78 +106,25 @@ class BinPackingVerifier : IVerifier<BINPACKING> {
         return true;
     }
 
-    //  Certificate parser 
+    //  Certificate parser
     // Parses the certificate string "((a,b),(c,d,e),...)" into a list of bins,
-    // where each bin is a list of integers.
-    //
-    // We hand-roll this parser instead of using SPADE because the nested
-    // tuple structure ((a,b),(c,d)) is awkward to express as a SPADE pattern.
-    // The depth-tracking SplitTopLevel helper handles arbitrarily nested commas.
+    // where each bin is a list of integers, using SPADE's UtilCollection.
+    // The outer collection is the ordered list of bins; each bin is itself an
+    // ordered list of item sizes. assertOrdered() throws (caught by the caller
+    // in verify()) if either level isn't the expected list shape.
     private List<List<int>> ParseCertificate(string cert) {
-        if (cert == null) throw new FormatException("certificate is null");
+        UtilCollection bins = new UtilCollection(cert);
+        bins.assertOrdered();
 
-        string trimmed = cert.Trim();
-
-        // The entire certificate must be wrapped in outer parentheses.
-        if (trimmed.Length < 2 || trimmed[0] != '(' || trimmed[trimmed.Length - 1] != ')') {
-            throw new FormatException("certificate must be wrapped in parentheses");
-        }
-
-        // Strip the outermost parentheses to get the comma-separated list of bins.
-        string inner = trimmed.Substring(1, trimmed.Length - 2).Trim();
-
-        // An empty inner string means no bins — valid for an empty item list.
-        if (inner.Length == 0) {
-            return new List<List<int>>();
-        }
-
-        // Split on top-level commas only (ignoring commas inside bin parentheses).
-        List<string> binStrings = SplitTopLevel(inner);
-        List<List<int>> bins = new List<List<int>>();
-
-        foreach (string binStr in binStrings) {
-            string binTrimmed = binStr.Trim();
-
-            // Each individual bin must also be wrapped in parentheses: (a,b,c).
-            if (binTrimmed.Length < 2 || binTrimmed[0] != '(' || binTrimmed[binTrimmed.Length - 1] != ')') {
-                throw new FormatException("each bin must be wrapped in parentheses");
+        List<List<int>> result = new List<List<int>>();
+        foreach (UtilCollection bin in bins) {
+            bin.assertOrdered();
+            List<int> items = new List<int>();
+            foreach (UtilCollection item in bin) {
+                items.Add(item.parseInt());
             }
-
-            // Strip the bin's parentheses and parse the comma-separated integers.
-            string binInner = binTrimmed.Substring(1, binTrimmed.Length - 2).Trim();
-            List<int> bin = new List<int>();
-            if (binInner.Length > 0) {
-                foreach (string token in binInner.Split(',')) {
-                    bin.Add(int.Parse(token.Trim()));
-                }
-            }
-            bins.Add(bin);
+            result.Add(items);
         }
-
-        return bins;
-    }
-
-    // Splits a string on commas that are NOT inside any parentheses.
-    // For example: "(4,6),(7,3),(2,8)" → ["(4,6)", "(7,3)", "(2,8)"]
-    // A depth counter goes up on '(' and down on ')'; we only split at depth 0.
-    private List<string> SplitTopLevel(string s) {
-        List<string> parts = new List<string>();
-        int depth = 0;
-        int start = 0;
-
-        for (int i = 0; i < s.Length; i++) {
-            char c = s[i];
-            if (c == '(') depth++;
-            else if (c == ')') depth--;
-            else if (c == ',' && depth == 0) {
-                // Found a top-level comma — everything from start to here is one bin.
-                parts.Add(s.Substring(start, i - start));
-                start = i + 1;
-            }
-        }
-
-        // Don't forget the last segment after the final comma.
-        parts.Add(s.Substring(start));
-        return parts;
+        return result;
     }
 }
