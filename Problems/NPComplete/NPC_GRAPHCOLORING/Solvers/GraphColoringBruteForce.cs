@@ -76,14 +76,21 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
             binary.Add(0);
         }
 
-        while (binary.Count(n => n == (numColors - 1)) < gColor.nodes.Count) {
+        // Use a do-while so the initial all-zero candidate is always evaluated at least
+        // once. With a while-loop that checks the exit condition first, when
+        // numColors == 1 the condition (all digits already equal numColors - 1, i.e. 0)
+        // is true before the loop ever runs, so the only candidate that exists for K=1
+        // (every node in color 0) was never tested. For numColors > 1 the condition is
+        // guaranteed false on the initial all-zero binary (no digit can equal
+        // numColors - 1 >= 1 yet), so this restructuring does not change behavior there.
+        do {
             string certificate = BinaryToCertificate(binary, gColor.nodes, numColors);
             if (gColor.defaultVerifier.verify(gColor, certificate)) {
                 return certificate;
             }
             nextBinary(binary, numColors);
 
-        }
+        } while (binary.Count(n => n == (numColors - 1)) < gColor.nodes.Count);
 
         return "{}";
     }
