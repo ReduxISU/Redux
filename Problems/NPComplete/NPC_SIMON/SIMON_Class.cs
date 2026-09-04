@@ -15,8 +15,13 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization> {
     public string problemDefinition { get; } = "Simon's problem is defined by a black-box function f: {0,1}^n -> {0,1}^m. For this function the following is promised: f(x) = f(y) if and only if x = y or x = y ⊕ s for some secret string s ∈ {0,1}^n. The goal is to find the string s"; // plaintext description of the problem
     public string source { get; } = "Simon, Daniel R. On the power of quantum computation. SIAM journal on computing, 1997, 26. Jg., Nr. 5, S. 1474-1483."; // Academic paper proper citation
     public string sourceLink { get; } = "https://epubs.siam.org/doi/abs/10.1137/S0097539796298637?casa_token=q1_RWPmvpQ0AAAAA:vmai1NwqSJEUGwydbsrdvH1tsKxcE_MoWfiTwQda9yJKhC0prizshyidP4VcDZK8n5CuqoeaqlQ"; // Link to the academic paper
+    public const string InstanceGrammar = "{i | i is list}";
     private static readonly string _defaultInstance = "(5, 6, 5, 6, 3, 2, 3, 2)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } =
+        $"Format: {InstanceGrammar} (i has 2^n entries, one output per input in {{0,...,2^n-1}}, promised f(x) = f(x XOR s)) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SimonVerifier.CertificateGrammar} Example: {SimonVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = ""; // Wiki name or link? - not used yet
     public SimonSolver defaultSolver { get; } = new SimonSolver();
@@ -53,7 +58,7 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization> {
     public SIMON(string input) {
         instance = input;
 
-        StringParser parser = new("{i | i is list}");
+        StringParser parser = new(InstanceGrammar);
 
         parser.parse(instance);
 
