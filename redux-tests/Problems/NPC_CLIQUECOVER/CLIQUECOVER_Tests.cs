@@ -148,4 +148,34 @@ public class CLIQUECOVER_tests {
 
         Assert.False(result);
     }
+
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void CLIQUECOVER_Instance_Format_Described() {
+        var problem = new CLIQUECOVER();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("N,E),K", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void CLIQUECOVER_Certificate_Format_Described() {
+        var problem = new CLIQUECOVER();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("cliques", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void CLIQUECOVER_Certificate_Format_Example_Is_Actually_Valid() {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        var problem = new CLIQUECOVER();
+        var verifier = new CliqueCoverVerifier();
+        Assert.True(verifier.verify(problem, "{1,2,3},{4,5},{6,7,8}"));
+    }
 }
