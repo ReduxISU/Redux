@@ -42,6 +42,8 @@ class KnapsackDP : ISolver<KNAPSACK> {
             }
         }
 
+        if (dp[n, capacity] < knapsack.V) return "{}";
+
         UtilCollection selectedItems = new UtilCollection("{}");
         int remainingCapacity = capacity;
 
