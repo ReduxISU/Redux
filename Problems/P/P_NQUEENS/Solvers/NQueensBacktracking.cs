@@ -5,7 +5,7 @@ namespace API.Problems.P.P_NQUEENS.Solvers;
 class NQueensBacktracking : ISolver<NQUEENS> {
 
     // --- Fields ---
-    public string solverName { get; } = "N-Queens Backtracking Solver";
+    public string solverName { get; } = "N-Queens Backtracking";
     public string solverDefinition { get; } =
         "Places queens row by row using backtracking and returns a valid placement if one exists.";
     public string source { get; } = "Classic backtracking approach for the N-Queens problem.";
