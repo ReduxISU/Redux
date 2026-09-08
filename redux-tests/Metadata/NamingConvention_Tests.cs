@@ -9,9 +9,9 @@ namespace redux_tests;
 // Naming-convention guards for Verifier/Solver/Reduction display names
 // (branch: rename/solver-reduction-verifier-names).
 //
-// Verifiers: every verifierName must be exactly "{problem.problemName} Verifier" — this
-// is the regression guard for the "verifier display names to [Problem Name] Verifier
-// instead of Default Verifier" fix on this branch.
+// Verifiers: every verifierName must be exactly "Default {problem.problemName} Verifier" —
+// this is the regression guard for the "verifier display names to Default [Problem Name]
+// Verifier instead of Default Verifier" fix on this branch.
 //
 // Solvers/Reductions: every solverName/reductionName must match one of two shapes:
 //   (a) "[Problem Name] [Approach]"        -- e.g. "Clique Brute Force", "DFA Simulation"
@@ -79,10 +79,10 @@ public class NamingConvention_Tests {
         }
         Assert.True(verifier != null, $"{verifierType.Name}: default-constructed but wasn't an IVerifier.");
 
-        string expected = $"{problem!.problemName} Verifier";
+        string expected = $"Default {problem!.problemName} Verifier";
         Assert.True(verifier!.verifierName == expected,
             $"{verifierType.Name}.verifierName is \"{verifier.verifierName}\" — expected \"{expected}\" " +
-            $"(\"[Problem Name] Verifier\", matching {problemType.Name}.problemName).");
+            $"(\"Default [Problem Name] Verifier\", matching {problemType.Name}.problemName).");
     }
 
     // ── Solvers ──────────────────────────────────────────────────────────────
