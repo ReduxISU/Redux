@@ -4,7 +4,7 @@ namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Verifiers;
 
 class TopologicalSortVerifier : IVerifier<TOPOLOGICALSORT> {
     // --- Fields ---
-    public string verifierName { get; } = "Topological Order Verifier";
+    public string verifierName { get; } = "Topological Sort Verifier";
     public string verifierDefinition { get; } = "Given a proposed ordering of vertices, the verifier checks that (1) every vertex in the graph appears exactly once in the ordering, and (2) for every directed edge (u,v) in the graph, u appears before v in the ordering.";
     public string source { get; } = "Kahn, A. B. (1962). Topological sorting of large networks. Communications of the ACM, 5(11), 558-562.";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/368996.369025";

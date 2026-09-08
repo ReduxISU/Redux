@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
 class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
 
     // --- Fields ---
-    public string solverName { get; } = "Clasical unstructured search solver";
+    public string solverName { get; } = "Unstructured Search Brute Force";
     public string solverDefinition { get; } = "This solver simply loops through all possible x until one f(x) = 1.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };

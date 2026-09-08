@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
 
     // --- Fields ---
-    public string solverName { get; } = "Bernstein-Vazirani Quantum API Solver";
+    public string solverName { get; } = "Bernstein-Vazirani Algorithm";
     public string solverDefinition { get; } = "Calls external quantum computing API to solve Bernstein-Vazirani's algorithm";
     public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors { get; } = { "Grant Gardner" };

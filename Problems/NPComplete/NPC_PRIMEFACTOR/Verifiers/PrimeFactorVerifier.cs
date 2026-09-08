@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Prime Factor Verifier";
+    public string verifierName { get; } = "Prime Factorization Verifier";
     public string verifierDefinition { get; } = "Verifies that the product of the proposed factors equals the original input number.";
     public string source { get; } = " ";
     public string[] contributors { get; } = { "Jason L. Wright", "Paul Gilbreath", "Alex Svancara", "Grant Gardner" };
