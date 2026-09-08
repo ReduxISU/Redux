@@ -28,7 +28,7 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     public DeutschClassicalSolver defaultSolver { get; } = new DeutschClassicalSolver();
     public DeutschClassicalVerifier defaultVerifier { get; } = new DeutschClassicalVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright" };
+    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright", "Michael Trosper" };
     // Declared, not derived. Deutsch's problem is a query-complexity promise problem
     // over an oracle, not a citizen of the classical P/NP hierarchy — see
     // ComplexityClass.QuantumOracle.
