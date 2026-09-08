@@ -1,5 +1,6 @@
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SETCOVER.Verifiers;
 
@@ -25,29 +26,44 @@ class SetCoverVerifier : IVerifier<SETCOVER> {
     public SetCoverVerifier() {
 
     }
-    private List<string> parseCertificate(string certificate) {
+    private List<List<string>> parseCertificate(string certificate) {
 
-        List<string> elementList = certificate.Replace("},{", ",").Replace("{", "").Replace("}", "").Replace(" ", "").Split(",").ToList();
-        return elementList;
+        UtilCollection parsed = new UtilCollection(certificate);
+        List<List<string>> chosenSubsets = new List<List<string>>();
+
+        foreach (UtilCollection subset in parsed) {
+            chosenSubsets.Add(subset.ToList().Select(item => item.ToString()!.Trim()).ToList());
+        }
+
+        return chosenSubsets;
 
     }
 
 
     public bool verify(SETCOVER problem, string certificate) {
 
-        List<string> elementList = parseCertificate(certificate);
-        List<string> universalSet = new List<string>(problem.universal);
+        List<List<string>> chosenSubsets;
+        try {
+            chosenSubsets = parseCertificate(certificate);
+        } catch {
+            return false;
+        }
 
-        foreach (var i in elementList) {
-            if (universalSet.Contains(i)) {
-                universalSet.Remove(i);
+        if (chosenSubsets.Count > problem.K) {
+            return false;
+        }
+
+        List<HashSet<string>> validSubsets = problem.subsets.Select(s => new HashSet<string>(s)).ToList();
+        HashSet<string> coveredElements = new HashSet<string>();
+
+        foreach (List<string> chosen in chosenSubsets) {
+            HashSet<string> chosenSet = new HashSet<string>(chosen);
+            if (!validSubsets.Any(s => s.SetEquals(chosenSet))) {
+                return false;
             }
+            coveredElements.UnionWith(chosenSet);
         }
 
-        if (!universalSet.Any()) {
-            return true;
-        }
-
-        return false;
+        return coveredElements.IsSupersetOf(problem.universal);
     }
 }
