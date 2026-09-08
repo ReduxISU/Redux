@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -152,9 +153,8 @@ public class ContributorProfileController : ControllerBase {
             if (Directory.Exists(npcPath)) {
                 var npcProblemDirs = Directory.GetDirectories(npcPath);
                 foreach (var problemDir in npcProblemDirs) {
-                    string problemName = "NPC_" + Path.GetFileName(problemDir);
                     if (ContributorWorkedOnProblem(problemDir, contributorName)) {
-                        problems.Add(problemName);
+                        problems.Add(GetProblemDisplayName(problemDir, "NPC_" + Path.GetFileName(problemDir)));
                     }
                 }
             }
@@ -168,15 +168,34 @@ public class ContributorProfileController : ControllerBase {
                 var subProblemDirs = Directory.GetDirectories(folder);
 
                 foreach (var subDir in subProblemDirs) {
-                    string problemName = folderName + "_" + Path.GetFileName(subDir);
                     if (ContributorWorkedOnProblem(subDir, contributorName)) {
-                        problems.Add(problemName);
+                        string fallbackName = folderName + "_" + Path.GetFileName(subDir);
+                        problems.Add(GetProblemDisplayName(subDir, fallbackName));
                     }
                 }
             }
         } catch { }
 
         return problems.Distinct();
+    }
+
+    /// <summary>Reads the problem class's declared `problemName` (e.g. "N-Queens") straight
+    /// out of its .cs file instead of the folder-derived fallback (e.g. "P_P_NQUEENS",
+    /// built from the complexity-folder name plus the problem's own prefixed folder
+    /// name) -- falls back to the constructed name if the property can't be found.</summary>
+    private string GetProblemDisplayName(string problemDir, string fallbackName) {
+        try {
+            var csFiles = Directory.GetFiles(problemDir, "*.cs", SearchOption.TopDirectoryOnly);
+            foreach (var file in csFiles) {
+                string content = System.IO.File.ReadAllText(file);
+                var match = Regex.Match(content, @"problemName\s*\{\s*get;\s*\}\s*=\s*""([^""]+)""");
+                if (match.Success) {
+                    return match.Groups[1].Value;
+                }
+            }
+        } catch { }
+
+        return fallbackName;
     }
 
     private bool ContributorWorkedOnProblem(string problemDir, string contributorName) {
@@ -238,7 +257,8 @@ public class ContributorProfileController : ControllerBase {
                     foreach (var file in solverFiles) {
                         string content = System.IO.File.ReadAllText(file);
                         if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                            solvers.Add(Path.GetFileNameWithoutExtension(file));
+                            var match = Regex.Match(content, @"solverName\s*\{\s*get;\s*\}\s*=\s*""([^""]+)""");
+                            solvers.Add(match.Success ? match.Groups[1].Value : Path.GetFileNameWithoutExtension(file));
                         }
                     }
                 }
@@ -268,7 +288,8 @@ public class ContributorProfileController : ControllerBase {
                     foreach (var file in reductionFiles) {
                         string content = System.IO.File.ReadAllText(file);
                         if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                            reductions.Add(Path.GetFileNameWithoutExtension(file));
+                            var match = Regex.Match(content, @"reductionName\s*\{\s*get;\s*\}\s*=\s*""([^""]+)""");
+                            reductions.Add(match.Success ? match.Groups[1].Value : Path.GetFileNameWithoutExtension(file));
                         }
                     }
                 }
