@@ -54,6 +54,13 @@ class CliqueBruteForce : ISolver<CLIQUE> {
         return combination;
     }
     public string solve(CLIQUE clique) {
+        // K==0 asks for the empty clique, which is trivially correct. The
+        // verifier legitimately rejects "{}" as a malformed/empty certificate
+        // for the general case, so that round-trip is skipped here rather than
+        // weakening the verifier's guard.
+        if (clique.K == 0) {
+            return "{}";
+        }
         List<int> combination = new List<int>();
         for (int i = 0; i < clique.K; i++) {
             combination.Add(i);
@@ -71,8 +78,14 @@ class CliqueBruteForce : ISolver<CLIQUE> {
     }
 
     public List<string> getSteps(CLIQUE clique) {
-        List<int> combination = new List<int>();
         List<string> steps = new List<string>();
+        // K==0: same trivial empty-clique case as solve(). The loop below would
+        // hand "{}" to the verifier on its first (only) iteration and it would
+        // throw, so short-circuit here instead.
+        if (clique.K == 0) {
+            return steps;
+        }
+        List<int> combination = new List<int>();
         for (int i = 0; i < clique.K; i++) {
             combination.Add(i);
         }
