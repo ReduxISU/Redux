@@ -11,7 +11,7 @@ class SPSPVerifier : IVerifier<SPSP> {
     public const string CertificateGrammar = "{q0,...,qn} | qi are node names, q0 = s, qn = t, each (qi,qi+1) in E; {} if unreachable";
     public const string CertificateExample = "{1,3,5}";
 
-    public string verifierName { get; } = "Single Pair Shortest Path Verifier";
+    public string verifierName { get; } = "Default Single Pair Shortest Path Problem Verifier";
     public string verifierDefinition { get; } = "Verifies the solution for the Single Pair Shortest Path problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
