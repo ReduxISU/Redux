@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_NODESET;
 class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Karp Vertex Cover to Node Set Reduction";
+    public string reductionName { get; } = "Karp's Node Set Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from Vertex Cover to Feedback Node Set";
     public string source { get; } = "This reduction was found by the Algorithms Seminar at the Cornell University Computer Science Department. Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

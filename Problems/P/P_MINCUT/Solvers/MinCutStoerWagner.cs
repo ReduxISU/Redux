@@ -3,7 +3,7 @@
 namespace API.Problems.P.P_MINCUT.Solvers;
 
 class MinCutStoerWagner : ISolver<MINCUT> {
-    public string solverName { get; } = "Stoer-Wagner Minimum Cut";
+    public string solverName { get; } = "Stoer-Wagner Algorithm";
     public string solverDefinition { get; } = "Finds the global minimum cut of a weighted undirected graph using the Stoer-Wagner algorithm in O(V³) time.";
     public string source { get; } = "Stoer, Mechthild, and Frank Wagner. \"A simple min-cut algorithm.\" Journal of the ACM 44, no. 4 (1997): 585-591.";
     public string[] contributors { get; } = { "Michael Trosper" };

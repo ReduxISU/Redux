@@ -17,12 +17,16 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
     public string problemDefinition { get; } = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney" };
+    public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney", "Michael Trosper" };
 
 
+    public const string InstanceGrammar = "{(U,S) | U is set, S subset {a | a subset U}}";
     private static string _defaultInstance = "({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {ExactCoverVerifier.CertificateGrammar} Example: {ExactCoverVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
     public ExactCoverBruteForce defaultSolver { get; } = new ExactCoverBruteForce();
@@ -59,7 +63,7 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
     public EXACTCOVER(string input) {
         instance = input;
 
-        StringParser exactcover = new("{(U,S) | U is set, S subset {a | a subset U}}");
+        StringParser exactcover = new(InstanceGrammar);
         exactcover.parse(input);
         X = exactcover["U"].ToList().Select(node => node.ToString()).ToList();
         S = exactcover["S"].ToList().Select(subset => subset.ToList().Select(item => item.ToString()).ToList()).ToList();
