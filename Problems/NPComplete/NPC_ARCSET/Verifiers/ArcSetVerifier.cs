@@ -14,7 +14,7 @@ class ArcSetVerifier : IVerifier<ARCSET> {
     public string[] contributors { get; } = { "Alex Diviney", "Caleb Eardley", "Russell Phillips" };
 
     // --- Properties ---
-    public string verifierName { get; } = "Arc Set Verifier";
+    public string verifierName { get; } = "Default Feedback Arc Set Verifier";
     public string certificate {
         get {
             return _certificate;
