@@ -8,7 +8,7 @@ class PartitionVerifier : IVerifier<PARTITION> {
     public const string CertificateExample = "(33,21,15),(1,7,12,11,5,6,9,18)";
 
     // --- Fields ---
-    public string verifierName { get; } = "Partition Verifier";
+    public string verifierName { get; } = "Default Partition Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Partition problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

@@ -18,7 +18,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
 
     // ── Metadata ─────────────────────────────────────────────────────────────
 
-    public string solverName { get; } = "Bin Packing Brute Force Solver";
+    public string solverName { get; } = "Bin Packing Brute Force";
 
     // Plain-English explanation of the algorithm strategy, including the two
     // pruning tricks that make it faster in practice than the raw O(K^n) bound.
