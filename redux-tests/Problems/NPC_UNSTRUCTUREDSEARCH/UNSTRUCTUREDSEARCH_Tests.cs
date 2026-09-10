@@ -161,22 +161,19 @@ public class UNSTRUCTUREDSEARCH_tests {
         Assert.Contains("\"boolexpr\":\"\"", handler.LastRequestBody);
     }
 
-    [Fact(Skip = "BUG: when the quantum server's response has no \"answer_bitstring\" field, " +
-        "SolveAsSat's fallback `return response;` hands the *entire raw JSON response* back " +
-        "as if it were the answer bitstring, instead of signalling a clear error. solve() " +
-        "then reverses that JSON text and feeds it to Convert.ToInt32(_, 2), which throws an " +
-        "unhandled FormatException -- a confusing crash instead of a meaningful \"no answer\" " +
-        "result. (The same outcome occurs, via the SolveAsSat try/catch swallowing a real " +
-        "network failure into an error-JSON string, whenever the quantum service is simply " +
-        "unreachable -- e.g. when QuantumSolverSettingsGlobal is never populated, as happens " +
-        "for solve() called outside the full app startup.)")]
-    public void UnstructuredGroverSolver_Solve_Missing_AnswerBitstring_Throws_Confusing_Exception() {
+    [Fact]
+    public void UnstructuredGroverSolver_Solve_Missing_AnswerBitstring_ThrowsClearError() {
+        // Regression test for GitHub issue #538. When the quantum server's response has no
+        // "answer_bitstring" field, SolveAsSat now throws a clear InvalidOperationException
+        // instead of handing the raw JSON response back for solve() to misinterpret as
+        // bitstring data (which used to throw a confusing FormatException).
         var problem = new UNSTRUCTUREDSEARCH("(0, 1, 0, 0)");
         var handler = new FakeQuantumHandler("{\"qasm\":\"c\"}");
         InstallFakeQuantumServer(handler);
         var solver = new UnstructuredGroverSolver();
 
-        Assert.Throws<FormatException>(() => solver.solve(problem));
+        var ex = Assert.Throws<InvalidOperationException>(() => solver.solve(problem));
+        Assert.NotEmpty(ex.Message);
     }
 
     // -------------------------------------------------------------------------

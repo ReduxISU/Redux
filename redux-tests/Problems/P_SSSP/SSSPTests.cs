@@ -110,14 +110,10 @@ public class SSSP_Tests {
         Assert.Equal("{(1,{3,2,1}),(2,{3,2}),(3,{3})}", result);
     }
 
-    [Fact(Skip = "BUG: SSSP.ParseGraph's unweighted-undirected grammar pattern " +
-        "(\"{(N,E) | N is set, E subset unorderedcross N\") is malformed -- it is missing " +
-        "the left-hand 'N' operand of 'unorderedcross' (compare the working weighted-undirected " +
-        "pattern, itself also missing that operand but harmlessly so since the ordered/weighted " +
-        "pattern matches undirected weighted edges first) and is also missing its closing '}'. " +
-        "As a result no unweighted, undirected SSSP instance can ever be constructed: every " +
-        "attempt throws InvalidOperationException(\"Failed to parse SSSP instance.\") -- see " +
-        "Problems/P/P_SSSP/P_SSSP.cs, ParseGraph's parseAttempts array.")]
+    // Regression: SSSP.ParseGraph's unweighted-undirected grammar pattern was malformed
+    // (missing the left-hand "N" operand of "unorderedcross" and its closing "}"), so no
+    // unweighted, undirected SSSP instance could ever be constructed.
+    [Fact]
     public void SSSPSolver_Unweighted_Undirected_Graph_Defaults_Edge_Weight_To_One() {
         string instance = "({1,2,3},{{1,2},{2,3}},1)";
         SSSP problem = new SSSP(instance);

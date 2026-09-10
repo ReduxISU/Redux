@@ -79,6 +79,16 @@ public class CLIQUE_Tests {
         Assert.Equal(certificate, solver.solve(clique));
     }
 
+    [Fact] // K==0 asks for the empty clique, which is trivially correct: the
+           // solver must return "{}" directly rather than round-tripping it
+           // through CliqueVerifier, which legitimately rejects "{}" as an
+           // empty/malformed certificate for the general (K>0) case.
+    public void CliqueBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
+        CLIQUE clique = new CLIQUE("(({1,2,3},{{1,2},{2,3},{3,1}}),0)");
+        CliqueBruteForce solver = clique.defaultSolver;
+        Assert.Equal("{}", solver.solve(clique));
+    }
+
     [Fact] // a satisfiable SAT3 reduces to a clique whose solution verifies
     public void SAT3_To_CLIQUE_Reduction_Is_Sound() {
         SAT3 sat = new SAT3();
@@ -169,20 +179,4 @@ public class CLIQUE_Tests {
         Assert.False(dict["3"]);
     }
 
-    [Fact(Skip = "BUG: CliqueBruteForce.solve() throws CertificateParseException for K=0 instead of " +
-        "returning a certificate (e.g. \"{}\", the trivially-true empty clique). indexListToCertificate() " +
-        "correctly builds \"{}\" for an empty index list, but that \"{}\" is then handed to " +
-        "CliqueVerifier.verify(), whose CertificateGrammar parse yields an empty node list -- which " +
-        "verify() explicitly rejects by throwing CertificateParseException(\"certificate did not parse " +
-        "to a non-empty list of node names\"). solve() has no try/catch around that call, so the " +
-        "exception propagates out of solve() itself. See CliqueBruteForce.solve() and " +
-        "CliqueVerifier.verify().")]
-    public void CliqueBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
-        CLIQUE clique = new CLIQUE("(({1,2,3},{{1,2},{2,3},{1,3}}),0)");
-        CliqueBruteForce solver = new CliqueBruteForce();
-
-        string certificate = solver.solve(clique);
-
-        Assert.Equal("{}", certificate);
-    }
 }

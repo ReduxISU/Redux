@@ -106,14 +106,12 @@ public class SPSP_Tests {
         Assert.Equal("{3,2,1}", result);
     }
 
-    [Fact(Skip = "BUG: SPSP.ParseEdge (Problems/P/P_SPSP/P_SPSP.cs) unconditionally indexes " +
-        "rawEdge[0]/rawEdge[1] for the unweighted case without first checking " +
-        "rawEdge.IsOrdered(), unlike the weighted branch just above it which does check. " +
-        "An unweighted, undirected edge like \"{1,2}\" is a genuine SPADE set, which does " +
-        "not support indexing, so construction throws " +
-        "System.InvalidOperationException(\"Cannot index into a set\") from " +
-        "SPADE.UtilCollection.get_Item. As a result no unweighted, undirected SPSP instance " +
-        "can ever be constructed.")]
+    // Regression: SPSP.ParseEdge used to unconditionally index rawEdge[0]/rawEdge[1] for
+    // the unweighted case without first checking rawEdge.IsOrdered(). An unweighted,
+    // undirected edge like "{1,2}" is a genuine SPADE set, which does not support
+    // indexing, so construction threw InvalidOperationException("Cannot index into a
+    // set") and no unweighted, undirected SPSP instance could ever be constructed.
+    [Fact]
     public void SPSPSolver_Unweighted_Undirected_Graph_Defaults_Edge_Weight_To_One() {
         string instance = "({1,2,3},{{1,2},{2,3}},3,1)";
         SPSP problem = new SPSP(instance);

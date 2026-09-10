@@ -147,21 +147,27 @@ public class GRAPHCOLORING_Tests {
         Assert.Equal("{}", certificate);
     }
 
-    [Fact(Skip = "BUG: GraphColoringBruteForce.solve() never even tries the trivial 1-coloring. Its " +
-        "while-loop guard (\"binary.Count(n => n == numColors-1) < gColor.nodes.Count\") is already " +
-        "false before the loop's first iteration whenever numColors==1, because every digit starts at " +
-        "0 and numColors-1 is also 0 -- so all digits already equal numColors-1 at the outset. The loop " +
-        "body (where BinaryToCertificate builds a certificate and the verifier is consulted) therefore " +
-        "never runs at all, and solve() falls straight through to \"return {}\". This means any K=1 " +
-        "instance -- however trivially 1-colorable, e.g. a single edge-free node -- incorrectly reports " +
-        "no solution. See GraphColoringBruteForce.solve().")]
+    // Regression for issue #534. With K=1, a single edge-free node is trivially
+    // 1-colorable, but the brute force solver's search loop guard was false before the
+    // loop's first iteration, so the one candidate coloring (every node in color 0) was
+    // never tried and solve() fell through to "{}".
+    [Fact]
     public void BruteForceSolver_KEqualsOne_TriviallyColorableGraph_IncorrectlyReturnsEmpty() {
         GRAPHCOLORING problem = new GRAPHCOLORING("(({a},{}),1)");
         GraphColoringBruteForce solver = new GraphColoringBruteForce();
         GraphColoringVerifier verifier = new GraphColoringVerifier();
-
         string certificate = solver.solve(problem);
-
         Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    // With K=1, a graph that has an edge is NOT 1-colorable (the two endpoints can't
+    // share the single available color), so the solver should still correctly report
+    // no solution.
+    [Fact]
+    public void BruteForceSolver_KEqualsOne_GraphWithEdge_ReturnsEmpty() {
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({a,b},{{a,b}}),1)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        string certificate = solver.solve(problem);
+        Assert.Equal("{}", certificate);
     }
 }
