@@ -12,7 +12,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
 
     // --- Fields ---
     // Solver metadata
-    public string solverName { get; } = "Shor's Quantum API Solver";
+    public string solverName { get; } = "Shor's Algorithm";
     public string solverDefinition { get; } =
         "Calls external quantum computing API to solve prime factorization using Shor's algorithm. " +
         "Shor's algorithm uses quantum phase estimation to efficiently find the period of a " +
