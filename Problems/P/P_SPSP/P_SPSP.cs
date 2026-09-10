@@ -40,6 +40,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     // Declared, not derived. Single-pair shortest path (non-negative weights) is
     // solvable in polynomial time (Dijkstra's algorithm).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
 
     // --- Properties ---
     public List<string> nodes {

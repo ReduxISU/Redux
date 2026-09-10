@@ -19,8 +19,15 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
     // have no counterpart already in the GRAPHCOLORING input encoding.
     public ReductionCost cost { get; } = ReductionCost.HigherPolynomial;
 
+    // Declared, not derived. Per-node "choose one color" subsets and per-edge
+    // "no shared color" subsets must fit together in a single exact cover -- the
+    // pieces are not independent, correctness depends on how they interact.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. The final gadget block emits O(m * K^3) subset entries.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(m * K^3), m = |edges|, K = number of colors";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private GRAPHCOLORING _reductionFrom;

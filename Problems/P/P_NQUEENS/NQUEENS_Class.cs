@@ -28,6 +28,7 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
     // solver for an easy problem, not evidence the problem itself is hard. See
     // redux-tests/Metadata/ComplexityClass_Tests.cs.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
 
     public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
 

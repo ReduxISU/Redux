@@ -3,6 +3,7 @@ using API.Problems.NPComplete.NPC_CLIQUE;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using SPADE;
@@ -21,6 +22,14 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
     // edge for almost every pair (excluding same-clause / inverse-literal pairs) — O(n^2)
     // edges from O(n) literal-nodes.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
+    // Declared, not derived. Literal-nodes are grouped into per-clause triangles whose
+    // edges depend on cross-clause same-literal/inverse-literal checks -- the textbook
+    // Garey & Johnson component-design example for 3SAT-to-Clique.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. Double loop over all literal-node pairs.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n^2), n = 3 * |SAT3.clauses| (literal-nodes)";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
     private SAT3 _reductionFrom;
     private CLIQUE _reductionTo;

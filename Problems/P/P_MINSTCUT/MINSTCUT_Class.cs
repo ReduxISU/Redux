@@ -15,6 +15,7 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
     // Declared, not derived. Minimum s-t cut is solvable in polynomial time
     // (Ford-Fulkerson / max-flow min-cut).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     public string source { get; } = "Ford, L. R.; Fulkerson, D. R. (1956). Maximal flow through a network. Canadian Journal of Mathematics, 8, 399–404.";
     public string sourceLink { get; } = "https://doi.org/10.4153/CJM-1956-045-5";
     public string wikiName { get; } = "";

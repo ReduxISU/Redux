@@ -30,6 +30,7 @@ class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefault
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // Declared, not derived. NODESET (Feedback Node Set) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     // --- Properties ---
     public int K {

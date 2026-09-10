@@ -23,10 +23,12 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization> {
     public SimonVerifier defaultVerifier { get; } = new SimonVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string[] contributors { get; } = { "Eric Hill", "Max Gruenwoldt" };
-    // Declared, not derived. Simon's problem is a query-complexity promise problem
-    // over an oracle, not a citizen of the classical P/NP hierarchy — see
-    // ComplexityClass.QuantumOracle.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    // Declared, not derived. Simon's algorithm needs repeated sampling to accumulate
+    // enough independent equations to recover s with high probability — bounded-error,
+    // not exact — so it belongs in BQP, not the classical P/NP hierarchy. See
+    // ComplexityClass.BQP.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.BQP;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     private int[] _funcValues = new int[2] { 0, 1 };
 

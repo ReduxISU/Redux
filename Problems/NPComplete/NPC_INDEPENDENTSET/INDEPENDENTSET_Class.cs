@@ -29,6 +29,7 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce, IndependentSetVer
     public string[] contributors { get; } = { "Russell Phillips" };
     // Declared, not derived. INDEPENDENTSET is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     // --- Properties ---
     public List<string> nodes {
