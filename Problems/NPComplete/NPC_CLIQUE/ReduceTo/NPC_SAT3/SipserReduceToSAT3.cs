@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE;
@@ -32,6 +33,14 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
     // clauses by trailing '_<clauseIdx>' suffix — output clause count is O(n) in the
     // number of input nodes.
     public ReductionCost cost { get; } = ReductionCost.Linear;
+
+    // Declared, not derived. Each node is placed into its clause bucket independently
+    // by parsing its own suffix -- no coordination needed between nodes/clauses.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. Single pass over the input's nodes, grouping by suffix.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n), n = |CLIQUE.nodes|";
 
     public List<Gadget> gadgets { get; set; }
 

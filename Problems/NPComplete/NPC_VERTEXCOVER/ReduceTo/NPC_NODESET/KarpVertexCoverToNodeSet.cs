@@ -19,8 +19,14 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
     // bounded by O(m) (each existing edge emitted in both directions).
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Reformats the input's own node/edge structure directly
+    // into NODESET's shape -- the same graph re-expressed, no new gadgetry built.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. Nested node x node loop scanning for existing edges.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |VERTEXCOVER.nodes|";
     public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;
     private NODESET _reductionTo;

@@ -31,6 +31,7 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public UtilCollectionGraph graph { get; set; }
     // Declared, not derived. TSP (decision version) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
 
     public string wikiName { get; } = "";
 

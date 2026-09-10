@@ -24,8 +24,11 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
     public string[] contributors { get; } = { "Paul Gilbreath", "Alex Svancara" };
     // Declared, not derived. Integer factorization is in NP and co-NP but not known
-    // NP-complete and not known to be in P — the textbook example of NPIntermediate.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.NPIntermediate;
+    // NP-complete and not known to be in P — the textbook example of a problem in NP
+    // that isn't also NP-complete.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NP;
+    // Declared, not derived. Number-theoretic decomposition problem.
+    public ProblemType problemType { get; } = ProblemType.AlgebraAndNumberTheory;
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();

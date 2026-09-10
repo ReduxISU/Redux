@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_DM3;
 using API.Problems.NPComplete.NPC_SAT;
@@ -14,6 +15,15 @@ class GareyJohnson : IReduction<SAT3, DM3> {
     // The garbage-collection gadget loop ("for i in 0..(literals-clauses): foreach j in
     // Z") unconditionally emits one M-triple per (i,j) pair — O(n^2) matching triples.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
+    // Declared, not derived. Per its own reductionDefinition: variable "wheel" gadgets,
+    // clause gadgets, and garbage-collection gadgets are all constructed to interact --
+    // the canonical Garey & Johnson component-design reduction.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. The garbage-collection loop emits one M-triple per
+    // (literal, Z-entry) pair.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n^2), n ~ |SAT3.literals|";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private SAT3 _reductionFrom;

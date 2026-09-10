@@ -18,8 +18,15 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM> {
     // the output (|S| numbers) is only O(|S|).
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
 
+    // Declared, not derived. The base-(|S|+1) positional encoding requires every
+    // digit position to share a common base so sums can't carry into each other --
+    // a global coordination constraint, not an independent per-element replacement.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. The e[j,i] loop is |S| x |X|.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(|S| * |X|), S = subsets, X = universal set";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private EXACTCOVER _reductionFrom;

@@ -18,6 +18,13 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
     // O(v^2)-iteration scan — not the same claim as the pre-existing `complexity` field
     // below (unrelated, unverified runtime-complexity note).
     public ReductionCost cost { get; } = ReductionCost.Linear;
+    // Declared, not derived. Palette nodes, per-variable true/false gadgets, and
+    // per-clause 6-node OR-gadgets are all wired together against the shared palette --
+    // a classic component-design 3SAT-to-coloring construction.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. Dominant term is the literal-negation loop over all
+    // variable pairs.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private SAT3 _reductionFrom;
@@ -74,9 +81,9 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
     public KarpReduceGRAPHCOLORING(string instance) : this(new SAT3(instance)) { }
     public KarpReduceGRAPHCOLORING() : this(new SAT3()) { }
 
-    #endregion
+    # endregion
 
-    #region Methods
+    # region Methods
 
 
     //The below code is reducing the SAT3 instance to a GRAPHCOLORING instance.
