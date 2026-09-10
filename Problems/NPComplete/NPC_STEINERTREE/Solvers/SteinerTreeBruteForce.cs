@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_STEINERTREE.Solvers;
 class SteinerTreeBruteForce : ISolver<STEINERTREE> {
 
     // --- Fields ---
-    public string solverName { get; } = "Steiner Tree Brute Force Solver";
+    public string solverName { get; } = "Steiner Tree Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Steiner Tree problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
