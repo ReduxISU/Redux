@@ -9,7 +9,7 @@ using API.Problems.P.P_DFA.Solvers;
 namespace API.Problems.P.P_DFA.Visualizations;
 
 class DFAVisualization : IVisualization<DFA> {
-    public string visualizationName { get; } = "Determinite Finite Automata Visualization";
+    public string visualizationName { get; } = "Deterministic Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Deterministic Finite Automata";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
