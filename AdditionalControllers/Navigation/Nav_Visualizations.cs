@@ -35,56 +35,13 @@ internal static class VisualizationTypeCatalog {
 }
 
 internal static class VisualizationNavigationData {
-    internal class VisualizationEntry {
-        public string className { get; set; } = "";
-        public string problemName { get; set; } = "";
-    }
-
     // Build once from reflected visualization types so navigation doesn't depend on
     // on-disk source layout. Mirrors VerifierNavigationData (see Nav_Verifiers.cs).
-    internal static readonly List<VisualizationEntry> Entries = Build();
+    internal static readonly List<NavigationEntry> Entries =
+        InterfaceNavigationData.Build(ProblemProvider.Visualizers, typeof(IVisualization<>));
 
-    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) {
-        return Find(problemName, problemTypePrefix)
-            .Select(x => x.className)
-            .ToList();
-    }
-
-    private static List<VisualizationEntry> Build() {
-        var entries = new List<VisualizationEntry>();
-        foreach (var (_, visType) in ProblemProvider.Visualizers) {
-            var generic = visType.GetInterfaces()
-                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVisualization<>));
-            if (generic == null) continue;
-
-            Type problemType = generic.GetGenericArguments()[0];
-            entries.Add(new VisualizationEntry {
-                className = visType.Name,
-                problemName = problemType.Name,
-            });
-        }
-
-        return entries
-            .GroupBy(e => e.className, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.First())
-            .ToList();
-    }
-
-    // problemTypePrefix is accepted for API compatibility but intentionally ignored:
-    // problem names are unique across complexity classes, so the name alone identifies
-    // the visualization set. Mirrors the verifier navigation (#317/#318): the GUI pins
-    // problemType to "NPC", so matching on the prefix would drop P / NP-Hard problems.
-    private static List<VisualizationEntry> Find(string? problemName, string? problemTypePrefix) {
-        IEnumerable<VisualizationEntry> query = Entries;
-
-        if (!string.IsNullOrWhiteSpace(problemName)) {
-            query = query.Where(e => string.Equals(e.problemName, problemName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return query
-            .OrderBy(e => e.className, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
+    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) =>
+        InterfaceNavigationData.FindWithoutExtension(Entries, problemName, problemTypePrefix);
 }
 
 // Get all Visualizations for a specific problem\

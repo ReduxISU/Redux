@@ -243,5 +243,12 @@
     "major": "Computer Science",
     "bio": "Implemented the Knapsack DP solver and unit tests",
     "githubUsername": ""
+  },
+  "Michael Trosper": {
+    "email": "michaeltrosper@isu.edu",
+    "education": "Idaho State University",
+    "major": "Computer Science",
+    "bio": "Full-stack contributor spanning backend problem/test infrastructure and frontend UI (tag/filter system, theming); dominant author of the backend test suite and an active PR reviewer across both repos.",
+    "githubUsername": "Trosper3"
   }
 }

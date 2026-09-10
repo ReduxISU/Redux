@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 class HeuristicSolver : ISolver<SETCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Heuristic Solver";
+    public string solverName { get; } = "Set Cover Backtracking";
     public string solverDefinition { get; } = "";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
