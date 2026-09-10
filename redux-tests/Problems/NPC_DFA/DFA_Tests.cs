@@ -2,6 +2,8 @@ using Xunit;
 using API.Problems.P.P_DFA;
 using API.Problems.P.P_DFA.Solvers;
 using API.Problems.P.P_DFA.Verifiers;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -184,6 +186,16 @@ public class DFA_Tests {
     }
 
     [Fact]
+    public void DFA_Solver_Rejects_Input_With_No_Matching_Edge() {
+        // Node "1" only has an edge for 'a'; input "b" is in the alphabet but has
+        // no transition out of the start state, so the DFA stalls mid-string.
+        DFA dfa = new DFA("(({1,2},{a,b},{(1,a,2)},1,{2}),b)");
+        DFASolver solver = new DFASolver();
+        string result = solver.solve(dfa);
+        Assert.Contains("No Solution Exists: DFA cannot transition", result);
+    }
+
+    [Fact]
     public void DFA_Solver_Output_Contains_Correct_State_Path() {
         // Input "ba": 1 →b→ 3 →a→ 2; all three state labels must appear in output
         DFA dfa = new DFA("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),ba)");
@@ -246,6 +258,91 @@ public class DFA_Tests {
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
         Assert.Contains(expectedPath, result);
+    }
+
+    // -------------------------------------------------------------------------
+    // Solver — GetSteps / GetTableSteps
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void DFA_GetSteps_Returns_Node_Path_For_Accepted_Input() {
+        DFASolver solver = new DFASolver();
+        var steps = solver.GetSteps(DefaultInstance);
+        Assert.Equal(new List<object> { "1", "2" }, steps);
+    }
+
+    [Fact]
+    public void DFA_GetSteps_Returns_Partial_Path_When_No_Solution() {
+        // Input "b" from default instance: 1 →b→ 3 (non-accept), but nodePath still
+        // records the path actually walked before solve() returns "No Solution".
+        string instance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),b)";
+        DFASolver solver = new DFASolver();
+        var steps = solver.GetSteps(instance);
+        Assert.Equal(new List<object> { "1", "3" }, steps);
+    }
+
+    [Fact]
+    public void DFA_GetTableSteps_Produces_One_Frame_Per_Row_For_Accepted_Input() {
+        // Default instance, input "a": initial row (step 0) + one transition row (step 1)
+        DFA dfa = new DFA(DefaultInstance);
+        DFASolver solver = new DFASolver();
+        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+
+        Assert.Equal(2, frames.Count);
+        // Every frame carries the full trace; only currentRow moves.
+        Assert.All(frames, f => Assert.Equal(2, f.rows.Count));
+        Assert.Equal(0, frames[0].currentRow);
+        Assert.Equal(1, frames[1].currentRow);
+
+        var rows = frames[0].rows;
+        Assert.Equal(0, rows[0].step);
+        Assert.Equal("-", rows[0].symbol);
+        Assert.Equal("-", rows[0].fromState);
+        Assert.Equal("1", rows[0].toState);
+        Assert.False(rows[0].accepting);
+
+        Assert.Equal(1, rows[1].step);
+        Assert.Equal("a", rows[1].symbol);
+        Assert.Equal("1", rows[1].fromState);
+        Assert.Equal("2", rows[1].toState);
+        Assert.True(rows[1].accepting);
+    }
+
+    [Fact]
+    public void DFA_GetTableSteps_Stops_At_Single_Row_For_Epsilon_Accept() {
+        // Start state is accept and input is ε: loop breaks before adding any transition row.
+        DFA dfa = new DFA("(({q0,q1},{a},{(q0,a,q1)},q0,{q0}),ε)");
+        DFASolver solver = new DFASolver();
+        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+
+        Assert.Single(frames);
+        Assert.Single(frames[0].rows);
+        Assert.True(frames[0].rows[0].accepting);
+    }
+
+    [Fact]
+    public void DFA_GetTableSteps_Stops_When_Character_Not_In_Alphabet() {
+        // First char 'a' transitions normally; second char 'c' is not in the alphabet
+        // so the trace stalls there and no further row is added.
+        string instance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),ac)";
+        DFA dfa = new DFA(instance);
+        DFASolver solver = new DFASolver();
+        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+
+        Assert.Equal(2, frames.Count);
+        Assert.Equal("2", frames[^1].rows[^1].toState);
+    }
+
+    [Fact]
+    public void DFA_GetTableSteps_Stops_When_No_Matching_Edge() {
+        // First char 'a' transitions to node 2, which has no outgoing edge for 'b';
+        // the trace stalls there and no further row is added.
+        DFA dfa = new DFA("(({1,2},{a,b},{(1,a,2)},1,{2}),ab)");
+        DFASolver solver = new DFASolver();
+        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+
+        Assert.Equal(2, frames.Count);
+        Assert.Equal("2", frames[^1].rows[^1].toState);
     }
 
     // -------------------------------------------------------------------------

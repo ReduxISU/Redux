@@ -2,6 +2,8 @@ using Xunit;
 using API.Problems.P.P_NFA;
 using API.Problems.P.P_NFA.Solvers;
 using API.Problems.P.P_NFA.Verifiers;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -269,6 +271,144 @@ public class NFA_Tests {
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
         Assert.Contains("s, t", result);
+    }
+
+    // -------------------------------------------------------------------------
+    // Solver — GetSteps / GetPathRuns / GetTableSteps
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void NFA_GetSteps_Returns_First_Accepting_Run_States() {
+        // Simple single-run NFA: s →a→ t (accept). GetSteps should return that run's states.
+        string instance = "(({s,t},{a},{(s,a,t)},s,{t}),a)";
+        NFA nfa = new NFA(instance);
+        NFASolver solver = new NFASolver();
+        var steps = solver.GetSteps(nfa);
+        Assert.Equal(new List<object> { "s", "t" }, steps);
+    }
+
+    [Fact]
+    public void NFA_GetSteps_Falls_Back_To_First_Rejected_Run_When_No_Accepting_Run() {
+        // No accepting run exists for input "b"; GetSteps still returns the dead-end
+        // run's states rather than an empty list.
+        string instance = "(({s,t},{a,b},{(s,a,t)},s,{t}),b)";
+        NFA nfa = new NFA(instance);
+        NFASolver solver = new NFASolver();
+        var steps = solver.GetSteps(nfa);
+        Assert.Equal(new List<object> { "s" }, steps);
+    }
+
+    [Fact]
+    public void NFA_GetPathRuns_Records_Single_Accepting_Run_With_Transition_Detail() {
+        string instance = "(({s,t},{a},{(s,a,t)},s,{t}),a)";
+        NFA nfa = new NFA(instance);
+        NFASolver solver = new NFASolver();
+        var runs = solver.GetPathRuns(nfa);
+
+        Assert.Single(runs);
+        Assert.True(runs[0].accepted);
+        Assert.Equal(new List<string> { "s", "t" }, runs[0].states);
+        Assert.Single(runs[0].transitions);
+        Assert.Equal("s", runs[0].transitions[0].from);
+        Assert.Equal("a", runs[0].transitions[0].symbol);
+        Assert.Equal("t", runs[0].transitions[0].to);
+    }
+
+    [Fact]
+    public void NFA_GetPathRuns_Records_Rejected_Dead_End_When_No_Accepting_Run() {
+        string instance = "(({s,t},{a,b},{(s,a,t)},s,{t}),b)";
+        NFA nfa = new NFA(instance);
+        NFASolver solver = new NFASolver();
+        var runs = solver.GetPathRuns(nfa);
+
+        Assert.Single(runs);
+        Assert.False(runs[0].accepted);
+        Assert.Equal(new List<string> { "s" }, runs[0].states);
+        Assert.Empty(runs[0].transitions);
+    }
+
+    [Fact]
+    public void NFA_GetPathRuns_Orders_Accepting_Runs_Before_Rejected_Runs() {
+        // Default instance/input "a" has 3 accepting runs plus at least one dead-end
+        // branch (e.g. reading 'a' from the reflexive self-loop paths). Accepted runs
+        // must all precede rejected ones in the returned list.
+        NFA nfa = new NFA(DefaultInstance);
+        NFASolver solver = new NFASolver();
+        var runs = solver.GetPathRuns(nfa);
+
+        Assert.Equal(3, runs.Count(r => r.accepted));
+        // Once a rejected run is seen, no further accepted run may follow it.
+        bool sawRejected = false;
+        foreach (var r in runs) {
+            if (!r.accepted) sawRejected = true;
+            else Assert.False(sawRejected, "Accepted run found after a rejected run");
+        }
+    }
+
+    [Fact]
+    public void NFA_GetPathRuns_Handles_Epsilon_Cycle_Without_Infinite_Loop() {
+        string instance = "(({s,t,u},{a},{(s,ε,t),(t,ε,s),(s,a,u)},s,{u}),a)";
+        NFA nfa = new NFA(instance);
+        NFASolver solver = new NFASolver();
+        var runs = solver.GetPathRuns(nfa);
+
+        Assert.Contains(runs, r => r.accepted && r.states[^1] == "u");
+    }
+
+    [Fact]
+    public void NFA_GetTableSteps_Produces_Correct_Rows_For_Single_Accepting_Run() {
+        string instance = "(({s,t},{a},{(s,a,t)},s,{t}),a)";
+        NFA nfa = new NFA(instance);
+        NFASolver solver = new NFASolver();
+        var frames = solver.GetTableSteps(nfa).Cast<NFASolver.NFATableStep>().ToList();
+
+        Assert.Single(frames);
+        var frame = frames[0];
+        Assert.Equal(0, frame.pathIndex);
+        Assert.Equal(1, frame.pathCount);
+        Assert.True(frame.accepted);
+        Assert.Equal(2, frame.rows.Count);
+
+        Assert.Equal(0, frame.rows[0].step);
+        Assert.Equal("-", frame.rows[0].symbol);
+        Assert.Equal("-", frame.rows[0].fromState);
+        Assert.Equal("s", frame.rows[0].toState);
+        Assert.False(frame.rows[0].accepting);
+
+        Assert.Equal(1, frame.rows[1].step);
+        Assert.Equal("a", frame.rows[1].symbol);
+        Assert.Equal("s", frame.rows[1].fromState);
+        Assert.Equal("t", frame.rows[1].toState);
+        Assert.True(frame.rows[1].accepting);
+    }
+
+    [Fact]
+    public void NFA_GetTableSteps_Produces_One_Frame_Per_Explored_Run() {
+        NFA nfa = new NFA(DefaultInstance);
+        NFASolver solver = new NFASolver();
+        var frames = solver.GetTableSteps(nfa).Cast<NFASolver.NFATableStep>().ToList();
+        var runs = solver.GetPathRuns(nfa);
+
+        Assert.Equal(runs.Count, frames.Count);
+        Assert.All(frames, f => Assert.Equal(frames.Count, f.pathCount));
+        for (int i = 0; i < frames.Count; i++) {
+            Assert.Equal(i, frames[i].pathIndex);
+            Assert.Equal(runs[i].accepted, frames[i].accepted);
+            // Row count is always transitions + 1 (the initial row).
+            Assert.Equal(runs[i].transitions.Count + 1, frames[i].rows.Count);
+        }
+    }
+
+    [Fact]
+    public void NFA_GetTableSteps_Marks_Epsilon_Transition_Symbol_In_Rows() {
+        // s →ε→ t (accept), empty input; the transition row must show "ε" as the symbol.
+        string instance = "(({s,t},{a},{(s,ε,t)},s,{t}),ε)";
+        NFA nfa = new NFA(instance);
+        NFASolver solver = new NFASolver();
+        var frames = solver.GetTableSteps(nfa).Cast<NFASolver.NFATableStep>().ToList();
+
+        var acceptedFrame = frames.First(f => f.accepted);
+        Assert.Contains(acceptedFrame.rows, r => r.symbol == "ε");
     }
 
     // -------------------------------------------------------------------------
