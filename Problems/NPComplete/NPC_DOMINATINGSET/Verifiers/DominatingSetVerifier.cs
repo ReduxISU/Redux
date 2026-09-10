@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Verifiers;
 class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
 
     // --- Fields ---
-    private string _verifierName = "Dominating Set Verifier";
+    private string _verifierName = "Default Dominating Set Verifier";
     private string _verifierDefinition = "This is a Verifier for Dominating Set";
     private string _source =
         "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";

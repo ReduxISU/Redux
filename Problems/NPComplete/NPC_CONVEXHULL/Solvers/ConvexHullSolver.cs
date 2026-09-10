@@ -4,7 +4,7 @@ namespace API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
 
 class ConvexHullSolver : ISolver<CONVEXHULL> {
 
-    public string solverName { get; } = "Convex Hull Solver";
+    public string solverName { get; } = "Convex Hull Divide and Conquer";
     public string solverDefinition { get; } = "Computes the convex hull of a set of 2D points using divide and conquer.";
     public string source { get; } = "https://doi.org/10.1145/359423.359430";
     public string[] contributors { get; } = { "Bektur Akkabakov" };

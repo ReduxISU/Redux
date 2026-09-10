@@ -3,9 +3,11 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Verifiers;
 
 class UnstructuredSearchVerifier : IVerifier<UNSTRUCTUREDSEARCH> {
+    public const string CertificateGrammar = "i | integer index such that f(i) != 0";
+    public const string CertificateExample = "1";
 
     // --- Fields ---
-    public string verifierName { get; } = "Unstructured search verifier";
+    public string verifierName { get; } = "Default Unstructured Search Verifier";
     public string verifierDefinition { get; } = "This verifier simply checks that the certificate provided results in f(x) != 0 for the unstructured search problem.";
     public string source { get; } = "Grover, L. K. (1996). A fast quantum mechanical algorithm for database search. In Proceedings of the twenty-eighth annual ACM symposium on Theory of computing (pp. 212-219).";
     public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
