@@ -19,9 +19,13 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     public string problemDefinition { get; } = "Single Source Shortest Path (SSSP) in a weighted graph is the problem of determining the shortest path from a source vertex to all other reachable vertices in the graph such that the sum of edge weights along each path is minimized.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
+    public const string InstanceGrammar = "(N,E,s) | N is set, E subset N unorderedcross N or N cross N (edges optionally weighted as (edge,weight), non-negative only), s in N";
     private static string _defaultInstance = "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SSSPVerifier.CertificateGrammar} Example: {SSSPVerifier.CertificateExample}";
     public string wikiName { get; } = "";
     public string sourceNode { get; private set; } = string.Empty;
     public bool isDirected { get; private set; }
