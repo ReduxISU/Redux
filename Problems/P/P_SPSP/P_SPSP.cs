@@ -20,10 +20,31 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     public string problemDefinition { get; } = "Single Pair Shortest Path (SPSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s and target vertex t in the graph, such that the sum of edge weights along the path is minimized.";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
+    // The single source of truth for which graph shapes SPSP accepts -- also used
+    // to generate InstanceGrammar below, so the two can't drift apart. SPADE's
+    // definition-string grammar has no alternation/union construct (no way to say
+    // "edges are either plain pairs or weighted pairs, in a directed or undirected
+    // graph" as one pattern), so each combination needs its own attempt here.
+    private static readonly (string Pattern, bool IsDirected, bool IsWeighted)[] GraphParsePatterns =
+    {
+        ("{(N,E) | N is set, E subset {(e,w) | e is N cross N, w is int}}", true, true),
+        ("{(N,E) | N is set, E subset {(e,w) | e is N unorderedcross N, w is int}}", false, true),
+        ("{(N,E) | N is set, E subset N cross N}", true, false),
+        ("{(N,E) | N is set, E subset N unorderedcross N}", false, false)
+    };
+
+    // Generated from GraphParsePatterns above rather than hand-written, so this
+    // documentation can't silently drift from what the parser actually accepts.
+    public static string InstanceGrammar { get; } =
+        "(N,E,s,t) | s,t in N, optional (default to the first/last node of N when omitted); "
+        + "N,E parsed as one of: " + string.Join(" | ", GraphParsePatterns.Select(p => p.Pattern));
     private static string _defaultInstance =
     "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1,5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SPSPVerifier.CertificateGrammar} Example: {SPSPVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
     public string sourceNode { get; private set; } = string.Empty;
@@ -40,6 +61,7 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     // Declared, not derived. Single-pair shortest path (non-negative weights) is
     // solvable in polynomial time (Dijkstra's algorithm).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
 
     // --- Properties ---
     public List<string> nodes {
@@ -107,16 +129,8 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     }
 
     private static GraphParseResult ParseGraph(string graphInput) {
-        (string Pattern, bool IsDirected, bool IsWeighted)[] parseAttempts =
-        {
-            ("{(N,E) | N is set, E subset {(e,w) | e is N cross N, w is int}}", true, true),
-            ("{(N,E) | N is set, E subset {(e,w) | e is N unorderedcross N, w is int}}", false, true),
-            ("{(N,E) | N is set, E subset N cross N}", true, false),
-            ("{(N,E) | N is set, E subset N unorderedcross N}", false, false)
-        };
-
         Exception? lastError = null;
-        foreach (var attempt in parseAttempts) {
+        foreach (var attempt in GraphParsePatterns) {
             try {
                 StringParser parser = new(attempt.Pattern);
                 parser.parse(graphInput);
@@ -164,9 +178,12 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     }
 
     private static ParsedEdge ParseEdge(UtilCollection rawEdge) {
-        bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
-        bool secondLooksLikeCollection = rawEdge.Count() > 1 && LooksLikeCollection(rawEdge[1]);
-        bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
+        // An unordered rawEdge (a plain set like {1,2}) is a genuine SPADE set and
+        // does not support indexing. It can never be the weighted (endpoints, weight)
+        // shape, which is always ordered, so it always takes the unweighted path below.
+        bool isWeighted = rawEdge.IsOrdered() && rawEdge.Count() == 2
+            && LooksLikeCollection(rawEdge[0])
+            && !LooksLikeCollection(rawEdge[1]);
 
         if (isWeighted) {
             UtilCollection endpoints = rawEdge[0];

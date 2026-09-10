@@ -55,4 +55,33 @@ public class EDITDISTANCE_Tests {
         string solvedString = solver.solve(problem);
         Assert.Equal(certificate, solvedString);
     }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void EDITDISTANCE_Instance_Format_Described() {
+        var problem = new EDITDISTANCE();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("(x, y)", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void EDITDISTANCE_Certificate_Format_Described() {
+        var problem = new EDITDISTANCE();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("edit operations", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void EDITDISTANCE_Certificate_Format_Example_Is_Actually_Valid() {
+        // The "Example: 3" quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        var problem = new EDITDISTANCE();
+        var verifier = new EditDistanceVerifier();
+        Assert.True(verifier.verify(problem, "3"));
+    }
 }

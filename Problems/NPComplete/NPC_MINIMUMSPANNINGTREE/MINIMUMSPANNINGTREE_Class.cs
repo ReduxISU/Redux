@@ -25,6 +25,7 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
     // polynomial time (e.g. Kruskal's / Prim's algorithm), it just lives under the
     // NPComplete/ folder for filing reasons.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
 
     private List<string> _nodes = new List<string>();
     private List<(string source, string destination, int weight)> _edges = new List<(string source, string destination, int weight)>();

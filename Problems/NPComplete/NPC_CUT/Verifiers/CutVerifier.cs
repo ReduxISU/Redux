@@ -8,7 +8,7 @@ class CutVerifier : IVerifier<CUT> {
     public const string CertificateExample = "{{2,1},{1,3},{2,3},{3,5},{2,4}}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Cut Verifier";
+    public string verifierName { get; } = "Default Cut Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Cut problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

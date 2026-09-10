@@ -24,9 +24,14 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     // δ = (node, char edge value, node) //
     // q₀ = Start State //
     // F = Set of Accept State(s) //
+    public const string InstanceGrammar = "{((N,A,E,S,F),I) | N is set, A is set, E is N cross A cross N, S is string, F is set, I is string}";
     private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,ε,2),(1,b,3),(2,a,2),(2,ε,3),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } =
+        $"Format: {InstanceGrammar} (an edge's symbol may be 'ε', 'epsilon', or 'eps' for an epsilon-transition) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {NFAVerifier.CertificateGrammar} Example: {NFAVerifier.CertificateExample}";
     public string wikiName { get; } = "N/A";
     public NFASolver defaultSolver { get; } = new NFASolver();
     public NFAVerifier defaultVerifier { get; } = new NFAVerifier();
@@ -36,6 +41,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     // though NFA-to-DFA conversion can blow up exponentially — acceptance itself
     // doesn't require that conversion.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.AutomataAndLanguages;
 
     // Edge Structures //
     public record NFAEdge(string From, char Symbol, string To);
@@ -75,16 +81,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
         this.instance = instance;
 
         // ---- SPADE grammar: edges as ordered triples (cross) ----
-        StringParser NFA_Graph = new(
-            "{((N,A,E,S,F),I) | " +
-            "N is set, " +
-            "A is set, " +
-            "E is N cross A cross N, " +
-            "S is string, " +
-            "F is set, " +
-            "I is string" +
-            "}"
-        );
+        StringParser NFA_Graph = new(InstanceGrammar);
 
         // Parse the Instance //
         NFA_Graph.parse(instance);

@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_NODESET;
 class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Karp Vertex Cover to Node Set Reduction";
+    public string reductionName { get; } = "Karp's Node Set Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from Vertex Cover to Feedback Node Set";
     public string source { get; } = "This reduction was found by the Algorithms Seminar at the Cornell University Computer Science Department. Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
@@ -19,8 +19,14 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
     // bounded by O(m) (each existing edge emitted in both directions).
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Reformats the input's own node/edge structure directly
+    // into NODESET's shape -- the same graph re-expressed, no new gadgetry built.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. Nested node x node loop scanning for existing edges.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |VERTEXCOVER.nodes|";
     public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;
     private NODESET _reductionTo;

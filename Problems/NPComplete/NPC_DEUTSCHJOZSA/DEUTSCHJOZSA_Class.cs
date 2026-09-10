@@ -14,18 +14,25 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
     public string problemDefinition { get; } = "Deutsch-Jozsa's algorithm solves the general case of the parity problem and therefore determines whether a function f: {0,1}^n -> {0,1} is constant or balanced. It is represented by an ordered list of values, which show the functions output for the 2^n possible inputs."; // plaintext description of the problem
     public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558"; // Academic paper proper citation
     public string sourceLink { get; } = "https://royalsocietypublishing.org/doi/10.1098/rspa.1992.0167"; // Link to the academic paper
+    public const string InstanceGrammar = "{f | f is list}";
     private static readonly string _defaultInstance = "(1, 1, 1, 1)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } =
+        $"Format: {InstanceGrammar} (f has 2^n bits, one output per input in {{0,1}}^n) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {DeutschJozsaVerifier.CertificateGrammar} Example: {DeutschJozsaVerifier.CertificateExample}";
     public string wikiName { get; } = ""; // Wiki name or link? - not used yet
     public DeutschJozsaClassicalSolver defaultSolver { get; } = new DeutschJozsaClassicalSolver();
     public DeutschJozsaVerifier defaultVerifier { get; } = new DeutschJozsaVerifier();
     public DeutschJozsaDefaultVisualization defaultVisualization { get; } = new DeutschJozsaDefaultVisualization();
-    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "George Lake" };
-    // Declared, not derived. Deutsch-Jozsa is a query-complexity promise problem over
-    // an oracle, not a citizen of the classical P/NP hierarchy — see
-    // ComplexityClass.QuantumOracle.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.QuantumOracle;
+    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "George Lake", "Michael Trosper" };
+    // Declared, not derived. The Deutsch-Jozsa algorithm solves this promise problem
+    // with a single oracle query and zero error probability — exact, not merely
+    // bounded-error — so it belongs in EQP, not the classical P/NP hierarchy. See
+    // ComplexityClass.EQP.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.EQP;
+    public ProblemType problemType { get; } = ProblemType.Miscellaneous;
 
     public int n { get; set; }
     public List<int> w { get; set; } = new List<int>();
@@ -37,7 +44,7 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
         instance = input;
 
         // use SPADE parser to extract n and the list S
-        SPADE.StringParser parser = new("{f | f is list}");
+        SPADE.StringParser parser = new(InstanceGrammar);
         parser.parse(instance);
         SPADE.UtilCollection bitslist = parser["f"];
 

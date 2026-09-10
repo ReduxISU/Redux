@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 
 class Sat3DefaultVisualization : IVisualization<SAT3> {
-    public string visualizationName { get; } = "3SAT visualization";
+    public string visualizationName { get; } = "3SAT Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for 3SAT";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Kaden Marchetti" };

@@ -18,10 +18,14 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors { get; } = { "Russell Phillips" };
+    public string[] contributors { get; } = { "Russell Phillips", "Michael Trosper" };
 
+    public const string InstanceGrammar = "{(U,S) | U is set, S subset {a | a subset U}}";
     private static string _defaultInstance { get; } = "({1,2,3,4},{{1,3},{2,3,4},{1,4}})";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {HittingSetVerifier.CertificateGrammar} Example: {HittingSetVerifier.CertificateExample}";
 
     public string instance { get; set; } = string.Empty;
 
@@ -33,6 +37,7 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
     public HittingSetDefaultVisualization defaultVisualization { get; } = new HittingSetDefaultVisualization();
     // Declared, not derived. HITTINGSET is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
 
     public UtilCollection _universalSet;
 
@@ -69,7 +74,7 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
 
     public HITTINGSET(string instanceStr) {
         instance = instanceStr;
-        StringParser HittingSet = new("{(U,S) | U is set, S subset {a | a subset U}}");
+        StringParser HittingSet = new(InstanceGrammar);
         HittingSet.parse(instance);
         _universalSet = HittingSet["U"];
         _subsets = HittingSet["S"];

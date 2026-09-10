@@ -21,6 +21,10 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public static string _defaultInstance { get; } = "(horse, ros)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public const string InstanceGrammar = "(x, y) | x,y are strings";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {EditDistanceVerifier.CertificateGrammar} Example: {EditDistanceVerifier.CertificateExample}";
 
     public EditDistanceDPSolver defaultSolver { get; } = new EditDistanceDPSolver();
     public EditDistanceVerifier defaultVerifier { get; } = new EditDistanceVerifier();
@@ -30,6 +34,7 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     // (this problem is solved with DP in polynomial time) already said as much; this
     // makes it a machine-checkable fact instead of a comment nobody reads.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.StorageAndRetrieval;
 
     public string sourceString = "";
     public string targetString = "";

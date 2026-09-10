@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_HITTINGSET.ReduceTo.NPC_EXACTCOVER;
 class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Hitting Set Reduction";
+    public string reductionName { get; } = "Exact Cover Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from Hitting Set to Exact Cover";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
@@ -21,8 +21,16 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER> {
     // so output size tracks input size rather than blowing up beyond it.
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Transposes the input's own subset/element incidence
+    // structure into EXACTCOVER's shape -- the same combinatorial object re-expressed,
+    // no new gadgetry built.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. One pass over subsets to number them, then one pass over
+    // universalSet x subSets to transpose the incidence relation.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(subSets * universalSet), sizes of HITTINGSET's own sets";
 
 
     private HITTINGSET _reductionFrom;
