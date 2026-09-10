@@ -10,7 +10,7 @@ class KnapsackVerifier : IVerifier<KNAPSACK> {
     public const string CertificateExample = "{(20,100),(30,120)}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Knapsack Verifier";
+    public string verifierName { get; } = "Default Knapsack (Binary) Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Knapsack. It checks that that the weight of the chosen items do not exceed the allowed weight and that the value of the items exceed the required value";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Garret Stouffer", "Daniel Igbokwe", "Russell Phillips" };
