@@ -94,4 +94,28 @@ public class GRAPHCOLORING_Tests {
         string certificate = solver.solve(problem);
         Assert.True(verifier.verify(problem, certificate));
     }
+
+    // Test 9: Regression for issue #534. With K=1, a single edge-free node is
+    // trivially 1-colorable, but the brute force solver's search loop guard was
+    // false before the loop's first iteration, so the one candidate coloring
+    // (every node in color 0) was never tried and solve() fell through to "{}".
+    [Fact]
+    public void BruteForceSolver_KEqualsOne_TriviallyColorableGraph_IncorrectlyReturnsEmpty() {
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({a},{}),1)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
+        string certificate = solver.solve(problem);
+        Assert.True(verifier.verify(problem, certificate));
+    }
+
+    // Test 10: With K=1, a graph that has an edge is NOT 1-colorable (the two
+    // endpoints can't share the single available color), so the solver should
+    // still correctly report no solution.
+    [Fact]
+    public void BruteForceSolver_KEqualsOne_GraphWithEdge_ReturnsEmpty() {
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({a,b},{{a,b}}),1)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        string certificate = solver.solve(problem);
+        Assert.Equal("{}", certificate);
+    }
 }

@@ -80,6 +80,15 @@ public class SPSP_Tests {
         Assert.Equal("{1}", solution);
     }
 
+    [Fact]
+    public void SPSPSolver_Unweighted_Undirected_Graph_Defaults_Edge_Weight_To_One() {
+        string instance = "({1,2,3},{{1,2},{2,3}},3,1)";
+        SPSP problem = new SPSP(instance);
+        SPSPSolver solver = new SPSPSolver();
+        string result = solver.solve(problem);
+        Assert.Equal("{3,2,1}", result);
+    }
+
     // ----- Verifier ----- //
 
     [Theory] //Tests independent set verifier with a few certificates

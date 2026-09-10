@@ -146,58 +146,73 @@ class GareyJohnson : IReduction<SAT3, DM3> {
         }
         solutionList.RemoveAll(x => string.IsNullOrEmpty(x));
 
-        //Map solution 
+        //Map solution
+        // Node names below mirror reduce()'s own naming scheme exactly: x_<literal>_<i> /
+        // y_<literal>_<i> / z_<literal>_<i> (variable gadget), x_clause_<i> / y_clause<i>
+        // (clause gadget), and x_garb_<i> / y_garb_<i> (garbage-collection gadget) -- see
+        // reduce() above. mappedSolutionList's triples must reference only names that
+        // actually exist in reductionTo.X/Y/Z.
         List<string> mappedSolutionList = new List<string>();
         List<string> variables = new List<string>();
-        List<string> inverseGC = new List<string>();
         foreach (string literal in reductionFrom.literals) {
             if (!variables.Contains(literal.Replace("!", ""))) {
                 variables.Add(literal.Replace("!", ""));
             }
         }
 
-        // mapping of solution to variable gadgets
+        // availableZ tracks the Z-elements the variable gadget leaves unmatched for each
+        // occurrence -- those are the elements the clause/garbage gadgets may attach to
+        // (mirrors reduce()'s own "unusedLiterals" bookkeeping).
+        List<string> availableZ = new List<string>();
+
+        // mapping of solution to variable gadgets. reduce() emits two candidate triples
+        // per occurrence i: (x_i, y_i, z_i) and (x_i, y_{(i+2)%count}, z_!_i). Picking
+        // the same candidate for every occurrence of a variable is what keeps the y's
+        // from colliding (identity vs. the (i+2)%count permutation, each a bijection
+        // over 0..count-1). We pick the z_!_i candidate when the variable is True --
+        // that leaves every z_<variable>_<i> (the "true" markers) available below for
+        // clause gadgets whose satisfying literal is the positive one; and we pick the
+        // z_i candidate when False, leaving the z_!<variable>_<i> markers available for
+        // clauses satisfied by the negative literal.
         foreach (string variable in variables) {
-            if (solutionList.Contains(variable)) {
-                for (int i = 0; i < reductionFrom.clauses.Count; i++) {
-                    mappedSolutionList.Add(string.Format("{{a[{0}][{1}],b[{0}][{1}],[!{0}][{1}]}}", variable, i + 1));
-                    inverseGC.Add(string.Format("[!{0}][{1}]", variable, i + 1));
-                }
-            } else {
-                for (int i = 0; i < reductionFrom.clauses.Count; i++) {
-                    mappedSolutionList.Add(string.Format("{{a[{0}][{1}],b[{0}][{2}],[{0}][{2}]}}", variable, ((i + 1) % reductionFrom.clauses.Count) + 1, i + 1));
-                    inverseGC.Add(string.Format("[{0}][{1}]", variable, i + 1));
+            int count = reductionFrom.literals.Count(x => x.Replace("!", "") == variable);
+            bool isTrue = solutionList.Contains(variable);
+            for (int i = 0; i < count; i++) {
+                string xName = "x_" + variable + "_" + i;
+                if (isTrue) {
+                    string yName = "y_" + variable + "_" + ((i + 2) % count);
+                    string zName = "z_!" + variable + "_" + i;
+                    mappedSolutionList.Add(string.Format("{{{0},{1},{2}}}", xName, yName, zName));
+                    availableZ.Add("z_" + variable + "_" + i);
+                } else {
+                    string yName = "y_" + variable + "_" + i;
+                    string zName = "z_" + variable + "_" + i;
+                    mappedSolutionList.Add(string.Format("{{{0},{1},{2}}}", xName, yName, zName));
+                    availableZ.Add("z_!" + variable + "_" + i);
                 }
             }
         }
 
         // mapping solution to clause gadgets
         for (int i = 0; i < reductionFrom.clauses.Count; i++) {
-            foreach (string variable in solutionList) {
-                if (reductionFrom.clauses[1].Contains(variable)) {
-                    mappedSolutionList.Add(string.Format("{{s1[{0}],s2[{0}],[{1}][{0}]}}", i + 1, variable));
-                    inverseGC.Add(string.Format("[{0}][{1}]", variable, i + 1));
-                    break;
+            foreach (string literal in reductionFrom.clauses[i]) {
+                if (!solutionList.Contains(literal)) {
+                    continue;
                 }
+                string? found = availableZ.Find(z => z.Contains("z_" + literal + "_"));
+                if (found is null) {
+                    continue;
+                }
+                mappedSolutionList.Add(string.Format("{{x_clause_{0},y_clause{0},{1}}}", i, found));
+                availableZ.Remove(found);
+                break;
             }
         }
 
         // mapping solution to garbage collection gadgets
-        List<string> garbage = new List<string>();
-        for (int i = 0; i < reductionFrom.clauses.Count; i++) {
-            foreach (string variable in variables) {
-                string vTrue = string.Format("[{0}][{1}]", variable, i + 1);
-                if (!inverseGC.Contains(vTrue)) {
-                    garbage.Add(vTrue);
-                }
-                string vFalse = string.Format("[!{0}][{1}]", variable, i + 1);
-                if (!inverseGC.Contains(vFalse)) {
-                    garbage.Add(vFalse);
-                }
-            }
-        }
-        for (int i = 0; i < garbage.Count; i++) {
-            mappedSolutionList.Add(string.Format("{{g1[{0}],g2[{0}],{1}}}", i + 1, garbage[i]));
+        int garbageCount = reductionFrom.literals.Count - reductionFrom.clauses.Count;
+        for (int i = 0; i < garbageCount && i < availableZ.Count; i++) {
+            mappedSolutionList.Add(string.Format("{{x_garb_{0},y_garb_{0},{1}}}", i, availableZ[i]));
         }
 
         //convert mappedSolutionList to one string

@@ -88,11 +88,18 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
                 return answerElement.GetString() ?? "No answer found";
             }
 
-            // If no answer field, return the whole response
-            return response;
-        } catch (Exception ex) {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
+            // The quantum service responded, but its JSON has no `answer_bitstring` field.
+            // Returning the raw response here would let the caller misinterpret it as
+            // bitstring data (solve() reverses it and parses it as a base-2 integer),
+            // producing a confusing FormatException instead of a clear error.
+            throw new InvalidOperationException(
+                $"Quantum service response is missing the expected 'answer_bitstring' field: {response}");
+        } catch (Exception ex) when (ex is not InvalidOperationException) {
+            // Wrap failures from the HTTP call/setup (network errors, timeouts, JSON parse
+            // failures, etc.) in the same descriptive exception type instead of swallowing
+            // them into an error-JSON string that would hit the same missing-field case above.
+            throw new InvalidOperationException(
+                $"Failed to obtain an answer from the quantum service: {ex.Message}", ex);
         }
     }
 
