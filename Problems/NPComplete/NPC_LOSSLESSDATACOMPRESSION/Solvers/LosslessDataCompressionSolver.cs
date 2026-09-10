@@ -7,7 +7,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
 
     // --- Fields ---
 
-    public string solverName { get; } = "Huffman Encoding Solver";
+    public string solverName { get; } = "Huffman's Algorithm";
 
     public string solverDefinition { get; } =
         "Solves the Lossless Data Compression problem using Huffman Encoding. " +

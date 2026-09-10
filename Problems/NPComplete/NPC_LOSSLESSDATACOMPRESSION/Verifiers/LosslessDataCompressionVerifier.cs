@@ -15,7 +15,7 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
         public const string CertificateGrammar = "({(asciiCode1,code1),(asciiCode2,code2),...},bitstring) | prefix-free code table paired with S encoded using it; () if S is empty";
         public const string CertificateExample = "({(97,0),(98,10),(99,11)},01011)";
 
-        public string verifierName { get; } = "Lossless Data Compression Verifier";
+        public string verifierName { get; } = "Default Lossless Data Compression Verifier";
         public string verifierDefinition { get; } = "Verifies a proposed encoding by checking prefix-free property, decoding the bitstring, and comparing with original input.";
         public string source { get; } = "Sayood, K. (2018). Introduction to data compression (5th ed.). Morgan Kaufmann.";
         public string sourceLink { get; } = "https://www.vitalsource.com/products/introduction-to-data-compression-khalid-sayood-v9780128097052?srsltid=AfmBOoqEi_U3xj4PdBt2TaKZYgScGWnKA-v0OVyiworUKPYHJT0RWvPQ";
