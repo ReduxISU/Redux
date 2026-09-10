@@ -123,4 +123,80 @@ public class GRAPHCOLORING_Tests {
         GraphColoringVerifier verifier = new GraphColoringVerifier();
         Assert.True(verifier.verify(problem, "{{a},{b,d,f,h},{c,e,g,i}}"));
     }
+
+    // --- GraphColoringBruteForce ---
+
+    [Fact]
+    public void BruteForceSolver_KTooSmall_ReturnsEmpty() {
+        // A complete graph on 4 nodes needs 4 colors; 2 is infeasible.
+        GRAPHCOLORING problem = new GRAPHCOLORING(
+            "(({a,b,c,d},{{a,b},{a,c},{a,d},{b,c},{b,d},{c,d}}),2)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        string certificate = solver.solve(problem);
+        Assert.Equal("{}", certificate);
+    }
+
+    [Fact]
+    public void BruteForceSolver_BipartiteGraph_TwoColorsSuffice() {
+        GRAPHCOLORING problem = new GRAPHCOLORING(
+            "(({a,b,c,d},{{a,c},{a,d},{b,c},{b,d}}),2)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
+        string certificate = solver.solve(problem);
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void BruteForceSolver_Triangle_NeedsThreeColors() {
+        GRAPHCOLORING problem = new GRAPHCOLORING(
+            "(({a,b,c},{{a,b},{b,c},{a,c}}),3)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
+        string certificate = solver.solve(problem);
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void BruteForceSolver_KGreaterThanNodeCount_ClampsToNodeCount() {
+        // K=5 requested on a 2-node, edge-free graph: solve() clamps numColors down to
+        // nodes.Count via the "if (gColor.K > gColor.nodes.Count)" guard, instead of searching
+        // over 6-value digits that could never actually be used.
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({a,b},{}),5)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
+        string certificate = solver.solve(problem);
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void BruteForceSolver_EmptyGraph_ReturnsEmptyCertificate() {
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({},{}),1)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        string certificate = solver.solve(problem);
+        Assert.Equal("{}", certificate);
+    }
+
+    // Regression for issue #534. With K=1, a single edge-free node is trivially
+    // 1-colorable, but the brute force solver's search loop guard was false before the
+    // loop's first iteration, so the one candidate coloring (every node in color 0) was
+    // never tried and solve() fell through to "{}".
+    [Fact]
+    public void BruteForceSolver_KEqualsOne_TriviallyColorableGraph_IncorrectlyReturnsEmpty() {
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({a},{}),1)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        GraphColoringVerifier verifier = new GraphColoringVerifier();
+        string certificate = solver.solve(problem);
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    // With K=1, a graph that has an edge is NOT 1-colorable (the two endpoints can't
+    // share the single available color), so the solver should still correctly report
+    // no solution.
+    [Fact]
+    public void BruteForceSolver_KEqualsOne_GraphWithEdge_ReturnsEmpty() {
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({a,b},{{a,b}}),1)");
+        GraphColoringBruteForce solver = new GraphColoringBruteForce();
+        string certificate = solver.solve(problem);
+        Assert.Equal("{}", certificate);
+    }
 }
