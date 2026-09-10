@@ -24,9 +24,13 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     // δ = (node, char edge value, node) //
     // q₀ = Start State //
     // F = Set of Accept State(s) //
+    public const string InstanceGrammar = "{((N,A,E,S,F),I) | N is set, A is set, E is N cross A cross N, S is string, F is set, I is string}";
     private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {DFAVerifier.CertificateGrammar} Example: {DFAVerifier.CertificateExample}";
     public string wikiName { get; } = "N/A";
     public DFASolver defaultSolver { get; } = new DFASolver();
     public DFAVerifier defaultVerifier { get; } = new DFAVerifier();
@@ -74,16 +78,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
         this.instance = instance;
 
         // ---- SPADE grammar: edges as ordered triples (cross) ----
-        StringParser DFA_Graph = new(
-            "{((N,A,E,S,F),I) | " +
-            "N is set, " +
-            "A is set, " +
-            "E is N cross A cross N, " +
-            "S is string, " +
-            "F is set, " +
-            "I is string" +
-            "}"
-        );
+        StringParser DFA_Graph = new(InstanceGrammar);
 
         // Parse the Instance //
         DFA_Graph.parse(instance);

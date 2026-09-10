@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_EXACTCOVER;
 class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Exact Cover Reduction";
+    public string reductionName { get; } = "Karp's Exact Cover Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from Exact Cover to Subset Sum";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
