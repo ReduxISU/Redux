@@ -10,7 +10,10 @@ using System.Text.RegularExpressions;
 namespace API.Problems.P.P_NFA.Verifiers;
 
 class NFAVerifier : IVerifier<NFA> {
-    public string verifierName { get; } = "NFA Verifier";
+    public const string CertificateGrammar = "q0,...,qn | q0 = S, each (qi,I[i] or ε,qi+1) in E, qn in F";
+    public const string CertificateExample = "1,2";
+
+    public string verifierName { get; } = "Default NFA Acceptance Verifier";
     public string verifierDefinition { get; } =
         "Verifies one (or many) NFA run certificates against the input string, including ε-transitions, matching solver semantics.";
     public string source { get; } = "";

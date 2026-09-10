@@ -9,7 +9,7 @@ class SCCVerifier : IVerifier<STRONGLYCONNECTEDCOMPONENTS> {
     public const string CertificateGrammar = "{c1,...,cM} | one set per strongly connected component, order does not matter";
     public const string CertificateExample = "{{1,2,3},{4,5}}";
 
-    public string verifierName { get; } = "Strongly Connected Components Verifier";
+    public string verifierName { get; } = "Default Strongly Connected Components Verifier";
 
     public string verifierDefinition { get; } =
         "Verifies an SCC certificate by comparing components as unordered sets, since SCC ordering is not unique.";
