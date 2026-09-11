@@ -16,7 +16,7 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public string source { get; } = "Gauss, Carl Friedrich (1801), Disquisitiones Arithmeticae (in Latin), Leipzig: Gerh. Fleischer"; // Academic paper proper citation
     public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
     public const string InstanceGrammar = "{i | i is int}";
-    private static readonly string _defaultInstance = "15";
+    private static readonly string _defaultInstance = "12";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } =
         $"Format: {InstanceGrammar} (a single positive integer to factor) Example: {_defaultInstance}";
