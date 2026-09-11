@@ -34,7 +34,7 @@ public class INTPROGRAMMING01_Tests {
         // verifiable certificate for defaultInstance — not just descriptive prose.
         INTPROGRAMMING01 problem = new INTPROGRAMMING01();
         GenericVerifier01INTP verifier = new GenericVerifier01INTP();
-        Assert.True(verifier.verify(problem, "(0 0 0)"));
+        Assert.True(verifier.verify(problem, GenericVerifier01INTP.CertificateExample));
     }
 
     // -------------------------------------------------------------------------

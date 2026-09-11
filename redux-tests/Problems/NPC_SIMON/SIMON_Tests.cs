@@ -76,6 +76,6 @@ public class SIMON_tests {
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new SIMON();
         var verifier = new SimonVerifier();
-        Assert.True(verifier.verify(problem, "010"));
+        Assert.True(verifier.verify(problem, SimonVerifier.CertificateExample));
     }
 }

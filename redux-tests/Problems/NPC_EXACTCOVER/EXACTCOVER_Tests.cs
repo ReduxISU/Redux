@@ -34,7 +34,7 @@ public class EXACTCOVER_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         EXACTCOVER problem = new EXACTCOVER();
         ExactCoverVerifier verifier = new ExactCoverVerifier();
-        Assert.True(verifier.verify(problem, "{{2,3},{4,1}}"));
+        Assert.True(verifier.verify(problem, ExactCoverVerifier.CertificateExample));
     }
 
     // -------------------------------------------------------------------------

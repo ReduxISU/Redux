@@ -438,6 +438,6 @@ public class NFA_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         NFA nfa = new NFA();
         NFAVerifier verifier = new NFAVerifier();
-        Assert.True(verifier.verify(nfa, "1,2"));
+        Assert.True(verifier.verify(nfa, NFAVerifier.CertificateExample));
     }
 }

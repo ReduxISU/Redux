@@ -63,7 +63,7 @@ public class DEUTSCH_tests {
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new DEUTSCH();
         var verifier = new DeutschClassicalVerifier();
-        Assert.True(verifier.verify(problem, "balanced"));
+        Assert.True(verifier.verify(problem, DeutschClassicalVerifier.CertificateExample));
     }
 
     [Theory] //tests solver

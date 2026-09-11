@@ -72,6 +72,6 @@ public class JOBSEQ_tests {
         // certificate for defaultInstance — not just descriptive prose.
         JOBSEQ jobSeq = new JOBSEQ();
         JobSeqVerifier verifier = new JobSeqVerifier();
-        Assert.True(verifier.verify(jobSeq, "(1,3,5,4,0,2)"));
+        Assert.True(verifier.verify(jobSeq, JobSeqVerifier.CertificateExample));
     }
 }

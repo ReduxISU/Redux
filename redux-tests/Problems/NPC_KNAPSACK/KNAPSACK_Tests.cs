@@ -133,6 +133,6 @@ public class KNAPSACK_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         KNAPSACK problem = new KNAPSACK();
         KnapsackVerifier verifier = new KnapsackVerifier();
-        Assert.True(verifier.verify(problem, "{(20,100),(30,120)}"));
+        Assert.True(verifier.verify(problem, KnapsackVerifier.CertificateExample));
     }
 }

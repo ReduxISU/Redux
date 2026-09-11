@@ -36,7 +36,7 @@ public class PARTITION_Tests {
         // to one element; S actually has 11 distinct values, not 12.)
         PARTITION problem = new PARTITION();
         PartitionVerifier verifier = new PartitionVerifier();
-        Assert.True(verifier.verify(problem, "(33,21,15),(1,7,12,11,5,6,9,18)"));
+        Assert.True(verifier.verify(problem, PartitionVerifier.CertificateExample));
     }
 
     // -------------------------------------------------------------------------
