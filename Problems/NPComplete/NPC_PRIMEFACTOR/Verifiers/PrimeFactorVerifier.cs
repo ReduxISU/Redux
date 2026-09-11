@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 
 class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
     public const string CertificateGrammar = "(f1,...,fn) | product of factors equals the original number";
-    public const string CertificateExample = "(3,5)";
+    public const string CertificateExample = "(2,2,3)";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Prime Factorization Verifier";
