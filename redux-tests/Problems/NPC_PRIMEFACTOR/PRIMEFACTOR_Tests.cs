@@ -77,6 +77,6 @@ public class PRIMEFACTOR_tests {
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new PRIMEFACTOR();
         var verifier = new PrimeFactorVerifier();
-        Assert.True(verifier.verify(problem, "(3,5)"));
+        Assert.True(verifier.verify(problem, PrimeFactorVerifier.CertificateExample));
     }
 }

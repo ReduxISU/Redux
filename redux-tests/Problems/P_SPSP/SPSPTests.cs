@@ -347,7 +347,7 @@ public class SPSP_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         SPSP problem = new SPSP();
         SPSPVerifier verifier = new SPSPVerifier();
-        Assert.True(verifier.verify(problem, "{1,3,5}"));
+        Assert.True(verifier.verify(problem, SPSPVerifier.CertificateExample));
     }
 
     // ----- Helper ----- //

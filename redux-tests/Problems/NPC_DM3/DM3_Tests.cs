@@ -45,7 +45,7 @@ public class DM3_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         DM3 problem = new DM3();
         GenericVerifierDM3 verifier = new GenericVerifierDM3();
-        Assert.True(verifier.verify(problem, "{Paul,Austin,Jake}"));
+        Assert.True(verifier.verify(problem, DM3.CertificateExample));
     }
 
     // -------------------------------------------------------------------------

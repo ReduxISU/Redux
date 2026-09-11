@@ -27,14 +27,14 @@ public class LOSSLESSDATACOMPRESSION_Tests {
 
     [Fact]
     public void LOSSLESSDATACOMPRESSION_Certificate_Format_Example_Is_Actually_Valid() {
-        // The example quoted in certificateFormat ("({(97,0),(98,10),(99,11)},01011)")
+        // The example quoted in certificateFormat (LosslessDataCompressionVerifier.CertificateExample)
         // is illustrative on "abc", not on defaultInstance: defaultInstance is a full
         // sentence whose real Huffman certificate is a ~300-character code table +
         // bitstring, too unwieldy to serve as a readable format hint. "abc" keeps the
         // example short while still being a real, verifiable certificate.
         LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION("abc");
         LosslessDataCompressionVerifier verifier = new LosslessDataCompressionVerifier();
-        Assert.True(verifier.verify(problem, "({(97,0),(98,10),(99,11)},01011)"));
+        Assert.True(verifier.verify(problem, LosslessDataCompressionVerifier.CertificateExample));
     }
 
     [Fact]

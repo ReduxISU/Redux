@@ -215,6 +215,6 @@ public class MINIMUMSPANNINGTREE_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE();
         MinimumSpanningTreeVerifier verifier = new MinimumSpanningTreeVerifier();
-        Assert.True(verifier.verify(problem, "{{1,2},{3,4},{2,3}}"));
+        Assert.True(verifier.verify(problem, MinimumSpanningTreeVerifier.CertificateExample));
     }
 }

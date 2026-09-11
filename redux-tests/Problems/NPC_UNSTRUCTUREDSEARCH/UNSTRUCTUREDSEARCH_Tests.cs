@@ -78,7 +78,7 @@ public class UNSTRUCTUREDSEARCH_tests {
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new UNSTRUCTUREDSEARCH();
         var verifier = new UnstructuredSearchVerifier();
-        Assert.True(verifier.verify(problem, "1"));
+        Assert.True(verifier.verify(problem, UnstructuredSearchVerifier.CertificateExample));
     }
 
     // -------------------------------------------------------------------------

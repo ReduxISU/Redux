@@ -76,7 +76,7 @@ public class CONVEXHULL_Tests {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         CONVEXHULL hull = new CONVEXHULL();
-        Assert.True(hull.defaultVerifier.verify(hull, "((0.2723211656942368,-0.8053758131859647), (0.7674622377407927,-0.21537444528240846), (0.6077591838324792,0.5288040272918157), (-0.32705115386597394,0.6744065707101621), (-0.6984449872706371,0.3857380723376367), (-0.9308276577586132,-0.1423800479224624), (-0.27394905790800017,-0.7488048223660126))"));
+        Assert.True(hull.defaultVerifier.verify(hull, ConvexHullVerifier.CertificateExample));
     }
 
 }

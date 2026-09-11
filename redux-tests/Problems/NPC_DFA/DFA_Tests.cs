@@ -371,6 +371,6 @@ public class DFA_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         DFA dfa = new DFA();
         DFAVerifier verifier = new DFAVerifier();
-        Assert.True(verifier.verify(dfa, "1,2"));
+        Assert.True(verifier.verify(dfa, DFAVerifier.CertificateExample));
     }
 }

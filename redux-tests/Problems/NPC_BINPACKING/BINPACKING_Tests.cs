@@ -220,6 +220,6 @@ public class BINPACKING_Tests {
         // verifiable certificate for defaultInstance — not just descriptive prose.
         BINPACKING bp = new BINPACKING();
         BinPackingVerifier verifier = new BinPackingVerifier();
-        Assert.True(verifier.verify(bp, "((8,2),(7,3),(6,4))"));
+        Assert.True(verifier.verify(bp, BinPackingVerifier.CertificateExample));
     }
 }

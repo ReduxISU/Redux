@@ -118,7 +118,7 @@ namespace redux_tests.Problems.P {
             // certificate for defaultInstance — not just descriptive prose.
             var problem = new STRONGLYCONNECTEDCOMPONENTS();
             var verifier = new SCCVerifier();
-            Assert.True(verifier.verify(problem, "{{1,2,3},{4,5}}"));
+            Assert.True(verifier.verify(problem, SCCVerifier.CertificateExample));
         }
     }
 }

@@ -176,6 +176,6 @@ public class CLIQUECOVER_tests {
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new CLIQUECOVER();
         var verifier = new CliqueCoverVerifier();
-        Assert.True(verifier.verify(problem, "{1,2,3},{4,5},{6,7,8}"));
+        Assert.True(verifier.verify(problem, CliqueCoverVerifier.CertificateExample));
     }
 }

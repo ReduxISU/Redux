@@ -33,6 +33,6 @@ public class HITTINGSET_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         HITTINGSET problem = new HITTINGSET();
         HittingSetVerifier verifier = new HittingSetVerifier();
-        Assert.True(verifier.verify(problem, "{1,2}"));
+        Assert.True(verifier.verify(problem, HittingSetVerifier.CertificateExample));
     }
 }

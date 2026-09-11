@@ -91,6 +91,6 @@ public class INDPENDENTSET_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         INDEPENDENTSET problem = new INDEPENDENTSET();
         IndependentSetVerifier verifier = new IndependentSetVerifier();
-        Assert.True(verifier.verify(problem, "{c,d,g}"));
+        Assert.True(verifier.verify(problem, IndependentSetVerifier.CertificateExample));
     }
 }

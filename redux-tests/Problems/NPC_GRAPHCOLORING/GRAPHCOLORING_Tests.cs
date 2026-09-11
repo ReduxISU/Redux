@@ -121,7 +121,7 @@ public class GRAPHCOLORING_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         GRAPHCOLORING problem = new GRAPHCOLORING();
         GraphColoringVerifier verifier = new GraphColoringVerifier();
-        Assert.True(verifier.verify(problem, "{{a},{b,d,f,h},{c,e,g,i}}"));
+        Assert.True(verifier.verify(problem, GraphColoringVerifier.CertificateExample));
     }
 
     // --- GraphColoringBruteForce ---

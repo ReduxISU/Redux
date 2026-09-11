@@ -290,7 +290,7 @@ public class SSSP_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         SSSP problem = new SSSP();
         SSSPVerifier verifier = new SSSPVerifier();
-        Assert.True(verifier.verify(problem, "{(1,{1}),(2,{1,2}),(3,{1,3}),(4,{1,2,4}),(5,{1,3,5})}"));
+        Assert.True(verifier.verify(problem, SSSPVerifier.CertificateExample));
     }
 
     // ----- Visualization ----- //

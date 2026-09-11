@@ -108,7 +108,7 @@ public class ARCSET_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         ARCSET arc = new ARCSET();
         ArcSetVerifier verifier = new ArcSetVerifier();
-        Assert.True(verifier.verify(arc, "{(2,3)}"));
+        Assert.True(verifier.verify(arc, ArcSetVerifier.CertificateExample));
     }
 
     [Theory]

@@ -82,6 +82,6 @@ public class EDITDISTANCE_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new EDITDISTANCE();
         var verifier = new EditDistanceVerifier();
-        Assert.True(verifier.verify(problem, "3"));
+        Assert.True(verifier.verify(problem, EditDistanceVerifier.CertificateExample));
     }
 }

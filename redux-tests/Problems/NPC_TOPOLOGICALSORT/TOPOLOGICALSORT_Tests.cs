@@ -128,6 +128,6 @@ public class TOPOLOGICALSORT_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         var problem = new TOPOLOGICALSORT();
         var verifier = new TopologicalSortVerifier();
-        Assert.True(verifier.verify(problem, "(1,2,3,4,5,6)"));
+        Assert.True(verifier.verify(problem, TopologicalSortVerifier.CertificateExample));
     }
 }
