@@ -54,8 +54,10 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         problem.solution = string.Empty;
 
         // empty input is still valid, it just compresses to nothing.
+        // "()" is the special-cased certificate for this case -- there's no
+        // character to build a (asciiCode,code) pair from.
         if (input.Length == 0) {
-            problem.solution = "( ) encoded:";
+            problem.solution = "()";
             return problem.solution;
         }
 
@@ -209,10 +211,13 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         return encodedBuilder.ToString();
     }
 
+    // Builds a SPADE-parseable certificate: a set of (asciiCode,code) tuples
+    // (the code table), paired with the resulting bitstring -- e.g.
+    // "({(97,0),(98,10),(99,11)},01011)".
     private string FormatSolution(Dictionary<char, string> codes, string encodedText) {
         StringBuilder solutionBuilder = new StringBuilder();
 
-        solutionBuilder.Append("(");
+        solutionBuilder.Append("({");
 
         List<char> characters = new List<char>(codes.Keys);
         characters.Sort();
@@ -221,16 +226,19 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
             char currentCharacter = characters[i];
 
             if (i > 0) {
-                solutionBuilder.Append(";");
+                solutionBuilder.Append(",");
             }
 
+            solutionBuilder.Append("(");
             solutionBuilder.Append((int)currentCharacter);
-            solutionBuilder.Append("=");
+            solutionBuilder.Append(",");
             solutionBuilder.Append(codes[currentCharacter]);
+            solutionBuilder.Append(")");
         }
 
-        solutionBuilder.Append(") encoded:");
+        solutionBuilder.Append("},");
         solutionBuilder.Append(encodedText);
+        solutionBuilder.Append(")");
 
         return solutionBuilder.ToString();
     }
