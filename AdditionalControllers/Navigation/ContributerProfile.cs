@@ -40,6 +40,8 @@ public class ContributorProfileController : ControllerBase {
                 Major = contributorInfo?.Major ?? "Not specified",
                 Bio = contributorInfo?.Bio ?? "Not specified",
                 GithubUsername = contributorInfo?.GithubUsername ?? "",
+                ReduxStats = contributorInfo?.ReduxStats,
+                ReduxGuiStats = contributorInfo?.ReduxGuiStats,
                 ProblemsContributed = allProblems.ToList(),
                 SolversCreated = allSolvers.ToList(),
                 ReductionsCreated = allReductions.ToList(),
@@ -250,6 +252,14 @@ public class ContributorPortfolio {
     [JsonPropertyName("githubUsername")]
     public string? GithubUsername { get; set; }
 
+    /// <summary>Their GitHub contribution stats on the Redux (backend) repo — null if not yet collected</summary>
+    [JsonPropertyName("reduxStats")]
+    public ContributorRepoStats? ReduxStats { get; set; }
+
+    /// <summary>Their GitHub contribution stats on the Redux_GUI (frontend) repo — null if not yet collected</summary>
+    [JsonPropertyName("reduxGuiStats")]
+    public ContributorRepoStats? ReduxGuiStats { get; set; }
+
     /// <summary>Every NP-Complete problem they've touched</summary>
     [JsonPropertyName("problemsContributed")]
     public List<string> ProblemsContributed { get; set; } = new List<string>();
@@ -288,6 +298,33 @@ public class ContributorInfo {
     /// <summary>Their GitHub username — leave blank if they don't have one or haven't added it yet</summary>
     [JsonPropertyName("githubUsername")]
     public string? GithubUsername { get; set; }
+
+    /// <summary>Their GitHub contribution stats on the Redux (backend) repo — null if not yet collected. One-time manual population from a 2026 contributor audit; see issue #565 for the follow-up automation that will keep this current.</summary>
+    [JsonPropertyName("reduxStats")]
+    public ContributorRepoStats? ReduxStats { get; set; }
+
+    /// <summary>Their GitHub contribution stats on the Redux_GUI (frontend) repo — null if not yet collected</summary>
+    [JsonPropertyName("reduxGuiStats")]
+    public ContributorRepoStats? ReduxGuiStats { get; set; }
+}
+
+/// <summary>Per-repo GitHub contribution counts for a contributor. All fields are nullable/optional — many contributors only have partial data, especially for pre-PR-workflow-era work.</summary>
+public class ContributorRepoStats {
+    /// <summary>Number of commits authored in this repo</summary>
+    [JsonPropertyName("commits")]
+    public int? Commits { get; set; }
+
+    /// <summary>Number of pull requests opened in this repo</summary>
+    [JsonPropertyName("prsOpened")]
+    public int? PrsOpened { get; set; }
+
+    /// <summary>Number of pull requests merged in this repo</summary>
+    [JsonPropertyName("prsMerged")]
+    public int? PrsMerged { get; set; }
+
+    /// <summary>Number of formal PR reviews given in this repo</summary>
+    [JsonPropertyName("reviews")]
+    public int? Reviews { get; set; }
 }
 
 /// <summary>Slim version used by the /directory endpoint — just enough for the About Us page to show names and GitHub links without loading full profiles</summary>
