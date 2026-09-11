@@ -5,6 +5,8 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_SETCOVER.Verifiers;
 
 class SetCoverVerifier : IVerifier<SETCOVER> {
+    public const string CertificateGrammar = "{sub1,...,subK} subset S | union of chosen subsets covers the universal set U";
+    public const string CertificateExample = "{{1,2,3},{4,5}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Set Cover Verifier";
