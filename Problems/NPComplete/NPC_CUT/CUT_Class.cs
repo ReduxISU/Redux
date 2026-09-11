@@ -22,11 +22,15 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
     // decision question ("does a partition hitting a specific target size exist"), not
     // the polynomial global-minimum-cut question already covered separately by
     // P_MINCUT/MinCutStoerWagner. See redux-tests/Metadata/ComplexityClass_Tests.cs.
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     private static string _defaultInstance = "(({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}}),5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {CutVerifier.CertificateGrammar} Example: {CutVerifier.CertificateExample}";
 
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
@@ -73,7 +77,7 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
     public CUT(string GInput) {
         instance = GInput;
 
-        StringParser cut = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
+        StringParser cut = new(InstanceGrammar);
         cut.parse(GInput);
         nodes = cut["N"].ToList().Select(node => node.ToString()).ToList();
         edges = cut["E"].ToList().Select(edge => {
