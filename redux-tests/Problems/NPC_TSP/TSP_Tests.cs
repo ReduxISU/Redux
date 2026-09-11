@@ -34,7 +34,7 @@ public class TSP_Tests {
         // certificate for defaultInstance — not just descriptive prose.
         TSP tsp = new TSP();
         TSPVerifier verifier = new TSPVerifier();
-        Assert.True(verifier.verify(tsp, "{New York,Chicago,Denver,Los Angeles,Miami}"));
+        Assert.True(verifier.verify(tsp, TSPVerifier.CertificateExample));
     }
 
     //TSP Greedy solver tests
