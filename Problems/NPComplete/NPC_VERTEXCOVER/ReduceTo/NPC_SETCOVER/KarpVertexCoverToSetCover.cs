@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_SETCOVER;
 
@@ -6,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_SETCOVER;
 class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Karp's Clique to Set Cover Reduction";
+    public string reductionName { get; } = "Karp's Set Cover Reduction";
     public string reductionDefinition { get; } = "";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
@@ -15,6 +16,15 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
     // entry per edge touching a node) — total elements are bounded by O(m) (sum of
     // node degrees), already implied by the input's own edge list.
     public ReductionCost cost { get; } = ReductionCost.Linear;
+    // Declared, not derived. Transposes the input's own node/edge incidence structure
+    // into one subset per node -- the same incidence relation re-expressed, no new
+    // gadgetry built.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. Nested loop over nodes x edges to build each node's
+    // incident-edge subset.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n * m), n = |VERTEXCOVER.nodes|, m = |edges|";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private VERTEXCOVER _reductionFrom;

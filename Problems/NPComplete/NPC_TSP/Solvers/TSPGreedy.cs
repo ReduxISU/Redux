@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 class TSPGreedy : ISolver<TSP> {
 
     // --- Fields ---
-    public string solverName { get; } = "Traveling Sales Person Greedy Solver";
+    public string solverName { get; } = "Traveling Salesperson Greedy";
     public string solverDefinition { get; } = "This is a greedy solver for the NP-Complete Traveling Sales Person problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Derek Winmill", "Beau Williams", "Corbin Hay" };

@@ -23,6 +23,7 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     // question. See redux-tests/Metadata/ComplexityClass_Tests.cs.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}";
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     public static string _defaultInstance { get; } = "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";

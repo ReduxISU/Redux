@@ -4,9 +4,11 @@ using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.Verifiers;
 
 class IndependentSetVerifier : IVerifier<INDEPENDENTSET> {
+    public const string CertificateGrammar = "independent set of exactly K node names | no two joined by an edge in E";
+    public const string CertificateExample = "{c,d,g}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Independent Verifier";
+    public string verifierName { get; } = "Default Independent Set Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Independent Set";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Russell Phillips" };

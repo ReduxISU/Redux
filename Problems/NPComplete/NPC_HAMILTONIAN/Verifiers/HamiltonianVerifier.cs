@@ -4,9 +4,11 @@ using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Verifiers;
 
 class HamiltonianVerifier : IVerifier<HAMILTONIAN> {
+    public const string CertificateGrammar = "{q0,...,qn} | Hamiltonian cycle: every node exactly once, each (qi,qi+1) and (qn,q0) in E";
+    public const string CertificateExample = "{1,2,4,5,3}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Hamiltonian Path Verifier";
+    public string verifierName { get; } = "Default Hamiltonian Path Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Hamiltonian Path";
     public string source { get; } = " ";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

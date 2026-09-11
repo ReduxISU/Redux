@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_SIMON.Solvers;
 class SimonSolver : ISolver<SIMON> {
 
     // --- Fields ---
-    public string solverName { get; } = "Simon's Problem - Classical Solver";
+    public string solverName { get; } = "Simon Classical";
     public string solverDefinition { get; } = "This solver classically solves Simon's Problem by analyzing the provided function values to determine the secret string.";
     public string source { get; } = "Simon, Daniel R. (1997-10-01). \"On the Power of Quantum Computation\". SIAM Journal on Computing. 26 (5): 1474–1483. doi:10.1137/S0097539796298637. ISSN 0097-5397";
     public string[] contributors { get; } = { "Jason L. Wright", "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara" };

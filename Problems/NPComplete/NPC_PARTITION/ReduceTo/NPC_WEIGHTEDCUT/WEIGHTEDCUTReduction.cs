@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_PARTITION.ReduceTo.NPC_WEIGHTEDCUT;
 class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT> {
 
     // --- Fields ---
-    public string reductionName { get; } = "WEIGHTEDCUT Reduction";
+    public string reductionName { get; } = "Weighted Cut Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from Graph Coloring to Clique Cover";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
@@ -16,8 +16,15 @@ class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT> {
     // numbers — O(n^2) edges from an O(n)-sized input.
     public ReductionCost cost { get; } = ReductionCost.Quadratic;
 
+    // Declared, not derived. The all-pairs product-weighted edges and the global cut
+    // threshold (sum^2/4, computed over every element) only work together -- no single
+    // edge or node is an independent, self-contained gadget.
+    public ReductionType reductionType { get; } = ReductionType.ComponentDesign;
+    // Declared, not derived. Nested i&lt;j loop over the n input numbers.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Polynomial;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n^2), n = |PARTITION.S|";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private PARTITION _reductionFrom;

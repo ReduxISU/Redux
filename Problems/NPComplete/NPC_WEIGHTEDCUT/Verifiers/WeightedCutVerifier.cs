@@ -12,7 +12,7 @@ class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
     public const string CertificateExample = "{({2,1},5)}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Weighted Cut Verifier";
+    public string verifierName { get; } = "Default Weighted Cut Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Weighted Cut problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

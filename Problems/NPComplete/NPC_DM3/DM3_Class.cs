@@ -16,9 +16,14 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     public string problemDefinition { get; } = "3-Dimensional Matching is when, given 3 equally sized sets, X, Y, and Z, and a set of constraints M, being a subset of XxYxZ, are you able to select a set of constraints which contain each element of X, Y, and Z in one and only one 3-tuple.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+    public const string InstanceGrammar = "{x1,...}{y1,...}{z1,...}{x,y,z},... | X,Y,Z are the three sets, followed by one 3-tuple per constraint in M";
     public static string _defaultInstance { get; } = "{Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}"; // simply a list of sets with the elements divided by commas, the first three are asumed to be X, Y, and Z, and all subsequent sets are sets in M
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public const string CertificateGrammar = "One or more 3-tuples {x,y,z} | each names one element of X, one of Y, one of Z, no value repeated across tuples";
+    public const string CertificateExample = "{Paul,Austin,Jake}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } = $"Format: {CertificateGrammar} Example: {CertificateExample}";
 
     public string wikiName { get; } = "";
     private List<string> _X;
@@ -30,6 +35,7 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     // Declared, not derived. DM3 (3-Dimensional Matching) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
 
     public string[] contributors { get; } = { "Caleb Eardley" };
 
@@ -78,27 +84,41 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
         _Z = ParseProblem(instance, "Z");
         _M = ParseM(instance);
     }
+    // The instance is a sequence of brace-delimited groups: {x1,...}{y1,...}{z1,...}{x,y,z},...
+    // The first three groups are X, Y, and Z (each on its own, independent of the other groups'
+    // sizes); every group after that is one 3-tuple candidate for M. Splitting on "}{" preserves
+    // those group boundaries, which is what lets ParseProblem/ParseM stop at the end of their own
+    // group instead of striding by 3 across the whole flattened, boundary-less string.
+    private static List<List<string>> SplitGroups(string instanceInput) {
+        string trimmed = instanceInput.Trim();
+        if (trimmed.StartsWith("{")) trimmed = trimmed.Substring(1);
+        if (trimmed.EndsWith("}")) trimmed = trimmed.Substring(0, trimmed.Length - 1);
+        if (trimmed.Length == 0) return new List<List<string>>();
+        return trimmed.Split(new[] { "}{" }, StringSplitOptions.None)
+            .Select(group => group.Split(',').ToList())
+            .ToList();
+    }
     /*************************************************
-   ParseProblem(string instanceInput) takes the string representation of the 3-Dimensional Matching problem, and returns a 
+   ParseProblem(string instanceInput) takes the string representation of the 3-Dimensional Matching problem, and returns a
    3 dimensional list, the first depths of list, contains two lists, one with the sets X,Y,and Z, and the other containing all the sets in M.
    ***************************************************/
     public List<string> ParseProblem(string instanceInput, string set) {
-        List<string> input = instanceInput.Replace("}{", ",").Replace("{", "").Replace("}", "").Split(',').ToList();
+        List<List<string>> groups = SplitGroups(instanceInput);
         int index = 0;
         if (set == "Y") index = 1;
         if (set == "Z") index = 2;
         List<string> variables = new List<string>();
-        for (int i = index; i < input.Count(); i = i + 3) {
-            if (!variables.Contains(input[i])) variables.Add(input[i]);
+        if (index >= groups.Count) return variables;
+        foreach (string element in groups[index]) {
+            if (!variables.Contains(element)) variables.Add(element);
         }
         return variables;
     }
     public List<List<string>> ParseM(string instanceInput) {
-        List<string> input = instanceInput.Replace("}{", ",").Replace("{", "").Replace("}", "").Split(',').ToList();
+        List<List<string>> groups = SplitGroups(instanceInput);
         List<List<string>> M = new List<List<string>>();
-        if (input.Count % 3 != 0) return M;
-        for (int i = 0; i < input.Count(); i = i + 3) {
-            M.Add(new List<string> { input[i], input[i + 1], input[i + 2] });
+        for (int i = 3; i < groups.Count; i++) {
+            M.Add(groups[i]);
         }
         return M;
     }

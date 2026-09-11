@@ -7,9 +7,11 @@ using System.Runtime.ConstrainedExecution;
 namespace API.Problems.NPComplete.NPC_NODESET.Verifiers;
 
 class NodeSetVerifier : IVerifier<NODESET> {
+    public const string CertificateGrammar = "D subset N | at most K nodes, removing D (and incident edges) leaves the graph acyclic";
+    public const string CertificateExample = "{3}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Node Set Verifier";
+    public string verifierName { get; } = "Default Feedback Node Set Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Node Set problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

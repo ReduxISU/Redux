@@ -20,6 +20,10 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: |
+            API.csproj
+            redux-tests/redux-tests.csproj
 
       # A bare `dotnet build`/`test` at the repo root errors MSB1011 now that a
       # .csproj and Redux.slnx sit side by side, so name the solution explicitly.

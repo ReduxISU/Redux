@@ -4,9 +4,11 @@ using API.Interfaces.Graphs.GraphParser;
 namespace API.Problems.NPComplete.NPC_TSP.Verifiers;
 
 class TSPVerifier : IVerifier<TSP> {
+    public const string CertificateGrammar = "{q0,...,qn} | cycle visiting every node exactly once, total edge weight <= K";
+    public const string CertificateExample = "{New York,Chicago,Denver,Los Angeles,Miami}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Traveling Sales Person Verifier";
+    public string verifierName { get; } = "Default Traveling Salesperson Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Traveling Sales Person problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

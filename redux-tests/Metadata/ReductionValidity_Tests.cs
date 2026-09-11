@@ -25,22 +25,22 @@ public class ReductionValidity_Tests {
     // though they're the same "hard" tier and no violation should be flagged between them
     // in either direction).
     //
-    // Unclassified and QuantumOracle are both excluded from ranking entirely (absent from
-    // this table, not mapped to a rank): Unclassified has no declared claim to check, and
-    // QuantumOracle's doc comment (Interfaces/ComplexityClass.cs) explicitly says
-    // reduction-validity checks must skip members of this class rather than compare
-    // against them (query/oracle-complexity promise problems are incomparable with the
-    // classical P/NP hierarchy).
+    // Unclassified and the quantum classes (BQP/EQP/QMA/QCMA/QIP/MIPStar) are all
+    // excluded from ranking entirely (absent from this table, not mapped to a rank):
+    // Unclassified has no declared claim to check, and ComplexityClass's doc comment
+    // (Interfaces/ComplexityClass.cs) explicitly says reduction-validity checks must
+    // skip the quantum classes rather than compare against them — they're a second,
+    // incomparable hierarchy in the same enum, not citizens of the classical P/NP one.
     private static readonly Dictionary<ComplexityClass, int> Rank = new() {
         [ComplexityClass.P] = 0,
-        [ComplexityClass.NPIntermediate] = 1,
+        [ComplexityClass.NP] = 1,
         [ComplexityClass.NPComplete] = 2,
         [ComplexityClass.NPHard] = 2,
     };
 
     // One [Theory] case per graph edge whose BOTH endpoints have a ranked ComplexityClass
-    // — filtered before yielding so an Unclassified/QuantumOracle endpoint doesn't show up
-    // as a vacuously-passing case, it simply isn't a case at all. Also excludes anything
+    // — filtered before yielding so an Unclassified/unranked-quantum-class endpoint
+    // doesn't show up as a vacuously-passing case, it simply isn't a case at all. Also excludes anything
     // already on ViolationAllowlist below: an allowlisted edge is a known, sign-off-pending
     // violation — it stays visible via AllowlistHasNoStaleEntries instead of failing this
     // Theory on every run once it has already been reported.
@@ -61,7 +61,7 @@ public class ReductionValidity_Tests {
     // up each endpoint's declared ComplexityClass via MetadataReflection.Instances (the
     // typed enum, not the pre-stringified fromComplexity/toComplexity on ReductionEdge —
     // avoids a string round-trip). Returns false if either endpoint's rank is undefined
-    // (Unclassified, QuantumOracle, or the type couldn't be resolved/instantiated at all).
+    // (Unclassified, an unranked quantum class, or the type couldn't be resolved/instantiated at all).
     private static bool TryGetEndpointRanks(
         string reductionClassName,
         out ComplexityClass fromClass,

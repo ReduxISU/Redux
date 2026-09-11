@@ -32,11 +32,16 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
     // -- a textbook polynomial-time algorithm. See
     // redux-tests/Metadata/ComplexityClass_Tests.cs.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.StorageAndRetrieval;
 
     private static readonly string _defaultInstance =
         "this is an example of lossless data compression using huffman encoding";
 
+    public const string InstanceGrammar = "S | any raw text string to compress";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {LosslessDataCompressionVerifier.CertificateGrammar} Example: {LosslessDataCompressionVerifier.CertificateExample}";
 
     public string instance { get; set; } = string.Empty;
 
