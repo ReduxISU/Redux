@@ -218,7 +218,7 @@
     "email": "courtneybodily@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Project lead and system architect. Note: the 2026 contributor audit observed two separate GitHub logins in raw commit data for this name; they have been merged into this single entry.",
+    "bio": "Project lead and system architect. Built the quantum circuit visualizations for Bernstein-Vazirani, Deutsch-Jozsa, Deutsch, and SAT Grover.",
     "githubUsername": "courtneybodily",
     "reduxGuiStats": { "commits": 9, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -254,7 +254,7 @@
     "email": "diyapandey@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science and Software Engineering",
-    "bio": "Problem architect developer. Note: This 2026 audit follow-up confirmed the Redux and Redux_GUI activity share one GitHub login (Diyapandey0), so this is the same person, not a name coincidence.",
+    "bio": "Implemented the Edit Distance problem, its dynamic programming solver, and verifier. Also contributed documentation.",
     "githubUsername": "Diyapandey0",
     "reduxGuiStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 5, "prsOpened": 1, "prsMerged": 1, "reviews": 0 }
@@ -272,7 +272,7 @@
     "email": "praveshAryal@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science (Minor: Mathematics)",
-    "bio": "Machine learning model architecture; contributor to Redux graph algorithms and problem implementations. Note: This 2026 audit follow-up confirmed the Redux and Redux_GUI activity share one GitHub login (PraveshAryal03), so this is the same person, not a name coincidence.",
+    "bio": "Machine learning model architecture background. Implemented the Topological Sort problem, its Kahn's Algorithm solver, verifier, and visualization.",
     "githubUsername": "PraveshAryal03",
     "reduxGuiStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 4, "prsOpened": 2, "prsMerged": 2, "reviews": 0 }
@@ -335,7 +335,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Added the GitHub issue and PR templates (process tooling) for Redux_GUI, per the 2026 contributor audit.",
+    "bio": "Implemented the Dominating Set problem, solver, verifier, and visualization. Added the GitHub issue and PR templates for Redux_GUI.",
     "githubUsername": "QuintonSmith03",
     "reduxGuiStats": { "commits": 5, "prsOpened": 3, "prsMerged": 3, "reviews": 0 },
     "reduxStats": { "commits": 8, "prsOpened": 5, "prsMerged": 5, "reviews": 0 }
@@ -344,7 +344,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Also recorded as \"Rajit Nilkar\" in some git history, per the 2026 contributor audit; name form here is a judgment call worth double-checking.",
+    "bio": "Implemented the Single Source and Single Pair Shortest Path problems, their Dijkstra's Algorithm solver, verifiers, and visualizations.",
     "githubUsername": "RajNilkar",
     "reduxStats": { "commits": 30, "prsOpened": 11, "prsMerged": 9, "reviews": 0 },
     "reduxGuiStats": { "commits": 7, "prsOpened": 2, "prsMerged": 2, "reviews": 0 }
@@ -353,7 +353,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Contributed to the Sudoku problem, its backtracking solver, and verifier.",
     "githubUsername": "krescoll321",
     "reduxStats": { "commits": 19, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -362,7 +362,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit. Note: This 2026 audit follow-up confirmed the Redux and Redux_GUI activity share one GitHub login (akkabakovb), so this is the same person, not a name coincidence.",
+    "bio": "Implemented the Lossless Data Compression problem (Huffman's Algorithm solver) and the Convex Hull problem (Divide and Conquer solver), plus both verifiers.",
     "githubUsername": "akkabakovb",
     "reduxGuiStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 11, "prsOpened": 2, "prsMerged": 2, "reviews": 0 }
@@ -371,7 +371,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit. Note: This 2026 audit follow-up confirmed the Redux and Redux_GUI activity share one GitHub login (c-hayCodes), so this is the same person, not a name coincidence.",
+    "bio": "Implemented the Traveling Salesperson Branch and Bound and Greedy solvers.",
     "githubUsername": "c-hayCodes",
     "reduxGuiStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 12, "prsOpened": 3, "prsMerged": 3, "reviews": 1 }
@@ -380,7 +380,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Contributed to the Sudoku problem, its backtracking solver, and verifier.",
     "githubUsername": "carterluker",
     "reduxStats": { "commits": 13, "prsOpened": 3, "prsMerged": 2, "reviews": 1 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -389,7 +389,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Implemented the Strongly Connected Components problem, Kosaraju's Algorithm solver, and verifier.",
     "githubUsername": "surendrathapa18",
     "reduxStats": { "commits": 5, "prsOpened": 2, "prsMerged": 2, "reviews": 1 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -398,7 +398,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Implemented the N-Queens problem, its backtracking solver, and verifier.",
     "githubUsername": "cole-c-c",
     "reduxStats": { "commits": 5, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -407,7 +407,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Implemented the Bin Packing problem, its Brute Force and First Fit Decreasing solvers, and verifier.",
     "githubUsername": "prashantaguragai",
     "reduxStats": { "commits": 4, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -416,7 +416,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Contributed to the Sudoku problem, its backtracking solver, and verifier.",
     "githubUsername": "dfawson",
     "reduxStats": { "commits": 3, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -425,7 +425,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Contributed the Traveling Salesperson Greedy solver.",
     "githubUsername": "beauwilliams05",
     "reduxStats": { "commits": 4, "prsOpened": 2, "prsMerged": 0, "reviews": 1 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -434,7 +434,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Wrote tests for the Clique Cover verifier.",
     "githubUsername": "prashant9711",
     "reduxStats": { "commits": 3, "prsOpened": 1, "prsMerged": 1, "reviews": 1 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -443,7 +443,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Contributed to the Strongly Connected Components problem, Kosaraju's Algorithm solver, and verifier.",
     "githubUsername": "rohanshresthaaa",
     "reduxStats": { "commits": 2, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -452,7 +452,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit.",
+    "bio": "Implemented the Single Pair Shortest Path problem, its Dijkstra's Algorithm solver, verifier, and visualization.",
     "githubUsername": "ScottBBarfuss",
     "reduxStats": { "commits": 2, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -461,7 +461,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux, per a follow-up pass on the 2026 contributor audit.",
+    "bio": "Wrote unit tests for the Graph Coloring Greedy solver.",
     "githubUsername": "Sauravbhusal1",
     "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -470,7 +470,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux, per a follow-up pass on the 2026 contributor audit. Note: no GitHub profile name or commit author name was found -- \"Derek Winmill\" is inferred from the ISU firstname.lastname@isu.edu email convention used by other contributors, not confirmed.",
+    "bio": "Contributed the Traveling Salesperson Greedy solver.",
     "githubUsername": "derekwinmill",
     "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -479,8 +479,9 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux, per a follow-up pass on the 2026 contributor audit.",
+    "bio": "Implemented the original Traveling Salesperson problem: solvers, verifier, and controller.",
     "githubUsername": "whitdan2",
+    "legacyContributions": ["Original Traveling Salesperson Problem implementation (Apr 2022) — later fully rewritten"],
     "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -488,7 +489,7 @@
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux, per a follow-up pass on the 2026 contributor audit.",
+    "bio": "Contributed to the Single Pair Shortest Path visualization.",
     "githubUsername": "MysticTiger2",
     "legacyContributions": ["Dijkstra's Algorithm problem (Feb 2026) — removed from the codebase; superseded by the P_SSSP implementation"],
     "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
