@@ -13,6 +13,8 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic";
     public string formalDefinition { get; } = "Prime Factorization = {<i> | i is int}"; // Mathematical description of the problem (todo later)
     public string problemDefinition { get; } = "The prime factorization algorithm solves the decomposition of a positive integer into a product of prime integers."; // plaintext description of the problem
+    public string inputDescription { get; } = "n, a positive integer";
+    public string outputDescription { get; } = "The prime factorization of n";
     public string source { get; } = "Gauss, Carl Friedrich (1801), Disquisitiones Arithmeticae (in Latin), Leipzig: Gerh. Fleischer"; // Academic paper proper citation
     public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
     public const string InstanceGrammar = "{i | i is int}";

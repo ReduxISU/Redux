@@ -8,6 +8,8 @@ interface IProblem {
 
     string formalDefinition { get; }
     string problemDefinition { get; }
+    string inputDescription { get; }
+    string outputDescription { get; }
     string source { get; }
     string wikiName { get; }
     string defaultInstance { get; }

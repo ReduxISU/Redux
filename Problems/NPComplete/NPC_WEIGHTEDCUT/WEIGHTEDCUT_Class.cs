@@ -13,6 +13,8 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Cut_(graph_theory)";
     public string formalDefinition { get; } = "Weighted Cut = {<G, k> | G is a graph with cut of size k}";
     public string problemDefinition { get; } = "A weighted cut in an undirected graph is a partition of the graph's vertices into two complementary sets S and T, and the size of the cut is the sum of edge weights between S and T.";
+    public string inputDescription { get; } = "G, a weighted graph, and k, a target cut weight";
+    public string outputDescription { get; } = "True or False, whether the given edge subset forms a cut of total weight exactly k";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";

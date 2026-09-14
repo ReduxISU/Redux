@@ -23,6 +23,8 @@ The PROBLEMNAME\textunderscore class.cs should implement the ProblemI interface 
 - string problemName : Human readable problem name, this is what the problem will appear as in the GUI
 - string formalDefinition : Definition in the form of {<problem variables> | "definition" }
 - string problemDefinition : A more easily readable form of the above definition.
+- string inputDescription : A short plain-English name for the problem's input, e.g. "Φ, a boolean formula"
+- string outputDescription : A short plain-English description of the problem's output, e.g. "True or False"
 - string source : A formal citation of the source material for the problem definition
 - string wikiName : This is deprecated, and should be removed from all problems
 - string defaultInstance : A reasonably sized example of the problem, and the necessary format. *if the problem is of a similar form to an existing problem, such as a directed graph, the format should match the existing problems.

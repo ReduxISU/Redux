@@ -14,6 +14,8 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Travelling_salesman_problem";
     public string formalDefinition { get; } = "TSP = {<G,k> | G is a weighted graph where there is a path through every vertex whose weights add up to less than k}";
     public string problemDefinition { get; } = "";
+    public string inputDescription { get; } = "G, a weighted graph of cities, and k, a maximum tour weight";
+    public string outputDescription { get; } = "The shortest tour visiting every city exactly once";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     public string source { get; } = "";

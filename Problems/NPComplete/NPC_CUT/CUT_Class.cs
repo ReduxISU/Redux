@@ -13,6 +13,8 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Cut_(graph_theory)";
     public string formalDefinition { get; } = "Cut = {<G, k> | G is a graph with cut of size k}";
     public string problemDefinition { get; } = "A cut in an undirected graph is a partition of the graph's vertices into two complementary sets S and T, and the size of the cut is the number of edges between S and T.";
+    public string inputDescription { get; } = "G, a graph, and k, the target cut size";
+    public string outputDescription { get; } = "True or False, whether G has a cut of size k";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";

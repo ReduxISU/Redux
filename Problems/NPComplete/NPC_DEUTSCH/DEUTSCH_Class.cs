@@ -15,6 +15,8 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Deutsch%E2%80%93Jozsa_algorithm#Deutsch's_algorithm"; // Link to the Wikipedia page for the problem
     public string formalDefinition { get; } = "Deutsch = {<i, w> | i is bit (0 or 1), w is bit (0 or 1)}"; // Mathematical description of the problem (todo later)
     public string problemDefinition { get; } = "Deutsch's algorithm determines whether a given function f: {0,1} -> {0,1} is constant or balanced. The problem has four possible input functions and is represented to the ordered list of outputs, i.e. (f(0), f(1))."; // plaintext description of the problem
+    public string inputDescription { get; } = "f, a function {0,1} -> {0,1} promised to be constant or balanced, given as (f(0), f(1))";
+    public string outputDescription { get; } = "Whether f is constant or balanced";
     public string source { get; } = "Deutsch, David. 1985. Quantum theory, the Church-Turing principle and the universal quantum computer. Proc. R. Soc. Lond. A40097-117"; // Academic paper proper citation
     public string sourceLink { get; } = "https://royalsocietypublishing.org/doi/10.1098/rspa.1985.0070"; // Link to the academic paper
     public const string InstanceGrammar = "{(i,w) | i is int, w is int}";

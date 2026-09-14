@@ -19,6 +19,10 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
         + "Although finding a placement is often taught alongside NP-complete search problems, the decision version is trivial (a solution exists for every n except 2 and 3) "
         + "and an explicit placement can be constructed in O(n) time, so N-Queens lies in P.";
 
+    public string inputDescription { get; } = "Board size n";
+
+    public string outputDescription { get; } = "A placement of n queens on the board so that no two attack each other";
+
     public string source { get; } = "Classic combinatorial problem.";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Eight_queens_puzzle";
     // Declared, not derived. This class takes only n (no partial/pre-placed board), so
