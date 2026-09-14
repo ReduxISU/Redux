@@ -149,7 +149,7 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is IProblem instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    problems.Add(type.Name);
+                    problems.Add(instance.problemName);
                 }
             } catch { }
         }
@@ -168,7 +168,7 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is ISolver instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    solvers.Add(type.Name);
+                    solvers.Add(instance.solverName);
                 }
             } catch { }
         }
@@ -190,7 +190,7 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is IReduction instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    reductions.Add(type.Name);
+                    reductions.Add(instance.reductionName);
                 }
             } catch { }
         }
