@@ -27,7 +27,7 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization> {
     public SimonSolver defaultSolver { get; } = new SimonSolver();
     public SimonVerifier defaultVerifier { get; } = new SimonVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors { get; } = { "Eric Hill", "Max Gruenwoldt" };
+    public string[] contributors { get; } = { "Eric Hill", "Max Grünwoldt" };
     // Declared, not derived. Simon's algorithm needs repeated sampling to accumulate
     // enough independent equations to recover s with high probability — bounded-error,
     // not exact — so it belongs in BQP, not the classical P/NP hierarchy. See

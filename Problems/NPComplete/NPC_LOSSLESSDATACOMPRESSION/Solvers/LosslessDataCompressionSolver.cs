@@ -17,7 +17,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
     public string source { get; } =
         "https://www.ias.ac.in/article/fulltext/reso/011/02/0091-0099";
 
-    public string[] contributors { get; } = { "Prem Shah", "Bektur Akkabakov" };
+    public string[] contributors { get; } = { "Pramesh Shah", "Bektur Akkabakov" };
 
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Huffman coding: irrevocable locally-optimal choice each step.

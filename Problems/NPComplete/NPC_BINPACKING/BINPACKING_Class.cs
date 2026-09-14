@@ -34,7 +34,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     public string source { get; } = "Garey, M. R., and Johnson, D. S. Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman, 1979. Problem SR1.";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Bin_packing_problem";
 
-    public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta" };
+    public string[] contributors { get; } = { "Himanshu Jha", "Rakesh Itani", "Prashant Aguragai" };
 
 
 

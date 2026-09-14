@@ -8,7 +8,7 @@ class SudokuSolver : ISolver<SUDOKU> {
     public string solverName { get; } = "Sudoku Backtracking";
     public string solverDefinition { get; } = "This solver uses backtracking and heuristic search to solve Sudoku problems.";
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
-    public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" };
+    public string[] contributors { get; } = { "Eric Hill", "Carter Luker", "Collin M Kress", "Danny Fawson" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Does real (if minor) pruning, but tagged BruteForce per its class name
     // and because the pruning is incidental, not the algorithm's defining feature -- contrast with
