@@ -13,6 +13,8 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce, IndependentSetVer
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)";
     public string formalDefinition { get; } = "In a graph G = (V, E), an independent set is a subset X of vertices no two of which are adjacent";
     public string problemDefinition { get; } = "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set";
+    public string inputDescription { get; } = "G, a graph, and K, the size of the independent set";
+    public string outputDescription { get; } = "True or False, whether G has an independent set of size K";
     public string source { get; } = "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)";
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";

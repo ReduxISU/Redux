@@ -48,6 +48,8 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
         "and the cumulative water stored across all hours is maximized. " +
         "This models emergency resilience scenarios where maximizing stored water supply " +
         "is prioritized within an operational cost constraint.";
+    public string inputDescription { get; } = "Tank state and minimum level, hourly water demand, peak-hour tariffs, pump specifications, and budget";
+    public string outputDescription { get; } = "The hourly pump activation schedule, its effective budget and cost, maximizing stored water within the budget";
     public string source { get; } = "";
     public string wikiName { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };

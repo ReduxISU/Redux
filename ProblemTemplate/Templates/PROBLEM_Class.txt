@@ -12,6 +12,8 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Ve
     public string problemLink {get;} = "TODO";
     public string formalDefinition {get;} = "TODO";
     public string problemDefinition {get;} = "TODO";
+    public string inputDescription {get;} = "TODO: short plain-English name for the input, e.g. 'Φ, a boolean formula'";
+    public string outputDescription {get;} = "TODO: short plain-English description of the output, e.g. 'True or False'";
     public string source {get;} = "TODO";
     public string sourceLink {get;} = "TODO";
     private static readonly string _defaultInstance = "TODO";

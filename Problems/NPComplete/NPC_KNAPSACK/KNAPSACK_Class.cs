@@ -18,6 +18,9 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
 
     public string problemDefinition { get; } = "The 0-1 KNAPSACK decision problem is given a knapsack with a maximum capacity W and target value V and a set of n items x_1, x_2,... x_n with weights w_1,w_2,... w_n and values v_1,v_2,... v_n find the combination of singular items that provide greater than V value while staying under W. ";
 
+    public string inputDescription { get; } = "A set of items with weights and values, and a weight capacity W";
+    public string outputDescription { get; } = "True or False, whether a subset of items exists with weight at most W and value at least V";
+
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
 
