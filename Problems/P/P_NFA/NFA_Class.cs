@@ -154,7 +154,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
             var from = edge.From;
             var to = edge.To;
 
-            var edgeValue = edge.Symbol == 'ε' ? "epsilon" : edge.Symbol.ToString();
+            var edgeValue = edge.Symbol == 'ε' ? "ε" : edge.Symbol.ToString();
 
             if (!connections.ContainsKey((from, to))) {
                 connections.Add((from, to), edgeValue);
