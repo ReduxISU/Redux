@@ -261,12 +261,14 @@ public class ContributorProfile_Tests {
     public void GetContributorProfile_JasonWright_FindsKnownSolvers() {
         // ShorsQuantumSolver.cs (NPC_PRIMEFACTOR) and NQueensConstructive.cs (P_NQUEENS)
         // both credit "Jason Wright" — real matches for the Solvers directory walk.
+        // Asserts against each solver's declared solverName (the human-readable display
+        // name), not its class name — SolversCreated is meant for display, not lookup.
         var ok = _controller.GetContributorProfile("Jason Wright") as OkObjectResult;
         Assert.NotNull(ok);
         var portfolio = ok.Value as ContributorPortfolio;
         Assert.NotNull(portfolio);
-        Assert.Contains("ShorsQuantumSolver", portfolio.SolversCreated);
-        Assert.Contains("NQueensConstructive", portfolio.SolversCreated);
+        Assert.Contains("Shor's Algorithm", portfolio.SolversCreated);
+        Assert.Contains("N-Queens Constructive", portfolio.SolversCreated);
     }
 
     // ─── GET /all ─────────────────────────────────────────────────────────────
