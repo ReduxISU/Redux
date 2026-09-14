@@ -39,7 +39,8 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     // same NP-complete family.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
-    public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" }; //TODO: keep Eric? I think so but not sure
+    // TODO: keep Eric? I think so but not sure
+    public string[] contributors { get; } = { "Eric Hill", "Carter Luker", "Collin M Kress", "Danny Fawson" };
 
     public int[][] grid { get; set; }
 

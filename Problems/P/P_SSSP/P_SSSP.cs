@@ -36,7 +36,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     public SSSPVerifier defaultVerifier { get; } = new SSSPVerifier();
     public SSSPVisualization defaultVisualization { get; } = new SSSPVisualization();
     public UtilCollectionGraph graph { get; set; }
-    public string[] contributors { get; } = { "Rajit Nilkar" };
+    public string[] contributors { get; } = { "Raj Nilkar" };
     // Declared, not derived. Single-source shortest path (non-negative weights) is
     // solvable in polynomial time (Dijkstra's algorithm).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;

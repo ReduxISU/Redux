@@ -6,7 +6,7 @@ class MaxCutSolver : ISolver<MAXCUT> {
     public string solverName { get; } = "Max Cut Brute Force";
     public string solverDefinition { get; } = "Enumerates all 2^n partitions of the vertex set and returns the S side of the partition whose crossing edges have maximum total weight. Certificate format: {node1,node2,...} representing the S side.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Max Gruenwoldt", "Eric Hill" };
+    public string[] contributors { get; } = { "Max Grünwoldt", "Eric Hill" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
