@@ -12,7 +12,7 @@ class BernsteinVaziraniClassicalVerifier : IVerifier<BERNSTEINVAZIRANI> {
     public string verifierName { get; } = "Default Bernstein Vazirani Verifier";
     public string verifierDefinition { get; } = "Verify that a proposed solution bit string fulfills the promise of the Bernstein-Vazirani problem: f(x) = s · x for all x.";
     public string source { get; } = " ";
-    public string[] contributors { get; } = { "Jason L. Wright" };
+    public string[] contributors { get; } = { "Jason Wright" };
     private string _certificate = "";
 
     public string certificate {

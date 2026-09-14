@@ -30,7 +30,7 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     public DeutschClassicalSolver defaultSolver { get; } = new DeutschClassicalSolver();
     public DeutschClassicalVerifier defaultVerifier { get; } = new DeutschClassicalVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
-    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "Jason L. Wright", "Michael Trosper" };
+    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Grünwoldt", "Alex Svancara", "Jason Wright", "Michael Trosper" };
     // Declared, not derived. Deutsch's algorithm solves this promise problem with a
     // single oracle query and zero error probability — exact, not merely bounded-error
     // — so it belongs in EQP, not the classical P/NP hierarchy. See ComplexityClass.EQP.

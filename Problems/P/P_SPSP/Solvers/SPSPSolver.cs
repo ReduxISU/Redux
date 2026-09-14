@@ -11,7 +11,7 @@ class SPSPSolver : ISolver<SPSP> {
     public string solverName { get; } = "Dijkstra's Algorithm";
     public string solverDefinition { get; } = "";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss" };
+    public string[] contributors { get; } = { "Raj Nilkar", "Katharine Barfuss" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Dijkstra's algorithm always finalizes the nearest unvisited
     // node next -- an irrevocable, locally-optimal choice at each step.

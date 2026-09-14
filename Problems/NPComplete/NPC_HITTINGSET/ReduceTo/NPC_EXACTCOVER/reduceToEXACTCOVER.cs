@@ -14,7 +14,7 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER> {
     public string reductionDefinition { get; } = "Karp's Reduction from Hitting Set to Exact Cover";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors { get; } = { "Russell Phillip" };
+    public string[] contributors { get; } = { "Russell Phillips" };
     // reduce() transposes the input's own subset/element incidence structure (one
     // output entry per (item, subset) pair where the item IS a member) — that
     // incidence count is already what the HITTINGSET instance's own encoding lists,

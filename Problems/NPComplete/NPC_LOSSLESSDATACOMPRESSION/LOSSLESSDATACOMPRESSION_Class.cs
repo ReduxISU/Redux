@@ -56,7 +56,7 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
 
     public LosslessDataCompressionVisualization defaultVisualization { get; } = new LosslessDataCompressionVisualization();
 
-    public string[] contributors { get; } = { "Prem Shah", "Bektur Akkabakov" };
+    public string[] contributors { get; } = { "Pramesh Shah", "Bektur Akkabakov" };
 
 
     // this is the raw text we will wanna compress.

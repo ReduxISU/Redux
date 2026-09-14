@@ -31,7 +31,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Frontend and visualization specialist",
-    "githubUsername": "",
+    "githubUsername": "ComicallyNormal",
     "reduxStats": { "commits": 117, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 133, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -58,7 +58,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Data structure and algorithm expert",
-    "githubUsername": "",
+    "githubUsername": "stougarr",
     "reduxStats": { "commits": 13, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -76,7 +76,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "UI/UX and frontend developer",
-    "githubUsername": "",
+    "githubUsername": "pratshow",
     "reduxGuiStats": { "commits": 29, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "commits": 12, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -94,7 +94,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Backend infrastructure developer",
-    "githubUsername": "",
+    "githubUsername": "mdcrapse",
     "reduxStats": { "commits": 22, "prsOpened": 3, "prsMerged": 3, "reviews": 0 },
     "reduxGuiStats": { "commits": 83, "prsOpened": 3, "prsMerged": 3, "reviews": 0 }
   },
@@ -148,7 +148,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Algorithm specialist and reducer",
-    "githubUsername": "",
+    "githubUsername": "georgelake2",
     "reduxStats": { "commits": 3, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -157,7 +157,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Problem solver and verifier contributor",
-    "githubUsername": "",
+    "githubUsername": "gardgran",
     "reduxStats": { "commits": 3, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -201,7 +201,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Backend developer and API contributor",
-    "githubUsername": "",
+    "githubUsername": "gilbpaul",
     "reduxStats": { "commits": 4, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -228,7 +228,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Frontend developer and UI specialist",
-    "githubUsername": "",
+    "githubUsername": "darklord293",
     "reduxGuiStats": { "commits": 3, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 3, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -236,7 +236,7 @@
     "email": "",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "githubUsername": "",
+    "githubUsername": "lindemandavid8",
     "bio": "Frontend developer and UI specialist",
     "reduxStats": { "commits": 13, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -246,7 +246,7 @@
     "education": "Idaho State University",
     "major": "Computer Science and Software Engineering",
     "bio": "Problem solver and verifier developer",
-    "githubUsername": "",
+    "githubUsername": "kaosiibeabuchi",
     "reduxStats": { "commits": 13, "prsOpened": 3, "prsMerged": 3, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -255,7 +255,7 @@
     "education": "Idaho State University",
     "major": "Computer Science and Software Engineering",
     "bio": "Problem architect developer. Note: This 2026 audit follow-up confirmed the Redux and Redux_GUI activity share one GitHub login (Diyapandey0), so this is the same person, not a name coincidence.",
-    "githubUsername": "",
+    "githubUsername": "Diyapandey0",
     "reduxGuiStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 5, "prsOpened": 1, "prsMerged": 1, "reviews": 0 }
   },
@@ -273,7 +273,7 @@
     "education": "Idaho State University",
     "major": "Computer Science (Minor: Mathematics)",
     "bio": "Machine learning model architecture; contributor to Redux graph algorithms and problem implementations. Note: This 2026 audit follow-up confirmed the Redux and Redux_GUI activity share one GitHub login (PraveshAryal03), so this is the same person, not a name coincidence.",
-    "githubUsername": "",
+    "githubUsername": "PraveshAryal03",
     "reduxGuiStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 4, "prsOpened": 2, "prsMerged": 2, "reviews": 0 }
   },
@@ -282,7 +282,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Machine learning model architecture; contributor to Redux testing and problem verification",
-    "githubUsername": "",
+    "githubUsername": "koras7",
     "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -300,7 +300,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Implemented the Knapsack DP solver and unit tests",
-    "githubUsername": "",
+    "githubUsername": "khanmusab",
     "reduxStats": { "commits": 4, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -309,7 +309,7 @@
     "education": "Idaho State University",
     "major": "Computer Science",
     "bio": "Implemented the Knapsack DP solver and unit tests",
-    "githubUsername": "",
+    "githubUsername": "condcalv",
     "reduxStats": { "commits": 2, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
@@ -336,7 +336,7 @@
     "education": "",
     "major": "",
     "bio": "Added the GitHub issue and PR templates (process tooling) for Redux_GUI, per the 2026 contributor audit.",
-    "githubUsername": "",
+    "githubUsername": "QuintonSmith03",
     "reduxGuiStats": { "commits": 5, "prsOpened": 3, "prsMerged": 3, "reviews": 0 },
     "reduxStats": { "commits": 8, "prsOpened": 5, "prsMerged": 5, "reviews": 0 }
   },
@@ -490,16 +490,53 @@
     "major": "",
     "bio": "Contributed to Redux, per a follow-up pass on the 2026 contributor audit.",
     "githubUsername": "MysticTiger2",
+    "legacyContributions": ["Dijkstra's Algorithm problem (Feb 2026) — removed from the codebase; superseded by the P_SSSP implementation"],
     "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
-  "lrhernandez3284-spec": {
+  "Luis Hernandez": {
     "email": "",
     "education": "",
     "major": "",
-    "bio": "Contributed to Redux, per a follow-up pass on the 2026 contributor audit. Note: no real name was discoverable from their GitHub profile or commit history, so this entry is keyed by their GitHub login instead of a guessed name.",
+    "bio": "Contributed the N-Queens problem, solver, and verifier. Previously keyed by GitHub login alone (no real name discoverable from GitHub profile or commit history) until a September 2026 audit pass matched their commits on NQUEENS_Class.cs against that same problem's declared contributors[] entry \"Luis Hernandez\".",
     "githubUsername": "lrhernandez3284-spec",
     "reduxStats": { "commits": 3, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
+    "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+  },
+  "Pramesh Shah": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Contributed to Redux, discovered during a September 2026 audit pass. Committed under two identities (pramesh.shah@hotmail.com and premshah@isu.edu) that both resolve to the same GitHub account and were merged into this single entry.",
+    "githubUsername": "prameshshah",
+    "reduxStats": { "commits": 2, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
+    "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+  },
+  "Ethan Wilks": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Credited as a contributor on the N-Queens problem, solver, and verifier, discovered during a September 2026 audit pass. No commits found under this name/email on either repo — no GitHub account identified yet.",
+    "githubUsername": "",
+    "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+  },
+  "Val Kimbrough": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Credited as a contributor on the Minimum Spanning Tree problem, solver, verifier, and visualization, discovered during a September 2026 audit pass. No commits found under this name/email on either repo — no GitHub account identified yet.",
+    "githubUsername": "",
+    "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+  },
+  "Malaya Witt": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Credited as a contributor on the SPSP visualization, discovered during a September 2026 audit pass. No commits found under this name/email on either repo — no GitHub account identified yet.",
+    "githubUsername": "",
+    "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   }
 }
