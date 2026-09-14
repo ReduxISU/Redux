@@ -218,7 +218,7 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is IVerifier instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    verifiers.Add(type.Name);
+                    verifiers.Add(instance.verifierName);
                 }
             } catch { }
         }
@@ -236,7 +236,7 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is IVisualization instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    visualizations.Add(type.Name);
+                    visualizations.Add(instance.visualizationName);
                 }
             } catch { }
         }
