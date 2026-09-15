@@ -7,7 +7,7 @@ using NFATableStep = API.Problems.P.P_NFA.Solvers.NFASolver.NFATableStep;
 
 namespace API.Problems.P.P_NFA.Visualizations;
 
-class NFATableVisualization : IVisualization<NFA> {
+class NFATableVisualization : IVisualization<NFA, API_empty> {
     public string visualizationName { get; } = "Non-Deterministic Finite Automata Table Visualization";
     public string visualizationDefinition { get; } = "Displays a table for one explored run of the NFA on the input string at a time, showing the symbol consumed, the state transition, and acceptance at each step of that run. Accepting runs are listed before rejected runs, so the default run shown is the first accepting run, or the first rejected run if none accept.";
     public string source { get; } = "";
@@ -21,7 +21,7 @@ class NFATableVisualization : IVisualization<NFA> {
     // concatenates visualize() + StepsVisualization() + SolvedVisualization() into one flat
     // list with no de-duplication, and both of those would otherwise just repeat an entry
     // already present in StepsVisualization(), producing duplicate steps in the step slider.
-    public API_JSON visualize(NFA problem) {
+    public API_empty visualize(NFA problem) {
         return new API_empty();
     }
 

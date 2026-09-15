@@ -7,7 +7,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Visualizations;
 
-class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER> {
+class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET> {
     public string visualizationName { get; } = "Exact Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Exact Cover";
     public string source { get; } = "";
@@ -19,7 +19,7 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER> {
     public ExactCoverDefaultVisualization() {
 
     }
-    public API_JSON visualize(EXACTCOVER exactCover) {
+    public API_SET visualize(EXACTCOVER exactCover) {
         return new API_SET(new UtilCollection(exactCover.instance));
     }
     public API_JSON SolvedVisualization(EXACTCOVER exactCover, string solution) {

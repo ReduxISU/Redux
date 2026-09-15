@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.P.P_MINCUT.Visualizations;
 
-class MinCutVisualization : IVisualization<MINCUT> {
+class MinCutVisualization : IVisualization<MINCUT, API_GraphJSON> {
     public string visualizationName { get; } = "Minimum Cut Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted undirected graph and highlights the edges belonging to the minimum cut.";
     public string source { get; } = "";
@@ -16,7 +16,7 @@ class MinCutVisualization : IVisualization<MINCUT> {
 
     public MinCutVisualization() { }
 
-    public API_JSON visualize(MINCUT problem) => problem.graph.ToAPIGraph();
+    public API_GraphJSON visualize(MINCUT problem) => problem.graph.ToAPIGraph();
 
     public API_JSON SolvedVisualization(MINCUT problem, string solution) {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")

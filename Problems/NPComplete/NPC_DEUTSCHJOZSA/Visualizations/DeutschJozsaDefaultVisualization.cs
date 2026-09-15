@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA> {
+class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests the QASM for the Deutsch-Jozsa circuit (data qubits plus ancilla), showing the oracle and measurements that separate constant vs. balanced functions in one query for Q.js.";
     public string source { get; } = "";
@@ -17,7 +17,7 @@ class DeutschJozsaDefaultVisualization : IVisualization<DEUTSCHJOZSA> {
     public DeutschJozsaDefaultVisualization() {
 
     }
-    public API_JSON visualize(DEUTSCHJOZSA instance) {
+    public API_QUANTUMCIRCUIT visualize(DEUTSCHJOZSA instance) {
         return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",

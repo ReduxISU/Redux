@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_TSP.Solvers;
 
 namespace API.Problems.NPComplete.NPC_TSP.Visualizations;
 
-class TSPDefaultVisualization : IVisualization<TSP> {
+class TSPDefaultVisualization : IVisualization<TSP, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Travelling Sales Person Visualization";
@@ -21,7 +21,7 @@ class TSPDefaultVisualization : IVisualization<TSP> {
     public TSPDefaultVisualization() {
 
     }
-    public API_JSON visualize(TSP tsp) {
+    public API_GraphJSON visualize(TSP tsp) {
         return tsp.graph.ToAPIGraph();
     }
 

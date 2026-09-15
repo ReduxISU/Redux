@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL.Visualizations;
 
-class ConvexHullVisualization : IVisualization<CONVEXHULL> {
+class ConvexHullVisualization : IVisualization<CONVEXHULL, API_empty> {
     public string visualizationName { get; } = "Convex Hull Visualization";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
@@ -18,7 +18,7 @@ class ConvexHullVisualization : IVisualization<CONVEXHULL> {
     public ConvexHullVisualization() {
 
     }
-    public API_JSON visualize(CONVEXHULL instance) {
+    public API_empty visualize(CONVEXHULL instance) {
         //TODO: implement visualization
 
         return new API_empty();

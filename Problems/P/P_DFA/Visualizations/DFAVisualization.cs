@@ -8,7 +8,7 @@ using API.Problems.P.P_DFA.Solvers;
 
 namespace API.Problems.P.P_DFA.Visualizations;
 
-class DFAVisualization : IVisualization<DFA> {
+class DFAVisualization : IVisualization<DFA, API_GraphJSON> {
     public string visualizationName { get; } = "Deterministic Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Deterministic Finite Automata";
     public string source { get; } = "";
@@ -18,7 +18,7 @@ class DFAVisualization : IVisualization<DFA> {
 
     // --- Methods Including Constructors ---
     public DFAVisualization() { }
-    API_JSON IVisualization<DFA>.visualize(DFA instance) {
+    API_GraphJSON IVisualization<DFA, API_GraphJSON>.visualize(DFA instance) {
         return instance.graph.ToAPIGraph();
     }
 

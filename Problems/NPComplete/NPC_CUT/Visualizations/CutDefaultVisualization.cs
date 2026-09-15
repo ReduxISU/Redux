@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_CUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CUT.Visualizations;
 
-class CutDefaultVisualization : IVisualization<CUT> {
+class CutDefaultVisualization : IVisualization<CUT, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = " Cut Visualization";
@@ -21,7 +21,7 @@ class CutDefaultVisualization : IVisualization<CUT> {
     public CutDefaultVisualization() {
 
     }
-    public API_JSON visualize(CUT cut) {
+    public API_GraphJSON visualize(CUT cut) {
         return cut.graph.ToAPIGraph();
     }
 
