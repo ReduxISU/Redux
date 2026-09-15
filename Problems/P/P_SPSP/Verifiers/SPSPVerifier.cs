@@ -14,7 +14,7 @@ class SPSPVerifier : IVerifier<SPSP> {
     public string verifierName { get; } = "Default Single Pair Shortest Path Problem Verifier";
     public string verifierDefinition { get; } = "Verifies the solution for the Single Pair Shortest Path problem";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Raj Nilkar", "Katharine Barfuss" };
+    public string[] contributors { get; } = { "Raj Nilkar", "Scott Barfuss" };
     private string _certificate = "";
     public string certificate => _certificate;
 
