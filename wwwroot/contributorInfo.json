@@ -218,7 +218,7 @@
     "email": "courtneybodily@isu.edu",
     "education": "Idaho State University",
     "major": "Computer Science",
-    "bio": "Project lead and system architect. Built the quantum circuit visualizations for Bernstein-Vazirani, Deutsch-Jozsa, Deutsch, and SAT Grover.",
+    "bio": "System architect. Built the quantum circuit visualizations for Bernstein-Vazirani, Deutsch-Jozsa, Deutsch, and SAT Grover.",
     "githubUsername": "courtneybodily",
     "reduxGuiStats": { "commits": 9, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
@@ -448,7 +448,7 @@
     "reduxStats": { "commits": 2, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
-  "Katharine Barfuss": {
+  "Scott Barfuss": {
     "email": "",
     "education": "",
     "major": "",
@@ -538,6 +538,15 @@
     "bio": "Contributed to the Single-Pair Shortest Path (SPSP) visualization.",
     "githubUsername": "",
     "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+  },
+  "Paul Bodily": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Project lead and ISU Faculty Sponsor. Added the project's CITATION.cff.",
+    "githubUsername": "norkish",
+    "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   }
 }
