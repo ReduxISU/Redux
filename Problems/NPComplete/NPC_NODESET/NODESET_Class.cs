@@ -13,6 +13,8 @@ class NODESET : IGraphProblem<NodeSetBruteForce, NodeSetVerifier, NodeSetDefault
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Feedback_vertex_set";
     public string formalDefinition { get; } = "Feedback Node Set = {<G,k> | G is a directed graph that can be rendered acyclic by removal of at most k nodes}";
     public string problemDefinition { get; } = "Feedback Node Set is solved by removing at most k nodes so that no cycles remain.";
+    public string inputDescription { get; } = "G, a directed graph, and k, the maximum number of nodes to remove";
+    public string outputDescription { get; } = "True or False, whether removing at most k nodes can make G acyclic";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";

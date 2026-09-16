@@ -14,6 +14,8 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     public string problemLink { get; } = "https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms/grover-algorithm/unstructured-search";
     public string formalDefinition { get; } = "Unstructured Search = {(x, y) | x is int, y is int}";
     public string problemDefinition { get; } = "Input: a function f:Σn→Σf:Σn→Σ; Output: a string x∈Σnx∈Σn satisfying f(x)=1,f(x)=1, or \"no solution\" if no such string xx exists";
+    public string inputDescription { get; } = "f, an oracle function given as its list of output bits";
+    public string outputDescription { get; } = "An index x such that f(x) = 1, or no solution if none exists";
     public string source { get; } = "Grover, L. K. (1996). A fast quantum mechanical algorithm for database search. In Proceedings of the twenty-eighth annual ACM symposium on Theory of computing (pp. 212-219).";
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/237814.237866";
     public const string InstanceGrammar = "{y | y is list}";

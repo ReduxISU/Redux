@@ -505,7 +505,7 @@
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
   "Pramesh Shah": {
-    "email": "",
+    "email": "premshah@isu.edu",
     "education": "",
     "major": "",
     "bio": "Added the Graph Coloring Greedy solver and the Lossless Data Compression problem, solver, and verifier.",

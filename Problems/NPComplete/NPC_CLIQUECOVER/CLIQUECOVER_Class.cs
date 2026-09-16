@@ -15,6 +15,8 @@ class CLIQUECOVER : IGraphProblem<CliqueCoverBruteForce, CliqueCoverVerifier, Cl
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Clique_cover";
     public string formalDefinition { get; } = "Clique Cover = {<G, k> | G is a graph represnted by k or fewer cliques}";
     public string problemDefinition { get; } = "A clique cover is a partition of the vertices into cliques, subsets of vertices within which every two vertices are adjacent";
+    public string inputDescription { get; } = "G, a graph, and k, the number of cliques allowed";
+    public string outputDescription { get; } = "True or False, whether G's vertices can be partitioned into at most k cliques";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";

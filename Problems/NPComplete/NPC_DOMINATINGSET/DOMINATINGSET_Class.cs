@@ -20,6 +20,8 @@ class DOMINATINGSET
         "Dominating Set = {<G, k> | G is a graph with a dominating set less than or equal to k}";
     public string problemDefinition { get; } =
         "A dominating set of a graph G is a subset D of the vertices of G such that every vertex v of G is either in the set D or v has at least one neighbour that is in D.";
+    public string inputDescription { get; } = "G, a graph, and k, the maximum size of the dominating set";
+    public string outputDescription { get; } = "True or False, whether G has a dominating set of size at most k";
     public string[] contributors { get; } = { "Quinton Smith" };
 
     public string source { get; } =

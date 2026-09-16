@@ -15,6 +15,8 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Edit_distance";
     public string formalDefinition { get; } = "{(x,y,k) | x and y are strings, k is int, and there exists a sequence of k operations to transform x into y}";
     public string problemDefinition { get; } = "Find the minimum number of operations (insertion, deletion, substitution) required to transform one string into another.";
+    public string inputDescription { get; } = "x and y, two strings";
+    public string outputDescription { get; } = "The minimum number of single-character edit operations required to transform x into y";
     public string source { get; } = "Arturs Backurs and P. Indyk, “Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false),” DSpace@MIT (Massachusetts Institute of Technology), Jun. 2015";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/2746539.2746612";
     public string wikiName { get; } = "";

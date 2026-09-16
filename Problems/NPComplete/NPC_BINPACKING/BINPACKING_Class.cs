@@ -28,6 +28,8 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // Also notes that the decision variant is NP-Complete and the optimization
     // variant (minimizing bin count) is NP-Hard — a useful distinction for students.
     public string problemDefinition { get; } = "The Bin Packing decision problem asks: given a multiset of item sizes, a bin capacity C, and a bin limit K, can all items be packed into at most K bins such that the total size in each bin does not exceed C? Bin Packing is NP-Complete; the optimization variant (minimize the number of bins) is NP-Hard.";
+    public string inputDescription { get; } = "S, a multiset of item sizes, C, the bin capacity, and K, the maximum number of bins";
+    public string outputDescription { get; } = "True or False, whether S can be packed into at most K bins each of capacity C";
 
     // Academic citation — Garey & Johnson is the canonical NP-Completeness reference.
     // Problem SR1 in their appendix is the Bin Packing entry.

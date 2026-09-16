@@ -20,6 +20,8 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Feedback_arc_set";
     public string formalDefinition { get; } = "ARCSET = {<G,k> | G is a directed graph that can be rendered acyclic by removal of at most k edges}";
     public string problemDefinition { get; } = "ARCSET, or the Feedback Arc Set satisfiability problem, is an NP-complete problem that can be described like the following. Given a directed graph, does removing a given set of edges render the graph acyclical? That is, does removing the edges break every cycle in the graph?";
+    public string inputDescription { get; } = "G, a directed graph, and k, the maximum number of edges allowed to be removed";
+    public string outputDescription { get; } = "True or False, whether removing at most k edges can make G acyclic";
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Feedback_arc_set";
