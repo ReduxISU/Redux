@@ -6,7 +6,7 @@ using API.Problems.P.P_SPSP.Verifiers;
 
 namespace API.Problems.P.P_SPSP.Visualizations;
 
-class SPSPVisualization : IVisualization<SPSP> {
+class SPSPVisualization : IVisualization<SPSP, API_GraphJSON> {
     public string visualizationName { get; } = "Single Pair Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Pair Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
@@ -16,7 +16,7 @@ class SPSPVisualization : IVisualization<SPSP> {
 
     public SPSPVisualization() { }
 
-    public API_JSON visualize(SPSP problem) {
+    public API_GraphJSON visualize(SPSP problem) {
         // For simplicity, we will just return a JSON representation of the graph
         // In a real implementation, this would be more complex and would include visual elements
         return problem.graph.ToAPIGraph();

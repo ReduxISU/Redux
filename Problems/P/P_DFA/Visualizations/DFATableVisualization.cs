@@ -7,7 +7,7 @@ using DFATableStep = API.Problems.P.P_DFA.Solvers.DFASolver.DFATableStep;
 
 namespace API.Problems.P.P_DFA.Visualizations;
 
-class DFATableVisualization : IVisualization<DFA> {
+class DFATableVisualization : IVisualization<DFA, API_empty> {
     public string visualizationName { get; } = "Deterministic Finite Automata Table Visualization";
     public string visualizationDefinition { get; } = "Displays a step-by-step table tracing the DFA's single deterministic path through the input string, showing the symbol consumed, the state transition, and whether the resulting state is accepting at each step.";
     public string source { get; } = "";
@@ -21,7 +21,7 @@ class DFATableVisualization : IVisualization<DFA> {
     // concatenates visualize() + StepsVisualization() + SolvedVisualization() into one flat
     // list with no de-duplication, and both of those would otherwise just repeat the first/last
     // entries already present in StepsVisualization(), producing duplicate steps in the step slider.
-    public API_JSON visualize(DFA problem) {
+    public API_empty visualize(DFA problem) {
         return new API_empty();
     }
 

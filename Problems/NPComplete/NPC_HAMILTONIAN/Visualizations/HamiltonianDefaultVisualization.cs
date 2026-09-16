@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_HAMILTONIAN.Solvers;
 
 namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Visualizations;
 
-class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN> {
+class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = " Hamiltonian Path Visualization";
@@ -21,7 +21,7 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN> {
     public HamiltonianDefaultVisualization() {
 
     }
-    public API_JSON visualize(HAMILTONIAN hamiltonian) {
+    public API_GraphJSON visualize(HAMILTONIAN hamiltonian) {
         return hamiltonian.graph.ToAPIGraph();
     }
 

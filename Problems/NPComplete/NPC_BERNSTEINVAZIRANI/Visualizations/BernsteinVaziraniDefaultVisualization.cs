@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI> {
+class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Bernstein-Vazirani Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests QASM for the Bernstein-Vazirani circuit (Hadamards, oracle, measure data qubits) to show how one query recovers the hidden bit string for Q.js rendering.";
     public string source { get; } = "";
@@ -17,7 +17,7 @@ class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI> 
     public BernsteinVaziraniDefaultVisualization() {
 
     }
-    public API_JSON visualize(BERNSTEINVAZIRANI instance) {
+    public API_QUANTUMCIRCUIT visualize(BERNSTEINVAZIRANI instance) {
         return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",

@@ -5,6 +5,9 @@ namespace API.Interfaces.JSON_Objects.Graphs;
 
 class API_GraphJSON : API_JSON {
 
+    /// <summary>Discriminator so a client can tell payload shapes apart without duck-typing. See #524.</summary>
+    public string kind { get; } = "graph";
+
     public List<API_Node_Programmable_Small> _nodes;
     public List<API_Link> _links;
 
