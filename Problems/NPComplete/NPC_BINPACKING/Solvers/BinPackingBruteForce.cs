@@ -26,7 +26,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
 
     public string source { get; } = "Garey, M. R., and Johnson, D. S. Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman, 1979. Problem SR1.";
 
-    public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta", "Michael Trosper" };
+    public string[] contributors { get; } = { "Himanshu Jha", "Rakesh Itani", "Prashant Aguragai", "Michael Trosper" };
 
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Does real (if minor) pruning, but tagged BruteForce per its class name

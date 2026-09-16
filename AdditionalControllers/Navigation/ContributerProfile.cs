@@ -32,6 +32,12 @@ public class ContributorProfileController : ControllerBase {
             // Reflect over every registered reduction and check its declared contributors
             var allReductions = GetAllReductions(contributorName);
 
+            // Reflect over every registered verifier and check its declared contributors
+            var allVerifiers = GetAllVerifiers(contributorName);
+
+            // Reflect over every registered visualization and check its declared contributors
+            var allVisualizations = GetAllVisualizations(contributorName);
+
             // Bundle everything together into one tidy portfolio object
             var portfolio = new ContributorPortfolio {
                 ContributorName = contributorName,
@@ -45,7 +51,11 @@ public class ContributorProfileController : ControllerBase {
                 ProblemsContributed = allProblems.ToList(),
                 SolversCreated = allSolvers.ToList(),
                 ReductionsCreated = allReductions.ToList(),
+                VerifiersContributed = allVerifiers.ToList(),
+                VisualizationsCreated = allVisualizations.ToList(),
+                LegacyContributions = contributorInfo?.LegacyContributions ?? new List<string>(),
                 TotalContributions = allProblems.Count() + allSolvers.Count() + allReductions.Count()
+                    + allVerifiers.Count() + allVisualizations.Count()
             };
 
             return Ok(portfolio);
@@ -149,7 +159,7 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is IProblem instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    problems.Add(type.Name);
+                    problems.Add(instance.problemName);
                 }
             } catch { }
         }
@@ -168,7 +178,7 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is ISolver instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    solvers.Add(type.Name);
+                    solvers.Add(instance.solverName);
                 }
             } catch { }
         }
@@ -190,12 +200,48 @@ public class ContributorProfileController : ControllerBase {
             try {
                 if (Activator.CreateInstance(type) is IReduction instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
-                    reductions.Add(type.Name);
+                    reductions.Add(instance.reductionName);
                 }
             } catch { }
         }
 
         return reductions.Distinct();
+    }
+
+    private IEnumerable<string> GetAllVerifiers(string contributorName) {
+        var verifiers = new List<string>();
+
+        // Reflection-derived registry (ProblemProvider.Verifiers), same pattern as
+        // Problems/Solvers/Reductions — skip a verifier that can't be
+        // default-constructed instead of failing the whole lookup.
+        foreach (var type in ProblemProvider.Verifiers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IVerifier instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    verifiers.Add(instance.verifierName);
+                }
+            } catch { }
+        }
+
+        return verifiers.Distinct();
+    }
+
+    private IEnumerable<string> GetAllVisualizations(string contributorName) {
+        var visualizations = new List<string>();
+
+        // Reflection-derived registry (ProblemProvider.Visualizers), same pattern as
+        // Problems/Solvers/Reductions — skip a visualization that can't be
+        // default-constructed instead of failing the whole lookup.
+        foreach (var type in ProblemProvider.Visualizers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IVisualization instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    visualizations.Add(instance.visualizationName);
+                }
+            } catch { }
+        }
+
+        return visualizations.Distinct();
     }
 
     private ContributorInfo? GetContributorInfo(string contributorName) {
@@ -272,7 +318,20 @@ public class ContributorPortfolio {
     [JsonPropertyName("reductionsCreated")]
     public List<string> ReductionsCreated { get; set; } = new List<string>();
 
-    /// <summary>Quick total — problems + solvers + reductions combined</summary>
+    /// <summary>Every verifier they've written</summary>
+    [JsonPropertyName("verifiersContributed")]
+    public List<string> VerifiersContributed { get; set; } = new List<string>();
+
+    /// <summary>Every visualization they've built</summary>
+    [JsonPropertyName("visualizationsCreated")]
+    public List<string> VisualizationsCreated { get; set; } = new List<string>();
+
+    /// <summary>Real historical work with no live class left to credit it on (e.g. a deleted problem) —
+    /// manually maintained, not counted in TotalContributions since it can't be verified against current code.</summary>
+    [JsonPropertyName("legacyContributions")]
+    public List<string> LegacyContributions { get; set; } = new List<string>();
+
+    /// <summary>Quick total — problems + solvers + reductions + verifiers + visualizations combined</summary>
     [JsonPropertyName("totalContributions")]
     public int TotalContributions { get; set; }
 }
@@ -306,6 +365,12 @@ public class ContributorInfo {
     /// <summary>Their GitHub contribution stats on the Redux_GUI (frontend) repo — null if not yet collected</summary>
     [JsonPropertyName("reduxGuiStats")]
     public ContributorRepoStats? ReduxGuiStats { get; set; }
+
+    /// <summary>Freeform notes for real historical work that can't be reflected live — e.g. a problem that was
+    /// later deleted from the codebase, so there's no compiled class left to credit them on. Manually maintained;
+    /// unlike ProblemsContributed/SolversCreated/etc. this is never derived from currently-registered code.</summary>
+    [JsonPropertyName("legacyContributions")]
+    public List<string>? LegacyContributions { get; set; }
 }
 
 /// <summary>Per-repo GitHub contribution counts for a contributor. All fields are nullable/optional — many contributors only have partial data, especially for pre-PR-workflow-era work.</summary>
