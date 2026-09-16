@@ -34,7 +34,7 @@ class BinPackingFFD : ISolver<BINPACKING> {
     // Dósa's 2007 paper that proved the tight (11/9) OPT bound.
     public string source { get; } = "Johnson, D. S. Near-optimal bin-packing algorithms. PhD thesis, MIT, 1973. Dosa, G. The Tight Bound of First Fit Decreasing Bin-Packing Algorithm Is FFD(I) <= (11/9) OPT(I) + 6/9. Combinatorics, Algorithms, Probabilistic and Experimental Methodologies, LNCS 4614, Springer, 2007, pp. 1-11.";
 
-    public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta" };
+    public string[] contributors { get; } = { "Himanshu Jha", "Rakesh Itani", "Prashant Aguragai" };
 
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Tag reflects the guarantee class, not the mechanism: the algorithm's

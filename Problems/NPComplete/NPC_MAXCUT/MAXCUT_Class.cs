@@ -13,7 +13,7 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
     public string problemDefinition { get; } = "Given a weighted undirected graph, find a partition of the vertices into two non-empty sets S and T such that the total weight of edges crossing the partition is maximized.";
     public string inputDescription { get; } = "G, a weighted undirected graph";
     public string outputDescription { get; } = "The set of vertices forming one side of a maximum-weight cut";
-    public string[] contributors { get; } = { "Max Gruenwoldt", "Eric Hill", "Michael Trosper" };
+    public string[] contributors { get; } = { "Max Grünwoldt", "Eric Hill", "Michael Trosper" };
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public static string _defaultInstance { get; } = "({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})";
