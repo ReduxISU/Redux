@@ -1,0 +1,59 @@
+name: contributor stats sync
+
+on:
+  schedule:
+    # Weekly, Sunday 06:00 UTC.
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Compute stats but do not write the file or open a PR'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # Both Redux and Redux_GUI are public repos, so the default GITHUB_TOKEN (scoped to this
+      # repo for writes) can still read the other repo's public commit/PR/review data over the
+      # API -- no separate PAT needed. See #565.
+      - name: Run contributor stats sync
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet run --configuration Release --project Tools/ContributorStatsSync -- \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Open PR with updated stats
+        if: ${{ !inputs.dry_run }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'chore: weekly contributor stats sync'
+          title: 'Weekly contributor stats sync'
+          body: |
+            Automated update to `wwwroot/contributorInfo.json` from the weekly GitHub stats
+            sync (#565): refreshed commit/PR/review counts for existing contributors, and any
+            newly-detected GitHub identities added as stub entries.
+
+            **Please review before merging** -- new entries and identity matches are not
+            auto-curated. A new entry keyed by a GitHub login instead of a real name means no
+            profile name could be resolved. If a new entry looks like it might be a second
+            identity for someone already listed, merge them by hand instead of merging this PR
+            as-is (see #564's audit for the identity-resolution conventions this file uses).
+          branch: automation/contributor-stats-sync
+          delete-branch: true
+          labels: contributor-stats,automated

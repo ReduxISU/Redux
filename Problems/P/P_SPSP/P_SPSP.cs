@@ -18,6 +18,8 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Shortest_path_problem";
     public string formalDefinition { get; } = "For a weighted graph G= (V,E) with non-negative edge weights, a source vertex s \u2208 V, and a target vertex t \u2208 V, find the shortest path from s to t, where path length is defined as the sum of edge weights along the path.";
     public string problemDefinition { get; } = "Single Pair Shortest Path (SPSP) in a weighted graph is the problem of finding the shortest path from a given source vertex s and target vertex t in the graph, such that the sum of edge weights along the path is minimized.";
+    public string inputDescription { get; } = "A weighted graph with a source vertex and a target vertex";
+    public string outputDescription { get; } = "The shortest path from the source vertex to the target vertex, or empty if unreachable";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
     // The single source of truth for which graph shapes SPSP accepts -- also used

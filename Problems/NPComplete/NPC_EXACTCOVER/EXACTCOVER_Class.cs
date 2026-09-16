@@ -15,6 +15,8 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Exact_cover";
     public string formalDefinition { get; } = "Exact Cover = {<S, X> | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ";
     public string problemDefinition { get; } = "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>";
+    public string inputDescription { get; } = "X, a set, and S, a collection of subsets of X";
+    public string outputDescription { get; } = "True or False, whether an exact cover of X exists using subsets from S";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Caleb Eardley", "Alex Diviney", "Michael Trosper" };

@@ -12,6 +12,8 @@ The PROBLEMNAME_Class.cs should implement the `IProblem` interface or one of its
 * `string problemLink` : Link to an information on the problem, not neccesarily a formal definition 
 * `string formalDefinition` : Definition in the form of {[problem variables] | "definition" }
 * `string problemDefinition` : A more easily readable form of the above definition.
+* `string inputDescription` : A short plain-English name for the problem's input, e.g. "Φ, a boolean formula"
+* `string outputDescription` : A short plain-English description of the problem's output, e.g. "True or False"
 * `string source` : A formal citation of the source material for the problem definition
 * `string sourceLink` : A link to the formal citation
 * `string wikiName` : This is deprecated, and should be removed from all problems

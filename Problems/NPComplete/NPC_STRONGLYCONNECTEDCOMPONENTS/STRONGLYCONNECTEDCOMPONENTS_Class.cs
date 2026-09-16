@@ -20,6 +20,10 @@ class STRONGLYCONNECTEDCOMPONENTS
     public string problemDefinition { get; } =
         "A strongly connected component is a maximal group of vertices in a directed graph where every vertex can reach every other vertex in the same group. The goal is to return all such components.";
 
+    public string inputDescription { get; } = "G, a directed graph";
+
+    public string outputDescription { get; } = "The strongly connected components of G, i.e. the partition of its vertices into maximal mutually-reachable groups";
+
     public string source { get; } =
         "Swati Dhingra, Poorvi S. Dodwad, and Meghna Madan, \"Finding Strongly Connected Components in a Social Network Graph,\" International Journal of Computer Applications, Volume 136, No. 7, February 2016.";
 

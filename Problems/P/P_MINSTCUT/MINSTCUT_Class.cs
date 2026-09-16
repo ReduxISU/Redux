@@ -11,6 +11,8 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_cut";
     public string formalDefinition { get; } = "MinSTCut = {<G,s,t> | G is a weighted directed graph with source s and sink t} — find the partition of V into S (containing s) and T (containing t) minimizing the total capacity of edges directed from S to T.";
     public string problemDefinition { get; } = "Given a weighted directed graph with non-negative edge capacities, a source node s, and a sink node t, find a partition of the vertices into S (containing s) and T (containing t) such that the total capacity of edges directed from S to T is minimized. By the Max-Flow Min-Cut theorem, this minimum cut capacity equals the maximum flow from s to t.";
+    public string inputDescription { get; } = "A weighted directed graph with a source vertex and a sink vertex";
+    public string outputDescription { get; } = "The set of vertices on the source side of a minimum s-t cut";
     public string[] contributors { get; } = { "Michael Trosper" };
     // Declared, not derived. Minimum s-t cut is solvable in polynomial time
     // (Ford-Fulkerson / max-flow min-cut).

@@ -14,6 +14,8 @@ class VERTEXCOVER : IGraphProblem<VertexCoverBruteForce, VCVerifier, VertexCover
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Vertex_cover";
     public string formalDefinition { get; } = "VERTEXCOVER = {<G, k> | G in an undirected graph that has a k-node vertex cover}";
     public string problemDefinition { get; } = "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.";
+    public string inputDescription { get; } = "G, a graph, and k, the target vertex cover size";
+    public string outputDescription { get; } = "True or False, whether the given set of nodes is a vertex cover of G";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     private static string _defaultInstance = "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)";
