@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Solvers;
 
 namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Visualizations;
 
-class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESSION> {
+class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESSION, API_empty> {
     public string visualizationName { get; } = "Lossless Data Compression Visualization";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
@@ -18,7 +18,7 @@ class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESS
     public LosslessDataCompressionVisualization() {
 
     }
-    public API_JSON visualize(LOSSLESSDATACOMPRESSION instance) {
+    public API_empty visualize(LOSSLESSDATACOMPRESSION instance) {
         //TODO: implement visualization
 
         return new API_empty();

@@ -8,7 +8,7 @@ using API.Problems.NPComplete.NPC_WEIGHTEDCUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Visualizations;
 
-class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT> {
+class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Weighted Cut Visualization";
@@ -22,7 +22,7 @@ class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT> {
     public WeightedCutDefaultVisualization() {
 
     }
-    public API_JSON visualize(WEIGHTEDCUT weightedCut) {
+    public API_GraphJSON visualize(WEIGHTEDCUT weightedCut) {
         return weightedCut.graph.ToAPIGraph();
     }
 

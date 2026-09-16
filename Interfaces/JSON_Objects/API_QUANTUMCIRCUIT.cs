@@ -24,6 +24,9 @@ public enum QuantumCircuitFormat {
 /// A visualization may provide either a QASM string or a structured D3 payload.
 /// </summary>
 public sealed class API_QUANTUMCIRCUIT : API_JSON {
+    /// <summary>Discriminator so a client can tell payload shapes apart without duck-typing. See #524.</summary>
+    public string kind { get; } = "quantumCircuit";
+
     /// <summary>
     /// The solution to the quantum problem
     /// </summary>

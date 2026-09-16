@@ -8,7 +8,7 @@ using API.Problems.P.P_NFA.Solvers;
 
 namespace API.Problems.P.P_NFA.Visualizations;
 
-class NFAVisualization : IVisualization<NFA> {
+class NFAVisualization : IVisualization<NFA, API_GraphJSON> {
     public string visualizationName { get; } = "Non-Deterministic Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Non-deterministic Finite Automata";
     public string source { get; } = "";
@@ -19,7 +19,7 @@ class NFAVisualization : IVisualization<NFA> {
     // --- Methods Including Constructors ---
     public NFAVisualization() { }
 
-    API_JSON IVisualization<NFA>.visualize(NFA instance) {
+    API_GraphJSON IVisualization<NFA, API_GraphJSON>.visualize(NFA instance) {
         return instance.graph.ToAPIGraph();
     }
 

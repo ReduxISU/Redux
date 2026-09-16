@@ -10,6 +10,9 @@ using Microsoft.VisualBasic;
 namespace API.Interfaces.JSON_Objects;
 
 class API_SAT : API_JSON {
+    /// <summary>Discriminator so a client can tell payload shapes apart without duck-typing. See #524.</summary>
+    public string kind { get; } = "sat";
+
     public List<Clause> clauses { get; set; }
     public API_SAT(SAT3 instance) {
         clauses = instance.clauses.Select((c, i) => new Clause(c, i.ToString())).ToList();
