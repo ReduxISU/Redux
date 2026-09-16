@@ -12,6 +12,8 @@ class TOPOLOGICALSORT : IGraphProblem<KahnsAlgorithm, TopologicalSortVerifier, T
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Topological_sorting";
     public string formalDefinition { get; } = "TOPOLOGICALSORT = {<G> | G is a DAG with a valid linear ordering of vertices such that for every directed edge (u,v), u appears before v}";
     public string problemDefinition { get; } = "Topological Sort is the problem of arranging the vertices of a directed acyclic graph (DAG) into a linear sequence such that all directed edges point forward in the sequence. If the graph contains a cycle, no valid topological ordering exists.";
+    public string inputDescription { get; } = "G, a directed graph";
+    public string outputDescription { get; } = "A valid topological ordering of the vertices of G";
     public string source { get; } = "Kahn, A. B. (1962). Topological sorting of large networks. Communications of the ACM, 5(11), 558-562.";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/368996.369025";
     public const string InstanceGrammar = "{(N,E) | N is set, E subset N cross N}";

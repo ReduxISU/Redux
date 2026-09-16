@@ -21,6 +21,9 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
         "For this Redux contribution, the selected algorithm is Huffman Encoding. Huffman Encoding builds a prefix-free binary code where characters that appear more often usually receive shorter codes, " +
         "and characters that appear less often usually receive longer codes.";
 
+    public string inputDescription { get; } = "S, a raw text string to compress";
+    public string outputDescription { get; } = "A prefix-free Huffman code table for S together with S encoded using it";
+
     public string source { get; } =
         "David A. Huffman, A Method for the Construction of Minimum-Redundancy Codes, Proceedings of the IRE, 1952.";
 

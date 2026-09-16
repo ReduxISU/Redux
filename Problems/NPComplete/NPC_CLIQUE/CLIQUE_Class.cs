@@ -13,6 +13,8 @@ class CLIQUE : IGraphProblem<CliqueBruteForce, CliqueVerifier, CliqueDefaultVisu
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Clique";
     public string formalDefinition { get; } = "Clique = {<G, k> | G is an graph that has a set of k mutually adjacent nodes}";
     public string problemDefinition { get; } = "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent";
+    public string inputDescription { get; } = "G, a graph, and k, the size of clique to find";
+    public string outputDescription { get; } = "True or False, whether G contains a clique of size k";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";

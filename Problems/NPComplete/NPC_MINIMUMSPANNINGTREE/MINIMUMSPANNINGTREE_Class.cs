@@ -14,6 +14,8 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
     public string formalDefinition { get; } = "Given a weighted undirected graph G = (V, E, w), find a subset T \u2286 E such that T is a spanning tree of G and the sum of weights in T is minimum.";
     public string problemDefinition { get; } = "Given a weighted, undirected graph, find a set of edges that connects every vertex without creating cycles and has the smallest possible total weight.";
+    public string inputDescription { get; } = "G, a weighted undirected graph";
+    public string outputDescription { get; } = "The set of edges forming a minimum spanning tree";
     public string source { get; } = "Graham, Ronald L., and Pavel Hell. \"On the history of the minimum spanning tree problem.\" Annals of the History of Computing 7, no. 1 (1985): 43-57.";
     public string sourceLink { get; } = "https://doi.org/10.1109/MAHC.1985.10011";
     public string wikiName { get; } = "";

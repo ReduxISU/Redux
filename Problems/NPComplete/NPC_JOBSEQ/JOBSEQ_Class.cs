@@ -13,6 +13,8 @@ class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, DummyVisualization> {
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Optimal_job_scheduling";
     public string formalDefinition { get; } = "JobSeq = <T, D, P, K> is a vecter T of execution times, vector D of deadlines, vector P of penalties, and integer k where there exists a permutation pi of {1,2,3...,p} such that the sum of the penalties of every job that was not finished before the deadline is less than equal to k.";
     public string problemDefinition { get; } = "Job sequencing is the task of deciding in what order to do a series of jobs. Each job has a length of time it takes, a deadline, and a penalty that is applied if the deadline is missed. The task is to find an ordering of the jobs that results in a penalty that is less than k.";
+    public string inputDescription { get; } = "T, job execution times, D, job deadlines, P, job penalties, and k, the maximum allowed total penalty";
+    public string outputDescription { get; } = "True or False, whether an ordering of the jobs exists with total penalty at most k";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Russell Phillips" };
