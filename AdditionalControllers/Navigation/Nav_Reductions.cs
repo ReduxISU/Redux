@@ -133,6 +133,37 @@ public class ReductionEdge {
     public string complexityBucket { get; set; } = "";
 }
 
+// Same top-level-not-nested requirement as ReductionEdge above (see its comment) —
+// these back ReductionGraphData.WeightedPathBetween's result and must $ref-resolve
+// in Swagger too.
+
+/// <summary>
+/// A single hop in a weighted-shortest-path reduction route.
+/// </summary>
+public class ReductionPathHop {
+    /// <summary>The source problem of this hop (class name).</summary>
+    public string from { get; set; } = "";
+    /// <summary>The destination problem of this hop (class name).</summary>
+    public string to { get; set; } = "";
+    /// <summary>The reduction class name used for this hop — the cheapest (by declared ReductionCost) of any parallel edges between from and to.</summary>
+    public string className { get; set; } = "";
+    /// <summary>The declared ReductionCost wire value of the chosen edge (e.g. "Linear").</summary>
+    public string cost { get; set; } = "";
+}
+
+/// <summary>
+/// The result of a weighted-shortest-path search between two problems in the
+/// reduction graph.
+/// </summary>
+public class ReductionPathResult {
+    /// <summary>True if a path exists between source and target.</summary>
+    public bool found { get; set; }
+    /// <summary>Problem class names along the path, source first, target last. Empty if not found.</summary>
+    public List<string> nodes { get; set; } = new();
+    /// <summary>The hops making up the path, in order. Empty if not found.</summary>
+    public List<ReductionPathHop> hops { get; set; } = new();
+}
+
 /// <summary>
 /// Represents a reduction graph data structure as a dictionary of dictionaries.
 /// </summary>
@@ -335,6 +366,95 @@ public static class ReductionGraphData {
         hops.Reverse();
         return hops;
     }
+
+    /// <summary>
+    /// Cheapest path (by declared ReductionCost, via Dijkstra) from source to target.
+    /// Within a (from, to) pair with multiple parallel reduction classes, each hop's
+    /// weight is the lowest CostRank among them, and that cheapest edge is the one
+    /// reported. Unlike <see cref="PathBetween"/> (unweighted, hop-count-only BFS),
+    /// this can prefer a longer path over a shorter one if it is cheaper overall.
+    /// </summary>
+    /// <param name="source">The source problem (class name, case-insensitive).</param>
+    /// <param name="target">The destination problem (class name, case-insensitive).</param>
+    /// <returns>
+    /// A <see cref="ReductionPathResult"/> with found=false and empty nodes/hops if
+    /// either name is unknown, source equals target, or no path exists.
+    /// </returns>
+    public static ReductionPathResult WeightedPathBetween(string source, string target) {
+        var result = new ReductionPathResult();
+
+        string? s = ResolveKey(source);
+        string? t = ResolveKey(target);
+        if (s == null || t == null) return result;
+        if (string.Equals(s, t, StringComparison.OrdinalIgnoreCase)) return result;
+
+        // Standard Dijkstra: dist tracks the best known cumulative CostRank to each
+        // node, parent/parentEdge remember the cheapest edge used to reach it (for
+        // path reconstruction), visited prevents reprocessing a node after it's been
+        // popped with its final (minimal) distance.
+        var dist = new Dictionary<string, int> { [s] = 0 };
+        var parent = new Dictionary<string, string>();
+        var parentEdge = new Dictionary<string, ReductionEdge>();
+        var visited = new HashSet<string>();
+
+        var queue = new PriorityQueue<string, int>();
+        queue.Enqueue(s, 0);
+
+        while (queue.Count > 0) {
+            string cur = queue.Dequeue();
+            if (!visited.Add(cur)) continue;
+            if (string.Equals(cur, t, StringComparison.OrdinalIgnoreCase)) break;
+
+            if (!Graph.TryGetValue(cur, out var outs)) continue;
+            foreach (var (next, edges) in outs) {
+                if (visited.Contains(next) || edges.Count == 0) continue;
+
+                // Cheapest parallel edge for this hop, by CostRank.
+                ReductionEdge best = edges[0];
+                int bestRank = CostRank.TryGetValue(best.cost, out var r0) ? r0 : int.MaxValue;
+                for (int i = 1; i < edges.Count; i++) {
+                    int rank = CostRank.TryGetValue(edges[i].cost, out var r) ? r : int.MaxValue;
+                    if (rank < bestRank) {
+                        best = edges[i];
+                        bestRank = rank;
+                    }
+                }
+
+                int candidate = dist[cur] + bestRank;
+                if (!dist.TryGetValue(next, out var known) || candidate < known) {
+                    dist[next] = candidate;
+                    parent[next] = cur;
+                    parentEdge[next] = best;
+                    queue.Enqueue(next, candidate);
+                }
+            }
+        }
+
+        if (!dist.ContainsKey(t)) return result;
+
+        var nodes = new List<string>();
+        var hops = new List<ReductionPathHop>();
+        string node = t;
+        nodes.Add(node);
+        while (parent.TryGetValue(node, out string? prev)) {
+            var edge = parentEdge[node];
+            hops.Add(new ReductionPathHop {
+                from = prev,
+                to = node,
+                className = edge.className,
+                cost = edge.cost,
+            });
+            node = prev;
+            nodes.Add(node);
+        }
+        nodes.Reverse();
+        hops.Reverse();
+
+        result.found = true;
+        result.nodes = nodes;
+        result.hops = hops;
+        return result;
+    }
 }
 
 [ApiController]
@@ -370,5 +490,21 @@ public class ReductionsController : ControllerBase {
             }
         }
         return JsonSerializer.Serialize(result, options);
+    }
+
+    /// <summary>Returns the cheapest reduction path (by declared ReductionCost) from source to target.</summary>
+    /// <remarks>
+    /// Runs Dijkstra over the reduction graph, weighting each hop by its cheapest parallel
+    /// edge's declared ReductionCost. Unlike the unweighted, hop-count-only path implicit in
+    /// <see cref="getDefault"/>'s adjacency map, this can prefer a longer chain of cheap
+    /// reductions over a shorter chain that includes an expensive one.
+    /// </remarks>
+    /// <param name="source">The source problem (class name, e.g. "CLIQUE"). Case-insensitive.</param>
+    /// <param name="target">The destination problem (class name, e.g. "SETCOVER"). Case-insensitive.</param>
+    /// <response code="200">The cheapest path found, or found=false if either name is unknown, source equals target, or no path exists.</response>
+    [ProducesResponseType(typeof(ReductionPathResult), 200)]
+    [HttpGet("path")]
+    public ReductionPathResult path([FromQuery] string source, [FromQuery] string target) {
+        return ReductionGraphData.WeightedPathBetween(source, target);
     }
 }
