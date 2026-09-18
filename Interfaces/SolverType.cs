@@ -46,4 +46,7 @@ public enum SolverType {
     /// make, and from <see cref="Backtracking"/> because nothing is ever tried and undone.
     /// </summary>
     Constructive,
+    /// <summary>Randomly chooses candidates for solutions.</summary>
+    Randomized
+    
 }
