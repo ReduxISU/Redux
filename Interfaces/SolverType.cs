@@ -47,6 +47,7 @@ public enum SolverType {
     /// </summary>
     Constructive,
     /// <summary>Randomly chooses candidates for solutions.</summary>
-    Randomized
-    
+    Randomized,
+    /// <summary>Exploits a specific, bounded parameter of the input to solve hard problems exactly in polynomial time.</summary>
+    Parameterized
 }
