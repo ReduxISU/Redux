@@ -5,8 +5,8 @@
     "major": "Computer Science",
     "bio": "Full-stack developer with expertise in NP-Complete problems",
     "githubUsername": "marckade",
-    "reduxStats": { "commits": 100, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
-    "reduxGuiStats": { "commits": 33, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+    "reduxStats": { "commits": 81, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 32, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
   "Caleb Eardley": {
     "email": "calebeardley@isu.edu",
@@ -50,8 +50,8 @@
     "major": "Computer Science",
     "bio": "Graph algorithm specialist",
     "githubUsername": "Andrija-Sevaljevic",
-    "reduxStats": { "commits": 206, "prsOpened": 14, "prsMerged": 79, "reviews": 31 },
-    "reduxGuiStats": { "commits": 157, "prsOpened": 20, "prsMerged": 23, "reviews": 11 }
+    "reduxStats": { "commits": 205, "prsOpened": 14, "prsMerged": 14, "reviews": 36 },
+    "reduxGuiStats": { "commits": 154, "prsOpened": 20, "prsMerged": 16, "reviews": 14 }
   },
   "Garret Stouffer": {
     "email": "garretstouffer@isu.edu",
@@ -68,7 +68,7 @@
     "major": "Computer Science",
     "bio": "Testing and quality assurance specialist",
     "githubUsername": "po-gl",
-    "reduxGuiStats": { "commits": 9, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 7, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
   "Show Pratoomratana": {
@@ -86,8 +86,8 @@
     "major": "Computer Science",
     "bio": "Documentation and project coordinator",
     "githubUsername": "Jetison333",
-    "reduxStats": { "commits": 177, "prsOpened": 10, "prsMerged": 29, "reviews": 0 },
-    "reduxGuiStats": { "commits": 32, "prsOpened": 3, "prsMerged": 11, "reviews": 0 }
+    "reduxStats": { "commits": 177, "prsOpened": 10, "prsMerged": 10, "reviews": 0 },
+    "reduxGuiStats": { "commits": 31, "prsOpened": 3, "prsMerged": 3, "reviews": 0 }
   },
   "Michael Crapse": {
     "email": "michaelcrapse@isu.edu",
@@ -113,8 +113,8 @@
     "major": "Computer Science",
     "bio": "Problem verification specialist",
     "githubUsername": "sabal-subedi",
-    "reduxGuiStats": { "commits": 5, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
-    "reduxStats": { "commits": 6, "prsOpened": 1, "prsMerged": 1, "reviews": 0 }
+    "reduxGuiStats": { "commits": 0, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
+    "reduxStats": { "commits": 7, "prsOpened": 1, "prsMerged": 1, "reviews": 0 }
   },
   "Himanshu Jha": {
     "email": "himanshujha@isu.edu",
@@ -122,7 +122,7 @@
     "major": "Computer Science",
     "bio": "Full-stack developer and API specialist",
     "githubUsername": "himanshujha05",
-    "reduxGuiStats": { "commits": 15, "prsOpened": 1, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 4, "prsOpened": 1, "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "commits": 15, "prsOpened": 3, "prsMerged": 2, "reviews": 0 }
   },
   "Sansar Kharal": {
@@ -140,7 +140,7 @@
     "major": "Computer Science",
     "bio": "Database and backend developer",
     "githubUsername": "pkprathamkhanal",
-    "reduxGuiStats": { "commits": 31, "prsOpened": 11, "prsMerged": 6, "reviews": 1 },
+    "reduxGuiStats": { "commits": 6, "prsOpened": 11, "prsMerged": 6, "reviews": 1 },
     "reduxStats": { "commits": 0, "prsOpened": 2, "prsMerged": 0, "reviews": 0 }
   },
   "George Lake": {
@@ -167,8 +167,8 @@
     "major": "Computer Science",
     "bio": "",
     "githubUsername": "wrigjl",
-    "reduxStats": { "commits": 342, "prsOpened": 134, "prsMerged": 129, "reviews": 37 },
-    "reduxGuiStats": { "commits": 82, "prsOpened": 26, "prsMerged": 41, "reviews": 3 }
+    "reduxStats": { "commits": 359, "prsOpened": 136, "prsMerged": 132, "reviews": 66 },
+    "reduxGuiStats": { "commits": 76, "prsOpened": 26, "prsMerged": 23, "reviews": 3 }
   },
   "Alex Svancara": {
     "email": "alexsvancara@isu.edu",
@@ -220,7 +220,7 @@
     "major": "Computer Science",
     "bio": "Project lead and system architect. Note: the 2026 contributor audit observed two separate GitHub logins in raw commit data for this name; they have been merged into this single entry.",
     "githubUsername": "courtneybodily",
-    "reduxGuiStats": { "commits": 9, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 3, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
   "Rakesh Itani": {
@@ -229,7 +229,7 @@
     "major": "Computer Science",
     "bio": "Frontend developer and UI specialist",
     "githubUsername": "darklord293",
-    "reduxGuiStats": { "commits": 3, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
+    "reduxGuiStats": { "commits": 0, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxStats": { "commits": 3, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   },
   "David Lindeman": {
@@ -319,8 +319,8 @@
     "major": "Computer Science",
     "bio": "Full-stack contributor spanning backend problem/test infrastructure and frontend UI (tag/filter system, theming); dominant author of the backend test suite and an active PR reviewer across both repos.",
     "githubUsername": "Trosper3",
-    "reduxStats": { "commits": 220, "prsOpened": 86, "prsMerged": 25, "reviews": 36 },
-    "reduxGuiStats": { "commits": 52, "prsOpened": 20, "prsMerged": 24, "reviews": 36 }
+    "reduxStats": { "commits": 245, "prsOpened": 114, "prsMerged": 78, "reviews": 35 },
+    "reduxGuiStats": { "commits": 48, "prsOpened": 53, "prsMerged": 11, "reviews": 37 }
   },
   "Ryan Davis": {
     "email": "",
@@ -328,8 +328,8 @@
     "major": "",
     "bio": "Small commit count but outsized infrastructure impact, per the 2026 contributor audit: built the RBS (Redux Build System) CI pipeline, devcontainer setup, and mise tasks, plus the Biome formatter and improved ESLint config for Redux_GUI; authored rbs.toml/Directory.Build.* config for Redux.",
     "githubUsername": "ryancraigdavis",
-    "reduxStats": { "commits": 3, "prsOpened": 2, "prsMerged": 1, "reviews": 1 },
-    "reduxGuiStats": { "commits": 5, "prsOpened": 4, "prsMerged": 4, "reviews": 1 }
+    "reduxStats": { "commits": 2, "prsOpened": 3, "prsMerged": 2, "reviews": 1 },
+    "reduxGuiStats": { "commits": 6, "prsOpened": 5, "prsMerged": 5, "reviews": 1 }
   },
   "Quinton Smith": {
     "email": "",
@@ -346,7 +346,7 @@
     "major": "",
     "bio": "Also recorded as \"Rajit Nilkar\" in some git history, per the 2026 contributor audit; name form here is a judgment call worth double-checking.",
     "githubUsername": "RajNilkar",
-    "reduxStats": { "commits": 30, "prsOpened": 11, "prsMerged": 9, "reviews": 0 },
+    "reduxStats": { "commits": 23, "prsOpened": 11, "prsMerged": 9, "reviews": 0 },
     "reduxGuiStats": { "commits": 7, "prsOpened": 2, "prsMerged": 2, "reviews": 0 }
   },
   "Collin M Kress": {
@@ -365,7 +365,7 @@
     "bio": "Contributed to Redux (Problems content), per the 2026 contributor audit. Note: This 2026 audit follow-up confirmed the Redux and Redux_GUI activity share one GitHub login (akkabakovb), so this is the same person, not a name coincidence.",
     "githubUsername": "akkabakovb",
     "reduxGuiStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
-    "reduxStats": { "commits": 11, "prsOpened": 2, "prsMerged": 2, "reviews": 0 }
+    "reduxStats": { "commits": 2, "prsOpened": 2, "prsMerged": 2, "reviews": 0 }
   },
   "Corbin Hay": {
     "email": "",
@@ -510,5 +510,23 @@
     "githubUsername": "prameshshah",
     "reduxStats": { "commits": 1, "prsOpened": 1, "prsMerged": 1, "reviews": 0 },
     "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+  },
+  "norkish": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Auto-detected by the contributor stats sync workflow (#565) -- bio, education, and major not yet filled in.",
+    "githubUsername": "norkish",
+    "reduxStats": { "commits": 1, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
+  },
+  "courtbod": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Auto-detected by the contributor stats sync workflow (#565) -- bio, education, and major not yet filled in.",
+    "githubUsername": "courtbod",
+    "reduxStats": { "commits": 0, "prsOpened": 0, "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "commits": 6, "prsOpened": 0, "prsMerged": 0, "reviews": 0 }
   }
 }
