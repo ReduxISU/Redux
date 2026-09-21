@@ -42,6 +42,7 @@ internal static class ReductionTypeCatalog {
     internal static readonly Lazy<Dictionary<string, string>> ReductionTypeByClassName = new(BuildReductionType);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityBucketByClassName = new(BuildComplexityBucket);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityByClassName = new(BuildComplexity);
+    internal static readonly Lazy<Dictionary<string, string>> NameByClassName = new(BuildName);
 
     private static Dictionary<string, string> BuildReductionType() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -66,6 +67,25 @@ internal static class ReductionTypeCatalog {
             } catch {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to Unclassified at the call site.
+            }
+        }
+        return result;
+    }
+
+    // reductionName is a required (non-defaulted) IReduction member -- every
+    // successfully-constructed reduction declares one -- so unlike the other fields in
+    // this class there's no "Unclassified" fallback to fall back to; DeclaredReductionName
+    // (below) falls back to the class name itself for a reduction that couldn't be
+    // constructed at all.
+    private static Dictionary<string, string> BuildName() {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance)
+                    result[type.Name] = instance.reductionName;
+            } catch {
+                // Skip a reduction that can't be default-constructed instead of failing
+                // the whole catalog. It falls back to the class name at the call site.
             }
         }
         return result;
@@ -107,6 +127,9 @@ public class ReductionEdge {
     /// <summary>The name of the class implementing the reduction.</summary>
     /// <example>KarpVertexCoverToSetCover</example>
     public string className { get; set; } = "";
+    /// <summary>The reduction's declared human-readable name (<see cref="IReduction.reductionName"/>). Falls back to <see cref="className"/> if the reduction couldn't be constructed to read its declared name.</summary>
+    /// <example>Karp Reduction: Vertex Cover to Set Cover</example>
+    public string reductionName { get; set; } = "";
     /// <summary>The HTTP method and relative path that performs the reduction.</summary>
     /// <example>POST /ProblemProvider/reduce?reduction=KarpVertexCoverToSetCover</example>
     public string endpoint { get; set; } = "";
@@ -162,6 +185,11 @@ public static class ReductionGraphData {
         ReductionCostCatalog.ByClassName.Value.TryGetValue(className, out var cost)
             ? cost
             : nameof(API.Interfaces.ReductionCost.Unclassified);
+
+    private static string DeclaredReductionName(string className) =>
+        ReductionTypeCatalog.NameByClassName.Value.TryGetValue(className, out var name) && !string.IsNullOrEmpty(name)
+            ? name
+            : className;
 
     private static string DeclaredReductionType(string className) =>
         ReductionTypeCatalog.ReductionTypeByClassName.Value.TryGetValue(className, out var reductionType)
@@ -226,6 +254,7 @@ public static class ReductionGraphData {
             string className = type.Name;
             var edge = new ReductionEdge {
                 className = className,
+                reductionName = DeclaredReductionName(className),
                 endpoint = $"POST /ProblemProvider/reduce?reduction={className}",
                 inputType = from,
                 outputType = to,
@@ -346,7 +375,7 @@ public class ReductionsController : ControllerBase {
 
     /// <summary>Returns the reduction graph as an adjacency map: from -> to -> list of reduction edges.</summary>
     /// <remarks>
-    /// Each edge is self-describing (className, endpoint, inputType, outputType) so an LLM
+    /// Each edge is self-describing (className, reductionName, endpoint, inputType, outputType) so an LLM
     /// can chain reductions by matching outputType of step n to inputType of step n+1.
     /// Omit both source and target to get the full graph for multi-step planning.
     /// </remarks>
