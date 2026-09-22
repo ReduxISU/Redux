@@ -9,8 +9,10 @@ using Octokit;
 namespace ContributorStatsSync;
 
 // Weekly sync for wwwroot/contributorInfo.json's reduxStats/reduxGuiStats (see issue #565).
-// Recomputes commit/PR/review counts for every contributor who already has a githubUsername,
-// and auto-detects new GitHub identities committing to either repo that aren't tracked yet.
+// Recomputes PRs-merged/PRs-reviewed counts for every contributor who already has a
+// githubUsername, and auto-detects new GitHub identities committing to either repo that
+// aren't tracked yet. Commit counts and PRs-opened counts are deliberately not tracked --
+// PRs merged and PRs reviewed are what the About Us page displays.
 //
 // Identity resolution stays human-curated on purpose (see #564's audit): this tool never
 // merges two GitHub logins into one contributor, and never overwrites an existing entry's
@@ -202,23 +204,19 @@ internal static class Program {
         }
     }
 
-    private readonly record struct RepoStats(int Commits, int PrsOpened, int PrsMerged, int Reviews);
+    private readonly record struct RepoStats(int PrsMerged, int Reviews);
 
     private static JsonObject StatsToNode(RepoStats stats) => new() {
-        ["commits"] = stats.Commits,
-        ["prsOpened"] = stats.PrsOpened,
         ["prsMerged"] = stats.PrsMerged,
         ["reviews"] = stats.Reviews,
     };
 
     private static async Task<RepoStats> ComputeRepoStatsAsync(
         HttpClient http, SearchThrottle throttle, string repo, string login) {
-        var commits = await SearchTotalCountAsync(http, throttle, "search/commits", $"repo:{Owner}/{repo} author:{login}");
-        var prsOpened = await SearchTotalCountAsync(http, throttle, "search/issues", $"repo:{Owner}/{repo} type:pr author:{login}");
         var prsMerged = await SearchTotalCountAsync(http, throttle, "search/issues", $"repo:{Owner}/{repo} type:pr author:{login} is:merged");
         var reviews = await SearchTotalCountAsync(http, throttle, "search/issues", $"repo:{Owner}/{repo} type:pr reviewed-by:{login}");
 
-        return new RepoStats(commits, prsOpened, prsMerged, reviews);
+        return new RepoStats(prsMerged, reviews);
     }
 
     // GitHub's Search API (commits and issues/PRs) isn't wrapped by Octokit's typed Search client,
@@ -293,7 +291,7 @@ internal static class Program {
     // Stats sub-objects are written compact/single-line to match the hand-curated style
     // established in #564/#566, so a diff shows one line per changed stat block, not four.
     private static readonly Regex StatsObjectPattern =
-        new(@"\{(\s*\n\s*""commits"":.*?)\n\s*\}", RegexOptions.Singleline | RegexOptions.Compiled);
+        new(@"\{(\s*\n\s*""prsMerged"":.*?)\n\s*\}", RegexOptions.Singleline | RegexOptions.Compiled);
 
     private static async Task SaveAsync(string path, JsonObject root) {
         var json = root.ToJsonString(SerializerOptions);

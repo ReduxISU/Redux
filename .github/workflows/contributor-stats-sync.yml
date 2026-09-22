@@ -46,8 +46,8 @@ jobs:
           title: 'Weekly contributor stats sync'
           body: |
             Automated update to `wwwroot/contributorInfo.json` from the weekly GitHub stats
-            sync (#565): refreshed commit/PR/review counts for existing contributors, and any
-            newly-detected GitHub identities added as stub entries.
+            sync (#565): refreshed PRs-merged/PRs-reviewed counts for existing contributors,
+            and any newly-detected GitHub identities added as stub entries.
 
             **Please review before merging** -- new entries and identity matches are not
             auto-curated. A new entry keyed by a GitHub login instead of a real name means no

@@ -375,14 +375,6 @@ public class ContributorInfo {
 
 /// <summary>Per-repo GitHub contribution counts for a contributor. All fields are nullable/optional — many contributors only have partial data, especially for pre-PR-workflow-era work.</summary>
 public class ContributorRepoStats {
-    /// <summary>Number of commits authored in this repo</summary>
-    [JsonPropertyName("commits")]
-    public int? Commits { get; set; }
-
-    /// <summary>Number of pull requests opened in this repo</summary>
-    [JsonPropertyName("prsOpened")]
-    public int? PrsOpened { get; set; }
-
     /// <summary>Number of pull requests merged in this repo</summary>
     [JsonPropertyName("prsMerged")]
     public int? PrsMerged { get; set; }
