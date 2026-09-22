@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using API.Interfaces;
+using API.Problems.P.P_SPSP.Solvers;
 
 // Reflection-derived reduction graph and the endpoint that exposes it.
 // Replaces the prior filesystem-walking controllers (All_Reductions,
@@ -373,6 +374,12 @@ public static class ReductionGraphData {
     /// weight is the lowest CostRank among them, and that cheapest edge is the one
     /// reported. Unlike <see cref="PathBetween"/> (unweighted, hop-count-only BFS),
     /// this can prefer a longer path over a shorter one if it is cheaper overall.
+    ///
+    /// Redux already ships Dijkstra as SPSP's default solver (Problems/P/P_SPSP) --
+    /// rather than hand-roll a second implementation here, the reduction graph is
+    /// encoded as an SPSP instance (nodes = problem class names, edge weights = each
+    /// hop's cheapest parallel edge's CostRank) and solved via the same in-process
+    /// ISolver.solve(string) path ProblemProvider/solve itself uses.
     /// </summary>
     /// <param name="source">The source problem (class name, case-insensitive).</param>
     /// <param name="target">The destination problem (class name, case-insensitive).</param>
@@ -388,28 +395,18 @@ public static class ReductionGraphData {
         if (s == null || t == null) return result;
         if (string.Equals(s, t, StringComparison.OrdinalIgnoreCase)) return result;
 
-        // Standard Dijkstra: dist tracks the best known cumulative CostRank to each
-        // node, parent/parentEdge remember the cheapest edge used to reach it (for
-        // path reconstruction), visited prevents reprocessing a node after it's been
-        // popped with its final (minimal) distance.
-        var dist = new Dictionary<string, int> { [s] = 0 };
-        var parent = new Dictionary<string, string>();
-        var parentEdge = new Dictionary<string, ReductionEdge>();
-        var visited = new HashSet<string>();
+        // Every node that appears anywhere in the graph, and for each (from, to) pair
+        // the cheapest parallel edge by CostRank -- SPSP only ever sees the resulting
+        // integer weight, so this tie-break has to happen before handing it off.
+        var nodes = new List<string>();
+        var seenNodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var cheapestEdge = new Dictionary<(string from, string to), ReductionEdge>();
+        foreach (var (from, tos) in Graph) {
+            if (seenNodes.Add(from)) nodes.Add(from);
+            foreach (var (to, edges) in tos) {
+                if (edges.Count == 0) continue;
+                if (seenNodes.Add(to)) nodes.Add(to);
 
-        var queue = new PriorityQueue<string, int>();
-        queue.Enqueue(s, 0);
-
-        while (queue.Count > 0) {
-            string cur = queue.Dequeue();
-            if (!visited.Add(cur)) continue;
-            if (string.Equals(cur, t, StringComparison.OrdinalIgnoreCase)) break;
-
-            if (!Graph.TryGetValue(cur, out var outs)) continue;
-            foreach (var (next, edges) in outs) {
-                if (visited.Contains(next) || edges.Count == 0) continue;
-
-                // Cheapest parallel edge for this hop, by CostRank.
                 ReductionEdge best = edges[0];
                 int bestRank = CostRank.TryGetValue(best.cost, out var r0) ? r0 : int.MaxValue;
                 for (int i = 1; i < edges.Count; i++) {
@@ -419,41 +416,49 @@ public static class ReductionGraphData {
                         bestRank = rank;
                     }
                 }
-
-                int candidate = dist[cur] + bestRank;
-                if (!dist.TryGetValue(next, out var known) || candidate < known) {
-                    dist[next] = candidate;
-                    parent[next] = cur;
-                    parentEdge[next] = best;
-                    queue.Enqueue(next, candidate);
-                }
+                cheapestEdge[(from, to)] = best;
             }
         }
 
-        if (!dist.ContainsKey(t)) return result;
+        string nodeSet = "{" + string.Join(",", nodes) + "}";
+        string edgeSet = "{" + string.Join(",", cheapestEdge.Select(kv => {
+            int weight = CostRank.TryGetValue(kv.Value.cost, out var r) ? r : int.MaxValue;
+            return $"(({kv.Key.from},{kv.Key.to}),{weight})";
+        })) + "}";
+        string spspInstance = $"({nodeSet},{edgeSet},{s},{t})";
 
-        var nodes = new List<string>();
+        // solve(string) is ISolver<T>'s default interface implementation (constructs
+        // SPSP from the instance string, then calls solve(SPSP)) -- only reachable
+        // through an ISolver-typed reference, not directly off the concrete solver.
+        string certificate = ((ISolver)new SPSPSolver()).solve(spspInstance);
+        var path = ParseSpspCertificate(certificate);
+        if (path.Count == 0) return result;
+
         var hops = new List<ReductionPathHop>();
-        string node = t;
-        nodes.Add(node);
-        while (parent.TryGetValue(node, out string? prev)) {
-            var edge = parentEdge[node];
+        for (int i = 0; i < path.Count - 1; i++) {
+            var edge = cheapestEdge[(path[i], path[i + 1])];
             hops.Add(new ReductionPathHop {
-                from = prev,
-                to = node,
+                from = path[i],
+                to = path[i + 1],
                 className = edge.className,
                 cost = edge.cost,
             });
-            node = prev;
-            nodes.Add(node);
         }
-        nodes.Reverse();
-        hops.Reverse();
 
         result.found = true;
-        result.nodes = nodes;
+        result.nodes = path;
         result.hops = hops;
         return result;
+    }
+
+    // SPSPSolver.solve returns "{n1,n2,n3}" (source-to-target order) or "{}" if no
+    // path was found.
+    private static List<string> ParseSpspCertificate(string certificate) {
+        string trimmed = certificate.Trim();
+        if (trimmed.Length < 2 || trimmed[0] != '{' || trimmed[^1] != '}') return new List<string>();
+        string inner = trimmed[1..^1];
+        if (inner.Length == 0) return new List<string>();
+        return inner.Split(',').Select(n => n.Trim()).ToList();
     }
 }
 
