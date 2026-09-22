@@ -28,7 +28,7 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         + "maps a clique certificate back to a 3SAT assignment. Only meaningful for "
         + "CLIQUE instances produced by SipserReduceToCliqueStandard.";
     public string source { get; } = "Sipser, Michael. Introduction to the Theory of Computation. ACM Sigact News 27.1 (1996): 27-29.";
-    public string[] contributors { get; } = { "Jason Wright" };
+    public string[] contributors { get; } = { "Jason L. Wright" };
     // reduce() does a single pass over the CLIQUE instance's nodes, grouping them into
     // clauses by trailing '_<clauseIdx>' suffix — output clause count is O(n) in the
     // number of input nodes.

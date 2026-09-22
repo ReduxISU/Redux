@@ -28,7 +28,7 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public BernsteinVaziraniClassicalSolver defaultSolver { get; } = new BernsteinVaziraniClassicalSolver();
     public BernsteinVaziraniClassicalVerifier defaultVerifier { get; } = new BernsteinVaziraniClassicalVerifier();
     public BernsteinVaziraniDefaultVisualization defaultVisualization { get; } = new BernsteinVaziraniDefaultVisualization();
-    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Grünwoldt", "Alex Svancara", "Jason Wright" };
+    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Grünwoldt", "Alex Svancara", "Jason L. Wright" };
     // Declared, not derived. The Bernstein-Vazirani algorithm solves this promise
     // problem with a single oracle query and zero error probability — exact, not
     // merely bounded-error — so it belongs in EQP, not the classical P/NP hierarchy.

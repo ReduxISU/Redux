@@ -12,7 +12,7 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
         "and continues dividing the number by each prime factor found until the number is fully factored. " +
         "The algorithm runs in O(√n) time complexity in the worst case, making it suitable for small to moderate-sized integers.";
     public string source { get; } = "Pisano, Leonardo (1202), Incipit liber Abbaci compositus to Lionardo filio Bonaccii Pisano in year Mccij, Museo Galileo.";
-    public string[] contributors { get; } = { "Jason Wright", "Paul Gilbreath", "Alex Svancara" };
+    public string[] contributors { get; } = { "Jason L. Wright", "Paul Gilbreath", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive trial division. Classic trap: looks polynomial-ish
     // (a loop to sqrt(n)) in the *value* of n, but is exponential in n's *bit-length* -- the actual

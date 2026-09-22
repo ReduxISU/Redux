@@ -15,7 +15,7 @@ class SATGroverSolver : ISolver<SAT> {
     public string solverName { get; } = "Grover's Algorithm";
     public string solverDefinition { get; } = "This solver builds the expression as a quantum circuit and then uses Grover's algorithm to probablisticly detemine a solution";
     public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
-    public string[] contributors { get; } = { "Jason Wright" };
+    public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Delegates to the external quantum-simulator service.
     public SolverType solverType { get; } = SolverType.Quantum;

@@ -10,7 +10,7 @@ class DeutschClassicalVerifier : IVerifier<DEUTSCH> {
     public string verifierName { get; } = "Default Deutsch Verifier";
     public string verifierDefinition { get; } = "Verify that a proposed solution correctly identifies whether the given function is constant or balanced by trying both possible inputs to the hidden function.";
     public string source { get; } = "Deutsch, David. 1985. Quantum theory, the Church-Turing principle and the universal quantum computer. Proc. R. Soc. Lond. A40097-117";
-    public string[] contributors { get; } = { "Jason Wright" };
+    public string[] contributors { get; } = { "Jason L. Wright" };
     private string _certificate = "";
 
     public string certificate {
