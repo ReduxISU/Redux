@@ -10,7 +10,7 @@ class SSSPTableVisualization : IVisualization<SSSP> {
     public string visualizationName { get; } = "SSSP Table Visualization";
     public string visualizationDefinition { get; } = "Displays a step-by-step table visualization of Dijkstra's alogrithm execution, showing each vertex's cost/predecessor and reconstructed path at each stage";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Raj Nilkar" };
+    public string[] contributors { get; } = { "Rajit Nilkar" };
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SSSPSolver();
 

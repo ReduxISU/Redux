@@ -10,7 +10,7 @@ class SPSPVisualization : IVisualization<SPSP> {
     public string visualizationName { get; } = "Single Pair Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Pair Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Raj Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt" };
+    public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt" };
     public VisualizationType visualizationType => VisualizationType.GraphD3;
     public ISolver solver { get; } = new SPSPSolver();
 
