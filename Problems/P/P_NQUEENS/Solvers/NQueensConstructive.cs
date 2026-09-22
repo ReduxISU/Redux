@@ -26,7 +26,7 @@ class NQueensConstructive : ISolver<NQUEENS> {
     public string source { get; } =
         "Explicit solution to the N-Queens problem (Hoffman, Loessi & Moore; see Wikipedia, \"Eight queens puzzle\").";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Eight_queens_puzzle#Explicit_solutions";
-    public string[] contributors { get; } = { "Jason Wright" };
+    public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
 
     // Declared, not derived. This solver builds the placement directly from a closed-form

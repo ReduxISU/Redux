@@ -141,7 +141,7 @@ public class ContributorProfile_Tests {
     [InlineData("Pratham Khanal", "pkprathamkhanal")]
     [InlineData("Sansar Kharal", "kharsans")]
     [InlineData("Andrija Sevaljevic", "Andrija-Sevaljevic")]
-    [InlineData("Jason Wright", "wrigjl")]
+    [InlineData("Jason L. Wright", "wrigjl")]
     [InlineData("Alex Svancara", "svanalex")]
     public void GetContributorDirectory_KnownGithubUsernamesAreCorrect(string name, string expectedUsername) {
         var ok = _controller.GetContributorDirectory() as OkObjectResult;
@@ -248,14 +248,14 @@ public class ContributorProfile_Tests {
 
     [Fact]
     public void GetContributorProfile_JasonWright_ReductionLookupSucceeds() {
-        // SipserReduceToSAT3 (NPC_CLIQUE/ReduceTo/NPC_SAT3) credits "Jason Wright" but
+        // SipserReduceToSAT3 (NPC_CLIQUE/ReduceTo/NPC_SAT3) credits "Jason L. Wright" but
         // has no parameterless constructor — its only ctor immediately calls reduce(),
         // which requires a specially Sipser-formatted CLIQUE instance (see
         // [NotAGeneralReduction] on that class). Reduction contributor lookup is
         // reflection-based (ProblemProvider.Reductions + Activator.CreateInstance), so
         // it can't safely construct that one and it's expected to be absent here —
         // consistent with it already being excluded from /Navigation/Reductions.
-        var ok = _controller.GetContributorProfile("Jason Wright") as OkObjectResult;
+        var ok = _controller.GetContributorProfile("Jason L. Wright") as OkObjectResult;
         Assert.NotNull(ok);
         var portfolio = ok.Value as ContributorPortfolio;
         Assert.NotNull(portfolio);
@@ -265,10 +265,10 @@ public class ContributorProfile_Tests {
     [Fact]
     public void GetContributorProfile_JasonWright_FindsKnownSolvers() {
         // ShorsQuantumSolver.cs (NPC_PRIMEFACTOR) and NQueensConstructive.cs (P_NQUEENS)
-        // both credit "Jason Wright" — real matches for the Solvers directory walk.
+        // both credit "Jason L. Wright" — real matches for the Solvers directory walk.
         // Asserts against each solver's declared solverName (the human-readable display
         // name), not its class name — SolversCreated is meant for display, not lookup.
-        var ok = _controller.GetContributorProfile("Jason Wright") as OkObjectResult;
+        var ok = _controller.GetContributorProfile("Jason L. Wright") as OkObjectResult;
         Assert.NotNull(ok);
         var portfolio = ok.Value as ContributorPortfolio;
         Assert.NotNull(portfolio);
