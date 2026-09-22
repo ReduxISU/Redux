@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Visualizations;
 
-class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONIAN> {
+class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONIAN, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Directed Hamiltonian Visualization";
@@ -21,7 +21,7 @@ class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONI
     public DirectedHamiltonianDefaultVisualization() {
 
     }
-    public API_JSON visualize(DIRECTEDHAMILTONIAN directedHamiltonian) {
+    public API_GraphJSON visualize(DIRECTEDHAMILTONIAN directedHamiltonian) {
         return directedHamiltonian.graph.ToAPIGraph();
     }
 

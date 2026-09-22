@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizations;
 
-class SudokuVisualization : IVisualization<SUDOKU> {
+class SudokuVisualization : IVisualization<SUDOKU, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Sudoku Visualization";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
@@ -18,7 +18,7 @@ class SudokuVisualization : IVisualization<SUDOKU> {
     // --- Methods Including Constructors ---
     public SudokuVisualization() {
     }
-    public API_JSON visualize(SUDOKU instance) {
+    public API_QUANTUMCIRCUIT visualize(SUDOKU instance) {
         var qc = new API_QUANTUMCIRCUIT();
         // var solvers = new UnstructuredGroverSolver();
         // qc.solution = solvers.solve(instance);

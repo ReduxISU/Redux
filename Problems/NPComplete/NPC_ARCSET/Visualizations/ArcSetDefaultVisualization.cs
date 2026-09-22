@@ -9,7 +9,7 @@ using API.Problems.NPComplete.NPC_ARCSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 
-class ArcSetDefaultVisualization : IVisualization<ARCSET> {
+class ArcSetDefaultVisualization : IVisualization<ARCSET, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Arc Set Visualization";
@@ -32,7 +32,7 @@ class ArcSetDefaultVisualization : IVisualization<ARCSET> {
         return false;
     }
 
-    public API_JSON visualize(ARCSET arcset) {
+    public API_GraphJSON visualize(ARCSET arcset) {
         return arcset.graph.ToAPIGraph();
     }
     public API_JSON SolvedVisualization(ARCSET arcset, string solution) {

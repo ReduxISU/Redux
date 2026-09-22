@@ -8,7 +8,7 @@ using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Tools;
 
-class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI> {
+class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Bernstein-Vazirani Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
         "Builds the Bernstein-Vazirani circuit with ancilla, highlights the oracle that encodes the secret string, and shows how a single query plus phase kickback reveals the hidden bits in D3.js.";
@@ -19,7 +19,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI> {
 
     public BernsteinVaziraniD3Visualization() { }
 
-    public API_JSON visualize(BERNSTEINVAZIRANI instance) {
+    public API_QUANTUMCIRCUIT visualize(BERNSTEINVAZIRANI instance) {
         return BuildVisualization(instance, solution: null);
     }
 
@@ -27,7 +27,7 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI> {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(BERNSTEINVAZIRANI instance, string? solution) {
+    private API_QUANTUMCIRCUIT BuildVisualization(BERNSTEINVAZIRANI instance, string? solution) {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 

@@ -46,3 +46,16 @@ interface IVisualization<U> : IVisualization where U : IProblem {
         return new List<API_JSON>();
     }
 }
+
+// Narrows visualize(U)'s return type from the bare API_JSON marker to the concrete payload
+// shape a visualization actually produces, so callers can work with the real type instead of
+// duck-typing on `kind` (see #524). Scoped to `visualize` only: SolvedVisualization and
+// StepsVisualization keep returning API_JSON/List<API_JSON> at the IVisualization<U> level
+// because their default bodies hand back API_empty()/an empty list regardless of TPayload,
+// and IsEmptyVisualization() (AdditionalControllers/ProblemProvider.cs) depends on that
+// API_empty sentinel — widening those to TPayload would break it for every class that leaves
+// the defaults in place.
+interface IVisualization<U, TPayload> : IVisualization<U> where U : IProblem where TPayload : API_JSON {
+    new TPayload visualize(U problem);
+    API_JSON IVisualization<U>.visualize(U problem) => visualize(problem);
+}
