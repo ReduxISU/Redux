@@ -46,8 +46,8 @@ public enum SolverType {
     /// make, and from <see cref="Backtracking"/> because nothing is ever tried and undone.
     /// </summary>
     Constructive,
-    /// <summary>Randomly chooses candidates for solutions.</summary>
-    Randomized,
+    /// <summary>randomly determined, unpredictable, or involving a random variable and probability.</summary>
+    Stochastic,
     /// <summary>Exploits a specific, bounded parameter of the input to solve hard problems exactly in polynomial time.</summary>
     Parameterized
 }

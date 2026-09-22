@@ -22,7 +22,7 @@ class Schoning : ISolver<SAT3>
         "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=814612";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
-    public SolverType solverType { get; } = SolverType.Randomized;
+    public SolverType solverType { get; } = SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     public string complexity { get; } = "O((4/3)^n), n = number of variables";
 

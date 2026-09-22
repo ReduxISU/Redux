@@ -1,12 +1,12 @@
 using API.Interfaces;
 using System.Linq;
 
-namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
+namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
-class VertexCoverGreedy : ISolver<VERTEXCOVER> {
+class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Vertex Cover Greedy (Max Degree)";
+    public string solverName { get; } = "Minimum Vertex Cover Greedy (Max Degree)";
     public string solverDefinition { get; } = "Repeats the following step until no edges remain: computes"
  + " the degree of every node with respect to the currently uncovered edges, selects the node with the"
  + " highest such degree (breaking ties by iteration order), adds it to the cover, and removes every"
@@ -22,10 +22,10 @@ class VertexCoverGreedy : ISolver<VERTEXCOVER> {
     public string complexity { get; } = "O(n * (n + m)), n = |nodes|, m = |edges|";
 
     // --- Methods Including Constructors ---
-    public VertexCoverGreedy() {
+    public GreedyMinimumVertexCover() {
 
     }
-    public string solve(VERTEXCOVER G) {
+    public string solve(MINIMUMVERTEXCOVER G) {
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         var cover = new List<string>();
 
