@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 class ChibaNishizeki : ISolver<CLIQUE> {
 
     // --- Fields ---
-    public string solverName { get; } = "Chiba-Nishizeki k-Clique Listing";
+    public string solverName { get; } = "Chiba-Nishizeki k-Clique Listing Algorithm";
     public string solverDefinition { get; } = "Sorts vertices by degree in descending order. For each vertex v"
     + " (in that order), builds the induced subgraph on v's neighbors that appear later in the ordering, then"
     + " recurses into that induced subgraph searching for a clique of size k-1, which combined with v forms a"

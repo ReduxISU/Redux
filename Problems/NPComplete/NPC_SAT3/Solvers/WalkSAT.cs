@@ -10,7 +10,7 @@ class WalkSAT : ISolver<SAT3>
 {
 
     // --- Fields ---
-    public string solverName { get; } = "WalkSAT";
+    public string solverName { get; } = "WalkSAT Algorithm";
     public string solverDefinition { get; } = "Repeats the following trial up to a computed cap: picks a"
  + " uniformly random truth assignment to all variables, then performs up to 3n random walk steps,"
  + " where each step finds a clause that is not yet satisfied and selects one of its three literals to"

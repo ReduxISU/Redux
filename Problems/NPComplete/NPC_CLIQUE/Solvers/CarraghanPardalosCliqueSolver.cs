@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 class CarraghanPardalos : ISolver<CLIQUE> {
 
     // --- Fields ---
-    public string solverName { get; } = "Carraghan-Pardalos Branch and Bound for k-clique";
+    public string solverName { get; } = "Clique Carraghan-Pardalos Branch and Bound";
     public string solverDefinition { get; } = "Orders vertices by ascending degree, then performs a"
     + " depth-first branch-and-bound search: at each node it maintains a partial clique and a candidate"
     + " set (vertices adjacent to all clique members so far). Before recursing on a candidate, it computes"

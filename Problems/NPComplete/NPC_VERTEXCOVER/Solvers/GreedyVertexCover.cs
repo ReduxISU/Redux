@@ -9,7 +9,7 @@ class GreedyVertexCover : ISolver<VERTEXCOVER>
 {
 
     // --- Fields ---
-    public string solverName { get; } = "Vertex Cover Greedy (Max Degree)";
+    public string solverName { get; } = "Vertex Cover Max-Degree Greedy";
     public string solverDefinition { get; } = "Note: despite the name, this solver calls a different"
 + " algorithm internally. Repeats the following step until no edges remain: computes"
 + " the degree of every node with respect to the currently uncovered edges, selects the node with the"
