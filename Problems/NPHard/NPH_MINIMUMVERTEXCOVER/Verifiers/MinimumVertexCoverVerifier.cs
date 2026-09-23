@@ -40,7 +40,9 @@ class MinimumVertexCoverVerifier : IVerifier<MINIMUMVERTEXCOVER> {
             throw new CertificateParseException(problem, certificate, "certificate is empty");
         }
 
+        if (certificate == "{}" && problem.edges.Count == 0) return true;
         List<string> certificateNodes;
+
         try {
             certificateNodes = getNodes(certificate);
         } catch (Exception ex) {
@@ -68,10 +70,6 @@ class MinimumVertexCoverVerifier : IVerifier<MINIMUMVERTEXCOVER> {
             if (!certificateNodes.Contains(kvp.Key) && !certificateNodes.Contains(kvp.Value)) { //if a kvp doesnt have a key or value found in the nodeset
                 return false; //reject
             }
-        }
-
-        if (certificateNodes.Count == 0 && Gedges.Count > 0) {
-            return false; //reject
         }
 
         return true;
