@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Visualizations;
 
-class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT> {
+class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT, API_GraphJSON> {
     // --- Fields ---
     public string visualizationName { get; } = "Topological Sort Visualization";
     public string visualizationDefinition { get; } = "Animates the graph by topological rank: all source nodes (in-degree zero) highlight first, followed by their successors in waves. This mirrors how Kahn's Algorithm peels off layers of zero-in-degree nodes during execution. Every edge is highlighted because, in a valid topological ordering, every directed edge points forward.";
@@ -18,7 +18,7 @@ class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT> {
     public TopologicalSortDefaultVisualization() { }
 
     // --- Methods ---
-    public API_JSON visualize(TOPOLOGICALSORT problem) {
+    public API_GraphJSON visualize(TOPOLOGICALSORT problem) {
         return problem.graph.ToAPIGraph();
     }
 

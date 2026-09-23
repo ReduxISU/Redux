@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using API.Interfaces;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -140,7 +141,7 @@ public class ContributorProfile_Tests {
     [InlineData("Pratham Khanal", "pkprathamkhanal")]
     [InlineData("Sansar Kharal", "kharsans")]
     [InlineData("Andrija Sevaljevic", "Andrija-Sevaljevic")]
-    [InlineData("Jason Wright", "wrigjl")]
+    [InlineData("Jason L. Wright", "wrigjl")]
     [InlineData("Alex Svancara", "svanalex")]
     public void GetContributorDirectory_KnownGithubUsernamesAreCorrect(string name, string expectedUsername) {
         var ok = _controller.GetContributorDirectory() as OkObjectResult;
@@ -218,6 +219,8 @@ public class ContributorProfile_Tests {
         Assert.NotNull(portfolio.ProblemsContributed);
         Assert.NotNull(portfolio.SolversCreated);
         Assert.NotNull(portfolio.ReductionsCreated);
+        Assert.NotNull(portfolio.VerifiersContributed);
+        Assert.NotNull(portfolio.VisualizationsCreated);
     }
 
     [Fact]
@@ -228,7 +231,9 @@ public class ContributorProfile_Tests {
         Assert.NotNull(portfolio);
         int expected = portfolio.ProblemsContributed.Count
                      + portfolio.SolversCreated.Count
-                     + portfolio.ReductionsCreated.Count;
+                     + portfolio.ReductionsCreated.Count
+                     + portfolio.VerifiersContributed.Count
+                     + portfolio.VisualizationsCreated.Count;
         Assert.Equal(expected, portfolio.TotalContributions);
     }
 
@@ -243,14 +248,14 @@ public class ContributorProfile_Tests {
 
     [Fact]
     public void GetContributorProfile_JasonWright_ReductionLookupSucceeds() {
-        // SipserReduceToSAT3 (NPC_CLIQUE/ReduceTo/NPC_SAT3) credits "Jason Wright" but
+        // SipserReduceToSAT3 (NPC_CLIQUE/ReduceTo/NPC_SAT3) credits "Jason L. Wright" but
         // has no parameterless constructor — its only ctor immediately calls reduce(),
         // which requires a specially Sipser-formatted CLIQUE instance (see
         // [NotAGeneralReduction] on that class). Reduction contributor lookup is
         // reflection-based (ProblemProvider.Reductions + Activator.CreateInstance), so
         // it can't safely construct that one and it's expected to be absent here —
         // consistent with it already being excluded from /Navigation/Reductions.
-        var ok = _controller.GetContributorProfile("Jason Wright") as OkObjectResult;
+        var ok = _controller.GetContributorProfile("Jason L. Wright") as OkObjectResult;
         Assert.NotNull(ok);
         var portfolio = ok.Value as ContributorPortfolio;
         Assert.NotNull(portfolio);
@@ -260,13 +265,99 @@ public class ContributorProfile_Tests {
     [Fact]
     public void GetContributorProfile_JasonWright_FindsKnownSolvers() {
         // ShorsQuantumSolver.cs (NPC_PRIMEFACTOR) and NQueensConstructive.cs (P_NQUEENS)
-        // both credit "Jason Wright" — real matches for the Solvers directory walk.
-        var ok = _controller.GetContributorProfile("Jason Wright") as OkObjectResult;
+        // both credit "Jason L. Wright" — real matches for the Solvers directory walk.
+        // Asserts against each solver's declared solverName (the human-readable display
+        // name), not its class name — SolversCreated is meant for display, not lookup.
+        var ok = _controller.GetContributorProfile("Jason L. Wright") as OkObjectResult;
         Assert.NotNull(ok);
         var portfolio = ok.Value as ContributorPortfolio;
         Assert.NotNull(portfolio);
-        Assert.Contains("ShorsQuantumSolver", portfolio.SolversCreated);
-        Assert.Contains("NQueensConstructive", portfolio.SolversCreated);
+        Assert.Contains("Shor's Algorithm", portfolio.SolversCreated);
+        Assert.Contains("N-Queens Constructive", portfolio.SolversCreated);
+    }
+
+    // ─── contributors[] arrays vs. contributorInfo.json ────────────────────────
+
+    // Every name that shows up in a `contributors` array anywhere in the codebase
+    // (Problems, Solvers, Reductions, Verifiers, Visualizers) has to match a
+    // contributorInfo.json key exactly, or that person's work silently stops
+    // counting toward their profile. This is the failure mode that let
+    // SUDOKU_Class ("Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" as one
+    // string) and BINPACKING_Class (first names only: "Himanshu", "Rakesh",
+    // "Prashanta") go unnoticed. When this test fails, either fix the contributors[]
+    // array to use the person's full contributorInfo.json name, or add them to
+    // contributorInfo.json if they're new.
+    [Fact]
+    public void AllDeclaredContributors_MatchAContributorInfoJsonEntry() {
+        string content = File.ReadAllText(_jsonFilePath);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var knownContributors = JsonSerializer.Deserialize<Dictionary<string, ContributorInfo>>(content, options);
+        Assert.NotNull(knownContributors);
+        var knownNames = new HashSet<string>(knownContributors.Keys, StringComparer.OrdinalIgnoreCase);
+
+        var unmatched = new List<string>();
+
+        foreach (var type in ProblemProvider.Problems.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IProblem instance) {
+                    foreach (var name in instance.contributors) {
+                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Problem '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                    }
+                }
+            } catch { }
+        }
+
+        foreach (var type in ProblemProvider.Solvers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is ISolver instance) {
+                    foreach (var name in instance.contributors) {
+                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Solver '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                    }
+                }
+            } catch { }
+        }
+
+        foreach (var type in ProblemProvider.Reductions.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance) {
+                    foreach (var name in instance.contributors) {
+                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Reduction '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                    }
+                }
+            } catch { }
+        }
+
+        foreach (var type in ProblemProvider.Verifiers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IVerifier instance) {
+                    foreach (var name in instance.contributors) {
+                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Verifier '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                    }
+                }
+            } catch { }
+        }
+
+        foreach (var type in ProblemProvider.Visualizers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IVisualization instance) {
+                    foreach (var name in instance.contributors) {
+                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Visualization '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                    }
+                }
+            } catch { }
+        }
+
+        Assert.True(unmatched.Count == 0, "Found contributors[] entries with no matching contributorInfo.json key:\n" + string.Join("\n", unmatched));
+    }
+
+    // A handful of entries are deliberate "we don't know" placeholders rather than a
+    // name that should be in contributorInfo.json — don't nag about those every run.
+    private static readonly HashSet<string> _placeholders = new(StringComparer.OrdinalIgnoreCase) {
+        "", "Author Unknown", "TODO",
+    };
+
+    private static bool IsKnownOrPlaceholder(string name, HashSet<string> knownNames) {
+        return knownNames.Contains(name) || _placeholders.Contains(name);
     }
 
     // ─── GET /all ─────────────────────────────────────────────────────────────

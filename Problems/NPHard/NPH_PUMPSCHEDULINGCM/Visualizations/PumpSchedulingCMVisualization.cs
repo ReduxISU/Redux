@@ -37,7 +37,7 @@ class API_PumpFrame : API_JSON {
 
 // --- Visualization ---
 
-class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM> {
+class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM, API_empty> {
     public string visualizationName { get; } = "Pump Scheduling Cost Minimization — DAG Animation";
     public string visualizationDefinition { get; } =
         "Animates the 24-hour optimal pump schedule, showing per-hour pump states, " +
@@ -47,7 +47,7 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM> {
     public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingCMSolver();
 
-    public API_JSON visualize(PUMPSCHEDULINGCM problem) => new API_empty();
+    public API_empty visualize(PUMPSCHEDULINGCM problem) => new API_empty();
 
     public API_JSON SolvedVisualization(PUMPSCHEDULINGCM problem, string solution) => new API_empty();
 

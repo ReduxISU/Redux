@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using API.Interfaces;
+using API.Problems.P.P_SPSP.Solvers;
 
 // Reflection-derived reduction graph and the endpoint that exposes it.
 // Replaces the prior filesystem-walking controllers (All_Reductions,
@@ -42,6 +43,7 @@ internal static class ReductionTypeCatalog {
     internal static readonly Lazy<Dictionary<string, string>> ReductionTypeByClassName = new(BuildReductionType);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityBucketByClassName = new(BuildComplexityBucket);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityByClassName = new(BuildComplexity);
+    internal static readonly Lazy<Dictionary<string, string>> NameByClassName = new(BuildName);
 
     private static Dictionary<string, string> BuildReductionType() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -66,6 +68,25 @@ internal static class ReductionTypeCatalog {
             } catch {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to Unclassified at the call site.
+            }
+        }
+        return result;
+    }
+
+    // reductionName is a required (non-defaulted) IReduction member -- every
+    // successfully-constructed reduction declares one -- so unlike the other fields in
+    // this class there's no "Unclassified" fallback to fall back to; DeclaredReductionName
+    // (below) falls back to the class name itself for a reduction that couldn't be
+    // constructed at all.
+    private static Dictionary<string, string> BuildName() {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (_, type) in ProblemProvider.Reductions) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance)
+                    result[type.Name] = instance.reductionName;
+            } catch {
+                // Skip a reduction that can't be default-constructed instead of failing
+                // the whole catalog. It falls back to the class name at the call site.
             }
         }
         return result;
@@ -107,6 +128,9 @@ public class ReductionEdge {
     /// <summary>The name of the class implementing the reduction.</summary>
     /// <example>KarpVertexCoverToSetCover</example>
     public string className { get; set; } = "";
+    /// <summary>The reduction's declared human-readable name (<see cref="IReduction.reductionName"/>). Falls back to <see cref="className"/> if the reduction couldn't be constructed to read its declared name.</summary>
+    /// <example>Karp Reduction: Vertex Cover to Set Cover</example>
+    public string reductionName { get; set; } = "";
     /// <summary>The HTTP method and relative path that performs the reduction.</summary>
     /// <example>POST /ProblemProvider/reduce?reduction=KarpVertexCoverToSetCover</example>
     public string endpoint { get; set; } = "";
@@ -131,6 +155,37 @@ public class ReductionEdge {
     /// <summary>The declared <see cref="ReductionComplexityBucket"/> wire value: how long this reduction takes to run, in worst-case Big-O of input instance size. Additive field for issue #376; purely informational here.</summary>
     /// <example>Polynomial</example>
     public string complexityBucket { get; set; } = "";
+}
+
+// Same top-level-not-nested requirement as ReductionEdge above (see its comment) —
+// these back ReductionGraphData.WeightedPathBetween's result and must $ref-resolve
+// in Swagger too.
+
+/// <summary>
+/// A single hop in a weighted-shortest-path reduction route.
+/// </summary>
+public class ReductionPathHop {
+    /// <summary>The source problem of this hop (class name).</summary>
+    public string from { get; set; } = "";
+    /// <summary>The destination problem of this hop (class name).</summary>
+    public string to { get; set; } = "";
+    /// <summary>The reduction class name used for this hop — the cheapest (by declared ReductionCost) of any parallel edges between from and to.</summary>
+    public string className { get; set; } = "";
+    /// <summary>The declared ReductionCost wire value of the chosen edge (e.g. "Linear").</summary>
+    public string cost { get; set; } = "";
+}
+
+/// <summary>
+/// The result of a weighted-shortest-path search between two problems in the
+/// reduction graph.
+/// </summary>
+public class ReductionPathResult {
+    /// <summary>True if a path exists between source and target.</summary>
+    public bool found { get; set; }
+    /// <summary>Problem class names along the path, source first, target last. Empty if not found.</summary>
+    public List<string> nodes { get; set; } = new();
+    /// <summary>The hops making up the path, in order. Empty if not found.</summary>
+    public List<ReductionPathHop> hops { get; set; } = new();
 }
 
 /// <summary>
@@ -162,6 +217,11 @@ public static class ReductionGraphData {
         ReductionCostCatalog.ByClassName.Value.TryGetValue(className, out var cost)
             ? cost
             : nameof(API.Interfaces.ReductionCost.Unclassified);
+
+    private static string DeclaredReductionName(string className) =>
+        ReductionTypeCatalog.NameByClassName.Value.TryGetValue(className, out var name) && !string.IsNullOrEmpty(name)
+            ? name
+            : className;
 
     private static string DeclaredReductionType(string className) =>
         ReductionTypeCatalog.ReductionTypeByClassName.Value.TryGetValue(className, out var reductionType)
@@ -226,6 +286,7 @@ public static class ReductionGraphData {
             string className = type.Name;
             var edge = new ReductionEdge {
                 className = className,
+                reductionName = DeclaredReductionName(className),
                 endpoint = $"POST /ProblemProvider/reduce?reduction={className}",
                 inputType = from,
                 outputType = to,
@@ -335,6 +396,99 @@ public static class ReductionGraphData {
         hops.Reverse();
         return hops;
     }
+
+    /// <summary>
+    /// Cheapest path (by declared ReductionCost, via Dijkstra) from source to target.
+    /// Within a (from, to) pair with multiple parallel reduction classes, each hop's
+    /// weight is the lowest CostRank among them, and that cheapest edge is the one
+    /// reported. Unlike <see cref="PathBetween"/> (unweighted, hop-count-only BFS),
+    /// this can prefer a longer path over a shorter one if it is cheaper overall.
+    ///
+    /// Redux already ships Dijkstra as SPSP's default solver (Problems/P/P_SPSP) --
+    /// rather than hand-roll a second implementation here, the reduction graph is
+    /// encoded as an SPSP instance (nodes = problem class names, edge weights = each
+    /// hop's cheapest parallel edge's CostRank) and solved via the same in-process
+    /// ISolver.solve(string) path ProblemProvider/solve itself uses.
+    /// </summary>
+    /// <param name="source">The source problem (class name, case-insensitive).</param>
+    /// <param name="target">The destination problem (class name, case-insensitive).</param>
+    /// <returns>
+    /// A <see cref="ReductionPathResult"/> with found=false and empty nodes/hops if
+    /// either name is unknown, source equals target, or no path exists.
+    /// </returns>
+    public static ReductionPathResult WeightedPathBetween(string source, string target) {
+        var result = new ReductionPathResult();
+
+        string? s = ResolveKey(source);
+        string? t = ResolveKey(target);
+        if (s == null || t == null) return result;
+        if (string.Equals(s, t, StringComparison.OrdinalIgnoreCase)) return result;
+
+        // Every node that appears anywhere in the graph, and for each (from, to) pair
+        // the cheapest parallel edge by CostRank -- SPSP only ever sees the resulting
+        // integer weight, so this tie-break has to happen before handing it off.
+        var nodes = new List<string>();
+        var seenNodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var cheapestEdge = new Dictionary<(string from, string to), ReductionEdge>();
+        foreach (var (from, tos) in Graph) {
+            if (seenNodes.Add(from)) nodes.Add(from);
+            foreach (var (to, edges) in tos) {
+                if (edges.Count == 0) continue;
+                if (seenNodes.Add(to)) nodes.Add(to);
+
+                ReductionEdge best = edges[0];
+                int bestRank = CostRank.TryGetValue(best.cost, out var r0) ? r0 : int.MaxValue;
+                for (int i = 1; i < edges.Count; i++) {
+                    int rank = CostRank.TryGetValue(edges[i].cost, out var r) ? r : int.MaxValue;
+                    if (rank < bestRank) {
+                        best = edges[i];
+                        bestRank = rank;
+                    }
+                }
+                cheapestEdge[(from, to)] = best;
+            }
+        }
+
+        string nodeSet = "{" + string.Join(",", nodes) + "}";
+        string edgeSet = "{" + string.Join(",", cheapestEdge.Select(kv => {
+            int weight = CostRank.TryGetValue(kv.Value.cost, out var r) ? r : int.MaxValue;
+            return $"(({kv.Key.from},{kv.Key.to}),{weight})";
+        })) + "}";
+        string spspInstance = $"({nodeSet},{edgeSet},{s},{t})";
+
+        // solve(string) is ISolver<T>'s default interface implementation (constructs
+        // SPSP from the instance string, then calls solve(SPSP)) -- only reachable
+        // through an ISolver-typed reference, not directly off the concrete solver.
+        string certificate = ((ISolver)new SPSPSolver()).solve(spspInstance);
+        var path = ParseSpspCertificate(certificate);
+        if (path.Count == 0) return result;
+
+        var hops = new List<ReductionPathHop>();
+        for (int i = 0; i < path.Count - 1; i++) {
+            var edge = cheapestEdge[(path[i], path[i + 1])];
+            hops.Add(new ReductionPathHop {
+                from = path[i],
+                to = path[i + 1],
+                className = edge.className,
+                cost = edge.cost,
+            });
+        }
+
+        result.found = true;
+        result.nodes = path;
+        result.hops = hops;
+        return result;
+    }
+
+    // SPSPSolver.solve returns "{n1,n2,n3}" (source-to-target order) or "{}" if no
+    // path was found.
+    private static List<string> ParseSpspCertificate(string certificate) {
+        string trimmed = certificate.Trim();
+        if (trimmed.Length < 2 || trimmed[0] != '{' || trimmed[^1] != '}') return new List<string>();
+        string inner = trimmed[1..^1];
+        if (inner.Length == 0) return new List<string>();
+        return inner.Split(',').Select(n => n.Trim()).ToList();
+    }
 }
 
 [ApiController]
@@ -346,7 +500,7 @@ public class ReductionsController : ControllerBase {
 
     /// <summary>Returns the reduction graph as an adjacency map: from -> to -> list of reduction edges.</summary>
     /// <remarks>
-    /// Each edge is self-describing (className, endpoint, inputType, outputType) so an LLM
+    /// Each edge is self-describing (className, reductionName, endpoint, inputType, outputType) so an LLM
     /// can chain reductions by matching outputType of step n to inputType of step n+1.
     /// Omit both source and target to get the full graph for multi-step planning.
     /// </remarks>
@@ -370,5 +524,21 @@ public class ReductionsController : ControllerBase {
             }
         }
         return JsonSerializer.Serialize(result, options);
+    }
+
+    /// <summary>Returns the cheapest reduction path (by declared ReductionCost) from source to target.</summary>
+    /// <remarks>
+    /// Runs Dijkstra over the reduction graph, weighting each hop by its cheapest parallel
+    /// edge's declared ReductionCost. Unlike the unweighted, hop-count-only path implicit in
+    /// <see cref="getDefault"/>'s adjacency map, this can prefer a longer chain of cheap
+    /// reductions over a shorter chain that includes an expensive one.
+    /// </remarks>
+    /// <param name="source">The source problem (class name, e.g. "CLIQUE"). Case-insensitive.</param>
+    /// <param name="target">The destination problem (class name, e.g. "SETCOVER"). Case-insensitive.</param>
+    /// <response code="200">The cheapest path found, or found=false if either name is unknown, source equals target, or no path exists.</response>
+    [ProducesResponseType(typeof(ReductionPathResult), 200)]
+    [HttpGet("path")]
+    public ReductionPathResult path([FromQuery] string source, [FromQuery] string target) {
+        return ReductionGraphData.WeightedPathBetween(source, target);
     }
 }

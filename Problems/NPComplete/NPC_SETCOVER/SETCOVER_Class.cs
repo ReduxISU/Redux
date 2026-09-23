@@ -14,6 +14,8 @@ class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, DummyVisualizati
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Set_cover_problem";
     public string formalDefinition { get; } = "Sub Cover = {<S,T,k> | S is a set of elements, and there exists a grouping of k T subsetse equal to S}";
     public string problemDefinition { get; } = "Given a set of elements and a collection S of m sets whose union equals the universe, the set cover problem is to identify the smallest sub-collection of S whose union equals the universe";
+    public string inputDescription { get; } = "U, a universe of elements, S, a collection of subsets of U, and k, the maximum number of subsets";
+    public string outputDescription { get; } = "True or False, whether k subsets from S can be chosen whose union covers U";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{(U,S,K) | U is set, S subset {a | a subset U}}";

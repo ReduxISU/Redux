@@ -14,6 +14,8 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/3-dimensional_matching";
     public string formalDefinition { get; } = "{<M,X,Y,Z> | M is a subset of X*Y*Z,|X|=|Y|=|Z| and a subset of M, M', exists, where |M'| = |A|,|B|,|C|, and no two elements of M' agree in any cooridinate}";
     public string problemDefinition { get; } = "3-Dimensional Matching is when, given 3 equally sized sets, X, Y, and Z, and a set of constraints M, being a subset of XxYxZ, are you able to select a set of constraints which contain each element of X, Y, and Z in one and only one 3-tuple.";
+    public string inputDescription { get; } = "X, Y, and Z, three equally sized sets, and M, a set of 3-tuple constraints over X x Y x Z";
+    public string outputDescription { get; } = "True or False, whether a subset of M exists that matches every element of X, Y, and Z exactly once";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{x1,...}{y1,...}{z1,...}{x,y,z},... | X,Y,Z are the three sets, followed by one 3-tuple per constraint in M";

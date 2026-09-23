@@ -10,8 +10,8 @@ public class PRIMEFACTOR_tests {
     [Fact]
     public void DEUTSCH_Default_Instantiation() {
         var problem = new PRIMEFACTOR();
-        Assert.Equal("15", problem.instance);
-        Assert.Equal("15", problem.defaultInstance);
+        Assert.Equal("12", problem.instance);
+        Assert.Equal("12", problem.defaultInstance);
     }
 
     [Fact]
@@ -22,8 +22,9 @@ public class PRIMEFACTOR_tests {
     }
 
     [Theory] //tests verifier
-    [InlineData("15", "(3,5)")]
-    [InlineData("15", "(5,3)")]
+    [InlineData("12", "(2,2,3)")]
+    [InlineData("12", "(2,3,2)")]
+    [InlineData("12", "(3,2,2)")]
     [InlineData("7", "(7)")]
     [InlineData("100", "(2,5,2,5)")]
     [InlineData("97", "(97)")]

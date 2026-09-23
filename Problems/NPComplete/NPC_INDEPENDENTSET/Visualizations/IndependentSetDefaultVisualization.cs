@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_INDEPENDENTSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.Visualizations;
 
-class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET> {
+class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Independent Set Visualization";
@@ -21,7 +21,7 @@ class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET> {
     public IndependentSetDefaultVisualization() {
 
     }
-    public API_JSON visualize(INDEPENDENTSET independentSet) {
+    public API_GraphJSON visualize(INDEPENDENTSET independentSet) {
         return independentSet.graph.ToAPIGraph();
     }
 

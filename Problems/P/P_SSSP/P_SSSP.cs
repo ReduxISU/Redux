@@ -17,6 +17,8 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Shortest_path_problem";
     public string formalDefinition { get; } = "For a weighted graph G = (V,E), with non-negative edge weights, a source vertex s \u2208 V, find the shortest path distance from s to every other vertex v \u2208 V, where path length is defined as the sum of edge weights along the path.";
     public string problemDefinition { get; } = "Single Source Shortest Path (SSSP) in a weighted graph is the problem of determining the shortest path from a source vertex to all other reachable vertices in the graph such that the sum of edge weights along each path is minimized.";
+    public string inputDescription { get; } = "A weighted graph and a source vertex";
+    public string outputDescription { get; } = "The shortest path from the source vertex to every other reachable vertex in the graph";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
     public const string InstanceGrammar = "(N,E,s) | N is set, E subset N unorderedcross N or N cross N (edges optionally weighted as (edge,weight), non-negative only), s in N";

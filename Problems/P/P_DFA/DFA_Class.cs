@@ -15,6 +15,8 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Deterministic_finite_automaton";
     public string formalDefinition { get; } = "Acceptance Problem of a DFA = {<D,w> | D is a Deterministic Finite Automata that accepts a string w}";
     public string problemDefinition { get; } = "Acceptance Problem of a DFA is a problem that aims to see if a string input will be accepted by a particular Deterministic Finite Automata model.";
+    public string inputDescription { get; } = "A deterministic finite automaton and an input string";
+    public string outputDescription { get; } = "True or False, whether the automaton accepts the input string";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
 
