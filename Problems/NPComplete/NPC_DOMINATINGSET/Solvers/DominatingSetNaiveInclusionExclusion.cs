@@ -55,19 +55,19 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET>
         }
 
         var chosen = new List<int>();
-        List<int>? solution = null;
+        List<int> solution = new List<int>();
 
         bool found = Branch(0, n, K, adj, chosen, ref solution);
 
         if (!found)
             return "{}";
 
-        string cert = "{" + string.Join(",", solution!.Select(i => problem.nodes[i])) + "}";
+        string cert = "{" + string.Join(",", solution.Select(i => problem.nodes[i])) + "}";
         return problem.defaultVerifier.verify(problem, cert) ? cert : "{}";
     }
 
     // Naive include/exclude recursion over vertex indices [i, n).
-    private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int>? solution)
+    private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution)
     {
         if (chosen.Count > K)
             return false;
