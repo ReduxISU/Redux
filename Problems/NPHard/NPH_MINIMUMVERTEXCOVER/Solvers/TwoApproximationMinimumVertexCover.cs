@@ -28,7 +28,7 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
     public string solve(MINIMUMVERTEXCOVER G) {
         //{{a,b,c,d,e,f,g} : {(a,b) & (a,c) & (c,d) & (c,e) & (d,f) & (e,f) & (e,g)}}
 
-        List<KeyValuePair<string, string>> edges = G.edges;
+       List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>(G.edges);
         List<KeyValuePair<string, string>> C = new List<KeyValuePair<string, string>>(); //This becomes our maximal matching
         Random rnd = new Random();
         while (edges.Count > 0) {
