@@ -11,7 +11,7 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET> {
     public string visualizationName { get; } = "Exact Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Exact Cover";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Russell Phillips, Andrija Sevaljevic" };
+    public string[] contributors { get; } = { "Russell Phillips", "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
     public ISolver solver { get; } = new DancingLinks();
 

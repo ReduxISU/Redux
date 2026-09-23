@@ -28,7 +28,7 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
     public DeutschJozsaClassicalSolver defaultSolver { get; } = new DeutschJozsaClassicalSolver();
     public DeutschJozsaVerifier defaultVerifier { get; } = new DeutschJozsaVerifier();
     public DeutschJozsaDefaultVisualization defaultVisualization { get; } = new DeutschJozsaDefaultVisualization();
-    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Gruenwoldt", "Alex Svancara", "George Lake", "Michael Trosper" };
+    public string[] contributors { get; } = { "Eric Hill", "Paul Gilbreath", "Max Grünwoldt", "Alex Svancara", "George Lake", "Michael Trosper" };
     // Declared, not derived. The Deutsch-Jozsa algorithm solves this promise problem
     // with a single oracle query and zero error probability — exact, not merely
     // bounded-error — so it belongs in EQP, not the classical P/NP hierarchy. See
