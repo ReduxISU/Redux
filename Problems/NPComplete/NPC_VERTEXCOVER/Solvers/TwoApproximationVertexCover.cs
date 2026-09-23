@@ -30,8 +30,8 @@ class TwoApproximationVertexCover : ISolver<VERTEXCOVER> {
 
     public string solve(VERTEXCOVER G) {
         var mvc = new MINIMUMVERTEXCOVER();
-        mvc.nodes = G.nodes;
-        mvc.edges = G.edges;
+        mvc.nodes = new List<string>(G.nodes);
+        mvc.edges = new List<KeyValuePair<string, string>>(G.edges);
 
         string certificate = new TwoApproximationMinimumVertexCover().solve(mvc);
 
