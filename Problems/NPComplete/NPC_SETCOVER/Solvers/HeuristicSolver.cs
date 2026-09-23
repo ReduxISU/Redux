@@ -7,7 +7,7 @@ class HeuristicSolver : ISolver<SETCOVER>
 {
 
     // --- Fields ---
-    public string solverName { get; } = "Algorithm X (Knuth) Bounded Exact/Set Cover Search";
+    public string solverName { get; } = "Set Cover Algorithm X Bounded Search";
     public string solverDefinition { get; } = "Builds a sparse bipartite row/column representation of the"
     + " subsets-vs-universal-elements matrix. At each step, selects the column (universal element) with the"
     + " fewest covering rows (subsets) remaining, then branches over each row that covers it, in descending"
