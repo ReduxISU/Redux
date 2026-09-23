@@ -38,7 +38,7 @@ class TwoApproximationVertexCover : ISolver<VERTEXCOVER> {
         int size = certificate == "{}" ? 0 : certificate.Trim('{', '}').Split(',').Length;
 
         if (size > G.K) {
-            return "No solution found. Does not guarantee a solution does not exist.";
+            return "{}";
         }
 
         return certificate;

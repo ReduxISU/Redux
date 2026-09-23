@@ -4,18 +4,18 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
 class DominatingSetForcedVertex : ISolver<DOMINATINGSET> {
     // --- Fields ---
-    public string _solverName = "Forced-Vertex Branch-and-Reduce Dominating Set Solver";
-    public string _solverDefinition =
+    public string solverName { get; } = "Forced-Vertex Branch-and-Reduce Dominating Set Solver";
+    public string solverDefinition { get; } =
         "Exact branching search for a dominating set of size <= K. Repeatedly applies a reduction rule:"
         + " any undominated vertex with no neighbors (degree 0) must be in the solution, so it is picked"
         + " immediately without branching. Once no forced vertices remain, branches on the closed"
         + " neighborhood of the highest-degree undominated vertex, trying each neighbor as the next pick."
         + " Terminates successfully when all vertices are dominated, and fails a branch once K picks are"
         + " exhausted without full domination.";
-    public string _source =
-        "Laschos, V., Obermayer, K., Shen, Y., & Stannat, W. (2019). A Fenchel-Moreau-Rockafellar type theorem on the Kantorovich-Wasserstein space with applications in partially observable Markov decision processes. Journal of Mathematical Analysis and Applications, 477(2), 1133–1156";
-    public string _sourceLink = "https://arxiv.org/abs/1603.02882";
-    public string[] _contributors = { "Quinton Smith" };
+    public string source { get; } =
+        "Fomin, F. V., Grandoni, F., & Kratsch, D. (2009). A measure & conquer approach for the analysis of exact algorithms. Journal of the ACM (JACM), 56(5), 1–32.";
+    public string sourceLink { get; } = "https://dl.acm.org/doi/abs/10.1145/1552285.1552286";
+    public string[] contributors { get; } = { "Quinton Smith" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning/bounding -- distinct from an unpruned
     // brute-force enumeration.
@@ -27,13 +27,6 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET> {
     // ApplyPick). That's O(n^K) leaves at O(n) work apiece. The branch-and-reduce pruning
     // (Akiba & Iwata) makes this far faster in practice -- this bound is worst-case only.
     public string complexity { get; } = "O(n^(K+1)), n = |nodes|, K = target dominating-set size";
-
-    // --- Properties ---
-    public string solverName => _solverName;
-    public string solverDefinition => _solverDefinition;
-    public string source => _source;
-    public string sourceLink => _sourceLink;
-    public string[] contributors => _contributors;
 
     // --- Methods Including Constructors ---
     public DominatingSetForcedVertex() { }

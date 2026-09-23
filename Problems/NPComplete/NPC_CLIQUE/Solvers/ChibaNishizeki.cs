@@ -52,7 +52,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
             }
 
             List<string> partial = new List<string> { v };
-            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj, removed, positionOf);
+            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj);
 
             if (found != null) {
                 return "{" + string.Join(",", found) + "}";
@@ -80,8 +80,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
     // extending 'partial' with the result if found.
     private HashSet<string>? FindClique(
         HashSet<string> candidates, List<string> partial, int remaining,
-        Dictionary<string, HashSet<string>> adj, HashSet<string> removed,
-        Dictionary<string, int> positionOf) {
+        Dictionary<string, HashSet<string>> adj) {
 
         if (remaining == 0) {
             return new HashSet<string>(partial);
@@ -97,7 +96,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
             if (nextCandidates.Count < remaining - 1) continue;
 
             partial.Add(u);
-            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj, removed, positionOf);
+            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj);
             if (result != null) {
                 return result;
             }

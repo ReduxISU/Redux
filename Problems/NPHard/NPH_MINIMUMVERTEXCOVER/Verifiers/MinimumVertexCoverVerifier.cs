@@ -46,7 +46,7 @@ class MinimumVertexCoverVerifier : IVerifier<MINIMUMVERTEXCOVER> {
         } catch (Exception ex) {
             throw new CertificateParseException(problem, certificate, ex.Message);
         }
-        if (certificateNodes.Count == 0 || certificateNodes.Any(string.IsNullOrWhiteSpace)) {
+        if (certificateNodes.Any(string.IsNullOrWhiteSpace)) {
             throw new CertificateParseException(problem, certificate,
                 "certificate did not parse to a non-empty list of node names");
         }
@@ -69,6 +69,11 @@ class MinimumVertexCoverVerifier : IVerifier<MINIMUMVERTEXCOVER> {
                 return false; //reject
             }
         }
+
+        if (certificateNodes.Count == 0 && Gedges.Count > 0) {
+            return false; //reject
+        }
+
         return true;
 
     }

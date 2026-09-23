@@ -6,7 +6,7 @@ namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Vertex Cover Max-Degree Greedy";
+    public string solverName { get; } = "Minimum Vertex Cover Max-Degree Greedy";
     public string solverDefinition { get; } = "Repeats the following step until no edges remain: computes"
  + " the degree of every node with respect to the currently uncovered edges, selects the node with the"
  + " highest such degree (breaking ties by iteration order), adds it to the cover, and removes every"

@@ -58,7 +58,7 @@ public class DOMINATINGSET_Tests {
     [InlineData("(({1,2,3,4},{{1,2},{2,3},{3,4},{4,1}}),2)")]
     public void DOMINATINGSETNAIVEINCLUSIONEXCLUSION_solver(string instance) {
         DOMINATINGSET dominatingset = new DOMINATINGSET(instance);
-        DominatingSetForcedVertex solver = new DominatingSetForcedVertex();
+        DominatingSetNaiveInclusionExclusion solver = new DominatingSetNaiveInclusionExclusion();
         string solvedString = solver.solve(dominatingset);
         Assert.True(dominatingset.defaultVerifier.verify(dominatingset, solvedString));
     }

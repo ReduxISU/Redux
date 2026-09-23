@@ -11,23 +11,14 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
     public const string CertificateExample = "{1,3}";
 
     // --- Fields ---
-    private string _verifierName = "Default Dominating Set Verifier";
-    private string _verifierDefinition = "This is a Verifier for Dominating Set";
-    private string _source =
+    public string verifierName { get; } = "Default Dominating Set Verifier";
+    public string verifierDefinition { get; } = "This is a Verifier for Dominating Set";
+    public string source { get; } =
         "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";
-    private string _sourceLink =
+    public string sourceLink { get; } =
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
-    private string[] _contributors = { "Quinton Smith" };
-    private string _certificate = string.Empty;
-
-    // --- Properties ---
-    public string verifierName => _verifierName;
-    public string verifierDefinition => _verifierDefinition;
-    public string source => _source;
-    public string sourceLink => _sourceLink;
-    public string[] contributors => _contributors;
-    public string certificate => _certificate;
-
+    public string[] contributors { get; } = { "Quinton Smith" };
+    public string certificate { get; } = string.Empty;
 
     // --- Methods Including Constructors ---
     public DominatingSetVerifier() {
@@ -87,12 +78,11 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
 
 
 
-    public bool verify(DOMINATINGSET problem, string certificate) {
-        _certificate = certificate ?? string.Empty;
-
+    public bool verify(DOMINATINGSET problem, string certificateInput) {
         HashSet<string> chosen;
+
         try {
-            chosen = new HashSet<string>(ParseCertificate(_certificate));
+            chosen = new HashSet<string>(ParseCertificate(certificateInput));
         } catch {
             return false;
         }

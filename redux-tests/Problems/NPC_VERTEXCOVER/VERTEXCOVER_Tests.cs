@@ -192,9 +192,9 @@ public class VERTEXCOVER_Tests {
     /// building an empty-index certificate.
     ///</summary>
     [Fact]
-    public void VertexCoverBoundedSearchTree_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
+    public void VertexCoverBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
         VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{}),0)");
-        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
 
         string certificate = solver.solve(problem);
 
@@ -207,9 +207,9 @@ public class VERTEXCOVER_Tests {
     /// building the (empty) candidate certificate for K=0.
     ///</summary>
     [Fact]
-    public void VertexCoverBoundedSearchTree_KZero_WithEdges_DoesNotThrow() {
+    public void VertexCoverBruteForce_KZero_WithEdges_DoesNotThrow() {
         VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d},{{a,b},{a,c},{a,d}}),0)");
-        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+        VertexCoverBruteForce solver = new VertexCoverBruteForce();
 
         string certificate = solver.solve(problem);
 
