@@ -49,7 +49,16 @@ public class DOMINATINGSET_Tests {
     [InlineData("(({1,2,3,4},{{1,2},{2,3},{3,4},{4,1}}),2)")]
     public void DOMINATINGSET_solver(string instance) {
         DOMINATINGSET dominatingset = new DOMINATINGSET(instance);
-        DominatingSetSolver solver = dominatingset.defaultSolver;
+        string solvedString = dominatingset.defaultSolver.solve(dominatingset);
+        Assert.True(dominatingset.defaultVerifier.verify(dominatingset, solvedString));
+    }
+
+    [Theory] // Tests the solver produces a certificate the verifier accepts, of size <= K
+    [InlineData("(({0,1,2,3,4},{{1,0},{0,3},{1,2},{2,4},{1,3},{3,4},{4,1}}),2)")]
+    [InlineData("(({1,2,3,4},{{1,2},{2,3},{3,4},{4,1}}),2)")]
+    public void DOMINATINGSETNAIVEINCLUSIONEXCLUSION_solver(string instance) {
+        DOMINATINGSET dominatingset = new DOMINATINGSET(instance);
+        DominatingSetForcedVertex solver = new DominatingSetForcedVertex();
         string solvedString = solver.solve(dominatingset);
         Assert.True(dominatingset.defaultVerifier.verify(dominatingset, solvedString));
     }

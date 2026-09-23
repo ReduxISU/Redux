@@ -8,7 +8,7 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET;
 
 class DOMINATINGSET
     : IGraphProblem<
-        DominatingSetSolver,
+        DominatingSetForcedVertex,
         DominatingSetVerifier,
         DominatingSetDefaultVisualization,
         UtilCollectionGraph
@@ -23,9 +23,9 @@ class DOMINATINGSET
     public string[] contributors { get; } = { "Quinton Smith" };
 
     public string source { get; } =
-        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
+        "Garey, M. R., & Johnson, D. S. (1979). Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman and Company.";
     public string sourceLink { get; } =
-        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
+        "https://dl.acm.org/doi/10.5555/574848";
     public const string InstanceGrammar =
         "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance =
@@ -45,7 +45,7 @@ class DOMINATINGSET
     }
 
     private int _K;
-    public DominatingSetSolver defaultSolver { get; } = new DominatingSetSolver();
+    public DominatingSetForcedVertex defaultSolver { get; } = new DominatingSetForcedVertex();
     public DominatingSetVerifier defaultVerifier { get; } = new DominatingSetVerifier();
     public DominatingSetDefaultVisualization defaultVisualization { get; } =
         new DominatingSetDefaultVisualization();
