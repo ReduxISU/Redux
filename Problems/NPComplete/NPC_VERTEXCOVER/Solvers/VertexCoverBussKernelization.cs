@@ -15,7 +15,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
  + " size-k cover can exist. Otherwise brute-forces all node subsets of the reduced graph up to size k,"
  + " returning the smallest that covers every remaining edge combined with the forced nodes, or failure"
  + " if none is found.";
-    public string source { get; } = "Buss, S. R., & Goldsmith, J. (1993). Nondeterminism within P. SIAM Journal on Computing, 22(3), 560-572.";
+    public string source { get; } = "Buss, J. F., & Goldsmith, J. (1993). Nondeterminism within P. SIAM Journal on Computing, 22(3), 560-572.";
     public string sourceLink { get; } = "https://doi.org/10.1137/0222038";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
