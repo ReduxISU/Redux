@@ -2,8 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
-class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET>
-{
+class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET> {
     // --- Fields ---
     public string solverName { get; } = "Naive Inclusion-Exclusion Backtracking Dominating Set Solver";
     public string solverDefinition { get; } =
@@ -27,13 +26,11 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET>
     // --- Methods Including Constructors ---
     public DominatingSetNaiveInclusionExclusion() { }
 
-    public string solve(DOMINATINGSET problem)
-    {
+    public string solve(DOMINATINGSET problem) {
         int n = problem.nodes.Count;
         int K = problem.K;
 
-        if (n == 0)
-        {
+        if (n == 0) {
             const string emptyCert = "{}";
             return problem.defaultVerifier.verify(problem, emptyCert) ? emptyCert : "{}";
         }
@@ -46,8 +43,7 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET>
         for (int i = 0; i < n; i++)
             adj[i] = new List<int>();
 
-        foreach (var edge in problem.edges)
-        {
+        foreach (var edge in problem.edges) {
             int u = indexOf[edge.Key], v = indexOf[edge.Value];
             if (u == v) continue;
             adj[u].Add(v);
@@ -67,15 +63,12 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET>
     }
 
     // Naive include/exclude recursion over vertex indices [i, n).
-    private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution)
-    {
+    private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution) {
         if (chosen.Count > K)
             return false;
 
-        if (i == n)
-        {
-            if (Dominates(chosen, n, adj))
-            {
+        if (i == n) {
+            if (Dominates(chosen, n, adj)) {
                 solution = new List<int>(chosen);
                 return true;
             }
@@ -95,11 +88,9 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET>
         return false;
     }
 
-    private bool Dominates(List<int> chosen, int n, List<int>[] adj)
-    {
+    private bool Dominates(List<int> chosen, int n, List<int>[] adj) {
         var dominated = new bool[n];
-        foreach (int v in chosen)
-        {
+        foreach (int v in chosen) {
             dominated[v] = true;
             foreach (int u in adj[v])
                 dominated[u] = true;

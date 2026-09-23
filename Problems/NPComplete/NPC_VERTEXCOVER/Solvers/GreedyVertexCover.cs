@@ -5,8 +5,7 @@ using API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class GreedyVertexCover : ISolver<VERTEXCOVER>
-{
+class GreedyVertexCover : ISolver<VERTEXCOVER> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Max-Degree Greedy";
@@ -26,12 +25,10 @@ class GreedyVertexCover : ISolver<VERTEXCOVER>
     public string complexity { get; } = "O(n * (n + m)), n = |nodes|, m = |edges|";
 
     // --- Methods Including Constructors ---
-    public GreedyVertexCover()
-    {
+    public GreedyVertexCover() {
 
     }
-    public string solve(VERTEXCOVER G)
-    {
+    public string solve(VERTEXCOVER G) {
         var mvc = new MINIMUMVERTEXCOVER();
         mvc.nodes = G.nodes;
         mvc.edges = G.edges;
@@ -40,8 +37,7 @@ class GreedyVertexCover : ISolver<VERTEXCOVER>
 
         int size = certificate == "{}" ? 0 : certificate.Trim('{', '}').Split(',').Length;
 
-        if (size > G.K)
-        {
+        if (size > G.K) {
             return "No solution found. Does not guarantee a solution does not exist.";
         }
 

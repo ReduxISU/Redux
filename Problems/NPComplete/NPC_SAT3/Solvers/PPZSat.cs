@@ -2,8 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-class PPZ : ISolver<SAT3>
-{
+class PPZ : ISolver<SAT3> {
     // --- Fields ---
     public string solverName { get; } = "PPZ Algorithm";
     public string solverDefinition { get; } = "Repeats the following trial up to a computed cap: picks a"
@@ -24,13 +23,11 @@ class PPZ : ISolver<SAT3>
     public string complexity { get; } = "O(2^(2n/3)), n = number of variables";
 
     // --- Methods Including Constructors ---
-    public PPZ()
-    {
+    public PPZ() {
 
     }
 
-    public string solve(SAT3 sat3)
-    {
+    public string solve(SAT3 sat3) {
         List<string> variables = new HashSet<string>(
             sat3.literals.Select(lit => lit.TrimStart('!'))
         ).ToList();
@@ -41,20 +38,17 @@ class PPZ : ISolver<SAT3>
 
         Random rnd = new Random();
 
-        for (int t = 0; t < trials; t++)
-        {
+        for (int t = 0; t < trials; t++) {
             List<string> order = variables.OrderBy(_ => rnd.Next()).ToList();
             Dictionary<string, bool> assignments = new Dictionary<string, bool>();
 
-            foreach (string var in order)
-            {
+            foreach (string var in order) {
                 bool? forced = getForcedValue(sat3.clauses, assignments, var);
                 assignments[var] = forced ?? (rnd.Next(2) == 0);
             }
 
             string sampleCertificate = string.Join(",", assignments.Select(kvp => kvp.Key + ":" + kvp.Value));
-            if (sat3.defaultVerifier.verify(sat3, sampleCertificate))
-            {
+            if (sat3.defaultVerifier.verify(sat3, sampleCertificate)) {
                 return "(" + sampleCertificate + ")";
             }
         }
@@ -63,40 +57,33 @@ class PPZ : ISolver<SAT3>
 
     // Returns the value 'var' must take to satisfy a clause that has become a unit clause
     // under the current partial assignment, or null if no clause forces it.
-    private static bool? getForcedValue(List<List<string>> clauses, Dictionary<string, bool> assignments, string var)
-    {
-        foreach (List<string> clause in clauses)
-        {
+    private static bool? getForcedValue(List<List<string>> clauses, Dictionary<string, bool> assignments, string var) {
+        foreach (List<string> clause in clauses) {
             string? matchingLiteral = null;
             bool otherLiteralsFalsified = true;
 
-            foreach (string literal in clause)
-            {
+            foreach (string literal in clause) {
                 string varName = literal.TrimStart('!');
                 bool isNegated = literal.StartsWith('!');
 
-                if (varName == var)
-                {
+                if (varName == var) {
                     matchingLiteral = literal;
                     continue;
                 }
 
-                if (!assignments.TryGetValue(varName, out bool value))
-                {
+                if (!assignments.TryGetValue(varName, out bool value)) {
                     otherLiteralsFalsified = false;
                     break;
                 }
 
                 bool literalValue = isNegated ? !value : value;
-                if (literalValue)
-                {
+                if (literalValue) {
                     otherLiteralsFalsified = false;
                     break;
                 }
             }
 
-            if (matchingLiteral != null && otherLiteralsFalsified)
-            {
+            if (matchingLiteral != null && otherLiteralsFalsified) {
                 bool negated = matchingLiteral.StartsWith('!');
                 return !negated;
             }

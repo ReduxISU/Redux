@@ -6,8 +6,7 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-class WalkSAT : ISolver<SAT3>
-{
+class WalkSAT : ISolver<SAT3> {
 
     // --- Fields ---
     public string solverName { get; } = "WalkSAT Algorithm";
@@ -31,13 +30,11 @@ class WalkSAT : ISolver<SAT3>
 
     private readonly double _p = 0.5;
     // --- Methods Including Constructors ---
-    public WalkSAT()
-    {
+    public WalkSAT() {
 
     }
 
-    public string solve(SAT3 sat3)
-    {
+    public string solve(SAT3 sat3) {
         HashSet<string> variables = new HashSet<string>(
             sat3.literals.Select(lit => lit.TrimStart('!'))
         );
@@ -45,74 +42,59 @@ class WalkSAT : ISolver<SAT3>
         double neededTrials = Math.Pow(4.0 / 3.0, variables.Count);
         int trials;
 
-        if (neededTrials >= int.MaxValue)
-        {
+        if (neededTrials >= int.MaxValue) {
             trials = int.MaxValue;
-        }
-        else
-        {
+        } else {
             trials = (int)neededTrials;
         }
 
-        for (int i = 0; i < trials; i++)
-        {
+        for (int i = 0; i < trials; i++) {
 
             Random rnd = new Random();
             Dictionary<string, bool> assignments = new Dictionary<string, bool>();
 
-            foreach (string literal in sat3.literals)
-            {
+            foreach (string literal in sat3.literals) {
                 if (literal[0] == '!') assignments.TryAdd(literal.Substring(1), rnd.Next(2) == 0);
                 else assignments.TryAdd(literal, rnd.Next(2) == 0);
             }
 
             // 3n attempts at solving
-            for (int j = 0; j < 3 * assignments.Count; j++)
-            {
+            for (int j = 0; j < 3 * assignments.Count; j++) {
                 string sampleCertificate = string.Join(",", assignments.Select(kvp => kvp.Key + ":" + kvp.Value));
-                if (sat3.defaultVerifier.verify(sat3, sampleCertificate))
-                {
+                if (sat3.defaultVerifier.verify(sat3, sampleCertificate)) {
                     return "(" + sampleCertificate + ")";
                 }
 
                 // pick a random clause that is not satisfied
                 List<List<string>> unsatisfiedClauses = new List<List<string>>();
-                foreach (List<string> clause in sat3.clauses)
-                {
+                foreach (List<string> clause in sat3.clauses) {
                     bool satisfied = false;
-                    foreach (string literal in clause)
-                    {
+                    foreach (string literal in clause) {
                         string varName = literal.TrimStart('!');
                         bool isNegated = literal.StartsWith('!');
                         bool value = assignments[varName];
-                        if ((isNegated && !value) || (!isNegated && value))
-                        {
+                        if ((isNegated && !value) || (!isNegated && value)) {
                             satisfied = true;
                             break;
                         }
                     }
-                    if (!satisfied)
-                    {
+                    if (!satisfied) {
                         unsatisfiedClauses.Add(clause);
                     }
                 }
 
-                if (unsatisfiedClauses.Count == 0)
-                {
+                if (unsatisfiedClauses.Count == 0) {
                     return "(" + sampleCertificate + ")";
                 }
 
                 List<string> randomClause = unsatisfiedClauses[rnd.Next(unsatisfiedClauses.Count)];
 
                 string varToFlip;
-                if (rnd.NextDouble() < _p)
-                {
+                if (rnd.NextDouble() < _p) {
                     // Noise step: pick a random literal from the clause (Schöning-style)
                     string randomLiteral = randomClause[rnd.Next(randomClause.Count)];
                     varToFlip = randomLiteral.TrimStart('!');
-                }
-                else
-                {
+                } else {
                     // Greedy step: pick the literal whose flip breaks the fewest satisfied clauses
                     varToFlip = PickMinBreakLiteral(randomClause, assignments, sat3.clauses, rnd);
                 }
@@ -124,22 +106,17 @@ class WalkSAT : ISolver<SAT3>
     }
 
     private string PickMinBreakLiteral(List<string> clause, Dictionary<string, bool> assignments,
-        List<List<string>> clauses, Random rnd)
-    {
+        List<List<string>> clauses, Random rnd) {
         List<string> candidates = clause.Select(lit => lit.TrimStart('!')).Distinct().ToList();
         int bestBreak = int.MaxValue;
         List<string> bestVars = new List<string>();
 
-        foreach (string var in candidates)
-        {
+        foreach (string var in candidates) {
             int breakCount = CountBreaks(var, assignments, clauses);
-            if (breakCount < bestBreak)
-            {
+            if (breakCount < bestBreak) {
                 bestBreak = breakCount;
                 bestVars = new List<string> { var };
-            }
-            else if (breakCount == bestBreak)
-            {
+            } else if (breakCount == bestBreak) {
                 bestVars.Add(var);
             }
         }
@@ -147,18 +124,15 @@ class WalkSAT : ISolver<SAT3>
         return bestVars[rnd.Next(bestVars.Count)];
     }
 
-    private int CountBreaks(string varToFlip, Dictionary<string, bool> assignments, List<List<string>> clauses)
-    {
+    private int CountBreaks(string varToFlip, Dictionary<string, bool> assignments, List<List<string>> clauses) {
         bool flippedValue = !assignments[varToFlip];
         int breaks = 0;
 
-        foreach (List<string> clause in clauses)
-        {
+        foreach (List<string> clause in clauses) {
             bool currentlySatisfied = false;
             bool satisfiedAfterFlip = false;
 
-            foreach (string literal in clause)
-            {
+            foreach (string literal in clause) {
                 string name = literal.TrimStart('!');
                 bool isNegated = literal.StartsWith('!');
                 bool value = (name == varToFlip) ? assignments[name] : assignments[name];

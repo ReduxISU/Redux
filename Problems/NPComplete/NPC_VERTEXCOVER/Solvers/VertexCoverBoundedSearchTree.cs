@@ -3,8 +3,7 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER>
-{
+class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Bounded Search Tree";
@@ -16,7 +15,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER>
  + " cover of size at most k exists.";
     public string source { get; } = "David S. Johnson. 1974. Approximation algorithms for combinatorial problems. J. Comput. Syst. Sci. 9, 3 (December, 1974), 256–278. https://doi.org/10.1016/S0022-0000(74)80044-9";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/800125.804034";
-    public string[] contributors { get; } = { "Andrija Sevaljevic"};
+    public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;

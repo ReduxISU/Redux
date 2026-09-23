@@ -6,8 +6,7 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-class Schoning : ISolver<SAT3>
-{
+class Schoning : ISolver<SAT3> {
 
     // --- Fields ---
     public string solverName { get; } = "Schöning's k-SAT Algorithm";
@@ -27,13 +26,11 @@ class Schoning : ISolver<SAT3>
     public string complexity { get; } = "O((4/3)^n), n = number of variables";
 
     // --- Methods Including Constructors ---
-    public Schoning()
-    {
+    public Schoning() {
 
     }
 
-    public string solve(SAT3 sat3)
-    {
+    public string solve(SAT3 sat3) {
         HashSet<string> variables = new HashSet<string>(
             sat3.literals.Select(lit => lit.TrimStart('!'))
         );
@@ -41,60 +38,48 @@ class Schoning : ISolver<SAT3>
         double neededTrials = Math.Pow(4.0 / 3.0, variables.Count);
         int trials;
 
-        if (neededTrials >= int.MaxValue)
-        {
+        if (neededTrials >= int.MaxValue) {
             trials = int.MaxValue;
-        }
-        else
-        {
+        } else {
             trials = (int)neededTrials;
         }
 
-        for (int i = 0; i < trials; i++)
-        {
+        for (int i = 0; i < trials; i++) {
 
             Random rnd = new Random();
             Dictionary<string, bool> assignments = new Dictionary<string, bool>();
 
-            foreach (string literal in sat3.literals)
-            {
+            foreach (string literal in sat3.literals) {
                 if (literal[0] == '!') assignments.TryAdd(literal.Substring(1), rnd.Next(2) == 0);
                 else assignments.TryAdd(literal, rnd.Next(2) == 0);
             }
 
             // 3n attempts at solving
-            for (int j = 0; j < 3 * assignments.Count; j++)
-            {
+            for (int j = 0; j < 3 * assignments.Count; j++) {
                 string sampleCertificate = string.Join(",", assignments.Select(kvp => kvp.Key + ":" + kvp.Value));
-                if (sat3.defaultVerifier.verify(sat3, sampleCertificate))
-                {
+                if (sat3.defaultVerifier.verify(sat3, sampleCertificate)) {
                     return "(" + sampleCertificate + ")";
                 }
 
                 // pick a random clause that is not satisfied
                 List<List<string>> unsatisfiedClauses = new List<List<string>>();
-                foreach (List<string> clause in sat3.clauses)
-                {
+                foreach (List<string> clause in sat3.clauses) {
                     bool satisfied = false;
-                    foreach (string literal in clause)
-                    {
+                    foreach (string literal in clause) {
                         string varName = literal.TrimStart('!');
                         bool isNegated = literal.StartsWith('!');
                         bool value = assignments[varName];
-                        if ((isNegated && !value) || (!isNegated && value))
-                        {
+                        if ((isNegated && !value) || (!isNegated && value)) {
                             satisfied = true;
                             break;
                         }
                     }
-                    if (!satisfied)
-                    {
+                    if (!satisfied) {
                         unsatisfiedClauses.Add(clause);
                     }
                 }
 
-                if (unsatisfiedClauses.Count == 0)
-                {
+                if (unsatisfiedClauses.Count == 0) {
                     return "(" + sampleCertificate + ")";
                 }
 

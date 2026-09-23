@@ -71,7 +71,7 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
             }
         }
 
-        return "{" + string.Join(",", leftoverNodes) + "}";;
+        return "{" + string.Join(",", leftoverNodes) + "}"; ;
 
     }
 

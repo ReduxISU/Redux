@@ -5,8 +5,7 @@ using System.Numerics;
 
 namespace API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 
-class GreedySetCover : ISolver<SETCOVER>
-{
+class GreedySetCover : ISolver<SETCOVER> {
 
     // --- Fields ---
     public string solverName { get; } = "Greedy Set Cover";
@@ -25,31 +24,26 @@ class GreedySetCover : ISolver<SETCOVER>
     public string complexity { get; } = "O(n * m), n = |universe|, m = |subsets|";
 
     // --- Methods Including Constructors ---
-    public GreedySetCover()
-    {
+    public GreedySetCover() {
 
     }
 
-    public string solve(SETCOVER setCover)
-    {
+    public string solve(SETCOVER setCover) {
 
         HashSet<string> covered = new HashSet<string>();
         HashSet<string> universal = new HashSet<string>(setCover.universal);
         List<int> chosenIndices = new List<int>();
 
-        while (covered.Count < universal.Count)
-        {
+        while (covered.Count < universal.Count) {
 
             int bestIndex = -1;
             int bestNewCount = 0;
 
-            for (int i = 0; i < setCover.subsets.Count; i++)
-            {
+            for (int i = 0; i < setCover.subsets.Count; i++) {
                 if (chosenIndices.Contains(i)) continue;
 
                 int newCount = setCover.subsets[i].Count(e => !covered.Contains(e));
-                if (newCount > bestNewCount)
-                {
+                if (newCount > bestNewCount) {
                     bestNewCount = newCount;
                     bestIndex = i;
                 }
@@ -61,14 +55,12 @@ class GreedySetCover : ISolver<SETCOVER>
             covered.UnionWith(setCover.subsets[bestIndex]);
         }
 
-        if (covered.Count < universal.Count || chosenIndices.Count > setCover.K)
-        {
+        if (covered.Count < universal.Count || chosenIndices.Count > setCover.K) {
             return "{}";
         }
 
         string solution = "{";
-        foreach (var i in chosenIndices)
-        {
+        foreach (var i in chosenIndices) {
             solution += "{" + string.Join(",", setCover.subsets[i]) + "},";
         }
         return solution.TrimEnd(',') + "}";

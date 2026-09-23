@@ -6,8 +6,7 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 
-class FastApproximation : ISolver<SUBSETSUM>
-{
+class FastApproximation : ISolver<SUBSETSUM> {
     // --- Fields ---
     public string solverName { get; } = "Fast Approximation Algorithm";
     public string solverDefinition { get; } = "A fast approximation algorithm for subset sum that trades"
@@ -28,32 +27,27 @@ class FastApproximation : ISolver<SUBSETSUM>
     // Defining a standard 5% default error tolerance layer for the approximation scheme
     private readonly double _epsilon = 0.05;
 
-    private struct SumState
-    {
+    private struct SumState {
         public double Sum;
         public List<int> ChosenItems;
 
-        public SumState(double sum, List<int> items)
-        {
+        public SumState(double sum, List<int> items) {
             Sum = sum;
             ChosenItems = items;
         }
     }
 
     // --- Methods Including Constructors ---
-    public FastApproximation()
-    {
+    public FastApproximation() {
     }
 
-    public string solve(SUBSETSUM subsetsum)
-    {
+    public string solve(SUBSETSUM subsetsum) {
 
         int target = subsetsum.T;
         List<int> numbers = subsetsum.S.Select(int.Parse).ToList();
         int n = numbers.Count;
 
-        if (n == 0 || target <= 0)
-        {
+        if (n == 0 || target <= 0) {
             return "{}";
         }
 
@@ -61,14 +55,11 @@ class FastApproximation : ISolver<SUBSETSUM>
 
         List<SumState> L = new List<SumState> { new SumState(0, new List<int>()) };
 
-        foreach (int item in numbers)
-        {
+        foreach (int item in numbers) {
             List<SumState> LPrime = new List<SumState>(L);
-            foreach (var state in L)
-            {
+            foreach (var state in L) {
                 double nextSum = state.Sum + item;
-                if (nextSum <= target) 
-                {
+                if (nextSum <= target) {
                     var nextItems = new List<int>(state.ChosenItems) { item };
                     LPrime.Add(new SumState(nextSum, nextItems));
                 }
@@ -88,20 +79,17 @@ class FastApproximation : ISolver<SUBSETSUM>
         return "{" + string.Join(",", bestState.ChosenItems) + "}";
     }
 
-    private List<SumState> Trim(List<SumState> list, double delta)
-    {
+    private List<SumState> Trim(List<SumState> list, double delta) {
         if (list.Count == 0) return list;
 
         List<SumState> trimmed = new List<SumState> { list[0] };
         double lastValue = list[0].Sum;
 
-        for (int i = 1; i < list.Count; i++)
-        {
+        for (int i = 1; i < list.Count; i++) {
             double currentValue = list[i].Sum;
 
             // If the currentValue exceeds the lastValue buffer threshold criteria, preserve state
-            if (currentValue > lastValue * (1 + delta))
-            {
+            if (currentValue > lastValue * (1 + delta)) {
                 trimmed.Add(list[i]);
                 lastValue = currentValue;
             }

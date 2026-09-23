@@ -2,8 +2,7 @@
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
-class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
-{
+class DominatingSetForcedVertex : ISolver<DOMINATINGSET> {
     // --- Fields ---
     public string _solverName = "Forced-Vertex Branch-and-Reduce Dominating Set Solver";
     public string _solverDefinition =
@@ -39,35 +38,30 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
     // --- Methods Including Constructors ---
     public DominatingSetForcedVertex() { }
 
-    public string solve(DOMINATINGSET problem)
-    {
+    public string solve(DOMINATINGSET problem) {
         //Get problem data
         int n = problem.nodes.Count;
         int K = problem.K;
 
         // Empty graph case
-        if (n == 0)
-        {
+        if (n == 0) {
             const string emptyCert = "{}";
             return problem.defaultVerifier.verify(problem, emptyCert) ? emptyCert : "{}";
         }
 
         var indexOf = new Dictionary<string, int>(n);
-        for (int i = 0; i < n; i++)
-        {
+        for (int i = 0; i < n; i++) {
             indexOf[problem.nodes[i]] = i;
         }
 
         // Build Adjacency list
         var adj = new List<int>[n];
 
-        for (int i = 0; i < n; i++)
-        {
+        for (int i = 0; i < n; i++) {
             adj[i] = new List<int>();
         }
 
-        foreach (var edge in problem.edges)
-        {
+        foreach (var edge in problem.edges) {
             int u = indexOf[edge.Key],
                 v = indexOf[edge.Value];
             if (u == v)
@@ -76,8 +70,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
             adj[v].Add(u);
         }
         var closed = new List<int>[n];
-        for (int v = 0; v < n; v++)
-        {
+        for (int v = 0; v < n; v++) {
             var set = new HashSet<int>(adj[v]) { v };
             closed[v] = set.ToList();
         }
@@ -102,13 +95,11 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
         bool[] dominated,
         List<int> chosen,
         out List<int> solution
-    )
-    {
+    ) {
         solution = null!;
 
         // Fast check: are we done?
-        if (AllDominated(dominated))
-        {
+        if (AllDominated(dominated)) {
             solution = new List<int>(chosen);
             return true;
         }
@@ -118,25 +109,21 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
             return false; // no picks left but not fully dominated
 
         bool forcedApplied;
-        do
-        {
+        do {
             forcedApplied = false;
 
             // find an undominated vertex with no neighbors that can cover it except itself (i.e., deg == 0)
             int forced = -1;
-            for (int v = 0; v < n; v++)
-            {
+            for (int v = 0; v < n; v++) {
                 if (dominated[v])
                     continue;
-                if (adj[v].Count == 0)
-                {
+                if (adj[v].Count == 0) {
                     forced = v;
                     break;
                 } // isolated vertex, must pick it
             }
 
-            if (forced != -1)
-            {
+            if (forced != -1) {
                 // pick 'forced'
                 chosen.Add(forced);
                 ApplyPick(closed, forced, dominated);
@@ -146,8 +133,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
                 forcedApplied = true;
 
                 // if everything is dominated now, we can finish early
-                if (AllDominated(dominated))
-                {
+                if (AllDominated(dominated)) {
                     solution = new List<int>(chosen);
                     return true;
                 }
@@ -156,26 +142,22 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
 
         int uPick = -1;
         int bestDeg = -1;
-        for (int v = 0; v < n; v++)
-        {
+        for (int v = 0; v < n; v++) {
             if (dominated[v])
                 continue;
             int deg = adj[v].Count;
-            if (deg > bestDeg)
-            {
+            if (deg > bestDeg) {
                 bestDeg = deg;
                 uPick = v;
             }
         }
 
-        if (uPick == -1)
-        {
+        if (uPick == -1) {
             solution = new List<int>(chosen);
             return true;
         }
 
-        foreach (int w in closed[uPick])
-        {
+        foreach (int w in closed[uPick]) {
             var dominated2 = (bool[])dominated.Clone();
             var chosen2 = new List<int>(chosen) { w };
             ApplyPick(closed, w, dominated2);
@@ -187,14 +169,12 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET>
         return false; // no choice worked
     }
 
-    private void ApplyPick(List<int>[] closed, int v, bool[] dominated)
-    {
+    private void ApplyPick(List<int>[] closed, int v, bool[] dominated) {
         foreach (int u in closed[v])
             dominated[u] = true;
     }
 
-    private bool AllDominated(bool[] dominated)
-    {
+    private bool AllDominated(bool[] dominated) {
         for (int i = 0; i < dominated.Length; i++)
             if (!dominated[i])
                 return false;

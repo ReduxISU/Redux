@@ -3,8 +3,7 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class VertexCoverBussKernelization : ISolver<VERTEXCOVER>
-{
+class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Buss Kernelization";
@@ -24,34 +23,28 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER>
     public string complexity { get; } = "O(K * (n + m) + 2^(2K) * m), K = target cover size, n = |nodes|, m = |edges|";
 
     // --- Methods Including Constructors ---
-    public VertexCoverBussKernelization()
-    {
+    public VertexCoverBussKernelization() {
 
     }
-    public string solve(VERTEXCOVER G)
-    {
+    public string solve(VERTEXCOVER G) {
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         var mandatory = new List<string>();
         int k = G.K;
 
         bool changed = true;
-        while (changed)
-        {
+        while (changed) {
             changed = false;
 
             var degree = new Dictionary<string, int>();
-            foreach (var e in edges)
-            {
+            foreach (var e in edges) {
                 if (!degree.ContainsKey(e.Key)) degree[e.Key] = 0;
                 if (!degree.ContainsKey(e.Value)) degree[e.Value] = 0;
                 degree[e.Key]++;
                 degree[e.Value]++;
             }
 
-            foreach (var kv in degree)
-            {
-                if (kv.Value > k)
-                {
+            foreach (var kv in degree) {
+                if (kv.Value > k) {
                     mandatory.Add(kv.Key);
                     k--;
                     edges = edges.Where(e => e.Key != kv.Key && e.Value != kv.Key).ToList();
@@ -60,21 +53,18 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER>
                 }
             }
 
-            if (k < 0)
-            {
+            if (k < 0) {
                 return "{}";
             }
         }
 
-        if (edges.Count > k * k)
-        {
+        if (edges.Count > k * k) {
             return "{}";
         }
 
         var kernelNodes = edges.SelectMany(e => new[] { e.Key, e.Value }).Distinct().ToList();
         var kernelCover = bruteForceOnKernel(kernelNodes, edges, k);
-        if (kernelCover == null)
-        {
+        if (kernelCover == null) {
             return "{}";
         }
 
@@ -82,20 +72,15 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER>
         return "{" + string.Join(",", mandatory) + "}";
     }
 
-    private List<string>? bruteForceOnKernel(List<string> nodes, List<KeyValuePair<string, string>> edges, int k)
-    {
-        if (edges.Count == 0)
-        {
+    private List<string>? bruteForceOnKernel(List<string> nodes, List<KeyValuePair<string, string>> edges, int k) {
+        if (edges.Count == 0) {
             return new List<string>();
         }
 
         int limit = Math.Min(k, nodes.Count);
-        for (int size = 0; size <= limit; size++)
-        {
-            foreach (var combo in combinations(nodes, size))
-            {
-                if (coversAll(combo, edges))
-                {
+        for (int size = 0; size <= limit; size++) {
+            foreach (var combo in combinations(nodes, size)) {
+                if (coversAll(combo, edges)) {
                     return combo;
                 }
             }
@@ -103,17 +88,13 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER>
         return null;
     }
 
-    private IEnumerable<List<string>> combinations(List<string> list, int size)
-    {
-        if (size == 0)
-        {
+    private IEnumerable<List<string>> combinations(List<string> list, int size) {
+        if (size == 0) {
             yield return new List<string>();
             yield break;
         }
-        for (int i = 0; i <= list.Count - size; i++)
-        {
-            foreach (var rest in combinations(list.Skip(i + 1).ToList(), size - 1))
-            {
+        for (int i = 0; i <= list.Count - size; i++) {
+            foreach (var rest in combinations(list.Skip(i + 1).ToList(), size - 1)) {
                 var combo = new List<string> { list[i] };
                 combo.AddRange(rest);
                 yield return combo;
@@ -121,8 +102,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER>
         }
     }
 
-    private bool coversAll(List<string> cover, List<KeyValuePair<string, string>> edges)
-    {
+    private bool coversAll(List<string> cover, List<KeyValuePair<string, string>> edges) {
         var set = new HashSet<string>(cover);
         return edges.All(e => set.Contains(e.Key) || set.Contains(e.Value));
     }
