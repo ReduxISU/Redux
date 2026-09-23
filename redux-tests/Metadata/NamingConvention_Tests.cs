@@ -32,7 +32,7 @@ public class NamingConvention_Tests {
     // Person token: one or more hyphen-joined Capitalized words (covers co-author names
     // like "Garey-Johnson", "Lawler-Karp", "Bernstein-Vazirani"), optional possessive 's.
     private const string PersonToken = @"\p{Lu}\p{L}*(?:-\p{Lu}\p{L}*)*'?s?";
-        private static readonly Regex PersonAlgorithmShape = new($@"^{PersonToken}(?:\s+\S+)*\s+Algorithm$");
+    private static readonly Regex PersonAlgorithmShape = new($@"^{PersonToken}(?:\s+\S+)*\s+Algorithm$");
     private static readonly Regex PersonReductionShape = new($@"^{PersonToken}(?:\s+\S+)*\s+Reduction$");
 
     // Problem+Approach shape: 2+ words, each either Title-Case/ALLCAPS/digit-leading
