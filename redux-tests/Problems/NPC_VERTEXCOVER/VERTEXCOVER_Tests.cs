@@ -183,7 +183,7 @@ public class VERTEXCOVER_Tests {
         Assert.False(dict["c"]);
     }
 
-    // VertexCoverBruteForce — K=0 regression (GitHub issue #532)
+    // Vertex Cover Bounded Search Tree
     // -------------------------------------------------------------------------
 
     ///<summary>
@@ -216,4 +216,127 @@ public class VERTEXCOVER_Tests {
         Assert.Equal("{}", certificate);
     }
 
+    // -------------------------------------------------------------------------
+    // VertexCoverBoundedSearchTree
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void VertexCoverBoundedSearchTree_Output_Passes_Verifier() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)");
+        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBoundedSearchTree_SingleEdge_MinimalCover() {
+        // Two nodes, one edge: a size-1 cover must exist (either endpoint covers it).
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{{a,b}}),1)");
+        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBoundedSearchTree_KTooSmall_ReturnsEmptyBraces() {
+
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c},{{a,b},{b,c},{a,c}}),1)");
+        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
+
+    [Fact]
+    public void VertexCoverBoundedSearchTree_FullyConnectedGraph_FindsCoverAmongTies() {
+        VERTEXCOVER problem = new VERTEXCOVER(
+            "(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),4)");
+        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBoundedSearchTree_KEqualsFullNodeCount_TrivialSingleCombination() {
+        // K == |nodes| means C(n,n)=1: exactly one combination (all nodes) is ever tried.
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c},{{a,b},{b,c}}),3)");
+        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    // -------------------------------------------------------------------------
+    // VertexCoverBussKernelization
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void VertexCoverBussKernelization_Output_Passes_Verifier() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)");
+        VertexCoverBussKernelization solver = new VertexCoverBussKernelization();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBussKernelization_SingleEdge_MinimalCover() {
+        // Two nodes, one edge: a size-1 cover must exist (either endpoint covers it).
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{{a,b}}),1)");
+        VertexCoverBussKernelization solver = new VertexCoverBussKernelization();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBussKernelization_KTooSmall_ReturnsEmptyBraces() {
+
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c},{{a,b},{b,c},{a,c}}),1)");
+        VertexCoverBussKernelization solver = new VertexCoverBussKernelization();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
+
+    [Fact]
+    public void VertexCoverBussKernelization_FullyConnectedGraph_FindsCoverAmongTies() {
+        VERTEXCOVER problem = new VERTEXCOVER(
+            "(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),4)");
+        VertexCoverBussKernelization solver = new VertexCoverBussKernelization();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
+
+    [Fact]
+    public void VertexCoverBussKernelization_KEqualsFullNodeCount_TrivialSingleCombination() {
+        // K == |nodes| means C(n,n)=1: exactly one combination (all nodes) is ever tried.
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c},{{a,b},{b,c}}),3)");
+        VertexCoverBussKernelization solver = new VertexCoverBussKernelization();
+        VCVerifier verifier = new VCVerifier();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
+    }
 }

@@ -124,7 +124,7 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory> {
     public async Task NpHardProblems_MembershipIsExactlyDeclaredNPHard() {
         var actual = await GetStringSet(_client, "/Navigation/NPHard_ProblemsRefactor");
         var expected = new HashSet<string>(
-            new[] { "MAXCUT", "PUMPSCHEDULINGCM", "PUMPSCHEDULINGEM" },
+            new[] { "MAXCUT", "MINIMUMVERTEXCOVER", "PUMPSCHEDULINGCM", "PUMPSCHEDULINGEM" },
             StringComparer.OrdinalIgnoreCase);
 
         Assert.True(expected.SetEquals(actual),

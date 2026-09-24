@@ -6,9 +6,18 @@ namespace API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 class HeuristicSolver : ISolver<SETCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Set Cover Backtracking";
-    public string solverDefinition { get; } = "";
-    public string source { get; } = "";
+    public string solverName { get; } = "Set Cover Algorithm X Bounded Search";
+    public string solverDefinition { get; } = "Builds a sparse bipartite row/column representation of the"
+    + " subsets-vs-universal-elements matrix. At each step, selects the column (universal element) with the"
+    + " fewest covering rows (subsets) remaining, then branches over each row that covers it, in descending"
+    + " order of row size. Selecting a row removes its columns (and all rows sharing them) from the matrix;"
+    + " backtracking restores them. Recursion terminates successfully when no columns remain, and is bounded"
+    + " to reject any partial solution exceeding K selected sets. Implements Algorithm X's selection and"
+    + " backtracking logic using plain dictionaries/lists rather than the dancing-links doubly-linked-list"
+    + " structure, so it lacks DLX's O(1) undo per step.";
+    public string source { get; } = "Knuth, D. E. (2000). Dancing links. In Millennium Perspectives in Computer"
+    + " Science, 187-214. arXiv:cs/0011047.";
+    public string sourceLink { get; } = "https://arxiv.org/abs/cs/0011047";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Despite the class name, this is NOT a heuristic: it is exact bounded
