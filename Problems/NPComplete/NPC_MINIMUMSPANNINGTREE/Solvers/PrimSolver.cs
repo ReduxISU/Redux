@@ -22,7 +22,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
     // visited.SelectMany(node => adjacency[node]) — up to O(E) edges — and re-sorts that
     // whole list with OrderBy (O(E log E)) just to pick the minimum. That's O(V) iterations
     // times O(E log E) per iteration, not the textbook O(E log V) (heap) or O(V^2) (array).
-    public string complexity { get; } = "O(V * E log E)";
+    public MathematicalFunction complexity { get; } = new("V * E log E", "");
 
     public string solve(MINIMUMSPANNINGTREE problem) {
         // Sort once so equal-weight instances still produce deterministic certificates.

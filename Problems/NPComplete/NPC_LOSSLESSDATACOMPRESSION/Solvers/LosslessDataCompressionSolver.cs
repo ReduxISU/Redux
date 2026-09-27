@@ -28,7 +28,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
     // re-sorts the remaining node list on every merge instead of using a heap, so tree
     // construction is O(k^2 log k) rather than the classical O(n log n) heap-based bound
     // (k = distinct characters, k <= n). EncodeInput adds O(n * k) (code length <= k-1).
-    public string complexity { get; } = "O(k^2 log k + n*k), n = input length, k <= n = distinct characters";
+    public MathematicalFunction complexity { get; } = new("k^2 log k + n*k", ", n = input length, k <= n = distinct characters");
 
     // Constructors
 

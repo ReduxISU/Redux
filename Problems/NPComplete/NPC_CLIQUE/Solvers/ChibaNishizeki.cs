@@ -25,7 +25,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } = "O(k * a^(k-2) * m), k = clique size, a = arboricity, m = |edges|";
+    public MathematicalFunction complexity { get; } = new("k * a^(k-2) * m", ", k = clique size, a = arboricity, m = |edges|");
 
     // --- Methods Including Constructors ---
     public ChibaNishizeki() {

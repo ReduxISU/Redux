@@ -20,7 +20,7 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(n * (n + m)), n = |nodes|, m = |edges|";
+    public MathematicalFunction complexity { get; } = new("n * (n + m)", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public GreedyMinimumVertexCover() {

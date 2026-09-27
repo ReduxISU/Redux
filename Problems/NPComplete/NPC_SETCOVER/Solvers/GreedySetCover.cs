@@ -22,7 +22,7 @@ class GreedySetCover : ISolver<SETCOVER> {
     public SolverType solverType { get; } = SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
-    public string complexity { get; } = "O(n * m), n = |universe|, m = |subsets|";
+    public MathematicalFunction complexity { get; } = new("n * m", ", n = |universe|, m = |subsets|");
 
     // --- Methods Including Constructors ---
     public GreedySetCover() {

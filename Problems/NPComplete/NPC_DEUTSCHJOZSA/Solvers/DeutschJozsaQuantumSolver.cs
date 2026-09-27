@@ -21,7 +21,7 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
     public SolverType solverType { get; } = SolverType.Quantum;
     // The Deutsch-Jozsa algorithm resolves constant-vs-balanced with exactly one query to
     // the oracle, regardless of n; this solver makes a single call to the external endpoint.
-    public string complexity { get; } = "O(1) oracle queries";
+    public MathematicalFunction complexity { get; } = new("1", " oracle queries");
 
     // --- Constructors ---
 

@@ -21,7 +21,7 @@ class SetCoverBruteForce : ISolver<SETCOVER> {
     // C(m, j) times (m = |subsets|), so total iterations are bounded by sum_{j=0}^{K-1} C(m,j)
     // <= 2^m. Each iteration's verify() call additionally costs O(u^2) (List.Contains/Remove
     // scans over the universal set, u = |universal|).
-    public string complexity { get; } = "O(2^m * u^2), m = |subsets|, u = |universal|";
+    public MathematicalFunction complexity { get; } = new("2^m * u^2", ", m = |subsets|, u = |universal|");
 
     // --- Methods Including Constructors ---
     public SetCoverBruteForce() {

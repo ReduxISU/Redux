@@ -17,7 +17,7 @@ class NQueensBacktracking : ISolver<NQUEENS> {
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
 
-    public string complexity { get; } = "O(N!)";
+    public MathematicalFunction complexity { get; } = new("N!", "");
 
     // --- Solver ---
     public string solve(NQUEENS problem) {

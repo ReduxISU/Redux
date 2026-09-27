@@ -16,7 +16,7 @@ class MinSTCutSolver : ISolver<MINSTCUT> {
     // Standard Edmonds-Karp: BFS (O(V + E) via a proper adjacency-dictionary residual graph,
     // not a linear edge-list scan) finds a shortest augmenting path each round, and the
     // classic bound of O(V * E) augmentations gives O(V * E) BFS calls.
-    public string complexity { get; } = "O(V * E^2)";
+    public MathematicalFunction complexity { get; } = new("V * E^2", "");
 
     public MinSTCutSolver() { }
 

@@ -46,7 +46,7 @@ class BinPackingFFD : ISolver<BINPACKING> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
     // Much cheaper than brute force — quadratic in the number of items.
-    public string complexity { get; } = "O(n^2)";
+    public MathematicalFunction complexity { get; } = new("n^2", "");
 
     // ── Public entry point ────────────────────────────────────────────────────
 

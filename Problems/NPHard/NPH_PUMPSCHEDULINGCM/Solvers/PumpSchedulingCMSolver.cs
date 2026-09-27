@@ -26,7 +26,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
     // polynomial in the hour count H and tank-bucket count B, but the per-hour transition
     // enumerates prevMask x mask over nMasks = 2^n pump-on/off states (n = pump count),
     // i.e. exponential in the number of pumps.
-    public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
+    public MathematicalFunction complexity { get; } = new("H * B * n * 4^n", ", H = 24 hours, B = tank buckets, n = number of pumps");
 
     // Return a non-empty sentinel so the IVisualization<T> default dispatch in
     // VisualizationInterface.cs does not short-circuit StepsVisualization when

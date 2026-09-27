@@ -25,7 +25,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
     // Per node: building possibleSubsets scans up to s remaining subsets, each checked via
     // shareElememnts against up to s chosen subsets, O(n^2) per pairwise check (n = |X|, bounding
     // subset size) -- O(s^2 * n^2) per node. Combined with the O(s!) node count above.
-    public string complexity { get; } = "O(s! * s^2 * n^2), s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)";
+    public MathematicalFunction complexity { get; } = new("s! * s^2 * n^2", ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)");
 
     // --- Methods Including Constructors ---
     public ExactCoverRecursive() {
