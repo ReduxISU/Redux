@@ -14,7 +14,7 @@ class MaxCutSolver : ISolver<MAXCUT> {
     // Declared, not derived. Iterates every mask from 1 to (1<<n)-2, i.e. all 2^n vertex
     // subsets; each mask costs O(n) to build S plus O(m) to sum crossing-edge weights
     // (CutWeight, HashSet lookups are O(1)).
-    public string complexity { get; } = "O(2^n * (n + m)), n = |nodes|, m = |edges|";
+    public MathematicalFunction complexity { get; } = new("2^n * (n + m)", ", n = |nodes|, m = |edges|");
 
     public MaxCutSolver() { }
 

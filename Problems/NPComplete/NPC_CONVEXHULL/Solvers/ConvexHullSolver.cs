@@ -15,7 +15,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Sort is O(n log n); the divide-and-conquer merge finds the two hulls' tangent lines with
     // a linear rotating scan per level, giving the classic T(n) = 2T(n/2) + O(n) recurrence.
-    public string complexity { get; } = "O(n log n)";
+    public MathematicalFunction complexity { get; } = new("n log n", "");
 
     public ConvexHullSolver() { }
 

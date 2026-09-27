@@ -18,7 +18,7 @@ class SudokuSolver : ISolver<SUDOKU> {
     // Declared, not derived. Recursive cell-by-cell backtracking over an n x n grid
     // (n^2 cells, up to n candidate values per cell after row/col/block pruning); the
     // row/col/block HashSets cut branches in practice but don't change the worst-case bound.
-    public string complexity { get; } = "O(n ^ (n^2)), n = grid dimension";
+    public MathematicalFunction complexity { get; } = new("n ^ (n^2)", ", n = grid dimension");
 
     // --- Methods Including Constructors ---
     public SudokuSolver() { }

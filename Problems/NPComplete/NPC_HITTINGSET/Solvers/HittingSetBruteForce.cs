@@ -19,7 +19,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
     // set (n = |universalSet|; there is no K to bound this one, unlike the other set-cover-
     // family brute forces in this batch). Each candidate costs O(s*n) to verify
     // (HittingSetVerifier intersects the candidate against every one of the s subsets).
-    public string complexity { get; } = "O(2^n * s * n), n = |universalSet|, s = number of subsets in S";
+    public MathematicalFunction complexity { get; } = new("2^n * s * n", ", n = |universalSet|, s = number of subsets in S");
 
     // --- Methods Including Constructors ---
     public HittingSetBruteForce() {

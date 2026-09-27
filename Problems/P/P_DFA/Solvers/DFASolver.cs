@@ -20,7 +20,7 @@ class DFASolver : ISolver<DFA> {
     // For each of the up-to-n input characters, solve() does "foreach (var edge in problem.edges)"
     // — a linear scan of all E edges to find the matching transition — instead of an O(1)
     // dictionary/table lookup, so this is O(n * E), not the ideal O(n).
-    public string complexity { get; } = "O(n * E)";
+    public MathematicalFunction complexity { get; } = new("n * E", "");
 
     private List<string> nodePath = [];
 

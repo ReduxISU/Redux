@@ -18,7 +18,7 @@ class PartitionBruteForce : ISolver<PARTITION> {
     // Declared, not derived. Enumerates all 2^n binary partition vectors; each candidate's
     // verify() call is O(n^2) (nested Count()/Contains() scans over S), dominating the O(n)
     // certificate-building cost per candidate.
-    public string complexity { get; } = "O(n^2 * 2^n), n = |S|";
+    public MathematicalFunction complexity { get; } = new("n^2 * 2^n", ", n = |S|");
 
     // --- Methods Including Constructors ---
     public PartitionBruteForce() {

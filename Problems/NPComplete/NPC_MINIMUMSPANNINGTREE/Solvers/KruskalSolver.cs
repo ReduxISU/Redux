@@ -21,7 +21,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // OrderBy sorts all E edges (O(E log E)); Union-Find uses path compression + union by
     // rank, near-O(1) amortized per operation, so the sort dominates.
-    public string complexity { get; } = "O(E log E)";
+    public MathematicalFunction complexity { get; } = new("E log E", "");
 
     public string solve(MINIMUMSPANNINGTREE problem) {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();

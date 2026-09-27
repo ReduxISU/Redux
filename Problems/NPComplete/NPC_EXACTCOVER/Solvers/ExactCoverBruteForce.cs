@@ -18,7 +18,7 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER> {
     // Each candidate's ExactCoverVerifier.verify compares every selected subset (<= s) against every
     // subset in S (s) via OrderBy+SequenceEqual, O(n) per comparison (n = |X|, bounding subset size)
     // -- O(s^2 * n) per candidate.
-    public string complexity { get; } = "O(2^s * s^2 * n), s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)";
+    public MathematicalFunction complexity { get; } = new("2^s * s^2 * n", ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)");
 
     // --- Methods Including Constructors ---
     public ExactCoverBruteForce() {

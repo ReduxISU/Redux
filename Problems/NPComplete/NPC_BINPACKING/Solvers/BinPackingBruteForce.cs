@@ -36,7 +36,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 
     // Worst-case complexity — each of the n items can go into any of K bins.
-    public string complexity { get; } = "O(K^n)";
+    public MathematicalFunction complexity { get; } = new("K^n", "");
 
     // ── Public entry point ────────────────────────────────────────────────────
 

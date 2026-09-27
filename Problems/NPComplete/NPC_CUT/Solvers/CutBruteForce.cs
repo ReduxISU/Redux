@@ -18,7 +18,7 @@ class CutBruteForce : ISolver<CUT> {
     // Declared, not derived. Enumerates subsets of size 1..K (K <= edges.Count, but K
     // can still be Theta(n)); each candidate costs O(n^2) to build (certificateToEdges)
     // plus O(m) to verify.
-    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction complexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
 
     public CutBruteForce() {
 

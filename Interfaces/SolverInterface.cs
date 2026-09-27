@@ -18,13 +18,23 @@ interface ISolver {
     SolverType solverType { get => SolverType.Unclassified; }
 
     /// <summary>
-    /// Free-text runtime-complexity commentary (e.g. "O(n * W)"). Pre-existing ad-hoc
-    /// field promoted to the interface under its original name — see the header of
-    /// <see cref="API.Interfaces.ReductionCost"/> for why this differs from that type's
-    /// naming choice. Defaults to empty string; only populate with a confidently-known
-    /// Big-O string, never a guess.
+    /// Worst-case TIME growth, as an evaluable Big-O function of instance-size
+    /// variables (e.g. <c>new("n * W", ", n = |items|, W = capacity")</c> displays as
+    /// "O(n * W), n = |items|, W = capacity" and can also be evaluated for a concrete
+    /// n/W). Pre-existing ad-hoc field promoted to the interface under its original
+    /// name — see the header of <see cref="API.Interfaces.ReductionCost"/> for why this
+    /// differs from that type's naming choice. Defaults to <c>null</c> (undeclared);
+    /// only populate with a confidently-known Big-O function, never a guess.
     /// </summary>
-    string complexity { get => ""; }
+    MathematicalFunction? complexity { get => null; }
+
+    /// <summary>
+    /// Worst-case SPACE growth, as an evaluable Big-O function of instance-size
+    /// variables — same shape and same "declare only when confidently known" rule as
+    /// <see cref="complexity"/>, just for auxiliary memory instead of running time.
+    /// Defaults to <c>null</c> (undeclared).
+    /// </summary>
+    MathematicalFunction? spaceComplexity { get => null; }
 
     /// <summary>
     /// Coarse WORST-CASE growth class of this solver. Declared, not derived — see

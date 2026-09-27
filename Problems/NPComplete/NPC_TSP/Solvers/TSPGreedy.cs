@@ -22,7 +22,7 @@ class TSPGreedy : ISolver<TSP> {
     // enforced here (TSP_Class.cs places no triangle-inequality/metric constraint on edge
     // weights, and a failed nearest-neighbor pass can also skip a start entirely), so this
     // stays Greedy rather than Approximation.
-    public string complexity { get; } = "O(n^3 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction complexity { get; } = new("n^3 * m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public TSPGreedy() {

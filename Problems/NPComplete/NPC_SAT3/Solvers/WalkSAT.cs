@@ -24,7 +24,7 @@ class WalkSAT : ISolver<SAT3> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(n * m), n = number of variables, m = number of clauses";
+    public MathematicalFunction complexity { get; } = new("n * m", ", n = number of variables, m = number of clauses");
     // betweeen 0.5 and 0.6, empirically 0.57 proven best
     private readonly double _p = 0.57;
     private readonly int _maxTries = 100;
