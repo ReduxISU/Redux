@@ -50,8 +50,8 @@
     "major": "Computer Science",
     "bio": "Graph algorithm specialist",
     "githubUsername": "Andrija-Sevaljevic",
-    "reduxStats": { "prsMerged": 79, "reviews": 31 },
-    "reduxGuiStats": { "prsMerged": 23, "reviews": 11 }
+    "reduxStats": { "prsMerged": 15, "reviews": 36 },
+    "reduxGuiStats": { "prsMerged": 17, "reviews": 14 }
   },
   "Garret Stouffer": {
     "email": "garretstouffer@isu.edu",
@@ -86,8 +86,8 @@
     "major": "Computer Science",
     "bio": "Documentation and project coordinator",
     "githubUsername": "Jetison333",
-    "reduxStats": { "prsMerged": 29, "reviews": 0 },
-    "reduxGuiStats": { "prsMerged": 11, "reviews": 0 }
+    "reduxStats": { "prsMerged": 10, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 3, "reviews": 0 }
   },
   "Michael Crapse": {
     "email": "michaelcrapse@isu.edu",
@@ -167,8 +167,8 @@
     "major": "Computer Science",
     "bio": "",
     "githubUsername": "wrigjl",
-    "reduxStats": { "prsMerged": 129, "reviews": 37 },
-    "reduxGuiStats": { "prsMerged": 41, "reviews": 3 }
+    "reduxStats": { "prsMerged": 132, "reviews": 72 },
+    "reduxGuiStats": { "prsMerged": 23, "reviews": 3 }
   },
   "Alex Svancara": {
     "email": "alexsvancara@isu.edu",
@@ -318,8 +318,8 @@
     "major": "Computer Science",
     "bio": "Full-stack contributor spanning backend problem/test infrastructure and frontend UI (tag/filter system, theming); dominant author of the backend test suite and an active PR reviewer across both repos.",
     "githubUsername": "Trosper3",
-    "reduxStats": { "prsMerged": 25, "reviews": 36 },
-    "reduxGuiStats": { "prsMerged": 24, "reviews": 36 }
+    "reduxStats": { "prsMerged": 84, "reviews": 36 },
+    "reduxGuiStats": { "prsMerged": 12, "reviews": 44 }
   },
   "Ryan Davis": {
     "email": "",
@@ -327,8 +327,8 @@
     "major": "",
     "bio": "Built the RBS (Redux Build System) CI pipeline, devcontainer setup, and mise tasks; added the Biome formatter and improved ESLint config for Redux_GUI; authored rbs.toml and Directory.Build.* config for Redux.",
     "githubUsername": "ryancraigdavis",
-    "reduxStats": { "prsMerged": 1, "reviews": 1 },
-    "reduxGuiStats": { "prsMerged": 4, "reviews": 1 }
+    "reduxStats": { "prsMerged": 2, "reviews": 1 },
+    "reduxGuiStats": { "prsMerged": 9, "reviews": 2 }
   },
   "Quinton Smith": {
     "email": "",
@@ -372,7 +372,7 @@
     "major": "",
     "bio": "Implemented the Traveling Salesperson Branch and Bound and Greedy solvers.",
     "githubUsername": "c-hayCodes",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 1, "reviews": 5 },
     "reduxStats": { "prsMerged": 3, "reviews": 1 }
   },
   "Carter Luker": {
@@ -480,7 +480,9 @@
     "major": "",
     "bio": "Implemented the original Traveling Salesperson problem: solvers, verifier, and controller.",
     "githubUsername": "whitdan2",
-    "legacyContributions": ["Original Traveling Salesperson Problem implementation (Apr 2022) — later fully rewritten"],
+    "legacyContributions": [
+      "Original Traveling Salesperson Problem implementation (Apr 2022) — later fully rewritten"
+    ],
     "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
@@ -490,7 +492,9 @@
     "major": "",
     "bio": "Contributed to the Single Pair Shortest Path visualization.",
     "githubUsername": "MysticTiger2",
-    "legacyContributions": ["Dijkstra's Algorithm problem (Feb 2026) — removed from the codebase; superseded by the P_SSSP implementation"],
+    "legacyContributions": [
+      "Dijkstra's Algorithm problem (Feb 2026) — removed from the codebase; superseded by the P_SSSP implementation"
+    ],
     "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
@@ -545,6 +549,15 @@
     "major": "",
     "bio": "Project lead and ISU Faculty Sponsor. Added the project's CITATION.cff.",
     "githubUsername": "norkish",
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
+  },
+  "courtbod": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Auto-detected by the contributor stats sync workflow (#565) -- bio, education, and major not yet filled in.",
+    "githubUsername": "courtbod",
     "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   }
