@@ -7,6 +7,11 @@ namespace API.Interfaces.Graphs.GraphParser;
 
 class GraphParser {
 
+    // Node-list patterns are linear (no nested or overlapping quantifiers), but the input is
+    // caller-supplied, so every match also runs under an explicit timeout as defense in depth.
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
+    private static readonly Regex NodeListPattern = new Regex(@"{(\w+)(,\w+)*}", RegexOptions.None, RegexTimeout);
+    private static readonly Regex NodeRunPattern = new Regex(@"(\w+)(,\w+)*", RegexOptions.None, RegexTimeout);
 
     public GraphParser() {
     }
@@ -20,14 +25,19 @@ class GraphParser {
     /// only supports word characters  (multicharacter supported) currently, not special characters or ! symbols.
     /// </remarks>
     public List<string> getNodesFromNodeListString(string input) {
-        string pattern = @"{(\w+)(,\w+)*}";
-        MatchCollection matches = Regex.Matches(input, pattern);
-        if (matches.Count == 0)
-            throw new ArgumentException("Input does not match expected node list format, e.g. {a,b,c}.", nameof(input));
-        string innerPattern = @"(\w+)(,\w+)*";
-        MatchCollection matchesInner = Regex.Matches(input, innerPattern);
-        if (matchesInner.Count == 0)
-            throw new ArgumentException("Input does not contain valid node identifiers.", nameof(input));
+        MatchCollection matches;
+        MatchCollection matchesInner;
+        try {
+            matches = NodeListPattern.Matches(input);
+            if (matches.Count == 0)
+                throw new ArgumentException("Input does not match expected node list format, e.g. {a,b,c}.", nameof(input));
+            matchesInner = NodeRunPattern.Matches(input);
+            if (matchesInner.Count == 0)
+                throw new ArgumentException("Input does not contain valid node identifiers.", nameof(input));
+        } catch (RegexMatchTimeoutException e) {
+            // Treat input that takes too long to match as invalid rather than tying up the request.
+            throw new ArgumentException("Input took too long to parse as a node list.", nameof(input), e);
+        }
         List<string> retList = new List<string>();
         foreach (string n in matchesInner[0].ToString().Split(','))
             retList.Add(n);
