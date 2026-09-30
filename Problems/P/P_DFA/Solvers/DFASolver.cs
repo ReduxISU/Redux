@@ -70,7 +70,7 @@ class DFASolver : ISolver<DFA> {
     }
 
     public List<Object> GetSteps(string instance) {
-        solve(new DFA(instance));
+        solve(ParseGuard.CreateProblem<DFA>(instance));
 
         return nodePath.Cast<Object>().ToList();
     }
