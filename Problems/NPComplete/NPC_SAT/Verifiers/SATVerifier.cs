@@ -52,7 +52,9 @@ class SATVerifier : IVerifier<SAT> {
         }
 
         List<List<string>> clauses = problem.clauses;
-        string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")", "");
+        // Drop all whitespace (spaces, tabs, carriage returns, new lines), not just spaces, so multi-line
+        // certificates parse like single-line ones
+        string strippedInput = new string(certificate.Where(c => !char.IsWhiteSpace(c)).ToArray()).Replace("(", "").Replace(")", "");
 
         string[] assignments = strippedInput.Split(',');
         List<string> trueLiterals = new List<string>();
