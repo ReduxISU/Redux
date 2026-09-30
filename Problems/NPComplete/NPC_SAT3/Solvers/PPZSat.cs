@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 class PPZ : ISolver<SAT3> {
     // --- Fields ---
     public string solverName { get; } = "PPZ Algorithm";
-    public string solverDefinition { get; } = "Repeats the following trial up to a computed cap: picks a"
+    public string solverDefinition { get; } = "Repeats the following trial up to a computed cap (at most 10,000 trials): picks a"
     + " uniformly random permutation of the variables, then assigns them one at a time in that order."
     + " Before assigning a variable, checks whether some clause has become a 'unit clause' under the"
     + " current partial assignment (all other literals in it already falsified); if so, the variable is"
@@ -22,6 +22,9 @@ class PPZ : ISolver<SAT3> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     public string complexity { get; } = "O(2^(2n/3)), n = number of variables";
 
+    // Hard cap on trials so an unsatisfiable or large instance cannot run for ~2^31 trials.
+    private const int MaxTrials = 10_000;
+
     // --- Methods Including Constructors ---
     public PPZ() {
 
@@ -34,11 +37,12 @@ class PPZ : ISolver<SAT3> {
 
         int n = variables.Count;
         double neededTrials = Math.Pow(2.0, n * (2.0 / 3.0));
-        int trials = neededTrials >= int.MaxValue ? int.MaxValue : (int)Math.Max(1, neededTrials);
+        int trials = neededTrials >= MaxTrials ? MaxTrials : (int)Math.Max(1, neededTrials);
 
         Random rnd = new Random();
 
         for (int t = 0; t < trials; t++) {
+            if (timerHasExpired) return "{}";
             List<string> order = variables.OrderBy(_ => rnd.Next()).ToList();
             Dictionary<string, bool> assignments = new Dictionary<string, bool>();
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using Xunit;
 using API.Problems.NPComplete.NPC_SAT3;
@@ -565,5 +566,61 @@ public class SAT3_Tests {
         int x1Index = variables.IndexOf("x1");
 
         Assert.Equal(0, ip.C[0][x1Index]);
+    }
+
+    // -------------------------------------------------------------------------
+    // Stochastic solvers — trial caps (unsatisfiable input must terminate)
+    // -------------------------------------------------------------------------
+
+    // All 8 sign combinations over x1..x3, plus filler clauses over extra variables so the
+    // uncapped trial count ((4/3)^n or 2^(2n/3)) would be astronomically large.
+    private static string UnsatInstance(int extraVariables) {
+        List<string> clauses = new List<string>();
+        for (int mask = 0; mask < 8; mask++) {
+            string a = (mask & 1) == 0 ? "x1" : "!x1";
+            string b = (mask & 2) == 0 ? "x2" : "!x2";
+            string c = (mask & 4) == 0 ? "x3" : "!x3";
+            clauses.Add($"({a} | {b} | {c})");
+        }
+        for (int i = 4; i < 4 + extraVariables; i++) {
+            clauses.Add($"(x{i} | !x{i} | x1)");
+        }
+        return string.Join(" & ", clauses);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(40)]
+    public void Schoning_UnsatisfiableInstance_TerminatesWithEmptySet(int extraVariables) {
+        SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
+        Stopwatch timer = Stopwatch.StartNew();
+
+        string result = new Schoning().solve(sat3);
+
+        Assert.Equal("{}", result);
+        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(10), $"Schoning took {timer.Elapsed}");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(40)]
+    public void PPZ_UnsatisfiableInstance_TerminatesWithEmptySet(int extraVariables) {
+        SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
+        Stopwatch timer = Stopwatch.StartNew();
+
+        string result = new PPZ().solve(sat3);
+
+        Assert.Equal("{}", result);
+        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(10), $"PPZ took {timer.Elapsed}");
+    }
+
+    [Fact]
+    public void Schoning_And_PPZ_ExpiredTimer_ReturnEmptySetImmediately() {
+        SAT3 sat3 = new SAT3(UnsatInstance(40));
+        Schoning schoning = new Schoning { timerHasExpired = true };
+        PPZ ppz = new PPZ { timerHasExpired = true };
+
+        Assert.Equal("{}", schoning.solve(sat3));
+        Assert.Equal("{}", ppz.solve(sat3));
     }
 }

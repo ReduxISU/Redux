@@ -10,7 +10,7 @@ class Schoning : ISolver<SAT3> {
 
     // --- Fields ---
     public string solverName { get; } = "Schöning's k-SAT Algorithm";
-    public string solverDefinition { get; } = "Repeats the following trial up to a computed cap: picks a"
+    public string solverDefinition { get; } = "Repeats the following trial up to a computed cap (at most 1,000 trials): picks a"
     + " uniformly random truth assignment to all variables, then performs up to 3n random walk steps,"
     + " where each step finds a clause that is not yet satisfied, picks one of its three literals uniformly"
     + " at random, and flips that variable's assigned value. If at any point all clauses are satisfied,"
@@ -25,6 +25,9 @@ class Schoning : ISolver<SAT3> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     public string complexity { get; } = "O((4/3)^n), n = number of variables";
 
+    // Hard cap on trials so an unsatisfiable or large instance cannot run for ~2^31 trials.
+    private const int MaxTrials = 1_000;
+
     // --- Methods Including Constructors ---
     public Schoning() {
 
@@ -38,13 +41,14 @@ class Schoning : ISolver<SAT3> {
         double neededTrials = Math.Pow(4.0 / 3.0, variables.Count);
         int trials;
 
-        if (neededTrials >= int.MaxValue) {
-            trials = int.MaxValue;
+        if (neededTrials >= MaxTrials) {
+            trials = MaxTrials;
         } else {
             trials = (int)neededTrials;
         }
 
         for (int i = 0; i < trials; i++) {
+            if (timerHasExpired) return "{}";
 
             Random rnd = new Random();
             Dictionary<string, bool> assignments = new Dictionary<string, bool>();
