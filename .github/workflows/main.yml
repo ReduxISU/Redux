@@ -36,4 +36,10 @@ jobs:
         run: dotnet build Redux.slnx --no-restore --configuration Release
 
       - name: Unit tests
-        run: dotnet test Redux.slnx --no-restore --no-build --configuration Release
+        run: dotnet test Redux.slnx --no-restore --no-build --configuration Release --filter "Category!=Performance"
+
+      # Reported as a separate step (issue #621) so a perf-budget miss doesn't read
+      # like a correctness failure, and so flakiness here is easy to tell apart from
+      # the unit-test step above at a glance in the Actions UI.
+      - name: Performance tests
+        run: dotnet test Redux.slnx --no-restore --no-build --configuration Release --filter "Category=Performance"
