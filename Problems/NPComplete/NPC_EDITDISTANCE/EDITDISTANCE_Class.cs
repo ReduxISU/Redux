@@ -25,8 +25,6 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public string instance { get; set; } = string.Empty;
     public const string InstanceGrammar = "(x, y) | x,y are strings";
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
-    // The strings x and y are free text: whitespace next to the comma or parentheses can be part of a string.
-    public bool preserveInstanceWhitespace => true;
     public string certificateFormat { get; } =
         $"Format: {EditDistanceVerifier.CertificateGrammar} Example: {EditDistanceVerifier.CertificateExample}";
 

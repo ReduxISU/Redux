@@ -18,7 +18,7 @@ interface IVerifier<T> : IVerifier where T : IProblem {
         // Constructor failures surface as ProblemParseException, certificate-parsing failures inside
         // verify(T, string) as CertificateParseException (see ParseGuard); both become a 400.
         T problemInstance = ParseGuard.CreateProblem<T>(problem);
-        return ParseGuard.VerifyCertificate(problemInstance, certificate, c => verify(problemInstance, c));
+        return ParseGuard.VerifyCertificate(problemInstance, certificate, () => verify(problemInstance, certificate));
     }
     bool verify(T problem, string certificate);
 }
