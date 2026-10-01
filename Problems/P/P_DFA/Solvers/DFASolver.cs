@@ -8,7 +8,7 @@ class DFASolver : ISolver<DFA> {
 
     // ----- Fields ----- //
     public string solverName { get; } = "DFA Simulation";
-    public string solverDefinition { get; } = "This a solver for a Determiistic Finite Automata that returns no solution in none exists, or a solution consisting of the set states that led to an acceptance.";
+    public string solverDefinition { get; } = "Simulates a Deterministic Finite Automaton on the input string. If the DFA accepts, returns the sequence of states it passed through, e.g. 1,2; if it rejects, returns {}.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
 
@@ -37,11 +37,11 @@ class DFASolver : ISolver<DFA> {
 
         foreach (char character in inputString) {
             // Accept Empty String If Start State Is an Accept State //
-            if (character == 'ε' && problem.acceptStates.Contains(currentNode)) return $"The sequence of states to accept is: {currentNode}";
+            if (character == 'ε' && problem.acceptStates.Contains(currentNode)) return currentNode;
 
             // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character)) {
-                return $"No Solution: Input contains character '{character}' not in DFA alphabet";
+                return "{}";
             }
 
             // Follow the Edge //
@@ -57,15 +57,15 @@ class DFASolver : ISolver<DFA> {
 
             // If No Edge, DFA Stops //
             if (!foundEdge) {
-                return "No Solution Exists: DFA cannot transition with this character";
+                return "{}";
             }
         }
 
         // Check If Last State Is Accept State //
         if (problem.acceptStates.Contains(currentNode)) {
-            return "The sequence of states to accept is: " + string.Join(", ", nodePath);
+            return string.Join(",", nodePath);
         } else {
-            return "No Solution Exists: The DFA ended in a non-accepting state";
+            return "{}";
         }
     }
 

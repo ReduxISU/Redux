@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR;
 
-class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefaultVisualization> {
+class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, ShorsDefaultVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Prime Factorization"; // Name as it appears in the dropdown selection panel
@@ -26,7 +26,7 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
         $"Format: {PrimeFactorVerifier.CertificateGrammar} Example: {PrimeFactorVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
-    public ShorsQuantumSolver defaultSolver { get; } = new ShorsQuantumSolver();
+    public PrimeFactorSolver defaultSolver { get; } = new PrimeFactorSolver();
     public PrimeFactorVerifier defaultVerifier { get; } = new PrimeFactorVerifier();
     public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
     public string[] contributors { get; } = { "Paul Gilbreath", "Alex Svancara" };
