@@ -57,6 +57,7 @@ internal static class ParseGuard {
     /// is passed through as-is, anything else is wrapped in one (original kept as InnerException).
     /// </summary>
     public static IProblem CreateProblem(Type problemType, string instance) {
+        instance = InputWhitespace.ForInstanceOfType(problemType, instance);
         try {
             return (IProblem)Activator.CreateInstance(problemType, instance)!;
         } catch (Exception ex) when (ex is not OutOfMemoryException) {
@@ -84,15 +85,38 @@ internal static class ParseGuard {
     /// Runs the certificate-parsing part of a verifier. verify() parses the certificate and checks
     /// it in one method, so parsing cannot be guarded on its own; instead only the exception types
     /// that malformed text produces from Parse/indexing/lookup code are translated. Anything else
-    /// (and any CertificateParseException the verifier already threw) propagates unchanged.
+    /// propagates unchanged.
+    /// <para>
+    /// Certificates are free-form text whose whitespace is sometimes meaningful (a name like "New York")
+    /// and sometimes layout (a multi-line paste), so the certificate is first verified exactly as given:
+    /// one that already verifies is never altered. Only if that returns false or fails to parse is it
+    /// retried once, normalized (see <see cref="InputWhitespace"/>), and the retry's result is returned.
+    /// If the retry throws, the ORIGINAL failure is reported, since that is what the caller sent.
+    /// </para>
     /// </summary>
-    public static bool VerifyCertificate(IProblem problem, string certificate, Func<bool> verify) {
+    public static bool VerifyCertificate(IProblem problem, string certificate, Func<string, bool> verify) {
+        Exception? original = null;
         try {
-            return verify();
-        } catch (Exception ex) when (IsCertificateParseFailure(ex)) {
-            throw new CertificateParseException(problem, certificate, ex.Message, ex);
+            if (verify(certificate)) return true;
+        } catch (Exception ex) when (IsCertificateParseFailure(ex) || ex is CertificateParseException) {
+            original = ex;
+        }
+        string normalized = InputWhitespace.Normalize(certificate);
+        if (normalized == certificate) {
+            if (original != null) throw Report(problem, certificate, original);
+            return false;
+        }
+        try {
+            return verify(normalized);
+        } catch (Exception ex) when (IsCertificateParseFailure(ex) || ex is CertificateParseException) {
+            Exception reported = original ?? ex;
+            throw Report(problem, certificate, reported);
         }
     }
+
+    // A CertificateParseException the verifier threw already carries its own message; pass it on as-is.
+    private static Exception Report(IProblem problem, string certificate, Exception ex) =>
+        ex as CertificateParseException ?? new CertificateParseException(problem, certificate, ex.Message, ex);
 
     /// <summary>
     /// True for the exception types that text parsing produces: Parse/indexing/lookup failures from
