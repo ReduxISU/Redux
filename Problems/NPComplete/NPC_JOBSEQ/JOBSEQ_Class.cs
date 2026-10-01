@@ -21,7 +21,7 @@ class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, DummyVisualization> {
 
     public static string _defaultInstance { get; } = "((4,2,5,9,4,3),(9,13,2,17,21,16),(1,4,3,2,5,8),4)";
     public string defaultInstance { get; } = _defaultInstance;
-    public const string InstanceGrammar = "{(T,D,P,K) | T is list, D is list, P is list, k is int}";
+    public const string InstanceGrammar = "{(T,D,P,K) | T is list, D is list, P is list, K is int}";
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
     public string certificateFormat { get; } =
         $"Format: {JobSeqVerifier.CertificateGrammar} Example: {JobSeqVerifier.CertificateExample}";
