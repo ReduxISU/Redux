@@ -598,7 +598,9 @@ public class SAT3_Tests {
         string result = new Schoning().solve(sat3);
 
         Assert.Equal("{}", result);
-        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(10), $"Schoning took {timer.Elapsed}");
+        // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
+        // but 12-15 s when the full suite runs in parallel, so the bound is deliberately loose.
+        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(60), $"Schoning took {timer.Elapsed}");
     }
 
     [Theory]
@@ -611,7 +613,9 @@ public class SAT3_Tests {
         string result = new PPZ().solve(sat3);
 
         Assert.Equal("{}", result);
-        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(10), $"PPZ took {timer.Elapsed}");
+        // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
+        // but 12-15 s when the full suite runs in parallel, so the bound is deliberately loose.
+        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(60), $"PPZ took {timer.Elapsed}");
     }
 
     [Fact]
