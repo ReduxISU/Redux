@@ -23,6 +23,11 @@ interface IProblem {
     string instanceFormat { get => ""; }
     string certificateFormat { get => ""; }
 
+    // Instances are whitespace-normalized before parsing (see InputWhitespace). A problem whose
+    // instance is free text where whitespace next to a delimiter is significant opts out by returning
+    // true; its instance is then only trimmed at both ends.
+    bool preserveInstanceWhitespace { get => false; }
+
     // Declared, not derived. The Problems/<Folder>/ layout is a filing convention and is
     // wrong for at least a dozen problems; this is the source of truth.
     ComplexityClass complexityClass { get => ComplexityClass.Unclassified; }

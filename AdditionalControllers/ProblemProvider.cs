@@ -117,11 +117,13 @@ public class ProblemProvider : ControllerBase {
     // inside the reduction itself and propagates unchanged.
     static IReduction Reduction(string name, string instance) {
         Type type = Reductions[name.ToLower()];
+        IReduction? template = null;
+        try { template = Activator.CreateInstance(type) as IReduction; } catch { /* no default instance to describe */ }
+        // Whitespace-normalize like the source problem's own constructor path would (see InputWhitespace).
+        instance = InputWhitespace.ForInstance(template?.reductionFrom, instance);
         try {
             return (IReduction)Activator.CreateInstance(type, instance)!;
         } catch (Exception ex) when (ex is not OutOfMemoryException && !IsParseError(ex)) {
-            IReduction? template = null;
-            try { template = Activator.CreateInstance(type) as IReduction; } catch { /* no default instance to describe */ }
             if (template != null) {
                 try {
                     ParseGuard.CreateProblem(template.reductionFrom.GetType(), instance);
@@ -136,11 +138,21 @@ public class ProblemProvider : ControllerBase {
     // mapSolutions parses the certificate and maps it in one method, so parsing cannot be guarded on
     // its own; only the exception types malformed text produces are translated (see ParseGuard).
     static string MapSolutions(IReduction red, string solution) {
+        // Same first-as-given, then-normalized retry as ParseGuard.VerifyCertificate; if both attempts
+        // fail the first attempt's error is reported.
+        Exception? original = null;
         try {
             return red.mapSolutions(solution);
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
-            throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, ex.Message, ex);
+            original = ex;
         }
+        string normalized = InputWhitespace.Normalize(solution);
+        if (normalized != solution) {
+            try {
+                return red.mapSolutions(normalized);
+            } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) { /* report the original */ }
+        }
+        throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, original.Message, original);
     }
 
     static IReduction Reduction(string name) {

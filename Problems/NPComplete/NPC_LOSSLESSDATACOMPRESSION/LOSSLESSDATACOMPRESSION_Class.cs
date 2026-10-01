@@ -43,6 +43,8 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
     public const string InstanceGrammar = "S | any raw text string to compress";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    // The instance is the raw text to compress, so every space and punctuation-adjacent space is data.
+    public bool preserveInstanceWhitespace => true;
     public string certificateFormat { get; } =
         $"Format: {LosslessDataCompressionVerifier.CertificateGrammar} Example: {LosslessDataCompressionVerifier.CertificateExample}";
 
