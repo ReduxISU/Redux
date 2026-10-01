@@ -9,7 +9,7 @@ coverage-min = 80
 [artifact]
 image = "ghcr.io/reduxisu/redux"
 port = 27000
-# /health does not exist yet; inert until `rbs integration-test` lands.
+# Served by the minimal-API route in Program.cs (#621); used once `rbs integration-test` lands.
 health-path = "/health"
 
 [push]

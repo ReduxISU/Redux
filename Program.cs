@@ -71,6 +71,14 @@ app.UseSwaggerUI(c =>
 );
 
 
+// Liveness/readiness probe (issue #621). A minimal-API route mapped directly on
+// `app` rather than a controller: it must answer without touching problem data,
+// reflection scans, or anything else the *NavigationData caches do at startup, so
+// it stays cheap even if those caches are slow or mid-initialization. Plain-text
+// body (not JSON) since callers only need a fast, trivially-parseable liveness
+// signal — rbs.toml already points its container health check at this path.
+app.MapGet("/health", () => Results.Text("ok", "text/plain"));
+
 app.MapControllers();
 
 
