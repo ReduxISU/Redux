@@ -27,7 +27,9 @@ class DFASolver : ISolver<DFA> {
     // Methods Including Constructors //
     public DFASolver() { }
 
-    public string solve(DFA problem) {
+    public string solve(DFA problem) => solveDetailed(problem).certificate ?? "{}";
+
+    public SolveResult solveDetailed(DFA problem) {
         // Input String //
         string inputString = problem.inputString;
         // First Node To Be Analyzed //
@@ -35,13 +37,17 @@ class DFASolver : ISolver<DFA> {
         // Will Track Path Through Nodes //
         nodePath = new List<string> { currentNode };
 
-        foreach (char character in inputString) {
-            // Accept Empty String If Start State Is an Accept State //
-            if (character == 'ε' && problem.acceptStates.Contains(currentNode)) return currentNode;
+        // Empty String (written ε): Accepted Only If The Start State Is an Accept State //
+        if (inputString == "ε") {
+            return problem.acceptStates.Contains(currentNode)
+                ? SolveResult.Solved(currentNode, $"The start state {currentNode} is an accept state, so the DFA accepts the empty string.")
+                : SolveResult.NoSolution($"The start state {currentNode} is not an accept state, so the DFA rejects the empty string.");
+        }
 
+        foreach (char character in inputString) {
             // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character)) {
-                return "{}";
+                return SolveResult.NoSolution($"The input contains '{character}', which is not in the DFA's alphabet.");
             }
 
             // Follow the Edge //
@@ -57,15 +63,15 @@ class DFASolver : ISolver<DFA> {
 
             // If No Edge, DFA Stops //
             if (!foundEdge) {
-                return "{}";
+                return SolveResult.NoSolution($"The DFA has no transition from state {currentNode} on '{character}', so it rejects the input.");
             }
         }
 
         // Check If Last State Is Accept State //
         if (problem.acceptStates.Contains(currentNode)) {
-            return string.Join(",", nodePath);
+            return SolveResult.Solved(string.Join(",", nodePath), $"The DFA accepts the input, ending in accept state {currentNode}.");
         } else {
-            return "{}";
+            return SolveResult.NoSolution($"The DFA ends in state {currentNode}, which is not an accept state.");
         }
     }
 

@@ -25,7 +25,9 @@ class NFASolver : ISolver<NFA> {
 
     public NFASolver() { }
 
-    public string solve(NFA problem) {
+    public string solve(NFA problem) => solveDetailed(problem).certificate ?? "{}";
+
+    public SolveResult solveDetailed(NFA problem) {
         // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
@@ -33,7 +35,7 @@ class NFASolver : ISolver<NFA> {
         // Validate characters
         foreach (char c in input) {
             if (!problem.alphabet.Contains(c))
-                return "{}";
+                return SolveResult.NoSolution($"The input contains '{c}', which is not in the NFA's alphabet.");
         }
 
         var edges = problem.edges; // List<NFAEdge>
@@ -79,7 +81,9 @@ class NFASolver : ISolver<NFA> {
         var startVisited = new HashSet<(string, int)> { (problem.startState, 0) };
 
         // Same discovery order as GetPathRuns, so this is the run the visualization shows first
-        return DFS(problem.startState, 0, path, startVisited) ? string.Join(",", path) : "{}";
+        return DFS(problem.startState, 0, path, startVisited)
+            ? SolveResult.Solved(string.Join(",", path), $"The NFA accepts the input. This is the first accepting run found, ending in accept state {path[^1]}; others may exist.")
+            : SolveResult.NoSolution("No run of the NFA accepts the input.");
     }
 
     // GetSteps: The default steps for an NFA are the states of its default run (first accepting

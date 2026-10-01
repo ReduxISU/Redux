@@ -1,4 +1,5 @@
 using Xunit;
+using API.Interfaces;
 using API.Problems.P.P_NFA;
 using API.Problems.P.P_NFA.Solvers;
 using API.Problems.P.P_NFA.Verifiers;
@@ -282,6 +283,31 @@ public class NFA_Tests {
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
         Assert.Equal("s,t", result);
+    }
+
+    // -------------------------------------------------------------------------
+    // Solver — solveDetailed status and explanation
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void NFA_SolveDetailed_Reports_Solved_With_Certificate_And_Explanation() {
+        NFASolver solver = new NFASolver();
+        SolveResult result = ((ISolver)solver).solveDetailed(DefaultInstance);
+        Assert.Equal(SolveStatus.Solved, result.status);
+        Assert.Equal("1,2,3,2", result.certificate);
+        Assert.Contains("first accepting run", result.message);
+    }
+
+    [Theory]
+    [InlineData("(({s,t},{a,b},{(s,a,t)},s,{t}),b)", "No run of the NFA accepts the input")]
+    [InlineData("(({s,t},{a},{(s,a,t)},s,{t}),c)", "'c', which is not in the NFA's alphabet")]
+    public void NFA_SolveDetailed_Explains_Why_Input_Is_Rejected(string instance, string expectedReason) {
+        NFASolver solver = new NFASolver();
+        SolveResult result = solver.solveDetailed(new NFA(instance));
+        Assert.Equal(SolveStatus.NoSolution, result.status);
+        Assert.Null(result.certificate);
+        Assert.Contains(expectedReason, result.message);
+        Assert.Equal("{}", solver.solve(new NFA(instance)));
     }
 
     // -------------------------------------------------------------------------

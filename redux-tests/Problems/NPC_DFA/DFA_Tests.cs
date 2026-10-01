@@ -1,4 +1,5 @@
 using Xunit;
+using API.Interfaces;
 using API.Problems.P.P_DFA;
 using API.Problems.P.P_DFA.Solvers;
 using API.Problems.P.P_DFA.Verifiers;
@@ -256,6 +257,34 @@ public class DFA_Tests {
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
         Assert.Equal(expectedPath, result);
+    }
+
+    // -------------------------------------------------------------------------
+    // Solver — solveDetailed status and explanation
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void DFA_SolveDetailed_Reports_Solved_With_Certificate_And_Explanation() {
+        DFASolver solver = new DFASolver();
+        SolveResult result = ((ISolver)solver).solveDetailed(DefaultInstance);
+        Assert.Equal(SolveStatus.Solved, result.status);
+        Assert.Equal("1,2", result.certificate);
+        Assert.Contains("accept state 2", result.message);
+    }
+
+    [Theory]
+    [InlineData("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),b)", "ends in state 3")]
+    [InlineData("(({1,2},{a},{(1,a,2)},1,{2}),c)", "'c', which is not in the DFA's alphabet")]
+    [InlineData("(({1,2},{a,b},{(1,a,2)},1,{2}),b)", "no transition from state 1 on 'b'")]
+    [InlineData("(({q0,q1},{a},{(q0,a,q1)},q0,{q1}),ε)", "rejects the empty string")]
+    public void DFA_SolveDetailed_Explains_Why_Input_Is_Rejected(string instance, string expectedReason) {
+        DFASolver solver = new DFASolver();
+        SolveResult result = solver.solveDetailed(new DFA(instance));
+        Assert.Equal(SolveStatus.NoSolution, result.status);
+        Assert.Null(result.certificate);
+        Assert.Contains(expectedReason, result.message);
+        // solve() keeps returning "{}" for a rejected input, so the existing endpoint is unchanged
+        Assert.Equal("{}", solver.solve(new DFA(instance)));
     }
 
     // -------------------------------------------------------------------------
