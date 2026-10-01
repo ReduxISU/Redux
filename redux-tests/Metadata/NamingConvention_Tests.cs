@@ -41,8 +41,30 @@ public class NamingConvention_Tests {
     private static readonly Regex ProblemPlusApproachShape = new(
         @"^(?:[A-Z0-9][\w'-]*|and|of)(?:\s+(?:[A-Z0-9][\w'-]*|and|of))+$");
 
+    // Problem class names should not include the folder/category prefix (P_/NPC_/NPH_) in their class names.
+    private static readonly Regex ProblemClassNamePrefixPattern = new(@"^(P|NPC|NPH)_");
+
     private static Exception Unwrap(Exception ex) =>
         ex is TargetInvocationException { InnerException: { } inner } ? inner : ex;
+
+    // ── Problems ─────────────────────────────────────────────────────────────
+
+    public static IEnumerable<object[]> AllProblems() {
+        foreach (var (_, type) in ProblemProvider.Problems)
+            yield return new object[] { type };
+    }
+
+    [Theory]
+    [MemberData(nameof(AllProblems))]
+    public void ProblemClassName_DoesNotIncludeCategoryPrefix(Type problemType) {
+        Match match = ProblemClassNamePrefixPattern.Match(problemType.Name);
+
+        Assert.False(
+            match.Success,
+            "Problem classes should not include folder/category prefixes in their class names. " +
+            $"Rename '{problemType.Name}' to '{ProblemClassNamePrefixPattern.Replace(problemType.Name, "")}'."
+        );
+    }
 
     // ── Verifiers ────────────────────────────────────────────────────────────
 
