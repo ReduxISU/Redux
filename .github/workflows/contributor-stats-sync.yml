@@ -40,7 +40,7 @@ jobs:
 
       - name: Open PR with updated stats
         if: ${{ !inputs.dry_run }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: 'chore: weekly contributor stats sync'
           title: 'Weekly contributor stats sync'
