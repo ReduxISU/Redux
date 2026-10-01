@@ -8,6 +8,11 @@ namespace API.Interfaces;
 // delimiters, so a multi-line or comma-and-space instance pasted into a client either fails or
 // verifies as false. Callers normalize before parsing, in the shared chokepoints (ParseGuard,
 // ProblemProvider.Reduction / MapSolutions).
+//
+// TEMPORARY. This is a stopgap until SPADE handles whitespace itself and every verifier parses its
+// certificate through SPADE. Once both are true, delete this class, its calls in ParseGuard and
+// ProblemProvider, and IProblem.preserveInstanceWhitespace. Keep WhitespaceTolerance_Tests: it is
+// what proves the SPADE-based parsing handles whitespace for every problem.
 internal static class InputWhitespace {
     // Structural delimiters of the instance / certificate grammars. Whitespace next to one of these
     // never carries meaning; whitespace between two other characters ("New York", "x1 | !x2") might.
