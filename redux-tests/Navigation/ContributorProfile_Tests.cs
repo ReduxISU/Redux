@@ -67,6 +67,34 @@ public class ContributorProfile_Tests {
         }
     }
 
+    [Fact]
+    public void ContributorInfoJson_StatsAreZeroInSource() {
+        string content = File.ReadAllText(_jsonFilePath);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var contributors = JsonSerializer.Deserialize<Dictionary<string, ContributorInfo>>(content, options);
+        Assert.NotNull(contributors);
+
+        var offenders = new List<string>();
+        foreach (var (name, info) in contributors) {
+            foreach (var (repo, stats) in new[] { ("reduxStats", info.ReduxStats), ("reduxGuiStats", info.ReduxGuiStats) }) {
+                if (stats == null) {
+                    continue;
+                }
+                if (stats.PrsMerged.GetValueOrDefault() != 0) {
+                    offenders.Add($"{name}: {repo}.prsMerged = {stats.PrsMerged}");
+                }
+                if (stats.Reviews.GetValueOrDefault() != 0) {
+                    offenders.Add($"{name}: {repo}.reviews = {stats.Reviews}");
+                }
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            "contributorInfo.json must not contain non-zero prsMerged/reviews counts. Counts are filled in "
+            + "at release time by the docker workflow (#613), so don't commit them; to add new contributors "
+            + "run the stats tool with --scan-only. Offending values:\n  " + string.Join("\n  ", offenders));
+    }
+
     // ─── GET /names ───────────────────────────────────────────────────────────
 
     [Fact]
