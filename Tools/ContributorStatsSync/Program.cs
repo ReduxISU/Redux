@@ -10,7 +10,10 @@ namespace ContributorStatsSync;
 
 // Weekly sync for wwwroot/contributorInfo.json's reduxStats/reduxGuiStats (see issue #565).
 // Recomputes PRs-merged/PRs-reviewed counts for every contributor who already has a
-// githubUsername, and auto-detects new GitHub identities committing to either repo that
+// githubUsername (counted by scanning every PR of each repo once through the GraphQL API --
+// a handful of requests total, versus two rate-limited Search API calls per contributor per
+// repo, which took ~9 minutes and was too slow to run inside the release Docker build), and
+// auto-detects new GitHub identities committing to either repo that
 // aren't tracked yet. Commit counts and PRs-opened counts are deliberately not tracked --
 // PRs merged and PRs reviewed are what the About Us page displays.
 //
@@ -44,6 +47,7 @@ internal static class Program {
     private static async Task<int> Main(string[] args) {
         var dryRun = args.Contains("--dry-run");
         var scanOnly = args.Contains("--scan-only");
+        var compare = args.Contains("--compare");
         var onlyArg = args.FirstOrDefault(a => a.StartsWith("--only=", StringComparison.Ordinal));
         var onlyLogins = onlyArg is null
             ? null
@@ -84,6 +88,11 @@ internal static class Program {
         }
 
         var newEntryNames = new List<string>();
+
+        if (compare) {
+            var compareLogins = knownLoginToName.Keys.Where(l => onlyLogins is null || onlyLogins.Contains(l)).ToList();
+            return await RunCompareAsync(http, throttle, compareLogins);
+        }
 
         if (onlyLogins is null) {
             Console.WriteLine("Scanning commit history for contributors not yet tracked...");
@@ -149,6 +158,13 @@ internal static class Program {
         var loginsToProcess = onlyLogins ?? new HashSet<string>(knownLoginToName.Keys, StringComparer.OrdinalIgnoreCase);
 
         Console.WriteLine($"Computing stats for {loginsToProcess.Count} contributor(s)...");
+        // Both scans finish before any entry is touched, so a failed scan throws here and
+        // never leaves a half-filled file behind.
+        var reduxScan = await ScanRepoAsync(http, ReduxRepo);
+        var guiScan = await ScanRepoAsync(http, GuiRepo);
+        Console.WriteLine($"  Scanned {reduxScan.PullRequestCount + guiScan.PullRequestCount} pull request(s) "
+            + $"in {GraphQlRequestCount} GraphQL request(s).");
+
         foreach (var login in loginsToProcess) {
             if (!knownLoginToName.TryGetValue(login, out var name)) {
                 Console.WriteLine($"  Skipping {login} -- not found in contributorInfo.json.");
@@ -156,12 +172,9 @@ internal static class Program {
             }
 
             Console.WriteLine($"  {name} ({login})");
-            var reduxStats = await ComputeRepoStatsAsync(http, throttle, ReduxRepo, login);
-            var guiStats = await ComputeRepoStatsAsync(http, throttle, GuiRepo, login);
-
             var entry = root[name]!.AsObject();
-            entry["reduxStats"] = StatsToNode(reduxStats);
-            entry["reduxGuiStats"] = StatsToNode(guiStats);
+            entry["reduxStats"] = StatsToNode(reduxScan.StatsFor(login));
+            entry["reduxGuiStats"] = StatsToNode(guiScan.StatsFor(login));
         }
 
         if (dryRun) {
@@ -211,6 +224,177 @@ internal static class Program {
         ["reviews"] = stats.Reviews,
     };
 
+    private sealed class RepoScan {
+        public int PullRequestCount { get; set; }
+        public Dictionary<string, int> PrsMerged { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, int> Reviews { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public RepoStats StatsFor(string login) =>
+            new(PrsMerged.GetValueOrDefault(login), Reviews.GetValueOrDefault(login));
+    }
+
+    private static int GraphQlRequestCount;
+
+    private const string PullRequestsQuery = """
+        query($owner: String!, $repo: String!, $cursor: String) {
+          repository(owner: $owner, name: $repo) {
+            pullRequests(first: 100, after: $cursor, states: [OPEN, CLOSED, MERGED]) {
+              pageInfo { hasNextPage endCursor }
+              nodes {
+                number
+                merged
+                author { login }
+                reviews(first: 100) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes { author { login } }
+                }
+              }
+            }
+          }
+        }
+        """;
+
+    private const string MoreReviewsQuery = """
+        query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $number) {
+              reviews(first: 100, after: $cursor) {
+                pageInfo { hasNextPage endCursor }
+                nodes { author { login } }
+              }
+            }
+          }
+        }
+        """;
+
+    // One pass over every PR of the repo. A PR counts as "reviewed" by a login once, no matter how
+    // many reviews that login left on it -- same as the Search API's reviewed-by: qualifier, which
+    // returns PRs rather than individual reviews.
+    private static async Task<RepoScan> ScanRepoAsync(HttpClient http, string repo) {
+        var scan = new RepoScan();
+        string? cursor = null;
+        while (true) {
+            var data = await PostGraphQlAsync(http, PullRequestsQuery, new JsonObject {
+                ["owner"] = Owner,
+                ["repo"] = repo,
+                ["cursor"] = cursor,
+            });
+            var connection = data["repository"]!["pullRequests"]!;
+
+            foreach (var pr in connection["nodes"]!.AsArray()) {
+                scan.PullRequestCount++;
+                var number = pr!["number"]!.GetValue<int>();
+                var author = pr["author"]?["login"]?.GetValue<string>();
+
+                if (author is not null && pr["merged"]!.GetValue<bool>()) {
+                    scan.PrsMerged[author] = scan.PrsMerged.GetValueOrDefault(author) + 1;
+                }
+
+                var reviewers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var reviews = pr["reviews"]!;
+                CollectReviewers(reviews["nodes"]!.AsArray(), reviewers);
+
+                // Past 100 reviews on one PR: keep paging so a heavily-reviewed PR isn't undercounted.
+                var more = reviews["pageInfo"]!["hasNextPage"]!.GetValue<bool>();
+                var reviewCursor = reviews["pageInfo"]!["endCursor"]?.GetValue<string>();
+                while (more) {
+                    var extra = (await PostGraphQlAsync(http, MoreReviewsQuery, new JsonObject {
+                        ["owner"] = Owner,
+                        ["repo"] = repo,
+                        ["number"] = number,
+                        ["cursor"] = reviewCursor,
+                    }))["repository"]!["pullRequest"]!["reviews"]!;
+                    CollectReviewers(extra["nodes"]!.AsArray(), reviewers);
+                    more = extra["pageInfo"]!["hasNextPage"]!.GetValue<bool>();
+                    reviewCursor = extra["pageInfo"]!["endCursor"]?.GetValue<string>();
+                }
+
+                foreach (var reviewer in reviewers) {
+                    scan.Reviews[reviewer] = scan.Reviews.GetValueOrDefault(reviewer) + 1;
+                }
+            }
+
+            if (!connection["pageInfo"]!["hasNextPage"]!.GetValue<bool>()) {
+                return scan;
+            }
+            cursor = connection["pageInfo"]!["endCursor"]!.GetValue<string>();
+        }
+    }
+
+    // Reviews by deleted ("ghost") accounts come back with a null author -- no login to credit.
+    private static void CollectReviewers(JsonArray reviews, HashSet<string> reviewers) {
+        foreach (var review in reviews) {
+            var login = review?["author"]?["login"]?.GetValue<string>();
+            if (login is not null) {
+                reviewers.Add(login);
+            }
+        }
+    }
+
+    // Throws on any HTTP failure, rate limit, or GraphQL "errors" entry (which GitHub returns
+    // inside a 200) so the caller can never write a file built from partial data.
+    private static async Task<JsonNode> PostGraphQlAsync(HttpClient http, string query, JsonObject variables) {
+        GraphQlRequestCount++;
+        var body = new JsonObject { ["query"] = query, ["variables"] = variables };
+        using var content = new StringContent(body.ToJsonString(), System.Text.Encoding.UTF8, "application/json");
+        using var response = await http.PostAsync("graphql", content);
+        var text = await response.Content.ReadAsStringAsync();
+
+        if (response.StatusCode is HttpStatusCode.Forbidden or (HttpStatusCode)429) {
+            throw new InvalidOperationException(
+                $"GitHub GraphQL request was rate limited (HTTP {(int)response.StatusCode}); "
+                + $"retry in about {GetRetryDelay(response).TotalSeconds:F0}s. Response: {text}");
+        }
+        if (!response.IsSuccessStatusCode) {
+            throw new InvalidOperationException($"GitHub GraphQL request failed (HTTP {(int)response.StatusCode}): {text}");
+        }
+
+        var json = JsonNode.Parse(text)!;
+        if (json["errors"] is JsonArray errors && errors.Count > 0) {
+            throw new InvalidOperationException($"GitHub GraphQL returned errors: {errors.ToJsonString()}");
+        }
+        return json["data"] ?? throw new InvalidOperationException("GitHub GraphQL response had no data.");
+    }
+
+    // Temporary parity check for #613 -- remove --compare and the search path before merging.
+    private static async Task<int> RunCompareAsync(HttpClient http, SearchThrottle throttle, List<string> logins) {
+        Console.WriteLine($"Comparing search vs GraphQL counts for {logins.Count} login(s)...");
+
+        var graphQlWatch = System.Diagnostics.Stopwatch.StartNew();
+        var scans = new Dictionary<string, RepoScan> {
+            [ReduxRepo] = await ScanRepoAsync(http, ReduxRepo),
+            [GuiRepo] = await ScanRepoAsync(http, GuiRepo),
+        };
+        graphQlWatch.Stop();
+        Console.WriteLine($"GraphQL scan: {GraphQlRequestCount} request(s), {graphQlWatch.Elapsed.TotalSeconds:F1}s.");
+
+        var compared = 0;
+        var differing = 0;
+        var searchWatch = System.Diagnostics.Stopwatch.StartNew();
+        foreach (var login in logins) {
+            foreach (var repo in new[] { ReduxRepo, GuiRepo }) {
+                var search = await ComputeRepoStatsAsync(http, throttle, repo, login);
+                var graphQl = scans[repo].StatsFor(login);
+                foreach (var (field, s, g) in new[] {
+                    ("prsMerged", search.PrsMerged, graphQl.PrsMerged),
+                    ("reviews", search.Reviews, graphQl.Reviews),
+                }) {
+                    compared++;
+                    if (s != g) {
+                        differing++;
+                        Console.WriteLine($"  DIFF {login} {repo} {field}: search={s} graphql={g}");
+                    }
+                }
+            }
+        }
+        searchWatch.Stop();
+
+        Console.WriteLine($"Compared {compared} login x repo x field value(s); {differing} differ. "
+            + $"Search took {searchWatch.Elapsed.TotalSeconds:F0}s, GraphQL took {graphQlWatch.Elapsed.TotalSeconds:F1}s.");
+        return 0;
+    }
+
+    // Temporary parity check for #613 -- remove --compare and the search path before merging.
     private static async Task<RepoStats> ComputeRepoStatsAsync(
         HttpClient http, SearchThrottle throttle, string repo, string login) {
         var prsMerged = await SearchTotalCountAsync(http, throttle, "search/issues", $"repo:{Owner}/{repo} type:pr author:{login} is:merged");
