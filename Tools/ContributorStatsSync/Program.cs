@@ -26,7 +26,9 @@ namespace ContributorStatsSync;
 // About Us page displays.
 //
 // Identity resolution stays human-curated on purpose (see #564's audit): this tool never
-// merges two GitHub logins into one contributor, and never overwrites an existing entry's
+// merges two GitHub logins into one contributor on its own -- a person who has used more than
+// one account gets the extras listed by hand in "otherGithubUsernames", which the scan then
+// treats as already known and the counts combine -- and it never overwrites an existing entry's
 // name, email, education, major, or bio -- only its stats objects, plus githubUsername for a
 // brand new entry. Updates are applied node-by-node on the parsed JSON tree (not by
 // round-tripping the whole file through a POCO) specifically so untouched entries keep their
@@ -98,8 +100,7 @@ internal static class Program {
 
         var knownLoginToName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (name, entry) in root) {
-            var login = entry?["githubUsername"]?.GetValue<string>();
-            if (!string.IsNullOrWhiteSpace(login)) {
+            foreach (var login in LoginsOf(entry)) {
                 knownLoginToName[login] = name;
             }
         }
@@ -164,12 +165,27 @@ internal static class Program {
         }
 
         if (scanOnly) {
+            // Leave the file untouched when nobody new turned up, so the weekly job has no diff
+            // and opens no PR.
+            if (newEntryNames.Count == 0) {
+                Console.WriteLine("No new contributors found -- file left unchanged.");
+                return 0;
+            }
             return await FinishAsync(jsonPath, root, newEntryNames, dryRun);
         }
 
-        var loginsToProcess = onlyLogins ?? new HashSet<string>(knownLoginToName.Keys, StringComparer.OrdinalIgnoreCase);
+        // Counts are filled per contributor, not per login, so someone with more than one GitHub
+        // account gets one combined count.
+        var namesToProcess = new List<string>();
+        foreach (var login in onlyLogins ?? knownLoginToName.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase)) {
+            if (!knownLoginToName.TryGetValue(login, out var name)) {
+                Console.WriteLine($"  Skipping {login} -- not found in contributorInfo.json.");
+            } else if (!namesToProcess.Contains(name)) {
+                namesToProcess.Add(name);
+            }
+        }
 
-        Console.WriteLine($"Computing stats for {loginsToProcess.Count} contributor(s)...");
+        Console.WriteLine($"Computing stats for {namesToProcess.Count} contributor(s)...");
         // Both scans finish before any entry is touched, so a failed scan throws here and
         // never leaves a half-filled file behind.
         var reduxScan = await ScanRepoAsync(http, ReduxRepo);
@@ -177,16 +193,12 @@ internal static class Program {
         Console.WriteLine($"  Scanned {reduxScan.PullRequestCount + guiScan.PullRequestCount} pull request(s) "
             + $"in {GraphQlRequestCount} GraphQL request(s).");
 
-        foreach (var login in loginsToProcess) {
-            if (!knownLoginToName.TryGetValue(login, out var name)) {
-                Console.WriteLine($"  Skipping {login} -- not found in contributorInfo.json.");
-                continue;
-            }
-
-            Console.WriteLine($"  {name} ({login})");
+        foreach (var name in namesToProcess) {
             var entry = root[name]!.AsObject();
-            entry["reduxStats"] = StatsToNode(reduxScan.StatsFor(login));
-            entry["reduxGuiStats"] = StatsToNode(guiScan.StatsFor(login));
+            var logins = LoginsOf(entry);
+            Console.WriteLine($"  {name} ({string.Join(", ", logins)})");
+            entry["reduxStats"] = StatsToNode(reduxScan.StatsFor(logins));
+            entry["reduxGuiStats"] = StatsToNode(guiScan.StatsFor(logins));
         }
 
         return await FinishAsync(jsonPath, root, newEntryNames, dryRun);
@@ -232,6 +244,26 @@ internal static class Program {
         }
     }
 
+    // An entry's GitHub accounts: githubUsername plus any extra accounts the same person has used,
+    // listed by hand in otherGithubUsernames. The tool never adds to that list itself -- deciding
+    // that two accounts are one person stays a human call (see #564).
+    private static List<string> LoginsOf(JsonNode? entry) {
+        var logins = new List<string>();
+        var primary = entry?["githubUsername"]?.GetValue<string>();
+        if (!string.IsNullOrWhiteSpace(primary)) {
+            logins.Add(primary);
+        }
+        if (entry?["otherGithubUsernames"] is JsonArray others) {
+            foreach (var other in others) {
+                var login = other?.GetValue<string>();
+                if (!string.IsNullOrWhiteSpace(login) && !logins.Contains(login, StringComparer.OrdinalIgnoreCase)) {
+                    logins.Add(login);
+                }
+            }
+        }
+        return logins;
+    }
+
     private readonly record struct RepoStats(int PrsMerged, int Reviews);
 
     private static JsonObject StatsToNode(RepoStats stats) => new() {
@@ -242,10 +274,21 @@ internal static class Program {
     private sealed class RepoScan {
         public int PullRequestCount { get; set; }
         public Dictionary<string, int> PrsMerged { get; } = new(StringComparer.OrdinalIgnoreCase);
-        public Dictionary<string, int> Reviews { get; } = new(StringComparer.OrdinalIgnoreCase);
+        // PR numbers each login reviewed, kept as sets so a PR reviewed from two accounts of the
+        // same person still counts once.
+        public Dictionary<string, HashSet<int>> ReviewedPrs { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-        public RepoStats StatsFor(string login) =>
-            new(PrsMerged.GetValueOrDefault(login), Reviews.GetValueOrDefault(login));
+        public RepoStats StatsFor(IEnumerable<string> logins) {
+            var prsMerged = 0;
+            var reviewed = new HashSet<int>();
+            foreach (var login in logins) {
+                prsMerged += PrsMerged.GetValueOrDefault(login);
+                if (ReviewedPrs.TryGetValue(login, out var prs)) {
+                    reviewed.UnionWith(prs);
+                }
+            }
+            return new RepoStats(prsMerged, reviewed.Count);
+        }
     }
 
     private static int GraphQlRequestCount;
@@ -325,7 +368,10 @@ internal static class Program {
                 }
 
                 foreach (var reviewer in reviewers) {
-                    scan.Reviews[reviewer] = scan.Reviews.GetValueOrDefault(reviewer) + 1;
+                    if (!scan.ReviewedPrs.TryGetValue(reviewer, out var prs)) {
+                        scan.ReviewedPrs[reviewer] = prs = new HashSet<int>();
+                    }
+                    prs.Add(number);
                 }
             }
 
@@ -399,12 +445,21 @@ internal static class Program {
     private static readonly Regex StatsObjectPattern =
         new(@"\{(\s*\n\s*""prsMerged"":.*?)\n\s*\}", RegexOptions.Singleline | RegexOptions.Compiled);
 
+    // String arrays (otherGithubUsernames, legacyContributions) are hand-written on one line as
+    // well; without this, every save would spread them over several lines and the weekly PR would
+    // reformat entries it didn't otherwise touch.
+    private static readonly Regex StringArrayPattern =
+        new(@"\[\s*\n((?:\s*""(?:[^""\\]|\\.)*"",?\s*\n)+)\s*\]", RegexOptions.Compiled);
+    private static readonly Regex JsonStringPattern = new(@"""(?:[^""\\]|\\.)*""", RegexOptions.Compiled);
+
     private static async Task SaveAsync(string path, JsonObject root) {
         var json = root.ToJsonString(SerializerOptions);
         json = StatsObjectPattern.Replace(json, m => {
             var parts = m.Groups[1].Value.Trim('\n', '\r').Split('\n').Select(p => p.Trim().TrimEnd(','));
             return "{ " + string.Join(", ", parts) + " }";
         });
+        json = StringArrayPattern.Replace(json, m =>
+            "[" + string.Join(", ", JsonStringPattern.Matches(m.Groups[1].Value).Select(s => s.Value)) + "]");
         await File.WriteAllTextAsync(path, json + "\n");
     }
 }

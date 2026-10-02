@@ -219,6 +219,7 @@
     "major": "Computer Science",
     "bio": "System architect. Built the quantum circuit visualizations for Bernstein-Vazirani, Deutsch-Jozsa, Deutsch, and SAT Grover.",
     "githubUsername": "courtneybodily",
+    "otherGithubUsernames": ["courtbod"],
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
