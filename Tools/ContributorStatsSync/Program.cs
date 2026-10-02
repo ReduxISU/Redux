@@ -8,14 +8,22 @@ using Octokit;
 
 namespace ContributorStatsSync;
 
-// Weekly sync for wwwroot/contributorInfo.json's reduxStats/reduxGuiStats (see issue #565).
-// Recomputes PRs-merged/PRs-reviewed counts for every contributor who already has a
-// githubUsername (counted by scanning every PR of each repo once through the GraphQL API --
-// a handful of requests total, versus two rate-limited Search API calls per contributor per
-// repo, which took ~9 minutes and was too slow to run inside the release Docker build), and
-// auto-detects new GitHub identities committing to either repo that
-// aren't tracked yet. Commit counts and PRs-opened counts are deliberately not tracked --
-// PRs merged and PRs reviewed are what the About Us page displays.
+// Keeps wwwroot/contributorInfo.json's reduxStats/reduxGuiStats in sync with GitHub (see issues
+// #565 and #613). Two explicit modes, exactly one required:
+//
+//   --scan-only    (weekly job) auto-detects new GitHub identities committing to either repo that
+//                  aren't tracked yet and writes them as stub entries with zeroed counts, for a
+//                  human to review. No counting happens here.
+//   --counts-only  (release build) fills prsMerged/reviews for every contributor who already has
+//                  a githubUsername, by scanning every PR of each repo once through the GraphQL
+//                  API -- a handful of requests total. (Per-contributor Search API calls took
+//                  ~9 minutes because of Search's rate limit, far too slow for a release build.)
+//
+// Counts are kept at zero in the committed file on purpose: they go stale the moment they're
+// written and would make the weekly PR noisy, so they are only filled in at release time by the
+// docker workflow, and a test fails if non-zero counts get committed. Commit counts and
+// PRs-opened counts are deliberately not tracked -- PRs merged and PRs reviewed are what the
+// About Us page displays.
 //
 // Identity resolution stays human-curated on purpose (see #564's audit): this tool never
 // merges two GitHub logins into one contributor, and never overwrites an existing entry's
@@ -47,7 +55,18 @@ internal static class Program {
     private static async Task<int> Main(string[] args) {
         var dryRun = args.Contains("--dry-run");
         var scanOnly = args.Contains("--scan-only");
-        var compare = args.Contains("--compare");
+        var countsOnly = args.Contains("--counts-only");
+        if (scanOnly == countsOnly) {
+            Console.Error.WriteLine("""
+                Specify exactly one mode:
+                  --scan-only    find new contributors and add them as stub entries with zeroed counts
+                  --counts-only  fill PRs-merged/reviewed counts for existing contributors (GraphQL)
+                Optional: --dry-run (compute and print, write nothing), --only=login1,login2 (with
+                --counts-only), and a path to contributorInfo.json (default wwwroot/contributorInfo.json).
+                """);
+            return 1;
+        }
+
         var onlyArg = args.FirstOrDefault(a => a.StartsWith("--only=", StringComparison.Ordinal));
         var onlyLogins = onlyArg is null
             ? null
@@ -74,8 +93,6 @@ internal static class Program {
         http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         http.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
 
-        var throttle = new SearchThrottle();
-
         Console.WriteLine($"Loading {jsonPath}...");
         var root = JsonNode.Parse(await File.ReadAllTextAsync(jsonPath))!.AsObject();
 
@@ -89,12 +106,7 @@ internal static class Program {
 
         var newEntryNames = new List<string>();
 
-        if (compare) {
-            var compareLogins = knownLoginToName.Keys.Where(l => onlyLogins is null || onlyLogins.Contains(l)).ToList();
-            return await RunCompareAsync(http, throttle, compareLogins);
-        }
-
-        if (onlyLogins is null) {
+        if (scanOnly) {
             Console.WriteLine("Scanning commit history for contributors not yet tracked...");
             var unresolvedEmails = new List<(string Repo, string Email)>();
 
@@ -133,6 +145,8 @@ internal static class Program {
                         ["bio"] = "Auto-detected by the contributor stats sync workflow (#565) -- "
                             + "bio, education, and major not yet filled in.",
                         ["githubUsername"] = login,
+                        ["reduxStats"] = StatsToNode(default),
+                        ["reduxGuiStats"] = StatsToNode(default),
                     };
                     knownLoginToName[login] = entryKey;
                     newEntryNames.Add(entryKey);
@@ -150,9 +164,7 @@ internal static class Program {
         }
 
         if (scanOnly) {
-            Console.WriteLine($"Scan-only -- not computing stats or writing the file. "
-                + $"{newEntryNames.Count} new contributor(s) found.");
-            return 0;
+            return await FinishAsync(jsonPath, root, newEntryNames, dryRun);
         }
 
         var loginsToProcess = onlyLogins ?? new HashSet<string>(knownLoginToName.Keys, StringComparer.OrdinalIgnoreCase);
@@ -177,9 +189,13 @@ internal static class Program {
             entry["reduxGuiStats"] = StatsToNode(guiScan.StatsFor(login));
         }
 
+        return await FinishAsync(jsonPath, root, newEntryNames, dryRun);
+    }
+
+    private static async Task<int> FinishAsync(string jsonPath, JsonObject root, List<string> newEntryNames, bool dryRun) {
+        var entries = $"{newEntryNames.Count} new entr{(newEntryNames.Count == 1 ? "y" : "ies")}";
         if (dryRun) {
-            Console.WriteLine($"Dry run -- not writing the file. {newEntryNames.Count} new entr"
-                + $"{(newEntryNames.Count == 1 ? "y" : "ies")} would be added:");
+            Console.WriteLine($"Dry run -- not writing the file. {entries} would be added:");
             foreach (var name in newEntryNames) {
                 Console.WriteLine($"  {name}");
             }
@@ -187,8 +203,7 @@ internal static class Program {
         }
 
         await SaveAsync(jsonPath, root);
-        Console.WriteLine($"Wrote {jsonPath}. {newEntryNames.Count} new entr"
-            + $"{(newEntryNames.Count == 1 ? "y" : "ies")} added.");
+        Console.WriteLine($"Wrote {jsonPath}. {entries} added.");
         return 0;
     }
 
@@ -356,78 +371,6 @@ internal static class Program {
         return json["data"] ?? throw new InvalidOperationException("GitHub GraphQL response had no data.");
     }
 
-    // Temporary parity check for #613 -- remove --compare and the search path before merging.
-    private static async Task<int> RunCompareAsync(HttpClient http, SearchThrottle throttle, List<string> logins) {
-        Console.WriteLine($"Comparing search vs GraphQL counts for {logins.Count} login(s)...");
-
-        var graphQlWatch = System.Diagnostics.Stopwatch.StartNew();
-        var scans = new Dictionary<string, RepoScan> {
-            [ReduxRepo] = await ScanRepoAsync(http, ReduxRepo),
-            [GuiRepo] = await ScanRepoAsync(http, GuiRepo),
-        };
-        graphQlWatch.Stop();
-        Console.WriteLine($"GraphQL scan: {GraphQlRequestCount} request(s), {graphQlWatch.Elapsed.TotalSeconds:F1}s.");
-
-        var compared = 0;
-        var differing = 0;
-        var searchWatch = System.Diagnostics.Stopwatch.StartNew();
-        foreach (var login in logins) {
-            foreach (var repo in new[] { ReduxRepo, GuiRepo }) {
-                var search = await ComputeRepoStatsAsync(http, throttle, repo, login);
-                var graphQl = scans[repo].StatsFor(login);
-                foreach (var (field, s, g) in new[] {
-                    ("prsMerged", search.PrsMerged, graphQl.PrsMerged),
-                    ("reviews", search.Reviews, graphQl.Reviews),
-                }) {
-                    compared++;
-                    if (s != g) {
-                        differing++;
-                        Console.WriteLine($"  DIFF {login} {repo} {field}: search={s} graphql={g}");
-                    }
-                }
-            }
-        }
-        searchWatch.Stop();
-
-        Console.WriteLine($"Compared {compared} login x repo x field value(s); {differing} differ. "
-            + $"Search took {searchWatch.Elapsed.TotalSeconds:F0}s, GraphQL took {graphQlWatch.Elapsed.TotalSeconds:F1}s.");
-        return 0;
-    }
-
-    // Temporary parity check for #613 -- remove --compare and the search path before merging.
-    private static async Task<RepoStats> ComputeRepoStatsAsync(
-        HttpClient http, SearchThrottle throttle, string repo, string login) {
-        var prsMerged = await SearchTotalCountAsync(http, throttle, "search/issues", $"repo:{Owner}/{repo} type:pr author:{login} is:merged");
-        var reviews = await SearchTotalCountAsync(http, throttle, "search/issues", $"repo:{Owner}/{repo} type:pr reviewed-by:{login}");
-
-        return new RepoStats(prsMerged, reviews);
-    }
-
-    // GitHub's Search API (commits and issues/PRs) isn't wrapped by Octokit's typed Search client,
-    // so this hits it directly -- same endpoints/qualifiers used to build the #564 audit by hand.
-    private static async Task<int> SearchTotalCountAsync(HttpClient http, SearchThrottle throttle, string endpoint, string query) {
-        for (var attempt = 0; attempt < 6; attempt++) {
-            await throttle.WaitAsync();
-
-            var uri = $"{endpoint}?q={Uri.EscapeDataString(query)}&per_page=1";
-            using var response = await http.GetAsync(uri);
-
-            if (response.StatusCode is HttpStatusCode.Forbidden or (HttpStatusCode)429) {
-                var wait = GetRetryDelay(response);
-                Console.WriteLine($"    Rate limited on \"{query}\", waiting {wait.TotalSeconds:F0}s...");
-                await Task.Delay(wait);
-                continue;
-            }
-
-            response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            using var doc = await JsonDocument.ParseAsync(stream);
-            return doc.RootElement.GetProperty("total_count").GetInt32();
-        }
-
-        throw new InvalidOperationException($"Search request kept getting rate-limited: {endpoint}?q={query}");
-    }
-
     private static TimeSpan GetRetryDelay(HttpResponseMessage response) {
         if (response.Headers.TryGetValues("Retry-After", out var retryValues)
             && int.TryParse(retryValues.FirstOrDefault(), out var retrySeconds)) {
@@ -441,27 +384,6 @@ internal static class Program {
         }
 
         return TimeSpan.FromSeconds(30);
-    }
-
-    // GitHub's Search API allows ~30 authenticated requests/minute; this keeps calls spaced out
-    // rather than relying entirely on reactive 403/429 backoff.
-    private sealed class SearchThrottle {
-        private static readonly TimeSpan MinInterval = TimeSpan.FromMilliseconds(2200);
-        private readonly SemaphoreSlim _lock = new(1, 1);
-        private DateTimeOffset _lastCall = DateTimeOffset.MinValue;
-
-        public async Task WaitAsync() {
-            await _lock.WaitAsync();
-            try {
-                var elapsed = DateTimeOffset.UtcNow - _lastCall;
-                if (elapsed < MinInterval) {
-                    await Task.Delay(MinInterval - elapsed);
-                }
-                _lastCall = DateTimeOffset.UtcNow;
-            } finally {
-                _lock.Release();
-            }
-        }
     }
 
     // Default encoder hex-escapes anything outside plain ASCII (accented names, em dashes,
