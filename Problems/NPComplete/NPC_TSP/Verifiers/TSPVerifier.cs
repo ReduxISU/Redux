@@ -9,7 +9,7 @@ class TSPVerifier : IVerifier<TSP> {
 
     // --- Fields ---
     public string verifierName { get; } = "Default Traveling Salesperson Verifier";
-    public string verifierDefinition { get; } = "This is a verifier for the Traveling Sales Person problem";
+    public string verifierDefinition { get; } = "This is a verifier for the Traveling Salesperson problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
