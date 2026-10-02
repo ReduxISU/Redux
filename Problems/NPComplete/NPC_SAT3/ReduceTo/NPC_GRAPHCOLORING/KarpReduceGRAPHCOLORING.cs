@@ -206,16 +206,17 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         for (int i = 0; i < clauses.Count; i++) {
 
 
-            // Connect variables to clause gadgets 
-            addEdge(SAT3Instance.clauses[i][0], clauses[i][0], edges, instanceEdges);
-            addEdge(SAT3Instance.clauses[i][1], clauses[i][1], edges, instanceEdges);
-            addEdge(SAT3Instance.clauses[i][2], clauses[i][4], edges, instanceEdges);
+            // Connect variables to clause gadgets
+            List<string> clauseLiterals = PaddedClause(SAT3Instance.clauses[i]);
+            addEdge(clauseLiterals[0], clauses[i][0], edges, instanceEdges);
+            addEdge(clauseLiterals[1], clauses[i][1], edges, instanceEdges);
+            addEdge(clauseLiterals[2], clauses[i][4], edges, instanceEdges);
 
 
 
-            addEdge(clauses[i][0], SAT3Instance.clauses[i][0], edges, instanceEdges);
-            addEdge(clauses[i][1], SAT3Instance.clauses[i][1], edges, instanceEdges);
-            addEdge(clauses[i][4], SAT3Instance.clauses[i][2], edges, instanceEdges);
+            addEdge(clauses[i][0], clauseLiterals[0], edges, instanceEdges);
+            addEdge(clauses[i][1], clauseLiterals[1], edges, instanceEdges);
+            addEdge(clauses[i][4], clauseLiterals[2], edges, instanceEdges);
 
 
             // Connect palette base node to (a V b)
@@ -267,6 +268,18 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         return reducedGRAPHCOLORING;
     }
 
+
+    // 3SAT allows 1-3 literals per clause, but the OR gadget takes exactly 3 inputs. Pad a short
+    // clause by repeating its first literal, the same convention KarpSATToSAT3 uses: (a) becomes
+    // (a | a | a) and (a | b) becomes (a | b | a). Repeating a literal doesn't change what the
+    // clause evaluates to, so the gadget stays correct. See #623.
+    private static List<string> PaddedClause(List<string> clause) {
+        List<string> padded = new List<string>(clause);
+        while (padded.Count < 3) {
+            padded.Add(clause[0]);
+        }
+        return padded;
+    }
 
     // This method is adding the edges to the list of edges.
     public void addEdge(string x, string y, List<KeyValuePair<string, string>> edges, List<string> instanceEdges) {
@@ -328,9 +341,10 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         }
         for (int i = 0; i < reductionFrom.clauses.Count; i++) {
             string l0, l1, l2;
-            l0 = reductionFrom.clauses[i][0];
-            l1 = reductionFrom.clauses[i][1];
-            l2 = reductionFrom.clauses[i][2];
+            List<string> clauseLiterals = PaddedClause(reductionFrom.clauses[i]);
+            l0 = clauseLiterals[0];
+            l1 = clauseLiterals[1];
+            l2 = clauseLiterals[2];
             int N0, N1, N2, N3, N4, N5;
 
             // reduce() wires this 6-node gadget as two triangles (N0-N1-N2 and N3-N4-N5)
