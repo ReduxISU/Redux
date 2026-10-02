@@ -80,6 +80,8 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     public DM3() : this(_defaultInstance) {
     }
     public DM3(string instanceInput) {
+        if (SplitGroups(instanceInput).Count < 3)
+            throw new ProblemParseException("DM3", instanceInput, "expected at least the three groups {X}{Y}{Z}");
         instance = instanceInput;
         _X = ParseProblem(instance, "X");
         _Y = ParseProblem(instance, "Y");

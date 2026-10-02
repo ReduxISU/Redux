@@ -91,11 +91,11 @@ public class ProblemProvider : ControllerBase {
     }
 
     static IProblem ProblemInstance(string name, string instance) {
-        return Activator.CreateInstance(Problems[name.ToLower()], instance) as IProblem; // guaranteed success by `IsAssignableFrom`
+        return ParseGuard.CreateProblem(Problems[name.ToLower()], instance);
     }
 
     static IGraphProblem GraphProblem(string name, string instance) {
-        return Activator.CreateInstance(GraphProblems[name.ToLower()], instance) as IGraphProblem; // guaranteed success by `IsAssignableFrom`
+        return (IGraphProblem)ParseGuard.CreateProblem(GraphProblems[name.ToLower()], instance);
     }
 
     static IVerifier Verifier(string name) {
@@ -110,8 +110,37 @@ public class ProblemProvider : ControllerBase {
         return Activator.CreateInstance(Visualizers[name.ToLower()]) as IVisualization;
     }
 
+    // A reduction's constructor parses the source-problem instance and then runs the reduction, so
+    // a failure there is not necessarily bad input. When the constructor throws anything other than
+    // a parse exception, re-parse the instance with the source problem's own constructor: if that
+    // fails the input was malformed (ReductionInputException -> 400); if it succeeds the failure is
+    // inside the reduction itself and propagates unchanged.
     static IReduction Reduction(string name, string instance) {
-        return Activator.CreateInstance(Reductions[name.ToLower()], instance) as IReduction;
+        Type type = Reductions[name.ToLower()];
+        try {
+            return (IReduction)Activator.CreateInstance(type, instance)!;
+        } catch (Exception ex) when (ex is not OutOfMemoryException && !IsParseError(ex)) {
+            IReduction? template = null;
+            try { template = Activator.CreateInstance(type) as IReduction; } catch { /* no default instance to describe */ }
+            if (template != null) {
+                try {
+                    ParseGuard.CreateProblem(template.reductionFrom.GetType(), instance);
+                } catch (ProblemParseException parseFailure) {
+                    throw new ReductionInputException(template, instance, template.reductionFrom.instanceFormat, parseFailure.Message, parseFailure);
+                }
+            }
+            throw;
+        }
+    }
+
+    // mapSolutions parses the certificate and maps it in one method, so parsing cannot be guarded on
+    // its own; only the exception types malformed text produces are translated (see ParseGuard).
+    static string MapSolutions(IReduction red, string solution) {
+        try {
+            return red.mapSolutions(solution);
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, ex.Message, ex);
+        }
     }
 
     static IReduction Reduction(string name) {
@@ -338,7 +367,7 @@ public class ProblemProvider : ControllerBase {
         try {
             foreach (string reductionname in reds) {
                 red = Reduction(reductionname, instance);
-                solution = red.mapSolutions(solution);
+                solution = MapSolutions(red, solution);
                 instance = red.reductionTo.instance;
             }
         } catch (Exception ex) when (IsParseError(ex)) {
@@ -383,7 +412,7 @@ public class ProblemProvider : ControllerBase {
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
             IReduction red = Reduction(reduction, instance);
-            string mappedSolution = red.mapSolutions(solution);
+            string mappedSolution = MapSolutions(red, solution);
             return Content(
                 JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }),
                 "application/json");

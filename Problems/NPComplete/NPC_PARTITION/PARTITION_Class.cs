@@ -55,6 +55,12 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
         StringParser partition = new(InstanceGrammar);
         partition.parse(instance);
         S = partition["N"].ToList().Select(node => node.ToString()).ToList();
+        if (S.Count == 0)
+            throw new ProblemParseException("Partition", instance, "expected a non-empty set of integers");
+        foreach (string element in S) {
+            if (!int.TryParse(element, out _))
+                throw new ProblemParseException("Partition", instance, $"'{element}' is not an integer");
+        }
     }
 
 }

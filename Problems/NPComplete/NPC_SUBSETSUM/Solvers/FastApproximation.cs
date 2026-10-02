@@ -15,7 +15,9 @@ class FastApproximation : ISolver<SUBSETSUM> {
     + " by discarding any sum that lies within a relative distance of e/(2n) of a sum already kept,"
     + " bounding the list size to O(n/e). This yields, in O(n^2/e) time, a subset sum guaranteed to be"
     + " within a factor of (1 - e) of the optimal solution not exceeding the target. Currently, the"
-    + " algorithm is hard-coded to a default 5% error tolerance layer.";
+    + " algorithm is hard-coded to a default 5% error tolerance layer. Because it only approximates, it"
+    + " returns {} whenever its best subset does not sum exactly to the target, even if an exact"
+    + " subset exists.";
     public string source { get; } = "Oscar H. Ibarra and Chul E. Kim. 1975. Fast Approximation Algorithms for the Knapsack and Sum of Subset Problems. J. ACM 22, 4 (Oct. 1975), 463–468. https://doi.org/10.1145/321906.321909";
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/321906.321909";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
@@ -47,7 +49,17 @@ class FastApproximation : ISolver<SUBSETSUM> {
         List<int> numbers = subsetsum.S.Select(int.Parse).ToList();
         int n = numbers.Count;
 
-        if (n == 0 || target <= 0) {
+        if (target < 0) {
+            // No subset of the input can sum to a negative target.
+            return "{}";
+        }
+
+        if (target == 0) {
+            // The empty subset is the only subset this solver reports for T = 0, written as {}.
+            return "{}";
+        }
+
+        if (n == 0) {
             return "{}";
         }
 
@@ -75,8 +87,12 @@ class FastApproximation : ISolver<SUBSETSUM> {
         // Extract the optimal subset path tracking record from the back of the remaining sparse list
         SumState bestState = L[L.Count - 1];
 
-        // Return formatted certificate string matching format layout e.g. {1,7,12}
-        return "{" + string.Join(",", bestState.ChosenItems) + "}";
+        // Format the certificate like {1,7,12}
+        string certificate = "{" + string.Join(",", bestState.ChosenItems) + "}";
+
+        // The trimmed list only guarantees a sum close to the optimum, so the best subset can
+        // miss the target. Only report it if it is actually a solution.
+        return subsetsum.defaultVerifier.verify(subsetsum, certificate) ? certificate : "{}";
     }
 
     private List<SumState> Trim(List<SumState> list, double delta) {

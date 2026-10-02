@@ -339,4 +339,23 @@ public class VERTEXCOVER_Tests {
 
         Assert.True(verifier.verify(problem, certificate), $"Solver output failed verifier for: {problem.instance}");
     }
+
+    [Fact]
+    public void GreedyVertexCover_CoverLargerThanK_ReturnsEmptySet() {
+        // Two disjoint edges need a cover of size 2, so K=1 cannot be met.
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d},{{a,b},{c,d}}),1)");
+        GreedyVertexCover solver = new GreedyVertexCover();
+
+        Assert.Equal("{}", solver.solve(problem));
+    }
+
+    [Fact]
+    public void GreedyVertexCover_CoverWithinK_ReturnsVerifiedCertificate() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d},{{a,b},{c,d}}),2)");
+        GreedyVertexCover solver = new GreedyVertexCover();
+
+        string certificate = solver.solve(problem);
+
+        Assert.True(new VCVerifier().verify(problem, certificate));
+    }
 }

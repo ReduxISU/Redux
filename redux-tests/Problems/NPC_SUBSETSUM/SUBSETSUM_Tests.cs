@@ -154,4 +154,45 @@ public class SUBSETSUM_Tests {
         Assert.Equal(reduction.reductionTo.S.Count, roundTrip.S.Count);
         Assert.Equal(reduction.reductionTo.T, roundTrip.T);
     }
+
+    // -------------------------------------------------------------------------
+    // FastApproximation — must never return a certificate that fails verification
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void FastApproximation_BestTrimmedSumMissesTarget_ReturnsEmptySet() {
+        // Trimming drops 1001 (within 0.83% of 1000), so the best reachable sum is 1005, not 1006.
+        SUBSETSUM problem = new SUBSETSUM("({1000,1001,5},1006)");
+        FastApproximation solver = new FastApproximation();
+
+        Assert.Equal("{}", solver.solve(problem));
+    }
+
+    [Theory]
+    [InlineData("({1,7,12,15},28)")]
+    [InlineData("({3,5,9},14)")]
+    [InlineData("({2,4,6},10)")]
+    [InlineData("({1000,1001,5},1006)")]
+    [InlineData("({1000,1001,5},1005)")]
+    [InlineData("({3,5,9},1)")]   // no solution
+    [InlineData("({3,5,9},0)")]   // empty-sum target
+    [InlineData("({3,5,9},-4)")]  // negative target
+    public void FastApproximation_NonEmptyResult_AlwaysPassesVerifier(string instance) {
+        SUBSETSUM problem = new SUBSETSUM(instance);
+        FastApproximation solver = new FastApproximation();
+
+        string solution = solver.solve(problem);
+
+        Assert.True(solution == "{}" || new SubsetSumVerifier().verify(problem, solution),
+            $"FastApproximation returned unverifiable certificate {solution} for {instance}");
+    }
+
+    [Fact]
+    public void FastApproximation_DefaultInstance_FindsVerifiedSolution() {
+        SUBSETSUM problem = new SUBSETSUM();
+        string solution = new FastApproximation().solve(problem);
+
+        Assert.NotEqual("{}", solution);
+        Assert.True(new SubsetSumVerifier().verify(problem, solution));
+    }
 }
