@@ -9,10 +9,10 @@ namespace API.Problems.NPComplete.NPC_HAMILTONIAN;
 class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, HamiltonianDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
-    public string problemName { get; } = "Hamiltonian Path";
+    public string problemName { get; } = "Hamiltonian Cycle";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Hamiltonian_path";
-    public string formalDefinition { get; } = "Hamiltonian Path = {<G> | G has a cycle which covers every node exactly once}";
-    public string problemDefinition { get; } = "Hamiltonian Path is the problem of determining whether a Hamiltonian cycle (a path in an undirected or directed graph that visits each vertex exactly once).";
+    public string formalDefinition { get; } = "Hamiltonian Cycle = {<G> | G is an undirected graph with a cycle that visits every node exactly once}";
+    public string problemDefinition { get; } = "Hamiltonian Cycle is the problem of determining whether an undirected graph has a Hamiltonian cycle: a cycle that visits every vertex exactly once and returns to the vertex it started from.";
     public string inputDescription { get; } = "G, a graph";
     public string outputDescription { get; } = "True or False, whether G has a Hamiltonian cycle";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";

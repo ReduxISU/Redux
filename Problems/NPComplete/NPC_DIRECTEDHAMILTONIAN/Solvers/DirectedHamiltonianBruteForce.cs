@@ -10,7 +10,7 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
 
     // --- Fields ---
     public string solverName { get; } = "Directed Hamiltonian Brute Force";
-    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Directed Hamiltonian Path problem";
+    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Directed Hamiltonian Cycle problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
