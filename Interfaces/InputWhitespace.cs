@@ -55,7 +55,8 @@ internal static class InputWhitespace {
     /// <summary>
     /// Normalizes an instance for <paramref name="problem"/>: full <see cref="Normalize"/>, or only a
     /// trim for a problem that sets <see cref="IProblem.preserveInstanceWhitespace"/>. Certificates have
-    /// no opt-out: they are only normalized on a retry after the as-given text failed.
+    /// no opt-out: verification normalizes them on a retry after the as-given text failed or verified
+    /// False, and solution mapping normalizes them first (see ProblemProvider.MapSolutions).
     /// </summary>
     public static string ForInstance(IProblem? problem, string input) =>
         problem?.preserveInstanceWhitespace == true ? input?.Trim() ?? "" : Normalize(input);

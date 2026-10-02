@@ -138,21 +138,24 @@ public class ProblemProvider : ControllerBase {
     // mapSolutions parses the certificate and maps it in one method, so parsing cannot be guarded on
     // its own; only the exception types malformed text produces are translated (see ParseGuard).
     static string MapSolutions(IReduction red, string solution) {
-        // Same first-as-given, then-normalized retry as ParseGuard.VerifyCertificate; if both attempts
-        // fail the first attempt's error is reported.
-        Exception? original = null;
-        try {
-            return red.mapSolutions(solution);
-        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
-            original = ex;
-        }
+        // Normalized first, unlike ParseGuard.VerifyCertificate's as-given-first order: a mapping has no
+        // False result to retry on, and some mappers misread whitespace silently instead of throwing
+        // (sipserReductionVertexCover read "{2, 3, 4, 5}" as nodes "2", " 3", ... and returned a wrong
+        // certificate). The text as given is still tried if the normalized one fails to parse; if both
+        // fail, the normalized attempt's error is reported.
         string normalized = InputWhitespace.Normalize(solution);
+        Exception failure;
+        try {
+            return red.mapSolutions(normalized);
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            failure = ex;
+        }
         if (normalized != solution) {
             try {
-                return red.mapSolutions(normalized);
-            } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) { /* report the original */ }
+                return red.mapSolutions(solution);
+            } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) { /* report the normalized attempt's error */ }
         }
-        throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, original.Message, original);
+        throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, failure.Message, failure);
     }
 
     static IReduction Reduction(string name) {
