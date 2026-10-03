@@ -21,7 +21,7 @@ class NFASolver : ISolver<NFA> {
     // visitedPerPath rather than memoizing across branches. Along any single root-to-leaf
     // path, (state, position) pairs can't repeat, bounding depth by Q*(n+1); branching factor
     // is bounded by d, the max per-state out-degree for a given symbol/epsilon. Worst case:
-    public string complexity { get; } = "O(d^(Q * n)), where d = max per-state out-degree, Q = state count, n = input length";
+    public MathematicalFunction complexity { get; } = new("d^(Q * n)", ", where d = max per-state out-degree, Q = state count, n = input length");
 
     public NFASolver() { }
 

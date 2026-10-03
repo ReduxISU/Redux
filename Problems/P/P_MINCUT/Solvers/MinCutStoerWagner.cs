@@ -15,7 +15,7 @@ class MinCutStoerWagner : ISolver<MINCUT> {
     // n-1 phases; each phase's maximum-adjacency-ordering search does an O(n) array scan to
     // pick the next node, n times (O(n^2) per phase), matching the solverDefinition's stated
     // O(V^3) bound (n = V here, on the dense adjacency matrix).
-    public string complexity { get; } = "O(V^3)";
+    public MathematicalFunction complexity { get; } = new("V^3", "");
 
     public MinCutStoerWagner() { }
 

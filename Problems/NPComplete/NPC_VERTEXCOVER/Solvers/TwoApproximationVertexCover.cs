@@ -21,7 +21,7 @@ class TwoApproximationVertexCover : ISolver<VERTEXCOVER> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(E), E = |edges|";
+    public MathematicalFunction complexity { get; } = new("E", ", E = |edges|");
 
     // --- Methods Including Constructors ---
     public TwoApproximationVertexCover() {

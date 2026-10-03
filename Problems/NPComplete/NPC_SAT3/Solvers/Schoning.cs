@@ -23,7 +23,7 @@ class Schoning : ISolver<SAT3> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } = "O((4/3)^n), n = number of variables";
+    public MathematicalFunction complexity { get; } = new("(4/3)^n", ", n = number of variables");
 
     // Hard cap on trials so an unsatisfiable or large instance cannot run for ~2^31 trials.
     private const int MaxTrials = 1_000;

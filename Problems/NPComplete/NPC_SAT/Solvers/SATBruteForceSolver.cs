@@ -24,7 +24,7 @@ public class SATBruteForceSolver : ISolver {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates all 2^n truth assignments (n = distinct literals);
     // each is evaluated against every clause, O(|phi|) total literal occurrences.
-    public string complexity { get; } = "O(2^n * |phi|), n = number of variables, |phi| = formula size";
+    public MathematicalFunction complexity { get; } = new("2^n * |phi|", ", n = number of variables, |phi| = formula size");
     public string[] contributors { get; } = { "Daniel Igbokwe", "Show Pratoomratana" };
 
     #endregion

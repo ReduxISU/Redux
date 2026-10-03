@@ -24,7 +24,7 @@ class FastApproximation : ISolver<SUBSETSUM> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(n^2 * 1/e), n = |S|, e = error tolerance";
+    public MathematicalFunction complexity { get; } = new("n^2 * 1/e", ", n = |S|, e = error tolerance");
 
     // Defining a standard 5% default error tolerance layer for the approximation scheme
     private readonly double _epsilon = 0.05;
