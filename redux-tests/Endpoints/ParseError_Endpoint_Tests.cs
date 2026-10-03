@@ -44,17 +44,6 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
         }
     }
 
-    // Genuine algorithm bugs, NOT parse failures, so deliberately not masked as a 400: "not an instance" is a
-    // valid 3SAT formula (one clause with a single literal, which SAT3 accepts: 1-3 literals per clause), but
-    // Sat3DefaultVisualization and KarpReduceGRAPHCOLORING index three literals per clause and throw on it.
-    private static readonly HashSet<string> KnownAlgorithmBugs = new(StringComparer.OrdinalIgnoreCase) {
-        "Sat3DefaultVisualization|not an instance",
-        "KarpReduceGRAPHCOLORING|not an instance",
-    };
-
-    private static bool IsKnownAlgorithmBug(string name, string garbage) =>
-        KnownAlgorithmBugs.Contains($"{name}|{garbage}");
-
     private static void AssertNot500(HttpStatusCode status, string body, string what) {
         Assert.True(status != HttpStatusCode.InternalServerError, $"{what} returned 500: {body}");
     }
@@ -134,7 +123,6 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
     [Theory]
     [MemberData(nameof(AllVisualizationsWithGarbage))]
     public async Task Visualize_GarbageInstance_IsNever500(string visualization, string garbage) {
-        if (IsKnownAlgorithmBug(visualization, garbage)) return;
         var (status, body) = await PostAsync($"/ProblemProvider/visualize?visualization={visualization}", garbage);
         AssertNot500(status, body, $"visualize {visualization} with '{garbage}'");
     }
@@ -183,7 +171,6 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
     [MemberData(nameof(AllReductionsWithGarbage))]
     public async Task Reduce_GarbageInstance_IsNever500(string reduction, string defaultInstance, string garbage) {
         _ = defaultInstance;
-        if (IsKnownAlgorithmBug(reduction, garbage)) return;
         var (status, body) = await PostAsync($"/ProblemProvider/reduce?reduction={reduction}", garbage);
         AssertNot500(status, body, $"reduce {reduction} with '{garbage}'");
     }
@@ -192,7 +179,6 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
     [MemberData(nameof(AllReductionsWithGarbage))]
     public async Task Gadgets_GarbageInstance_IsNever500(string reduction, string defaultInstance, string garbage) {
         _ = defaultInstance;
-        if (IsKnownAlgorithmBug(reduction, garbage)) return;
         var (status, body) = await PostAsync($"/ProblemProvider/gadgets?reduction={reduction}", garbage);
         AssertNot500(status, body, $"gadgets {reduction} with '{garbage}'");
     }

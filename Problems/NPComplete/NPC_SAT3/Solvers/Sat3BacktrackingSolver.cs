@@ -69,8 +69,9 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         // 		//this pruning function would attempt to imediatly evaluate the first standalone expression as the next node (after current processing is done)
 
         //CATCHES INVALID INPUTS
-        // Console.WriteLine(sat3.literals.Count);
-        if (sat3.literals.Count < 2) {
+        // A single literal such as (x1) is still a satisfiable formula (#623), so only an
+        // empty formula is rejected here.
+        if (sat3.literals.Count < 1) {
             // Console.WriteLine("No literals provided");
             return null;
         }
