@@ -41,7 +41,9 @@ class SAT3Verifier : IVerifier<SAT3> {
 
         // User input is effectively asking for the list of variables assigned to "True"
         List<List<string>> clauses = problem.clauses;
-        string strippedInput = certificate.Replace(" ", "").Replace("(", "").Replace(")", "");
+        // Drop all whitespace (spaces, tabs, carriage returns, new lines), not just spaces, so multi-line
+        // certificates parse like single-line ones
+        string strippedInput = new string(certificate.Where(c => !char.IsWhiteSpace(c)).ToArray()).Replace("(", "").Replace(")", "");
 
         // Get user input and parse out true literals (including inverses)
         string[] assignments = strippedInput.Split(',');

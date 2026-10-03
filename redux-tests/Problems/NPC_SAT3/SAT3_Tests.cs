@@ -627,4 +627,25 @@ public class SAT3_Tests {
         Assert.Equal("{}", schoning.solve(sat3));
         Assert.Equal("{}", ppz.solve(sat3));
     }
+
+    // Whitespace of any kind (new lines, CRLF, tabs, trailing new line) must parse like the single-line form.
+    [Theory]
+    [InlineData("(x1:True,x2:True,x3:False)")]
+    [InlineData("(x1:True,\nx2:True,\nx3:False)")]
+    [InlineData("(x1:True,\r\nx2:True,\r\nx3:False)")]
+    [InlineData("(x1:True,x2:True,x3:False)\n")]
+    [InlineData("(x1:True,\tx2:True, x3:False)\r\n")]
+    [InlineData("(x1:True\n,x2:True\n,x3:False)")]
+    public void SAT3_Verifier_Accepts_Valid_Certificate_With_Any_Whitespace(string certificate) {
+        SAT3 problem = new SAT3("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)");
+        SAT3Verifier verifier = new SAT3Verifier();
+        Assert.True(verifier.verify(problem, certificate));
+    }
+
+    [Fact]
+    public void SAT3_Verifier_Rejects_Invalid_Certificate_With_Newlines() {
+        SAT3 problem = new SAT3("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)");
+        SAT3Verifier verifier = new SAT3Verifier();
+        Assert.False(verifier.verify(problem, "(x1:False,\nx2:True,\nx3:False)"));
+    }
 }
