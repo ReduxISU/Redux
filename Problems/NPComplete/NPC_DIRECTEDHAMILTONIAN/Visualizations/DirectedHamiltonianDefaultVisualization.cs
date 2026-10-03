@@ -10,8 +10,8 @@ namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Visualizations;
 class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONIAN, API_GraphJSON> {
 
     // --- Fields ---
-    public string visualizationName { get; } = "Directed Hamiltonian Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for Directed Hamiltonian";
+    public string visualizationName { get; } = "Directed Hamiltonian Cycle Visualization";
+    public string visualizationDefinition { get; } = "This is a default visualization for Directed Hamiltonian Cycle";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;

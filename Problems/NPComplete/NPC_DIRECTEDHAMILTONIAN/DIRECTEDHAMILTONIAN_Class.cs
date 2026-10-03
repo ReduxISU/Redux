@@ -9,10 +9,10 @@ namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN;
 class DIRECTEDHAMILTONIAN : IGraphProblem<DirectedHamiltonianBruteForce, DirectedHamiltonianVerifier, DirectedHamiltonianDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
-    public string problemName { get; } = "Directed Hamiltonian Path";
+    public string problemName { get; } = "Directed Hamiltonian Cycle";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Hamiltonian_path";
-    public string formalDefinition { get; } = "Directed Hamiltonian Path = {<G> | G has a cycle which covers every node exactly once}";
-    public string problemDefinition { get; } = "Directed Hamiltonian Path is the problem of determining whether a Hamiltonian cycle (a path in an undirected or directed graph that visits each vertex exactly once).";
+    public string formalDefinition { get; } = "Directed Hamiltonian Cycle = {<G> | G is a directed graph with a cycle that follows the edge directions and visits every node exactly once}";
+    public string problemDefinition { get; } = "Directed Hamiltonian Cycle is the problem of determining whether a directed graph has a Hamiltonian cycle: a cycle that follows the edge directions, visits every vertex exactly once, and returns to the vertex it started from.";
     public string inputDescription { get; } = "G, a directed graph";
     public string outputDescription { get; } = "True or False, whether G has a Hamiltonian cycle";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";

@@ -8,8 +8,8 @@ class DirectedHamiltonianVerifier : IVerifier<DIRECTEDHAMILTONIAN> {
     public const string CertificateExample = "{2,1,3,5,4,2}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Directed Hamiltonian Path Verifier";
-    public string verifierDefinition { get; } = "This is a verifier for Directed Hamiltonian Path";
+    public string verifierName { get; } = "Default Directed Hamiltonian Cycle Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for Directed Hamiltonian Cycle";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
