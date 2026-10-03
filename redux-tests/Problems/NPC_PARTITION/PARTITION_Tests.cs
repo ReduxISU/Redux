@@ -40,6 +40,18 @@ public class PARTITION_Tests {
     }
 
     // -------------------------------------------------------------------------
+    // Constructor: invalid instances
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("{1,x,3}")] // non-integer element
+    [InlineData("{a,b}")]   // no integers at all
+    public void PARTITION_Constructor_Rejects_Non_Integer_Elements(string instance) {
+        // The instance grammar requires every element of S to be an integer (N subset int).
+        Assert.ThrowsAny<Exception>(() => new PARTITION(instance));
+    }
+
+    // -------------------------------------------------------------------------
     // PartitionBruteForce
     // -------------------------------------------------------------------------
 
