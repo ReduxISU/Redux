@@ -358,6 +358,10 @@ public class ContributorInfo {
     [JsonPropertyName("githubUsername")]
     public string? GithubUsername { get; set; }
 
+    /// <summary>Other GitHub accounts the same person has committed from — optional. The stats tool treats them as already known and adds their PRs to this person's counts (#613).</summary>
+    [JsonPropertyName("otherGithubUsernames")]
+    public List<string>? OtherGithubUsernames { get; set; }
+
     /// <summary>Their GitHub contribution stats on the Redux (backend) repo — null if not yet collected. One-time manual population from a 2026 contributor audit; see issue #565 for the follow-up automation that will keep this current.</summary>
     [JsonPropertyName("reduxStats")]
     public ContributorRepoStats? ReduxStats { get; set; }

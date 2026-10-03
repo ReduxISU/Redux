@@ -50,8 +50,8 @@
     "major": "Computer Science",
     "bio": "Graph algorithm specialist",
     "githubUsername": "Andrija-Sevaljevic",
-    "reduxStats": { "prsMerged": 79, "reviews": 31 },
-    "reduxGuiStats": { "prsMerged": 23, "reviews": 11 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Garret Stouffer": {
     "email": "garretstouffer@isu.edu",
@@ -86,8 +86,8 @@
     "major": "Computer Science",
     "bio": "Documentation and project coordinator",
     "githubUsername": "Jetison333",
-    "reduxStats": { "prsMerged": 29, "reviews": 0 },
-    "reduxGuiStats": { "prsMerged": 11, "reviews": 0 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Michael Crapse": {
     "email": "michaelcrapse@isu.edu",
@@ -95,8 +95,8 @@
     "major": "Computer Science",
     "bio": "Backend infrastructure developer",
     "githubUsername": "mdcrapse",
-    "reduxStats": { "prsMerged": 3, "reviews": 0 },
-    "reduxGuiStats": { "prsMerged": 3, "reviews": 0 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Ian Gonzalez": {
     "email": "iangonzalez@isu.edu",
@@ -113,8 +113,8 @@
     "major": "Computer Science",
     "bio": "Problem verification specialist",
     "githubUsername": "sabal-subedi",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
-    "reduxStats": { "prsMerged": 1, "reviews": 0 }
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Himanshu Jha": {
     "email": "himanshujha@isu.edu",
@@ -123,7 +123,7 @@
     "bio": "Full-stack developer and API specialist",
     "githubUsername": "himanshujha05",
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
-    "reduxStats": { "prsMerged": 2, "reviews": 0 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Sansar Kharal": {
     "email": "sanskharal@isu.edu",
@@ -131,7 +131,7 @@
     "major": "Computer Science",
     "bio": "Backend and solver specialist",
     "githubUsername": "kharsans",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Pratham Khanal": {
@@ -140,7 +140,7 @@
     "major": "Computer Science",
     "bio": "Frontend developer for Redux GUI",
     "githubUsername": "pkprathamkhanal",
-    "reduxGuiStats": { "prsMerged": 6, "reviews": 1 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "George Lake": {
@@ -167,8 +167,8 @@
     "major": "Computer Science",
     "bio": "",
     "githubUsername": "wrigjl",
-    "reduxStats": { "prsMerged": 129, "reviews": 37 },
-    "reduxGuiStats": { "prsMerged": 41, "reviews": 3 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Alex Svancara": {
     "email": "alexsvancara@isu.edu",
@@ -176,7 +176,7 @@
     "major": "Computer Science",
     "bio": "Problem implementation specialist",
     "githubUsername": "svanalex",
-    "reduxStats": { "prsMerged": 3, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Eric Hill": {
@@ -185,8 +185,8 @@
     "major": "Computer Science",
     "bio": "Solver and reduction developer",
     "githubUsername": "hilleri2",
-    "reduxStats": { "prsMerged": 6, "reviews": 0 },
-    "reduxGuiStats": { "prsMerged": 2, "reviews": 0 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Max Grünwoldt": {
     "email": "maxgrunwoldt@isu.edu",
@@ -210,8 +210,8 @@
     "major": "Computer Science",
     "bio": "Problem implementation and testing",
     "githubUsername": "kramandr",
-    "reduxGuiStats": { "prsMerged": 2, "reviews": 0 },
-    "reduxStats": { "prsMerged": 4, "reviews": 0 }
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Courtney Bodily": {
     "email": "courtneybodily@isu.edu",
@@ -219,6 +219,7 @@
     "major": "Computer Science",
     "bio": "System architect. Built the quantum circuit visualizations for Bernstein-Vazirani, Deutsch-Jozsa, Deutsch, and SAT Grover.",
     "githubUsername": "courtneybodily",
+    "otherGithubUsernames": ["courtbod"],
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
@@ -228,7 +229,7 @@
     "major": "Computer Science",
     "bio": "Frontend developer and UI specialist",
     "githubUsername": "darklord293",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
     "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "David Lindeman": {
@@ -246,7 +247,7 @@
     "major": "Computer Science and Software Engineering",
     "bio": "Problem solver and verifier developer",
     "githubUsername": "kaosiibeabuchi",
-    "reduxStats": { "prsMerged": 3, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Diya Pandey": {
@@ -255,8 +256,8 @@
     "major": "Computer Science and Software Engineering",
     "bio": "Implemented the Edit Distance problem, its dynamic programming solver, and verifier. Also contributed documentation.",
     "githubUsername": "Diyapandey0",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
-    "reduxStats": { "prsMerged": 1, "reviews": 0 }
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Srijan Pant": {
     "email": "srijanpant@isu.edu",
@@ -273,8 +274,8 @@
     "major": "Computer Science (Minor: Mathematics)",
     "bio": "Machine learning model architecture background. Implemented the Topological Sort problem, its Kahn's Algorithm solver, verifier, and visualization.",
     "githubUsername": "PraveshAryal03",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
-    "reduxStats": { "prsMerged": 2, "reviews": 0 }
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Koras Koirala": {
     "email": "koraskoirala@isu.edu",
@@ -300,7 +301,7 @@
     "major": "Computer Science",
     "bio": "Implemented the Knapsack DP solver and unit tests",
     "githubUsername": "khanmusab",
-    "reduxStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Calvin Condie": {
@@ -318,8 +319,8 @@
     "major": "Computer Science",
     "bio": "Full-stack contributor spanning backend problem/test infrastructure and frontend UI (tag/filter system, theming); dominant author of the backend test suite and an active PR reviewer across both repos.",
     "githubUsername": "Trosper3",
-    "reduxStats": { "prsMerged": 25, "reviews": 36 },
-    "reduxGuiStats": { "prsMerged": 24, "reviews": 36 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Ryan Davis": {
     "email": "",
@@ -327,8 +328,8 @@
     "major": "",
     "bio": "Built the RBS (Redux Build System) CI pipeline, devcontainer setup, and mise tasks; added the Biome formatter and improved ESLint config for Redux_GUI; authored rbs.toml and Directory.Build.* config for Redux.",
     "githubUsername": "ryancraigdavis",
-    "reduxStats": { "prsMerged": 1, "reviews": 1 },
-    "reduxGuiStats": { "prsMerged": 4, "reviews": 1 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Quinton Smith": {
     "email": "",
@@ -336,8 +337,8 @@
     "major": "",
     "bio": "Implemented the Dominating Set problem, solver, verifier, and visualization. Added the GitHub issue and PR templates for Redux_GUI.",
     "githubUsername": "QuintonSmith03",
-    "reduxGuiStats": { "prsMerged": 3, "reviews": 0 },
-    "reduxStats": { "prsMerged": 5, "reviews": 0 }
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Rajit Nilkar": {
     "email": "",
@@ -345,8 +346,8 @@
     "major": "",
     "bio": "Implemented the Single Source and Single Pair Shortest Path problems, their Dijkstra's Algorithm solver, verifiers, and visualizations.",
     "githubUsername": "RajNilkar",
-    "reduxStats": { "prsMerged": 9, "reviews": 0 },
-    "reduxGuiStats": { "prsMerged": 2, "reviews": 0 }
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Collin M Kress": {
     "email": "",
@@ -354,7 +355,7 @@
     "major": "",
     "bio": "Contributed to the Sudoku problem, its backtracking solver, and verifier.",
     "githubUsername": "krescoll321",
-    "reduxStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Bektur Akkabakov": {
@@ -363,8 +364,8 @@
     "major": "",
     "bio": "Implemented the Lossless Data Compression problem (Huffman's Algorithm solver) and the Convex Hull problem (Divide and Conquer solver), plus both verifiers.",
     "githubUsername": "akkabakovb",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
-    "reduxStats": { "prsMerged": 2, "reviews": 0 }
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Corbin Hay": {
     "email": "",
@@ -372,8 +373,8 @@
     "major": "",
     "bio": "Implemented the Traveling Salesperson Branch and Bound and Greedy solvers.",
     "githubUsername": "c-hayCodes",
-    "reduxGuiStats": { "prsMerged": 1, "reviews": 0 },
-    "reduxStats": { "prsMerged": 3, "reviews": 1 }
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Carter Luker": {
     "email": "",
@@ -381,7 +382,7 @@
     "major": "",
     "bio": "Contributed to the Sudoku problem, its backtracking solver, and verifier.",
     "githubUsername": "carterluker",
-    "reduxStats": { "prsMerged": 2, "reviews": 1 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Surendra Thapa": {
@@ -390,7 +391,7 @@
     "major": "",
     "bio": "Implemented the Strongly Connected Components problem, Kosaraju's Algorithm solver, and verifier.",
     "githubUsername": "surendrathapa18",
-    "reduxStats": { "prsMerged": 2, "reviews": 1 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Cole Campbell": {
@@ -408,7 +409,7 @@
     "major": "",
     "bio": "Implemented the Bin Packing problem, its Brute Force and First Fit Decreasing solvers, and verifier.",
     "githubUsername": "prashantaguragai",
-    "reduxStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Danny Fawson": {
@@ -426,7 +427,7 @@
     "major": "",
     "bio": "Contributed the Traveling Salesperson Greedy solver.",
     "githubUsername": "beauwilliams05",
-    "reduxStats": { "prsMerged": 0, "reviews": 1 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Prashant Pant": {
@@ -435,7 +436,7 @@
     "major": "",
     "bio": "Wrote tests for the Clique Cover verifier.",
     "githubUsername": "prashant9711",
-    "reduxStats": { "prsMerged": 1, "reviews": 1 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Rohan Shrestha": {
@@ -500,7 +501,7 @@
     "major": "",
     "bio": "Contributed the N-Queens problem, including its backtracking solver and verifier.",
     "githubUsername": "lrhernandez3284-spec",
-    "reduxStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Pramesh Shah": {
@@ -509,7 +510,7 @@
     "major": "",
     "bio": "Added the Graph Coloring Greedy solver and the Lossless Data Compression problem, solver, and verifier.",
     "githubUsername": "prameshshah",
-    "reduxStats": { "prsMerged": 1, "reviews": 0 },
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   },
   "Ethan Wilks": {

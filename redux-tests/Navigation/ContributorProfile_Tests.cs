@@ -67,6 +67,61 @@ public class ContributorProfile_Tests {
         }
     }
 
+    [Fact]
+    public void ContributorInfoJson_StatsAreZeroInSource() {
+        string content = File.ReadAllText(_jsonFilePath);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var contributors = JsonSerializer.Deserialize<Dictionary<string, ContributorInfo>>(content, options);
+        Assert.NotNull(contributors);
+
+        var offenders = new List<string>();
+        foreach (var (name, info) in contributors) {
+            foreach (var (repo, stats) in new[] { ("reduxStats", info.ReduxStats), ("reduxGuiStats", info.ReduxGuiStats) }) {
+                if (stats == null) {
+                    continue;
+                }
+                if (stats.PrsMerged.GetValueOrDefault() != 0) {
+                    offenders.Add($"{name}: {repo}.prsMerged = {stats.PrsMerged}");
+                }
+                if (stats.Reviews.GetValueOrDefault() != 0) {
+                    offenders.Add($"{name}: {repo}.reviews = {stats.Reviews}");
+                }
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            "contributorInfo.json must not contain non-zero prsMerged/reviews counts. Counts are filled in "
+            + "at release time by the docker workflow (#613), so don't commit them; to add new contributors "
+            + "run the stats tool with --scan-only. Offending values:\n  " + string.Join("\n  ", offenders));
+    }
+
+    [Fact]
+    public void ContributorInfoJson_NoGithubAccountBelongsToTwoContributors() {
+        string content = File.ReadAllText(_jsonFilePath);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var contributors = JsonSerializer.Deserialize<Dictionary<string, ContributorInfo>>(content, options);
+        Assert.NotNull(contributors);
+
+        // The stats tool credits each account's PRs to one contributor, so an account listed under two
+        // people (as githubUsername or in otherGithubUsernames) would have its PRs counted twice.
+        var owners = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, info) in contributors) {
+            var logins = new[] { info.GithubUsername }.Concat(info.OtherGithubUsernames ?? new List<string>())
+                .Where(login => !string.IsNullOrWhiteSpace(login))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+            foreach (var login in logins) {
+                if (!owners.TryGetValue(login!, out var names)) {
+                    owners[login!] = names = new List<string>();
+                }
+                names.Add(name);
+            }
+        }
+
+        var shared = owners.Where(kvp => kvp.Value.Count > 1).Select(kvp => $"{kvp.Key}: {string.Join(", ", kvp.Value)}").ToList();
+        Assert.True(shared.Count == 0,
+            "These GitHub accounts are listed under more than one contributor:\n  " + string.Join("\n  ", shared));
+    }
+
     // ─── GET /names ───────────────────────────────────────────────────────────
 
     [Fact]

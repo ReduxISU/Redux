@@ -11,3 +11,5 @@ report.md
 Documentation/
 Dockerfile
 .dockerignore
+**/bin/
+**/obj/
