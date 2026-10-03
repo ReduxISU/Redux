@@ -79,6 +79,18 @@ public class SAT3_Tests {
         Assert.NotEqual("No Solution", result);
     }
 
+    [Theory]
+    [InlineData("(x1)", "(x1:True)")]
+    [InlineData("(!x1)", "(x1:False)")]
+    public void SAT3_Solver_Solves_SingleLiteral_Instance(string instance, string expected) {
+        Assert.Equal(expected, new Sat3BacktrackingSolver().solve(new SAT3(instance)));
+    }
+
+    [Fact]
+    public void SAT3_Solver_Returns_NoSolution_For_Contradictory_Unit_Clauses() {
+        Assert.Equal("No Solution", new Sat3BacktrackingSolver().solve(new SAT3("(x1) & (!x1)")));
+    }
+
     // -------------------------------------------------------------------------
     // Solver — unsatisfiable instance
     // -------------------------------------------------------------------------
@@ -407,6 +419,40 @@ public class SAT3_Tests {
 
         GraphColoringVerifier verifier = new GraphColoringVerifier();
         Assert.True(verifier.verify(reduction.reductionTo, gcCertificate));
+    }
+
+    // Clauses with 1 or 2 literals are padded to 3 by repeating the first literal (#623).
+    [Theory]
+    [InlineData("(x1)")]
+    [InlineData("(!x1)")]
+    [InlineData("(x1 | !x2)")]
+    [InlineData("(x1) & (x2 | !x3)")]
+    [InlineData("(x1 | x2 | x3) & (!x1) & (x2 | x3)")]
+    public void SAT3_To_GRAPHCOLORING_ShortClauses_SAT3Solution_MapsToValidCertificate(string sat3Instance) {
+        SAT3 sat3 = new SAT3(sat3Instance);
+        KarpReduceGRAPHCOLORING reduction = new KarpReduceGRAPHCOLORING(sat3);
+        GRAPHCOLORING gc = reduction.reductionTo;
+        Assert.Equal(3 + sat3.literals.Distinct().Count() + 6 * sat3.clauses.Count, gc.nodes.Count);
+
+        string sat3Solution = new Sat3BacktrackingSolver().solve(sat3);
+        Assert.NotEqual("No Solution", sat3Solution);
+
+        string gcCertificate = reduction.mapSolutions(sat3Solution);
+
+        Assert.True(new GraphColoringVerifier().verify(gc, gcCertificate), gcCertificate);
+    }
+
+    // -------------------------------------------------------------------------
+    // Default visualization
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Sat3DefaultVisualization_NoSolution_HighlightsNothing() {
+        SAT3 sat3 = new SAT3("(x1) & (!x1)");
+
+        var sat = (API.Interfaces.JSON_Objects.API_SAT)new Sat3DefaultVisualization().SolvedVisualization(sat3, "No Solution");
+
+        Assert.All(sat.clauses.SelectMany(c => c.literals), l => Assert.NotEqual("Solution", l.color));
     }
 
     // -------------------------------------------------------------------------
