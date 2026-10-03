@@ -3,29 +3,31 @@ using API.Interfaces.Graphs;
 using API.Problems.P.P_NFA;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace API.Problems.P.P_NFA.Solvers;
 
 class NFASolver : ISolver<NFA> {
     public string solverName { get; } = "NFA Backtracking";
-    public string solverDefinition { get; } = "This solver enumerates all accepting runs of a nondeterministic finite automaton (returns all successful state sequences).";
+    public string solverDefinition { get; } = "Searches the runs of a Nondeterministic Finite Automaton depth-first, backtracking at dead ends, and returns the first accepting run as its sequence of states, e.g. 1,2. Returns {} if no run accepts the input.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
-    // Declared, not derived. Unpruned exhaustive enumeration.
+    // Declared, not derived. Unpruned backtracking search that stops at the first accepting run.
     public SolverType solverType { get; } = SolverType.StateTransition;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // This does NOT do the poly-time subset-construction/active-state-set simulation possible
-    // for NFA acceptance; DFS enumerates every accepting run individually, backtracking
-    // visitedPerPath rather than memoizing across branches. Along any single root-to-leaf
-    // path, (state, position) pairs can't repeat, bounding depth by Q*(n+1); branching factor
-    // is bounded by d, the max per-state out-degree for a given symbol/epsilon. Worst case:
+    // for NFA acceptance; DFS tries runs one at a time, backtracking visitedPerPath rather than
+    // memoizing across branches. It stops at the first accepting run, but a rejected input still
+    // explores every run. Along any single root-to-leaf path, (state, position) pairs can't
+    // repeat, bounding depth by Q*(n+1); branching factor is bounded by d, the max per-state
+    // out-degree for a given symbol/epsilon. Worst case:
     public string complexity { get; } = "O(d^(Q * n)), where d = max per-state out-degree, Q = state count, n = input length";
 
     public NFASolver() { }
 
-    public string solve(NFA problem) {
+    public string solve(NFA problem) => solveDetailed(problem).certificate ?? "{}";
+
+    public SolveResult solveDetailed(NFA problem) {
         // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
@@ -33,18 +35,17 @@ class NFASolver : ISolver<NFA> {
         // Validate characters
         foreach (char c in input) {
             if (!problem.alphabet.Contains(c))
-                return $"No Solution: Input contains character '{c}' not in NFA alphabet";
+                return SolveResult.NoSolution($"The input contains '{c}', which is not in the NFA's alphabet.");
         }
 
         var edges = problem.edges; // List<NFAEdge>
-        var acceptPaths = new List<List<string>>();
 
-        // DFS exploring nondeterministic runs; visitedPerPath prevents infinite loops for epsilon cycles
-        void DFS(string state, int pos, List<string> path, HashSet<(string, int)> visitedPerPath) {
-            // If consumed all input and in accept state, record a copy of the path
+        // DFS exploring nondeterministic runs; visitedPerPath prevents infinite loops for epsilon cycles.
+        // Returns true once `path` holds an accepting run, leaving it in place for the caller.
+        bool DFS(string state, int pos, List<string> path, HashSet<(string, int)> visitedPerPath) {
+            // Consumed all input and in an accept state: this run is the certificate
             if (pos >= input.Length && problem.acceptStates.Contains(state)) {
-                acceptPaths.Add(new List<string>(path));
-                // Do not return: still allow further epsilon transitions that may produce other accept runs
+                return true;
             }
 
             // Explore epsilon transitions (do not advance position)
@@ -53,7 +54,7 @@ class NFASolver : ISolver<NFA> {
                 if (visitedPerPath.Contains(key)) continue;
                 visitedPerPath.Add(key);
                 path.Add(e.To);
-                DFS(e.To, pos, path, visitedPerPath);
+                if (DFS(e.To, pos, path, visitedPerPath)) return true;
                 path.RemoveAt(path.Count - 1);
                 visitedPerPath.Remove(key);
             }
@@ -66,29 +67,23 @@ class NFASolver : ISolver<NFA> {
                     if (visitedPerPath.Contains(key)) continue;
                     visitedPerPath.Add(key);
                     path.Add(e.To);
-                    DFS(e.To, pos + 1, path, visitedPerPath);
+                    if (DFS(e.To, pos + 1, path, visitedPerPath)) return true;
                     path.RemoveAt(path.Count - 1);
                     visitedPerPath.Remove(key);
                 }
             }
+
+            return false;
         }
 
         // Seed DFS with start state
-        var startPath = new List<string> { problem.startState };
+        var path = new List<string> { problem.startState };
         var startVisited = new HashSet<(string, int)> { (problem.startState, 0) };
-        DFS(problem.startState, 0, startPath, startVisited);
 
-        // Build output
-        if (acceptPaths.Count == 0) {
-            return "No Solution Exists: No run accepts the input";
-        }
-
-        var sb = new StringBuilder();
-        foreach (var p in acceptPaths) {
-            sb.AppendLine("The sequence of states to accept is: " + string.Join(", ", p));
-        }
-
-        return sb.ToString().TrimEnd();
+        // Same discovery order as GetPathRuns, so this is the run the visualization shows first
+        return DFS(problem.startState, 0, path, startVisited)
+            ? SolveResult.Solved(string.Join(",", path), $"The NFA accepts the input. This is the first accepting run found, ending in accept state {path[^1]}; others may exist.")
+            : SolveResult.NoSolution("No run of the NFA accepts the input.");
     }
 
     // GetSteps: The default steps for an NFA are the states of its default run (first accepting

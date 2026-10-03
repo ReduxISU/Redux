@@ -26,15 +26,6 @@ public class WhitespaceTolerance_Tests {
     // only the leading/trailing variants, which are trimmed, apply to such an instance.
     private static readonly HashSet<string> EdgeVariants = new() { "trailing LF", "leading LF" };
 
-    // Pre-existing and unrelated to whitespace: the default solver's output is not accepted by the
-    // default verifier, so there is no valid base result to compare against.
-    //  - DFA, NFA: the solver returns prose ("The sequence of states to accept is: 1, 2") but the
-    //    verifier expects the bare state list ("1,2"), so verify() is False for the solver's own output.
-    //  - PRIMEFACTOR: the default solver throws a NullReferenceException, which it reports as an error JSON.
-    private static readonly HashSet<string> KnownBrokenDefaultSolve = new(StringComparer.OrdinalIgnoreCase) {
-        "DFA", "NFA", "PRIMEFACTOR",
-    };
-
     public static IEnumerable<TheoryDataRow<string>> ProblemNames() =>
         MetadataReflection.Instances.Keys
             .Where(MetadataReflection.TopLevelClassNames.Contains)
@@ -44,9 +35,6 @@ public class WhitespaceTolerance_Tests {
     [Theory]
     [MemberData(nameof(ProblemNames))]
     public async Task WhitespaceVariants_DoNotChangeVerifyResult(string name) {
-        if (KnownBrokenDefaultSolve.Contains(name))
-            Assert.Skip($"{name}: default solver output is not accepted by the default verifier (pre-existing, unrelated)");
-
         IProblem problem = MetadataReflection.Instances[name];
         string instance = problem.defaultInstance;
         ISolver solver = problem.defaultSolver;

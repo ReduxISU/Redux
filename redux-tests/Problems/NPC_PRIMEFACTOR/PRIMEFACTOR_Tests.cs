@@ -52,6 +52,16 @@ public class PRIMEFACTOR_tests {
         Assert.Equal(certificate, solvedString);
     }
 
+    [Fact]
+    public void PRIMEFACTOR_Default_Solver_Answer_Verifies_Offline() {
+        // The default solver must not depend on the external quantum service, so solving
+        // the default instance gives a certificate the default verifier accepts.
+        var problem = new PRIMEFACTOR();
+        string certificate = problem.defaultSolver.solve(problem);
+        Assert.Equal("(2,2,3)", certificate);
+        Assert.True(problem.defaultVerifier.verify(problem, certificate));
+    }
+
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
