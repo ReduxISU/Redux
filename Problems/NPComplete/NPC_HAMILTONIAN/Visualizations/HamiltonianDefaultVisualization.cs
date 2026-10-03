@@ -10,8 +10,8 @@ namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Visualizations;
 class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN, API_GraphJSON> {
 
     // --- Fields ---
-    public string visualizationName { get; } = " Hamiltonian Path Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for Hamiltonian Path";
+    public string visualizationName { get; } = "Hamiltonian Cycle Visualization";
+    public string visualizationDefinition { get; } = "This is a default visualization for Hamiltonian Cycle";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
