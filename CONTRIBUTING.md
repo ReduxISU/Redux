@@ -39,7 +39,7 @@ Use a descriptive branch name:
 - Add comments where helpful
 
 ### 4. Test your changes
-- Ensure the project builds successfully
+- Ensure the project builds successfully (step-by-step help: [building-and-testing guide](Documentation/guides/building-and-testing.md); all guides: [Documentation/guides/README.md](Documentation/guides/README.md))
 - Run any existing tests
 - Add tests if applicable
 

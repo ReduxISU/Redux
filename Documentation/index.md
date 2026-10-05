@@ -9,5 +9,6 @@ Welcome to the documentation for the Redux Backend. Note for standard deployment
 - [Code Overview](./codeOverview.md)
 - [Code Base Additions](./CodeBaseAdditions.md)
 - [API Documentation](./APIDocumentation.md)
+- [Contributor guides (start here)](./guides/README.md)
 - [Testing](Testing.md)
 - [SPADE](./SPADE.md)

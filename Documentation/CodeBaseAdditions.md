@@ -77,6 +77,8 @@ All added problems should fulfill the following requirements,
 - Tests for all solvers and verifiers have been created and pass.
 
 ### New Reductions
+See [guides/adding-a-reduction.md](guides/adding-a-reduction.md) for the current step-by-step guide.
+
 All new reductions should fulfill the following requirments,
 
 - Correctly implements all interfaces
