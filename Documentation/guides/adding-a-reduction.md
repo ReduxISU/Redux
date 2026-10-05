@@ -16,7 +16,7 @@ In Redux:
 
 - Problem A is the **FROM** problem. Problem B is the **TO** problem.
 - A reduction is one C# class. It takes an instance of A (a string such as `({3,5,7},8)`), builds an instance of B, and exposes it as `reductionTo`.
-- A reduction can also do **solution mapping**. That means turning a solution of one problem back into a solution of the other. In code this is the `mapSolutions` method.
+- A reduction also does **solution mapping**: given a solution to the FROM problem (A), it produces the matching solution to the TO problem (B). In code this is the `mapSolutions` method.
 - You do not write a controller or register anything. Redux finds every reduction class automatically (see section 3), and the API exposes it.
 
 ## 2. Before you start
@@ -95,7 +95,7 @@ Every reduction implements the members in [Interfaces/ReductionInterface.cs](../
 | `reductionFrom` | The FROM problem instance you were given. | a `SUBSETSUM` |
 | `reductionTo` | The TO problem instance you produced. | a `PARTITION` |
 | `reduce()` | **The actual algorithm.** Reads `reductionFrom`, builds and returns the TO instance. | see Step 3 |
-| `mapSolutions(string)` | Turns a solution of one problem back into a solution of the other. | see Step 4 |
+| `mapSolutions(string)` | Takes a solution to the FROM problem and returns the matching solution to the TO problem. | see Step 4 |
 | `gadgets` | Pieces the GUI draws to show how parts of A become parts of B. Optional: the interface supplies an empty list if you do nothing. | not used here |
 
 The three **declared metadata** members are the ones people forget. Their rules are in [ReductionCost.cs](../../Interfaces/ReductionCost.cs), [ReductionType.cs](../../Interfaces/ReductionType.cs), and [ReductionComplexityBucket.cs](../../Interfaces/ReductionComplexityBucket.cs). The doc comments there explain every choice. Short version:
@@ -134,7 +134,7 @@ Two rules for the output:
 
 ### Step 4. Write `mapSolutions`
 
-`mapSolutions` receives a solution (as a string) and must turn it into a solution of the other problem. It must handle bad input without crashing the server. The API wraps errors in a friendly 400 response, so throwing a normal exception on bad input is acceptable. Never let it cause a 500.
+`mapSolutions(string problemFromSolution)` receives a solution to the **FROM** problem (as a string, in the FROM problem's certificate format) and must return the matching solution to the **TO** problem, in the TO problem's certificate format. It must handle bad input without crashing the server. The API wraps errors in a friendly 400 response, so throwing a normal exception on bad input is acceptable. Never let it cause a 500.
 
 Be honest about what your method does. The worked example's `mapSolutions` is a simple stand-in (it returns the first number of the Partition list), and a few reductions in the repo return an empty string. These are known to be weak. Do not copy them. A good `mapSolutions` really converts the answer. The checklist in [CodeBaseAdditions.md](../CodeBaseAdditions.md) ("Includes working solution mapping function specific to reduction") expects that. If you truly cannot map a solution, say so in your PR description.
 
