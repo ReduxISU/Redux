@@ -288,7 +288,7 @@ You do not have to register your problem with these tests. They find it automati
 | [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and Big-O text (see [adding-a-solver.md](adding-a-solver.md)). |
 | [Navigation/ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) | Every name in `contributors` (problems, solvers, verifiers, visualizations, reductions) has an entry in `wwwroot/contributorInfo.json`; the file is valid; committed stats are zero; no GitHub account is shared between two people. |
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) | Sending garbage (`""`, `{{{`, `not an instance`, `{a,b}:::`) to `/problemInstance` for your problem, and to your solver, verifier, and visualization, **never produces a 500**. A bad instance must be a 400. |
-| [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) | The navigation lists put each problem in the list for its declared class, and find its solvers, verifiers, and visualizations. |
+| [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) | The navigation lists put each problem in the list for its declared class, and find its solvers, verifiers, and visualizations. **This one needs an edit from you:** it keeps a hard-coded list of every problem in each class (`NpcProblems_MembershipIsExactlyDeclaredNPComplete`, `PProblems_MembershipIsExactlyDeclaredP`, `NpHardProblems_MembershipIsExactlyDeclaredNPHard`), so the API's lists never change by accident. Add your problem's class name (for example `"SUBSETSUM"`) to the list for the `complexityClass` you declared. |
 | [Endpoints/ProblemProvider_Endpoint_Tests.cs](../../redux-tests/Endpoints/ProblemProvider_Endpoint_Tests.cs) | `/info` and the other `ProblemProvider` endpoints work across the discovered classes. |
 | [Endpoints/Performance_Tests.cs](../../redux-tests/Endpoints/Performance_Tests.cs) | The `allInfo` and `allProblems` lists, and startup, stay inside a time budget. Building every problem's default instance counts, so keep your constructor fast. These run as a separate "Performance" step; see [building-and-testing.md](building-and-testing.md). |
 
@@ -393,6 +393,7 @@ A new problem is done when:
 - [ ] `problemName`, `problemLink`, `formalDefinition`, `problemDefinition`, `inputDescription`, `outputDescription`, `source`, and `sourceLink` are filled in.
 - [ ] `defaultInstance` parses, and `instanceFormat` and `certificateFormat` each have a real example.
 - [ ] `complexityClass` and `problemType` are declared (not `Unclassified`), and the folder matches the class.
+- [ ] Your problem's class name is added to the matching hard-coded list in [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) (NP-complete, P, or NP-hard).
 - [ ] Bad instances throw `ProblemParseException`.
 - [ ] There is a default solver, verifier, and visualization (or `DummyVisualization`), each following its own guide.
 - [ ] Every name in every `contributors` list is in `wwwroot/contributorInfo.json`, with stats left at zero.
@@ -406,6 +407,7 @@ A new problem is done when:
 - **Running `dotnet build` with no file name.** It fails with `MSB1011`. Always add `Redux.slnx`.
 - **Skipping `dotnet format`.** Bad formatting fails the Release build itself, not only a separate check.
 - **Leaving `complexityClass` or `problemType` as `Unclassified`.** The generated template declares both as `Unclassified` on purpose. Tests fail with a message naming your class until you pick real values.
+- **Forgetting the hard-coded list in `Navigation_Endpoint_Tests.cs`.** This failure only appears *after* you declare `complexityClass`, so it can look like fixing one test broke another. The message says `NPC_ProblemsRefactor membership changed` (or the P / NP-hard version) and prints an Expected and an Actual list. Your problem is the one name in Actual that is missing from Expected. Add it to that test's list.
 - **A class name with a prefix** such as `NPC_MYPROBLEM`. The folder gets the prefix, the class does not.
 - **Reusing a class name**, even with different capitals. Names are keys, ignoring case. A duplicate crashes startup.
 - **Folder and declared class disagree**, or the namespace does not match the folder.
