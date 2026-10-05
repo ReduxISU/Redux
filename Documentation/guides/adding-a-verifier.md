@@ -189,6 +189,8 @@ Notice what is **not** checked for free: nothing tests that your verifier gives 
 
 ### Tests you write yourself
 
+> **The build check won't tell you if you skipped this.** CI checks that every test passes, not that you wrote any. Your own tests are the only thing that proves your code gives the right answers, so reviewers will look for the ones in this guide's checklist. See [building-and-testing.md](building-and-testing.md#4-how-to-read-the-rbs-report).
+
 Verifier tests live in the test project, one folder per problem:
 
 ```text
