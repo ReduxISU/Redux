@@ -110,7 +110,7 @@ The three **declared metadata** members are the ones people forget. "Declared" m
 - `complexityBucket`: the **worst case** growth: `Polynomial`, `Exponential`, or `Factorial`. It describes the worst case even if your solver is fast on typical inputs.
 - `complexity`: a Big-O string such as `"O(n * 2^n)"`. Only write one you are confident about. Never guess.
 
-**Do not leave any of the three as `Unclassified` (or empty).** Tests fail if you do (section 5). The template ships them commented out, and a commented-out line means "not declared", so you must remove the comments and fill them in.
+**Do not leave any of the three as `Unclassified` (or empty).** Tests fail if you do (section 5). The template declares them as `Unclassified` and `""` with a `TODO` comment, so you replace each value. The template's `solve` also ends with a `NotImplementedException`: an unfinished solver fails loudly instead of claiming "no solution". Replace it with your real return.
 
 You also need a **public constructor with no arguments** (`public SubsetSumBruteForce() { }`). Redux builds your class this way, and so do the tests.
 
@@ -295,7 +295,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Solver"
 
 ## 8. Common mistakes
 
-- **Leaving `solverType`, `complexityBucket`, or `complexity` undeclared.** The template has them commented out. Three metadata tests fail with a message naming your class.
+- **Leaving `solverType`, `complexityBucket`, or `complexity` at the template's `Unclassified` / `""`.** Three metadata tests fail with a message naming your class, on purpose, until you declare real values.
 - **A `solverName` that is just the class name** (`SubsetSumBruteForce`) or a placeholder. Use `"<Problem> <Approach>"` or `"<Person> ... Algorithm"`.
 - **Never checking `timerHasExpired`**, or checking it only once before the loop. Check it inside the loop.
 - **Output that does not match `certificateFormat`.** The verifier will throw `CertificateParseException`, or the GUI will not understand it. Always test your solver's output against the verifier.

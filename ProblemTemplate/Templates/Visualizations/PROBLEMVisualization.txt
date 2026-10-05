@@ -4,34 +4,37 @@ using API.Problems.NPComplete.NPC_{PROBLEM};
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Visualizations;
 
-class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}>
-{
+class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}> {
     public string visualizationName { get; } = "{VISUALIZATION}";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
-    public string sourceLink {get;} = "TODO";
+    public string sourceLink { get; } = "TODO";
     public string[] contributors { get; } = { "TODO" };
-    // Pick the member matching the API_JSON shape you return below. If no renderer fits,
-    // leave this as Unimplemented — the GUI shows an honest "no renderer" state instead of
-    // a broken view. Do NOT add a new member without adding a renderer in
-    // Redux_GUI/components/Visualization/svgs/Visualizations.js (CI enforces this).
+    // TODO: replace Unimplemented with the VisualizationType matching the API_JSON shape you
+    // return below. A test in redux-tests/Metadata (VisualizationType_Tests, NoNewUndeclared)
+    // fails until you do, on purpose. If no existing renderer fits, make the problem's default
+    // visualization DummyVisualization instead of this class. Adding a NEW VisualizationType
+    // member means updating Documentation/visualization-types.json (checked by
+    // VisualizationType_Tests.ManifestMatchesEnum) and adding a renderer in the Redux_GUI repo
+    // (checked there by `npm run check:visualizations`).
     public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
-    public ISolver solver { get; } = null; //TODO fill in solver to use for this visualization
+    // The solver whose steps this visualization shows. Defaults to the problem's default solver.
+    // Replace it with a specific solver if you prefer, e.g. `new MyBruteForce()`. This must stay
+    // expression-bodied (=>): the problem's constructor builds its default visualization, so an
+    // initializer (=) here would recurse forever.
+    public ISolver solver => new {PROBLEM}().defaultSolver;
 
     // --- Methods Including Constructors ---
-    public {VISUALIZATION_PASCAL_CASE}()
-    {
+    public {VISUALIZATION_PASCAL_CASE}() {
 
     }
-    public API_JSON visualize({PROBLEM} instance)
-    {
+    public API_JSON visualize({PROBLEM} instance) {
         //TODO: implement visualization
-        
+
         return new API_empty();
     }
 
-    public API_JSON SolvedVisualization({PROBLEM} instance, string solution)
-    {
+    public API_JSON SolvedVisualization({PROBLEM} instance, string solution) {
         //TODO: implement SolvedVisualization (remove method if not implemented)
 
         return new API_empty();

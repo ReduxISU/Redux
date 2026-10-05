@@ -129,7 +129,8 @@ You have two options. Both give you the same file.
 
 Two template details to fix by hand:
 
-- The template starts with `visualizationType = VisualizationType.Unimplemented` and `solver = null`. **Replace both.** A left-over `Unimplemented` fails a test (section 6), and a `null` solver crashes the `visualize` endpoint.
+- The template starts with `visualizationType = VisualizationType.Unimplemented`. **Replace it** with a real type. A left-over `Unimplemented` fails a test (section 6), on purpose. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead of this class.
+- The template sets `solver => new PROBLEM().defaultSolver`, so `visualize` works out of the box. You may replace it with a specific solver, for example `new MyBruteForce()`. Keep it expression-bodied (`=>`), because the problem's constructor builds its default visualization and an initializer would recurse.
 - The template declares `IVisualization<{PROBLEM}>` with a plain `API_JSON` return type. Change it to `IVisualization<PROBLEM, API_GraphJSON>` (or your payload class) so the compiler checks you return the right shape.
 
 ### Step 2. Fill in the members
@@ -442,7 +443,7 @@ Case (b), also:
 ## 9. Common mistakes
 
 - **Leaving `visualizationType` as `Unimplemented`** (the template's default). `NoNewUndeclared` fails. Pick a real type.
-- **Leaving `solver = null`** (the template's default). The `visualize` endpoint then crashes. Give it a real solver.
+- **Setting `solver` to `null`.** The `visualize` endpoint then crashes. The template uses the problem's default solver; keep that or give it a real solver. (Use `=>`, not `=`, when it creates the problem.)
 - **Adding an enum member without the manifest** (or the reverse). `ManifestMatchesEnum` fails. Change both in the same PR.
 - **A type name spelled differently in different places.** `GraphD3` and `Graphd3` are different words. The GUI finds nothing and shows "not renderable".
 - **Adding a GUI renderer but not the vendored manifest** (or the reverse). `npm run check:visualizations` fails.

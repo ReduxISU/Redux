@@ -8,20 +8,23 @@ namespace API.Problems.NPComplete.NPC_{REDUCE_FROM}.ReduceTo.NPC_{REDUCE_TO};
 class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
 
     // --- Fields ---
-    public string reductionName {get;} = "{REDUCTION}";
-    public string reductionDefinition {get;} = "TODO";
-    public string source {get;} = "TODO";
-    public string sourceLink {get;} = "TODO";
-    public string[] contributors {get;} = { "TODO" };
+    public string reductionName { get; } = "{REDUCTION}";
+    public string reductionDefinition { get; } = "TODO";
+    public string source { get; } = "TODO";
+    public string sourceLink { get; } = "TODO";
+    public string[] contributors { get; } = { "TODO" };
+    // Declared, not derived: do NOT guess these from what {REDUCTION} "feels like" it should be.
+    // Read reduce() and work out the real answer. Getting them wrong is a public correctness
+    // claim the API serves to callers.
+    // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ReductionCost.cs for what each value means. (This is the size of the produced instance, not runtime.)
+    public ReductionCost cost { get; } = ReductionCost.Unclassified;
+    // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ReductionType.cs for what each value means.
+    public ReductionType reductionType { get; } = ReductionType.Unclassified;
+    // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ReductionComplexityBucket.cs for what each value means.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Unclassified;
+    // TODO: replace "" with a confidently-known Big-O string, e.g. "O(n), n = |{REDUCE_FROM}.S|". A test in redux-tests/Metadata fails until you do, on purpose.
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
-    // Declared, not derived — do NOT guess this from what {REDUCTION} "feels like" it
-    // should be. Read reduce() and work out the actual Big-O of the produced instance
-    // size relative to the input instance size (not runtime, and not the unrelated
-    // `complexity` field above, which is free-text runtime commentary). Leave as
-    // Unclassified (the default — this line can simply be deleted) until someone has
-    // actually traced the loop/data-structure structure that builds the output instance.
-    // public ReductionCost cost {get;} = ReductionCost.TODO;
+    public string? complexity { get; set; } = "";
 
     private {REDUCE_FROM} _reductionFrom;
     private {REDUCE_TO} _reductionTo;
@@ -52,14 +55,14 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
         _reductionFrom = from;
         _reductionTo = reduce();
     }
-    
+
     public {REDUCTION_PASCAL_CASE}(string instance) : this(new {REDUCE_FROM}(instance)) { }
-    
+
     public {REDUCTION_PASCAL_CASE}() : this(new {REDUCE_FROM}()) { }
 
     public {REDUCE_TO} reduce() {
         {REDUCE_FROM} {REDUCE_FROM}Instance = _reductionFrom;
-        
+
         // TODO: implement reduction {REDUCTION} from {REDUCE_FROM} to {REDUCE_TO}
         // TODO: implement gadget mapping
 
@@ -67,9 +70,9 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
         return {REDUCE_TO}Instance;
     }
 
-    public string mapSolutions(string solution){
+    public string mapSolutions(string problemFromSolution) {
         // TODO: implement reduction mapped solution {REDUCTION} from {REDUCE_FROM} to {REDUCE_TO}
 
-        return "TODO";
+        throw new NotImplementedException("TODO: implement mapSolutions for {REDUCTION}");
     }
 }

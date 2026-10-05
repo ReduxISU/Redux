@@ -87,9 +87,9 @@ You have two options. Both give you the same file.
 - **Copy it by hand.** The template is [ProblemTemplate/Templates/Verifiers/ProblemVerifier.txt](../../ProblemTemplate/Templates/Verifiers/ProblemVerifier.txt). Copy it to your new folder, rename it `<ClassName>.cs`, and replace the placeholders `{PROBLEM}`, `{VERIFIER}`, and `{VERIFIER_PASCAL_CASE}`.
 - **Download it from a running API.** Start the API, then call `GET /ProblemTemplate/verifier?problemName=SUBSETSUM&verifierName=My Subset Sum Verifier`. The two query parameters are `problemName` (the problem's class name, for example `SUBSETSUM`) and `verifierName` (the display name; the class name is made from it by removing spaces and odd characters). It returns a zip containing `NPC_SUBSETSUM/Verifiers/MySubsetSumVerifier.cs` and a README. The code for this is in [ProblemTemplate/ProblemTemplate.cs](../../ProblemTemplate/ProblemTemplate.cs).
 
-Whichever you pick, rename the verifier to exactly `Default <Problem Name> Verifier`. Today a test requires that name for **every** verifier, even a second one for the same problem (see section 5).
+A test requires the `verifierName` to be exactly `Default <Problem Name> Verifier` for **every** verifier, even a second one for the same problem (see section 5). The full-problem download (`GET /ProblemTemplate`) already generates that name. For the standalone verifier download, pass it as `verifierName` yourself (for example `Default Subset Sum Verifier`), or edit it afterwards.
 
-**Careful: the template's `verify` ends with `return true;`.** That means a verifier you forgot to finish says "yes" to everything. Replace it.
+**The template's `verify` ends with a `NotImplementedException`.** That is on purpose: a verifier you forgot to finish fails loudly instead of saying "yes" to everything. Replace it with your real check.
 
 ### Step 2. Fill in the members
 
@@ -104,7 +104,7 @@ Every verifier implements the members in [Interfaces/VerifierInterface.cs](../..
 | `certificate` | A string property the interface requires. Existing verifiers keep it as an empty string and never use it. | `""` |
 | `verify(PROBLEM, string)` | **The actual check.** Returns `true` or `false`, or throws for malformed input. | see Step 3 |
 
-The template also adds `sourceLink` and an optional `complexity` note. They are not part of the interface, but the template includes them, so fill them in or delete them.
+The template also adds `sourceLink` (set to `"TODO"`) and an optional `complexity` note. They are not part of the interface, but the template includes them, so fill them in or delete them.
 
 Two more things you need:
 
@@ -278,7 +278,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Verifie
 - [ ] The class name is unique in the whole project.
 - [ ] The class implements `IVerifier<PROBLEM>` and has a public constructor with no arguments.
 - [ ] `verifierName` is `Default <Problem Name> Verifier`; `verifierDefinition`, `source`, and `contributors` are filled in (no `"TODO"` left).
-- [ ] The template's `return true;` is gone. `verify` really checks the certificate against the instance.
+- [ ] The template's `NotImplementedException` is gone. `verify` really checks the certificate against the instance.
 - [ ] A malformed certificate throws `CertificateParseException`. A well-formed wrong one returns `false`.
 - [ ] If this is the problem's default verifier, the problem class's `defaultVerifier` points to it.
 - [ ] You added tests for valid, invalid, malformed, and empty certificates.
@@ -288,7 +288,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Verifie
 
 ## 8. Common mistakes
 
-- **Leaving the template's `return true;`.** The verifier then accepts everything. Always write real checks and a test that rejects a wrong answer.
+- **Leaving the template's `NotImplementedException`, or replacing it with `return true;`.** The first makes every call fail with a 500, and the second accepts everything. Always write real checks and a test that rejects a wrong answer.
 - **Returning `false` for garbage.** Malformed input should throw `CertificateParseException` so the caller gets a 400 and the format hint. A wrong-but-readable answer is the only case for `false`.
 - **Throwing for a wrong answer.** The opposite mistake: a readable certificate that does not solve the problem is `false`, not an exception.
 - **Ignoring the instance.** `verify` must compare the certificate to the problem's data. Check that your test fails when you change the instance.

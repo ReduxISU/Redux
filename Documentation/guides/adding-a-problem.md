@@ -141,10 +141,10 @@ You have two options. Both give you the same files.
 
 There are separate download endpoints for just a solver, verifier, visualization, or reduction. Those are covered in the matching guides.
 
-**The generated files are starting points, not finished code.** Three things in them will fail the automatic tests until you change them:
+**The generated files are starting points, not finished code.** The template spells out every member you must decide. Tests fail until you replace each `Unclassified` or empty value and each `NotImplementedException`, and that is intentional. Look for the `TODO` comments:
 
-1. In the class, `complexityClass` is commented out and there is no `problemType` line. Add both (Step 2).
-2. The generated verifier is named `"<Problem> Verifier"`. A test requires exactly `"Default <Problem Name> Verifier"` where the name matches your `problemName`. See [adding-a-verifier.md](adding-a-verifier.md).
+1. In the class, `complexityClass` and `problemType` are declared as `Unclassified` (Step 2).
+2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `complexity` are left for you to fill in. The verifier is already named `"Default <Problem Name> Verifier"`, which is what a test requires. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
 3. The generated visualization has `VisualizationType.Unimplemented`. A test rejects new classes that stay `Unimplemented`. Either finish it ([adding-a-visualization.md](adding-a-visualization.md)) or delete the generated visualization and use `DummyVisualization`.
 
 Also remove every `"TODO"` before you open the PR (the contributor name `"TODO"` is tolerated by one test, but it is not acceptable in a PR).
@@ -177,7 +177,7 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 
 Your class also needs the **fields that hold the parsed instance** (here a list `S` and a number `T`) and **two constructors** (see Step 3).
 
-**The two declared metadata members** are the ones people forget. Both default to `Unclassified`, and tests fail if you leave them that way (section 5):
+**The two declared metadata members** are the ones people forget. The template declares both as `Unclassified` with a `TODO` comment, and tests fail if you leave them that way (section 5):
 
 - `complexityClass`: pick from [Interfaces/ComplexityClass.cs](../../Interfaces/ComplexityClass.cs): `P`, `NPComplete`, `NPHard`, `NP`, or one of the quantum classes. It is a public correctness claim the API serves to callers, so check the literature.
 - `problemType`: pick the subject area from [Interfaces/ProblemType.cs](../../Interfaces/ProblemType.cs) (for example `GraphTheory`, `SetsAndPartitions`, `Logic`). Use `Miscellaneous` only when nothing else fits.
@@ -405,14 +405,14 @@ A new problem is done when:
 
 - **Running `dotnet build` with no file name.** It fails with `MSB1011`. Always add `Redux.slnx`.
 - **Skipping `dotnet format`.** Bad formatting fails the Release build itself, not only a separate check.
-- **Leaving `complexityClass` or `problemType` undeclared.** The generated template has no `problemType` line and has `complexityClass` commented out. Tests fail with a message naming your class.
+- **Leaving `complexityClass` or `problemType` as `Unclassified`.** The generated template declares both as `Unclassified` on purpose. Tests fail with a message naming your class until you pick real values.
 - **A class name with a prefix** such as `NPC_MYPROBLEM`. The folder gets the prefix, the class does not.
 - **Reusing a class name**, even with different capitals. Names are keys, ignoring case. A duplicate crashes startup.
 - **Folder and declared class disagree**, or the namespace does not match the folder.
 - **A `defaultInstance` that does not parse.** The empty constructor fails, and the problem vanishes from several endpoints.
 - **Not throwing `ProblemParseException`** (or letting a weird exception escape from the solver instead of the constructor). Garbage input must give a 400, never a 500.
 - **Only checking the shape of the input.** `{1,x,3}` looks like a set. Check that each value is a number.
-- **The generated verifier name left as `"<Problem> Verifier"`.** It must be `"Default <Problem Name> Verifier"`.
+- **Renaming the generated verifier away from `"Default <Problem Name> Verifier"`.** The template already uses that name, and a test requires it. If you change the problem's `problemName`, change the verifier's name to match.
 - **A generated visualization left as `Unimplemented`.** Finish it or use `DummyVisualization`.
 - **A name in `contributors` that is not in `contributorInfo.json`**, or a first name only. Use the full name as it appears in the file.
 - **Committing non-zero contributor stats.** Leave them at zero.

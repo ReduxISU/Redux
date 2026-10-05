@@ -91,20 +91,21 @@ Every reduction implements the members in [Interfaces/ReductionInterface.cs](../
 | `cost` | How much bigger the produced instance is than the input (see below). | `ReductionCost.Linear` |
 | `reductionType` | What kind of proof technique the construction uses (see below). | `ReductionType.Restriction` |
 | `complexityBucket` | How long `reduce()` takes to run (see below). | `ReductionComplexityBucket.Linear` |
-| `complexity` | Optional free-text note about running time. Not part of the interface. | `"O(n), n = \|SUBSETSUM.S\|"` |
+| `complexity` | Free-text Big-O note about running time. It is not part of the interface, but a metadata test requires it to be non-empty. | `"O(n), n = \|SUBSETSUM.S\|"` |
 | `reductionFrom` | The FROM problem instance you were given. | a `SUBSETSUM` |
 | `reductionTo` | The TO problem instance you produced. | a `PARTITION` |
 | `reduce()` | **The actual algorithm.** Reads `reductionFrom`, builds and returns the TO instance. | see Step 3 |
 | `mapSolutions(string)` | Takes a solution to the FROM problem and returns the matching solution to the TO problem. | see Step 4 |
 | `gadgets` | Pieces the GUI draws to show how parts of A become parts of B. Optional: the interface supplies an empty list if you do nothing. | not used here |
 
-The three **declared metadata** members are the ones people forget. Their rules are in [ReductionCost.cs](../../Interfaces/ReductionCost.cs), [ReductionType.cs](../../Interfaces/ReductionType.cs), and [ReductionComplexityBucket.cs](../../Interfaces/ReductionComplexityBucket.cs). The doc comments there explain every choice. Short version:
+The four **declared metadata** members (`cost`, `reductionType`, `complexityBucket`, and `complexity`) are the ones people forget. Their rules are in [ReductionCost.cs](../../Interfaces/ReductionCost.cs), [ReductionType.cs](../../Interfaces/ReductionType.cs), and [ReductionComplexityBucket.cs](../../Interfaces/ReductionComplexityBucket.cs). The doc comments there explain every choice. Short version:
 
 - `cost`: read your `reduce()`. If the output has about as many numbers/nodes as the input, that is `Linear`. If it loops over all pairs, that is `Quadratic`. And so on.
 - `reductionType`: `Restriction` (the instance is mostly relabeled), `LocalReplacement` (each piece is swapped for a fixed piece), or `ComponentDesign` (gadgets that must work together).
 - `complexityBucket`: how long `reduce()` itself runs: `Linear`, `Polynomial`, and so on.
+- `complexity`: a Big-O string for `reduce()`, such as `"O(n), n = |SUBSETSUM.S|"`. Only write one you are confident about.
 
-"Declared" means a human decides. No tool computes these for you. **Do not leave them as `Unclassified`**: tests fail if you do (section 5).
+"Declared" means a human decides. No tool computes these for you. The template declares each one as `Unclassified` (or `""` for `complexity`) with a `TODO` comment. **Do not leave them that way**: tests fail until you replace every value, on purpose (section 5). The template's `mapSolutions` also ends with a `NotImplementedException`, so an unfinished mapping fails loudly. `reduce()` is left as is, because it runs in the constructor.
 
 The three constructors are the part you should not change. The template gives you all three, and the rest of Redux depends on them:
 
@@ -151,7 +152,7 @@ You do not have to register your reduction with these tests. They find it automa
 | [ReductionSmoke_Tests.cs](../../redux-tests/Metadata/ReductionSmoke_Tests.cs) | Building it from the FROM problem's default instance works, `reduce()` does not throw, the output instance is not empty, and the output parses through the TO problem's string constructor. |
 | [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | `reductionName` matches one of two shapes: `"<Problem> <Approach>"` (title-case words, 2 or more, for example `"Partition Reduction"`) or `"<Person's name> ... Reduction"` (for example `"Karp's 3SAT Reduction"`). A raw class name like `SubsetSumToPartition`, or a placeholder like `"Default Reduction"`, fails. |
 | [ReductionCost_Tests.cs](../../redux-tests/Metadata/ReductionCost_Tests.cs) | `cost` is not `Unclassified`. |
-| [ReductionType_Tests.cs](../../redux-tests/Metadata/ReductionType_Tests.cs) | `reductionType` and `complexityBucket` are not `Unclassified`. |
+| [ReductionType_Tests.cs](../../redux-tests/Metadata/ReductionType_Tests.cs) | `reductionType` and `complexityBucket` are not `Unclassified`, and `complexity` is not empty. |
 | [ReductionValidity_Tests.cs](../../redux-tests/Metadata/ReductionValidity_Tests.cs) | You are not reducing from a harder complexity class to an easier one (for example NP-Complete to P). A failure here usually means one of the two problems has the wrong `complexityClass`. |
 | [ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) | Sending garbage to `/reduce`, `/gadgets`, and `/mapSolution` for your reduction never produces a 500 error. |
 | [Performance_Tests.cs](../../redux-tests/Endpoints/Performance_Tests.cs) | `reduce()` on the default instance runs within a time budget. This runs as a separate "Performance" step; see [building-and-testing.md](building-and-testing.md). |
@@ -230,7 +231,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Partiti
 - [ ] The class name is unique in the whole project.
 - [ ] The class implements `IReduction<FROM, TO>` and has all three constructors.
 - [ ] `reductionName`, `reductionDefinition`, `source`, `sourceLink`, and `contributors` are filled in (no `"TODO"` left).
-- [ ] `cost`, `reductionType`, and `complexityBucket` are declared (not `Unclassified`).
+- [ ] `cost`, `reductionType`, and `complexityBucket` are declared (not `Unclassified`), and `complexity` is a non-empty Big-O string.
 - [ ] `reduce()` produces a valid TO instance string, and `mapSolutions` really maps solutions (or your PR says it does not).
 - [ ] You added tests for the produced instance and for `mapSolutions`.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
@@ -241,7 +242,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Partiti
 
 - **Running `dotnet build` with no file name.** It fails with `MSB1011`. Always add `Redux.slnx`.
 - **Skipping `dotnet format`.** Bad formatting fails the Release build itself, not only a separate check.
-- **Leaving `cost`, `reductionType`, or `complexityBucket` undeclared.** The metadata tests fail with a message naming your class.
+- **Leaving `cost`, `reductionType`, `complexityBucket`, or `complexity` at the template's `Unclassified` / `""`.** The metadata tests fail with a message naming your class, on purpose, until you declare real values.
 - **A `reductionName` that is just the class name** (`SubsetSumToPartition`) or `"Default Reduction"`. Use `"<Problem> <Approach>"` or `"<Person> ... Reduction"`.
 - **Reusing a class name.** Class names are keys, ignoring case. A duplicate crashes the registry for everyone.
 - **Folder and namespace do not match**, or the file sits under the TO problem instead of the FROM problem.
