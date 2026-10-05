@@ -548,5 +548,14 @@
     "githubUsername": "norkish",
     "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
+  },
+  "KURNIAWAN SATRIA": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Auto-detected by the contributor stats sync workflow (#565) -- bio, education, and major not yet filled in.",
+    "githubUsername": "KurniawanSatria",
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   }
 }
