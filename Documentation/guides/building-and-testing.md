@@ -187,6 +187,6 @@ The report has one line per gate. For the Redux (dotnet) setup, configured in [r
 | `unit-test` | `dotnet test Redux.slnx -c Release --collect "XPlat Code Coverage"` | See the coverage note just below. |
 | `build`, `integration-test`, `push` | Build and test the Docker image (`push` is a dry run on Redux) | Rarely your fault. Ask a maintainer if these fail. |
 
-**About coverage.** `rbs.toml` asks for at least 80% coverage (`coverage-min = 80`), and the project is currently at about 61%. So the `unit-test` line is expected to be red until coverage improves. Do not panic about that gap, because you did not cause it. Do add tests for the code you write, so you do not make it worse.
+**About coverage.** `rbs.toml` asks for at least 80% coverage (`coverage-min = 80`). The project is currently at about 85%, so the `unit-test` line should be green. If it turns red on your PR, the coverage dropped below 80%, which usually means new code went in without tests. Add tests for the code you write, and coverage stays above the line.
 
 If a gate is red and you are not sure why, paste the line into a PR comment and ask. A format or lint failure is always worth fixing before you ask for review.

@@ -81,7 +81,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~<part of the test
 | --- | --- | --- |
 | The **dotnet build** check is red | The build, formatting, a test, or a performance test failed. This one blocks merging. | Open the check's **Details**, read the last 30 lines of the failed step, and match them against sections 3 and 4 of this page. |
 | The **rbs** check is green, but you suspect problems | rbs is "soft" on Redux, so it is **always green**, even when gates inside it failed. | Read the rbs report: the bot comment on your PR, or the job summary on the Actions page. Fix every red `format-check` and `lint` line. See [building-and-testing.md](building-and-testing.md) section 4. |
-| rbs report: `unit-test` is red, mentioning coverage | `rbs.toml` asks for 80% coverage ([rbs.toml](../../rbs.toml)), and the project is below that (about 61% at the time of writing). | Expected, and not your fault. Add tests for your own code so you do not lower it. |
+| rbs report: `unit-test` is red, mentioning coverage | Coverage fell below the 80% minimum set in [rbs.toml](../../rbs.toml) (the project is normally around 85%). This usually means new code was added without tests. | Add tests that exercise your new code, push, and check the report again. |
 | rbs report: `audit` is red | A package has a known security problem. | Mention it in your PR. Only deal with it yourself if you added that package. |
 | rbs report: `build`, `integration-test`, or `push` is red | The Docker side of the pipeline. | Rarely your fault. Ask a maintainer. |
 | CodeQL shows alerts | GitHub's security scanner found something. | Open the PR's **Code scanning** results and read the alert. |

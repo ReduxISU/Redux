@@ -26,5 +26,5 @@ Redux is a C# (.NET 10) API for NP-complete problems and the reductions between 
 ## Pull requests
 
 - PRs target `CSharpAPI`. There is no `develop` branch.
-- The rbs check on a PR is soft and always shows green. Read its report (the bot comment, or the job summary) and fix any red `format-check` or `lint` gate. A coverage shortfall in `unit-test` is known.
+- The rbs check on a PR is soft and always shows green. Read its report (the bot comment, or the job summary) and fix any red `format-check` or `lint` gate. `unit-test` also enforces 80% coverage (currently about 85%), so add tests for the code you write.
 - Do not weaken or delete a test to turn a build green.
