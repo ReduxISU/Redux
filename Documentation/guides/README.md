@@ -32,4 +32,3 @@ A brand-new problem usually needs all of these in order: the problem, then a ver
 - [Documentation home](../index.md)
 - [CONTRIBUTING.md](../../CONTRIBUTING.md): the license terms and how to open a pull request
 - [production.md](../production.md): how the live server is run (for maintainers)
-- [AGENTS.md](../../AGENTS.md): short instructions for AI coding assistants working in this repo
