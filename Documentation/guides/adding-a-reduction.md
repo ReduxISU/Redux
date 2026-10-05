@@ -21,7 +21,7 @@ In Redux:
 
 ## 2. Before you start
 
-1. **Both problems must already exist** in `Problems/NPComplete/`. If the FROM or TO problem is missing, add it first. (A guide for adding a problem is coming soon, see the [index](README.md).)
+1. **Both problems must already exist** in `Problems/NPComplete/`. If the FROM or TO problem is missing, add it first. See [adding-a-problem.md](adding-a-problem.md).
 2. Work on a branch based on `CSharpAPI`. Pull requests go back to `CSharpAPI`.
 
    ```bash
@@ -58,7 +58,7 @@ Rules that matter:
 
 The API endpoints you get for free (all in `ProblemProvider.cs`): `POST /ProblemProvider/reduce`, `/mapSolution`, `/gadgets`, and `/visualizeReduction`, each taking `?reduction=<ClassName>`.
 
-> Older docs (`Documentation/CodeBaseAdditions.md`) say each reduction needs its own controller. That is out of date. Reflection does the wiring now.
+> Older docs said each reduction needs its own controller. That is out of date. Reflection does the wiring now.
 
 Other real examples to compare against:
 
@@ -136,7 +136,7 @@ Two rules for the output:
 
 `mapSolutions(string problemFromSolution)` receives a solution to the **FROM** problem (as a string, in the FROM problem's certificate format) and must return the matching solution to the **TO** problem, in the TO problem's certificate format. It must handle bad input without crashing the server. The API wraps errors in a friendly 400 response, so throwing a normal exception on bad input is acceptable. Never let it cause a 500.
 
-Be honest about what your method does. The worked example's `mapSolutions` is a simple stand-in (it returns the first number of the Partition list), and a few reductions in the repo return an empty string. These are known to be weak. Do not copy them. A good `mapSolutions` really converts the answer. The checklist in [CodeBaseAdditions.md](../CodeBaseAdditions.md) ("Includes working solution mapping function specific to reduction") expects that. If you truly cannot map a solution, say so in your PR description.
+Be honest about what your method does. The worked example's `mapSolutions` is a simple stand-in (it returns the first number of the Partition list), and a few reductions in the repo return an empty string. These are known to be weak. Do not copy them. A good `mapSolutions` really converts the answer. The PR checklist in section 7 below expects a working solution mapping. If you truly cannot map a solution, say so in your PR description.
 
 ## 5. Write tests
 

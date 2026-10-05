@@ -1,14 +1,16 @@
-# Project Documentation
+# Redux documentation
 
-Welcome to the documentation for the Redux Backend. Note for standard deployment the default frontend will also need to be running, although the backend is meant to be adaptable, to work with different projects. The default frontend can be found [here](https://github.com/ReduxISU/Redux_GUI)
+Redux is the backend API for an interactive knowledge base of computer-science problems, solvers, verifiers, visualizations, and reductions. The default website is a separate repo, [Redux_GUI](https://github.com/ReduxISU/Redux_GUI), but the API is meant to work with any frontend.
 
-## Table of Contents
+## Contributing
 
-- [Steps for Running Local Instance](./HowToRun.md)
-- [Setting up for local development](./localdevelopment.md)
-- [Code Overview](./codeOverview.md)
-- [Code Base Additions](./CodeBaseAdditions.md)
-- [API Documentation](./APIDocumentation.md)
-- [Contributor guides (start here)](./guides/README.md)
-- [Testing](Testing.md)
-- [SPADE](./SPADE.md)
+- [Contributor guides](./guides/README.md): setup, how the code works, building and testing, troubleshooting, and step-by-step guides for adding a problem, solver, verifier, reduction, or visualization. Start here.
+- [CONTRIBUTING.md](../CONTRIBUTING.md): license terms and the pull request workflow.
+
+## Running Redux
+
+- [Production operations](./production.md): how the live server is run, restarted, and updated.
+
+## API reference
+
+Run the API locally and open <http://127.0.0.1:27000/swagger/index.html>, or use the live one at <https://api.redux.portneuf.cose.isu.edu/swagger/index.html>.

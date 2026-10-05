@@ -11,7 +11,7 @@ Some words you will see:
 - **Coverage**: the percentage of the code that tests actually run.
 - **Dev container**: a ready-made, identical Linux workspace inside Docker, so everyone builds the same way.
 
-Need the one-time setup (installing .NET, cloning)? A setup guide is coming soon; see the [guides index](README.md).
+Need the one-time setup (installing .NET, cloning, running the API)? Start with [setup.md](setup.md).
 
 ---
 
