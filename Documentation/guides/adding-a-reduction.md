@@ -74,6 +74,13 @@ You have two options. Both give you the same file.
 - **Copy it by hand.** The template is [ProblemTemplate/Templates/ReduceTo/NPC_PROBLEM/Reduction.txt](../../ProblemTemplate/Templates/ReduceTo/NPC_PROBLEM/Reduction.txt). Copy it to your new folder, rename it `<ClassName>.cs`, and replace the placeholders `{REDUCE_FROM}`, `{REDUCE_TO}`, `{REDUCTION_PASCAL_CASE}`, and `{REDUCTION}`.
 - **Download it from a running API.** Start the API, then call `GET /ProblemTemplate/reduction?problemFrom=SUBSETSUM&problemTo=PARTITION&reductionName=Partition Reduction`. It returns a zip with the placeholders already filled in. The code for this is in [ProblemTemplate/ProblemTemplate.cs](../../ProblemTemplate/ProblemTemplate.cs).
 
+  **Where the file in the zip goes.** The zip has one entry, and no README. The path is from the repo root (the folder that contains `Redux.slnx`):
+
+  | The file in the zip | Where it goes in the repo | What it is, and what to do with it |
+  | --- | --- | --- |
+  | `NPC_SUBSETSUM/ReduceTo/NPC_PARTITION/PartitionReduction.cs` | `Problems/NPComplete/NPC_SUBSETSUM/ReduceTo/NPC_PARTITION/PartitionReduction.cs` | Your reduction. Several members throw `NotImplementedException` or are left as `Unclassified` until you fill them in. The zip always uses the `NPC_` prefix: if the FROM or TO problem lives under `Problems/NPHard/` or `Problems/P/`, use that problem's own folder name (`NPH_` or `P_`) and fix the namespace. |
+
+
 The template's own notes are also worth a read: [ProblemTemplate/Templates/README.md](../../ProblemTemplate/Templates/README.md).
 
 ### Step 2. Fill in the members

@@ -87,6 +87,15 @@ You have two options. Both give you the same file.
 - **Copy it by hand.** The template is [ProblemTemplate/Templates/Verifiers/ProblemVerifier.txt](../../ProblemTemplate/Templates/Verifiers/ProblemVerifier.txt). Copy it to your new folder, rename it `<ClassName>.cs`, and replace the placeholders `{PROBLEM}`, `{VERIFIER}`, and `{VERIFIER_PASCAL_CASE}`.
 - **Download it from a running API.** Start the API, then call `GET /ProblemTemplate/verifier?problemName=SUBSETSUM&verifierName=My Subset Sum Verifier`. The two query parameters are `problemName` (the problem's class name, for example `SUBSETSUM`) and `verifierName` (the display name; the class name is made from it by removing spaces and odd characters). It returns a zip containing `NPC_SUBSETSUM/Verifiers/MySubsetSumVerifier.cs` and a README. The code for this is in [ProblemTemplate/ProblemTemplate.cs](../../ProblemTemplate/ProblemTemplate.cs).
 
+**Where each file in the zip goes.** Paths are from the repo root (the folder that contains `Redux.slnx`):
+
+| The file in the zip | Where it goes in the repo | What it is, and what to do with it |
+| --- | --- | --- |
+| `NPC_SUBSETSUM/Verifiers/MySubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/MySubsetSumVerifier.cs` | Your verifier. Throws `NotImplementedException` until you write it. The zip always uses the `NPC_` prefix: for a problem under `Problems/NPHard/` or `Problems/P/`, use that problem's own folder (`NPH_` or `P_`) and fix the namespace. |
+| `README.md` | Nowhere. It is not copied into the repo. | Reference only: a description of every member you fill in. Read it, then leave it in the zip. |
+
+The tests for your verifier go in the problem's test file (see "Tests you write yourself" below).
+
 A test requires the `verifierName` to be exactly `Default <Problem Name> Verifier` for **every** verifier, even a second one for the same problem (see section 5). The full-problem download (`GET /ProblemTemplate`) already generates that name. For the standalone verifier download, pass it as `verifierName` yourself (for example `Default Subset Sum Verifier`), or edit it afterwards.
 
 **The template's `verify` ends with a `NotImplementedException`.** That is on purpose: a verifier you forgot to finish fails loudly instead of saying "yes" to everything. Replace it with your real check.
@@ -196,6 +205,8 @@ Verifier tests live in the test project, one folder per problem:
 ```text
 redux-tests/Problems/NPC_<PROBLEM>/<PROBLEM>_Tests.cs
 ```
+
+If you generated a whole problem with `GET /ProblemTemplate` ([adding-a-problem.md](adding-a-problem.md#where-each-file-in-the-zip-goes)), the generated test file already has the generic verifier tests (a bad certificate throws `CertificateParseException`) and stubs for a valid and a wrong certificate. Fill in the stubs. Copy-paste examples are in [building-and-testing.md, section 5](building-and-testing.md#5-required-tests-for-each-kind-of-change).
 
 The worked example's tests are in [redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs](../../redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs). If a test file for your problem exists, add to it. If not, create one. The pattern is three groups of tests, one per outcome from section 4, step 3. Here they are from the worked example:
 

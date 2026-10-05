@@ -127,7 +127,7 @@ You have two options. Both give you the same files.
 
   **Its only query parameter is `problemName`**, the human-readable name, with spaces allowed (for example `Subset Sum` or `Traveling Sales Person`). The code turns it into an ALL-CAPS class name (`SUBSETSUM`, `TRAVELINGSALESPERSON`) and a PascalCase prefix for the helper classes (`SubsetSum`, `TravelingSalesPerson`), dropping any characters that are not letters, digits, or `_`.
 
-  It returns `ProblemTemplate.zip` with five files, with the placeholders already filled in:
+  It returns `ProblemTemplate.zip` with six files, with the placeholders already filled in (shown here for `Subset Sum`):
 
   ```text
   README.md
@@ -135,9 +135,25 @@ You have two options. Both give you the same files.
   NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs
   NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs
   NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs
+  redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs
   ```
 
-  Unzip it into `Problems/NPComplete/` (or move the folder into `NPHard/` or `P/` and fix the namespaces, see section 3).
+  **Do not unzip it over the repo.** The first folder name is only a label, and the `README.md` is not meant for the repo. Copy each file to the place in the table below.
+
+#### Where each file in the zip goes
+
+Paths are from the repo root (the folder that contains `Redux.slnx`), shown for `Subset Sum`. Replace `SUBSETSUM` and `SubsetSum` with your own names.
+
+| The file in the zip | Where it goes in the repo | What it is, and what to do with it |
+| --- | --- | --- |
+| `README.md` | Nowhere. It is not copied into the repo. | Reference only: a field-by-field description of every member you fill in. Read it, then leave it in the zip. |
+| `NPC_SUBSETSUM/SUBSETSUM_Class.cs` | `Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs` | The problem class. Fill in the metadata and the constructor that parses the instance (Steps 2 and 3). |
+| `NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | The default solver. Throws `NotImplementedException` until you write it ([adding-a-solver.md](adding-a-solver.md)). |
+| `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | The default verifier, already named `"Default Subset Sum Verifier"`. Throws `NotImplementedException` until you write it ([adding-a-verifier.md](adding-a-verifier.md)). |
+| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | A starting visualization ([adding-a-visualization.md](adding-a-visualization.md)). **If you use `DummyVisualization` instead, delete this file and the `Visualizations` folder**, and point the class's `defaultVisualization` at `DummyVisualization`. |
+| `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | Your test file. Some tests are finished and some contain a `TODO` and fail on purpose until you fill them in (section 5 below). |
+
+The `NPC_` folders go under `Problems/NPComplete/`, as in the table. If your problem belongs in `Problems/NPHard/` or `Problems/P/`, put the folder there instead, rename it with the `NPH_` or `P_` prefix, and fix the namespaces in the class, solver, verifier, and visualization (see section 3). The test file's folder uses the same prefix, and its `using` lines need the same fix.
 
 There are separate download endpoints for just a solver, verifier, visualization, or reduction. Those are covered in the matching guides.
 
@@ -307,6 +323,10 @@ Problem tests live in the test project, one folder per problem:
 ```text
 redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs
 ```
+
+**If you used the template download in Step 1, you already have this file.** It is the last file in the zip, `redux-tests/Problems/NPC_<NAME>/<NAME>_Tests.cs`, and it is generated for your problem's name. The generic tests (the default instance builds, bad instances and bad certificates throw the right exceptions, the solver's answer is accepted by the verifier) pass once your code follows the rules. The stub tests (the default instance's fields, a valid certificate, a wrong certificate, no solution, the timer) contain a `TODO` and fail on purpose until you replace each `TODO` with a value you worked out by hand. Copy-paste examples of finished tests are in [building-and-testing.md, section 5](building-and-testing.md#5-required-tests-for-each-kind-of-change).
+
+If you copied the template by hand, create the file yourself at that path, using the template [PROBLEM_Tests.txt](../../ProblemTemplate/Templates/Tests/PROBLEM_Tests.txt) the same way as the other templates.
 
 The worked example's tests are in [redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs](../../redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs). That file covers, in order:
 

@@ -87,6 +87,15 @@ You have two options. Both give you the same file.
 - **Copy it by hand.** The template is [ProblemTemplate/Templates/Solvers/ProblemSolver.txt](../../ProblemTemplate/Templates/Solvers/ProblemSolver.txt). Copy it to your new folder, rename it `<ClassName>.cs`, and replace the placeholders `{PROBLEM}`, `{SOLVER}`, and `{SOLVER_PASCAL_CASE}`.
 - **Download it from a running API.** Start the API, then call `GET /ProblemTemplate/solver?problemName=SUBSETSUM&solverName=My Subset Sum Solver`. The two query parameters are `problemName` (the problem's class name, for example `SUBSETSUM`) and `solverName` (the display name; the class name is made from it by removing spaces and odd characters). It returns a zip containing `NPC_SUBSETSUM/Solvers/MySubsetSumSolver.cs` and a README. The code for this is in [ProblemTemplate/ProblemTemplate.cs](../../ProblemTemplate/ProblemTemplate.cs).
 
+**Where each file in the zip goes.** Paths are from the repo root (the folder that contains `Redux.slnx`):
+
+| The file in the zip | Where it goes in the repo | What it is, and what to do with it |
+| --- | --- | --- |
+| `NPC_SUBSETSUM/Solvers/MySubsetSumSolver.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Solvers/MySubsetSumSolver.cs` | Your solver. Throws `NotImplementedException` until you write it. The zip always uses the `NPC_` prefix: for a problem under `Problems/NPHard/` or `Problems/P/`, use that problem's own folder (`NPH_` or `P_`) and fix the namespace. |
+| `README.md` | Nowhere. It is not copied into the repo. | Reference only: a description of every member you fill in. Read it, then leave it in the zip. |
+
+The tests for your solver go in the problem's test file (see "Tests you write yourself" below).
+
 ### Step 2. Fill in the members
 
 Every solver implements the members in [Interfaces/SolverInterface.cs](../../Interfaces/SolverInterface.cs). Here is each one in plain words, with the value used by the worked example, [`SubsetSumBruteForce.cs`](../../Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumBruteForce.cs).
@@ -209,6 +218,8 @@ Solver tests live in the test project, one folder per problem:
 ```text
 redux-tests/Problems/NPC_<PROBLEM>/<PROBLEM>_Tests.cs
 ```
+
+If you generated a whole problem with `GET /ProblemTemplate` ([adding-a-problem.md](adding-a-problem.md#where-each-file-in-the-zip-goes)), the generated test file already has the generic solver tests and stubs for the "no solution" and timer tests. Fill in the stubs. Copy-paste examples are in [building-and-testing.md, section 5](building-and-testing.md#5-required-tests-for-each-kind-of-change).
 
 The worked example's tests are in [redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs](../../redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs). If a test file for your problem exists, add to it. If not, create one. The pattern, from the worked example:
 

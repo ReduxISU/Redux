@@ -127,6 +127,14 @@ You have two options. Both give you the same file.
 
   You get a zip containing `NPC_CLIQUE/Visualizations/MyCliqueVisualization.cs` and a `README.md`. The code is in [ProblemTemplate/ProblemTemplate.cs](../../ProblemTemplate/ProblemTemplate.cs).
 
+  **Where each file in the zip goes.** Paths are from the repo root (the folder that contains `Redux.slnx`):
+
+  | The file in the zip | Where it goes in the repo | What it is, and what to do with it |
+  | --- | --- | --- |
+  | `NPC_CLIQUE/Visualizations/MyCliqueVisualization.cs` | `Problems/NPComplete/NPC_CLIQUE/Visualizations/MyCliqueVisualization.cs` | Your visualization. The zip always uses the `NPC_` prefix: for a problem under `Problems/NPHard/` or `Problems/P/`, use that problem's own folder (`NPH_` or `P_`) and fix the namespace. |
+  | `README.md` | Nowhere. It is not copied into the repo. | Reference only: a description of every member you fill in. Read it, then leave it in the zip. |
+
+
 Two template details to fix by hand:
 
 - The template starts with `visualizationType = VisualizationType.Unimplemented`. **Replace it** with a real type. A left-over `Unimplemented` fails a test (section 6), on purpose. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead of this class.
