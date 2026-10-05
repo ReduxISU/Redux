@@ -71,6 +71,23 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("TRAVELINGSALESPERSON", classFile); // upper case substituted
     }
 
+    [Fact]
+    public async Task ProblemTemplate_IncludesGeneratedTestFile() {
+        var entries = await GetZipEntries("/ProblemTemplate?problemName=Traveling%20Sales%20Person");
+
+        // The path tells students where the file goes in the repo.
+        var key = "redux-tests/Problems/NPC_TRAVELINGSALESPERSON/TRAVELINGSALESPERSON_Tests.cs";
+        Assert.Contains(key, entries.Keys);
+
+        var tests = entries[key];
+        AssertNoPlaceholders(tests);
+        Assert.Contains("public class TRAVELINGSALESPERSON_Tests", tests);
+        Assert.Contains("NPC_TRAVELINGSALESPERSON.Solvers", tests);
+        Assert.Contains("TravelingSalesPersonSolver", tests);
+        Assert.Contains("ProblemParseException", tests);
+        Assert.Contains("CertificateParseException", tests);
+    }
+
     // ── GET /ProblemTemplate/reduction ────────────────────────────────────────
 
     [Fact]

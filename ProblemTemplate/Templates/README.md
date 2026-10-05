@@ -9,6 +9,23 @@ New problems go in the back end repository in the `Problems/NPComplete` folder. 
 * A folder named "Visualizations" (if the problem has a visualization; otherwise use `DummyVisualization`)
 * A folder named `ReduceTo/` (if the problem has reductions). Each reduction goes in `ReduceTo/NPC_<TO>/`, where `<TO>` is the problem it reduces **to**.
 
+### Where each file in the zip goes
+
+Do not unzip the download over the repo. Copy each file to the place below (paths are from the repo root, the folder that contains `Redux.slnx`; `NPC_SUBSETSUM` and `SubsetSum` stand for your problem's names):
+
+| The file in the zip | Where it goes in the repo |
+| --- | --- |
+| `README.md` | Nowhere. This page is reference only. |
+| `NPC_SUBSETSUM/SUBSETSUM_Class.cs` | `Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs` |
+| `NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` |
+| `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` |
+| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` (delete it, and the folder, if you use `DummyVisualization`) |
+| `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` (some tests contain a `TODO` and fail on purpose until you fill them in) |
+
+The separate downloads work the same way. A solver zip has `NPC_<PROBLEM>/Solvers/<Name>.cs` (goes to `Problems/NPComplete/NPC_<PROBLEM>/Solvers/`), a verifier zip has `NPC_<PROBLEM>/Verifiers/<Name>.cs`, a visualization zip has `NPC_<PROBLEM>/Visualizations/<Name>.cs`, and a reduction zip has `NPC_<FROM>/ReduceTo/NPC_<TO>/<Name>.cs` (goes to `Problems/NPComplete/NPC_<FROM>/ReduceTo/NPC_<TO>/`). Use the `NPH_` or `P_` folder and prefix, and fix the namespaces, if the problem lives under `Problems/NPHard/` or `Problems/P/`.
+
+The full explanation, with a table for each download, is in the guides: <https://github.com/ReduxISU/Redux/blob/CSharpAPI/Documentation/guides/adding-a-problem.md#where-each-file-in-the-zip-goes>. The tests to write are listed in <https://github.com/ReduxISU/Redux/blob/CSharpAPI/Documentation/guides/building-and-testing.md#5-required-tests-for-each-kind-of-change>.
+
 The generated files spell out every member you must decide. Metadata is declared as `Unclassified` (or an empty string) with a `TODO` comment, and unfinished methods throw `NotImplementedException`. Tests fail until you replace each of those, and that is intentional.
 
 Members that come from the interfaces are required, unless they are marked "optional" below. Members that are marked "convention" are not part of the interface, but every problem, solver, and so on carries them and the website shows them.

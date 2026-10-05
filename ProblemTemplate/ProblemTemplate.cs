@@ -29,7 +29,8 @@ public class ProblemTemplate : ControllerBase {
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
                 {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
                 {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"Default {problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"), $"{problemName} Verifier")},
-                {$"NPC_{problemNameUpper}/Visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))}
+                {$"NPC_{problemNameUpper}/Visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))},
+                {$"redux-tests/Problems/NPC_{problemNameUpper}/{problemNameUpper}_Tests.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Tests/PROBLEM_Tests.txt"))}
             }
         );
 
