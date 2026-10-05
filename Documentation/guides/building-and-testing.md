@@ -192,3 +192,79 @@ The report has one line per gate. For the Redux (dotnet) setup, configured in [r
 **CI does not check that you wrote tests.** The required build check only makes sure every test that exists passes. A new problem, solver, verifier, or reduction with no tests of its own can still pass it, because the shared tests only check the basics (metadata, names, bad input). Coverage won't catch it either: on Redux the coverage line is in the soft rbs report, and one new class barely moves the overall number. Your own tests are the only thing that checks your code gives the *right answers*. For example, a verifier that rejects every correct answer passes every shared test. Each task guide has a "Tests you write yourself" section and a checklist saying which tests to add, and reviewers will look for them.
 
 If a gate is red and you are not sure why, paste the line into a PR comment and ask. A format or lint failure is always worth fixing before you ask for review.
+
+## 5. Required tests for each kind of change
+
+CI does not check that these tests exist (see the note just above), so use this section as your checklist. Reviewers will look for them.
+
+**Where tests go.** One test file per problem: `redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs`, for example [redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs](../../redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs). Solver, verifier, and visualization tests go in their problem's file. Reduction tests go in the file of the problem you reduce **from**. If the file exists, add to it. If not, create it.
+
+**How to write them.**
+- Use small, hand-picked instances whose answers you worked out on paper.
+- Use `[Fact]` for one check, and `[Theory]` with `[InlineData(...)]` to run the same check on many inputs.
+- Name tests like sentences: `<PROBLEM>_<What>_<Expectation>`, for example `SUBSETSUM_Verifier_RejectsNumberNotInS`.
+- Test both directions. A verifier that says "yes" to everything passes an "accepts the right answer" test, so also test that it rejects wrong answers.
+
+### Adding a problem
+
+Details: [adding-a-problem.md, "Tests you write yourself"](adding-a-problem.md#tests-you-write-yourself).
+
+- [ ] The default instance builds, and its fields hold the values you expect.
+- [ ] A malformed instance throws `ProblemParseException`. Use a `[Theory]` with several bad inputs: an empty string, the wrong shape, and a non-number where a number belongs.
+- [ ] The verifier tests and the solver tests below. A new problem comes with both.
+- [ ] **Edit an existing test:** add your problem's class name to the hard-coded list for its complexity class in [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) (NP-complete, P, or NP-hard). This test fails until you do.
+
+### Adding a verifier
+
+Details: [adding-a-verifier.md, "Tests you write yourself"](adding-a-verifier.md#tests-you-write-yourself).
+
+- [ ] A valid certificate is accepted.
+- [ ] The smallest valid certificate is accepted (for example, one element).
+- [ ] Well-formed but wrong certificates are rejected (`false`). Try several kinds of wrong: the wrong total, a value that is not in the instance, a value used too many times, a missing piece.
+- [ ] A malformed certificate throws `CertificateParseException`: a non-number where a number belongs, unbalanced braces, the wrong shape.
+- [ ] An empty string `""`. It usually throws. Say in a comment which behavior your problem uses.
+- [ ] The problem's own solver output for the default instance is accepted.
+
+### Adding a solver
+
+Details: [adding-a-solver.md, "Tests you write yourself"](adding-a-solver.md#tests-you-write-yourself).
+
+- [ ] On the default instance, the solver returns an answer that the verifier accepts.
+- [ ] One or two other small instances that have a solution, each answer accepted by the verifier.
+- [ ] An instance with **no solution** returns your documented "no solution" value (usually `"{}"`).
+- [ ] A tricky small case: the answer is the first item only, or the last item only.
+- [ ] The smallest allowed input (one item, or empty if the problem allows it).
+- [ ] The timer: with `timerHasExpired = true` before calling `solve`, it returns quickly with your documented value.
+- [ ] Approximation or heuristic solvers only: the answer is either the "no solution" value or passes the verifier.
+
+### Adding a reduction
+
+Details: [adding-a-reduction.md, "Tests you write yourself"](adding-a-reduction.md#tests-you-write-yourself).
+
+- [ ] The produced instance (`reductionTo`) matches the one you worked out by hand.
+- [ ] `mapSolutions` turns a solution of the FROM problem into the matching solution of the TO problem.
+- [ ] An edge case: an instance with no solution, or the smallest allowed input.
+
+### Adding a visualization
+
+Details: [adding-a-visualization.md, "Tests you write yourself"](adding-a-visualization.md#tests-you-write-yourself).
+
+- [ ] `visualize` returns the payload you expect for a small instance.
+- [ ] `SolvedVisualization` marks the parts of the solution (for example, with the solution color).
+- [ ] An empty or bad solution string is handled.
+- [ ] New visualization **type** only: the Redux_GUI side passes `npm run check:visualizations` (see the visualization guide).
+
+### Tests that run automatically
+
+You write nothing for these. They find your new class by themselves and check the basics, which is why they cannot tell whether your answers are right. Each task guide lists the ones that apply to it.
+
+| What they check | Where |
+| --- | --- |
+| Metadata is declared, not left `Unclassified` (complexity class, problem type, solver, reduction, and visualization types) | [redux-tests/Metadata/](../../redux-tests/Metadata/) |
+| Names follow the naming rules (for example, `Default <Problem> Verifier`) | [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) |
+| Every name in a `contributors` list has an entry in `wwwroot/contributorInfo.json` | [ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) |
+| Garbage input never causes a server error (500) | [ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) |
+| Every reduction builds and produces an instance the TO problem can read | [ReductionSmoke_Tests.cs](../../redux-tests/Metadata/ReductionSmoke_Tests.cs) |
+| Default instances run within a time budget (the separate "Performance" step) | [Performance_Tests.cs](../../redux-tests/Endpoints/Performance_Tests.cs) |
+
+**Never** add your class to a test's allowlist, or weaken or delete a test, to turn it green. Fix the cause instead. If you think a test itself is wrong, say so in your PR and ask.
