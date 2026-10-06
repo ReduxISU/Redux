@@ -17,8 +17,8 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
     //
     // Same regression class ReductionCost_Tests.cs / SolverType_Tests.cs guard against:
-    // Newtonsoft serializes enums as integers by default. The
-    // [JsonConverter]/[StringEnumConverter] attributes pinned on ReductionType and
+    // System.Text.Json serializes enums as integers by default. The
+    // [JsonConverter(typeof(JsonStringEnumConverter<T>))] attributes pinned on ReductionType and
     // ReductionComplexityBucket (Interfaces/ReductionType.cs,
     // Interfaces/ReductionComplexityBucket.cs) are the actual fix; these are the
     // regression guard.
@@ -55,9 +55,9 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
 
     // ProblemProvider.info reflects a raw IReduction instance directly (Interfaces
     // includes Reductions), so ReductionType/ReductionComplexityBucket are only safe
-    // here because of the [JsonConverter]/[StringEnumConverter] attributes pinned on
+    // here because of the [JsonConverter(typeof(JsonStringEnumConverter<T>))] attributes pinned on
     // the enum types themselves — not because of anything ReductionEdge does. This is
-    // the real Newtonsoft-enum-as-int risk path; the ReductionEdge mirror above is
+    // the real enum-as-int risk path; the ReductionEdge mirror above is
     // already safe by construction and doesn't exercise it.
     [Fact]
     public async Task Info_SerializesReductionTypeAndBucketAsString() {
@@ -105,16 +105,16 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
                 checkedType++;
                 Assert.True(typeProp.ValueKind == JsonValueKind.String,
                     $"{className}.reductionType serialized as {typeProp.ValueKind}, expected String. This is " +
-                    "the Risk-1 regression: Newtonsoft defaults to serializing enums as integers unless " +
-                    "StringEnumConverter is pinned on ReductionType.");
+                    "the Risk-1 regression: System.Text.Json serializes enums as integers by default unless " +
+                    "JsonStringEnumConverter is pinned on ReductionType.");
             }
 
             if (element.TryGetProperty("complexityBucket", out var bucketProp)) {
                 checkedBucket++;
                 Assert.True(bucketProp.ValueKind == JsonValueKind.String,
                     $"{className}.complexityBucket serialized as {bucketProp.ValueKind}, expected String. This " +
-                    "is the Risk-1 regression: Newtonsoft defaults to serializing enums as integers unless " +
-                    "StringEnumConverter is pinned on ReductionComplexityBucket.");
+                    "is the Risk-1 regression: System.Text.Json serializes enums as integers by default unless " +
+                    "JsonStringEnumConverter is pinned on ReductionComplexityBucket.");
             }
         }
 

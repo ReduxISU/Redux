@@ -9,14 +9,14 @@ namespace redux_tests;
 
 // Guards for the ReductionCost vocabulary (plan: Redux Tag System, Section 3 / Part C).
 //
-// Risk 1 (same class of regression VisualizationType_Tests.cs guards against): Newtonsoft
+// Risk 1 (same class of regression VisualizationType_Tests.cs guards against): System.Text.Json
 // serializes enums as integers by default. ReductionEdge.cost is already a plain string
 // field by construction (same mitigation fromComplexity/toComplexity already rely on), so
 // it is safe regardless — but ReductionCost is ALSO reachable directly off a raw IReduction
 // instance via /ProblemProvider/info?interface=<ReductionClassName> and
 // /Navigation/Batch/allInfo (both reflect every ProblemProvider.Interfaces / .Reductions
-// type, including reductions, and Newtonsoft-serialize the constructed instance as-is —
-// see ProblemProvider.info and Nav_Batch.InfoJson). The [JsonConverter]/[StringEnumConverter]
+// type, including reductions, and serialize the constructed instance as-is —
+// see ProblemProvider.info and Nav_Batch.InfoJson). The [JsonConverter(typeof(JsonStringEnumConverter<T>))]
 // attributes pinned on the ReductionCost enum type (Interfaces/ReductionCost.cs) are the
 // actual fix for that path; the facts below are the regression guard for it. Must never go
 // back to failing.
@@ -56,9 +56,9 @@ public class ReductionCost_Tests : IClassFixture<AppFactory> {
 
     // ProblemProvider.info reflects a raw IReduction instance directly (Interfaces
     // includes Reductions), so ReductionCost.cost is only safe here because of the
-    // [JsonConverter]/[StringEnumConverter] attributes pinned on the enum type itself
+    // [JsonConverter(typeof(JsonStringEnumConverter<T>))] attributes pinned on the enum type itself
     // (Interfaces/ReductionCost.cs) — not because of anything ReductionEdge does. This is
-    // the real Newtonsoft-enum-as-int risk path; the ReductionEdge.cost string mirror
+    // the real enum-as-int risk path; the ReductionEdge.cost string mirror
     // above is already safe by construction and doesn't exercise it.
     [Fact]
     public async Task Info_SerializesReductionCostAsString() {
@@ -100,7 +100,7 @@ public class ReductionCost_Tests : IClassFixture<AppFactory> {
             checkedCount++;
             Assert.True(costProp.ValueKind == JsonValueKind.String,
                 $"{className}.cost serialized as {costProp.ValueKind}, expected String. This is the Risk-1 " +
-                "regression: Newtonsoft defaults to serializing enums as integers unless StringEnumConverter " +
+                "regression: System.Text.Json serializes enums as integers by default unless JsonStringEnumConverter " +
                 "is pinned on ReductionCost.");
         }
 
