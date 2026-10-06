@@ -124,6 +124,23 @@ public class SUBSETSUM_Tests {
         Assert.Equal("{}", solver.solve(problem));
     }
 
+    [Fact]
+    public void SUBSETSUM_Solver_Handles_Single_Element_Instance() {
+        // The smallest useful input: one element that equals the target.
+        SUBSETSUM problem = new SUBSETSUM("({5},5)");
+        SubsetSumBruteForce solver = new SubsetSumBruteForce();
+        Assert.Equal("{5}", solver.solve(problem));
+    }
+
+    [Fact]
+    public void SUBSETSUM_Solver_Returns_Empty_When_Timer_Has_Expired() {
+        // An expired timer makes the solver give up and return the "no solution" value.
+        SUBSETSUM problem = new SUBSETSUM();
+        SubsetSumBruteForce solver = new SubsetSumBruteForce();
+        solver.timerHasExpired = true;
+        Assert.Equal("{}", solver.solve(problem));
+    }
+
     // -------------------------------------------------------------------------
     // Reductions — must accept / produce the SPADE instance format
     // -------------------------------------------------------------------------
@@ -141,6 +158,14 @@ public class SUBSETSUM_Tests {
         SubsetSumToPartitionReduction reduction = new SubsetSumToPartitionReduction("({3,5,7},8)");
         Assert.Equal(3, reduction.reductionFrom.S.Count);
         Assert.NotNull(reduction.reductionTo);
+    }
+
+    [Theory]
+    [InlineData("({3,5,7},8)", "{3,5,7,9,8}")] // sum 15: appends T+1 = 9 and sum-T+1 = 8
+    [InlineData("({5},5)", "{5,6,1}")]         // smallest input: sum 5: appends 6 and 1
+    public void SUBSETSUM_PartitionReduction_Produces_Expected_Instance(string instance, string expected) {
+        SubsetSumToPartitionReduction reduction = new SubsetSumToPartitionReduction(instance);
+        Assert.Equal(expected, reduction.reductionTo.instance);
     }
 
     [Fact]

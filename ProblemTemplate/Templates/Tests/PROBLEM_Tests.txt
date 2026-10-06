@@ -1,0 +1,138 @@
+// Put this file at redux-tests/Problems/NPC_{NAME_UPPERCASE}/{NAME_UPPERCASE}_Tests.cs
+//
+// How to use it:
+// - The tests marked GENERIC are finished. They pass once your problem, solver, and
+//   verifier follow the rules in the contributor guides.
+// - The tests marked STUB fail on purpose. Each one contains a "TODO" placeholder. Replace
+//   every TODO with a real instance, certificate, or value that you worked out on paper.
+//   A test that still has a TODO in it is not finished.
+// - Add more tests of your own. Ready-to-copy examples are in
+//   Documentation/guides/building-and-testing.md, section 5 ("Required tests for each kind of change").
+// - Remove this comment block when you are done.
+using Xunit;
+using API.Interfaces;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Solvers;
+using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Verifiers;
+
+namespace redux_tests;
+#pragma warning disable CS1591
+
+public class {NAME_UPPERCASE}_Tests {
+    // -------------------------------------------------------------------------
+    // GENERIC: instantiation and parse errors
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void {NAME_UPPERCASE}_DefaultInstance_Builds() {
+        // Fails if your constructor cannot read your own defaultInstance.
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}();
+        Assert.NotNull(problem);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("{{{")]
+    public void {NAME_UPPERCASE}_Constructor_ThrowsOnMalformedInstance(string instance) {
+        // Fails until your constructor parses the instance and throws ProblemParseException.
+        // Add your own bad inputs: the wrong shape, or a non-number where a number belongs.
+        Assert.Throws<ProblemParseException>(() => new {NAME_UPPERCASE}(instance));
+    }
+
+    // -------------------------------------------------------------------------
+    // GENERIC: certificate parse errors
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("{{{")]
+    public void {NAME_UPPERCASE}_Verifier_ThrowsOnMalformedCertificate(string certificate) {
+        // A certificate that cannot be read must throw CertificateParseException, not return false.
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}();
+        {NAME_PASCAL_CASE}Verifier verifier = new {NAME_PASCAL_CASE}Verifier();
+        Assert.Throws<CertificateParseException>(() => verifier.verify(problem, certificate));
+    }
+
+    // -------------------------------------------------------------------------
+    // GENERIC: the solver and the verifier agree
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void {NAME_UPPERCASE}_Solver_DefaultInstanceAnswerIsAcceptedByVerifier() {
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}();
+        {NAME_PASCAL_CASE}Solver solver = new {NAME_PASCAL_CASE}Solver();
+        {NAME_PASCAL_CASE}Verifier verifier = new {NAME_PASCAL_CASE}Verifier();
+        string solution = solver.solve(problem);
+        Assert.True(verifier.verify(problem, solution));
+    }
+
+    // -------------------------------------------------------------------------
+    // STUB: default instance fields (fails until you fill it in)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void {NAME_UPPERCASE}_DefaultInstance_HoldsExpectedValues() {
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}();
+        // replace: assert each field your constructor fills in, with values you checked by hand.
+        Assert.Fail("TODO: assert your problem's fields, e.g. Assert.Equal(30, problem.T)");
+    }
+
+    // -------------------------------------------------------------------------
+    // STUB: verifier (fails until you fill it in)
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    // replace: an instance and a certificate that really solves it, checked by hand.
+    // Add the smallest valid certificate too (for example, one element).
+    [InlineData("TODO: an instance", "TODO: a valid certificate for it")]
+    public void {NAME_UPPERCASE}_Verifier_AcceptsValidCertificate(string instance, string certificate) {
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}(instance);
+        {NAME_PASCAL_CASE}Verifier verifier = new {NAME_PASCAL_CASE}Verifier();
+        Assert.True(verifier.verify(problem, certificate));
+    }
+
+    [Theory]
+    // replace: a certificate that is well-formed but wrong (for example, the wrong total, or a
+    // value that is not in the instance). It must return false, not throw.
+    [InlineData("TODO: an instance", "TODO: a well-formed but wrong certificate")]
+    public void {NAME_UPPERCASE}_Verifier_RejectsWrongCertificate(string instance, string certificate) {
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}(instance);
+        {NAME_PASCAL_CASE}Verifier verifier = new {NAME_PASCAL_CASE}Verifier();
+        Assert.False(verifier.verify(problem, certificate));
+    }
+
+    // -------------------------------------------------------------------------
+    // STUB: solver (fails until you fill it in)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void {NAME_UPPERCASE}_Solver_ReturnsNoSolutionValueWhenThereIsNoSolution() {
+        // replace: an instance that has no solution, and the value your solver documents for
+        // "no solution" (usually "{}").
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}("TODO: an instance with no solution");
+        {NAME_PASCAL_CASE}Solver solver = new {NAME_PASCAL_CASE}Solver();
+        Assert.Equal("TODO: your no-solution value", solver.solve(problem));
+    }
+
+    [Fact]
+    public void {NAME_UPPERCASE}_Solver_ReturnsDocumentedValueWhenTimerHasExpired() {
+        // The template returns "timeout". Many solvers return their no-solution value instead.
+        // Whichever you choose, write it here and in the solver's documentation.
+        {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}();
+        {NAME_PASCAL_CASE}Solver solver = new {NAME_PASCAL_CASE}Solver();
+        solver.timerHasExpired = true;
+        Assert.Equal("TODO: your timer-expired value", solver.solve(problem));
+    }
+
+    // -------------------------------------------------------------------------
+    // Visualization (commented out: many problems use DummyVisualization)
+    // If you wrote a real visualization, see the "Tests you write yourself" section of
+    // Documentation/guides/adding-a-visualization.md, then adapt something like:
+    //
+    // [Fact]
+    // public void {NAME_UPPERCASE}_Visualization_ReturnsExpectedPayload() {
+    //     {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}();
+    //     var result = new {NAME_PASCAL_CASE}Visualization().visualize(problem);
+    //     Assert.NotNull(result);
+    // }
+    // -------------------------------------------------------------------------
+}
