@@ -8,7 +8,7 @@ using API.Problems.NPComplete.NPC_DEUTSCH;
 using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 
-class DeutschD3Visualization : IVisualization<DEUTSCH> {
+class DeutschD3Visualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (D3)";
     public string visualizationDefinition { get; } = "Builds a two-qubit Deutsch circuit, highlights the oracle block, and illustrates how interference distinguishes constant vs. balanced functions in one query using D3.js.";
     public string source { get; } = "https://d3js.org/";
@@ -18,7 +18,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH> {
 
     public DeutschD3Visualization() { }
 
-    public API_JSON visualize(DEUTSCH instance) {
+    public API_QUANTUMCIRCUIT visualize(DEUTSCH instance) {
         return BuildVisualization(instance, solution: null);
     }
 
@@ -26,7 +26,7 @@ class DeutschD3Visualization : IVisualization<DEUTSCH> {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(DEUTSCH instance, string? solution) {
+    private API_QUANTUMCIRCUIT BuildVisualization(DEUTSCH instance, string? solution) {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 

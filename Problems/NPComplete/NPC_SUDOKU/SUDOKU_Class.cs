@@ -21,10 +21,16 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
         "(4) each √n×√n block contains each value 1…n exactly once }"; //TODO: maybe make this more clear/only be about how to write the problem instance in REDUX
 
     public string problemDefinition { get; } = "Sudoku is a logic-based, combinatorial number-placement puzzle where the goal is to fill a 9x9 grid with digits so that each column, row, and 3x3 box contains all of the digits from 1 to 9."; //"The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)";
+    public string inputDescription { get; } = "A partially filled 9x9 Sudoku grid of clues";
+    public string outputDescription { get; } = "True or False, whether the given grid is a valid, fully completed solution matching the clues";
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
     public string sourceLink { get; } = "https://doi.org/10.48550/arXiv.2507.09708";
+    public const string InstanceGrammar = "9 rows of 9 comma-separated digits (0 for empty, 1-9 for clues), rows separated by semicolons";
     private static readonly string _defaultInstance = "0,0,0,1,0,0,2,0,3;\n0,2,0,0,4,0,5,0,6;\n0,7,0,0,0,6,4,0,0;\n5,0,0,6,0,0,8,0,0;\n0,6,0,4,0,2,0,5,0;\n0,0,4,0,0,9,0,0,7;\n0,0,9,5,0,0,0,4,0;\n7,0,6,0,8,0,0,1,0;\n4,0,3,0,0,7,0,0,0";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SudokuVerifier.CertificateGrammar} Example: {SudokuVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "Sudoku";
     public SudokuSolver defaultSolver { get; } = new SudokuSolver();
@@ -34,7 +40,9 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     // (Yato & Seta, 2003); the standard 9x9 board is a fixed-size instance of the
     // same NP-complete family.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
-    public string[] contributors { get; } = { "Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" }; //TODO: keep Eric? I think so but not sure
+    public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
+    // TODO: keep Eric? I think so but not sure
+    public string[] contributors { get; } = { "Eric Hill", "Carter Luker", "Collin M Kress", "Danny Fawson" };
 
     public int[][] grid { get; set; }
 

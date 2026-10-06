@@ -28,13 +28,15 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // Also notes that the decision variant is NP-Complete and the optimization
     // variant (minimizing bin count) is NP-Hard — a useful distinction for students.
     public string problemDefinition { get; } = "The Bin Packing decision problem asks: given a multiset of item sizes, a bin capacity C, and a bin limit K, can all items be packed into at most K bins such that the total size in each bin does not exceed C? Bin Packing is NP-Complete; the optimization variant (minimize the number of bins) is NP-Hard.";
+    public string inputDescription { get; } = "S, a multiset of item sizes, C, the bin capacity, and K, the maximum number of bins";
+    public string outputDescription { get; } = "True or False, whether S can be packed into at most K bins each of capacity C";
 
     // Academic citation — Garey & Johnson is the canonical NP-Completeness reference.
     // Problem SR1 in their appendix is the Bin Packing entry.
     public string source { get; } = "Garey, M. R., and Johnson, D. S. Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman, 1979. Problem SR1.";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Bin_packing_problem";
 
-    public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta" };
+    public string[] contributors { get; } = { "Himanshu Jha", "Rakesh Itani", "Prashant Aguragai" };
 
 
 
@@ -45,8 +47,12 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     // The example instance shown to users when the page first loads:
     // 6 items of sizes {4,7,3,6,2,8}, bin capacity 10, and at most 3 bins.
     // This is a YES-instance — the items do fit (e.g. bins (4,6), (7,3), (2,8)).
+    public const string InstanceGrammar = "{(S,C,K) | S is list, C is int, K is int}";
     private static readonly string _defaultInstance = "((4,7,3,6,2,8),10,3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {BinPackingVerifier.CertificateGrammar} Example: {BinPackingVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
 
@@ -75,6 +81,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
 
     // Declared, not derived. BINPACKING is NP-complete (Garey & Johnson, 1979, problem SR1).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.StorageAndRetrieval;
 
     public List<int> S {
         get { return _S; }
@@ -104,7 +111,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     public BINPACKING(string input) {
         instance = input;
 
-        StringParser parser = new("{(S,C,K) | S is list, C is int, K is int}");
+        StringParser parser = new(InstanceGrammar);
         parser.parse(input);
 
         // Each element of the parsed list comes back as an object; we cast to int.

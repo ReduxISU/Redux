@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 class DancingLinks : ISolver<EXACTCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Dancing Links";
+    public string solverName { get; } = "Knuth's Algorithm X";
     public string solverDefinition { get; } = "";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

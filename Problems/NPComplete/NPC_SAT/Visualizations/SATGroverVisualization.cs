@@ -5,8 +5,8 @@ using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class SATGroverVisualization : IVisualization<SAT> {
-    public string visualizationName { get; } = "SAT Gover Solver (Q)";
+class SATGroverVisualization : IVisualization<SAT, API_QUANTUMCIRCUIT> {
+    public string visualizationName { get; } = "SAT Grover Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "This visualization builds a quantum circuit from the Boolean expression and then uses Grover's algorithm to find a bit string x such that f(x) = 1.";
     public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner", "Jason L. Wright" };
@@ -17,7 +17,7 @@ class SATGroverVisualization : IVisualization<SAT> {
     public SATGroverVisualization() {
 
     }
-    public API_JSON visualize(SAT instance) {
+    public API_QUANTUMCIRCUIT visualize(SAT instance) {
         return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",

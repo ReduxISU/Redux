@@ -20,3 +20,5 @@ jobs:
     secrets: inherit
     with:
       soft: true
+      # Until the legacy publisher is retired: rehearse `push` (login + tag), never publish.
+      dry-run: true

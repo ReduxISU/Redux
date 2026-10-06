@@ -6,14 +6,14 @@ namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
 class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
 
     // --- Fields ---
-    public string verifierName {get;} = "{VERIFIER}";
-    public string verifierDefinition {get;} = "TODO";
-    public string source {get;} = " ";
-    public string sourceLink {get;} = "TODO";
-    public string[] contributors {get;} = { "TODO" };
+    public string verifierName { get; } = "{VERIFIER}";
+    public string verifierDefinition { get; } = "TODO";
+    public string source { get; } = "TODO";
+    public string sourceLink { get; } = "TODO";
+    public string[] contributors { get; } = { "TODO" };
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
-    private string _certificate =  "";
+    private string _certificate = "";
 
     public string certificate {
         get {
@@ -23,10 +23,10 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
 
     // --- Methods Including Constructors ---
     public {VERIFIER_PASCAL_CASE}() {
-        
+
     }
 
-    public bool verify({PROBLEM} problem, string certificate){
+    public bool verify({PROBLEM} problem, string certificate) {
         // On a malformed certificate, throw `CertificateParseException`
         // (see Interfaces/ParseExceptions.cs) rather than silently
         // returning false. The controller layer catches it and returns
@@ -41,6 +41,7 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
         // fails the verification predicate; return true when it satisfies it.
 
         // TODO: implement {VERIFIER} for {PROBLEM}
-        return true;
+        // An unfinished verifier must fail loudly, not accept every certificate.
+        throw new NotImplementedException("TODO: implement {VERIFIER} for {PROBLEM}");
     }
 }

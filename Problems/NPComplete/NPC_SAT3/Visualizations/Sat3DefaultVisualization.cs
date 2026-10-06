@@ -4,7 +4,7 @@ using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 
 class Sat3DefaultVisualization : IVisualization<SAT3> {
-    public string visualizationName { get; } = "3SAT visualization";
+    public string visualizationName { get; } = "3SAT Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for 3SAT";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Kaden Marchetti" };
@@ -24,6 +24,9 @@ class Sat3DefaultVisualization : IVisualization<SAT3> {
         HashSet<string> highlight = new();
         foreach (string item in items) {
             List<string> split = item.Split(":").ToList();
+            // "No Solution" (an unsatisfiable formula) has no assignments to highlight.
+            if (split.Count != 2)
+                continue;
             if (split[1] == "True")
                 highlight.Add(split[0]);
             else

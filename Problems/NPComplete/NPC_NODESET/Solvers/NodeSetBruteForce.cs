@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_NODESET.Solvers;
 class NodeSetBruteForce : ISolver<NODESET> {
 
     // --- Fields ---
-    public string solverName { get; } = "Node Set Brute Force Solver";
+    public string solverName { get; } = "Node Set Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the Node Set problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

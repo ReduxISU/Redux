@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 class ExactCoverBruteForce : ISolver<EXACTCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Exact Cover Brute Force Solver";
+    public string solverName { get; } = "Exact Cover Brute Force";
     public string solverDefinition { get; } = "This is a generic brute force solver for Exact Cover";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Caleb Eardley" };

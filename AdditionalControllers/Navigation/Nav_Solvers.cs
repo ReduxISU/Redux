@@ -58,56 +58,13 @@ internal static class SolverTypeCatalog {
 }
 
 internal static class SolverNavigationData {
-    internal class SolverEntry {
-        public string className { get; set; } = "";
-        public string problemName { get; set; } = "";
-    }
-
     // Build once from reflected solver types so navigation doesn't depend on
     // on-disk source layout. Mirrors VerifierNavigationData (see Nav_Verifiers.cs).
-    internal static readonly List<SolverEntry> Entries = Build();
+    internal static readonly List<NavigationEntry> Entries =
+        InterfaceNavigationData.Build(ProblemProvider.Solvers, typeof(ISolver<>));
 
-    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) {
-        return Find(problemName, problemTypePrefix)
-            .Select(x => x.className)
-            .ToList();
-    }
-
-    private static List<SolverEntry> Build() {
-        var entries = new List<SolverEntry>();
-        foreach (var (_, solverType) in ProblemProvider.Solvers) {
-            var generic = solverType.GetInterfaces()
-                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>));
-            if (generic == null) continue;
-
-            Type problemType = generic.GetGenericArguments()[0];
-            entries.Add(new SolverEntry {
-                className = solverType.Name,
-                problemName = problemType.Name,
-            });
-        }
-
-        return entries
-            .GroupBy(e => e.className, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.First())
-            .ToList();
-    }
-
-    // problemTypePrefix is accepted for API compatibility but intentionally ignored:
-    // problem names are unique across complexity classes, so the name alone identifies
-    // the solver set. Mirrors the verifier navigation (#317/#318): the GUI pins
-    // problemType to "NPC", so matching on the prefix would drop P / NP-Hard solvers.
-    private static List<SolverEntry> Find(string? problemName, string? problemTypePrefix) {
-        IEnumerable<SolverEntry> query = Entries;
-
-        if (!string.IsNullOrWhiteSpace(problemName)) {
-            query = query.Where(e => string.Equals(e.problemName, problemName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return query
-            .OrderBy(e => e.className, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
+    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) =>
+        InterfaceNavigationData.FindWithoutExtension(Entries, problemName, problemTypePrefix);
 }
 
 // Get all Solvers for a specific problem (Refactored)

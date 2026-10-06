@@ -94,10 +94,13 @@ class SPSPSolver : ISolver<SPSP> {
             return adjacency; // No edges, so return empty adjacency list
 
         foreach (UtilCollection rawEdge in graph.Edges.ToList()) {
-            // check if edge is weighted
-            bool firstLooksLikeCollection = LooksLikeCollection(rawEdge[0]);
-            bool secondLooksLikeCollection = LooksLikeCollection(rawEdge[1]);
-            bool isWeighted = rawEdge.Count() == 2 && firstLooksLikeCollection && !secondLooksLikeCollection;
+            // check if edge is weighted. An unordered rawEdge (a plain set like {1,2}) is a
+            // genuine SPADE set and does not support indexing; it can never be the weighted
+            // (endpoints, weight) shape, which is always ordered, so it always takes the
+            // unweighted path below.
+            bool isWeighted = rawEdge.IsOrdered() && rawEdge.Count() == 2
+                && LooksLikeCollection(rawEdge[0])
+                && !LooksLikeCollection(rawEdge[1]);
 
             if (isWeighted) {
                 UtilCollection endpoints = rawEdge[0];

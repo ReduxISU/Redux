@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 class KnapsackBruteForce : ISolver<KNAPSACK> {
 
     // --- Fields ---
-    public string solverName { get; } = "Knapsack Brute Force Solver";
+    public string solverName { get; } = "Knapsack Brute Force";
     public string solverDefinition { get; } = "This a brute force solver for the 0-1 Knapsack problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Russell Phillips" };

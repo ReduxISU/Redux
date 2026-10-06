@@ -20,6 +20,10 @@ class STRONGLYCONNECTEDCOMPONENTS
     public string problemDefinition { get; } =
         "A strongly connected component is a maximal group of vertices in a directed graph where every vertex can reach every other vertex in the same group. The goal is to return all such components.";
 
+    public string inputDescription { get; } = "G, a directed graph";
+
+    public string outputDescription { get; } = "The strongly connected components of G, i.e. the partition of its vertices into maximal mutually-reachable groups";
+
     public string source { get; } =
         "Swati Dhingra, Poorvi S. Dodwad, and Meghna Madan, \"Finding Strongly Connected Components in a Social Network Graph,\" International Journal of Computer Applications, Volume 136, No. 7, February 2016.";
 
@@ -29,10 +33,15 @@ class STRONGLYCONNECTEDCOMPONENTS
     public string wikiName { get; } =
         "Strongly connected component";
 
+    public const string InstanceGrammar = "{(N,E) | N is set, E subset {(u,v) | u is N, v is N}}";
+
     public static string _defaultInstance { get; } =
         "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})";
 
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {SCCVerifier.CertificateGrammar} Example: {SCCVerifier.CertificateExample}";
 
     public string instance { get; set; } = string.Empty;
 
@@ -46,6 +55,7 @@ class STRONGLYCONNECTEDCOMPONENTS
     // algorithm solves this in polynomial time; it just lives under NPComplete/
     // for filing reasons.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     public KosarajuSolver defaultSolver { get; } = new KosarajuSolver();
 
@@ -60,7 +70,7 @@ class STRONGLYCONNECTEDCOMPONENTS
     public STRONGLYCONNECTEDCOMPONENTS(string instanceString) {
         instance = instanceString;
 
-        StringParser parser = new("{(N,E) | N is set, E subset {(u,v) | u is N, v is N}}");
+        StringParser parser = new(InstanceGrammar);
         parser.parse(instanceString);
 
         graph = new UtilCollectionGraph(parser["N"], parser["E"]);

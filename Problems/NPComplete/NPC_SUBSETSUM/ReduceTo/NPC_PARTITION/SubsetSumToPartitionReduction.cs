@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_PARTITION;
 class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
 
     // --- Fields ---
-    public string reductionName { get; } = "PARTITION Reduction";
+    public string reductionName { get; } = "Partition Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from Subset Sum to Partition";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
@@ -15,8 +15,15 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
     // reduce() copies S (one pass) and appends exactly 2 derived numbers — O(n).
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Reuses S essentially unchanged, appending two padding
+    // numbers to force the partition point -- a minimal augmentation, not a gadget
+    // construction.
+    public ReductionType reductionType { get; } = ReductionType.Restriction;
+    // Declared, not derived. One pass copying S plus two appended derived numbers.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(n), n = |SUBSETSUM.S|";
     private Dictionary<Object, Object> _gadgetMap = new Dictionary<Object, Object>();
 
     private SUBSETSUM _reductionFrom;

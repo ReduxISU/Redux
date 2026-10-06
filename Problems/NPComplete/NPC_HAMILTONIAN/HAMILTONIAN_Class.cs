@@ -9,15 +9,21 @@ namespace API.Problems.NPComplete.NPC_HAMILTONIAN;
 class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, HamiltonianDefaultVisualization, UtilCollectionGraph> {
 
     // --- Fields ---
-    public string problemName { get; } = "Hamiltonian Path";
+    public string problemName { get; } = "Hamiltonian Cycle";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Hamiltonian_path";
-    public string formalDefinition { get; } = "Hamiltonian Path = {<G> | G has a cycle which covers every node exactly once}";
-    public string problemDefinition { get; } = "Hamiltonian Path is the problem of determining whether a Hamiltonian cycle (a path in an undirected or directed graph that visits each vertex exactly once).";
+    public string formalDefinition { get; } = "Hamiltonian Cycle = {<G> | G is an undirected graph with a cycle that visits every node exactly once}";
+    public string problemDefinition { get; } = "Hamiltonian Cycle is the problem of determining whether an undirected graph has a Hamiltonian cycle: a cycle that visits every vertex exactly once and returns to the vertex it started from.";
+    public string inputDescription { get; } = "G, a graph";
+    public string outputDescription { get; } = "True or False, whether G has a Hamiltonian cycle";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
+    public const string InstanceGrammar = "{(N,E) | N is set, E subset N unorderedcross N}";
     private static string _defaultInstance = "({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {HamiltonianVerifier.CertificateGrammar} Example: {HamiltonianVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
     private List<string> _nodes = new List<string>();
@@ -29,6 +35,7 @@ class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, Ha
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // Declared, not derived. HAMILTONIAN is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     // --- Properties ---
     public List<string> nodes {
@@ -55,7 +62,7 @@ class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, Ha
     public HAMILTONIAN(string GInput) {
         instance = GInput;
 
-        StringParser hamiltonian = new("{(N,E) | N is set, E subset N unorderedcross N}");
+        StringParser hamiltonian = new(InstanceGrammar);
         hamiltonian.parse(GInput);
         nodes = hamiltonian["N"].ToList().Select(node => node.ToString()).ToList();
         edges = hamiltonian["E"].ToList().Select(edge => {

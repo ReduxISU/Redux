@@ -6,7 +6,7 @@ using API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizations;
 
-class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET> {
+class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET, API_GraphJSON> {
     public string visualizationName { get; } = "Dominating Set Visualization";
     public string visualizationDefinition { get; } =
         "This is a default visualization for dominating set";
@@ -16,12 +16,12 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET> {
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     public string[] contributors { get; } = { "Quinton Smith" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
-    public ISolver solver { get; } = new DominatingSetSolver();
+    public ISolver solver { get; } = new DominatingSetForcedVertex();
 
     // --- Methods Including Constructors ---
     public DominatingSetDefaultVisualization() { }
 
-    public API_JSON visualize(DOMINATINGSET dominatingSet) {
+    public API_GraphJSON visualize(DOMINATINGSET dominatingSet) {
         return dominatingSet.graph.ToAPIGraph();
     }
 

@@ -27,32 +27,47 @@ By submitting a contribution (pull request, patch, or code submission), you conf
 
 ## How to Contribute
 
+New here? The [contributor guides](Documentation/guides/README.md) walk through every step below in detail, starting with the [setup guide](Documentation/guides/setup.md).
+
 ### 1. Fork the repository
-Create your own fork of the project.
+Create your own fork of the project (<https://github.com/ReduxISU/Redux>), then clone your fork. The [setup guide](Documentation/guides/setup.md) shows how, including adding the main repo as a second remote named `upstream`.
 
 ### 2. Create a branch
-Use a descriptive branch name:
+Start from the newest `CSharpAPI` branch (the main branch; there is no `develop` branch) and use a descriptive branch name, for example `add-reduction-subsetsum-to-partition` or `fix-clique-verifier-parsing`.
 
 ### 3. Make your changes
 - Keep changes focused and minimal
-- Follow existing code style and conventions
+- Follow existing code style and conventions (formatting is enforced automatically, see below)
 - Add comments where helpful
+- Step-by-step guides: [adding a problem](Documentation/guides/adding-a-problem.md), [solver](Documentation/guides/adding-a-solver.md), [verifier](Documentation/guides/adding-a-verifier.md), [reduction](Documentation/guides/adding-a-reduction.md), and [visualization](Documentation/guides/adding-a-visualization.md)
 
 ### 4. Test your changes
-- Ensure the project builds successfully
-- Run any existing tests
-- Add tests if applicable
+Run these from the repo root (always name `Redux.slnx`; a bare `dotnet build` fails with `MSB1011`):
+
+```bash
+dotnet format Redux.slnx
+dotnet build Redux.slnx -c Release
+dotnet test Redux.slnx -c Release --filter "Category!=Performance"
+dotnet test Redux.slnx -c Release --filter "Category=Performance"
+```
+
+- The Release build checks formatting and treats compiler warnings as errors, so run `dotnet format Redux.slnx` first.
+- Add tests for what you add. Details and what to do when a check fails: [building-and-testing guide](Documentation/guides/building-and-testing.md) and [troubleshooting](Documentation/guides/troubleshooting.md).
 
 ### 5. Submit a Pull Request (PR)
-Include:
+Open the PR against the `CSharpAPI` branch of `ReduxISU/Redux`. Include:
 - A clear description of what you changed
 - Why the change is needed
 - Any relevant screenshots or logs (if applicable)
+
+Then wait for a review. Do not merge your own PR before it has been reviewed. After you push, read the rbs report on your PR: the rbs check always shows green, even when gates inside it fail (see the [building-and-testing guide](Documentation/guides/building-and-testing.md)).
 
 ---
 
 ## Code Style Guidelines
 
+- Formatting (indentation, spacing) is set in [.editorconfig](.editorconfig) and checked by the Release build. Run `dotnet format Redux.slnx` to fix it.
+- Compiler warnings fail the build, so fix them instead of ignoring them
 - Write clear, readable code
 - Use meaningful variable and function names
 - Keep functions small and focused

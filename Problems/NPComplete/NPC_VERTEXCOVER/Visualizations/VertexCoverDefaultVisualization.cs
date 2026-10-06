@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Visualizations;
 
-class VertexCoverDefaultVisualization : IVisualization<VERTEXCOVER> {
+class VertexCoverDefaultVisualization : IVisualization<VERTEXCOVER, API_GraphJSON> {
     // --- Fields ---
     public string visualizationName { get; } = "Vertex Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Vertex Cover";
@@ -20,7 +20,7 @@ class VertexCoverDefaultVisualization : IVisualization<VERTEXCOVER> {
     public VertexCoverDefaultVisualization() {
 
     }
-    public API_JSON visualize(VERTEXCOVER vertexcover) {
+    public API_GraphJSON visualize(VERTEXCOVER vertexcover) {
         return vertexcover.graph.ToAPIGraph();
     }
 

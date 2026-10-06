@@ -7,7 +7,7 @@ namespace API.Problems.NPComplete.NPC_CUT.Solvers;
 class CutBruteForce : ISolver<CUT> {
 
     // --- Fields ---
-    public string solverName { get; } = "Cut Brute Force Solver";
+    public string solverName { get; } = "Cut Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the Cut problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

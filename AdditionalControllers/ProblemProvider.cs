@@ -17,23 +17,62 @@ using System.Dynamic;
 [Route("[controller]")]
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase {
+    // Buckets every loaded type into its marker-interface dictionary in a single pass over
+    // AppDomain.GetAssemblies().SelectMany(GetTypes()) instead of one full assembly scan per
+    // dictionary. .Add (not the indexer) preserves the original ToDictionary behavior of
+    // throwing on a duplicate lowercased type name within the same bucket.
+    private static (
+        Dictionary<string, Type> Problems,
+        Dictionary<string, Type> Verifiers,
+        Dictionary<string, Type> Solvers,
+        Dictionary<string, Type> Visualizers,
+        Dictionary<string, Type> Reductions
+    ) ScanTypes() {
+        Dictionary<string, Type> problems = new();
+        Dictionary<string, Type> verifiers = new();
+        Dictionary<string, Type> solvers = new();
+        Dictionary<string, Type> visualizers = new();
+        Dictionary<string, Type> reductions = new();
+
+        foreach (Type type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())) {
+            if (!type.IsClass) continue;
+            string key = type.Name.ToLower();
+
+            if (typeof(IProblem).IsAssignableFrom(type)) problems.Add(key, type);
+            if (typeof(IVerifier).IsAssignableFrom(type)) verifiers.Add(key, type);
+            if (typeof(ISolver).IsAssignableFrom(type)) solvers.Add(key, type);
+            if (typeof(IVisualization).IsAssignableFrom(type)) visualizers.Add(key, type);
+            if (typeof(IReduction).IsAssignableFrom(type)) reductions.Add(key, type);
+        }
+
+        return (problems, verifiers, solvers, visualizers, reductions);
+    }
+
+    private static readonly (
+        Dictionary<string, Type> Problems,
+        Dictionary<string, Type> Verifiers,
+        Dictionary<string, Type> Solvers,
+        Dictionary<string, Type> Visualizers,
+        Dictionary<string, Type> Reductions
+    ) _typeMaps = ScanTypes();
+
     /// <summary>A dictionary of all of the problems mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Problems = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IProblem).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Problems = _typeMaps.Problems;
 
     /// <summary>A dictionary of all of the graph problems in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> GraphProblems = Problems.Where(p => typeof(IGraphProblem).IsAssignableFrom(p.Value)).ToDictionary(x => x.Key, x => x.Value);
 
     /// <summary>A dictionary of all verifiers in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Verifiers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IVerifier).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Verifiers = _typeMaps.Verifiers;
 
     /// <summary>A dictionary of all solvers in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Solvers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(ISolver).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Solvers = _typeMaps.Solvers;
 
     /// <summary>A dictionary of all visualizers in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Visualizers = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IVisualization).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Visualizers = _typeMaps.Visualizers;
 
     /// <summary>A dictionary of all reductions in Redux mapped to their C# type.</summary>
-    public static readonly Dictionary<string, Type> Reductions = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => typeof(IReduction).IsAssignableFrom(p) && p.IsClass).ToDictionary(x => x.Name.ToLower(), x => x);
+    public static readonly Dictionary<string, Type> Reductions = _typeMaps.Reductions;
 
     /// <summary>A dictionary of all problems, verifiers, solvers, visualizers and reductions in Redux mapped to their C# type.</summary>
     public static readonly Dictionary<string, Type> Interfaces = (new[] { Problems, Verifiers, Solvers, Visualizers, Reductions }).SelectMany(d => d).ToDictionary(x => x.Key, x => x.Value);
@@ -52,11 +91,11 @@ public class ProblemProvider : ControllerBase {
     }
 
     static IProblem ProblemInstance(string name, string instance) {
-        return Activator.CreateInstance(Problems[name.ToLower()], instance) as IProblem; // guaranteed success by `IsAssignableFrom`
+        return ParseGuard.CreateProblem(Problems[name.ToLower()], instance);
     }
 
     static IGraphProblem GraphProblem(string name, string instance) {
-        return Activator.CreateInstance(GraphProblems[name.ToLower()], instance) as IGraphProblem; // guaranteed success by `IsAssignableFrom`
+        return (IGraphProblem)ParseGuard.CreateProblem(GraphProblems[name.ToLower()], instance);
     }
 
     static IVerifier Verifier(string name) {
@@ -71,8 +110,37 @@ public class ProblemProvider : ControllerBase {
         return Activator.CreateInstance(Visualizers[name.ToLower()]) as IVisualization;
     }
 
+    // A reduction's constructor parses the source-problem instance and then runs the reduction, so
+    // a failure there is not necessarily bad input. When the constructor throws anything other than
+    // a parse exception, re-parse the instance with the source problem's own constructor: if that
+    // fails the input was malformed (ReductionInputException -> 400); if it succeeds the failure is
+    // inside the reduction itself and propagates unchanged.
     static IReduction Reduction(string name, string instance) {
-        return Activator.CreateInstance(Reductions[name.ToLower()], instance) as IReduction;
+        Type type = Reductions[name.ToLower()];
+        try {
+            return (IReduction)Activator.CreateInstance(type, instance)!;
+        } catch (Exception ex) when (ex is not OutOfMemoryException && !IsParseError(ex)) {
+            IReduction? template = null;
+            try { template = Activator.CreateInstance(type) as IReduction; } catch { /* no default instance to describe */ }
+            if (template != null) {
+                try {
+                    ParseGuard.CreateProblem(template.reductionFrom.GetType(), instance);
+                } catch (ProblemParseException parseFailure) {
+                    throw new ReductionInputException(template, instance, template.reductionFrom.instanceFormat, parseFailure.Message, parseFailure);
+                }
+            }
+            throw;
+        }
+    }
+
+    // mapSolutions parses the certificate and maps it in one method, so parsing cannot be guarded on
+    // its own; only the exception types malformed text produces are translated (see ParseGuard).
+    static string MapSolutions(IReduction red, string solution) {
+        try {
+            return red.mapSolutions(solution);
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, ex.Message, ex);
+        }
     }
 
     static IReduction Reduction(string name) {
@@ -299,7 +367,7 @@ public class ProblemProvider : ControllerBase {
         try {
             foreach (string reductionname in reds) {
                 red = Reduction(reductionname, instance);
-                solution = red.mapSolutions(solution);
+                solution = MapSolutions(red, solution);
                 instance = red.reductionTo.instance;
             }
         } catch (Exception ex) when (IsParseError(ex)) {
@@ -344,7 +412,7 @@ public class ProblemProvider : ControllerBase {
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
             IReduction red = Reduction(reduction, instance);
-            string mappedSolution = red.mapSolutions(solution);
+            string mappedSolution = MapSolutions(red, solution);
             return Content(
                 JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }),
                 "application/json");

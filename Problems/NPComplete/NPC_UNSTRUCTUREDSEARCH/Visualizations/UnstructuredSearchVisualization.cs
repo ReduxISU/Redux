@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Visualizations;
 
-class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH> {
+class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Unstructured Search Quantum Circuit";
     public string visualizationDefinition { get; } = "This visualization builds a quantum circuit";
     public string source { get; } = "Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000), Quantum Amplitude Amplification and Estimation";
@@ -18,7 +18,7 @@ class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH> {
     // --- Methods Including Constructors ---
     public UnstructuredSearchVisualization() {
     }
-    public API_JSON visualize(UNSTRUCTUREDSEARCH instance) {
+    public API_QUANTUMCIRCUIT visualize(UNSTRUCTUREDSEARCH instance) {
         return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",

@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_SAT.ReduceTo.NPC_SAT3;
 class KarpSATToSAT3 : IReduction<SAT, SAT3> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Karp's SAT3 Reduction";
+    public string reductionName { get; } = "Karp's 3SAT Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from SAT to SAT3";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
@@ -19,8 +19,16 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
     // literal count) across the whole formula — linear in input size.
     public ReductionCost cost { get; } = ReductionCost.Linear;
 
+    // Declared, not derived. Each over-length clause is split independently by
+    // introducing its own chain of fresh variables -- no coordination needed between
+    // different clauses' splits.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. Total splits (and clauses produced) is O(total literal
+    // count) across the whole formula.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "O(L), L = total literal count across the SAT formula";
     public List<Gadget> gadgets { get; }
     private SAT _reductionFrom;
     private SAT3 _reductionTo;

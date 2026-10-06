@@ -5,7 +5,7 @@ using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class DeutschDefaultVisualization : IVisualization<DEUTSCH> {
+class DeutschDefaultVisualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests the QASM for the two-qubit Deutsch circuit, showing the oracle call and measurement that separates constant vs. balanced functions in one query for Q.js rendering.";
 
@@ -18,7 +18,7 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH> {
     public DeutschDefaultVisualization() {
 
     }
-    public API_JSON visualize(DEUTSCH instance) {
+    public API_QUANTUMCIRCUIT visualize(DEUTSCH instance) {
         return new API_QUANTUMCIRCUIT {
             format = QuantumCircuitFormat.QASM,
             qasm = "",

@@ -8,7 +8,7 @@ namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 class Sat3BacktrackingSolver : ISolver<SAT3> {
 
     // --- Fields ---
-    public string solverName { get; } = "3SAT Backtracking Solver";
+    public string solverName { get; } = "3SAT Backtracking";
     public string solverDefinition { get; } = "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "David Lindeman", "Kaden Marchetti" };
@@ -69,8 +69,9 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         // 		//this pruning function would attempt to imediatly evaluate the first standalone expression as the next node (after current processing is done)
 
         //CATCHES INVALID INPUTS
-        // Console.WriteLine(sat3.literals.Count);
-        if (sat3.literals.Count < 2) {
+        // A single literal such as (x1) is still a satisfiable formula (#623), so only an
+        // empty formula is rejected here.
+        if (sat3.literals.Count < 1) {
             // Console.WriteLine("No literals provided");
             return null;
         }

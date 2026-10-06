@@ -5,7 +5,9 @@ namespace API.Interfaces;
 /// <summary>
 /// The renderer contract between this API and the GUI. Every member except
 /// <see cref="Unimplemented"/> must have a matching key in
-/// Redux_GUI/components/Visualization/svgs/Visualizations.js. CI enforces this.
+/// Redux_GUI/components/Visualization/svgs/Visualizations.js, which the Redux_GUI repo checks
+/// with `npm run check:visualizations`. Every member must also appear in
+/// Documentation/visualization-types.json (checked by VisualizationType_Tests.ManifestMatchesEnum).
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<VisualizationType>))]
 public enum VisualizationType {

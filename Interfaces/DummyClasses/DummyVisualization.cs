@@ -6,7 +6,7 @@ using API.Interfaces.JSON_Objects;
 
 namespace API.DummyClasses;
 
-class DummyVisualization : IVisualization<IProblem> {
+class DummyVisualization : IVisualization<IProblem, API_empty> {
 
     // --- Fields ---
     public string visualizationName { get; } = "";
@@ -20,7 +20,7 @@ class DummyVisualization : IVisualization<IProblem> {
     public DummyVisualization() {
 
     }
-    public API_JSON visualize(IProblem independentSet) {
+    public API_empty visualize(IProblem independentSet) {
         return new API_empty();
     }
 }

@@ -18,7 +18,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
 
     // ── Metadata ─────────────────────────────────────────────────────────────
 
-    public string solverName { get; } = "Bin Packing Brute Force Solver";
+    public string solverName { get; } = "Bin Packing Brute Force";
 
     // Plain-English explanation of the algorithm strategy, including the two
     // pruning tricks that make it faster in practice than the raw O(K^n) bound.
@@ -26,7 +26,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
 
     public string source { get; } = "Garey, M. R., and Johnson, D. S. Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman, 1979. Problem SR1.";
 
-    public string[] contributors { get; } = { "Himanshu", "Rakesh", "Prashanta", "Michael Trosper" };
+    public string[] contributors { get; } = { "Himanshu Jha", "Rakesh Itani", "Prashant Aguragai", "Michael Trosper" };
 
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Does real (if minor) pruning, but tagged BruteForce per its class name

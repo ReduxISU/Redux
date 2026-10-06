@@ -43,6 +43,14 @@ interface IReduction {
     // (and isn't: it's not the pre-existing ad-hoc `complexity` string field some
     // reduction classes already carry).
     ReductionCost cost { get => ReductionCost.Unclassified; }
+
+    // Same shape as `cost` above, on two further independent axes: `reductionType` is HOW
+    // the transformation is constructed, `complexityBucket` is how long constructing it
+    // takes. Kept as separate members rather than folded into `cost` because a reduction
+    // can be cheap on one axis and expensive on another — see the class docs on each enum.
+    ReductionType reductionType { get => ReductionType.Unclassified; }
+
+    ReductionComplexityBucket complexityBucket { get => ReductionComplexityBucket.Unclassified; }
 }
 
 interface IReduction<T, U> : IReduction where T : IProblem where U : IProblem {

@@ -7,7 +7,7 @@ namespace API.Problems.P.P_DFA.Solvers;
 class DFASolver : ISolver<DFA> {
 
     // ----- Fields ----- //
-    public string solverName { get; } = "DFA Solver";
+    public string solverName { get; } = "DFA Simulation";
     public string solverDefinition { get; } = "This a solver for a Determiistic Finite Automata that returns no solution in none exists, or a solution consisting of the set states that led to an acceptance.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
@@ -70,7 +70,7 @@ class DFASolver : ISolver<DFA> {
     }
 
     public List<Object> GetSteps(string instance) {
-        solve(new DFA(instance));
+        solve(ParseGuard.CreateProblem<DFA>(instance));
 
         return nodePath.Cast<Object>().ToList();
     }

@@ -20,6 +20,8 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Feedback_arc_set";
     public string formalDefinition { get; } = "ARCSET = {<G,k> | G is a directed graph that can be rendered acyclic by removal of at most k edges}";
     public string problemDefinition { get; } = "ARCSET, or the Feedback Arc Set satisfiability problem, is an NP-complete problem that can be described like the following. Given a directed graph, does removing a given set of edges render the graph acyclical? That is, does removing the edges break every cycle in the graph?";
+    public string inputDescription { get; } = "G, a directed graph, and k, the maximum number of edges allowed to be removed";
+    public string outputDescription { get; } = "True or False, whether removing at most k edges can make G acyclic";
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Feedback_arc_set";
@@ -32,7 +34,11 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     //Mathmatical notation of the following default instance: "A = {1,2,3,4} r = {(4,1),(1,2),(4,3),(3,2),(2,4)} k = 1"; 
     private static string _defaultInstance = "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)"; //final formal version. This is standard mathmatical digraph notation with a K element appended. 
     public string defaultInstance { get; } = _defaultInstance;
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N cross N, K is int}";
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {ArcSetVerifier.CertificateGrammar} Example: {ArcSetVerifier.CertificateExample}";
 
     public string wikiName { get; } = "";
     public UtilCollectionGraph graph { get; set; }
@@ -41,6 +47,7 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     public ArcSetDefaultVisualization defaultVisualization { get; } = new ArcSetDefaultVisualization();
     // Declared, not derived. ARCSET (Feedback Arc Set) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     public string[] contributors { get; } = { "Alex Diviney" };
 
@@ -56,7 +63,7 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     public ARCSET(string arcInput) {
         instance = arcInput;
 
-        StringParser arcset = new("{((N,E),K) | N is set, E subset N cross N, K is int}");
+        StringParser arcset = new(InstanceGrammar);
         arcset.parse(arcInput);
         graph = new UtilCollectionGraph(arcset["N"], arcset["E"]);
         K = int.Parse(arcset["K"].ToString());

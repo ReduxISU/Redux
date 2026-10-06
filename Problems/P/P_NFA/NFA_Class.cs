@@ -15,6 +15,8 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton";
     public string formalDefinition { get; } = "Acceptance Problem of a NFA = {<N,w> | N is a Non-deterministic Finite Automata that accepts a string w}";
     public string problemDefinition { get; } = "Acceptance Problem of a NFA is a problem that aims to see if a string input will be accepted by a particular Non-deterministic Finite Automata model.";
+    public string inputDescription { get; } = "A nondeterministic finite automaton and an input string";
+    public string outputDescription { get; } = "True or False, whether the automaton accepts the input string";
     public string source { get; } = "N/A";
     public string sourceLink { get; } = "N/A";
 
@@ -41,6 +43,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     // though NFA-to-DFA conversion can blow up exponentially — acceptance itself
     // doesn't require that conversion.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.AutomataAndLanguages;
 
     // Edge Structures //
     public record NFAEdge(string From, char Symbol, string To);
@@ -153,7 +156,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
             var from = edge.From;
             var to = edge.To;
 
-            var edgeValue = edge.Symbol == 'ε' ? "epsilon" : edge.Symbol.ToString();
+            var edgeValue = edge.Symbol == 'ε' ? "ε" : edge.Symbol.ToString();
 
             if (!connections.ContainsKey((from, to))) {
                 connections.Add((from, to), edgeValue);

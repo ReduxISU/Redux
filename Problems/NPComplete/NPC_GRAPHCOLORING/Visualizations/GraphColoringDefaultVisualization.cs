@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Visualizations;
 
-class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING> {
+class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Graph Coloring Visualization";
@@ -21,7 +21,7 @@ class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING> {
     public GraphColoringDefaultVisualization() {
 
     }
-    public API_JSON visualize(GRAPHCOLORING GRAPHCOLORING) {
+    public API_GraphJSON visualize(GRAPHCOLORING GRAPHCOLORING) {
         return GRAPHCOLORING.graph.ToAPIGraph();
     }
 

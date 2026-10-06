@@ -8,7 +8,7 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET;
 
 class DOMINATINGSET
     : IGraphProblem<
-        DominatingSetSolver,
+        DominatingSetForcedVertex,
         DominatingSetVerifier,
         DominatingSetDefaultVisualization,
         UtilCollectionGraph
@@ -20,16 +20,23 @@ class DOMINATINGSET
         "Dominating Set = {<G, k> | G is a graph with a dominating set less than or equal to k}";
     public string problemDefinition { get; } =
         "A dominating set of a graph G is a subset D of the vertices of G such that every vertex v of G is either in the set D or v has at least one neighbour that is in D.";
+    public string inputDescription { get; } = "G, a graph, and k, the maximum size of the dominating set";
+    public string outputDescription { get; } = "True or False, whether G has a dominating set of size at most k";
     public string[] contributors { get; } = { "Quinton Smith" };
 
     public string source { get; } =
-        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
+        "Garey, M. R., & Johnson, D. S. (1979). Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman and Company.";
     public string sourceLink { get; } =
-        "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
+        "https://dl.acm.org/doi/10.5555/574848";
+    public const string InstanceGrammar =
+        "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance =
         "(({0,1,2,3,4},{{1,0},{0,3},{1,2},{2,4},{1,3},{3,4},{4,1}}),2)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {DominatingSetVerifier.CertificateGrammar} Example: {DominatingSetVerifier.CertificateExample}";
 
     private List<string> _nodes = new List<string>();
     private List<KeyValuePair<string, string>> _edges = new List<KeyValuePair<string, string>>();
@@ -40,12 +47,13 @@ class DOMINATINGSET
     }
 
     private int _K;
-    public DominatingSetSolver defaultSolver { get; } = new DominatingSetSolver();
+    public DominatingSetForcedVertex defaultSolver { get; } = new DominatingSetForcedVertex();
     public DominatingSetVerifier defaultVerifier { get; } = new DominatingSetVerifier();
     public DominatingSetDefaultVisualization defaultVisualization { get; } =
         new DominatingSetDefaultVisualization();
     // Declared, not derived. DOMINATINGSET is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     public UtilCollectionGraph graph { get; set; }
 
@@ -68,9 +76,7 @@ class DOMINATINGSET
     public DOMINATINGSET(string GInput) {
         instance = GInput;
 
-        StringParser dominatingSetGraph = new(
-            "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}"
-        );
+        StringParser dominatingSetGraph = new(InstanceGrammar);
         dominatingSetGraph.parse(GInput);
         nodes = dominatingSetGraph["N"].ToList().Select(node => node.ToString()).ToList();
         edges = dominatingSetGraph["E"]

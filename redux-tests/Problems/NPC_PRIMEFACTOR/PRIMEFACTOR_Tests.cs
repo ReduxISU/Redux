@@ -10,8 +10,8 @@ public class PRIMEFACTOR_tests {
     [Fact]
     public void DEUTSCH_Default_Instantiation() {
         var problem = new PRIMEFACTOR();
-        Assert.Equal("15", problem.instance);
-        Assert.Equal("15", problem.defaultInstance);
+        Assert.Equal("12", problem.instance);
+        Assert.Equal("12", problem.defaultInstance);
     }
 
     [Fact]
@@ -22,8 +22,9 @@ public class PRIMEFACTOR_tests {
     }
 
     [Theory] //tests verifier
-    [InlineData("15", "(3,5)")]
-    [InlineData("15", "(5,3)")]
+    [InlineData("12", "(2,2,3)")]
+    [InlineData("12", "(2,3,2)")]
+    [InlineData("12", "(3,2,2)")]
     [InlineData("7", "(7)")]
     [InlineData("100", "(2,5,2,5)")]
     [InlineData("97", "(97)")]
@@ -49,5 +50,34 @@ public class PRIMEFACTOR_tests {
         var solver = new PrimeFactorSolver();
         string solvedString = solver.solve(problem);
         Assert.Equal(certificate, solvedString);
+    }
+
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void PRIMEFACTOR_Instance_Format_Described() {
+        var problem = new PRIMEFACTOR();
+        Assert.NotNull(problem.instanceFormat);
+        Assert.NotEmpty(problem.instanceFormat);
+        Assert.Contains("integer", problem.instanceFormat);
+    }
+
+    [Fact]
+    public void PRIMEFACTOR_Certificate_Format_Described() {
+        var problem = new PRIMEFACTOR();
+        Assert.NotNull(problem.certificateFormat);
+        Assert.NotEmpty(problem.certificateFormat);
+        Assert.Contains("factors", problem.certificateFormat);
+    }
+
+    [Fact]
+    public void PRIMEFACTOR_Certificate_Format_Example_Is_Actually_Valid() {
+        // The "Example: (3,5)" quoted in certificateFormat must be a real,
+        // verifiable certificate for defaultInstance — not just descriptive prose.
+        var problem = new PRIMEFACTOR();
+        var verifier = new PrimeFactorVerifier();
+        Assert.True(verifier.verify(problem, PrimeFactorVerifier.CertificateExample));
     }
 }

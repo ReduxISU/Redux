@@ -14,17 +14,24 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_spanning_tree";
     public string formalDefinition { get; } = "Given a weighted undirected graph G = (V, E, w), find a subset T \u2286 E such that T is a spanning tree of G and the sum of weights in T is minimum.";
     public string problemDefinition { get; } = "Given a weighted, undirected graph, find a set of edges that connects every vertex without creating cycles and has the smallest possible total weight.";
+    public string inputDescription { get; } = "G, a weighted undirected graph";
+    public string outputDescription { get; } = "The set of edges forming a minimum spanning tree";
     public string source { get; } = "Graham, Ronald L., and Pavel Hell. \"On the history of the minimum spanning tree problem.\" Annals of the History of Computing 7, no. 1 (1985): 43-57.";
     public string sourceLink { get; } = "https://doi.org/10.1109/MAHC.1985.10011";
     public string wikiName { get; } = "";
+    public const string InstanceGrammar = "{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}";
     public static string _defaultInstance { get; } = "({1,2,3,4},{({1,2},1),({2,3},2),({3,4},1),({1,4},2),({1,3},3)})";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {MinimumSpanningTreeVerifier.CertificateGrammar} Example: {MinimumSpanningTreeVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
     // Declared, not derived from the Problems/NPComplete/ folder — MST is solvable in
     // polynomial time (e.g. Kruskal's / Prim's algorithm), it just lives under the
     // NPComplete/ folder for filing reasons.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
 
     private List<string> _nodes = new List<string>();
     private List<(string source, string destination, int weight)> _edges = new List<(string source, string destination, int weight)>();
@@ -50,7 +57,7 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
         instance = instanceString;
 
         // Parse weighted undirected graph instances of the form ({V},{({u,v},w),...}).
-        StringParser mstParser = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
+        StringParser mstParser = new(InstanceGrammar);
         mstParser.parse(instanceString);
 
         nodes = mstParser["N"].ToList().Select(node => node.ToString()).ToList();

@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using API.Interfaces;
 
 [ApiController]
 [Route("Navigation/[controller]")]
@@ -19,19 +20,23 @@ public class ContributorProfileController : ControllerBase {
     [HttpGet("{contributorName}")]
     public IActionResult GetContributorProfile(string contributorName) {
         try {
-            string projectSourcePath = ProjectSourcePath.Value;
-
             // Grab their bio, email, GitHub, etc. from contributorInfo.json
             var contributorInfo = GetContributorInfo(contributorName);
 
-            // Walk the Problems folder and see which NP-Complete problems they worked on
-            var allProblems = GetAllProblems(projectSourcePath, contributorName);
+            // Reflect over every registered problem and check its declared contributors
+            var allProblems = GetAllProblems(contributorName);
 
-            // Same idea — check every Solvers subfolder for their name
-            var allSolvers = GetAllSolvers(projectSourcePath, contributorName);
+            // Reflect over every registered solver and check its declared contributors
+            var allSolvers = GetAllSolvers(contributorName);
 
-            // And every ReduceTo subfolder for reductions they wrote
-            var allReductions = GetAllReductions(projectSourcePath, contributorName);
+            // Reflect over every registered reduction and check its declared contributors
+            var allReductions = GetAllReductions(contributorName);
+
+            // Reflect over every registered verifier and check its declared contributors
+            var allVerifiers = GetAllVerifiers(contributorName);
+
+            // Reflect over every registered visualization and check its declared contributors
+            var allVisualizations = GetAllVisualizations(contributorName);
 
             // Bundle everything together into one tidy portfolio object
             var portfolio = new ContributorPortfolio {
@@ -41,10 +46,16 @@ public class ContributorProfileController : ControllerBase {
                 Major = contributorInfo?.Major ?? "Not specified",
                 Bio = contributorInfo?.Bio ?? "Not specified",
                 GithubUsername = contributorInfo?.GithubUsername ?? "",
+                ReduxStats = contributorInfo?.ReduxStats,
+                ReduxGuiStats = contributorInfo?.ReduxGuiStats,
                 ProblemsContributed = allProblems.ToList(),
                 SolversCreated = allSolvers.ToList(),
                 ReductionsCreated = allReductions.ToList(),
+                VerifiersContributed = allVerifiers.ToList(),
+                VisualizationsCreated = allVisualizations.ToList(),
+                LegacyContributions = contributorInfo?.LegacyContributions ?? new List<string>(),
                 TotalContributions = allProblems.Count() + allSolvers.Count() + allReductions.Count()
+                    + allVerifiers.Count() + allVisualizations.Count()
             };
 
             return Ok(portfolio);
@@ -137,145 +148,100 @@ public class ContributorProfileController : ControllerBase {
         }
     }
 
-    private IEnumerable<string> GetAllProblems(string projectSourcePath, string contributorName) {
-        string problemsPath = Path.Combine(projectSourcePath, "Problems");
-
-        if (!Directory.Exists(problemsPath)) {
-            return new List<string>();
-        }
-
+    private IEnumerable<string> GetAllProblems(string contributorName) {
         var problems = new List<string>();
 
-        try {
-            // Check the NPComplete folder first — that's where most problems live
-            string npcPath = Path.Combine(problemsPath, "NPComplete");
-            if (Directory.Exists(npcPath)) {
-                var npcProblemDirs = Directory.GetDirectories(npcPath);
-                foreach (var problemDir in npcProblemDirs) {
-                    string problemName = "NPC_" + Path.GetFileName(problemDir);
-                    if (ContributorWorkedOnProblem(problemDir, contributorName)) {
-                        problems.Add(problemName);
-                    }
+        // Reflection-derived registry (ProblemProvider.Problems) — every IProblem type
+        // is guaranteed a working parameterless constructor (see Problem(string) in
+        // ProblemProvider.cs), so the try/catch here is defensive only, matching the
+        // Solvers/Reductions lookups for consistency.
+        foreach (var type in ProblemProvider.Problems.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IProblem instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    problems.Add(instance.problemName);
                 }
-            }
-
-            // Also sweep any other complexity folders that aren't NPComplete
-            var otherFolders = Directory.GetDirectories(problemsPath)
-                .Where(d => Path.GetFileName(d) != "NPComplete");
-
-            foreach (var folder in otherFolders) {
-                var folderName = Path.GetFileName(folder);
-                var subProblemDirs = Directory.GetDirectories(folder);
-
-                foreach (var subDir in subProblemDirs) {
-                    string problemName = folderName + "_" + Path.GetFileName(subDir);
-                    if (ContributorWorkedOnProblem(subDir, contributorName)) {
-                        problems.Add(problemName);
-                    }
-                }
-            }
-        } catch { }
+            } catch { }
+        }
 
         return problems.Distinct();
     }
 
-    private bool ContributorWorkedOnProblem(string problemDir, string contributorName) {
-        try {
-            // Check the .cs files sitting directly in the problem folder
-            var csFiles = Directory.GetFiles(problemDir, "*.cs", SearchOption.TopDirectoryOnly);
-            foreach (var file in csFiles) {
-                string content = System.IO.File.ReadAllText(file);
-                if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                    return true;
-                }
-            }
-
-            // Check the Solvers subfolder
-            string solversPath = Path.Combine(problemDir, "Solvers");
-            if (Directory.Exists(solversPath)) {
-                var solverFiles = Directory.GetFiles(solversPath, "*.cs");
-                foreach (var file in solverFiles) {
-                    string content = System.IO.File.ReadAllText(file);
-                    if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                        return true;
-                    }
-                }
-            }
-
-            // Check the ReduceTo subfolder
-            string reducePath = Path.Combine(problemDir, "ReduceTo");
-            if (Directory.Exists(reducePath)) {
-                var reduceFiles = Directory.GetFiles(reducePath, "*.cs");
-                foreach (var file in reduceFiles) {
-                    string content = System.IO.File.ReadAllText(file);
-                    if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                        return true;
-                    }
-                }
-            }
-        } catch { }
-
-        return false;
-    }
-
-    private IEnumerable<string> GetAllSolvers(string projectSourcePath, string contributorName) {
+    private IEnumerable<string> GetAllSolvers(string contributorName) {
         var solvers = new List<string>();
 
-        try {
-            string problemsPath = Path.Combine(projectSourcePath, "Problems");
-
-            if (!Directory.Exists(problemsPath)) {
-                return solvers;
-            }
-
-            // Dig into every problem's Solvers folder and look for their name
-            var allProblemDirs = Directory.GetDirectories(problemsPath, "*", SearchOption.AllDirectories);
-
-            foreach (var problemDir in allProblemDirs) {
-                string solversPath = Path.Combine(problemDir, "Solvers");
-                if (Directory.Exists(solversPath)) {
-                    var solverFiles = Directory.GetFiles(solversPath, "*.cs");
-                    foreach (var file in solverFiles) {
-                        string content = System.IO.File.ReadAllText(file);
-                        if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                            solvers.Add(Path.GetFileNameWithoutExtension(file));
-                        }
-                    }
+        // Reflection-derived registry (ProblemProvider.Solvers), same mapping used
+        // elsewhere in Navigation — no directory walking, no file-content matching.
+        // Skip a solver that can't be default-constructed instead of failing the whole
+        // lookup — same graceful degradation as ReductionCostCatalog (Nav_Reductions.cs).
+        foreach (var type in ProblemProvider.Solvers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is ISolver instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    solvers.Add(instance.solverName);
                 }
-            }
-        } catch { }
+            } catch { }
+        }
 
         return solvers.Distinct();
     }
 
-    private IEnumerable<string> GetAllReductions(string projectSourcePath, string contributorName) {
+    private IEnumerable<string> GetAllReductions(string contributorName) {
         var reductions = new List<string>();
 
-        try {
-            string problemsPath = Path.Combine(projectSourcePath, "Problems");
-
-            if (!Directory.Exists(problemsPath)) {
-                return reductions;
-            }
-
-            // Same approach — walk every ReduceTo folder and check for their name
-            var allProblemDirs = Directory.GetDirectories(problemsPath, "*", SearchOption.AllDirectories);
-
-            foreach (var problemDir in allProblemDirs) {
-                string reductionsPath = Path.Combine(problemDir, "ReduceTo");
-                if (Directory.Exists(reductionsPath)) {
-                    var reductionFiles = Directory.GetFiles(reductionsPath, "*.cs");
-                    foreach (var file in reductionFiles) {
-                        string content = System.IO.File.ReadAllText(file);
-                        if (content.Contains(contributorName, StringComparison.OrdinalIgnoreCase)) {
-                            reductions.Add(Path.GetFileNameWithoutExtension(file));
-                        }
-                    }
+        // Reflection-derived registry (ProblemProvider.Reductions) — the same mapping
+        // ReductionGraphData.Build() (Nav_Reductions.cs) iterates to serve
+        // /Navigation/Reductions, so this can never drift from what that endpoint
+        // considers a registered reduction. Some reductions (e.g. SipserReduceToSAT3)
+        // have no parameterless constructor and can't safely be Activator.CreateInstance'd
+        // on their own — skip them instead of failing the whole lookup, same as
+        // ReductionCostCatalog.
+        foreach (var type in ProblemProvider.Reductions.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IReduction instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    reductions.Add(instance.reductionName);
                 }
-            }
-        } catch { }
+            } catch { }
+        }
 
         return reductions.Distinct();
+    }
+
+    private IEnumerable<string> GetAllVerifiers(string contributorName) {
+        var verifiers = new List<string>();
+
+        // Reflection-derived registry (ProblemProvider.Verifiers), same pattern as
+        // Problems/Solvers/Reductions — skip a verifier that can't be
+        // default-constructed instead of failing the whole lookup.
+        foreach (var type in ProblemProvider.Verifiers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IVerifier instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    verifiers.Add(instance.verifierName);
+                }
+            } catch { }
+        }
+
+        return verifiers.Distinct();
+    }
+
+    private IEnumerable<string> GetAllVisualizations(string contributorName) {
+        var visualizations = new List<string>();
+
+        // Reflection-derived registry (ProblemProvider.Visualizers), same pattern as
+        // Problems/Solvers/Reductions — skip a visualization that can't be
+        // default-constructed instead of failing the whole lookup.
+        foreach (var type in ProblemProvider.Visualizers.Values) {
+            try {
+                if (Activator.CreateInstance(type) is IVisualization instance &&
+                    instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {
+                    visualizations.Add(instance.visualizationName);
+                }
+            } catch { }
+        }
+
+        return visualizations.Distinct();
     }
 
     private ContributorInfo? GetContributorInfo(string contributorName) {
@@ -332,6 +298,14 @@ public class ContributorPortfolio {
     [JsonPropertyName("githubUsername")]
     public string? GithubUsername { get; set; }
 
+    /// <summary>Their GitHub contribution stats on the Redux (backend) repo — null if not yet collected</summary>
+    [JsonPropertyName("reduxStats")]
+    public ContributorRepoStats? ReduxStats { get; set; }
+
+    /// <summary>Their GitHub contribution stats on the Redux_GUI (frontend) repo — null if not yet collected</summary>
+    [JsonPropertyName("reduxGuiStats")]
+    public ContributorRepoStats? ReduxGuiStats { get; set; }
+
     /// <summary>Every NP-Complete problem they've touched</summary>
     [JsonPropertyName("problemsContributed")]
     public List<string> ProblemsContributed { get; set; } = new List<string>();
@@ -344,7 +318,20 @@ public class ContributorPortfolio {
     [JsonPropertyName("reductionsCreated")]
     public List<string> ReductionsCreated { get; set; } = new List<string>();
 
-    /// <summary>Quick total — problems + solvers + reductions combined</summary>
+    /// <summary>Every verifier they've written</summary>
+    [JsonPropertyName("verifiersContributed")]
+    public List<string> VerifiersContributed { get; set; } = new List<string>();
+
+    /// <summary>Every visualization they've built</summary>
+    [JsonPropertyName("visualizationsCreated")]
+    public List<string> VisualizationsCreated { get; set; } = new List<string>();
+
+    /// <summary>Real historical work with no live class left to credit it on (e.g. a deleted problem) —
+    /// manually maintained, not counted in TotalContributions since it can't be verified against current code.</summary>
+    [JsonPropertyName("legacyContributions")]
+    public List<string> LegacyContributions { get; set; } = new List<string>();
+
+    /// <summary>Quick total — problems + solvers + reductions + verifiers + visualizations combined</summary>
     [JsonPropertyName("totalContributions")]
     public int TotalContributions { get; set; }
 }
@@ -370,6 +357,35 @@ public class ContributorInfo {
     /// <summary>Their GitHub username — leave blank if they don't have one or haven't added it yet</summary>
     [JsonPropertyName("githubUsername")]
     public string? GithubUsername { get; set; }
+
+    /// <summary>Other GitHub accounts the same person has committed from — optional. The stats tool treats them as already known and adds their PRs to this person's counts (#613).</summary>
+    [JsonPropertyName("otherGithubUsernames")]
+    public List<string>? OtherGithubUsernames { get; set; }
+
+    /// <summary>Their GitHub contribution stats on the Redux (backend) repo — null if not yet collected. One-time manual population from a 2026 contributor audit; see issue #565 for the follow-up automation that will keep this current.</summary>
+    [JsonPropertyName("reduxStats")]
+    public ContributorRepoStats? ReduxStats { get; set; }
+
+    /// <summary>Their GitHub contribution stats on the Redux_GUI (frontend) repo — null if not yet collected</summary>
+    [JsonPropertyName("reduxGuiStats")]
+    public ContributorRepoStats? ReduxGuiStats { get; set; }
+
+    /// <summary>Freeform notes for real historical work that can't be reflected live — e.g. a problem that was
+    /// later deleted from the codebase, so there's no compiled class left to credit them on. Manually maintained;
+    /// unlike ProblemsContributed/SolversCreated/etc. this is never derived from currently-registered code.</summary>
+    [JsonPropertyName("legacyContributions")]
+    public List<string>? LegacyContributions { get; set; }
+}
+
+/// <summary>Per-repo GitHub contribution counts for a contributor. All fields are nullable/optional — many contributors only have partial data, especially for pre-PR-workflow-era work.</summary>
+public class ContributorRepoStats {
+    /// <summary>Number of pull requests merged in this repo</summary>
+    [JsonPropertyName("prsMerged")]
+    public int? PrsMerged { get; set; }
+
+    /// <summary>Number of formal PR reviews given in this repo</summary>
+    [JsonPropertyName("reviews")]
+    public int? Reviews { get; set; }
 }
 
 /// <summary>Slim version used by the /directory endpoint — just enough for the About Us page to show names and GitHub links without loading full profiles</summary>

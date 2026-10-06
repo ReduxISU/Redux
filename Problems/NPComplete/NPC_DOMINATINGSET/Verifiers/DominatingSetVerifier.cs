@@ -1,31 +1,24 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_DOMINATINGSET;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Verifiers;
 
 class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
+    public const string CertificateGrammar = "D subset N | every node not in D has a neighbor in D (dominating set), |D| <= K";
+    public const string CertificateExample = "{1,3}";
 
     // --- Fields ---
-    private string _verifierName = "Dominating Set Verifier";
-    private string _verifierDefinition = "This is a Verifier for Dominating Set";
-    private string _source =
+    public string verifierName { get; } = "Default Dominating Set Verifier";
+    public string verifierDefinition { get; } = "This is a Verifier for Dominating Set";
+    public string source { get; } =
         "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";
-    private string _sourceLink =
+    public string sourceLink { get; } =
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
-    private string[] _contributors = { "Quinton Smith" };
-    private string _certificate = string.Empty;
-
-    // --- Properties ---
-    public string verifierName => _verifierName;
-    public string verifierDefinition => _verifierDefinition;
-    public string source => _source;
-    public string sourceLink => _sourceLink;
-    public string[] contributors => _contributors;
-    public string certificate => _certificate;
-
+    public string[] contributors { get; } = { "Quinton Smith" };
+    public string certificate { get; } = string.Empty;
 
     // --- Methods Including Constructors ---
     public DominatingSetVerifier() {
@@ -63,22 +56,11 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
         return V;
     }
 
-    // Parses the certificate string into a list of strings
+    // Parses the certificate string (a set of chosen node names) via SPADE
     private List<string> ParseCertificate(string certificate) {
-        if (string.IsNullOrWhiteSpace(certificate)) {
-            return new List<string>();
-        }
-        certificate = certificate.Trim();
-
-        if (certificate.StartsWith("{") && certificate.EndsWith("}")) {
-            certificate = certificate.Substring(1, certificate.Length - 2);
-        }
-
-        if (string.IsNullOrWhiteSpace(certificate)) {
-            return new List<string>();
-        }
-
-        return certificate.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+        UtilCollection chosen = new UtilCollection(certificate);
+        chosen.assertUnordered();
+        return chosen.ToList().Select(n => n.ToString()).ToList();
     }
 
     private bool CandidateVerticesExist(HashSet<string> allVertices, IEnumerable<string> candidate)
@@ -96,10 +78,14 @@ class DominatingSetVerifier : IVerifier<DOMINATINGSET> {
 
 
 
-    public bool verify(DOMINATINGSET problem, string certificate) {
-        _certificate = certificate ?? string.Empty;
+    public bool verify(DOMINATINGSET problem, string certificateInput) {
+        HashSet<string> chosen;
 
-        var chosen = new HashSet<string>(ParseCertificate(_certificate));
+        try {
+            chosen = new HashSet<string>(ParseCertificate(certificateInput));
+        } catch {
+            return false;
+        }
         var adj = BuildAdjacencyList(problem.edges);
         var allV = GetAllVertices(problem, problem.edges);
 

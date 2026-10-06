@@ -8,6 +8,8 @@ interface IProblem {
 
     string formalDefinition { get; }
     string problemDefinition { get; }
+    string inputDescription { get; }
+    string outputDescription { get; }
     string source { get; }
     string wikiName { get; }
     string defaultInstance { get; }
@@ -24,6 +26,10 @@ interface IProblem {
     // Declared, not derived. The Problems/<Folder>/ layout is a filing convention and is
     // wrong for at least a dozen problems; this is the source of truth.
     ComplexityClass complexityClass { get => ComplexityClass.Unclassified; }
+
+    // Declared, not derived. Subject-matter category (Garey & Johnson's taxonomy) for
+    // filtering/discovery, independent of complexityClass.
+    ProblemType problemType { get => ProblemType.Unclassified; }
 
     string[] contributors { get; }
 

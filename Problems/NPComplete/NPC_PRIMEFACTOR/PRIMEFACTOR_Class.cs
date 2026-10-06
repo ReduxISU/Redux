@@ -13,10 +13,17 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic";
     public string formalDefinition { get; } = "Prime Factorization = {<i> | i is int}"; // Mathematical description of the problem (todo later)
     public string problemDefinition { get; } = "The prime factorization algorithm solves the decomposition of a positive integer into a product of prime integers."; // plaintext description of the problem
+    public string inputDescription { get; } = "n, a positive integer";
+    public string outputDescription { get; } = "The prime factorization of n";
     public string source { get; } = "Gauss, Carl Friedrich (1801), Disquisitiones Arithmeticae (in Latin), Leipzig: Gerh. Fleischer"; // Academic paper proper citation
     public string sourceLink { get; } = "https://archive.org/details/disquisitionesa00gaus/page/330/mode/2up"; // Link to the academic paper
-    private static readonly string _defaultInstance = "15";
+    public const string InstanceGrammar = "{i | i is int}";
+    private static readonly string _defaultInstance = "12";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } =
+        $"Format: {InstanceGrammar} (a single positive integer to factor) Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {PrimeFactorVerifier.CertificateGrammar} Example: {PrimeFactorVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
     public ShorsQuantumSolver defaultSolver { get; } = new ShorsQuantumSolver();
@@ -24,8 +31,11 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
     public string[] contributors { get; } = { "Paul Gilbreath", "Alex Svancara" };
     // Declared, not derived. Integer factorization is in NP and co-NP but not known
-    // NP-complete and not known to be in P — the textbook example of NPIntermediate.
-    public ComplexityClass complexityClass { get; } = ComplexityClass.NPIntermediate;
+    // NP-complete and not known to be in P — the textbook example of a problem in NP
+    // that isn't also NP-complete.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NP;
+    // Declared, not derived. Number-theoretic decomposition problem.
+    public ProblemType problemType { get; } = ProblemType.AlgebraAndNumberTheory;
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();
@@ -73,7 +83,7 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
         //
 
 
-        StringParser parser = new("{ i | i is int}");
+        StringParser parser = new(InstanceGrammar);
 
         parser.parse(instance);
 

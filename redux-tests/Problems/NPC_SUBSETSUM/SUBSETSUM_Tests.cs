@@ -124,6 +124,23 @@ public class SUBSETSUM_Tests {
         Assert.Equal("{}", solver.solve(problem));
     }
 
+    [Fact]
+    public void SUBSETSUM_Solver_Handles_Single_Element_Instance() {
+        // The smallest useful input: one element that equals the target.
+        SUBSETSUM problem = new SUBSETSUM("({5},5)");
+        SubsetSumBruteForce solver = new SubsetSumBruteForce();
+        Assert.Equal("{5}", solver.solve(problem));
+    }
+
+    [Fact]
+    public void SUBSETSUM_Solver_Returns_Empty_When_Timer_Has_Expired() {
+        // An expired timer makes the solver give up and return the "no solution" value.
+        SUBSETSUM problem = new SUBSETSUM();
+        SubsetSumBruteForce solver = new SubsetSumBruteForce();
+        solver.timerHasExpired = true;
+        Assert.Equal("{}", solver.solve(problem));
+    }
+
     // -------------------------------------------------------------------------
     // Reductions — must accept / produce the SPADE instance format
     // -------------------------------------------------------------------------
@@ -143,6 +160,14 @@ public class SUBSETSUM_Tests {
         Assert.NotNull(reduction.reductionTo);
     }
 
+    [Theory]
+    [InlineData("({3,5,7},8)", "{3,5,7,9,8}")] // sum 15: appends T+1 = 9 and sum-T+1 = 8
+    [InlineData("({5},5)", "{5,6,1}")]         // smallest input: sum 5: appends 6 and 1
+    public void SUBSETSUM_PartitionReduction_Produces_Expected_Instance(string instance, string expected) {
+        SubsetSumToPartitionReduction reduction = new SubsetSumToPartitionReduction(instance);
+        Assert.Equal(expected, reduction.reductionTo.instance);
+    }
+
     [Fact]
     public void SUBSETSUM_KarpExactCoverReduction_Produces_Parseable_Instance() {
         KarpExactCoverToSubsetSum reduction = new KarpExactCoverToSubsetSum();
@@ -153,5 +178,46 @@ public class SUBSETSUM_Tests {
         SUBSETSUM roundTrip = new SUBSETSUM(producedInstance);
         Assert.Equal(reduction.reductionTo.S.Count, roundTrip.S.Count);
         Assert.Equal(reduction.reductionTo.T, roundTrip.T);
+    }
+
+    // -------------------------------------------------------------------------
+    // FastApproximation — must never return a certificate that fails verification
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void FastApproximation_BestTrimmedSumMissesTarget_ReturnsEmptySet() {
+        // Trimming drops 1001 (within 0.83% of 1000), so the best reachable sum is 1005, not 1006.
+        SUBSETSUM problem = new SUBSETSUM("({1000,1001,5},1006)");
+        FastApproximation solver = new FastApproximation();
+
+        Assert.Equal("{}", solver.solve(problem));
+    }
+
+    [Theory]
+    [InlineData("({1,7,12,15},28)")]
+    [InlineData("({3,5,9},14)")]
+    [InlineData("({2,4,6},10)")]
+    [InlineData("({1000,1001,5},1006)")]
+    [InlineData("({1000,1001,5},1005)")]
+    [InlineData("({3,5,9},1)")]   // no solution
+    [InlineData("({3,5,9},0)")]   // empty-sum target
+    [InlineData("({3,5,9},-4)")]  // negative target
+    public void FastApproximation_NonEmptyResult_AlwaysPassesVerifier(string instance) {
+        SUBSETSUM problem = new SUBSETSUM(instance);
+        FastApproximation solver = new FastApproximation();
+
+        string solution = solver.solve(problem);
+
+        Assert.True(solution == "{}" || new SubsetSumVerifier().verify(problem, solution),
+            $"FastApproximation returned unverifiable certificate {solution} for {instance}");
+    }
+
+    [Fact]
+    public void FastApproximation_DefaultInstance_FindsVerifiedSolution() {
+        SUBSETSUM problem = new SUBSETSUM();
+        string solution = new FastApproximation().solve(problem);
+
+        Assert.NotEqual("{}", solution);
+        Assert.True(new SubsetSumVerifier().verify(problem, solution));
     }
 }

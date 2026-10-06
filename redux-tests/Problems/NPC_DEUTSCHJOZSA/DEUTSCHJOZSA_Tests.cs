@@ -94,6 +94,6 @@ public class DEUTSCHJOZSA_tests {
         // verifiable certificate for defaultInstance — not just descriptive prose.
         var problem = new DEUTSCHJOZSA();
         var verifier = new DeutschJozsaVerifier();
-        Assert.True(verifier.verify(problem, "constant"));
+        Assert.True(verifier.verify(problem, DeutschJozsaVerifier.CertificateExample));
     }
 }

@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
 
     // --- Fields ---
-    public string solverName { get; } = "PrimeFactor Trial Division Solver";
+    public string solverName { get; } = "Prime Factorization Trial Division";
     public string solverDefinition { get; } = "A brute-force trial division algorithm for prime factorization. " +
         "This solver iteratively tests divisibility starting from the smallest prime (2) " +
         "and continues dividing the number by each prime factor found until the number is fully factored. " +

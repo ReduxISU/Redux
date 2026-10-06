@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 class ExactCoverRecursive : ISolver<EXACTCOVER> {
 
     // --- Fields ---
-    public string solverName { get; } = "Exact Cover Recursive Solver";
+    public string solverName { get; } = "Exact Cover Recursive";
     public string solverDefinition { get; } = "This is a optimized recursive solver for Exact Cover";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Russell Phillips" };

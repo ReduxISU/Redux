@@ -7,11 +7,11 @@ using API.Problems.NPComplete.NPC_TSP.Solvers;
 
 namespace API.Problems.NPComplete.NPC_TSP.Visualizations;
 
-class TSPDefaultVisualization : IVisualization<TSP> {
+class TSPDefaultVisualization : IVisualization<TSP, API_GraphJSON> {
 
     // --- Fields ---
-    public string visualizationName { get; } = "Travelling Sales Person Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for Travelling Sales Person";
+    public string visualizationName { get; } = "Traveling Salesperson Visualization";
+    public string visualizationDefinition { get; } = "This is a default visualization for Traveling Salesperson";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
@@ -21,7 +21,7 @@ class TSPDefaultVisualization : IVisualization<TSP> {
     public TSPDefaultVisualization() {
 
     }
-    public API_JSON visualize(TSP tsp) {
+    public API_GraphJSON visualize(TSP tsp) {
         return tsp.graph.ToAPIGraph();
     }
 

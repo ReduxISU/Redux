@@ -1,0 +1,15 @@
+.git/
+.github/
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+.claude/
+.rbs/
+report.md
+Documentation/
+Dockerfile
+.dockerignore
+**/bin/
+**/obj/

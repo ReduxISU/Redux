@@ -8,7 +8,7 @@ using System.Text;
 namespace API.Problems.P.P_NFA.Solvers;
 
 class NFASolver : ISolver<NFA> {
-    public string solverName { get; } = "NFA Solver";
+    public string solverName { get; } = "NFA Backtracking";
     public string solverDefinition { get; } = "This solver enumerates all accepting runs of a nondeterministic finite automaton (returns all successful state sequences).";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };

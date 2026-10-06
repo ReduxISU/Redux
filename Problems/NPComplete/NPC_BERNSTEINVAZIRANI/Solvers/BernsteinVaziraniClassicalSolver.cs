@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
 
     // --- Fields ---
-    public string solverName { get; } = "Bernstein Vazirani Classical Solver";
+    public string solverName { get; } = "Bernstein-Vazirani Classical";
     public string solverDefinition { get; } = "This is a classical verifier for the Bernstein-Vazirani problem which runs in O(n) time.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Jason L. Wright" };

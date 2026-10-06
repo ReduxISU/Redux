@@ -11,7 +11,7 @@ namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
 
     // --- Fields ---
-    public string solverName { get; } = "Deutsch-Jozsa Quantum API Solver";
+    public string solverName { get; } = "Deutsch-Jozsa Algorithm";
     public string solverDefinition { get; } = "Calls external quantum computing API to solve Deutsch-Jozsa's algorithm";
     public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors { get; } = { "Grant Gardner" };

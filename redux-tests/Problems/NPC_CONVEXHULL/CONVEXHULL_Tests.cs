@@ -51,4 +51,32 @@ public class CONVEXHULL_Tests {
         Assert.Equal(certificate, solvedString);
     }
 
+    // -------------------------------------------------------------------------
+    // Format declarations
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void CONVEXHULL_Instance_Format_Described() {
+        CONVEXHULL hull = new CONVEXHULL();
+        Assert.NotNull(hull.instanceFormat);
+        Assert.NotEmpty(hull.instanceFormat);
+        Assert.Contains("(x,y)", hull.instanceFormat);
+    }
+
+    [Fact]
+    public void CONVEXHULL_Certificate_Format_Described() {
+        CONVEXHULL hull = new CONVEXHULL();
+        Assert.NotNull(hull.certificateFormat);
+        Assert.NotEmpty(hull.certificateFormat);
+        Assert.Contains("convex hull", hull.certificateFormat);
+    }
+
+    [Fact]
+    public void CONVEXHULL_Certificate_Format_Example_Is_Actually_Valid() {
+        // The example quoted in certificateFormat must be a real, verifiable
+        // certificate for defaultInstance — not just descriptive prose.
+        CONVEXHULL hull = new CONVEXHULL();
+        Assert.True(hull.defaultVerifier.verify(hull, ConvexHullVerifier.CertificateExample));
+    }
+
 }

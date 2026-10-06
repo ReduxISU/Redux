@@ -1,0 +1,63 @@
+name: contributor stats sync
+
+on:
+  schedule:
+    # Weekly, Sunday 06:00 UTC.
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Scan for new contributors but do not write the file or open a PR'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # Both Redux and Redux_GUI are public repos, so the default GITHUB_TOKEN (scoped to this
+      # repo for writes) can still read the other repo's public commit data over the API -- no
+      # separate PAT needed. See #565. This job only finds new contributors; PR counts are
+      # filled in at release time by the docker workflow (#613) and must not be committed.
+      - name: Scan for new contributors
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet run --configuration Release --project Tools/ContributorStatsSync -- \
+            --scan-only ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Open PR with new contributors
+        if: ${{ !inputs.dry_run }}
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: 'chore: add newly detected contributors'
+          title: 'New contributors detected — please review'
+          body: |
+            Automated update to `wwwroot/contributorInfo.json` from the weekly contributor
+            scan (#565): it only adds stub entries, with zeroed counts, for GitHub accounts
+            that have committed to Redux or Redux_GUI and aren't listed yet.
+
+            **A person must review every new entry before merging.** Check that it isn't a
+            second account for someone already listed -- if it is, merge the two by hand
+            instead of merging this PR as-is (see #564's audit for the identity-resolution
+            conventions this file uses). A new entry keyed by a GitHub login instead of a real
+            name means no profile name could be resolved.
+
+            PR counts are filled in at release time by the docker workflow (#613) and must not
+            be committed -- leave them at 0.
+          branch: automation/contributor-stats-sync
+          delete-branch: true
+          labels: contributor-stats,automated

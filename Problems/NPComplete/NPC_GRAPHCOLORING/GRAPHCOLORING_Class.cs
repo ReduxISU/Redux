@@ -14,13 +14,19 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Graph_coloring";
     public string formalDefinition { get; } = "GRAPHCOLORING = {<G,k> | G is a graph that has a k-coloring}";
     public string problemDefinition { get; } = "An assignment of labels (e.g., colors) to the vertices of a graph such that no two adjacent vertices are of the same label. This is called a vertex coloring.";
+    public string inputDescription { get; } = "G, a graph, and k, the number of colors";
+    public string outputDescription { get; } = "True or False, whether G has a valid k-coloring";
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Daniel Igbokwe", "Alex Diviney" };
 
+    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string certificateFormat { get; } =
+        $"Format: {GraphColoringVerifier.CertificateGrammar} Example: {GraphColoringVerifier.CertificateExample}";
 
     public string instance { get; set; } = string.Empty;
 
@@ -43,6 +49,7 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
     public UtilCollectionGraph graph { get; }
     // Declared, not derived. GRAPHCOLORING is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     #endregion
 
@@ -106,7 +113,7 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
     public GRAPHCOLORING(string GInput) {
         instance = GInput;
 
-        StringParser graphcoloring = new("{((N,E),K) | N is set, E subset N unorderedcross N, K is int}");
+        StringParser graphcoloring = new(InstanceGrammar);
         graphcoloring.parse(GInput);
         nodes = graphcoloring["N"].ToList().Select(node => node.ToString()).ToList();
         edges = graphcoloring["E"].ToList().Select(edge => {

@@ -16,7 +16,7 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
 
 
     // --- Fields ---
-    public string reductionName { get; } = "Lawler and Karp Arcset Reduction";
+    public string reductionName { get; } = "Lawler-Karp Arc Set Reduction";
     public string reductionDefinition { get; } = @"This Reduction is an implementation of Lawler and Karp's reduction as laid out in Karp's 21 NP_Complete Problems. 
                                             It takes an instance of an undirected graph (specifically an instance of VERTEXCOVER) and returns an instance of ARCSET (ie. a Directed Graph)
                                             Specifically, a reduction follows the following algorithm: 
@@ -32,6 +32,13 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
     // reduce() emits 2 gadget nodes + O(1) gadget edges per input node, and O(1)
     // directed edges per input edge — O(n+m), no cross-product terms.
     public ReductionCost cost { get; } = ReductionCost.Linear;
+    // Declared, not derived. Each node is independently replaced by a fixed 0/1-split
+    // gadget, and each undirected edge independently by a fixed directed pair.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. One pass over nodes, one pass over edges.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n + m), n = |VERTEXCOVER.nodes|, m = |edges|";
     public List<Gadget> gadgets { get; }
     private VERTEXCOVER _reductionFrom;
     private ARCSET _reductionTo;

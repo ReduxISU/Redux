@@ -8,33 +8,35 @@ namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
 class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Verifier, {NAME_PASCAL_CASE}Visualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "{NAME}";
-    public string problemLink {get;} = "TODO";
-    public string formalDefinition {get;} = "TODO";
-    public string problemDefinition {get;} = "TODO";
-    public string source {get;} = "TODO";
-    public string sourceLink {get;} = "TODO";
+    public string problemName { get; } = "{NAME}";
+    public string problemLink { get; } = "TODO";
+    public string formalDefinition { get; } = "TODO";
+    public string problemDefinition { get; } = "TODO";
+    public string inputDescription { get; } = "TODO: short plain-English name for the input, e.g. 'Φ, a boolean formula'";
+    public string outputDescription { get; } = "TODO: short plain-English description of the output, e.g. 'True or False'";
+    public string source { get; } = "TODO";
+    public string sourceLink { get; } = "TODO";
     private static readonly string _defaultInstance = "TODO";
-    public string defaultInstance {get;} = _defaultInstance;
+    public string defaultInstance { get; } = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat {get;} = "TODO: describe the instance string format with an embedded example, e.g. 'Boolean formula in 3-CNF, clauses joined by `&`. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)'";
-    public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
-    public string instance {get;set;} = string.Empty;
-    public string wikiName {get;} = "";
-    public {NAME_PASCAL_CASE}Solver defaultSolver {get;} = new {NAME_PASCAL_CASE}Solver();
-    public {NAME_PASCAL_CASE}Verifier defaultVerifier {get;} = new {NAME_PASCAL_CASE}Verifier();
-    public {NAME_PASCAL_CASE}Visualization defaultVisualization {get;} = new {NAME_PASCAL_CASE}Visualization();
-    public string[] contributors {get;} = { "TODO" };
-    // Declared, not derived — do NOT infer this from which Problems/<Folder>/ this file
-    // lives under. The folder is a filing convention only and is wrong for a dozen-plus
-    // existing problems; declaring it explicitly here is the only source of truth the
-    // API trusts. Leave as Unclassified (the default — this line can simply be deleted)
-    // until someone has actually checked the literature/argued the class. Getting this
-    // wrong is a public correctness claim the API will serve to callers.
-    // public ComplexityClass complexityClass {get;} = ComplexityClass.TODO;
+    public string instanceFormat { get; } = "TODO: describe the instance string format with an embedded example, e.g. 'Boolean formula in 3-CNF, clauses joined by `&`. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)'";
+    public string certificateFormat { get; } = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
+    public string instance { get; set; } = string.Empty;
+    public string wikiName { get; } = "";
+    public {NAME_PASCAL_CASE}Solver defaultSolver { get; } = new {NAME_PASCAL_CASE}Solver();
+    public {NAME_PASCAL_CASE}Verifier defaultVerifier { get; } = new {NAME_PASCAL_CASE}Verifier();
+    public {NAME_PASCAL_CASE}Visualization defaultVisualization { get; } = new {NAME_PASCAL_CASE}Visualization();
+    public string[] contributors { get; } = { "TODO" };
+    // Declared, not derived: do NOT infer these from the Problems/<Folder>/ this file lives
+    // in (the folder is a filing convention and is wrong for many existing problems).
+    // Getting them wrong is a public correctness claim the API serves to callers.
+    // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ComplexityClass.cs for what each value means.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.Unclassified;
+    // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ProblemType.cs for what each value means.
+    public ProblemType problemType { get; } = ProblemType.Unclassified;
 
     // --- Properties ---
 
@@ -64,7 +66,7 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Ve
         // V = int.Parse(parser["v"].ToString());
         //
         // Or a unidirected unweighted graph example using SPADE
-        // 
+        //
         // StringParser parser = new("{(N,E) | N is set, E subset N unorderdcross N}");
         // parser.parse(instance);
         // edges = parser["E"];

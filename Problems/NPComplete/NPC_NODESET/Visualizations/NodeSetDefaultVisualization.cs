@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_NODESET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Visualizations;
 
-class NodeSetDefaultVisualization : IVisualization<NODESET> {
+class NodeSetDefaultVisualization : IVisualization<NODESET, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Node Set Visualization";
@@ -21,7 +21,7 @@ class NodeSetDefaultVisualization : IVisualization<NODESET> {
     public NodeSetDefaultVisualization() {
 
     }
-    public API_JSON visualize(NODESET nodeSet) {
+    public API_GraphJSON visualize(NODESET nodeSet) {
         return nodeSet.graph.ToAPIGraph();
     }
 

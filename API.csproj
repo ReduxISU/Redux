@@ -27,5 +27,14 @@
     <None Remove="redux-tests/**" />
   </ItemGroup>
 
+  <!-- The contributor stats sync tool lives in its own console project (Tools/ContributorStatsSync).
+       Same reasoning as redux-tests above: the Sdk.Web glob would otherwise pull its Program.cs
+       (which has its own Main and references Octokit, not part of API.csproj) into API.dll. -->
+  <ItemGroup>
+    <Compile Remove="Tools/ContributorStatsSync/**" />
+    <Content Remove="Tools/ContributorStatsSync/**" />
+    <None Remove="Tools/ContributorStatsSync/**" />
+  </ItemGroup>
+
 
 </Project>

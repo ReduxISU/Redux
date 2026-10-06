@@ -3,7 +3,7 @@ using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_SAT;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 
-class SatDefaultVisualization : IVisualization<SAT> {
+class SatDefaultVisualization : IVisualization<SAT, API_SAT> {
     public string visualizationName { get; } = "SAT Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for SAT";
     public string source { get; } = "";
@@ -15,7 +15,7 @@ class SatDefaultVisualization : IVisualization<SAT> {
     public SatDefaultVisualization() {
 
     }
-    public API_JSON visualize(SAT instance) {
+    public API_SAT visualize(SAT instance) {
         return new API_SAT(instance);
     }
 

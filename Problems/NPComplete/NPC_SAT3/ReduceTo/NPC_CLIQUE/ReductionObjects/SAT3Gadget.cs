@@ -87,11 +87,11 @@ public class SAT3Gadget : IGadget {
                 reductionTypeSame = true;
             }
             if (this._problemType.Equals(castGadget.problemType)) {
-                reductionTypeSame = true;
+                problemTypeSame = true;
 
             }
-            if (this._reductionType.Equals(castGadget.gadgetString)) {
-                reductionTypeSame = true;
+            if (this._gadgetString.Equals(castGadget.gadgetString)) {
+                gadgetStringSame = true;
             }
 
             if (reductionTypeSame == true && problemTypeSame == true && gadgetStringSame == true) {

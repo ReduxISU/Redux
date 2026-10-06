@@ -8,7 +8,7 @@ using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 
-class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA> {
+class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
         "Builds an n-qubit Deutsch-Jozsa circuit with Hadamard prep, highlights the oracle, and shows how one query distinguishes constant vs. balanced functions via interference using D3.js.";
@@ -18,7 +18,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA> {
     public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
     public DeutschJozsaD3Visualization() { }
 
-    public API_JSON visualize(DEUTSCHJOZSA instance) {
+    public API_QUANTUMCIRCUIT visualize(DEUTSCHJOZSA instance) {
         return BuildVisualization(instance, solution: null);
     }
 
@@ -26,7 +26,7 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA> {
         return BuildVisualization(instance, solution);
     }
 
-    private API_JSON BuildVisualization(DEUTSCHJOZSA instance, string? solution) {
+    private API_QUANTUMCIRCUIT BuildVisualization(DEUTSCHJOZSA instance, string? solution) {
         string circuitJson = BuildStaticD3Payload(instance, solution);
         string? answerFromApi = null;
 

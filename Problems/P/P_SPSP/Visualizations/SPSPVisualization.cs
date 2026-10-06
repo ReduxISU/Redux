@@ -1,12 +1,12 @@
 using API.Interfaces;
-using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.P.P_SPSP.Solvers;
+using API.Problems.P.P_SPSP.Verifiers;
 
 namespace API.Problems.P.P_SPSP.Visualizations;
 
-class SPSPVisualization : IVisualization<SPSP> {
+class SPSPVisualization : IVisualization<SPSP, API_GraphJSON> {
     public string visualizationName { get; } = "Single Pair Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Pair Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
@@ -16,7 +16,7 @@ class SPSPVisualization : IVisualization<SPSP> {
 
     public SPSPVisualization() { }
 
-    public API_JSON visualize(SPSP problem) {
+    public API_GraphJSON visualize(SPSP problem) {
         // For simplicity, we will just return a JSON representation of the graph
         // In a real implementation, this would be more complex and would include visual elements
         return problem.graph.ToAPIGraph();
@@ -32,7 +32,7 @@ class SPSPVisualization : IVisualization<SPSP> {
         List<string> path;
         try {
             // Parse the solution as a path
-            path = GraphParser.parseNodeListWithStringFunctions(solution);
+            path = SPSPVerifier.ParsePath(solution);
         } catch {
             // Invalid solution format, return graph with no highlights
             return visualize(problem);
@@ -75,7 +75,7 @@ class SPSPVisualization : IVisualization<SPSP> {
 
             List<string> path;
             try {
-                path = GraphParser.parseNodeListWithStringFunctions(step);
+                path = SPSPVerifier.ParsePath(step);
             } catch {
                 result.Add(visualize(problem));
                 continue;

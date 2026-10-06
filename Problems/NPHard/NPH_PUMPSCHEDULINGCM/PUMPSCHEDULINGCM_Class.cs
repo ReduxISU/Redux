@@ -39,12 +39,15 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
         "Determine which pumps to activate each hour over a 24-hour period so that water demand is met, " +
         "the storage tank never overflows or fails to supply the water demand, and the total energy cost (based on peak/off-peak tariffs " +
         "plus pump startup costs) is minimized.";
+    public string inputDescription { get; } = "Tank state, hourly water demand, peak-hour tariffs, and pump specifications";
+    public string outputDescription { get; } = "The hourly pump activation schedule and its total cost, minimizing energy and startup costs";
     public string source { get; } = "";
     public string wikiName { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
     // Declared, not derived. Correctly filed under Problems/NPHard/ already; this
     // makes the folder's claim machine-checkable instead of implicit.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
+    public ProblemType problemType { get; } = ProblemType.SequencingAndScheduling;
 
     // Grammar: 3-section tuple — Tank, Demand config, Pumps.
     // D nests demand curve, peak hours, and tariff rates together as one section.

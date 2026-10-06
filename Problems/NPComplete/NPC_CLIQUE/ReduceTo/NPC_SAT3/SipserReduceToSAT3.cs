@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE;
@@ -20,18 +21,26 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 [NotAGeneralReduction]
 class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.SAT3> {
     // --- Fields ---
-    public string reductionName { get; } = "Sipser's Inverse Clique-to-3SAT Reduction";
+    public string reductionName { get; } = "Sipser's 3SAT Reduction";
     public string reductionDefinition { get; } =
         "Inverse of SipserReduceToCliqueStandard. Reconstructs the 3SAT formula from a "
         + "Sipser-formatted CLIQUE instance (nodes named '<literal>_<clauseIdx>') and "
         + "maps a clique certificate back to a 3SAT assignment. Only meaningful for "
         + "CLIQUE instances produced by SipserReduceToCliqueStandard.";
     public string source { get; } = "Sipser, Michael. Introduction to the Theory of Computation. ACM Sigact News 27.1 (1996): 27-29.";
-    public string[] contributors { get; } = { "Jason Wright" };
+    public string[] contributors { get; } = { "Jason L. Wright" };
     // reduce() does a single pass over the CLIQUE instance's nodes, grouping them into
     // clauses by trailing '_<clauseIdx>' suffix — output clause count is O(n) in the
     // number of input nodes.
     public ReductionCost cost { get; } = ReductionCost.Linear;
+
+    // Declared, not derived. Each node is placed into its clause bucket independently
+    // by parsing its own suffix -- no coordination needed between nodes/clauses.
+    public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
+    // Declared, not derived. Single pass over the input's nodes, grouping by suffix.
+    public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Linear;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? complexity { get; set; } = "O(n), n = |CLIQUE.nodes|";
 
     public List<Gadget> gadgets { get; set; }
 

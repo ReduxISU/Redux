@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CLIQUECOVER.Visualizations;
 
-class CliqueCoverDefaultVisualization : IVisualization<CLIQUECOVER> {
+class CliqueCoverDefaultVisualization : IVisualization<CLIQUECOVER, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Clique Cover Visualization";
@@ -21,7 +21,7 @@ class CliqueCoverDefaultVisualization : IVisualization<CLIQUECOVER> {
     public CliqueCoverDefaultVisualization() {
 
     }
-    public API_JSON visualize(CLIQUECOVER cliquecover) {
+    public API_GraphJSON visualize(CLIQUECOVER cliquecover) {
         return cliquecover.graph.ToAPIGraph();
     }
 

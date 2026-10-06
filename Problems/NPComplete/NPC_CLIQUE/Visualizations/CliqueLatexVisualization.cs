@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 
-class CliqueLatexVisualization : IVisualization<CLIQUE> {
+class CliqueLatexVisualization : IVisualization<CLIQUE, API_GraphJSON> {
     public string visualizationName { get; } = "Clique LaTeX Visualization";
     public string visualizationDefinition { get; } = "This is a visualization for Clique using the LaTeX visualization type";
     public string source { get; } = "";
@@ -19,7 +19,7 @@ class CliqueLatexVisualization : IVisualization<CLIQUE> {
     public CliqueLatexVisualization() {
 
     }
-    public API_JSON visualize(CLIQUE clique) {
+    public API_GraphJSON visualize(CLIQUE clique) {
         return clique.graph.ToAPIGraph();
     }
     public API_JSON SolvedVisualization(CLIQUE clique, string solution) {

@@ -7,8 +7,8 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 class TSPBranchAndBound : ISolver<TSP> {
 
     // --- Fields ---
-    public string solverName { get; } = "Traveling Sales Person Branch and Bound Solver";
-    public string solverDefinition { get; } = "This is a Branch and Bound solver for the NP-Complete Traveling Sales Person problem";
+    public string solverName { get; } = "Traveling Salesperson Branch and Bound";
+    public string solverDefinition { get; } = "This is a Branch and Bound solver for the NP-Complete Traveling Salesperson problem";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }

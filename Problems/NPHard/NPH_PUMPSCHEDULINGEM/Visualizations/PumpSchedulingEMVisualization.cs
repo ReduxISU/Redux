@@ -42,7 +42,7 @@ class API_EmPumpFrame : API_JSON {
 
 // --- Visualization ---
 
-class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM> {
+class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM, API_empty> {
     public string visualizationName { get; } =
         "Pump Scheduling Emergency Resilience — DAG Animation";
     public string visualizationDefinition { get; } =
@@ -54,7 +54,7 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM> {
     public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingEMSolver();
 
-    public API_JSON visualize(PUMPSCHEDULINGEM problem) => new API_empty();
+    public API_empty visualize(PUMPSCHEDULINGEM problem) => new API_empty();
     public API_JSON SolvedVisualization(PUMPSCHEDULINGEM problem, string solution) => new API_empty();
 
     // Explicitly override the default interface dispatch so it is never short-circuited

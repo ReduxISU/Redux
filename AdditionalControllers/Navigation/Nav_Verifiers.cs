@@ -3,20 +3,13 @@ using System.Text.Json;
 using API.Interfaces;
 
 internal static class VerifierNavigationData {
-    internal class VerifierEntry {
-        public string className { get; set; } = "";
-        public string problemName { get; set; } = "";
-    }
-
     // Build once from reflected verifier types so navigation doesn't depend on
     // on-disk source layout.
-    internal static readonly List<VerifierEntry> Entries = Build();
+    internal static readonly List<NavigationEntry> Entries =
+        InterfaceNavigationData.Build(ProblemProvider.Verifiers, typeof(IVerifier<>));
 
-    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) {
-        return Find(problemName, problemTypePrefix)
-            .Select(x => x.className)
-            .ToList();
-    }
+    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) =>
+        InterfaceNavigationData.FindWithoutExtension(Entries, problemName, problemTypePrefix);
 
     internal static bool TryParseProblemKey(string chosenProblem, out string? problemTypePrefix, out string? problemName) {
         problemTypePrefix = null;
@@ -33,42 +26,6 @@ internal static class VerifierNavigationData {
         problemTypePrefix = trimmed[..idx];
         problemName = trimmed[(idx + 1)..];
         return true;
-    }
-
-    private static List<VerifierEntry> Build() {
-        var entries = new List<VerifierEntry>();
-        foreach (var (_, verifierType) in ProblemProvider.Verifiers) {
-            var generic = verifierType.GetInterfaces()
-                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVerifier<>));
-            if (generic == null) continue;
-
-            Type problemType = generic.GetGenericArguments()[0];
-            string className = verifierType.Name;
-            entries.Add(new VerifierEntry {
-                className = className,
-                problemName = problemType.Name,
-            });
-        }
-
-        return entries
-            .GroupBy(e => e.className, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.First())
-            .ToList();
-    }
-
-    // problemTypePrefix is accepted for API compatibility but intentionally ignored:
-    // problem names are unique across complexity classes, so the name alone identifies
-    // the verifier set. (Solver/visualization nav still use the prefix; handled separately.)
-    private static List<VerifierEntry> Find(string? problemName, string? problemTypePrefix) {
-        IEnumerable<VerifierEntry> query = Entries;
-
-        if (!string.IsNullOrWhiteSpace(problemName)) {
-            query = query.Where(e => string.Equals(e.problemName, problemName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return query
-            .OrderBy(e => e.className, StringComparer.OrdinalIgnoreCase)
-            .ToList();
     }
 }
 

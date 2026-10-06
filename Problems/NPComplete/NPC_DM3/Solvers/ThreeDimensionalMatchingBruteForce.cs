@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_DM3.Solvers;
 class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
 
     // --- Fields ---
-    public string solverName { get; } = "3-Dimensional Matching Brute Force Solver";
+    public string solverName { get; } = "3-Dimensional Matching Brute Force";
     public string solverDefinition { get; } = "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Caleb Eardley" };

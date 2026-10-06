@@ -11,10 +11,13 @@ class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualizat
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Minimum_cut";
     public string formalDefinition { get; } = "MinCut = {<G> | G is a weighted undirected graph} — find the partition of V into non-empty S and T minimizing the total weight of edges between S and T.";
     public string problemDefinition { get; } = "Given a weighted undirected graph, find a partition of the vertices into two non-empty sets S and T such that the total weight of edges crossing the partition is minimized.";
+    public string inputDescription { get; } = "A weighted undirected graph";
+    public string outputDescription { get; } = "The set of edges crossing a minimum-weight cut of the graph";
     public string[] contributors { get; } = { "Michael Trosper" };
     // Declared, not derived. Global minimum cut is solvable in polynomial time
     // (Stoer-Wagner).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
+    public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     public string source { get; } = "Stoer, Mechthild, and Frank Wagner. \"A simple min-cut algorithm.\" Journal of the ACM 44, no. 4 (1997): 585-591.";
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/263867.263872";
     public static string _defaultInstance { get; } = "({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)})";

@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_STEINERTREE.Solvers;
 
 namespace API.Problems.NPComplete.NPC_STEINERTREE.Visualizations;
 
-class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE> {
+class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE, API_GraphJSON> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Steiner Tree Visualization";
@@ -21,7 +21,7 @@ class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE> {
     public SteinerTreeDefaultVisualization() {
 
     }
-    public API_JSON visualize(STEINERTREE steinerTree) {
+    public API_GraphJSON visualize(STEINERTREE steinerTree) {
         return steinerTree.graph.ToAPIGraph();
     }
 

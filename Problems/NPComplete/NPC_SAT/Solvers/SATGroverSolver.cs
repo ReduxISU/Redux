@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 /// 
 class SATGroverSolver : ISolver<SAT> {
     // --- Fields ---
-    public string solverName { get; } = "SAT Solver using Grover's Quantum computing algorithm.";
+    public string solverName { get; } = "Grover's Algorithm";
     public string solverDefinition { get; } = "This solver builds the expression as a quantum circuit and then uses Grover's algorithm to probablisticly detemine a solution";
     public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
     public string[] contributors { get; } = { "Jason L. Wright" };

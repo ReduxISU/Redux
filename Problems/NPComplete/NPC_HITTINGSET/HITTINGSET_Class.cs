@@ -15,10 +15,12 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Set_cover_problem#Hitting_set_formulation";
     public string formalDefinition { get; } = "Hitting set family of subsets {U_i} of a set {S_j} where there is a set W such that, for each i, |W union U_i| = 1.";
     public string problemDefinition { get; } = "Hitting set is the problem of finding a set where it shares exactly one element with each subset U_i. ";
+    public string inputDescription { get; } = "U, a universal set, and S, a collection of subsets of U";
+    public string outputDescription { get; } = "True or False, whether a hitting set exists that shares exactly one element with each subset in S";
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string[] contributors { get; } = { "Russell Phillips" };
+    public string[] contributors { get; } = { "Russell Phillips", "Michael Trosper" };
 
     public const string InstanceGrammar = "{(U,S) | U is set, S subset {a | a subset U}}";
     private static string _defaultInstance { get; } = "({1,2,3,4},{{1,3},{2,3,4},{1,4}})";
@@ -37,6 +39,7 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
     public HittingSetDefaultVisualization defaultVisualization { get; } = new HittingSetDefaultVisualization();
     // Declared, not derived. HITTINGSET is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
 
     public UtilCollection _universalSet;
 

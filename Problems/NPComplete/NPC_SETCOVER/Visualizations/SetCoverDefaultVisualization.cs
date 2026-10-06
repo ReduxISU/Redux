@@ -6,7 +6,7 @@ using SPADE;
 using API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 namespace API.Problems.NPComplete.NPC_SETCOVER.Visualizations;
 
-class SetCoverDefaultVisualization : IVisualization<SETCOVER> {
+class SetCoverDefaultVisualization : IVisualization<SETCOVER, API_SET> {
     public string visualizationName { get; } = "Set Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Set Cover";
     public string source { get; } = "";
@@ -18,7 +18,7 @@ class SetCoverDefaultVisualization : IVisualization<SETCOVER> {
     public SetCoverDefaultVisualization() {
 
     }
-    public API_JSON visualize(SETCOVER setcover) {
+    public API_SET visualize(SETCOVER setcover) {
         return new API_SET(new UtilCollection(setcover.instance));
     }
     public API_JSON SolvedVisualization(SETCOVER setcover, string solution) {

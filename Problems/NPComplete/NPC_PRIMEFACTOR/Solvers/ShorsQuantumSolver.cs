@@ -12,14 +12,14 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
 
     // --- Fields ---
     // Solver metadata
-    public string solverName { get; } = "Shor's Quantum API Solver";
+    public string solverName { get; } = "Shor's Algorithm";
     public string solverDefinition { get; } =
         "Calls external quantum computing API to solve prime factorization using Shor's algorithm. " +
         "Shor's algorithm uses quantum phase estimation to efficiently find the period of a " +
         "modular exponential function, which can then be used to determine the prime factors of a " +
         "composite number through classical number theory operations like the greatest common divisor.";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
-    public string[] contributors { get; } = { "Grant Gardner", "George Lake", "Jason Wright" };
+    public string[] contributors { get; } = { "Grant Gardner", "George Lake", "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Delegates to the external quantum-simulator service. complexityBucket is
     // intentionally left Unclassified, not just an unfilled gap: tagging Shor's algorithm with any

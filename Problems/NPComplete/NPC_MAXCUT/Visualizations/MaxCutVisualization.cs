@@ -5,17 +5,17 @@ using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Visualizations;
 
-class MaxCutVisualization : IVisualization<MAXCUT> {
+class MaxCutVisualization : IVisualization<MAXCUT, API_GraphJSON> {
     public string visualizationName { get; } = "Max Cut Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted undirected graph and highlights the edges belonging to the maximum cut, coloring S-side nodes and crossing edges.";
     public string source { get; } = "";
-    public string[] contributors { get; } = { "Max Gruenwoldt", "Michael Trosper" };
+    public string[] contributors { get; } = { "Max Grünwoldt", "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new MaxCutSolver();
 
     public MaxCutVisualization() { }
 
-    public API_JSON visualize(MAXCUT problem) => problem.graph.ToAPIGraph();
+    public API_GraphJSON visualize(MAXCUT problem) => problem.graph.ToAPIGraph();
 
     public API_JSON SolvedVisualization(MAXCUT problem, string solution) {
         if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")

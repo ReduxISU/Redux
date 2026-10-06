@@ -6,7 +6,7 @@ using SPADE;
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
 
 class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
-    public string solverName { get; } = "Pump Scheduling Cost Minimization — DAG Dynamic Programming";
+    public string solverName { get; } = "Pump Scheduling Cost Minimization Dynamic Programming";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents " +
         "(hour, tank-level-bucket, previous-pump-mask). A forward pass computes the minimum-cost " +
