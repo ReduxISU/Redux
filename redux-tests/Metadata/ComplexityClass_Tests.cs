@@ -20,8 +20,8 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory> {
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
     //
     // Same regression class ReductionCost_Tests.cs / VisualizationType_Tests.cs guard
-    // against: Newtonsoft serializes enums as integers by default. The
-    // [JsonConverter]/[StringEnumConverter] attributes pinned on ComplexityClass
+    // against: System.Text.Json serializes enums as integers by default. The
+    // [JsonConverter(typeof(JsonStringEnumConverter<T>))] attributes pinned on ComplexityClass
     // (Interfaces/ComplexityClass.cs) are the actual fix; these are the regression guard.
 
     [Fact]
@@ -57,8 +57,8 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory> {
             checkedCount++;
             Assert.True(classProp.ValueKind == JsonValueKind.String,
                 $"{className}.complexityClass serialized as {classProp.ValueKind}, expected String. This " +
-                "is the Risk-1 regression: Newtonsoft defaults to serializing enums as integers unless " +
-                "StringEnumConverter is pinned on ComplexityClass.");
+                "is the Risk-1 regression: System.Text.Json serializes enums as integers by default unless " +
+                "JsonStringEnumConverter is pinned on ComplexityClass.");
         }
 
         Assert.True(checkedCount > 0, "Found no complexityClass properties in /Navigation/Batch/allInfo.");
