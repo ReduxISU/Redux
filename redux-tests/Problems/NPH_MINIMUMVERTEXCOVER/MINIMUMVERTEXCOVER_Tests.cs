@@ -69,6 +69,18 @@ public class MINIMUMVERTEXCOVER_Tests {
     }
 
     // -------------------------------------------------------------------------
+    // Verifier — empty certificate on a graph with no edges
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void MINIMUMVERTEXCOVER_Verifier_Accepts_EmptyCertificate_When_Graph_Has_No_Edges() {
+        MINIMUMVERTEXCOVER problem = new MINIMUMVERTEXCOVER("({a,b},{})");
+        MinimumVertexCoverVerifier verifier = new MinimumVertexCoverVerifier();
+
+        Assert.True(verifier.verify(problem, "{}"));
+    }
+
+    // -------------------------------------------------------------------------
     // Verifier — malformed certificates (must throw CertificateParseException)
     // -------------------------------------------------------------------------
 
