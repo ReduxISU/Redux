@@ -14,6 +14,7 @@ The mockups are the specification. Everything here was designed, built and teste
 | Redux_GUI mockup (the real page with every problem wired in) | [`mockups/redux-gui.html`](mockups/redux-gui.html), published at https://claude.ai/artifact/WGGHMS9UGDB8is4Bf1e4Mf |
 | Plain-language summary for people | Claude Doc "Fixing Redux's Problem Visualizations", https://claude.ai/code/artifact/eeccd33d-0a1e-4a05-836e-3ef728cc14be |
 | The original proposal this builds on | `Visualization_Proposal.pdf` (shared separately; covers the Graph base, state vocabulary and TikZ retirement) |
+| Issues | Backend tracker #655 (PRs 1–7, with dependencies); frontend trackers ReduxISU/Redux_GUI#351 and ReduxISU/Redux_Frontend#198 |
 
 Open the two HTML files directly in a browser. They work offline.
 
@@ -78,7 +79,7 @@ Do these in order. Steps 3.1 to 3.3 are shared plumbing; every picture type need
 
 ### 3.2 Typed solver steps
 
-- `Interfaces/SolverInterface.cs`: `GetSteps` returns `List<Object>`, and only 5 of 81 solvers implement it (DFA, NFA, SSSP, SPSP, Pump Scheduling).
+- `Interfaces/SolverInterface.cs`: `GetSteps` returns `List<Object>`, and only 6 of 80 solvers implement it (DFA, NFA, SSSP, SPSP and both Pump Scheduling solvers).
 - Add one step type per answer shape, not per visualization:
 
   ```csharp
@@ -112,9 +113,8 @@ For each approved picture type, write one base class that turns *instance + answ
 
 ### 3.6 Fix the bugs found along the way (separate issues, not part of the picture work)
 
-The Claude Doc's "Found along the way" section lists them. Highest impact:
+They are filed as sub-issues of the backend "PR 6" issue under tracker #655. Highest impact:
 
-- Subset Product's checker starts the product at 0, so it can never answer yes.
 - Convex Hull returned a non-hull on 22 of 200 point sets with repeated x values.
 - Cut and Weighted Cut accept any K edges, even ones that don't split the graph.
 - The Pump Scheduling Cost Minimization example certificate fails its own checker.
@@ -192,7 +192,7 @@ Each row lists the mockup module, the design-mockup tab, and what to carry over.
 | Automaton | DFA, NFA | `automaton.js` | BFS-layered layout, merged edge labels, start arrow, double ring, input tape, Garbage state for missing DFA moves, all branches plus one-path view for NFA. |
 | Layered Graph | Topological Sort, Feedback Arc Set, Feedback Node Set, Directed Hamiltonian Cycle, Strongly Connected Components, SSSP, SPSP | `layered.js` | Sugiyama-lite: break cycles by DFS, rank by longest path, barycenter ordering, back edges curved under the rows. Dijkstra distances under nodes. |
 | Flow Network | Minimum S-T Cut | `flow.js` | Source left, sink right, flow/capacity labels, one augmenting path per step, backward residual arcs, S/T sides and cut edges at the end. |
-| Packing | Partition, Subset Sum, Subset Product, Knapsack, Bin Packing | `packing.js` | Items as bars to scale, containers with target or limit lines, log scale for Subset Product, Partition balance. |
+| Packing | Partition, Subset Sum, Knapsack, Bin Packing | `packing.js` | Items as bars to scale, containers with target or limit lines, Partition balance. The mockup also includes Subset Product (log scale); that problem exists only on a demo branch, not in Redux. |
 | Board | Sudoku, N-Queens | `board.js` | Clues vs placed digits, clash links, attacked squares, pencil marks toggle. |
 | Table / Trace Table | Edit Distance, 0-1 Integer Programming, plus a second view for DFA, NFA, SSSP, SPSP | `table.js` (HTML host, not SVG) | DP grid with neighbor arrows and backtrace. Constraint rows with totals. Trace tables reveal rows step by step. Extends `API_TableJSON`. |
 | Quantum Circuit | Bernstein-Vazirani, Deutsch, Deutsch-Jozsa, Simon, Unstructured Search, Prime Factorization | `quantum.js` | One gate-list payload replacing the D3-or-QASM flag. In-browser statevector up to 15 qubits. Bars colored by amplitude sign to show phase kickback. |
