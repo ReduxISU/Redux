@@ -37,6 +37,16 @@ public class INTPROGRAMMING01_Tests {
         Assert.True(verifier.verify(problem, GenericVerifier01INTP.CertificateExample));
     }
 
+    [Theory]
+    [InlineData("(2 0 2)")]
+    [InlineData("(-1 0 0)")]
+    public void INTPROGRAMMING01_Verifier_Rejects_NonBinary_Assignments(string certificate) {
+        INTPROGRAMMING01 problem = new INTPROGRAMMING01();
+        GenericVerifier01INTP verifier = new GenericVerifier01INTP();
+
+        Assert.False(verifier.verify(problem, certificate));
+    }
+
     // -------------------------------------------------------------------------
     // IntegerProgrammingBruteForce
     // -------------------------------------------------------------------------

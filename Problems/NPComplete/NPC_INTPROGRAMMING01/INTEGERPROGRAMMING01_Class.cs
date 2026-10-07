@@ -9,11 +9,11 @@ namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01;
 class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier01INTP, DummyVisualization> {
 
     // --- Fields ---
-    public string problemName { get; } = "0-1 Integer Programming";
+    public string problemName { get; } = "0-1 Integer Linear Programming";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Integer_programming";
-    public string formalDefinition { get; } = "0-1 Integer Programming = {<C,d> | C is an m*n matrix, d is a m-vector, and a n-vector x exists such that Cx is <= d. }";
-    public string problemDefinition { get; } = "0-1 Integer Programming is a system of inequalities, where each variable can be either a 0 or a 1. It is represented by a matrix, where each collumn is a variable, and each row is an inequality. In this implementation the inequality is alway <=. A problem is 0-1 integer programable, if each variable has an assignment of 0 or 1, such that each inequality is satisfiable.";
-    public string inputDescription { get; } = "C, a matrix of coefficients, and d, a vector of bounds";
+    public string formalDefinition { get; } = "0-1 ILP = {<C,d> | C is an m×n integer matrix, d is an integer m-vector, and there is an x ∈ {0,1}ⁿ such that Cx ≤ d}";
+    public string problemDefinition { get; } = "0-1 Integer Linear Programming asks whether a system of linear inequalities has a solution in which every variable is either 0 or 1. The integer coefficient matrix C has one column per variable and one row per inequality, and this implementation writes every constraint as Cx <= d. It is the binary special case of general Integer Linear Programming, whose variables may be any integers.";
+    public string inputDescription { get; } = "C, an integer matrix of coefficients, and d, an integer vector of bounds";
     public string outputDescription { get; } = "True or False, whether a 0-1 assignment x exists such that Cx <= d";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
@@ -31,7 +31,7 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public string instance { get; set; } = string.Empty;
     public string[] contributors { get; } = { "Caleb Eardley", "Michael Trosper" };
-    // Declared, not derived. INTPROGRAMMING01 (0-1 Integer Programming) is NP-complete (Karp, 1972).
+    // Declared, not derived. INTPROGRAMMING01 (0-1 Integer Linear Programming) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.MathematicalProgramming;
 
