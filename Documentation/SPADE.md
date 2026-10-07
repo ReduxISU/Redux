@@ -1,2 +1,0 @@
-# SPADE
-SPADE is a tool that is used for parsing instance strings of problems into a usable data structure. SPADE should be used in the constructors for problem classes. A good example is the knapsack class. Documentation for SPADE can be found [here](https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md)

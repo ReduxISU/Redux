@@ -24,7 +24,7 @@ public class ParseGuard_Tests {
     public void VerifyCertificate_MalformedTextException_BecomesCertificateParseException() {
         var problem = new SUBSETSUM();
         var ex = Assert.Throws<CertificateParseException>(() =>
-            ParseGuard.VerifyCertificate(problem, "x", _ => throw new FormatException("bad")));
+            ParseGuard.VerifyCertificate(problem, "x", () => throw new FormatException("bad")));
         Assert.IsType<FormatException>(ex.InnerException);
     }
 
@@ -32,6 +32,6 @@ public class ParseGuard_Tests {
     public void VerifyCertificate_UnrelatedException_IsNotDisguisedAsParseError() {
         var problem = new SUBSETSUM();
         Assert.Throws<DivideByZeroException>(() =>
-            ParseGuard.VerifyCertificate(problem, "x", _ => throw new DivideByZeroException()));
+            ParseGuard.VerifyCertificate(problem, "x", () => throw new DivideByZeroException()));
     }
 }

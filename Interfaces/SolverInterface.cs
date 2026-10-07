@@ -47,15 +47,6 @@ interface ISolver {
     }
     string solve(string problem);
 
-    /// <summary>
-    /// Solves and reports what the run concluded, with a readable explanation alongside the
-    /// certificate. Solvers that haven't overridden it report <see cref="SolveStatus.Unclassified"/>
-    /// with their raw <c>solve()</c> output as the certificate.
-    /// </summary>
-    SolveResult solveDetailed(string problem) {
-        return new SolveResult(SolveStatus.Unclassified, solve(problem), "");
-    }
-
     List<Object> GetSteps(string instance) {
         return new List<Object>();
     }
@@ -74,14 +65,6 @@ interface ISolver<T> : ISolver where T : IProblem {
     }
 
     string solve(T problem);
-
-    SolveResult ISolver.solveDetailed(string problem) {
-        return solveDetailed(ParseGuard.CreateProblem<T>(problem));
-    }
-
-    SolveResult solveDetailed(T problem) {
-        return new SolveResult(SolveStatus.Unclassified, solve(problem), "");
-    }
 
     List<Object> ISolver.GetSteps(string instance) {
         T problemInstance = ParseGuard.CreateProblem<T>(instance);

@@ -1,5 +1,4 @@
 using Xunit;
-using API.Interfaces;
 using API.Problems.P.P_NFA;
 using API.Problems.P.P_NFA.Solvers;
 using API.Problems.P.P_NFA.Verifiers;
@@ -116,8 +115,7 @@ public class NFA_Tests {
         NFA nfa = new NFA(dfaDefault);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.NotEqual("{}", result);
-        Assert.True(new NFAVerifier().verify(nfa, result));
+        Assert.Contains("sequence of states", result);
     }
 
     [Fact]
@@ -140,21 +138,19 @@ public class NFA_Tests {
         NFA nfa = new NFA(DefaultInstance);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.NotEqual("{}", result);
-        Assert.True(new NFAVerifier().verify(nfa, result));
+        Assert.Contains("sequence of states", result);
+        Assert.DoesNotContain("No Solution", result);
     }
 
     [Fact]
-    public void NFA_Solver_Returns_First_Accepting_Run_As_Single_Certificate() {
-        // Default instance + input "a" has several accepting runs (direct, via ε, and via
-        // ε-chain). The solver returns only the first one its DFS finds, which is the same
-        // run the table visualization shows first.
+    public void NFA_Solver_Returns_Multiple_Accepting_Paths_For_Nondeterminism() {
+        // Default instance + input "a" has three distinct accepting paths (direct,
+        // via ε, and via ε-chain), so the solver output must contain multiple lines
         NFA nfa = new NFA(DefaultInstance);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.True(solver.GetPathRuns(nfa).Count(r => r.accepted) >= 2);
-        Assert.Equal(string.Join(",", solver.GetPathRuns(nfa)[0].states), result);
-        Assert.True(new NFAVerifier().verify(nfa, result));
+        string[] lines = result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        Assert.True(lines.Length >= 2, "Expected multiple accepting paths for a nondeterministic run");
     }
 
     [Fact]
@@ -164,8 +160,8 @@ public class NFA_Tests {
         NFA nfa = new NFA(instance);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.NotEqual("{}", result);
-        Assert.True(new NFAVerifier().verify(nfa, result));
+        Assert.Contains("sequence of states", result);
+        Assert.DoesNotContain("No Solution", result);
     }
 
     [Fact]
@@ -175,8 +171,8 @@ public class NFA_Tests {
         NFA nfa = new NFA(instance);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.NotEqual("{}", result);
-        Assert.True(new NFAVerifier().verify(nfa, result));
+        Assert.Contains("sequence of states", result);
+        Assert.DoesNotContain("No Solution", result);
     }
 
     [Fact]
@@ -186,7 +182,7 @@ public class NFA_Tests {
         NFA nfa = new NFA(instance);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.Equal("{}", result);
+        Assert.Contains("No Solution", result);
     }
 
     [Fact]
@@ -194,7 +190,8 @@ public class NFA_Tests {
         NFA nfa = new NFA("(({s,t},{a},{(s,a,t)},s,{t}),c)");
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.Equal("{}", result);
+        Assert.Contains("No Solution", result);
+        Assert.Contains("'c'", result);
     }
 
     [Fact]
@@ -205,8 +202,8 @@ public class NFA_Tests {
         NFA nfa = new NFA(instance);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.NotEqual("{}", result);
-        Assert.True(new NFAVerifier().verify(nfa, result));
+        Assert.Contains("sequence of states", result);
+        Assert.DoesNotContain("No Solution", result);
     }
 
     // -------------------------------------------------------------------------
@@ -256,23 +253,14 @@ public class NFA_Tests {
     // -------------------------------------------------------------------------
 
     [Theory]
-    [InlineData("1,2")]      // direct: 1 →a→ 2
-    [InlineData("1,2,2")]    // ε-then-regular: 1 →ε→ 2 →a→ 2
-    [InlineData("1,2,3,2")]  // ε-chain: 1 →ε→ 2 →ε→ 3 →a→ 2
-    public void NFA_GetPathRuns_Contains_Known_Accepting_Path(string expectedPath) {
-        // solve() returns only one run, so the full set of accepting runs is checked here
+    [InlineData("1, 2")]      // direct: 1 →a→ 2
+    [InlineData("1, 2, 2")]   // ε-then-regular: 1 →ε→ 2 →a→ 2
+    [InlineData("1, 2, 3, 2")] // ε-chain: 1 →ε→ 2 →ε→ 3 →a→ 2
+    public void NFA_Solver_Output_Contains_Known_Accepting_Path(string expectedPath) {
         NFA nfa = new NFA(DefaultInstance);
         NFASolver solver = new NFASolver();
-        var accepted = solver.GetPathRuns(nfa).Where(r => r.accepted).Select(r => string.Join(",", r.states));
-        Assert.Contains(expectedPath, accepted);
-    }
-
-    [Fact]
-    public void NFA_Solver_Returns_First_Accepting_Path_For_Default_Instance() {
-        // DFS follows ε edges before symbol edges, so the ε-chain run is found first
-        NFA nfa = new NFA(DefaultInstance);
-        NFASolver solver = new NFASolver();
-        Assert.Equal("1,2,3,2", solver.solve(nfa));
+        string result = solver.solve(nfa);
+        Assert.Contains(expectedPath, result);
     }
 
     [Fact]
@@ -282,32 +270,7 @@ public class NFA_Tests {
         NFA nfa = new NFA(instance);
         NFASolver solver = new NFASolver();
         string result = solver.solve(nfa);
-        Assert.Equal("s,t", result);
-    }
-
-    // -------------------------------------------------------------------------
-    // Solver — solveDetailed status and explanation
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void NFA_SolveDetailed_Reports_Solved_With_Certificate_And_Explanation() {
-        NFASolver solver = new NFASolver();
-        SolveResult result = ((ISolver)solver).solveDetailed(DefaultInstance);
-        Assert.Equal(SolveStatus.Solved, result.status);
-        Assert.Equal("1,2,3,2", result.certificate);
-        Assert.Contains("first accepting run", result.message);
-    }
-
-    [Theory]
-    [InlineData("(({s,t},{a,b},{(s,a,t)},s,{t}),b)", "No run of the NFA accepts the input")]
-    [InlineData("(({s,t},{a},{(s,a,t)},s,{t}),c)", "'c', which is not in the NFA's alphabet")]
-    public void NFA_SolveDetailed_Explains_Why_Input_Is_Rejected(string instance, string expectedReason) {
-        NFASolver solver = new NFASolver();
-        SolveResult result = solver.solveDetailed(new NFA(instance));
-        Assert.Equal(SolveStatus.NoSolution, result.status);
-        Assert.Null(result.certificate);
-        Assert.Contains(expectedReason, result.message);
-        Assert.Equal("{}", solver.solve(new NFA(instance)));
+        Assert.Contains("s, t", result);
     }
 
     // -------------------------------------------------------------------------

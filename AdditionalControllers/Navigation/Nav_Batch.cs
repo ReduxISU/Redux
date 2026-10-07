@@ -54,13 +54,13 @@ public class BatchController : ControllerBase {
     // visualizer. Backed by VisualizationTypeCatalog.ByClassName (see
     // Nav_Visualizations.cs), which already does the per-type try/catch instantiation.
     // Exists so the GUI can resolve renderability without walking allInfo, which would
-    // instantiate and Newtonsoft-serialize every problem/solver/verifier/visualization/
+    // instantiate and serialize every problem/solver/verifier/visualization/
     // reduction just to read one string per visualization.
     private static readonly Lazy<string> VisualizationTypesJson = new(() =>
         JsonSerializer.Serialize(VisualizationTypeCatalog.ByClassName.Value, Indented));
 
     // Instances of every reflected interface type, mirroring ProblemProvider.info
-    // (Newtonsoft + reference-loop ignore) but for all interfaces at once. Types that
+    // (System.Text.Json with IncludeFields) but for all interfaces at once. Types that
     // cannot be default-constructed are skipped rather than failing the whole payload.
     private static readonly Lazy<string> InfoJson = new(() => {
         var result = new Dictionary<string, object>();

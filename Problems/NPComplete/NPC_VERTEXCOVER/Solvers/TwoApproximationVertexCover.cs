@@ -9,8 +9,8 @@ class TwoApproximationVertexCover : ISolver<VERTEXCOVER> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Approximation";
-    public string solverDefinition { get; } = "Note: despite the name, this solver calls a different"
-    + " algorithm internally. This approximation solver is a naive solver for Vertex Cover that does not have a clear origination, although there have been many improvements upon it"
+    public string solverDefinition { get; } = "Runs the Minimum Vertex Cover 2-approximation solver and returns its cover if it has at most K nodes,"
+    + " otherwise returns {}. The 2-approximation solver is a naive solver for Vertex Cover that does not have a clear origination, although there have been many improvements upon it"
     + " published. It repeatedly picks an arbitrary remaining edge, adds both endpoints to the cover, and"
     + " removes all edges incident to either endpoint, until no edges remain. It returns a cover of size at"
     + " most 2n when the optimal solution is n.";

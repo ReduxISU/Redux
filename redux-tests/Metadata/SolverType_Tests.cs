@@ -21,8 +21,8 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
     //
     // Same regression class ReductionCost_Tests.cs / VisualizationType_Tests.cs guard
-    // against: Newtonsoft serializes enums as integers by default. The
-    // [JsonConverter]/[StringEnumConverter] attributes pinned on SolverType and
+    // against: System.Text.Json serializes enums as integers by default. The
+    // [JsonConverter(typeof(JsonStringEnumConverter<T>))] attributes pinned on SolverType and
     // SolverComplexityBucket (Interfaces/SolverType.cs, Interfaces/SolverComplexityBucket.cs)
     // are the actual fix; these are the regression guard.
 
@@ -65,16 +65,16 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
                 checkedSolverType++;
                 Assert.True(typeProp.ValueKind == JsonValueKind.String,
                     $"{className}.solverType serialized as {typeProp.ValueKind}, expected String. This is " +
-                    "the Risk-1 regression: Newtonsoft defaults to serializing enums as integers unless " +
-                    "StringEnumConverter is pinned on SolverType.");
+                    "the Risk-1 regression: System.Text.Json serializes enums as integers by default unless " +
+                    "JsonStringEnumConverter is pinned on SolverType.");
             }
 
             if (element.TryGetProperty("complexityBucket", out var bucketProp)) {
                 checkedComplexityBucket++;
                 Assert.True(bucketProp.ValueKind == JsonValueKind.String,
                     $"{className}.complexityBucket serialized as {bucketProp.ValueKind}, expected String. " +
-                    "This is the Risk-1 regression: Newtonsoft defaults to serializing enums as integers " +
-                    "unless StringEnumConverter is pinned on SolverComplexityBucket.");
+                    "This is the Risk-1 regression: System.Text.Json serializes enums as integers by default " +
+                    "unless JsonStringEnumConverter<SolverComplexityBucket> is pinned on SolverComplexityBucket.");
             }
         }
 

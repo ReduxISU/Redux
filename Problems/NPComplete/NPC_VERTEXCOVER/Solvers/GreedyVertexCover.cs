@@ -9,8 +9,8 @@ class GreedyVertexCover : ISolver<VERTEXCOVER> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Max-Degree Greedy";
-    public string solverDefinition { get; } = "Note: despite the name, this solver calls a different"
-+ " algorithm internally. Repeats the following step until no edges remain: computes"
+    public string solverDefinition { get; } = "Runs the Minimum Vertex Cover max-degree greedy solver and returns its cover if it has at most K nodes,"
++ " otherwise returns {}. The greedy solver repeats the following step until no edges remain: computes"
 + " the degree of every node with respect to the currently uncovered edges, selects the node with the"
 + " highest such degree (breaking ties by iteration order), adds it to the cover, and removes every"
 + " edge incident to it. Terminates once all edges are covered, returning the accumulated set of"

@@ -98,7 +98,7 @@ string result = solver.solve(problem);  // Returns "constant" or "balanced"
 
 ### Using Swagger UI
 
-1. Start the API: `dotnet run` or `./buildAndRun.sh`
+1. Start the API: `dotnet run`
 2. Open: `http://0.0.0.0:27000/swagger`
 3. Test the solver:
    - Endpoint: `POST /ProblemProvider/solve`
