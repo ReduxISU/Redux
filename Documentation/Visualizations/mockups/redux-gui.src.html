@@ -1,0 +1,2037 @@
+<title>Redux GUI Clause Graph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Redux_GUI main page — fixed grey app bar, tour/share row, stacked collapsible section cards (Problem, Visualize, Solve, Verify, Reduce). Tokens mirror components/theme.js. */
+:root {
+  --page: #F9FAFB; --glow: rgba(139,92,246,0.08);
+  --surface: #FFFFFF; --surface-alt: #F9FAFB; --border: #E5E7EB; --ctrl-border: #8a8d93;
+  --heading: #111827; --body: #374151; --secondary: #4B5563; --caption: #6b7280; --faint: #6b7280; --viz-muted: #646a77; --hot: #b94609;
+  --primary: #3F3F46; --orange: #F47C20; --ring: #c03f19; --green-btn: #2e7d32;
+  --hover: rgba(0,0,0,0.07); --field-fill: rgba(0,0,0,0.06);
+  --n-bg: #ffffff; --n-stroke: #7d879a; --n-false: #eef0f3; --n-false-ink: #646b77;
+  --hl: #a97809; --sol: #1e774e; --sol-fill: #dcf2e6; --rej: #ba3932; --rej-fill: #fbe1df;
+  --hull: #f3f4f6; --edge: #616773;
+  --edge-dim: #7b8392; --cov: #67927e; --sol-ink: #1e774e; --rej-ink: #ba3932; --hl-ink: #896107; --on-sol: #ffffff; --on-rej: #ffffff; --on-hl: #1b1300; --ctrl-line: #8a8d93; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #2b7fb0; --g1s: #a87200; --g2s: #7a5cb8; --g3s: #968c0c; --g4s: #2a8a70; --g5s: #9a4c78; --g0i: #2a7cac; --g1i: #a06c00; --g2i: #7a5cb8; --g3i: #827809; --g4i: #28846c; --g5i: #9a4c78; --hl-mix: 14%;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --page: #0B0B0F; --glow: rgba(139,92,246,0.16);
+  --surface: #15151d; --surface-alt: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.10); --ctrl-border: #6d727b;
+  --heading: #F9FAFB; --body: #D1D5DB; --secondary: #9CA3AF; --caption: #9CA3AF; --faint: #8b919c; --viz-muted: #9CA3AF; --hot: #F47C20; --ring: #ec7446;
+  --primary: #D1D5DB; --hover: rgba(255,255,255,0.12); --field-fill: rgba(255,255,255,0.09);
+  --n-bg: #1d1d27; --n-stroke: #8b93a3; --n-false: #17171f; --n-false-ink: #7e8694;
+  --hl: #f0b63e; --sol: #4cc38a; --sol-fill: #163626; --rej: #ff6b61; --rej-fill: #3b1c1b;
+  --hull: rgba(255,255,255,0.035); --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --page: #0B0B0F; --glow: rgba(139,92,246,0.16);
+  --surface: #15151d; --surface-alt: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.10); --ctrl-border: #6d727b;
+  --heading: #F9FAFB; --body: #D1D5DB; --secondary: #9CA3AF; --caption: #9CA3AF; --faint: #8b919c; --viz-muted: #9CA3AF; --hot: #F47C20; --ring: #ec7446;
+  --primary: #D1D5DB; --hover: rgba(255,255,255,0.12); --field-fill: rgba(255,255,255,0.09);
+  --n-bg: #1d1d27; --n-stroke: #8b93a3; --n-false: #17171f; --n-false-ink: #7e8694;
+  --hl: #f0b63e; --sol: #4cc38a; --sol-fill: #163626; --rej: #ff6b61; --rej-fill: #3b1c1b;
+  --hull: rgba(255,255,255,0.035); --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark }
+
+:root {
+  --av-bg: var(--n-bg); --av-stroke: var(--n-stroke); --av-ink: var(--heading); --av-muted: var(--viz-muted);
+  --av-surface: var(--surface); --av-line: var(--border); --av-edge: var(--edge);
+  --av-hl: var(--hl); --av-hl-fill: color-mix(in srgb, var(--hl) var(--hl-mix), var(--surface));
+  --av-edge-dim: var(--edge-dim); --av-cov: var(--cov); --av-sol-ink: var(--sol-ink); --av-rej-ink: var(--rej-ink); --av-hl-ink: var(--hl-ink); --av-on-sol: var(--on-sol); --av-on-rej: var(--on-rej); --av-on-hl: var(--on-hl); --av-ctrl: var(--ctrl-line); --av-g0: var(--g0); --av-g0s: var(--g0s); --av-g0i: var(--g0i); --av-g1: var(--g1); --av-g1s: var(--g1s); --av-g1i: var(--g1i); --av-g2: var(--g2); --av-g2s: var(--g2s); --av-g2i: var(--g2i); --av-g3: var(--g3); --av-g3s: var(--g3s); --av-g3i: var(--g3i); --av-g4: var(--g4); --av-g4s: var(--g4s); --av-g4i: var(--g4i); --av-g5: var(--g5); --av-g5s: var(--g5s); --av-g5i: var(--g5i);
+  --av-sol: var(--sol); --av-sol-fill: var(--sol-fill); --av-rej: var(--rej); --av-rej-fill: var(--rej-fill); --av-hot: var(--hot); --av-mono: var(--mono);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+.pickwrap { position: relative; width: 300px; max-width: calc(100% - 96px); }
+.pickwrap .ac { width: 100%; max-width: none; }
+@media (max-width: 899px) { .pickwrap { width: calc(100% - 104px); max-width: none; } .pickwrap .ac { width: 100%; } }
+.ac.pick { cursor: pointer; font: inherit; text-align: left; }
+.ac.pick:hover { border-color: var(--heading); }
+.menu { position: absolute; z-index: 6; top: 44px; left: 0; width: 100%; min-width: 260px; margin: 0; padding: 6px 0; list-style: none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.14); }
+.menu .grp { font-size: 12px; font-weight: 600; color: var(--caption); padding: 6px 14px 2px; text-transform: none; }
+.menu li[role="option"] { display: flex; align-items: center; gap: 6px; padding: 8px 14px; cursor: pointer; color: var(--heading); }
+.menu li[role="option"]:hover, .menu li[role="option"]:focus-visible { background: var(--hover); outline: none; }
+.menu li[aria-selected="true"] { background: rgba(244,124,32,.10); }
+.menu li .nm { flex: 1; }
+.tag.p { background: rgba(35,137,90,.14); color: #19693f; }
+:root[data-theme="dark"] .tag.p { color: #6fd6a2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tag.p { color: #6fd6a2; } }
+.tape-row { display: grid; gap: 6px; }
+.tape-row h5 { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--caption); }
+.active-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.active-list span { font: 13px var(--mono); border: 1px solid var(--hl); border-radius: 6px; padding: 3px 10px; }
+.active-list span.acc { border-color: var(--sol); color: var(--sol); }
+.active-list span.rej { border-color: var(--rej); color: var(--rej); }
+.active-list em { font-style: normal; color: var(--caption); }
+.dot.acc2 { background: var(--n-bg); border-color: var(--n-stroke); box-shadow: inset 0 0 0 2.5px var(--n-bg), inset 0 0 0 4px var(--n-stroke); }
+.dot.untr { background: transparent; border-style: dashed; border-color: var(--n-stroke); }
+.ln.start { background: var(--heading); position: relative; }
+.ln.start::after { content: ""; position: absolute; right: -3px; top: -4px; border: 5px solid transparent; border-left: 7px solid var(--heading); border-right: 0; }
+.ln.eps { height: 0; background: none; border-top: 2px dashed var(--edge); }
+.dot.garb { width: 22px; height: 14px; border-radius: 999px; background: var(--rej-fill); border: 1.6px dashed var(--rej); }
+#pathctl { display: grid; gap: 6px; }
+.menu { max-height: 360px; overflow-y: auto; }
+.active-list span.g0 { background: var(--g0); border-color: var(--g0s); color: #10131a; }
+.active-list span.g1 { background: var(--g1); border-color: var(--g1s); color: #10131a; }
+.active-list span.g2 { background: #b59ce0; border-color: #7a5cb8; color: #10131a; }
+.active-list span.g3 { background: #F0E442; border-color: #b5a90f; color: #10131a; }
+.active-list span.g4 { background: #5fc4a8; border-color: #2a8a70; color: #10131a; }
+.active-list span.g5 { background: #CC79A7; border-color: #9a4c78; color: #10131a; }
+.ln.miss { height: 0; background: none; border-top: 2.4px dashed var(--rej); }
+.dot.grp { background: linear-gradient(90deg, var(--g0) 50%, var(--g1) 50%); border-color: transparent; }
+.dot.ord { background: var(--heading); border: 0; color: var(--surface); display: grid; place-items: center; font: 700 10px var(--mono); }
+.ln.satl { height: 4px; background: var(--heading); }
+.ln.cutl { height: 5px; background: var(--sol); }
+.ln.cutl { height: 0; background: none; border-top: 2.4px dashed var(--sol); }
+.ln.backl { height: 7px; background: none; border: 2px solid var(--edge); border-top: 0; border-radius: 0 0 8px 8px; }
+.ln.tline { height: 0; background: none; border-top: 2px dashed var(--heading); }
+.ln.dead { width: 3px; height: 16px; background: var(--heading); }
+.ln.tankl { height: 3px; background: var(--heading); }
+.dot.peak { background: var(--border); border-color: var(--border); border-radius: 3px; }
+.dot.start2 { width: 0; height: 0; border: 0; border-radius: 0; border-top: 9px solid var(--heading); border-right: 9px solid transparent; background: none; }
+.dot.qpos { background: var(--g0s); border-color: var(--g0s); border-radius: 3px; }
+.dot.qneg { background: var(--g1s); border-color: var(--g1s); border-radius: 3px; }
+.dot.qora { background: color-mix(in srgb, var(--hot) 12%, var(--surface)); border-color: var(--hot); border-radius: 4px; }
+.dot.bdgiven, .dot.bdplaced, .dot.bdqueen { border-radius: 3px; display: grid; place-items: center; font: 700 10px var(--sans); }
+.dot.bdgiven { background: color-mix(in srgb, var(--border) 45%, var(--surface)); border-color: var(--n-stroke); color: var(--heading); }
+.dot.bdplaced { background: var(--surface); border-color: var(--n-stroke); color: var(--sol-ink); font-weight: 500; }
+.dot.bdqueen { background: var(--surface); border-color: var(--n-stroke); color: var(--heading); font-size: 12px; }
+.dot.bdatt { border-radius: 3px; background: color-mix(in srgb, var(--rej) 7%, var(--surface)); border-color: var(--border); }
+.ln.bdlink { height: 0; background: none; border-top: 2.2px dashed var(--rej); }
+.ln.w1 { height: 3px; background: var(--heading); }
+.ln.w0 { height: 0; background: none; border-top: 2px dashed var(--caption); }
+#vizReduction { grid-template-columns: minmax(0, 1fr); }
+#vizReduction .side { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.rdphase { display: flex; gap: 4px; flex-wrap: wrap; }
+.rdphase span { font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; color: var(--caption); }
+.rdphase span.on { border-color: var(--hl); color: var(--heading); background: color-mix(in srgb, var(--hl) 14%, var(--surface)); }
+#reduceBody code { word-break: break-all; font-size: 12.5px; }
+#reduceBody p { margin: 0 0 6px; }
+#mcpathctl { display: grid; gap: 6px; }
+#mcpathctl select { width: 100%; font: 13px var(--sans); color: var(--heading); background: var(--surface); border: 1px solid var(--ctrl-border); border-radius: 4px; padding: 6px; }
+#mcpathctl select:disabled { opacity: .5; }
+#mcpathctl .sw { margin-left: -12px; }
+.dot.stq { background: var(--surface); border-style: dashed; border-color: var(--n-stroke); border-radius: 4px; }
+.dot.stcut { background: var(--rej-fill); border-style: dashed; border-color: var(--rej); border-radius: 4px; }
+.dot.stskip { background: transparent; border-style: dashed; border-color: var(--n-stroke); border-radius: 4px; }
+.dot.stord { background: var(--heading); border: 0; color: var(--surface); display: grid; place-items: center; font: 700 9px var(--mono); }
+.dot.stfold { width: 26px; border-radius: 4px; border-style: dashed; border-color: var(--n-stroke); display: grid; place-items: center; font: 9px var(--mono); color: var(--caption); }
+.side { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.side select { max-width: 100%; min-width: 0; }
+.side .active-list span { max-width: 100%; overflow-wrap: anywhere; white-space: normal; }
+.dot.cov { background: var(--sol-fill); border-color: var(--sol); }
+.dot.blk { background: transparent; border-style: dashed; border-color: var(--n-stroke); }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.checks li { display: flex; gap: 8px; align-items: baseline; }
+.checks li::before { content: "○"; color: var(--caption); }
+.checks li.ok::before { content: "✓"; color: var(--sol); font-weight: 700; }
+.checks li.bad::before { content: "✗"; color: var(--rej); font-weight: 700; }
+#pathctl select { width: 100%; font: 13px var(--sans); color: var(--heading); background: var(--surface); border: 1px solid var(--ctrl-border); border-radius: 4px; padding: 6px; }
+#pathctl select:disabled { opacity: .5; }
+#pathctl .sw { margin-left: -12px; }
+body { background: radial-gradient(circle at top, var(--glow), transparent 38%), var(--page); color: var(--body); font: 15px/1.5 var(--sans); min-height: 100%; }
+svg.i { width: 24px; height: 24px; fill: currentColor; flex-shrink: 0; }
+button { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+.mock-flag { background-color: #fde68a; background-image: repeating-linear-gradient(-45deg, #fde68a 0 10px, #fcd34d 10px 20px); color: #3b2f00; font: 500 12px var(--mono); text-align: center; padding: 4px 16px; }
+
+/* app bar */
+.appbar { background: #3F3F46; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+.appbar .in { max-width: 1536px; margin: 0 auto; padding-inline: 24px; height: 64px; display: flex; align-items: center; gap: 8px; }
+.logo { font: 700 20px monospace; letter-spacing: .3rem; color: #fff; text-decoration: none; margin-right: 16px; }
+.nav { display: flex; gap: 4px; flex: 1; }
+.nav a { color: #fff; text-decoration: none; text-transform: uppercase; font-size: 14px; font-weight: 500; letter-spacing: .03em; padding: 6px 12px; border-radius: 4px; }
+.nav a:hover { background: rgba(255,255,255,.08); }
+.iconbtn { background: transparent; border: 0; color: inherit; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+.iconbtn:hover { background: rgba(255,255,255,.1); }
+.iconbtn svg { width: 20px; height: 20px; }
+.burger { display: none; }
+@media (max-width: 899px) { .nav { display: none; } .burger { display: grid; } .logo { flex: 1; } .appbar .in { padding-inline: 16px; } }
+
+/* page */
+.page { padding-inline: 12px; padding-block: 8px 24px; max-width: 1400px; margin: 0 auto; }
+.toprow { display: flex; justify-content: space-between; align-items: center; padding: 8px; gap: 8px; }
+.btn-outline { border: 1px solid var(--ring); color: var(--ring); background: transparent; border-radius: 6px; padding: 6px 14px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.btn-outline svg { width: 18px; height: 18px; }
+.row { padding: 8px; }
+
+/* section card */
+.card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+.card-h { border-radius: 6px 6px 0 0; }
+.card:not(.open) .card-h { border-radius: 6px; }
+.card.open::before { border-radius: 6px 0 0 6px; }
+.card.open::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--ring); z-index: 1; }
+.card-h { background: var(--surface-alt); border-bottom: 1px solid var(--border); color: var(--heading); padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; column-gap: 16px; row-gap: 8px; }
+.card:not(.open) .card-h { border-bottom: 0; }
+.h-title { flex: 0 0 110px; text-align: center; }
+.h-ctrls { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; }
+.h-toggle { display: flex; }
+@media (max-width: 899px) {
+  .h-title { flex: 1 1 auto; text-align: left; font-weight: 500; order: 1; }
+  .h-toggle { order: 2; }
+  .h-ctrls { order: 3; flex: 1 1 100%; flex-wrap: wrap; }
+}
+.hbtn { width: 36px; height: 36px; border: 0; background: transparent; color: var(--body); border-radius: 50%; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; transition: background-color 150ms; }
+.hbtn:hover { background: var(--hover); }
+.hbtn.chev svg { transition: transform 200ms; }
+.card.open .hbtn.chev svg { transform: rotate(180deg); }
+.hbtn.grip { cursor: grab; }
+@media (max-width: 899px) { .hbtn { width: 44px; height: 44px; } }
+.card-b { padding: 16px; color: var(--body); }
+.card:not(.open) .card-b { display: none; }
+
+/* MUI-ish autocomplete */
+.ac { position: relative; width: 300px; max-width: calc(100% - 96px); border: 1px solid var(--ctrl-border); border-radius: 4px; height: 40px; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 12px; background: var(--surface); }
+.ac label { position: absolute; top: -9px; left: 9px; font-size: 12px; color: var(--caption); background: var(--surface); padding: 0 4px; line-height: 1.2; }
+.ac .val { flex: 1; min-width: 0; color: var(--heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+.ac .ph { color: var(--faint); }
+.ac svg { width: 22px; height: 22px; fill: var(--caption); }
+.tag { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.tag.npc { background: rgba(244,124,32,.14); color: #9a4409; }
+.tag.typ { background: rgba(59,130,246,.13); color: #1d4ed8; }
+.tag.vz { background: rgba(139,92,246,.14); color: #7c3aed; }
+:root[data-theme="dark"] .tag.npc { color: #fb9a4b; } :root[data-theme="dark"] .tag.typ { color: #7fb0ff; } :root[data-theme="dark"] .tag.vz { color: #b9a0ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tag.npc { color: #fb9a4b; } :root:not([data-theme="light"]) .tag.typ { color: #7fb0ff; } :root:not([data-theme="light"]) .tag.vz { color: #b9a0ff; } }
+@media (max-width: 899px) { .ac { width: calc(100% - 104px); max-width: none; } }
+
+/* info popover */
+.pop { position: absolute; z-index: 5; right: 16px; top: 54px; width: min(380px, calc(100% - 32px)); background: var(--surface); color: var(--body); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,.15); padding: 14px 16px; font-size: 13.5px; display: grid; gap: 8px; }
+.pop h4 { margin: 0; font-size: 15px; color: var(--heading); }
+.pop dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; }
+.pop dt { color: var(--caption); font-weight: 500; } .pop dd { margin: 0; }
+
+/* problem body */
+.inst { display: flex; gap: 16px; align-items: center; }
+.inst .lbl { flex: 0 0 110px; text-align: center; }
+.tf { position: relative; flex: 1; min-width: 0; }
+.tf textarea { width: 100%; resize: none; border: 1px solid var(--ctrl-border); border-radius: 4px; padding: 14px 12px 10px; font: 15px/1.45 var(--sans); color: var(--heading); background: var(--surface); min-height: 56px; scrollbar-width: none; }
+.tf textarea:focus { outline: none; border: 2px solid #1976d2; padding: 13px 11px 9px; }
+.tf label { position: absolute; top: -9px; left: 9px; font-size: 12px; color: var(--caption); background: var(--surface); padding: 0 4px; }
+.tf.err textarea { border-color: #d32f2f; } .tf.err label, .tf .help { color: #d32f2f; }
+.tf .help { font-size: 12px; margin: 4px 14px 0; }
+.sqbtn { width: 56px; height: 42px; border: 0; border-radius: 4px; background: #3F3F46; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.btns2 { display: flex; gap: 8px; align-self: flex-start; }
+@media (max-width: 899px) { .inst { flex-direction: column; align-items: stretch; } .inst .lbl { flex: none; text-align: left; } }
+
+/* visualize controls (matches the bordered control strip) */
+.vctrl { border: 2px solid var(--ctrl-border); border-radius: 8px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--surface-alt); color: var(--body); }
+.vctrl .grp { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.vctrl .nav4 { display: flex; align-items: center; gap: 4px; }
+.refresh { background: var(--green-btn); color: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 4px; padding: 5px 15px; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: .03em; display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+.refresh svg { width: 18px; height: 18px; }
+.stepbtn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: var(--secondary); display: grid; place-items: center; cursor: pointer; }
+.stepbtn:hover:not(:disabled) { background: var(--hover); }
+.stepbtn:disabled { color: var(--faint); opacity: .5; cursor: default; }
+.stepnum { width: 70px; height: 48px; border: 0; border-bottom: 1px solid var(--caption); border-radius: 4px 4px 0 0; background: var(--field-fill); color: var(--heading); font: 15px var(--sans); padding: 16px 10px 4px; font-variant-numeric: tabular-nums; }
+.stepwrap { position: relative; }
+.stepwrap span { position: absolute; left: 10px; top: 4px; font-size: 11px; color: var(--caption); }
+.sw { display: inline-flex; align-items: center; gap: 2px; cursor: pointer; user-select: none; font-size: 15px; margin-right: 8px; }
+.sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.sw .track { position: relative; width: 58px; height: 38px; display: inline-block; }
+.sw .track::before { content: ""; position: absolute; left: 12px; right: 12px; top: 12px; height: 14px; border-radius: 7px; background: var(--faint); opacity: .55; transition: background .15s; }
+.sw .track::after { content: ""; position: absolute; left: 9px; top: 9px; width: 20px; height: 20px; border-radius: 50%; background: #fafafa; box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.12); transition: transform .15s, background .15s; }
+.sw input:checked + .track::before { background: #1976d2; opacity: .5; }
+.sw input:checked + .track::after { transform: translateX(20px); background: #1976d2; }
+.sw input:focus-visible + .track::after { outline: 2px solid var(--ring); outline-offset: 2px; }
+.sw.dis { color: var(--faint); cursor: default; }
+.sw.dis .track::after { background: #e0e0e0; }
+
+/* visualization area */
+.viz { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 16px; align-items: start; }
+@media (max-width: 899px) { .viz { grid-template-columns: minmax(0, 1fr); } }
+.canvas { min-width: 0; display: grid; gap: 10px; }
+svg#g { width: 100%; height: auto; display: block; max-height: 640px; }
+svg#g text { font-family: var(--mono); }
+.caption { font-size: 14px; padding: 8px 12px; border-radius: 6px; background: var(--surface-alt); border: 1px solid var(--border); min-height: 2.6em; }
+.caption.rej { background: var(--rej-fill); color: var(--rej); border-color: transparent; }
+.caption.ok { background: var(--sol-fill); color: var(--sol); border-color: transparent; }
+.side { display: grid; gap: 16px; font-size: 13px; }
+.side h5 { margin: 0 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--caption); }
+.assign { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
+.av { font: 13px var(--mono); border: 1px solid var(--ctrl-line); border-radius: 6px; padding: 4px 0; text-align: center; font-variant-numeric: tabular-nums; }
+.av.T { border-color: var(--sol); color: var(--sol); } .av.F { color: var(--caption); }
+.av.tried { box-shadow: 0 0 0 2px var(--hl); }
+.legend { display: grid; gap: 6px; }
+.legend div { display: flex; align-items: center; gap: 8px; }
+.dot { width: 16px; height: 16px; border-radius: 50%; border: 1.6px solid; flex-shrink: 0; }
+.dot.bg { background: var(--n-bg); border-color: var(--n-stroke); }
+.dot.hl { background: var(--n-bg); border-color: var(--hl); box-shadow: 0 0 0 2px var(--hl); }
+.dot.sol { background: var(--sol); border-color: var(--sol); }
+.dot.fal { background: var(--n-false); border-color: var(--n-stroke); }
+.dot.rej { background: var(--rej-fill); border-color: var(--rej); }
+.ln { width: 16px; height: 2px; background: var(--edge); flex-shrink: 0; }
+.selrow { display: flex; align-items: center; gap: 8px; }
+.selrow select { font: 13px var(--sans); color: var(--heading); background: var(--surface); border: 1px solid var(--ctrl-border); border-radius: 4px; padding: 5px 6px; flex: 1; min-width: 0; }
+
+.hull { fill: var(--hull); stroke: var(--n-stroke); stroke-width: 1.5; transition: stroke .2s, fill .2s; }
+.hull.sat { stroke: var(--sol); fill: var(--sol-fill); }
+.hull.rej { stroke: var(--rej); fill: var(--rej-fill); stroke-width: 2.5; }
+.hull.hot { stroke: var(--hot); stroke-width: 2.5; }
+.glabel { font-size: 13px; font-weight: 500; fill: var(--caption); }
+.glabel.sat { fill: var(--sol); } .glabel.rej { fill: var(--rej); }
+.edge { fill: none; stroke: var(--edge); stroke-width: 1.2; transition: opacity .2s; }
+.edge.intra { stroke-dasharray: 3 3; }
+.edge.dim { stroke: var(--edge-dim); } .edge.faint { stroke: var(--edge-dim); stroke-dasharray: 3 3; }
+.edge.hot { stroke: var(--hot); stroke-width: 2; opacity: 1; }
+.node { cursor: pointer; transition: opacity .2s; }
+.node:focus { outline: none; }
+.node circle.body { stroke-width: 1.6; transition: fill .2s, stroke .2s; }
+.node text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.node .ring { fill: none; stroke: transparent; stroke-width: 3; }
+.node.Background circle.body { fill: var(--n-bg); stroke: var(--n-stroke); } .node.Background text { fill: var(--heading); }
+.node.False circle.body { fill: var(--n-false); stroke: var(--n-stroke); } .node.False text { fill: var(--n-false-ink); }
+.node.Solution circle.body { fill: var(--sol); stroke: var(--sol); } .node.Solution text { fill: var(--on-sol); font-weight: 500; }
+.node.Rejected circle.body { fill: var(--rej-fill); stroke: var(--rej); } .node.Rejected text { fill: var(--rej); }
+.node.hl .ring { stroke: var(--hl); }
+.node.trace .ring { stroke: var(--hot); }
+.node.witness .ring { stroke: var(--sol); stroke-width: 2; }
+.node:focus-visible .ring { stroke: var(--ring); }
+.node.faint { filter: grayscale(1); } .node.faint circle.body { stroke-dasharray: 3 3; }
+
+footer { text-align: center; padding-block: 24px; color: var(--caption); font-size: 13px; }
+footer b { display: block; font-size: 16px; color: var(--heading); letter-spacing: .02em; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ---- phone and tablet ---- */
+@media (max-height: 560px) { svg#g { max-height: none; } }
+.dscroll { min-width: 0; max-width: 100%; }
+@media (max-width: 700px) {
+  .dscroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .dscroll > svg { min-width: 560px; }
+  .dscroll > svg#rd-g, .dscroll > svg#rdg { min-width: 960px; }
+  .dscroll::after { content: "Swipe the diagram sideways to see all of it."; display: block; position: sticky; left: 0; font-size: 12px; padding-top: 4px; }
+}
+.dscroll::after { color: var(--caption); }
+@media (min-width: 701px) { .dscroll::after { content: none; } }
+@media (pointer: coarse) {
+  .btn-outline, .refresh, .sqbtn { min-height: 44px; }
+  select, .tf textarea { min-height: 44px; font-size: 16px; }
+}
+
+/* ---- stacked layout: steps first, key folded ---- */
+@media (max-width: 1199px) {
+  .viz { grid-template-columns: minmax(0, 1fr) !important; }
+  .side > .stepper, .side > [id$="stepper"] { order: -1; }
+  .side > .keyfold { order: 99; }
+}
+.keyfold > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+.keyfold > summary::-webkit-details-marker { display: none; }
+.keyfold > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin-top: -4px; opacity: .7; transition: transform .15s; }
+.keyfold[open] > summary::after { transform: rotate(-135deg); margin-top: 3px; }
+.keyfold > summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
+.keyfold > .legend { margin-top: 8px; }
+.keyfold:has(> .legend[hidden]) { display: none; }
+@media (pointer: coarse) { .keyfold > summary { min-height: 44px; } }
+@media (prefers-reduced-motion: reduce) { .keyfold > summary::after { transition: none; } }
+</style>
+
+<div class="mock-flag">MOCKUP · Redux_GUI with the proposed Layered Graph, Graph, Clause Graph, Factor Graph, Automaton, Bipartite Graph and Flow Network visualizations · not the live app</div>
+
+<header class="appbar">
+  <div class="in">
+    <button class="iconbtn burger" aria-label="Open navigation menu"><svg class="i" viewBox="0 0 24 24"><path d="M3 18h18v-2H3zm0-5h18v-2H3zm0-7v2h18V6z"/></svg></button>
+    <svg class="i" viewBox="0 0 24 24" style="margin-right:8px" aria-hidden="true"><path d="M5 16c0 3.87 3.13 7 7 7s7-3.13 7-7v-4H5zM16.12 4.37l2.1-2.1-.82-.83-2.3 2.31C14.16 3.28 13.12 3 12 3s-2.16.28-3.09.75L6.6 1.44l-.82.83 2.1 2.1C6.14 5.64 5 7.68 5 10v1h14v-1c0-2.32-1.14-4.36-2.88-5.63M9 9c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1m6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1"/></svg>
+    <a class="logo" href="#">REDUX</a>
+    <nav class="nav"><a href="#">Home</a><a href="#">About Us</a><a href="#">Browse</a><a href="#">Help</a><a href="#">Contribute</a></nav>
+    <button class="iconbtn" id="themeBtn" aria-label="Toggle dark mode"><svg class="i" viewBox="0 0 24 24"><path id="themeIcon" d=""/></svg></button>
+  </div>
+</header>
+
+<main class="page">
+  <div class="toprow">
+    <button class="btn-outline"><svg class="i" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"/></svg>Take the tour</button>
+    <button class="btn-outline"><svg class="i" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92"/></svg>Share</button>
+  </div>
+
+  <!-- PROBLEM -->
+  <div class="row"><section class="card open" data-sec>
+    <div class="card-h">
+      <div class="h-title">Problem</div>
+      <div class="h-ctrls">
+        <div class="pickwrap">
+          <button class="ac pick" id="probPick" aria-haspopup="listbox" aria-expanded="false"><label>Select problem</label><span class="val" id="probVal">3SAT</span><span id="probTags" style="display:flex; gap:4px"></span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></button>
+          <ul class="menu" id="probMenu" role="listbox" aria-label="Problems" hidden></ul>
+        </div>
+        <button class="hbtn" aria-label="Filter problems"><svg class="i" viewBox="0 0 24 24"><path d="M10 18h4v-2h-4zM3 6v2h18V6zm3 7h12v-2H6z"/></svg></button>
+        <button class="hbtn" aria-label="Problem information" data-pop="pop-problem"><svg class="i" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"/></svg></button>
+        <button class="hbtn grip" aria-label="Drag to reorder"><svg class="i" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2m-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"/></svg></button>
+      </div>
+      <div class="h-toggle"><button class="hbtn chev" aria-label="Collapse Problem section" data-toggle><svg class="i" viewBox="0 0 24 24"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></div>
+    </div>
+    <div class="pop" id="pop-problem" hidden>
+      <h4 id="pp-title"></h4>
+      <p style="margin:0" id="pp-def"></p>
+      <dl><dt>Input</dt><dd><code id="pp-input"></code></dd><dt>Class</dt><dd id="pp-class"></dd></dl>
+    </div>
+    <div class="card-b">
+      <div class="inst">
+        <div class="lbl">Instance</div>
+        <div class="tf" id="tf">
+          <label for="instance" id="tfLabel">Problem Instance</label>
+          <textarea id="instance" rows="2" spellcheck="false"></textarea>
+          <div class="help" id="tfHelp" hidden></div>
+        </div>
+        <div class="btns2">
+          <button class="sqbtn" aria-label="Open instance file"><svg class="i" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8z"/></svg></button>
+          <button class="sqbtn" aria-label="Download instance"><svg class="i" viewBox="0 0 24 24"><path d="M5 20h14v-2H5zM19 9h-4V3H9v6H5l7 7z"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section></div>
+
+  <!-- VISUALIZE -->
+  <div class="row"><section class="card open" data-sec>
+    <div class="card-h">
+      <div class="h-title">Visualize</div>
+      <div class="h-ctrls">
+        <div class="pickwrap">
+          <button class="ac pick" id="vizPick" aria-haspopup="listbox" aria-expanded="false"><label>Select visualization</label><span class="val" id="vizVal">Clause Graph</span><span class="tag vz" id="vizTag">Grouped Graph</span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></button>
+          <ul class="menu" id="vizMenu" role="listbox" aria-label="Visualizations" hidden></ul>
+        </div>
+        <button class="hbtn" aria-label="Visualization information" data-pop="pop-viz"><svg class="i" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"/></svg></button>
+        <button class="hbtn grip" aria-label="Drag to reorder"><svg class="i" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2m-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"/></svg></button>
+      </div>
+      <div class="h-toggle"><button class="hbtn chev" aria-label="Collapse Visualize section" data-toggle><svg class="i" viewBox="0 0 24 24"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></div>
+    </div>
+    <div class="pop" id="pop-viz" hidden>
+      <h4 id="pv-title"></h4>
+      <p style="margin:0" id="pv-def"></p>
+      <dl><dt>Type</dt><dd id="pv-type"></dd><dt>Input</dt><dd id="pv-input"></dd><dt>Steps</dt><dd id="pv-steps"></dd></dl>
+    </div>
+    <div class="card-b">
+      <div class="vctrl">
+        <div class="grp">
+          <button class="refresh" id="refresh"><svg class="i" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg>Refresh</button>
+          <div class="nav4">
+            <button class="stepbtn" id="first" aria-label="First step"><svg class="i" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6zm.5-6 8.5 6V6z"/></svg></button>
+            <button class="stepbtn" id="prev" aria-label="Previous step"><svg class="i" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+            <div class="stepwrap"><span>Step</span><input class="stepnum" id="stepnum" type="number" min="0" value="0" aria-label="Step"></div>
+            <button class="stepbtn" id="next" aria-label="Next step"><svg class="i" viewBox="0 0 24 24"><path d="m6 18 8.5-6L6 6zM16 6v12h2V6z"/></svg></button>
+            <button class="stepbtn" id="last" aria-label="Last step"><svg class="i" viewBox="0 0 24 24"><path d="m4 18 8.5-6L4 6zm9-12v12l8.5-6z"/></svg></button>
+          </div>
+        </div>
+        <div class="grp">
+          <label class="sw dis" id="redShowL"><input type="checkbox" id="redShow" disabled><span class="track"></span>Show reduction</label>
+          <label class="sw dis" id="redGadL"><input type="checkbox" id="redGad" disabled><span class="track"></span>Highlight gadgets</label>
+          <label class="sw"><input type="checkbox" id="showSolution"><span class="track"></span>Highlight solution</label>
+        </div>
+      </div>
+
+      <div class="viz" id="vizClause">
+        <div class="canvas">
+          <svg id="g" viewBox="0 0 640 640" role="img" aria-label="Clause graph of the instance"></svg>
+          <div class="caption" id="caption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Assignment</h5><div class="assign" id="assign"></div></div>
+          <div class="selrow"><h5 style="margin:0">Edges</h5>
+            <select id="edges" aria-label="Edges shown">
+              <option value="conflict">Complement pairs</option>
+              <option value="both">+ within clause</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot bg"></span>Unassigned</div>
+            <div><span class="dot hl"></span>Being tried</div>
+            <div><span class="dot sol"></span>True literal</div>
+            <div><span class="dot fal"></span>False literal</div>
+            <div><span class="dot rej"></span>Clause failed</div>
+            <div><span class="ln"></span>x and ¬x</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a literal to trace its variable.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizFactor" hidden>
+        <div class="canvas">
+          <svg id="fg" role="img" aria-label="Factor graph of the formula"></svg>
+          <div class="caption" id="fcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Assignment</h5><div class="assign" id="fassign"></div></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot sol"></span>True variable</div>
+            <div><span class="dot fal"></span>False variable</div>
+            <div><span class="dot hl"></span>Being tried</div>
+            <div><span class="dot cov"></span>Clause satisfied</div>
+            <div><span class="dot rej"></span>Clause failed</div>
+            <div><span class="ln"></span>Clause contains x</div>
+            <div><span class="ln eps"></span>Clause contains ¬x</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a variable or clause to trace it.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizGraph" hidden>
+        <div class="canvas">
+          <svg id="gg" role="img" aria-label="Graph"></svg>
+          <div class="caption" id="gcaption"></div>
+        </div>
+        <aside class="side">
+          <div class="selrow"><h5 style="margin:0">Layout</h5>
+            <select id="glayout" aria-label="Layout"><option value="force">Force</option><option value="circle">Circle</option></select>
+          </div>
+          <div><h5>Certificate</h5><div class="active-list" id="gchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="gchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot sol"></span>In the answer</div>
+            <div><span class="dot hl"></span>Being tried</div>
+            <div><span class="dot cov"></span>Covered</div>
+            <div><span class="dot blk"></span>Blocked</div>
+            <div><span class="dot rej"></span>Breaks the rule</div>
+            <div><span class="ln miss"></span>Missing edge</div>
+            <div><span class="dot grp"></span>Color class / cut side</div>
+            <div><span class="dot ord">3</span>Position in a tour</div>
+            <div><span class="dot acc2"></span>Terminal (double outline)</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a node to see its edges.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizFlow" hidden>
+        <div class="canvas">
+          <svg id="flg" role="img" aria-label="Flow Network"></svg>
+          <div class="caption" id="flcaption"></div>
+        </div>
+        <aside class="side">
+          <div class="selrow"><h5 style="margin:0">Backward arcs</h5>
+            <select id="flresidual" aria-label="Backward arcs shown"><option value="off">When a path uses one</option><option value="on">All</option></select>
+          </div>
+          <div><h5>Path or cut</h5><div class="active-list" id="flchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="flchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot hl"></span>Path being pushed</div>
+            <div><span class="ln satl"></span>Full edge (thicker = fuller)</div>
+            <div><span class="ln eps"></span>Backward arc</div>
+            <div><span class="dot grp"></span>S side / T side</div>
+            <div><span class="ln cutl"></span>Cut edge</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a node to see its edges.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizLayered" hidden>
+        <div class="canvas">
+          <svg id="lg" role="img" aria-label="Directed graph in ranks"></svg>
+          <div class="caption" id="lcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Certificate</h5><div class="active-list" id="lchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="lchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot sol"></span>In the answer</div>
+            <div><span class="dot hl"></span>Being worked on</div>
+            <div><span class="dot cov"></span>Ready, visited or settled</div>
+            <div><span class="dot rej"></span>Cycle left, or stuck</div>
+            <div><span class="dot untr"></span>Can't be reached</div>
+            <div><span class="ln cutl"></span>Removed edge</div>
+            <div><span class="ln backl"></span>Back edge (closes a cycle)</div>
+            <div><span class="dot grp"></span>Component</div>
+            <div><span class="dot ord">3</span>Position in an order</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a node to see its edges.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizPacking" hidden>
+        <div class="canvas">
+          <svg id="pkg" role="img" aria-label="Items and containers drawn to scale"></svg>
+          <div class="caption" id="pkcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Certificate</h5><div class="active-list" id="pkchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="pkchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot sol"></span>In the answer</div>
+            <div><span class="dot hl"></span>Being tried</div>
+            <div><span class="dot rej"></span>Doesn't fit, or past a limit</div>
+            <div><span class="dot blk"></span>Left out</div>
+            <div><span class="dot grp"></span>Side or bin</div>
+            <div><span class="ln tline"></span>Target or limit</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover an item to find it in its container.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizSchedule" hidden>
+        <div class="canvas">
+          <svg id="scg" role="img" aria-label="Schedule on a time axis"></svg>
+          <div class="caption" id="sccaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Certificate</h5><div class="active-list" id="scchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="scchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot sol"></span>On time / pump on</div>
+            <div><span class="dot hl"></span>Being tried, or the current hour</div>
+            <div><span class="dot rej"></span>Late, or tank out of limits</div>
+            <div><span class="ln dead"></span>Deadline</div>
+            <div><span class="dot start2"></span>Pump startup</div>
+            <div><span class="ln tankl"></span>Tank level</div>
+            <div><span class="dot peak"></span>Peak tariff hours</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a job or an hour to read it.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizQuantum" hidden>
+        <div class="canvas">
+          <svg id="qcg" role="img" aria-label="Quantum circuit and outcome probabilities"></svg>
+          <div class="caption" id="qccaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Answer</h5><div class="active-list" id="qcchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="qcchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot hl"></span>Gates being applied</div>
+            <div><span class="dot qora"></span>Oracle (the function f)</div>
+            <div><span class="dot qpos"></span>Positive amplitude</div>
+            <div><span class="dot qneg"></span>Negative amplitude</div>
+            <div><span class="dot sol"></span>Measured outcome</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Bar height is the chance of each outcome if measured now.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizBoard" hidden>
+        <div class="canvas">
+          <svg id="bdg" role="img" aria-label="Puzzle board"></svg>
+          <div class="caption" id="bdcaption"></div>
+        </div>
+        <aside class="side">
+          <div class="selrow"><h5 style="margin:0" id="bdhintlbl">Pencil marks</h5>
+            <select id="bdhints" aria-label="Hints"><option value="off">Off</option><option value="on">On</option></select>
+          </div>
+          <div><h5>Certificate</h5><div class="active-list" id="bdchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="bdchecks"></ul></div>
+          <div class="legend" id="bdkeysudoku"><h5>Key</h5>
+            <div><span class="dot bdgiven">5</span>Clue</div>
+            <div><span class="dot bdplaced">7</span>Placed by the solver</div>
+            <div><span class="dot hl"></span>Square being tried</div>
+            <div><span class="dot rej"></span>No digit fits, or a clash</div>
+            <div><span class="ln bdlink"></span>Clashing squares</div>
+            <div><span class="dot sol"></span>Solved</div>
+          </div>
+          <div class="legend" id="bdkeyqueens" hidden><h5>Key</h5>
+            <div><span class="dot bdqueen">♛</span>Queen</div>
+            <div><span class="dot hl"></span>Queen just placed</div>
+            <div><span class="dot rej"></span>Skipped: attacked</div>
+            <div><span class="ln bdlink"></span>Attacked by this queen</div>
+            <div><span class="dot bdatt"></span>Attacked square (hints on)</div>
+            <div><span class="dot sol"></span>Solved</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a square to see its row, column and box, or a queen's lines.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizTable" hidden>
+        <div class="canvas">
+          <div id="tbhost"></div>
+          <div class="caption" id="tbcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Result</h5><div class="active-list" id="tbchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="tbchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot hl"></span>Current row or cell</div>
+            <div><span class="dot sol"></span>Accepted, holds, or on the answer</div>
+            <div><span class="dot rej"></span>Rejected or over the bound</div>
+            <div><span class="ln" style="background:var(--hl)"></span>Changed this step (underlined)</div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizMisc" hidden>
+        <div class="canvas">
+          <svg id="msvg" role="img" aria-label="Problem picture"></svg>
+          <div class="caption" id="mscaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Certificate</h5><div class="active-list" id="mschosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="mschecks"></ul></div>
+          <div class="legend" id="mslegend"><h5>Key</h5>
+            <div data-p="CONVEXHULL"><span class="dot sol"></span>Hull corner, numbered in order</div>
+            <div data-p="CONVEXHULL"><span class="dot cov"></span>Inside the hull</div>
+            <div data-p="CONVEXHULL"><span class="dot grp"></span>Left and right hulls being merged</div>
+            <div data-p="CONVEXHULL"><span class="dot hl"></span>Bridge being tried</div>
+            <div data-p="CONVEXHULL"><span class="dot rej"></span>Dropped</div>
+            <div data-p="DM3"><span class="dot sol"></span>Chosen triple</div>
+            <div data-p="DM3"><span class="dot cov"></span>Used exactly once</div>
+            <div data-p="DM3"><span class="dot hl"></span>Triple being tried</div>
+            <div data-p="DM3"><span class="dot blk"></span>Shares a name with a chosen triple</div>
+            <div data-p="DM3"><span class="dot rej"></span>Used twice, or stuck</div>
+            <div data-p="LDC"><span class="dot hl"></span>Trees being merged</div>
+            <div data-p="LDC"><span class="dot cov"></span>Already merged</div>
+            <div data-p="LDC"><span class="dot sol"></span>Character with its code</div>
+            <div data-p="LDC"><span class="dot ord">0</span>Edge bits: left 0, right 1</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a point, name or character to trace it.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizCgram" hidden>
+        <div class="canvas">
+          <svg id="cgsvg" role="img" aria-label="Problem picture"></svg>
+          <div class="caption" id="cgcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Certificate</h5><div class="active-list" id="cgchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="cgchecks"></ul></div>
+          <div class="legend" id="cglegend"><h5>Key</h5>
+            <div data-k="circuit"><span class="ln w1"></span>Wire carrying 1</div>
+            <div data-k="circuit"><span class="ln w0"></span>Wire carrying 0</div>
+            <div data-k="circuit"><span class="dot hl"></span>Gate being evaluated</div>
+            <div data-k="circuit"><span class="dot sol"></span>Output is 1</div>
+            <div data-k="circuit"><span class="dot rej"></span>Output is 0</div>
+            <div data-k="grammar"><span class="dot hl"></span>Cell being filled, and the cells it combines</div>
+            <div data-k="grammar"><span class="dot sol"></span>Start variable reached the top; parse tree</div>
+            <div data-k="grammar"><span class="dot rej"></span>Start variable missing from the top cell</div>
+            <div data-k="grammar"><span class="dot blk"></span>Not filled yet</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a gate or a cell to trace it.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizReduction" hidden>
+        <div class="canvas">
+          <svg id="rdg" role="img" aria-label="The instance and the instance the reduction builds, side by side"></svg>
+          <div class="caption" id="rdcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Phase</h5><div class="rdphase" id="rdphase"><span data-phase="build">1 · Build</span><span data-phase="solve">2 · Solve</span><span data-phase="map">3 · Map back</span></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="rdchecks"></ul></div>
+          <div><h5>Gadgets</h5><ul class="checks" id="rdgadgets"></ul></div>
+          <p style="margin:0; color:var(--caption)">Hover a piece on either side to see what it became. "Highlight gadgets" colors each gadget and its source alike.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizMachine" hidden>
+        <div class="canvas">
+          <svg id="mcsvg" role="img" aria-label="Machine diagram with its tape"></svg>
+          <div class="caption" id="mccaption"></div>
+        </div>
+        <aside class="side">
+          <div id="mcpathctl" hidden>
+            <h5>Branches</h5>
+            <label class="sw"><input type="checkbox" id="mconePath"><span class="track"></span>Follow one run</label>
+            <select id="mcpathSel" aria-label="Run to follow" disabled></select>
+          </div>
+          <div><h5 id="mcchosenh">Tape</h5><div class="active-list" id="mcchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="mcchecks"></ul></div>
+          <div class="legend" id="mclegend"><h5>Key</h5>
+            <div><span class="ln start"></span>Start state</div>
+            <div><span class="dot acc2"></span>Accept state</div>
+            <div data-k="tm"><span class="dot untr"></span>Reject state (missing rules go here)</div>
+            <div><span class="dot hl"></span>Current state, rule, head or stack top</div>
+            <div><span class="dot sol"></span>Halted and accepted</div>
+            <div><span class="dot rej"></span>Rejected, stuck or looping</div>
+            <div data-k="pda"><span class="ln eps"></span>ε-move (reads no input)</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a state to see its rules.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizPair" hidden>
+        <div class="canvas">
+          <svg id="pvsvg" role="img" aria-label="Problem picture"></svg>
+          <div class="caption" id="pvcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Certificate</h5><div class="active-list" id="pvchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="pvchecks"></ul></div>
+          <div class="legend" id="pvlegend"><h5>Key</h5>
+            <div data-p="PCP"><span class="dot cov"></span>Letters that agree</div>
+            <div data-p="PCP"><span class="dot hl"></span>Leftover, and the tile just added</div>
+            <div data-p="PCP"><span class="dot blk"></span>Letters still owed</div>
+            <div data-p="PCP"><span class="dot rej"></span>First disagreement</div>
+            <div data-p="PCP"><span class="dot grp"></span>Which tile wrote which letters</div>
+            <div data-p="GRAPH"><span class="dot grp"></span>Paired nodes share a color</div>
+            <div data-p="GRAPH"><span class="dot hl"></span>Pair being tried</div>
+            <div data-p="GRAPH"><span class="dot blk"></span>Ruled out by degree</div>
+            <div data-p="GRAPH"><span class="dot sol"></span>Edge with a partner</div>
+            <div data-p="GRAPH"><span class="dot rej"></span>Edge with no partner</div>
+            <div data-p="GRAPH"><span class="ln miss"></span>Where the partner would be</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a tile or node to trace it.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizSearch" hidden>
+        <div class="canvas">
+          <div style="overflow-x:auto; max-width:100%"><svg id="stg" role="img" aria-label="Search tree"></svg></div>
+          <div class="caption" id="stcaption"></div>
+        </div>
+        <aside class="side">
+          <div class="selrow" id="stsolverrow"><h5 style="margin:0">Tree from</h5>
+            <select id="stsolver" aria-label="Solver drawn as a tree"></select>
+          </div>
+          <div><h5>Answer</h5><div class="active-list" id="stchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="stchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot hl"></span>Being worked on</div>
+            <div><span class="dot cov"></span>Explored</div>
+            <div><span class="dot stq"></span>Queued (best-first)</div>
+            <div><span class="dot stcut"></span>Cut off</div>
+            <div><span class="dot rej"></span>Backed out</div>
+            <div><span class="dot sol"></span>Path to the answer</div>
+            <div><span class="dot stskip"></span>Never needed (game)</div>
+            <div><span class="dot stord">3</span>Order taken from the queue</div>
+            <div><span class="dot stfold">+4</span>Folded finished branch</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a node to see its full path.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizAuto" hidden>
+        <div class="canvas">
+          <svg id="ag" role="img" aria-label="Automaton state diagram"></svg>
+          <div class="tape-row"><h5>Input tape</h5><div id="atape"></div></div>
+          <div class="caption" id="acaption"></div>
+        </div>
+        <aside class="side">
+          <div id="pathctl" hidden>
+            <h5>Branches</h5>
+            <label class="sw"><input type="checkbox" id="onePath"><span class="track"></span>Follow one path</label>
+            <select id="pathSel" aria-label="Path to follow" disabled></select>
+          </div>
+          <div><h5>Active states</h5><div class="active-list" id="aactive"></div></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="ln start"></span>Start state</div>
+            <div><span class="dot acc2"></span>Accept state</div>
+            <div><span class="dot hl"></span>Active state</div>
+            <div><span class="dot sol"></span>Ended here, accepted</div>
+            <div><span class="dot rej"></span>Ended here, rejected</div>
+            <div><span class="dot untr"></span>Never reached</div>
+            <div><span class="ln eps"></span>ε-transition</div>
+            <div><span class="dot garb"></span>Garbage (missing transition)</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a state to see where it can go.</p>
+        </aside>
+      </div>
+
+      <div class="viz" id="vizBip" hidden>
+        <div class="canvas">
+          <svg id="bg" role="img" aria-label="Bipartite graph of elements and sets"></svg>
+          <div class="caption" id="bcaption"></div>
+        </div>
+        <aside class="side">
+          <div><h5>Chosen</h5><div class="active-list" id="bchosen"></div></div>
+          <div><h5>Checks</h5><ul class="checks" id="bchecks"></ul></div>
+          <div class="legend"><h5>Key</h5>
+            <div><span class="dot sol"></span>Chosen</div>
+            <div><span class="dot cov"></span>Covered</div>
+            <div><span class="dot hl"></span>Being tried</div>
+            <div><span class="dot blk"></span>Blocked (would double up)</div>
+            <div><span class="dot rej"></span>Uncovered or doubled</div>
+          </div>
+          <p style="margin:0; color:var(--caption)">Hover a node to see its memberships.</p>
+        </aside>
+      </div>
+    </div>
+  </section></div>
+
+  <!-- SOLVE / VERIFY / REDUCE (collapsed) -->
+  <div class="row"><section class="card" data-sec>
+    <div class="card-h">
+      <div class="h-title">Solve</div>
+      <div class="h-ctrls"><div class="pickwrap">
+          <button class="ac pick" id="solverPick" aria-haspopup="listbox" aria-expanded="false"><label>Select solver</label><span class="val" id="solverVal">Backtracking Solver</span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></button>
+          <ul class="menu" id="solverMenu" role="listbox" aria-label="Solvers" hidden></ul>
+        </div></div>
+      <div class="h-toggle"><button class="hbtn chev" aria-label="Expand Solve section" data-toggle><svg class="i" viewBox="0 0 24 24"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></div>
+    </div>
+    <div class="card-b" id="solveBody"></div>
+  </section></div>
+  <div class="row"><section class="card" data-sec>
+    <div class="card-h">
+      <div class="h-title">Verify</div>
+      <div class="h-ctrls"><div class="ac"><label>Select verifier</label><span class="val" id="verifierVal">SAT3 Verifier</span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div></div>
+      <div class="h-toggle"><button class="hbtn chev" aria-label="Expand Verify section" data-toggle><svg class="i" viewBox="0 0 24 24"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></div>
+    </div>
+    <div class="card-b">Verifier output appears here.</div>
+  </section></div>
+  <div class="row"><section class="card" data-sec>
+    <div class="card-h">
+      <div class="h-title">Reduce</div>
+      <div class="h-ctrls"><div class="pickwrap">
+          <button class="ac pick" id="redPick" aria-haspopup="listbox" aria-expanded="false"><label>Reduce to</label><span class="val ph" id="redVal">Select reduction</span><span class="tag vz" id="redTag" hidden></span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></button>
+          <ul class="menu" id="redMenu" role="listbox" aria-label="Reductions" hidden></ul>
+        </div></div>
+      <div class="h-toggle"><button class="hbtn chev" aria-label="Expand Reduce section" data-toggle><svg class="i" viewBox="0 0 24 24"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg></button></div>
+    </div>
+    <div class="card-b" id="reduceBody">Pick a reduction target such as CLIQUE.</div>
+  </section></div>
+</main>
+
+<footer><b>IDAHO STATE UNIVERSITY</b>Computer Science</footer>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const SUB = "₀₁₂₃₄₅₆₇₈₉";
+const pretty = name => { const m = /^([A-Za-z_]+)(\d+)$/.exec(name); return m ? m[1] + m[2].split("").map(d => SUB[d]).join("") : name; };
+const DEFAULT = "(!x1 | x2 | x3) & (!x1 | !x2 | x4) & (!x1 | !x3 | !x4) & (!x1 | !x2 | x3) & (!x1 | x2 | x4) & (x1 | x2 | !x4) & (x1 | !x3 | x4)";
+
+/* ---- theme toggle (same three-state idea as ThemeModeContext) ---- */
+const MOON = "M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1";
+const SUN = "M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5M2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1m18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1M11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1m0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1";
+const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const syncIcon = () => $("themeIcon").setAttribute("d", isDark() ? SUN : MOON);
+$("themeBtn").onclick = () => { document.documentElement.dataset.theme = isDark() ? "light" : "dark"; syncIcon(); };
+syncIcon();
+
+/* ---- section collapse + info popovers ---- */
+document.querySelectorAll("[data-toggle]").forEach(b => b.addEventListener("click", () => {
+  const card = b.closest("[data-sec]"); const open = card.classList.toggle("open");
+  b.setAttribute("aria-label", (open ? "Collapse " : "Expand ") + card.querySelector(".h-title").textContent + " section");
+}));
+document.querySelectorAll("[data-pop]").forEach(b => b.addEventListener("click", e => {
+  e.stopPropagation(); const p = $(b.dataset.pop); const show = p.hidden;
+  document.querySelectorAll(".pop").forEach(x => x.hidden = true); p.hidden = !show;
+}));
+document.addEventListener("click", e => { if (!e.target.closest(".pop")) document.querySelectorAll(".pop").forEach(x => x.hidden = true); });
+
+/* ---- instance parsing (Redux SAT3 string format) ---- */
+function parse(str) {
+  const s = str.trim();
+  if (!s) throw new Error("empty");
+  const names = [], index = {};
+  const clauses = s.split("&").map(part => {
+    const inner = part.trim().replace(/^\(/, "").replace(/\)$/, "");
+    if (/[()]/.test(inner) || !inner.trim()) throw new Error("bad clause");
+    return inner.split("|").map(tok => {
+      let t = tok.trim(), neg = false;
+      while (/^[!~¬]/.test(t)) { neg = !neg; t = t.slice(1).trim(); }
+      if (!/^[A-Za-z_]\w*$/.test(t)) throw new Error("bad literal");
+      if (!(t in index)) { names.push(t); index[t] = names.length; }
+      return neg ? -index[t] : index[t];
+    });
+  });
+  if (clauses.length > 40) throw new Error("too many");
+  return { clauses, names };
+}
+
+/* ---- solver trace: frame 0 is the bare instance ---- */
+function trace(clauses, nVars, names) {
+  const frames = [{ asg: {}, tried: null, failed: -1, caption: "Step 0: the instance. Step forward to watch the Backtracking Solver." }];
+  const asg = {};
+  const val = l => { const a = asg[Math.abs(l)]; return a === undefined ? undefined : (l > 0 ? a : !a); };
+  const falsified = () => clauses.findIndex(c => c.every(l => val(l) === false));
+  const N = v => pretty(names[v - 1]);
+  function rec(v) {
+    if (v > nVars) return true;
+    for (const b of [true, false]) {
+      asg[v] = b;
+      const f = falsified(), verb = b ? "Try" : "Switch to";
+      frames.push({ asg: { ...asg }, tried: v, failed: f,
+        caption: f >= 0 ? `${verb} ${N(v)} = ${b ? "T" : "F"}. C${f + 1} has no true literal left, so undo.`
+                        : `${verb} ${N(v)} = ${b ? "T" : "F"}. No clause is falsified yet.` });
+      if (f < 0 && rec(v + 1)) return true;
+      delete asg[v];
+    }
+    return false;
+  }
+  const ok = rec(1);
+  frames.push({ asg: ok ? { ...asg } : {}, tried: null, failed: -1, done: true, ok,
+    caption: ok ? "Every clause has a true literal. Satisfiable." : "Every branch was rejected. Unsatisfiable." });
+  return { frames, ok };
+}
+
+/* ---- layout ---- */
+function build({ clauses, names }) {
+  const nVars = names.length, nodes = [], edges = [];
+  clauses.forEach((c, ci) => c.forEach((l, li) => nodes.push({ id: `C${ci+1}.${li}`, ci, li, lit: l, v: Math.abs(l) })));
+  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+    const a = nodes[i], b = nodes[j];
+    if (a.ci !== b.ci && a.lit === -b.lit) edges.push({ a, b, kind: "conflict" });
+    if (a.ci === b.ci) edges.push({ a, b, kind: "intra" });
+  }
+  const n = clauses.length, nodeR = 17;
+  const groups = clauses.map(c => { const k = c.length, rin = k <= 1 ? 0 : (nodeR + 7) / Math.sin(Math.PI / k); return { k, rin, hull: rin + nodeR + 10 }; });
+  const maxHull = Math.max(...groups.map(g => g.hull));
+  const R = n === 1 ? 0 : Math.max(150, (maxHull + 14) / Math.sin(Math.PI / n));
+  const size = 2 * (R + maxHull + 36), cx = size / 2, cy = size / 2;
+  groups.forEach((g, ci) => { g.ci = ci; g.th = -Math.PI / 2 + (2 * Math.PI * ci) / n; g.x = cx + R * Math.cos(g.th); g.y = cy + R * Math.sin(g.th); });
+  nodes.forEach(nd => { const g = groups[nd.ci], a = g.th + Math.PI + (2 * Math.PI * nd.li) / g.k; nd.x = g.x + g.rin * Math.cos(a); nd.y = g.y + g.rin * Math.sin(a); });
+  return { clauses, names, nVars, nodes, edges, groups, cx, cy, size, nodeR, ...trace(clauses, nVars, names) };
+}
+
+let S = { step: 0, edges: "conflict", hoverVar: null, hoverClause: null }, M;
+
+function draw() {
+  const svg = $("g"); svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${M.size} ${M.size}`);
+  const gHull = el("g", {}, svg), gEdges = el("g", {}, svg), gNodes = el("g", {}, svg);
+  M.groups.forEach(g => {
+    g.el = el("circle", { cx: g.x, cy: g.y, r: g.hull, class: "hull" }, gHull);
+    const lr = g.hull + 16;
+    g.lab = el("text", { x: g.x + lr * Math.cos(g.th), y: g.y + lr * Math.sin(g.th), class: "glabel", "text-anchor": "middle", "dominant-baseline": "central" }, gHull);
+    g.lab.textContent = "C" + (g.ci + 1);
+    g.el.addEventListener("pointerenter", () => { S.hoverClause = g.ci; paint(); });
+    g.el.addEventListener("pointerleave", () => { S.hoverClause = null; paint(); });
+  });
+  M.edges.forEach(e => {
+    let d;
+    if (e.kind === "conflict") {
+      const mx = (e.a.x + e.b.x) / 2, my = (e.a.y + e.b.y) / 2;
+      d = `M${e.a.x},${e.a.y} Q${mx + (M.cx - mx) * 0.5},${my + (M.cy - my) * 0.5} ${e.b.x},${e.b.y}`;
+    } else d = `M${e.a.x},${e.a.y} L${e.b.x},${e.b.y}`;
+    e.el = el("path", { d, class: "edge " + e.kind }, gEdges);
+  });
+  M.nodes.forEach(nd => {
+    const label = (nd.lit < 0 ? "¬" : "") + pretty(M.names[nd.v - 1]);
+    const g = el("g", { class: "node", tabindex: "0", role: "button", "aria-label": `${label} in clause ${nd.ci + 1}` }, gNodes);
+    el("circle", { cx: nd.x, cy: nd.y, r: M.nodeR + 4, class: "ring" }, g);
+    el("circle", { cx: nd.x, cy: nd.y, r: M.nodeR, class: "body" }, g);
+    const t = el("text", { x: nd.x, y: nd.y }, g); t.textContent = label;
+    if (label.length > 4) t.style.fontSize = "10px";
+    nd.el = g;
+    const on = () => { S.hoverVar = nd.v; paint(); }, off = () => { S.hoverVar = null; paint(); };
+    g.addEventListener("pointerenter", on); g.addEventListener("pointerleave", off);
+    g.addEventListener("focus", on); g.addEventListener("blur", off);
+    g.addEventListener("click", () => { S.hoverVar = S.hoverVar === nd.v ? null : nd.v; paint(); });
+  });
+  $("stepnum").max = M.frames.length - 1;
+}
+
+function paintClause() {
+  const fr = M.frames[S.step], last = M.frames.length - 1;
+  const val = l => { const a = fr.asg[Math.abs(l)]; return a === undefined ? undefined : (l > 0 ? a : !a); };
+  const witness = new Set();
+  if (fr.done && fr.ok) M.clauses.forEach((c, ci) => { const li = c.findIndex(l => val(l)); if (li >= 0) witness.add(`C${ci+1}.${li}`); });
+  const cstate = M.clauses.map((c, ci) => ci === fr.failed ? "rej" : c.some(l => val(l) === true) ? "sat" : "");
+  M.groups.forEach(g => { g.el.setAttribute("class", "hull " + cstate[g.ci] + (S.hoverClause === g.ci ? " hot" : "")); g.lab.setAttribute("class", "glabel " + cstate[g.ci]); });
+  M.nodes.forEach(nd => {
+    const v = val(nd.lit);
+    let st = v === undefined ? "Background" : v ? "Solution" : "False";
+    if (nd.ci === fr.failed) st = "Rejected";
+    let cls = "node " + st;
+    if (fr.tried === nd.v) cls += " hl";
+    if (witness.has(nd.id)) cls += " witness";
+    if (S.hoverVar !== null) cls += S.hoverVar === nd.v ? " trace" : " faint";
+    nd.el.setAttribute("class", cls);
+  });
+  const assigned = Object.keys(fr.asg).length > 0;
+  M.edges.forEach(e => {
+    e.el.style.display = (S.edges === "both" || (S.edges === "conflict" && e.kind === "conflict")) ? "" : "none";
+    let cls = "edge " + e.kind;
+    if (S.hoverVar !== null) cls += (e.a.v === S.hoverVar && e.kind === "conflict") ? " hot" : " faint";
+    else if (assigned) cls += " dim";
+    e.el.setAttribute("class", cls);
+  });
+  const a = $("assign"); a.innerHTML = "";
+  M.names.forEach((nm, i) => {
+    const v = i + 1, x = fr.asg[v], d = document.createElement("div");
+    d.className = "av " + (x === undefined ? "" : x ? "T" : "F") + (fr.tried === v ? " tried" : "");
+    d.textContent = `${pretty(nm)} ${x === undefined ? "–" : x ? "T" : "F"}`;
+    a.appendChild(d);
+  });
+  const cap = $("caption");
+  cap.textContent = fr.caption;
+  cap.className = "caption" + (fr.failed >= 0 || (fr.done && !fr.ok) ? " rej" : fr.done ? " ok" : "");
+  syncNav(last);
+  $("solveBody").textContent = M.ok
+    ? "Solution: " + M.names.map((nm, i) => `${nm}=${M.frames[last].asg[i + 1] ? "T" : "F"}`).join(", ")
+    : "No satisfying assignment.";
+}
+
+function syncNav(last) {
+  $("stepnum").value = S.step;
+  $("stepnum").max = last;
+  $("first").disabled = $("prev").disabled = S.step === 0;
+  $("next").disabled = $("last").disabled = S.step === last;
+  $("showSolution").checked = S.step === last;
+}
+
+/*@@AUTOMATON@@*/
+
+/*@@TABLE@@*/
+
+/*@@QUANTUM@@*/
+
+/*@@BIPARTITE@@*/
+
+/*@@GRAPHBASE@@*/
+
+/*@@SCHEDULE@@*/
+
+/*@@PACKING@@*/
+
+/*@@LAYERED@@*/
+
+/*@@FLOW@@*/
+
+/*@@BOARD@@*/
+
+/* ---- problems this mockup knows ---- */
+const PROBLEMS = {
+  SAT3: {
+    label: "3SAT", cls: "NP-Complete", clsTag: "npc", type: "Logic",
+    vizzes: [["clause", "Clause Graph", "Grouped Graph"], ["factor", "Factor Graph", "Bipartite Graph"]],
+    solvers: [["bt", "Backtracking Solver"]],
+    def: "Given a Boolean formula in conjunctive normal form with at most three literals per clause, is there an assignment that makes every clause true?",
+    input: "(x1 | !x2 | x3) & (…)", inst: DEFAULT, example: "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)",
+    viz: "Clause Graph", vizType: "Grouped Graph",
+    vizDef: "One node per literal, grouped into one cluster per clause. Edges join each literal to its complement in other clauses. A satisfying assignment shows one green literal in every cluster.",
+    vizInput: "Clauses (signed literals)", vizSteps: "Backtracking Solver frames",
+    solver: "Backtracking Solver", verifier: "SAT3 Verifier",
+  },
+  SETCOVER: {
+    label: "Set Cover", cls: "NP-Complete", clsTag: "npc", type: "Sets", bip: true,
+    solvers: [["greedy", "Greedy Set Cover"], ["brute", "Set Cover Brute Force"]],
+    def: "Given a set of elements and a collection S of m sets whose union equals the universe, the set cover problem is to identify the smallest sub-collection of S whose union equals the universe",
+    input: "({U},{{S1},{S2},…},K)", inst: "({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)", example: "({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)",
+    viz: "Bipartite Graph", vizType: "Bipartite Graph",
+    vizDef: "Elements of U on the left, sets on the right, one edge per membership. Chosen sets light up with every element they cover.",
+    vizInput: "Universe, sets, budget K", vizSteps: "Frames from the selected solver",
+    solver: "Greedy Set Cover", verifier: "Set Cover Verifier",
+  },
+  EXACTCOVER: {
+    label: "Exact Cover", cls: "NP-Complete", clsTag: "npc", type: "Sets", bip: true,
+    solvers: [["x", "Dancing Links"], ["brute", "Exact Cover Brute Force"]],
+    def: "The exact cover problem is a decision problem to determine if an exact cover exists for some <S, X>",
+    input: "({U},{{S1},{S2},…})", inst: "({1,2,3,4,5,6},{{1,2},{1,3},{2,4},{3,5,6},{4,5,6},{4,6},{5,6}})", example: "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    viz: "Bipartite Graph", vizType: "Bipartite Graph",
+    vizDef: "Elements of U on the left, sets on the right. Every element must be covered by exactly one chosen set. Anything covered twice gets a ×2 badge.",
+    vizInput: "Universe, sets", vizSteps: "Frames from the selected solver",
+    solver: "Dancing Links", verifier: "Exact Cover Verifier",
+  },
+  HITTINGSET: {
+    label: "Exact Hitting Set", cls: "NP-Complete", clsTag: "npc", type: "Sets", bip: true,
+    solvers: [["brute", "Hitting Set Brute Force"], ["x", "Algorithm X (not in Redux yet)"]],
+    def: "Hitting set is the problem of finding a set where it shares exactly one element with each subset U_i.",
+    input: "({U},{{S1},{S2},…})", inst: "({1,2,3,4},{{1,3},{2,3,4},{1,4}})", example: "({1,2,3,4},{{1,3},{2,3,4},{1,4}})",
+    viz: "Bipartite Graph", vizType: "Bipartite Graph",
+    vizDef: "Elements on the left are what gets chosen. Every set on the right must contain exactly one chosen element.",
+    vizInput: "Universe, sets", vizSteps: "Frames from the selected solver",
+    solver: "Hitting Set Brute Force", verifier: "Hitting Set Verifier",
+  },
+  DFA: {
+    label: "DFA", cls: "P", clsTag: "p", type: "Automata",
+    def: "Acceptance Problem of a DFA is a problem that aims to see if a string input will be accepted by a particular Deterministic Finite Automata model.",
+    input: "((States, Alphabet, Transitions, Start, Accept), input)",
+    inst: "(({1,2,3},{a,b},{(1,a,2),(1,b,1),(2,a,2),(2,b,3),(3,a,2),(3,b,1)},1,{3}),abaab)",
+    example: "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)",
+    viz: "Automaton Graph", vizType: "Automaton",
+    vizDef: "States laid out left to right from the start state, with a start arrow and double-ringed accept states. Steps follow the input tape one symbol at a time.",
+    vizInput: "States, transitions, start, accept states, input", vizSteps: "One frame per input symbol",
+    solver: "DFA Solver", verifier: "DFA Verifier",
+  },
+  NFA: {
+    label: "NFA", cls: "P", clsTag: "p", type: "Automata",
+    def: "Acceptance Problem of a NFA is a problem that aims to see if a string input will be accepted by a particular Non-deterministic Finite Automata model.",
+    input: "((States, Alphabet, Transitions, Start, Accept), input)",
+    inst: "(({1,2,3,4},{a,b},{(1,a,1),(1,b,1),(1,a,2),(2,b,3),(3,ε,4),(4,a,4),(4,b,4)},1,{4}),babb)",
+    example: "(({1,2,3},{a,b},{(1,a,2),(1,ε,2),(1,b,3),(2,a,2),(2,ε,3),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)",
+    viz: "Automaton Graph", vizType: "Automaton",
+    vizDef: "States laid out left to right from the start state. Every branch runs at once, so each step highlights the whole set of active states, including ε moves.",
+    vizInput: "States, transitions (ε allowed), start, accept states, input", vizSteps: "One frame per input symbol",
+    solver: "NFA Solver", verifier: "NFA Verifier",
+  },
+};
+// Graph problems come straight from the shared catalog.
+for (const [k, g] of Object.entries(GraphView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: g.label, cls: g.cls || "NP-Complete", clsTag: g.cls === "P" ? "p" : "npc", type: "Graphs", graph: true, def: g.def,
+    input: (g.weighted ? "(N, {({a,b},w), …})" : "(N, {{a,b}, …})") + (g.needK ? " as ((N,E),K)" : ""),
+    inst: g.examples[0][1], example: g.examples[0][1],
+    viz: "Graph", vizType: "Graph",
+    vizDef: "The shared graph view. The problem hands over its graph and the kind of answer it has, and the base derives every color from the answer.",
+    vizInput: "Nodes, edges" + (g.weighted ? " with weights" : "") + (g.needK ? ", K" : ""), vizSteps: "Frames from the selected solver",
+    solvers: g.solvers, solver: g.solvers[0][1], verifier: g.label + " Verifier",
+  };
+}
+for (const [k, f] of Object.entries(FlowView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: f.label, cls: "P", clsTag: "p", type: "Graphs", flow: true, def: f.def,
+    input: "({N}, {((u,v),capacity), …}, s, t)", inst: f.examples[0][1], example: f.examples[0][1],
+    viz: "Flow Network", vizType: "Flow Network",
+    vizDef: "Source on the left, sink on the right. Each edge reads flow/capacity. Each step pushes flow along one path with room left; at the end the full edges leaving the source's side form the minimum cut.",
+    vizInput: "Nodes, capacitated directed edges, source, sink", vizSteps: "One frame per augmenting path, from the selected solver",
+    solvers: f.solvers, solver: f.solvers[0][1], verifier: f.label + " Verifier",
+  };
+}
+const isFlow = () => !!(PROBLEMS[P] && PROBLEMS[P].flow);
+const FLV = FlowView.create({ svg: $("flg") });
+let FR = null;
+function paintFlow() {
+  const last = FR.frames.length - 1, f = FLV.show(S.step);
+  const ch = $("flchosen"); ch.innerHTML = "";
+  const items = FLV.chosen(S.step);
+  if (!items.length) ch.innerHTML = "<em>No flow pushed yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = it.color !== undefined ? "g" + it.color : ""; ch.appendChild(s); });
+  const ul = $("flchecks"); ul.innerHTML = "";
+  FLV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("flcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? " ok" : "");
+  syncNav(last);
+  const fin = FR.frames[last];
+  $("solveBody").textContent = `Max flow ${fin.value}. S side: ${FLV.chosen(last)[0].text.slice(2)}`;
+}
+for (const [k, g] of Object.entries(LayeredView.PROBLEMS)) {
+  const input = g.needK ? "((N,E),K)" : g.needT ? "(N,E,s,t)" : g.needS ? "(N,E,s)" : "(N,E)";
+  PROBLEMS[k] = {
+    label: g.label, cls: g.cls, clsTag: g.cls === "P" ? "p" : "npc", type: "Directed graphs", layered: true, def: g.def,
+    input: input + (g.weighted ? ", edges ((u,v),w)" : ", edges (u,v)"),
+    inst: g.examples[0][1], example: g.examples[0][1],
+    viz: "Layered Graph", vizType: "Layered Graph",
+    vizDef: "Directed edges drawn left to right in ranks. Edges that point backward close a cycle and run as curves under the rows.",
+    vizInput: "Nodes, directed edges" + (g.weighted ? " with weights" : "") + (g.needK ? ", K" : "") + (g.needS ? ", source" : "") + (g.needT ? ", target" : ""),
+    vizSteps: "Frames from the selected solver",
+    solvers: g.solvers, solver: g.solvers[0][1], verifier: g.label + " Verifier",
+  };
+}
+let LR = null;
+for (const [k, g] of Object.entries(PackingView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: g.label, cls: "NP-Complete", clsTag: "npc", type: "Numbers", packing: true, def: g.def,
+    input: g.fmt, inst: g.examples[0][1], example: g.examples[0][1],
+    viz: "Packing", vizType: "Packing",
+    vizDef: "Items in a pool at the top, containers below drawn to scale with the line each must hit or stay under. Anything past a limit turns red.",
+    vizInput: g.rule === "knapsack" ? "Items (weight, value), W, V" : g.rule === "binpacking" ? "Item sizes, capacity C, bin limit K" : g.rule === "partition" ? "A multiset of numbers" : "A set of numbers, target T",
+    vizSteps: "Frames from the selected solver",
+    solvers: g.solvers, solver: g.solvers[0][1], verifier: g.label + " Verifier",
+  };
+}
+let PKR = null;
+for (const [k, s] of Object.entries(ScheduleView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: s.label, cls: s.cls, clsTag: "npc", type: "Scheduling", schedule: true, def: s.def,
+    input: s.format, inst: s.examples[0][1], example: s.examples[0][1],
+    viz: "Schedule", vizType: "Schedule",
+    vizDef: k === "JOBSEQ"
+      ? "One row per job on a time axis drawn to scale. Bars are runs on the one machine, the black tick is the deadline, and runs that end past it turn red and cost their penalty."
+      : "A 24-hour row per pump, with the tank level and each hour's cost charted underneath on the same hours. Steps show the dynamic program's forward pass, the trace back, then the schedule hour by hour.",
+    vizInput: k === "JOBSEQ" ? "Job times, deadlines, penalties, K" : "Tank, hourly demand, peak hours and tariffs, pumps" + (k === "PUMPEM" ? ", budget" : ""),
+    vizSteps: "Frames from the selected solver",
+    solvers: s.solvers, solver: s.solvers[0][1],
+    verifier: k === "JOBSEQ" ? "Default Job Sequencing Verifier" : "Default " + s.label + " Verifier",
+  };
+}
+const isSchedule = () => !!(PROBLEMS[P] && PROBLEMS[P].schedule);
+const SCV = ScheduleView.create({ svg: $("scg") });
+let SR = null;
+function paintSchedule() {
+  const last = SR.frames.length - 1, f = SCV.show(S.step);
+  const ch = $("scchosen"); ch.innerHTML = "";
+  const items = SCV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No valid answer exists.</em>" : "<em>Nothing scheduled yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("scchecks"); ul.innerHTML = "";
+  SCV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("sccaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.trial ? " rej" : "");
+  syncNav(last);
+  const fin = SR.frames[last];
+  $("solveBody").textContent = (fin.ok ? "Solution: " : "No valid solution. Best shown: ") + SCV.chosen(last).map(i => i.text).join("  ");
+}
+for (const [k, q] of Object.entries(QuantumView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: q.label, cls: q.cls, clsTag: q.cls === "NP" ? "npc" : "typ", type: "Quantum", quantum: true, def: q.def,
+    input: q.input, inst: q.examples[0][1], example: q.examples[0][1],
+    viz: "Quantum Circuit", vizType: "Quantum Circuit",
+    vizDef: "One wire per qubit and gates in the order they run. Each step applies one column; the bars show each outcome's probability, colored by the sign of its amplitude.",
+    vizInput: "A gate list: qubits, columns of gates, the measured register", vizSteps: "One frame per column of gates, from the selected solver",
+    solvers: q.solvers, solver: q.solvers[0][1], verifier: "Default " + q.label + " Verifier",
+  };
+}
+const isQuantum = () => !!(PROBLEMS[P] && PROBLEMS[P].quantum);
+const QV = QuantumView.create({ svg: $("qcg") });
+let QR = null;
+function paintQuantum() {
+  const last = QR.frames.length - 1, f = QV.show(S.step);
+  const ch = $("qcchosen"); ch.innerHTML = "";
+  const items = QV.chosen(S.step);
+  if (!items.length) ch.innerHTML = "<em>Not measured yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = f.ok ? "acc" : "rej"; ch.appendChild(s); });
+  const ul = $("qcchecks"); ul.innerHTML = "";
+  QV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = S.step === 0 || c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("qccaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.rejected ? " rej" : "");
+  syncNav(last);
+  $("solveBody").textContent = "Answer: " + (QV.chosen(last)[0] || { text: "none" }).text;
+}
+// Board problems come straight from the shared catalog.
+for (const [k, b] of Object.entries(BoardView.PROBLEMS)) {
+  const sudoku = b.kind === "sudoku";
+  PROBLEMS[k] = {
+    label: b.label, cls: b.cls, clsTag: b.cls === "P" ? "p" : "npc", type: "Puzzles", board: true, def: b.def,
+    input: sudoku ? "rows of digits, 0 = empty: 0,0,0,1,…; 0,2,0,…" : "n, the board size",
+    inst: b.examples[0][1], example: b.examples[0][1],
+    viz: "Board", vizType: "Board",
+    vizDef: sudoku ? "A grid of squares. Clues are bold, the solver's digits green, and the square being tried is highlighted. Dead ends and clashes turn red, with a dashed line linking two squares that hold the same digit."
+                   : "A chessboard. Queens land one row at a time; squares the solver had to skip get a red cross and a dashed line back to the queen that attacks them.",
+    vizInput: sudoku ? "The grid of clues" : "The board size n",
+    vizSteps: "Frames from the selected solver",
+    solvers: b.solvers, solver: b.solvers[0][1], verifier: sudoku ? "Default Sudoku Verifier" : "Default N-Queens Verifier",
+  };
+}
+const isBoard = () => !!(PROBLEMS[P] && PROBLEMS[P].board);
+const BDV = BoardView.create({ svg: $("bdg") });
+let BDR = null;
+$("bdhints").addEventListener("change", e => BDV.setHints(e.target.value === "on"));
+function paintBoard() {
+  const last = BDR.frames.length - 1, f = BDV.show(S.step), sudoku = BoardView.PROBLEMS[P].kind === "sudoku";
+  $("bdhintlbl").textContent = sudoku ? "Pencil marks" : "Attacked squares";
+  $("bdkeysudoku").hidden = !sudoku; $("bdkeyqueens").hidden = sudoku;
+  const ch = $("bdchosen"); ch.innerHTML = "";
+  const items = BDV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.kind === "done" ? "<em>No valid answer exists.</em>" : "<em>Nothing placed yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = f.kind === "done" ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("bdchecks"); ul.innerHTML = "";
+  BDV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("bdcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.kind === "done" ? (f.ok ? " ok" : " rej") : f.kind === "dead" || f.kind === "clash" ? " rej" : "");
+  syncNav(last);
+  const cert = BDV.certificate();
+  $("solveBody").textContent = cert ? "Solution: " + cert : "No solution.";
+}
+/*@@MISC@@*/
+const MS_VERIFIER = { CONVEXHULL: "Default Convex Hull Verifier", DM3: "Default 3-Dimensional Matching Verifier", LDC: "Default Lossless Data Compression Verifier" };
+const MS_VIZDEF = {
+  CONVEXHULL: "Points drawn to scale on real axes. The solver splits the points by x, builds small hulls and joins them with a bottom and a top bridge. The finished corners are numbered in output order.",
+  DM3: "X, Y and Z in three columns. Each candidate triple is a line through its three names. A perfect matching uses every name exactly once.",
+  LDC: "Huffman's code tree, built bottom-up by merging the two lightest trees. Read a character's code from the top: left is 0, right is 1. The encoded text runs underneath.",
+};
+for (const [k, g] of Object.entries(MiscView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: g.label, cls: g.cls, clsTag: g.cls === "P" ? "p" : "npc", type: g.type, misc: true, def: g.def,
+    input: g.input, inst: g.examples[0][1], example: g.examples[0][1],
+    viz: g.vizType, vizType: g.vizType, vizDef: MS_VIZDEF[k], vizInput: g.inputLong, vizSteps: "Frames from the selected solver",
+    solvers: g.solvers, solver: g.solvers[0][1], verifier: MS_VERIFIER[k],
+  };
+}
+const isMisc = () => !!(PROBLEMS[P] && PROBLEMS[P].misc);
+const MSV = MiscView.create({ svg: $("msvg") });
+let MR = null;
+function paintMisc() {
+  const last = MR.frames.length - 1, f = MSV.show(S.step);
+  const ch = $("mschosen"); ch.innerHTML = "";
+  const items = MSV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No valid answer exists.</em>" : "<em>Nothing chosen yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = it.color !== undefined ? "g" + it.color : f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("mschecks"); ul.innerHTML = "";
+  MSV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("mscaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.trial || f.failed || f.pop !== undefined ? " rej" : "");
+  syncNav(last);
+  const fin = MR.frames[last];
+  $("solveBody").textContent = fin.ok ? "Solution: " + MSV.chosen(last).map(i => i.text).join("  ") : fin.caption;
+}
+/*@@CIRCUITGRAMMAR@@*/
+const CG_VIZDEF = {
+  CVP: "Gates in columns by depth, inputs left, output right. Each step evaluates one gate. A 1 is a thick solid wire, a 0 a thin dashed one.",
+  CIRCUITSAT: "The same circuit with unknown inputs. Steps try input settings; backtracking stops a branch once the output is forced to 0.",
+  CFGMEMBER: "The CYK triangle: row k holds the variables that produce each run of k characters. Then the parse tree from the back-pointers.",
+};
+for (const [k, g] of Object.entries(CircuitGrammarView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: g.label, cls: g.cls, clsTag: g.cls === "P" ? "p" : "npc", type: g.type, cgram: true, def: g.def,
+    input: g.input, inst: g.examples[0][1], example: g.examples[0][1],
+    viz: g.vizType, vizType: g.vizType, vizDef: CG_VIZDEF[k], vizInput: g.inputLong, vizSteps: "Frames from the selected solver",
+    solvers: g.solvers, solver: g.solvers[0][1], verifier: "None yet (not in Redux)",
+  };
+}
+const isCgram = () => !!(PROBLEMS[P] && PROBLEMS[P].cgram);
+const CGV = CircuitGrammarView.create({ svg: $("cgsvg") });
+let CGR = null;
+function paintCgram() {
+  const last = CGR.frames.length - 1, f = CGV.show(S.step);
+  const ch = $("cgchosen"); ch.innerHTML = "";
+  const items = CGV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? (f.ok ? "<em>Done.</em>" : "<em>No: the answer is no.</em>") : "<em>Nothing decided yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("cgchecks"); ul.innerHTML = "";
+  CGV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("cgcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.trial ? " rej" : "");
+  syncNav(last);
+  const fin = CGR.frames[last];
+  $("solveBody").textContent = fin.caption;
+}
+/*@@MACHINE@@*/
+const MC_VIZDEF = {
+  TMACCEPT: "The state diagram plus the tape. Each step applies one rule: read the head's cell, write, move left or right, change state. A run that doesn't halt stops at the step limit with no answer.",
+  LBAACCEPT: "A Turing machine bounded by the end markers < and >. A repeated configuration proves a loop, so every run ends with an answer.",
+  PDAACCEPT: "The state diagram plus the input and one stack column per live branch, top first. Follow one run to watch a single path rule by rule.",
+};
+for (const [k, g] of Object.entries(MachineView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: g.label, cls: g.cls, clsTag: g.cls === "P" ? "p" : "npc", type: g.type, machine: true, def: g.def,
+    input: g.input, inst: g.examples[0][1], example: g.examples[0][1],
+    viz: g.vizType, vizType: g.vizType, vizDef: MC_VIZDEF[k], vizInput: g.inputLong, vizSteps: "One rule per frame, from the selected solver",
+    solvers: g.solvers, solver: g.solvers[0][1], verifier: "None yet (not in Redux)",
+  };
+}
+const isMachine = () => !!(PROBLEMS[P] && PROBLEMS[P].machine);
+const MCV = MachineView.create({ svg: $("mcsvg") });
+let MCR = null;
+function paintMachine() {
+  const last = MCR.frames.length - 1, f = MCV.show(S.step);
+  const ch = $("mcchosen"); ch.innerHTML = "";
+  MCV.chosen(S.step).forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("mcchecks"); ul.innerHTML = "";
+  MCV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("mccaption");
+  cap.textContent = (S.step === 0 ? "Step 0. " : "") + f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : "");
+  syncNav(last);
+  $("solveBody").textContent = MCR.frames[last].caption;
+}
+function mcApplyRun() {
+  const one = $("mconePath").checked;
+  $("mcpathSel").disabled = !one;
+  const r = MCV.usePath(one ? Number($("mcpathSel").value) || 0 : null);
+  MCR.frames = r.frames; MCR.ok = r.ok;
+  go(0);
+}
+$("mconePath").onchange = mcApplyRun;
+$("mcpathSel").onchange = mcApplyRun;
+/*@@DOMINO@@*/
+const PV_VIZDEF = {
+  PCP: "Tiles laid left to right with the two joined strings lined up letter by letter. Green letters agree, the amber leftover is where one row runs ahead, and red is the first disagreement.",
+  GRAPHISO: "Two graphs side by side. Paired nodes share a color and name their partner. Edges with a partner turn green; edges without one turn red.",
+  SUBGRAPHISO: "The pattern on the left, the host on the right. Each pattern node is placed on a host node; every pattern edge must land on a host edge.",
+};
+for (const [k, g] of Object.entries(PairView.PROBLEMS)) {
+  PROBLEMS[k] = {
+    label: g.label, cls: g.cls, clsTag: "npc", type: g.type, dmap: true, def: g.def,
+    input: g.input, inst: g.examples[0][1], example: g.examples[0][1],
+    viz: g.vizType, vizType: g.vizType, vizDef: PV_VIZDEF[k], vizInput: g.inputLong, vizSteps: "Frames from the selected solver",
+    solvers: g.solvers, solver: g.solvers[0][1], verifier: "No verifier yet (not in Redux)",
+  };
+}
+const isPair = () => !!(PROBLEMS[P] && PROBLEMS[P].dmap);
+const PVV = PairView.create({ svg: $("pvsvg") });
+let PVR = null;
+function paintPair() {
+  const last = PVR.frames.length - 1, f = PVV.show(S.step);
+  const ch = $("pvchosen"); ch.innerHTML = "";
+  const items = PVV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No answer to show.</em>" : "<em>Nothing chosen yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = it.color !== undefined ? "g" + it.color : f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("pvchecks"); ul.innerHTML = "";
+  PVV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null || c.ok === undefined ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("pvcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.trial || f.failed ? " rej" : "");
+  syncNav(last);
+  const fin = PVR.frames[last];
+  $("solveBody").textContent = fin.ok ? "Solution: " + PVV.chosen(last).map(i => i.text).join("  ") : fin.caption;
+}
+/*@@SEARCHTREE@@*/
+
+// Search Tree: a second view for problems whose solvers branch, plus two game problems not in Redux yet.
+// Like the Trace Table, the first view keeps the key "clause" because setProblem() resets satView to "clause".
+for (const [k, t] of Object.entries(SearchTreeView.PROBLEMS)) {
+  if (t.standalone) {
+    PROBLEMS[k] = {
+      label: t.label, cls: t.cls, clsTag: "npc", type: "Games", search: true, def: t.def,
+      input: t.input, inst: t.examples[0][1], example: t.examples[0][1],
+      viz: "Game Tree", vizType: "Search Tree", vizDef: t.vizDef, vizInput: t.input, vizSteps: "Frames from the selected solver",
+      solvers: t.solvers, solver: t.solvers[0][1], verifier: "None yet (not in Redux)",
+    };
+  } else if (PROBLEMS[k]) {
+    const p = PROBLEMS[k];
+    p.searchKey = k;
+    p.vizzes = p.vizzes || [["clause", p.viz, p.vizType]];
+    p.vizzes.push(["search", "Search Tree", "Search Tree"]);
+  }
+}
+let STR = null, STERR = null, stSolver = null;
+const STGV = SearchTreeView.create({ svg: $("stg") });
+const isSearch = () => !!PROBLEMS[P] && (!!PROBLEMS[P].search || (satView === "search" && !!PROBLEMS[P].searchKey));
+function loadSearch(str) {
+  const k = PROBLEMS[P].search ? P : PROBLEMS[P].searchKey, t = SearchTreeView.PROBLEMS[k];
+  const sv = PROBLEMS[P].search ? solverKey : (stSolver && t.solvers.some(s => s[0] === stSolver) ? stSolver : t.solvers[0][0]);
+  try { STR = STGV.load(str, k, sv); STERR = null; } catch (e) { STR = null; STERR = e.message; }
+  const sel = $("stsolver"); sel.innerHTML = "";
+  t.solvers.forEach(([v, name]) => { const o = document.createElement("option"); o.value = v; o.textContent = name; sel.appendChild(o); });
+  sel.value = sv;
+  $("stsolverrow").hidden = !!PROBLEMS[P].search;
+}
+function paintSearch() {
+  const cap = $("stcaption");
+  if (!STR) { cap.textContent = STERR || "No tree."; cap.className = "caption rej"; $("stchosen").innerHTML = ""; $("stchecks").innerHTML = ""; syncNav(0); return; }
+  const last = STR.frames.length - 1;
+  if (S.step > last) S.step = last;
+  const f = STGV.show(S.step);
+  const ch = $("stchosen"); ch.innerHTML = "";
+  const items = STGV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No answer exists.</em>" : "<em>Still searching.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = it.color !== undefined ? "g" + (it.color % 6) : f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("stchecks"); ul.innerHTML = "";
+  STGV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.bad ? " rej" : "");
+  syncNav(last);
+  if (PROBLEMS[P].search) $("solveBody").textContent = STR.frames[last].caption;
+}
+$("stsolver").addEventListener("change", e => { stSolver = e.target.value; loadSearch($("instance").value); S.step = 0; paint(); });
+let P = "SAT3", AR = null, BR = null, GR = null, satView = "clause", solverKey = null;
+const SV = BipartiteView.createSat({ svg: $("fg") });
+const BV = BipartiteView.create({ svg: $("bg") });
+const isBip = () => !!PROBLEMS[P].bip;
+const isGraph = () => !!PROBLEMS[P].graph;
+const GV = GraphView.create({ svg: $("gg") });
+const isPacking = () => !!(PROBLEMS[P] && PROBLEMS[P].packing);
+const PKV = PackingView.create({ svg: $("pkg") });
+const isLayered = () => !!PROBLEMS[P].layered;
+const LV = LayeredView.create({ svg: $("lg") });
+const AV = AutomatonView.create({ svg: $("ag"), tape: $("atape") });
+// Table: Edit Distance and 0-1 IP are table-only problems; DFA, NFA, SSSP and SPSP get a second view.
+// The first view keeps the key "clause" because setProblem() resets satView to "clause".
+for (const [k, t] of Object.entries(TableView.PROBLEMS)) {
+  if (t.standalone) {
+    PROBLEMS[k] = {
+      label: t.label, cls: t.cls, clsTag: t.cls === "P" ? "p" : "npc", type: t.kind === "ed" ? "Strings" : "Numbers", table: true, def: t.def,
+      input: t.input, inst: t.examples[0][1], example: t.examples[0][1],
+      viz: "Table", vizType: "Table", vizDef: t.vizDef, vizInput: t.input, vizSteps: "Frames from the selected solver",
+      solvers: t.solvers, solver: t.solvers[0][1], verifier: t.kind === "ed" ? "Default Edit Distance Verifier" : "Default 0-1 Integer Programming Verifier",
+    };
+  } else if (PROBLEMS[k]) {
+    const p = PROBLEMS[k];
+    p.tableKey = k;
+    p.vizzes = p.vizzes || [["clause", p.viz, p.vizType]];
+    p.vizzes.push(["table", "Trace Table", "Table"]);
+  }
+}
+let TR = null;
+const TBV = TableView.create({ host: $("tbhost") });
+const isTable = () => !!PROBLEMS[P] && (!!PROBLEMS[P].table || (satView === "table" && !!PROBLEMS[P].tableKey));
+function paintTable() {
+  const last = TR.frames.length - 1;
+  if (S.step > last) S.step = last;
+  const f = TBV.show(S.step);
+  const ch = $("tbchosen"); ch.innerHTML = "";
+  const items = TBV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No answer exists.</em>" : "<em>Nothing yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("tbchecks"); ul.innerHTML = "";
+  TBV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("tbcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.bad ? " rej" : "");
+  syncNav(last);
+  if (PROBLEMS[P].table) $("solveBody").textContent = TR.ok ? "Solution: " + TBV.chosen(last).map(i => i.text).join("  ") : "No solution.";
+}
+const frameCount = () => isSearch() ? (STR ? STR.frames.length : 1) : isPair() ? PVR.frames.length : isMachine() ? MCR.frames.length : (RED && RED.on && RR) ? RR.frames.length : isCgram() ? CGR.frames.length : isMisc() ? MR.frames.length : isTable() ? TR.frames.length : isBoard() ? BDR.frames.length : isQuantum() ? QR.frames.length : isSchedule() ? SR.frames.length : isPacking() ? PKR.frames.length : isLayered() ? LR.frames.length : isFlow() ? FR.frames.length : (P === "SAT3" ? M.frames.length : isBip() ? BR.frames.length : isGraph() ? GR.frames.length : AR.frames.length);
+
+function paintAuto() {
+  const last = AR.frames.length - 1, f = AV.show(S.step);
+  const box = $("aactive"); box.innerHTML = "";
+  if (!f.active.length) box.innerHTML = "<em>None. The machine is stuck.</em>";
+  else f.active.forEach(s => {
+    const sp = document.createElement("span"); sp.textContent = s;
+    if (s === AR.garbage || (f.done && !f.accepted)) sp.className = "rej";
+    else if (f.done && AR.accept.has(s)) sp.className = "acc";
+    box.appendChild(sp);
+  });
+  const cap = $("acaption");
+  cap.textContent = (S.step === 0 ? "Step 0. " : "") + f.caption;
+  cap.className = "caption" + (f.done ? (f.accepted ? " ok" : " rej") : !f.active.length ? " rej" : "");
+  syncNav(last);
+  $("solveBody").textContent = AR.accepted ? "Accepted." : "Rejected.";
+}
+function paintBip() {
+  const last = BR.frames.length - 1, f = BV.show(S.step);
+  const ch = $("bchosen"); ch.innerHTML = "";
+  const labels = BV.chosenLabels(S.step);
+  if (!labels.length) ch.innerHTML = f.done ? "<em>No valid choice exists.</em>" : "<em>Nothing chosen yet.</em>";
+  else labels.forEach(l => { const s = document.createElement("span"); s.textContent = l; s.className = f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("bchecks"); ul.innerHTML = "";
+  BV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = S.step === 0 ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("bcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.failed ? " rej" : "");
+  syncNav(last);
+  $("solveBody").textContent = BR.ok ? "Solution: {" + BR.solution.join(", ") + "}" : "No solution.";
+}
+function paintFactor() {
+  const fr = M.frames[S.step], last = M.frames.length - 1;
+  SV.show(fr);
+  const a = $("fassign"); a.innerHTML = "";
+  M.names.forEach((nm, i) => {
+    const v = i + 1, x = fr.asg[v], d = document.createElement("div");
+    d.className = "av " + (x === undefined ? "" : x ? "T" : "F") + (fr.tried === v ? " tried" : "");
+    d.textContent = `${pretty(nm)} ${x === undefined ? "–" : x ? "T" : "F"}`;
+    a.appendChild(d);
+  });
+  const cap = $("fcaption");
+  cap.textContent = fr.caption;
+  cap.className = "caption" + (fr.failed >= 0 || (fr.done && !fr.ok) ? " rej" : fr.done ? " ok" : "");
+  syncNav(last);
+}
+function paintGraph() {
+  const last = GR.frames.length - 1, f = GV.show(S.step);
+  const ch = $("gchosen"); ch.innerHTML = "";
+  const items = GV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No valid answer exists.</em>" : "<em>Nothing chosen yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = it.color !== undefined ? "g" + (it.color % 6) : f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("gchecks"); ul.innerHTML = "";
+  GV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = S.step === 0 || c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("gcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.badNode ? " rej" : "");
+  syncNav(last);
+  const fin = GR.frames[last];
+  $("solveBody").textContent = fin.ok ? "Solution: " + GV.chosen(last).map(i => i.text).join("  ") : "No solution.";
+}
+function paintLayered() {
+  const last = LR.frames.length - 1, f = LV.show(S.step);
+  const ch = $("lchosen"); ch.innerHTML = "";
+  const items = LV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No valid answer exists.</em>" : "<em>Nothing yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = it.color !== undefined ? "g" + (it.color % 6) : f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("lchecks"); ul.innerHTML = "";
+  LV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("lcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.badNode || f.trial ? " rej" : "");
+  syncNav(last);
+  const fin = LR.frames[last];
+  $("solveBody").textContent = fin.ok ? "Solution: " + LV.chosen(last).map(i => i.text).join("  ") : "No solution.";
+}
+function paintPacking() {
+  const last = PKR.frames.length - 1, f = PKV.show(S.step);
+  const ch = $("pkchosen"); ch.innerHTML = "";
+  const items = PKV.chosen(S.step);
+  if (!items.length) ch.innerHTML = f.done ? "<em>No valid answer exists.</em>" : "<em>Nothing chosen yet.</em>";
+  else items.forEach(it => { const s = document.createElement("span"); s.textContent = it.text; s.className = it.color !== undefined ? "g" + (it.color % 6) : f.done ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("pkchecks"); ul.innerHTML = "";
+  PKV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = S.step === 0 || c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const cap = $("pkcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : f.bad !== undefined || f.trial ? " rej" : "");
+  syncNav(last);
+  const fin = PKR.frames[last];
+  $("solveBody").textContent = fin.ok ? "Solution: " + PKV.chosen(last).map(i => i.text).join("  ") : "No solution.";
+}
+function paint() {
+  if (isSearch()) { paintSearch(); return; }
+  if (isPair()) { if (PVR) paintPair(); return; }
+  if (isMachine()) { if (MCR) paintMachine(); return; }
+  if (RED && RED.on && RR) { paintReduction(); return; }
+  if (isCgram()) { if (CGR) paintCgram(); return; }
+  if (isMisc()) { if (MR) paintMisc(); return; }
+  if (isTable()) { if (TR) paintTable(); return; }
+  if (isBoard()) { if (BDR) paintBoard(); return; }
+  if (isQuantum()) { if (QR) paintQuantum(); return; }
+  if (isSchedule()) { if (SR) paintSchedule(); return; }
+  if (isPacking()) { if (PKR) paintPacking(); return; }
+  if (isLayered()) { if (LR) paintLayered(); return; }
+  if (isFlow()) { if (FR) paintFlow(); return; }
+  if (isGraph()) { if (GR) paintGraph(); return; }
+  if (P === "SAT3") { if (M) (satView === "factor" ? paintFactor : paintClause)(); }
+  else if (isBip()) { if (BR) paintBip(); }
+  else if (AR) paintAuto();
+}
+
+function go(n) { S.step = Math.max(0, Math.min(frameCount() - 1, n)); paint(); }
+$("first").onclick = () => go(0);
+$("prev").onclick = () => go(S.step - 1);
+$("next").onclick = () => go(S.step + 1);
+$("last").onclick = () => go(frameCount() - 1);
+$("stepnum").oninput = e => { const n = Number(e.target.value); if (!isNaN(n) && n >= 0 && n < frameCount()) go(n); };
+$("showSolution").onchange = e => go(e.target.checked ? frameCount() - 1 : 0);
+$("refresh").onclick = () => { if (isSearch() && STR) STGV.resetHover(); if (isPair() && PVR) PVV.resetHover(); if (isMachine() && MCR) MCV.resetHover(); if (isCgram() && CGR) CGV.resetHover(); if (isMisc() && MR) MSV.resetHover(); if (isTable() && TR) TBV.resetHover(); if (isBoard() && BDR) BDV.resetHover(); S.hoverVar = S.hoverClause = null; if (isQuantum() && QR) QV.resetHover(); if (isSchedule() && SR) SCV.resetHover(); if (isPacking() && PKR) PKV.resetHover(); if (isFlow() && FR) FLV.resetHover(); if (P === "SAT3" && M) SV.resetHover(); if (isLayered()) { if (LR) LV.resetHover(); } else if (isGraph()) { if (GR) GV.resetHover(); } else if (isBip()) { if (BR) BV.resetHover(); } else if (P !== "SAT3" && AR) AV.resetHover(); go(0); };
+$("edges").onchange = e => { S.edges = e.target.value; paint(); };
+
+/* ---- NFA: follow one path ---- */
+function applyPath() {
+  const one = $("onePath").checked;
+  $("pathSel").disabled = !one;
+  const r = AV.usePath(one ? Number($("pathSel").value) || 0 : null);
+  AR.frames = r.frames; AR.accepted = r.accepted;
+  go(0);
+}
+$("onePath").onchange = applyPath;
+$("pathSel").onchange = applyPath;
+
+/* ---- live instance editing ---- */
+let timer;
+function showError(msg) {
+  $("tf").classList.add("err"); $("tfLabel").textContent = "Incorrect Format";
+  $("tfHelp").hidden = false; $("tfHelp").textContent = msg;
+}
+function loadInstance(str) {
+  const tf = $("tf"), prob = PROBLEMS[P];
+  try {
+    if (PROBLEMS[P].search || PROBLEMS[P].searchKey) loadSearch(str);
+    if (PROBLEMS[P].search) {
+      if (!STR) throw new Error(STERR);
+      S.step = 0;
+      tf.classList.remove("err"); $("tfLabel").textContent = "Problem Instance"; $("tfHelp").hidden = true;
+      paint(); return;
+    }
+    if (isPair()) {
+      PVR = PVV.load(str, P, solverKey); S.step = 0;
+      tf.classList.remove("err"); $("tfLabel").textContent = "Problem Instance"; $("tfHelp").hidden = true;
+      paint(); return;
+    }
+    if (isMachine()) {
+      MCR = MCV.load(str, P, solverKey); S.step = 0;
+      const ps = $("mcpathSel"); ps.innerHTML = "";
+      MCR.runs.forEach((r, i) => { const o = document.createElement("option"); o.value = i; o.textContent = r.label; ps.appendChild(o); });
+      $("mcpathctl").hidden = !MCR.runs.length; $("mconePath").checked = false; ps.disabled = true;
+      tf.classList.remove("err"); $("tfLabel").textContent = "Problem Instance"; $("tfHelp").hidden = true;
+      paint(); return;
+    }
+    if (isCgram()) {
+      CGR = CGV.load(str, P, solverKey); S.step = 0;
+      tf.classList.remove("err"); $("tfLabel").textContent = "Problem Instance"; $("tfHelp").hidden = true;
+      paint(); return;
+    }
+    if (isMisc()) {
+      MR = MSV.load(str, P, solverKey); S.step = 0;
+      tf.classList.remove("err"); $("tfLabel").textContent = "Problem Instance"; $("tfHelp").hidden = true;
+      paint(); return;
+    }
+    if (PROBLEMS[P].table) {
+      TR = TBV.load(str, P, solverKey); TR.solver = solverKey; S.step = 0;
+      tf.classList.remove("err"); $("tfLabel").textContent = "Problem Instance"; $("tfHelp").hidden = true;
+      paint(); return;
+    }
+    if (PROBLEMS[P].tableKey) TR = TBV.load(str, PROBLEMS[P].tableKey, null);
+    if (isBoard()) BDR = BDV.load(str, BoardView.PROBLEMS[P], solverKey);
+    else
+    if (isQuantum()) QR = QV.load(str, P, solverKey);
+    else if (isSchedule()) SR = SCV.load(str, P, solverKey);
+    else if (isFlow()) FR = FLV.load(str, P, solverKey);
+    else if (P === "SAT3") { M = build(parse(str)); S.hoverVar = S.hoverClause = null; draw(); SV.load(M.clauses, M.names); }
+    else if (isBip()) BR = BV.load(str, P, solverKey);
+    else if (isGraph()) GR = GV.load(str, GraphView.PROBLEMS[P], solverKey);
+    else if (isPacking()) PKR = PKV.load(str, PackingView.PROBLEMS[P], solverKey);
+    else if (isLayered()) LR = LV.load(str, LayeredView.PROBLEMS[P], solverKey);
+    else {
+      AR = AV.load(str, P);
+      const ps = $("pathSel"); ps.innerHTML = "";
+      AR.paths.forEach((p, i) => { const o = document.createElement("option"); o.value = i; o.textContent = p.label; ps.appendChild(o); });
+      if (AR.pathLimitHit) { const o = document.createElement("option"); o.disabled = true; o.textContent = "Showing the first 40 paths"; ps.appendChild(o); }
+      $("pathctl").hidden = !AR.paths.length;
+      $("onePath").checked = false; ps.disabled = true;
+    }
+    S.step = 0;
+    tf.classList.remove("err"); $("tfLabel").textContent = "Problem Instance"; $("tfHelp").hidden = true;
+    paint();
+  } catch (err) {
+    if (P === "SAT3") showError(err.message === "too many" ? "This mockup draws up to 40 clauses." : "Problem failed? Try: " + prob.example);
+    else showError(err.message + " Try: " + prob.example);
+  }
+}
+$("instance").addEventListener("input", e => { clearTimeout(timer); timer = setTimeout(() => loadInstance(e.target.value), 350); });
+
+function showVizBlock() {
+  const p = PROBLEMS[P];
+  $("vizBoard").hidden = !p.board;
+  $("vizClause").hidden = !(P === "SAT3" && satView === "clause");
+  $("vizFactor").hidden = !(P === "SAT3" && satView === "factor");
+  $("vizBip").hidden = !p.bip;
+  $("vizMachine").hidden = !p.machine;
+  if (p.machine) {
+    const kind = MachineView.PROBLEMS[P].kind;
+    document.querySelectorAll("#mclegend [data-k]").forEach(r => { r.hidden = r.dataset.k !== kind; });
+    $("mcchosenh").textContent = kind === "pda" ? "Branches" : "Tape";
+  }
+  $("vizMisc").hidden = !p.misc;
+  document.querySelectorAll("#mslegend [data-p]").forEach(r => { r.hidden = r.dataset.p !== P; });
+  $("vizGraph").hidden = !p.graph;
+  $("vizSchedule").hidden = !p.schedule;
+  $("vizPacking").hidden = !p.packing;
+  $("vizLayered").hidden = !p.layered;
+  $("vizFlow").hidden = !p.flow;
+  $("vizPair").hidden = !p.dmap;
+  document.querySelectorAll("#pvlegend [data-p]").forEach(r => { r.hidden = r.dataset.p !== (P === "PCP" ? "PCP" : "GRAPH"); });
+  $("vizAuto").hidden = !!p.board || !!p.packing || !!p.layered || P === "SAT3" || !!p.bip || !!p.graph || !!p.flow || !!p.schedule || !!p.quantum || !!p.misc || !!p.cgram || !!p.machine || !!p.dmap;
+  $("vizCgram").hidden = !p.cgram;
+  if (p.cgram) document.querySelectorAll("#cglegend [data-k]").forEach(r => { r.hidden = r.dataset.k !== (P === "CFGMEMBER" ? "grammar" : "circuit"); });
+  $("vizQuantum").hidden = !p.quantum;
+  $("vizTable").hidden = !isTable();
+  if (isTable()) document.querySelectorAll(".viz").forEach(el => { if (el.id !== "vizTable") el.hidden = true; });
+  try { if (S.step >= frameCount()) S.step = 0; } catch (e) { S.step = 0; }
+  $("vizSearch").hidden = !isSearch();
+  if (isSearch()) document.querySelectorAll(".viz").forEach(el => { if (el.id !== "vizSearch") el.hidden = true; });
+  const vz = (p.vizzes || [[null, p.viz, p.vizType]]).find(v => v[0] === null || v[0] === satView) || [null, p.viz, p.vizType];
+  $("vizVal").textContent = vz[1]; $("vizTag").textContent = vz[2];
+  $("pv-title").textContent = vz[1]; $("pv-type").textContent = vz[2];
+  if (P === "SAT3") $("pv-def").textContent = satView === "factor"
+    ? "Variables on the left, clauses on the right. A solid edge means the clause contains x, and a dashed edge means it contains ¬x. Edges a variable makes true turn green."
+    : p.vizDef;
+  if (p.tableKey) $("pv-def").textContent = satView === "table" ? TableView.PROBLEMS[p.tableKey].vizDef : p.vizDef;
+  if (isSearch()) $("pv-def").textContent = SearchTreeView.PROBLEMS[p.search ? P : p.searchKey].vizDef;
+  const sv = (p.solvers || []).find(s => s[0] === solverKey);
+  $("solverVal").textContent = sv ? sv[1] : p.solver;
+}
+
+/* ---- small listbox menus for the visualization and solver pickers ---- */
+function attachMenu(btn, menu, items, onPick) {
+  function close() { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    const list = items();
+    if (list.length < 2) return;
+    menu.innerHTML = "";
+    list.forEach(([key, label, tag, selected]) => {
+      const li = document.createElement("li");
+      li.setAttribute("role", "option"); li.tabIndex = -1; li.setAttribute("aria-selected", String(!!selected));
+      li.innerHTML = `<span class="nm"></span>${tag ? '<span class="tag vz"></span>' : ""}`;
+      li.querySelector(".nm").textContent = label;
+      if (tag) li.querySelector(".tag").textContent = tag;
+      li.addEventListener("click", ev => { ev.stopPropagation(); close(); onPick(key); btn.focus(); });
+      li.addEventListener("keydown", ev => {
+        const opts = [...menu.querySelectorAll("li")], i = opts.indexOf(li);
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); li.click(); }
+        else if (ev.key === "ArrowDown") { ev.preventDefault(); opts[Math.min(opts.length - 1, i + 1)].focus(); }
+        else if (ev.key === "ArrowUp") { ev.preventDefault(); opts[Math.max(0, i - 1)].focus(); }
+        else if (ev.key === "Escape") { close(); btn.focus(); }
+      });
+      menu.appendChild(li);
+    });
+    const open = menu.hidden;
+    menu.hidden = !open; btn.setAttribute("aria-expanded", String(open));
+    if (open) (menu.querySelector('li[aria-selected="true"]') || menu.querySelector("li")).focus();
+  });
+  document.addEventListener("click", e => { if (!e.target.closest(".pickwrap")) close(); });
+}
+attachMenu($("vizPick"), $("vizMenu"),
+  () => (PROBLEMS[P].vizzes || []).map(([k, label, tag]) => [k, label, tag, k === satView]),
+  k => { satView = k; showVizBlock(); paint(); });
+attachMenu($("solverPick"), $("solverMenu"),
+  () => (PROBLEMS[P].solvers || []).map(([k, label]) => [k, label, null, k === solverKey]),
+  k => { solverKey = k; showVizBlock(); if (PROBLEMS[P].search) { loadInstance($("instance").value); return; } if (isPair()) { loadInstance($("instance").value); return; } if (isMachine()) { loadInstance($("instance").value); return; } if (isCgram()) { loadInstance($("instance").value); return; } if (isMisc()) { loadInstance($("instance").value); return; } if (isBoard()) { loadInstance($("instance").value); return; } if (isQuantum()) loadInstance($("instance").value); else if (isSchedule()) loadInstance($("instance").value); else if (isPacking()) { loadInstance($("instance").value); return; } if (isFlow()) loadInstance($("instance").value); else if (isLayered() || isBip() || isGraph()) loadInstance($("instance").value); });
+$("glayout").addEventListener("change", e => GV.setLayout(e.target.value));
+$("flresidual").addEventListener("change", e => FLV.setResidual(e.target.value === "on"));
+
+/* ---- problem picker ---- */
+const tagHtml = p => `<span class="tag ${p.clsTag}">${p.cls}</span><span class="tag typ">${p.type}</span>`;
+function setProblem(key) {
+  P = key; const p = PROBLEMS[key];
+  $("probVal").textContent = p.label; $("probTags").innerHTML = tagHtml(p);
+  $("pp-title").textContent = p.label; $("pp-def").textContent = p.def; $("pp-input").textContent = p.input; $("pp-class").textContent = p.cls;
+  $("pv-def").textContent = p.vizDef;
+  $("pv-input").textContent = p.vizInput; $("pv-steps").textContent = p.vizSteps;
+  $("verifierVal").textContent = p.verifier;
+  satView = "clause";
+  solverKey = p.solvers ? p.solvers[0][0] : null;
+  showVizBlock();
+  if (p.graph) { const lay = GraphView.PROBLEMS[key].layout; $("glayout").value = lay; GV.setLayout(lay); }
+  $("instance").value = p.inst;
+  menuEl.querySelectorAll("li[role=option]").forEach(li => li.setAttribute("aria-selected", String(li.dataset.key === key)));
+  loadInstance(p.inst);
+}
+const menuEl = $("probMenu"), pickEl = $("probPick");
+for (const [grp, keys] of [["NP-Complete · logic and sets", ["SAT3", "SETCOVER", "EXACTCOVER", "HITTINGSET", "DM3"]], ["NP-Complete · graphs", Object.keys(GraphView.PROBLEMS).filter(k => !GraphView.PROBLEMS[k].cls)], ["NP-Complete · numbers", [...Object.keys(PackingView.PROBLEMS), "INTPROGRAMMING01"]], ["NP-Complete · scheduling and puzzles", ["JOBSEQ", "SUDOKU"]], ["NP-Hard", [...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "NP-Hard"), "PUMPCM", "PUMPEM"]], ["Directed graphs · P and NP-Complete", Object.keys(LayeredView.PROBLEMS)], ["P", ["DFA", "NFA", "EDITDISTANCE", "CONVEXHULL", "LDC", "NQUEENS", "MINSTCUT", ...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "P")]], ["Quantum algorithms", Object.keys(QuantumView.PROBLEMS)], ["Not in Redux yet", ["PCP", "GRAPHISO", "SUBGRAPHISO", ...(["CVP", "CIRCUITSAT", "CFGMEMBER"]), ...Object.keys(MachineView.PROBLEMS)]]]) {
+  const h = document.createElement("li"); h.className = "grp"; h.textContent = grp; h.setAttribute("role", "presentation"); menuEl.appendChild(h);
+  keys.forEach(k => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option"); li.tabIndex = -1; li.dataset.key = k;
+    li.innerHTML = `<span class="nm">${PROBLEMS[k].label}</span>${tagHtml(PROBLEMS[k])}`;
+    li.addEventListener("click", e => { e.stopPropagation(); closeMenu(); setProblem(k); pickEl.focus(); });
+    li.addEventListener("keydown", e => {
+      const opts = [...menuEl.querySelectorAll("li[role=option]")], i = opts.indexOf(li);
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); li.click(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); opts[Math.min(opts.length - 1, i + 1)].focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); opts[Math.max(0, i - 1)].focus(); }
+      else if (e.key === "Escape") { closeMenu(); pickEl.focus(); }
+    });
+    menuEl.appendChild(li);
+  });
+}
+$("solverMenu").addEventListener("click", () => setTimeout(() => {
+  if (PROBLEMS[P] && PROBLEMS[P].table && TR && TR.solver !== solverKey) loadInstance($("instance").value);
+}, 0), true);
+// Table problems join the menu here: 0-1 IP under "NP-Complete · numbers and tables" (made if missing), Edit Distance under "P".
+(() => {
+  const item = k => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option"); li.tabIndex = -1; li.dataset.key = k;
+    li.innerHTML = `<span class="nm">${PROBLEMS[k].label}</span>${tagHtml(PROBLEMS[k])}`;
+    li.addEventListener("click", e => { e.stopPropagation(); closeMenu(); setProblem(k); pickEl.focus(); });
+    li.addEventListener("keydown", e => {
+      const opts = [...menuEl.querySelectorAll("li[role=option]")], i = opts.indexOf(li);
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); li.click(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); opts[Math.min(opts.length - 1, i + 1)].focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); opts[Math.max(0, i - 1)].focus(); }
+      else if (e.key === "Escape") { closeMenu(); pickEl.focus(); }
+    });
+    return li;
+  };
+  const heads = () => [...menuEl.querySelectorAll("li.grp")];
+  const addTo = (name, k, makeBefore) => {
+    if (menuEl.querySelector(`li[data-key="${k}"]`)) return;
+    let head = heads().find(x => x.textContent === name);
+    if (!head) {
+      head = document.createElement("li"); head.className = "grp"; head.textContent = name; head.setAttribute("role", "presentation");
+      const before = makeBefore ? heads().find(makeBefore) : null;
+      menuEl.insertBefore(head, before || null);
+    }
+    let end = head.nextElementSibling;
+    while (end && !end.classList.contains("grp")) end = end.nextElementSibling;
+    menuEl.insertBefore(item(k), end);
+  };
+  addTo("NP-Complete · numbers and tables", "INTPROGRAMMING01", x => !x.textContent.startsWith("NP-Complete"));
+  addTo("P", "EDITDISTANCE");
+})();
+// Search Tree's game problems join the menu in their own group at the end.
+(() => {
+  const keys = Object.keys(SearchTreeView.PROBLEMS).filter(k => SearchTreeView.PROBLEMS[k].standalone && !menuEl.querySelector(`li[data-key="${k}"]`));
+  if (!keys.length) return;
+  let head = [...menuEl.querySelectorAll("li.grp")].find(x => x.textContent === "Not in Redux yet");
+  if (!head) { head = document.createElement("li"); head.className = "grp"; head.textContent = "Not in Redux yet"; head.setAttribute("role", "presentation"); menuEl.appendChild(head); }
+  let end = head.nextElementSibling;
+  while (end && !end.classList.contains("grp")) end = end.nextElementSibling;
+  keys.forEach(k => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option"); li.tabIndex = -1; li.dataset.key = k;
+    li.innerHTML = `<span class="nm">${PROBLEMS[k].label}</span>${tagHtml(PROBLEMS[k])}`;
+    li.addEventListener("click", e => { e.stopPropagation(); closeMenu(); setProblem(k); pickEl.focus(); });
+    li.addEventListener("keydown", e => {
+      const opts = [...menuEl.querySelectorAll("li[role=option]")], i = opts.indexOf(li);
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); li.click(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); opts[Math.min(opts.length - 1, i + 1)].focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); opts[Math.max(0, i - 1)].focus(); }
+      else if (e.key === "Escape") { closeMenu(); pickEl.focus(); }
+    });
+    menuEl.insertBefore(li, end);
+  });
+})();
+function closeMenu() { menuEl.hidden = true; pickEl.setAttribute("aria-expanded", "false"); }
+pickEl.addEventListener("click", e => {
+  e.stopPropagation();
+  const open = menuEl.hidden;
+  menuEl.hidden = !open; pickEl.setAttribute("aria-expanded", String(open));
+  if (open) (menuEl.querySelector('li[aria-selected="true"]') || menuEl.querySelector("li[role=option]")).focus();
+});
+document.addEventListener("click", e => { if (!e.target.closest(".pickwrap")) closeMenu(); });
+
+
+/*@@REDUCTION@@*/
+
+/* ---- Reduce section + "Show reduction" / "Highlight gadgets" ---- */
+var RED = { key: null, on: false, gad: false }, RR = null;   // var: paint/frameCount may run before this line
+const RDV = ReductionView.create({ svg: $("rdg") });
+const redsFor = p => Object.entries(ReductionView.REDUCTIONS).filter(([, r]) => r.from === p);
+function paintReduction() {
+  const last = RR.frames.length - 1, f = RDV.show(S.step);
+  const cap = $("rdcaption");
+  cap.textContent = f.caption;
+  cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : "");
+  document.querySelectorAll("#rdphase span").forEach(s => s.classList.toggle("on", s.dataset.phase === f.phase));
+  const ul = $("rdchecks"); ul.innerHTML = "";
+  RDV.checks(S.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  syncNav(last);
+}
+function loadReduction() {
+  RR = null;
+  const r = RED.key && ReductionView.REDUCTIONS[RED.key], body = $("reduceBody");
+  if (!r) { body.textContent = redsFor(P).length ? "Pick a reduction target such as CLIQUE." : "This mockup has no reductions from this problem yet."; return; }
+  try {
+    RR = RDV.load($("instance").value, RED.key);
+    RDV.setGadgetColors(RED.gad);
+    body.innerHTML = "<p><b></b> · <span></span></p><p>Reduced instance (<span></span>):</p><code></code>";
+    body.querySelector("b").textContent = r.label;
+    body.querySelectorAll("span")[0].textContent = r.def;
+    body.querySelectorAll("span")[1].textContent = r.toLabel;
+    body.querySelector("code").textContent = RR.targetInstance;
+    const gl = $("rdgadgets"); gl.innerHTML = "";
+    const kinds = {};
+    RR.gadgets.forEach(g => { kinds[g.kind] = (kinds[g.kind] || 0) + 1; });
+    Object.entries(kinds).forEach(([k, n]) => { const li = document.createElement("li"); li.textContent = `${ReductionView.GADGET_KINDS[k].name} ×${n}`; gl.appendChild(li); });
+  } catch (e) { body.textContent = "Can't reduce this instance: " + e.message; }
+}
+function syncRedUI() {
+  const r = RED.key && ReductionView.REDUCTIONS[RED.key], usable = !!(r && RR);
+  ["redShow", "redGad"].forEach(id => { $(id).disabled = !usable; $(id + "L").classList.toggle("dis", !usable); });
+  if (!usable) RED.on = false;
+  $("redShow").checked = RED.on; $("redGad").checked = usable && RED.gad;
+  const val = $("redVal");
+  val.textContent = r ? r.toLabel : redsFor(P).length ? "Select reduction" : "None for this problem";
+  val.classList.toggle("ph", !r);
+  $("redTag").hidden = !r; if (r) $("redTag").textContent = r.label;
+}
+function showRedView() {
+  const on = !!(RED.on && RR);
+  if (on) {
+    document.querySelectorAll(".viz").forEach(el => { el.hidden = el.id !== "vizReduction"; });
+    $("vizVal").textContent = `${RR.reduction.fromLabel} ↦ ${RR.reduction.toLabel}`; $("vizTag").textContent = "Reduction";
+  } else $("vizReduction").hidden = true;
+}
+// wrap the shared functions instead of editing them
+const _rdShowVizBlock = showVizBlock;
+showVizBlock = function () { _rdShowVizBlock(); showRedView(); };
+const _rdLoadInstance = loadInstance;
+loadInstance = function (str) {
+  _rdLoadInstance(str);
+  if (RED.key) { loadReduction(); syncRedUI(); showRedView(); if (RED.on) { S.step = 0; paint(); } }
+};
+const _rdSetProblem = setProblem;
+setProblem = function (k) { RED.key = null; RED.on = false; RR = null; _rdSetProblem(k); loadReduction(); syncRedUI(); showRedView(); };
+attachMenu($("redPick"), $("redMenu"),
+  () => [["__none", "No reduction", null, !RED.key], ...redsFor(P).map(([k, r]) => [k, r.toLabel, r.label, k === RED.key])],
+  k => {
+    RED.key = k === "__none" ? null : k;
+    loadReduction(); syncRedUI();
+    if (!RED.key) { RED.on = false; showVizBlock(); S.step = 0; paint(); }
+  });
+$("redShow").addEventListener("change", e => {
+  RED.on = e.target.checked && !!RR;
+  if (!RED.on) { RED.gad = false; $("redGad").checked = false; RDV.setGadgetColors(false); }
+  showVizBlock(); S.step = 0; paint();
+});
+$("redGad").addEventListener("change", e => {
+  RED.gad = e.target.checked; RDV.setGadgetColors(RED.gad);
+  if (RED.gad && !RED.on) { RED.on = true; $("redShow").checked = true; showVizBlock(); S.step = 0; }
+  paint();
+});
+$("refresh").addEventListener("click", () => { if (RR) RDV.resetHover(); });
+
+setProblem("SAT3");
+
+/* ---- phone: wide diagrams scroll on their own ---- */
+(() => {
+  for (const svg of document.querySelectorAll(".canvas > svg, svg#rdg")) {
+    if (svg.parentElement.classList.contains("dscroll")) continue;
+    const box = document.createElement("div");
+    box.className = "dscroll";
+    svg.parentNode.insertBefore(box, svg);
+    box.appendChild(svg);
+  }
+})();
+
+/* ---- touch screens say tap, not hover ---- */
+if (window.matchMedia && matchMedia("(hover: none)").matches) {
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    if (/Hover/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace(/Hover/g, "Tap").replace(/hover/g, "tap");
+  }
+}
+
+/* ---- fold the key on phones and tablets ---- */
+(() => {
+  const narrow = window.matchMedia ? matchMedia("(max-width: 1199px)") : { matches: false, addEventListener() {} };
+  const folds = [];
+  for (const legend of document.querySelectorAll(".side > .legend")) {
+    if (legend.parentElement.classList.contains("keyfold")) continue;
+    const head = legend.querySelector(":scope > h3, :scope > h5");
+    const fold = document.createElement("details");
+    fold.className = "keyfold";
+    const sum = document.createElement("summary");
+    if (head) { sum.appendChild(head); } else { const h = document.createElement("h3"); h.textContent = "Key"; sum.appendChild(h); }
+    legend.parentNode.insertBefore(fold, legend);
+    fold.appendChild(sum);
+    fold.appendChild(legend);
+    fold.open = !narrow.matches;
+    folds.push(fold);
+  }
+  const sync = () => folds.forEach(f => { f.open = !narrow.matches; });
+  if (narrow.addEventListener) narrow.addEventListener("change", sync);
+})();
+</script>
