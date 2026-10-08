@@ -7,18 +7,18 @@ using System.Text.Json;
 
 namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizations;
 
-class SudokuVisualization : IVisualization<SUDOKU, API_QUANTUMCIRCUIT> {
+class SudokuVisualization : IVisualization<SUDOKU> {
     public string visualizationName { get; } = "Sudoku Visualization";
-    public string visualizationDefinition { get; } = "TODO";
+    public string visualizationDefinition { get; } = "This is the default visualization for Sudoku";
     public string source { get; } = "TODO";
-    public string[] contributors { get; } = { "Eric Hill" };
-    public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
+    public string[] contributors { get; } = { "Dani Sleight" };
+    public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
     public ISolver solver { get; } = new SudokuSolver();
 
     // --- Methods Including Constructors ---
     public SudokuVisualization() {
     }
-    public API_QUANTUMCIRCUIT visualize(SUDOKU instance) {
+    public API_JSON visualize(SUDOKU instance) {
         var qc = new API_QUANTUMCIRCUIT();
         // var solvers = new UnstructuredGroverSolver();
         // qc.solution = solvers.solve(instance);
