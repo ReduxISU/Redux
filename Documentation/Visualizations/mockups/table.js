@@ -26,20 +26,20 @@ const TableView = (() => {
 .tb-table tr.unr td { color: var(--av-muted); }
 .tb-table td.chg { font-weight: 700; box-shadow: inset 0 -2.5px 0 var(--av-hl); }
 .tb-table td.on { background: var(--av-sol-fill); font-weight: 700; }
-.tb-table td.zero { color: var(--av-muted); opacity: .6; }
-.tb-pill { display: inline-block; padding: 1px 9px; border-radius: 999px; border: 1.2px solid var(--av-line); font-size: 12px; color: var(--av-muted); }
+.tb-table td.zero { color: var(--av-muted); }
+.tb-pill { display: inline-block; padding: 1px 9px; border-radius: 999px; border: 1.2px solid var(--av-stroke); font-size: 12px; color: var(--av-muted); }
 .tb-pill.yes { border-color: var(--av-sol); color: var(--av-sol); font-weight: 600; }
 .tb-pill.no { border-color: var(--av-rej); color: var(--av-rej); font-weight: 600; }
 .tb-pill.open { border-style: dashed; }
-.tb-x { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 6px; border: 1.5px solid var(--av-line); font-weight: 700; }
-.tb-x.one { background: var(--av-sol); border-color: var(--av-sol); color: #fff; }
+.tb-x { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 6px; border: 1.5px solid var(--av-stroke); font-weight: 700; }
+.tb-x.one { background: var(--av-sol); border-color: var(--av-sol); color: var(--av-on-sol); }
 .tb-x.unset { border-style: dashed; color: var(--av-muted); font-weight: 400; }
 .tb-x.cur { box-shadow: 0 0 0 2.5px var(--av-hl); }
-.tb-x.trial.one { background: var(--av-hl); border-color: var(--av-hl); color: #1b1300; }
+.tb-x.trial.one { background: var(--av-hl); border-color: var(--av-hl); color: var(--av-on-hl); }
 .tb-note { font-size: 12.5px; color: var(--av-muted); }
 .tb-svg { width: 100%; height: auto; display: block; max-height: 520px; }
 .tb-svg text { font-family: var(--av-mono); }
-.tb-cell rect { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1; transition: fill .2s, stroke .2s; }
+.tb-cell rect { fill: var(--av-surface); stroke: var(--av-edge-dim); stroke-width: 1; transition: fill .2s, stroke .2s; }
 .tb-cell text { font-size: 15px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); transition: fill .2s; }
 .tb-cell.empty text { fill: transparent; }
 .tb-cell.base rect { fill: var(--av-bg); }
@@ -49,13 +49,13 @@ const TableView = (() => {
 .tb-cell.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .tb-cell.Active text { font-weight: 700; }
 .tb-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
-.tb-cell.Solution text { fill: #fff; font-weight: 700; }
+.tb-cell.Solution text { fill: var(--av-on-sol); font-weight: 700; }
 .tb-axis { font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .tb-axis.eps { fill: var(--av-muted); font-weight: 400; }
-.tb-axis.hl { fill: var(--av-hl); }
+.tb-axis.hl { fill: var(--av-hl-ink); }
 .tb-axis-name { font-size: 11px; fill: var(--av-muted); letter-spacing: .06em; }
 .tb-arrow { stroke: var(--av-hl); stroke-width: 2.2; fill: none; }
-.tb-arrow.alt { stroke-dasharray: 4 3; opacity: .55; }
+.tb-arrow.alt { stroke-dasharray: 4 3; }
 .tb-arrow.path { stroke: var(--av-sol); stroke-width: 2.8; }
 .tb-m-hl { fill: var(--av-hl); } .tb-m-sol { fill: var(--av-sol); }
 .tb-align { display: grid; gap: 3px; font-family: var(--av-mono); font-size: 15px; overflow-x: auto; padding-bottom: 2px; }

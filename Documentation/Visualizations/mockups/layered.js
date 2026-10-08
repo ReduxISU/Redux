@@ -17,18 +17,18 @@ const LayeredView = (() => {
 .ly-node .body { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.8; transition: fill .2s, stroke .2s; }
 .ly-node text.nm { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ly-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.ly-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ly-node.Solution text.nm { fill: #fff; font-weight: 600; }
+.ly-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ly-node.Solution text.nm { fill: var(--av-on-sol); font-weight: 600; }
 .ly-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .ly-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ly-node.Rejected text.nm { fill: var(--av-rej); }
-.ly-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .ly-node.Blocked text.nm { fill: var(--av-muted); }
+.ly-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .ly-node.Blocked text.nm { fill: var(--av-muted); }
 .ly-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; } .ly-node.Untraveled text.nm { fill: var(--av-muted); }
-.ly-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .ly-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.ly-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .ly-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.ly-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .ly-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.ly-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .ly-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.ly-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .ly-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.ly-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .ly-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .ly-node[class*=" c"] text.nm { fill: #10131a; font-weight: 600; }
 .ly-node.ring .body { stroke: var(--av-hl); stroke-width: 3.5; }
 .ly-node.trace .body, .ly-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.ly-node.faint { opacity: .28; }
+.ly-node.faint { filter: grayscale(1); } .ly-node.faint .body { stroke-dasharray: 3 3; }
 .ly-node .tag { font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-dist { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-dist.set { fill: var(--av-ink); font-weight: 600; }
@@ -36,20 +36,20 @@ const LayeredView = (() => {
 .ly-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ly-edge.back { stroke-dasharray: 2 0; }
 .ly-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
-.ly-edge.cov { stroke: var(--av-sol); stroke-width: 1.8; opacity: .5; }
+.ly-edge.cov { stroke: var(--av-cov); stroke-width: 1.8; }
 .ly-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
 .ly-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ly-edge.cut { stroke: var(--av-sol); stroke-width: 2.4; stroke-dasharray: 6 5; }
-.ly-edge.dim { opacity: .22; }
+.ly-edge.dim { stroke: var(--av-edge-dim); }
 .ly-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; opacity: 1; }
-.ly-edge.faint { opacity: .07; }
+.ly-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ly-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .ly-m-def { fill: var(--av-edge); } .ly-m-sol { fill: var(--av-sol); } .ly-m-rej { fill: var(--av-rej); }
 .ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); }
 .ly-w rect { fill: var(--av-surface); stroke: var(--av-line); } .ly-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-w.sol rect { stroke: var(--av-sol); } .ly-w.sol text { fill: var(--av-sol); font-weight: 700; }
 .ly-w.hot rect { stroke: var(--av-hl); } .ly-w.hot text { fill: var(--av-ink); font-weight: 700; }
-.ly-w.faint { opacity: .15; }
+.ly-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .ly-node, .ly-node .body, .ly-edge { transition: none; } }`;
 
   /* ---------- parsing: (N,E), ((N,E),K), (N,E,s), (N,E,s,t); edges (u,v) or ((u,v),w); {u,v} = both ways ---------- */

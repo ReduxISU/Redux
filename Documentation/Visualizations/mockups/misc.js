@@ -20,13 +20,13 @@ const MiscView = (() => {
 .ms-pt.Solution .dot { fill: var(--av-sol); stroke: var(--av-sol); }
 .ms-pt.Covered .dot { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-pt.Rejected .dot { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; }
-.ms-pt.c0 .dot { fill: #56B4E9; stroke: #2b7fb0; } .ms-pt.c1 .dot { fill: #E69F00; stroke: #a87200; }
+.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g1); stroke: var(--av-g1s); }
 .ms-pt.ring .dot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-pt.trace .dot, .ms-pt:focus-visible .dot { stroke: var(--av-hot); stroke-width: 3; }
-.ms-pt.faint { opacity: .3; }
+.ms-pt.faint { filter: grayscale(1); }
 .ms-hull { fill: none; stroke: var(--av-edge); stroke-width: 1.4; stroke-dasharray: 4 3; }
-.ms-hull.c0 { stroke: #2b7fb0; fill: rgba(86,180,233,.13); stroke-dasharray: none; stroke-width: 1.8; }
-.ms-hull.c1 { stroke: #a87200; fill: rgba(230,159,0,.13); stroke-dasharray: none; stroke-width: 1.8; }
+.ms-hull.c0 { stroke: var(--av-g0s); fill: rgba(86,180,233,.13); stroke-dasharray: none; stroke-width: 1.8; }
+.ms-hull.c1 { stroke: var(--av-g1s); fill: rgba(230,159,0,.13); stroke-dasharray: none; stroke-width: 1.8; }
 .ms-hull.hot { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: none; fill: var(--av-hl-fill); fill-opacity: .5; }
 .ms-hull.sol { stroke: var(--av-sol); stroke-width: 2.6; stroke-dasharray: none; fill: var(--av-sol-fill); fill-opacity: .55; }
 .ms-chain { fill: none; stroke: var(--av-hl); stroke-width: 2.6; }
@@ -41,15 +41,15 @@ const MiscView = (() => {
 .ms-el text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ms-el.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ms-el.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
-.ms-el.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ms-el.Rejected text { fill: var(--av-rej); }
+.ms-el.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ms-el.Rejected text:not(.ms-badge *) { fill: var(--av-rej); }
 .ms-el.trace .body, .ms-el:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.ms-el.faint, .ms-tri.faint, .ms-trow.faint { opacity: .22; }
+.ms-el.faint, .ms-trow.faint { filter: grayscale(1); } .ms-tri.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ms-tri { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ms-tri.sol { stroke: var(--av-sol); stroke-width: 3.4; }
 .ms-tri.hot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-tri.rej { stroke: var(--av-rej); stroke-width: 3; }
-.ms-tri.blk { stroke-dasharray: 4 4; opacity: .45; }
-.ms-tri.dim { opacity: .2; }
+.ms-tri.blk { stroke: var(--av-edge-dim); stroke-dasharray: 4 4; }
+.ms-tri.dim { stroke: var(--av-edge-dim); }
 .ms-tri.trace { stroke: var(--av-hot); stroke-width: 3; opacity: 1; }
 .ms-trow { cursor: pointer; transition: opacity .2s; }
 .ms-trow:focus { outline: none; }
@@ -62,7 +62,7 @@ const MiscView = (() => {
 .ms-trow.blk text, .ms-trow.dim text { fill: var(--av-muted); }
 .ms-trow.trace rect, .ms-trow:focus-visible rect { stroke: var(--av-hot); stroke-width: 2; }
 .ms-colhead { font-size: 11px; font-weight: 700; letter-spacing: .08em; fill: var(--av-muted); }
-.ms-badge circle { fill: var(--av-rej); } .ms-badge text { fill: #fff; font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.ms-badge circle { fill: var(--av-rej); } .ms-badge text { fill: var(--av-on-rej); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .ms-tn { cursor: pointer; transition: opacity .25s; }
 .ms-tn:focus { outline: none; }
 .ms-tn .body { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.6; transition: fill .2s, stroke .2s; }
@@ -71,10 +71,10 @@ const MiscView = (() => {
 .ms-tn .w { font-size: 10.5px; fill: var(--av-muted); }
 .ms-tn.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ms-tn.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); }
-.ms-tn.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ms-tn.Solution text { fill: #fff; }
+.ms-tn.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ms-tn.Solution text { fill: var(--av-on-sol); }
 .ms-tn.trace .body, .ms-tn:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .ms-tn.hidden, .ms-te.hidden, .ms-bit.hidden, .ms-code.hidden { opacity: 0; pointer-events: none; }
-.ms-tn.faint { opacity: .3; }
+.ms-tn.faint { filter: grayscale(1); }
 .ms-te { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .25s, stroke .2s; }
 .ms-te.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ms-te.sol { stroke: var(--av-sol); stroke-width: 2.2; }
@@ -82,7 +82,7 @@ const MiscView = (() => {
 .ms-bit { font-size: 11px; font-weight: 700; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; transition: opacity .25s; }
 .ms-bit.trace { fill: var(--av-hot); }
 .ms-code { font-size: 10.5px; font-weight: 700; fill: var(--av-sol); text-anchor: middle; dominant-baseline: central; transition: opacity .25s; }
-.ms-cell rect { fill: var(--av-surface); stroke: var(--av-line); }
+.ms-cell rect { fill: var(--av-surface); stroke: var(--av-edge-dim); }
 .ms-cell.alt rect { fill: var(--av-bg); }
 .ms-cell .c { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .ms-cell .b { font-size: 10px; text-anchor: middle; dominant-baseline: central; fill: var(--av-sol); font-weight: 700; transition: opacity .25s; }

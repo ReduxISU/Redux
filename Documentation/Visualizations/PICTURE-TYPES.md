@@ -21,6 +21,8 @@ The **side panel** holds the stepper (◀, Play, ▶, a slider and the caption),
 
 **On phones and tablets** (up to 1,199 px wide) the side panel moves under the diagram, stepper first, and the key folds closed. On phones (up to 700 px) the diagram keeps a minimum width of 560 px and scrolls sideways on its own, with a "Swipe the diagram sideways" hint; the Reduction view needs about 960 px. "Hover" becomes "Tap" on touch screens.
 
+Every picture meets the contrast rules in [README.md](README.md) §4.2 in both light and dark mode: text at 4.5:1 or better, lines and marks at 3:1 or better, including dimmed and faded ones.
+
 **States** are the shared names from [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md#the-shared-states): `Background`, `ElementHighlight` (amber ring), `Solution` (green), `Rejected` (red), `Untraveled` (faded), `Covered` (light green), `Blocked` (dashed grey outline). Annotations such as order badges, ×2 badges, missing-edge lines and group colors are not states.
 
 ### Index
@@ -598,4 +600,4 @@ mapBack:  { fromB: string[], setsA: { id, value }[], caption }[]
 
 ## Updating this page
 
-The screenshots are taken from `mockups/design.html` at 1,280 px in the light theme. If a mockup changes, rebuild it (`node build.js` in `mockups/`) and retake the affected screenshots. When a picture type is implemented in the frontends, replace its screenshots with ones from the real site, and update the payloads here to match the code.
+The screenshots are taken from `mockups/design.html` at 1,280 px in the light theme. If a mockup changes, rebuild it (`node build.js` in `mockups/`), run the contrast audits in `mockups/contrast/` (both must report no failures), and retake the affected screenshots. When a picture type is implemented in the frontends, replace its screenshots with ones from the real site, and update the payloads here to match the code.

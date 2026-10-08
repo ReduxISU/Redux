@@ -17,32 +17,32 @@ const AutomatonView = (() => {
 .au-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .au-node.Active .inner { stroke: var(--av-hl); }
 .au-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
-.au-node.Solution .inner { stroke: #fff; } .au-node.Solution text { fill: #fff; font-weight: 600; }
+.au-node.Solution .inner { stroke: var(--av-on-sol); } .au-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .au-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .au-node.Rejected .inner { stroke: var(--av-rej); } .au-node.Rejected text { fill: var(--av-rej); }
 .au-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; }
 .au-node.Untraveled .inner { stroke-dasharray: 4 4; } .au-node.Untraveled text { fill: var(--av-muted); }
 .au-node.trace .body, .au-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.au-node.faint { opacity: .3; }
+.au-node.faint { filter: grayscale(1); } .au-node.faint .body { stroke-dasharray: 3 3; }
 .au-garbage rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2; stroke-dasharray: 5 3; transition: stroke-width .2s; }
 .au-garbage text { font-size: 13px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-rej); }
 .au-garbage.Active rect { stroke-dasharray: none; stroke-width: 3; box-shadow: none; }
 .au-garbage.Active rect, .au-garbage.Rejected rect { stroke-dasharray: none; stroke-width: 3.5; }
-.au-garbage.faint { opacity: .3; }
+.au-garbage.faint { filter: grayscale(1); }
 .au-garbage text.au-garbage-note { font-size: 11px; font-weight: 400; fill: var(--av-muted); text-anchor: middle; }
 .au-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .au-edge.eps { stroke-dasharray: 5 4; }
 .au-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .au-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
-.au-edge.faint, .au-elabel.faint { opacity: .15; }
+.au-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; } .au-elabel.faint { filter: grayscale(1); }
 .au-elabel rect { fill: var(--av-surface); stroke: var(--av-line); }
 .au-elabel text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
-.au-elabel.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .au-elabel.hot text { fill: #1b1300; font-weight: 600; }
+.au-elabel.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .au-elabel.hot text { fill: var(--av-on-hl); font-weight: 600; }
 .au-elabel.trace rect { stroke: var(--av-hot); } .au-elabel.trace text { fill: var(--av-hot); }
 .au-start { stroke: var(--av-ink); stroke-width: 1.8; }
 .au-m-def { fill: var(--av-edge); } .au-m-hot { fill: var(--av-hl); } .au-m-trace { fill: var(--av-hot); } .au-m-ink { fill: var(--av-ink); }
 .au-tape { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-family: var(--av-mono); }
-.au-cell { min-width: 34px; height: 38px; display: grid; place-items: center; border: 1.5px solid var(--av-line); border-radius: 6px; font-size: 16px; background: var(--av-surface); color: var(--av-ink); transition: background .2s, border-color .2s; }
+.au-cell { min-width: 34px; height: 38px; display: grid; place-items: center; border: 1.5px solid var(--av-stroke); border-radius: 6px; font-size: 16px; background: var(--av-surface); color: var(--av-ink); transition: background .2s, border-color .2s; }
 .au-cell.read { color: var(--av-muted); background: transparent; }
 .au-cell.just { background: var(--av-hl-fill); }
 .au-cell.head { border-color: var(--av-hl); box-shadow: 0 0 0 2px var(--av-hl); }

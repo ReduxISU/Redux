@@ -19,24 +19,24 @@ const BipartiteView = (() => {
 .bp-node.el text { text-anchor: middle; font-size: 14px; }
 .bp-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .bp-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
-.bp-node.Solution text, .bp-node.Solution text.sub { fill: #fff; }
+.bp-node.Solution text, .bp-node.Solution text.sub { fill: var(--av-on-sol); }
 .bp-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; }
 .bp-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
-.bp-node.Rejected text { fill: var(--av-rej); }
-.bp-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; }
+.bp-node.Rejected text:not(.bp-count-t) { fill: var(--av-rej); }
+.bp-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; }
 .bp-node.Blocked text { fill: var(--av-muted); }
 .bp-node.focus .body { stroke: var(--av-hl); stroke-width: 3; }
 .bp-node.trace .body, .bp-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.bp-node.faint { opacity: .28; }
+.bp-node.faint { filter: grayscale(1); } .bp-node.faint .body { stroke-dasharray: 3 3; }
 .bp-count { font-size: 11px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
 .bp-count-bg { fill: var(--av-rej); }
-.bp-count-t { fill: #fff; }
+.bp-node text.bp-count-t { fill: var(--av-on-rej); }
 .bp-edge { stroke: var(--av-edge); stroke-width: 1.4; transition: opacity .2s, stroke .2s; }
 .bp-edge.sol { stroke: var(--av-sol); stroke-width: 2.6; }
 .bp-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .bp-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
-.bp-edge.dim { opacity: .3; }
-.bp-edge.faint { opacity: .08; }
+.bp-edge.dim { stroke: var(--av-edge-dim); }
+.bp-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 @media (prefers-reduced-motion: reduce) { .bp-node, .bp-node .body, .bp-edge { transition: none; } }`;
 
   const KINDS = {
@@ -342,7 +342,7 @@ const BipartiteView = (() => {
      Frames are the same {asg, tried, failed, done, ok} frames the clause graph uses. */
   const satCss = `
 .bp-edge.neg { stroke-dasharray: 5 4; }
-.bp-node.False .body { fill: var(--av-surface); stroke: var(--av-line); }
+.bp-node.False .body { fill: var(--av-surface); stroke: var(--av-stroke); }
 .bp-node.False text { fill: var(--av-muted); }
 .bp-val { font-size: 12px; font-weight: 600; text-anchor: end; dominant-baseline: central; fill: var(--av-muted); }
 .bp-val.T { fill: var(--av-sol); }`;

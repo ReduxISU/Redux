@@ -23,8 +23,8 @@ const BoardView = (() => {
 .bd-ring.Active { stroke: var(--av-hl); }
 .bd-ring.Rejected { stroke: var(--av-rej); }
 .bd-ring.trace { stroke: var(--av-hot); }
-.bd-thin { stroke: var(--av-line); stroke-width: 1; }
-.bd-thick { stroke: var(--av-stroke); stroke-width: 2.2; fill: none; }
+.bd-thin { stroke: var(--av-edge-dim); stroke-width: 1; }
+.bd-thick { stroke: var(--av-ink); stroke-width: 2.2; fill: none; }
 .bd-dig { text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-ink); }
 .bd-dig.given { font-weight: 700; }
 .bd-dig.placed { fill: var(--av-sol); font-weight: 500; }

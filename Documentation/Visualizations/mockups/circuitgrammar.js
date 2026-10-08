@@ -19,7 +19,7 @@ const CircuitGrammarView = (() => {
 .cg-gate.Solution .body, .cg-gate.Solution .bub { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
 .cg-gate.Rejected .body, .cg-gate.Rejected .bub { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .cg-gate.trace .body, .cg-gate:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.cg-gate.faint { opacity: .25; }
+.cg-gate.faint { filter: grayscale(1); }
 .cg-val { font-size: 12px; font-weight: 700; dominant-baseline: central; fill: var(--av-ink); }
 .cg-val.v0 { font-weight: 400; fill: var(--av-muted); }
 .cg-val.Solution { fill: var(--av-sol); } .cg-val.Rejected { fill: var(--av-rej); }
@@ -28,13 +28,13 @@ const CircuitGrammarView = (() => {
 .cg-wire.v0 { stroke: var(--av-muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
 .cg-wire.hot { stroke: var(--av-hl); }
 .cg-wire.trace { stroke: var(--av-hot); stroke-width: 2.8; opacity: 1; }
-.cg-wire.faint { opacity: .12; }
+.cg-wire.faint { stroke: var(--av-edge-dim); }
 .cg-out { stroke: var(--av-ink); stroke-width: 1.6; }
 .cg-out-l { font-size: 11px; fill: var(--av-muted); dominant-baseline: central; }
 .cg-m { fill: var(--av-ink); }
 .cg-cell { cursor: pointer; transition: opacity .2s; }
 .cg-cell:focus { outline: none; }
-.cg-cell rect { fill: var(--av-bg); stroke: var(--av-line); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
+.cg-cell rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
 .cg-cell text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .cg-cell.unset rect { fill: transparent; stroke-dasharray: 3 3; }
 .cg-cell.empty text { fill: var(--av-muted); }
@@ -44,7 +44,7 @@ const CircuitGrammarView = (() => {
 .cg-cell.Solution rect { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
 .cg-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .cg-cell.Rejected text { fill: var(--av-rej); }
 .cg-cell.trace rect, .cg-cell:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; }
-.cg-cell.faint { opacity: .3; }
+.cg-cell.faint { filter: grayscale(1); }
 .cg-ch { font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .cg-ch.lit { fill: var(--av-hot); }
 .cg-rowl { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }

@@ -14,10 +14,10 @@ const QuantumView = (() => {
 .qc-wire { stroke: var(--av-edge); stroke-width: 1.4; }
 .qc-wname { font-size: 13px; fill: var(--av-ink); text-anchor: end; dominant-baseline: central; }
 .qc-wrole { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }
-.qc-stage rect { fill: none; stroke: var(--av-line); stroke-dasharray: 4 4; }
+.qc-stage rect { fill: none; stroke: var(--av-stroke); stroke-dasharray: 4 4; }
 .qc-stage text { font-size: 11px; fill: var(--av-muted); text-anchor: middle; }
 .qc-col { transition: opacity .2s; }
-.qc-col.future { opacity: .32; }
+.qc-col.future { filter: grayscale(1); } .qc-col.future .qc-box, .qc-col.future .qc-meter { stroke-dasharray: 3 2; }
 .qc-col.now .qc-box, .qc-col.now .qc-meter { stroke: var(--av-hl); stroke-width: 2.6; fill: var(--av-hl-fill); }
 .qc-col.now .qc-dot { fill: var(--av-hl); }
 .qc-col.now .qc-line, .qc-col.now .qc-plus { stroke: var(--av-hl); }
@@ -31,21 +31,21 @@ const QuantumView = (() => {
 .qc-plus { fill: var(--av-surface); stroke: var(--av-ink); stroke-width: 1.6; }
 .qc-arc { fill: none; stroke: var(--av-ink); stroke-width: 1.4; }
 .qc-out { font-size: 13px; font-weight: 700; dominant-baseline: central; fill: var(--av-sol); }
-.qc-axis { stroke: var(--av-line); stroke-width: 1; }
+.qc-axis { stroke: var(--av-stroke); stroke-width: 1; }
 .qc-grid { stroke: var(--av-line); stroke-width: 1; stroke-dasharray: 2 4; }
 .qc-tick { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }
 .qc-blabel { font-size: 11px; fill: var(--av-muted); text-anchor: middle; }
 .qc-blabel.win { fill: var(--av-sol); font-weight: 700; }
 .qc-bar { transition: height .25s, y .25s, fill .2s; }
-.qc-bar.pos { fill: #56B4E9; }
-.qc-bar.neg { fill: #E69F00; }
+.qc-bar.pos { fill: var(--av-g0s); }
+.qc-bar.neg { fill: var(--av-g1s); }
 .qc-bar.plain { fill: var(--av-stroke); }
 .qc-bar.win { fill: var(--av-sol); }
 .qc-btitle { font-size: 12px; fill: var(--av-ink); font-weight: 600; }
 .qc-note { font-size: 12px; fill: var(--av-ink); }
 .qc-note.muted { fill: var(--av-muted); }
 .qc-empty { font-size: 13px; fill: var(--av-muted); }
-.qc-wire-g.faint { opacity: .25; }
+.qc-wire-g.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .qc-col, .qc-bar, .qc-box { transition: none; } }`;
 
   /* ---------- statevector simulator: qubit k = bit (Q-1-k) of the basis index (q0 is the leftmost bit) ---------- */

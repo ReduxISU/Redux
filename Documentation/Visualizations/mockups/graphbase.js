@@ -15,32 +15,32 @@ const GraphView = (() => {
 .gb-node .body { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.8; transition: fill .2s, stroke .2s; }
 .gb-node text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .gb-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.gb-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .gb-node.Solution text { fill: #fff; font-weight: 600; }
+.gb-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .gb-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .gb-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .gb-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .gb-node.Rejected text { fill: var(--av-rej); }
-.gb-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .gb-node.Blocked text { fill: var(--av-muted); }
-.gb-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .gb-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.gb-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .gb-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.gb-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .gb-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.gb-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .gb-node.Blocked text { fill: var(--av-muted); }
+.gb-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .gb-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.gb-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .gb-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.gb-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .gb-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .gb-node[class*=" c"] text { fill: #10131a; font-weight: 600; }
 .gb-node.ring .body { stroke: var(--av-hl); stroke-width: 3.5; }
 .gb-node.badnode .body { stroke: var(--av-rej); stroke-width: 3.5; }
 .gb-node.trace .body, .gb-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.gb-node.faint { opacity: .28; }
+.gb-node.faint { filter: grayscale(1); } .gb-node.faint .body { stroke-dasharray: 3 3; }
 .gb-term { fill: none; stroke: var(--av-ink); stroke-width: 1.6; pointer-events: none; }
-.gb-order circle { fill: var(--av-ink); } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.gb-order circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .gb-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .gb-edge.sol { stroke: var(--av-sol); stroke-width: 3.2; }
-.gb-edge.cov { stroke: var(--av-sol); stroke-width: 2; opacity: .55; }
+.gb-edge.cov { stroke: var(--av-cov); stroke-width: 2; }
 .gb-edge.rej { stroke: var(--av-rej); stroke-width: 3.2; }
 .gb-edge.hot { stroke: var(--av-hl); stroke-width: 3.2; }
-.gb-edge.dim { opacity: .22; }
+.gb-edge.dim { stroke: var(--av-edge-dim); }
 .gb-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; opacity: 1; }
-.gb-edge.faint { opacity: .07; }
+.gb-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .gb-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .gb-w rect { fill: var(--av-surface); stroke: var(--av-line); } .gb-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .gb-w.sol rect { stroke: var(--av-sol); } .gb-w.sol text { fill: var(--av-sol); font-weight: 700; }
-.gb-w.faint { opacity: .15; }
+.gb-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .gb-node, .gb-node .body, .gb-edge { transition: none; } }`;
 
   /* ---------- parsing: Redux's ((N,E),K) and (N,E) shapes, weighted edges as ({a,b},w) ---------- */

@@ -17,34 +17,34 @@ const PackingView = (() => {
 .pk-tile rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
 .pk-tile text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pk-tile .sub { font-size: 10.5px; fill: var(--av-muted); }
-.pk-tile.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pk-tile.Solution text { fill: #fff; font-weight: 600; }
+.pk-tile.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pk-tile.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .pk-tile.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .pk-tile.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .pk-tile.Rejected text { fill: var(--av-rej); }
-.pk-tile.Unused rect { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .pk-tile.Unused text { fill: var(--av-muted); }
+.pk-tile.Unused rect { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .pk-tile.Unused text { fill: var(--av-muted); }
 .pk-tile.trace rect, .pk-tile:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; }
-.pk-tile.faint, .pk-seg.faint { opacity: .25; }
+.pk-tile.faint, .pk-seg.faint { filter: grayscale(1); }
 .pk-row-label { font-size: 13px; font-weight: 600; fill: var(--av-ink); }
 .pk-row-sub { font-size: 11px; fill: var(--av-muted); }
-.pk-track { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.2; }
+.pk-track { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.2; }
 .pk-seg rect { stroke: var(--av-surface); stroke-width: 1.5; transition: fill .2s; }
-.pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: #fff; font-weight: 600; }
+.pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-on-sol); font-weight: 600; }
 .pk-seg.Solution rect { fill: var(--av-sol); }
-.pk-seg.Active rect { fill: var(--av-hl); } .pk-seg.Active text { fill: #1b1300; }
+.pk-seg.Active rect { fill: var(--av-hl); } .pk-seg.Active text { fill: var(--av-on-hl); }
 .pk-seg.Rejected rect { fill: var(--av-rej); }
 .pk-seg.trace rect { stroke: var(--av-hot); stroke-width: 3; }
-.pk-tile.g0 rect, .pk-seg.g0 rect { fill: #56B4E9; stroke: #2b7fb0; } .pk-tile.g1 rect, .pk-seg.g1 rect { fill: #E69F00; stroke: #a87200; }
-.pk-tile.g2 rect, .pk-seg.g2 rect { fill: #b59ce0; stroke: #7a5cb8; } .pk-tile.g3 rect, .pk-seg.g3 rect { fill: #F0E442; stroke: #b5a90f; }
-.pk-tile.g4 rect, .pk-seg.g4 rect { fill: #5fc4a8; stroke: #2a8a70; } .pk-tile.g5 rect, .pk-seg.g5 rect { fill: #CC79A7; stroke: #9a4c78; }
+.pk-tile.g0 rect, .pk-seg.g0 rect { fill: var(--av-g0); stroke: var(--av-g0s); } .pk-tile.g1 rect, .pk-seg.g1 rect { fill: var(--av-g1); stroke: var(--av-g1s); }
+.pk-tile.g2 rect, .pk-seg.g2 rect { fill: var(--av-g2); stroke: var(--av-g2s); } .pk-tile.g3 rect, .pk-seg.g3 rect { fill: var(--av-g3); stroke: var(--av-g3s); }
+.pk-tile.g4 rect, .pk-seg.g4 rect { fill: var(--av-g4); stroke: var(--av-g4s); } .pk-tile.g5 rect, .pk-seg.g5 rect { fill: var(--av-g5); stroke: var(--av-g5s); }
 .pk-tile[class*=" g"] text, .pk-seg[class*=" g"] text { fill: #10131a; font-weight: 600; }
 .pk-tile.g0.Active rect, .pk-tile.g1.Active rect, .pk-tile.g2.Active rect, .pk-tile.g3.Active rect, .pk-tile.g4.Active rect, .pk-tile.g5.Active rect,
 .pk-seg.g0.Active rect, .pk-seg.g1.Active rect, .pk-seg.g2.Active rect, .pk-seg.g3.Active rect, .pk-seg.g4.Active rect, .pk-seg.g5.Active rect { stroke: var(--av-hl); stroke-width: 3; }
-.pk-seg.over rect { fill: var(--av-rej); stroke: var(--av-rej); } .pk-seg.over text { fill: #fff; }
-.pk-line { stroke: var(--av-ink); stroke-width: 1.6; stroke-dasharray: 5 4; }
+.pk-seg.over rect { fill: var(--av-rej); stroke: var(--av-rej); } .pk-seg.over text { fill: var(--av-on-rej); }
+.pk-line { stroke: var(--av-ink); stroke-width: 1.6; stroke-dasharray: 5 4; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); }
 .pk-line-label { font-size: 11px; fill: var(--av-ink); text-anchor: middle; }
 .pk-read { font-size: 13px; font-weight: 600; fill: var(--av-ink); }
 .pk-read.ok { fill: var(--av-sol); } .pk-read.bad { fill: var(--av-rej); }
 .pk-note { font-size: 11px; fill: var(--av-muted); }
-.pk-beam { stroke: var(--av-ink); stroke-width: 3; stroke-linecap: round; transition: transform .35s; }
+.pk-beam { stroke: var(--av-ink); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); transition: transform .35s; }
 .pk-fulcrum { fill: var(--av-stroke); }
 @media (prefers-reduced-motion: reduce) { .pk-tile, .pk-tile rect, .pk-seg rect, .pk-beam { transition: none; } }`;
 

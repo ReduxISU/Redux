@@ -16,26 +16,26 @@ const FlowView = (() => {
 .fl-node .role { font-size: 11px; fill: var(--av-muted); }
 .fl-node.end .body { stroke-width: 2.6; }
 .fl-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.fl-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .fl-node.c1 .body { fill: #E69F00; stroke: #a87200; }
+.fl-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .fl-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
 .fl-node.c0 text:not(.role), .fl-node.c1 text:not(.role) { fill: #10131a; font-weight: 600; }
 .fl-node.trace .body, .fl-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.fl-node.faint { opacity: .28; }
+.fl-node.faint { filter: grayscale(1); } .fl-node.faint .body { stroke-dasharray: 3 3; }
 .fl-edge { fill: none; stroke: var(--av-edge); transition: opacity .2s, stroke .2s; }
 .fl-edge.flowing { stroke: var(--av-stroke); }
 .fl-edge.sat { stroke: var(--av-ink); }
 .fl-edge.hot { stroke: var(--av-hl); }
 .fl-edge.sol { stroke: var(--av-sol); }
-.fl-edge.dim { opacity: .25; }
+.fl-edge.dim { stroke: var(--av-edge-dim); }
 .fl-edge.trace { stroke: var(--av-hot); opacity: 1; }
-.fl-edge.faint { opacity: .08; }
+.fl-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .fl-back { fill: none; stroke: var(--av-muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
 .fl-back.hot { stroke: var(--av-hl); stroke-width: 3; }
 .fl-lab rect { fill: var(--av-surface); stroke: var(--av-line); }
 .fl-lab text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .fl-lab.sat rect { fill: var(--av-ink); stroke: var(--av-ink); } .fl-lab.sat text { fill: var(--av-surface); font-weight: 700; }
-.fl-lab.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .fl-lab.hot text { fill: #1b1300; font-weight: 700; }
-.fl-lab.sol rect { fill: var(--av-sol); stroke: var(--av-sol); } .fl-lab.sol text { fill: #fff; font-weight: 700; }
-.fl-lab.dim, .fl-lab.faint { opacity: .25; }
+.fl-lab.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .fl-lab.hot text { fill: var(--av-on-hl); font-weight: 700; }
+.fl-lab.sol rect { fill: var(--av-sol); stroke: var(--av-sol); } .fl-lab.sol text { fill: var(--av-on-sol); font-weight: 700; }
+.fl-lab.dim, .fl-lab.faint { filter: grayscale(1); }
 .fl-lab.back rect { stroke-dasharray: 3 2; }
 .fl-m-def { fill: var(--av-edge); } .fl-m-flow { fill: var(--av-stroke); } .fl-m-sat { fill: var(--av-ink); }
 .fl-m-hot { fill: var(--av-hl); } .fl-m-sol { fill: var(--av-sol); } .fl-m-trace { fill: var(--av-hot); } .fl-m-back { fill: var(--av-muted); }

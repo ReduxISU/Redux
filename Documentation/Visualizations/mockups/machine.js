@@ -21,29 +21,29 @@ const MachineView = (() => {
 .mc-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .mc-node.Active .inner { stroke: var(--av-hl); }
 .mc-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
-.mc-node.Solution .inner { stroke: #fff; } .mc-node.Solution text { fill: #fff; font-weight: 600; }
+.mc-node.Solution .inner { stroke: var(--av-on-sol); } .mc-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .mc-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .mc-node.Rejected .inner { stroke: var(--av-rej); } .mc-node.Rejected text { fill: var(--av-rej); }
 .mc-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; }
 .mc-node.Untraveled .inner { stroke-dasharray: 4 4; } .mc-node.Untraveled text { fill: var(--av-muted); }
 .mc-node.reject .body { stroke-dasharray: 2 3; }
 .mc-node.trace .body, .mc-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.mc-node.faint { opacity: .3; }
+.mc-node.faint { filter: grayscale(1); } .mc-node.faint .body { stroke-dasharray: 3 3; }
 .mc-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .mc-edge.eps { stroke-dasharray: 5 4; }
 .mc-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .mc-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
-.mc-edge.faint, .mc-elabel.faint { opacity: .15; }
+.mc-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; } .mc-elabel.faint { filter: grayscale(1); }
 .mc-elabel rect { fill: var(--av-surface); stroke: var(--av-line); }
 .mc-elabel text { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
-.mc-elabel text.on { fill: #1b1300; font-weight: 700; }
+.mc-elabel text.on { fill: var(--av-on-hl); font-weight: 700; }
 .mc-elabel.hot rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
 .mc-elabel.trace rect { stroke: var(--av-hot); } .mc-elabel.trace text { fill: var(--av-hot); }
 .mc-elabel rect.lineon { fill: var(--av-hl); stroke: none; }
 .mc-start { stroke: var(--av-ink); stroke-width: 1.8; }
 .mc-m-def { fill: var(--av-edge); } .mc-m-hot { fill: var(--av-hl); } .mc-m-trace { fill: var(--av-hot); } .mc-m-ink { fill: var(--av-ink); }
 .mc-sect { font-size: 11px; font-weight: 600; letter-spacing: .08em; fill: var(--av-muted); }
-.mc-cell rect { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
+.mc-cell rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
 .mc-cell text { font-size: 15px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .mc-cell.blank text { fill: var(--av-muted); }
 .mc-cell.marker rect { fill: transparent; stroke-dasharray: 3 3; } .mc-cell.marker text { fill: var(--av-muted); }
@@ -57,7 +57,7 @@ const MachineView = (() => {
 .mc-headmark { fill: var(--av-hl); }
 .mc-headlbl { font-size: 12px; font-weight: 600; text-anchor: middle; fill: var(--av-ink); }
 .mc-gap { font-size: 12px; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; }
-.mc-stack rect { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.5; }
+.mc-stack rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.5; }
 .mc-stack text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .mc-stack .top rect { stroke: var(--av-hl); stroke-width: 2.6; fill: var(--av-hl-fill); }
 .mc-stack .top text { font-weight: 700; }

@@ -154,6 +154,17 @@ Each mockup module (`mockups/*.js`) has the same four parts. Treat them differen
 - **Touch (`pointer: coarse`):** controls at least 44 px tall. Inputs and selects use 16 px text, so iOS doesn't zoom on focus.
 - **Wording:** on `hover: none` devices, say "Tap" instead of "Hover". Every hover interaction must also work on tap.
 - **Themes:** light and dark both work, every color comes from theme tokens, and SVG text always sets its fill.
+- **Contrast, in both themes:**
+  - Text needs at least 4.5:1 against what's behind it (3:1 at 24 px, or 18.66 px bold).
+  - Edges, outlines, wires, bars, markers and control borders need at least 3:1.
+  - No light grey on a white background, and no dark grey on a dark one.
+  - Fade things by changing the color, not the opacity:
+    - **Dimmed** (not part of this step) uses the `edge-dim` token, which still meets 3:1.
+    - **Faint** (not involved in what you're hovering) turns grey with `filter: grayscale(1)` and gets a dashed outline.
+  - Text on a solid state fill uses the matching `on-` token: `on-sol` is white in light mode and near-black in dark mode, because the dark-mode greens and reds are bright.
+  - Group colors keep their bright fill, but outlines and text use the darker `g0s`–`g5s` and `g0i`–`g5i` variants in light mode.
+  - The token values are in the `:root` blocks of `mockups/design.src.html`.
+  - `mockups/contrast/` checks all of this automatically (section 8).
 - **Accessibility:** focusable nodes with `aria-label`s, `role="img"` with a label on each diagram, visible focus rings, and `prefers-reduced-motion` respected.
 
 ### 4.3 Redux_GUI specifics
@@ -251,7 +262,13 @@ Report: files changed, test output, screenshots, open questions.
 - One renderer module per picture type, listed in section 5.
 - `build.js`: inlines the modules into the shells → `design.html`, `redux-gui.html`. Run `node build.js` in this folder. It fails if a placeholder is missing, and syntax-checks the result.
 - `test-*.js`: Node test harnesses. Each loads its module, runs every example with every solver, and cross-checks solvers against brute force on random instances. Run `node test-<name>.js`; each prints a pass line at the end.
+- `contrast/`: color contrast audits.
+  - `audit-design.js` clicks through every tab, problem, example, view, step and toggle of `design.html`.
+  - `audit-gui.js` does the same for every problem and visualization in `redux-gui.html`, including hover tracing.
+  - Both run in light and dark mode, apply the rules in section 4.2, and exit 1 with one line per failing element kind.
+  - Run them from `mockups/`. They need Playwright: install it, or set `PLAYWRIGHT` to the full path of an installed copy (Redux_GUI has one in its `node_modules`).
+  - A few marks are exempt and listed in `audit-lib.js`: label backing plates, guide grids, panel separators and gaps cut in the surface color. So are disabled controls.
 
 The published copies on claude.ai are updated by publishing the rebuilt HTML to the same artifact URLs.
 
-The screenshots in `images/` (used by [PICTURE-TYPES.md](PICTURE-TYPES.md)) are taken from `design.html` at 1,280 px in the light theme. Retake the affected ones when a mockup changes.
+The screenshots in `images/` (used by [PICTURE-TYPES.md](PICTURE-TYPES.md)) are taken from `design.html` at 1,280 px in the light theme. Retake the affected ones when a mockup changes, after the contrast audits pass.

@@ -7,9 +7,10 @@
   --bg: #f3f5f8; --surface: #ffffff; --ink: #19202d; --muted: #5b6577; --line: #d8dde6; --soft: #eceff4;
   --accent: #3552c9;
   --s-bg: #ffffff; --s-bg-stroke: #7d879a;
-  --s-false: #e9ecf1; --s-false-ink: #8b94a5;
-  --s-hl: #d99a0b; --s-sol: #23895a; --s-sol-fill: #d8f1e4; --s-rej: #cf3f37; --s-rej-fill: #fbe1df;
-  --edge: #9aa4b6;
+  --s-false: #e9ecf1; --s-false-ink: #646b77;
+  --s-hl: #a97809; --s-sol: #1e774e; --s-sol-fill: #d8f1e4; --s-rej: #ba3932; --s-rej-fill: #fbe1df;
+  --edge: #616773;
+  --edge-dim: #7b8392; --cov: #67927e; --sol-ink: #1e774e; --rej-ink: #ba3932; --hl-ink: #896107; --on-sol: #ffffff; --on-rej: #ffffff; --on-hl: #1b1300; --ctrl-line: #8a8d93; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #2b7fb0; --g1s: #a87200; --g2s: #7a5cb8; --g3s: #968c0c; --g4s: #2a8a70; --g5s: #9a4c78; --g0i: #2a7cac; --g1i: #a06c00; --g2i: #7a5cb8; --g3i: #827809; --g4i: #28846c; --g5i: #9a4c78; --hl-mix: 14%;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
@@ -17,21 +18,22 @@
   --bg: #11141a; --surface: #191d26; --ink: #e5e8ee; --muted: #9aa3b4; --line: #2b3240; --soft: #222835;
   --accent: #8fa3ff;
   --s-bg: #1f2430; --s-bg-stroke: #8791a5;
-  --s-false: #1a1e27; --s-false-ink: #646d7e;
+  --s-false: #1a1e27; --s-false-ink: #7e8694;
   --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
-  --edge: #5f6a7e; color-scheme: dark } }
+  --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #11141a; --surface: #191d26; --ink: #e5e8ee; --muted: #9aa3b4; --line: #2b3240; --soft: #222835;
   --accent: #8fa3ff;
   --s-bg: #1f2430; --s-bg-stroke: #8791a5;
-  --s-false: #1a1e27; --s-false-ink: #646d7e;
+  --s-false: #1a1e27; --s-false-ink: #7e8694;
   --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
-  --edge: #5f6a7e; color-scheme: dark }
+  --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark }
 
 :root {
   --av-bg: var(--s-bg); --av-stroke: var(--s-bg-stroke); --av-ink: var(--ink); --av-muted: var(--muted);
   --av-surface: var(--surface); --av-line: var(--line); --av-edge: var(--edge);
-  --av-hl: var(--s-hl); --av-hl-fill: color-mix(in srgb, var(--s-hl) 22%, var(--surface));
+  --av-hl: var(--s-hl); --av-hl-fill: color-mix(in srgb, var(--s-hl) var(--hl-mix), var(--surface));
+  --av-edge-dim: var(--edge-dim); --av-cov: var(--cov); --av-sol-ink: var(--sol-ink); --av-rej-ink: var(--rej-ink); --av-hl-ink: var(--hl-ink); --av-on-sol: var(--on-sol); --av-on-rej: var(--on-rej); --av-on-hl: var(--on-hl); --av-ctrl: var(--ctrl-line); --av-g0: var(--g0); --av-g0s: var(--g0s); --av-g0i: var(--g0i); --av-g1: var(--g1); --av-g1s: var(--g1s); --av-g1i: var(--g1i); --av-g2: var(--g2); --av-g2s: var(--g2s); --av-g2i: var(--g2i); --av-g3: var(--g3); --av-g3s: var(--g3s); --av-g3i: var(--g3i); --av-g4: var(--g4); --av-g4s: var(--g4s); --av-g4i: var(--g4i); --av-g5: var(--g5); --av-g5s: var(--g5s); --av-g5i: var(--g5i);
   --av-sol: var(--s-sol); --av-sol-fill: var(--s-sol-fill); --av-rej: var(--s-rej); --av-rej-fill: var(--s-rej-fill); --av-hot: var(--accent); --av-mono: var(--mono);
 }
 * { box-sizing: border-box; }
@@ -42,7 +44,7 @@
 .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 .tab { display: grid; gap: 22px; }
 .instbox { display: grid; gap: 6px; }
-.instbox textarea { width: 100%; resize: vertical; min-height: 44px; font: 14px/1.5 var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.instbox textarea { width: 100%; resize: vertical; min-height: 44px; font: 14px/1.5 var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--ctrl-line); border-radius: 10px; padding: 10px 14px; }
 .instbox textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; }
 .instbox .err { color: var(--s-rej); font-size: 13px; }
 .instbox.bad textarea { border-color: var(--s-rej); }
@@ -60,10 +62,10 @@
 .tape-wrap { display: grid; gap: 6px; }
 .sw.term { background: var(--s-bg); border-color: var(--s-bg-stroke); box-shadow: inset 0 0 0 2.5px var(--s-bg), inset 0 0 0 4px var(--s-bg-stroke); }
 .sw.miss { border: 0; border-radius: 0; height: 0; border-top: 2.4px dashed var(--s-rej); align-self: center; }
-.sw.grp { background: linear-gradient(90deg, #56B4E9 50%, #E69F00 50%); border-color: transparent; }
+.sw.grp { background: linear-gradient(90deg, var(--g0) 50%, var(--g1) 50%); border-color: transparent; }
 .sw.ord { background: var(--ink); color: var(--surface); border: 0; display: grid; place-items: center; font: 700 11px var(--mono); }
-.active-list span.g0 { background: #56B4E9; border-color: #2b7fb0; color: #10131a; }
-.active-list span.g1 { background: #E69F00; border-color: #a87200; color: #10131a; }
+.active-list span.g0 { background: var(--g0); border-color: var(--g0s); color: #10131a; }
+.active-list span.g1 { background: var(--g1); border-color: var(--g1s); color: #10131a; }
 .active-list span.g2 { background: #b59ce0; border-color: #7a5cb8; color: #10131a; }
 .active-list span.g3 { background: #F0E442; border-color: #b5a90f; color: #10131a; }
 .active-list span.g4 { background: #5fc4a8; border-color: #2a8a70; color: #10131a; }
@@ -77,13 +79,13 @@
 .sw.start2 { border: 0; border-radius: 0; width: 0; height: 0; border-top: 9px solid var(--ink); border-right: 9px solid transparent; background: none; }
 .sw.tankl { border: 0; border-radius: 0; height: 3px; background: var(--ink); align-self: center; }
 .sw.peak { border: 0; border-radius: 3px; background: var(--line); }
-.sw.qpos { background: #56B4E9; border-color: #2b7fb0; border-radius: 3px; }
-.sw.qneg { background: #E69F00; border-color: #a87200; border-radius: 3px; }
+.sw.qpos { background: var(--g0s); border-color: var(--g0s); border-radius: 3px; }
+.sw.qneg { background: var(--g1s); border-color: var(--g1s); border-radius: 3px; }
 .sw.qora { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-color: var(--accent); border-radius: 4px; }
 .sw.bdgiven, .sw.bdplaced, .sw.bdqueen { border-radius: 4px; display: grid; place-items: center; font: 700 12px var(--sans); }
-.sw.bdgiven { background: color-mix(in srgb, var(--line) 45%, var(--surface)); border-color: var(--line); color: var(--ink); }
-.sw.bdplaced { background: var(--surface); border-color: var(--line); color: var(--s-sol); font-weight: 500; }
-.sw.bdqueen { background: var(--surface); border-color: var(--line); color: var(--ink); font-size: 14px; }
+.sw.bdgiven { background: color-mix(in srgb, var(--line) 45%, var(--surface)); border-color: var(--s-bg-stroke); color: var(--ink); }
+.sw.bdplaced { background: var(--surface); border-color: var(--s-bg-stroke); color: var(--sol-ink); font-weight: 500; }
+.sw.bdqueen { background: var(--surface); border-color: var(--s-bg-stroke); color: var(--ink); font-size: 14px; }
 .sw.bdlink { border: 0; border-radius: 0; height: 0; border-top: 2.2px dashed var(--s-rej); align-self: center; }
 .sw.bdunit { border-radius: 4px; background: color-mix(in srgb, var(--accent) 13%, var(--surface)); border-color: var(--line); }
 .sw.bdatt { border-radius: 4px; background: color-mix(in srgb, var(--s-rej) 7%, var(--surface)); border-color: var(--line); }
@@ -91,18 +93,18 @@
 .sw.w1 { border: 0; border-radius: 0; height: 3px; background: var(--ink); align-self: center; }
 .sw.w0 { border: 0; border-radius: 0; height: 0; border-top: 2px dashed var(--muted); align-self: center; }
 .rd-phases { display: flex; gap: 4px; flex-wrap: wrap; }
-.rd-phases button { font: 500 12px var(--sans); border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.rd-phases button { font: 500 12px var(--sans); border: 1px solid var(--ctrl-line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
 .rd-phases button[aria-current="step"] { border-color: var(--accent); color: var(--ink); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
 .rd-gadgets li::before { content: "◆"; color: var(--accent); }
 .rd-gadgets li small { color: var(--muted); }
 .sw.sttry { background: var(--surface); border-color: var(--s-hl); box-shadow: 0 0 0 2px var(--s-hl); border-radius: 5px; }
 .sw.stq { background: var(--surface); border: 1.6px dashed var(--s-bg-stroke); border-radius: 5px; }
 .sw.stcut { background: var(--s-rej-fill); border: 1.6px dashed var(--s-rej); border-radius: 5px; }
-.sw.stskip { background: transparent; border: 1.6px dashed var(--line); border-radius: 5px; }
+.sw.stskip { background: transparent; border: 1.6px dashed var(--s-bg-stroke); border-radius: 5px; }
 .sw.stord { background: var(--ink); color: var(--surface); border: 0; display: grid; place-items: center; font: 700 10px var(--mono); }
-.sw.stfold { background: var(--surface); border: 1.4px dashed var(--line); border-radius: 5px; width: 30px; display: grid; place-items: center; font: 10px var(--mono); color: var(--muted); }
+.sw.stfold { background: var(--surface); border: 1.4px dashed var(--s-bg-stroke); border-radius: 5px; width: 30px; display: grid; place-items: center; font: 10px var(--mono); color: var(--muted); }
 .sw.cov { background: var(--s-sol-fill); border-color: var(--s-sol); }
-.sw.blk { background: transparent; border-style: dashed; border-color: var(--line); }
+.sw.blk { background: transparent; border-style: dashed; border-color: var(--s-bg-stroke); }
 .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
 .checks li { display: flex; gap: 8px; align-items: baseline; }
 .checks li::before { content: "○"; color: var(--muted); }
@@ -122,7 +124,7 @@ code, .mono { font-family: var(--mono); font-size: 0.92em; }
 .eyebrow b { color: var(--accent); font-weight: 500; }
 header { display: grid; gap: 8px; }
 .title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.chip { font: 500 12px var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px dashed var(--s-hl); color: var(--s-hl); }
+.chip { font: 500 12px var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--s-sol); color: var(--sol-ink); }
 .lede { color: var(--muted); max-width: 68ch; }
 
 /* formula */
@@ -134,7 +136,7 @@ header { display: grid; gap: 8px; }
 .clause.sat { background: var(--s-sol-fill); }
 .clause.rej { background: var(--s-rej-fill); }
 .lit { padding: 1px 4px; border-radius: 4px; cursor: pointer; }
-.lit.hot { background: var(--s-hl); color: #1b1300; }
+.lit.hot { background: var(--s-hl); color: var(--on-hl); }
 .or { color: var(--muted); }
 
 /* workbench */
@@ -147,13 +149,13 @@ header { display: grid; gap: 8px; }
 .seg button { font: 500 13px var(--sans); border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .seg button:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-select { font: 13px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; }
+select { font: 13px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--ctrl-line); border-radius: 7px; padding: 6px 8px; }
 label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
 svg#g { width: 100%; height: auto; display: block; max-height: 74vh; }
 svg text { font-family: var(--mono); }
 
 /* svg states */
-.hull { fill: var(--soft); stroke: var(--line); stroke-width: 1.5; transition: stroke .2s, fill .2s; }
+.hull { fill: var(--soft); stroke: var(--s-bg-stroke); stroke-width: 1.5; transition: stroke .2s, fill .2s; }
 .hull.sat { stroke: var(--s-sol); fill: var(--s-sol-fill); }
 .hull.rej { stroke: var(--s-rej); fill: var(--s-rej-fill); stroke-width: 2.5; }
 .hull.hot { stroke: var(--accent); stroke-width: 2.5; }
@@ -161,8 +163,8 @@ svg text { font-family: var(--mono); }
 .glabel.sat { fill: var(--s-sol); } .glabel.rej { fill: var(--s-rej); }
 .edge { fill: none; stroke: var(--edge); stroke-width: 1.2; transition: opacity .2s, stroke .2s; }
 .edge.intra { stroke-dasharray: 3 3; }
-.edge.dim { opacity: .22; }
-.edge.faint { opacity: .06; }
+.edge.dim { stroke: var(--edge-dim); }
+.edge.faint { stroke: var(--edge-dim); stroke-dasharray: 3 3; }
 .edge.hot { stroke: var(--accent); stroke-width: 2; opacity: 1; }
 .node circle { stroke-width: 1.6; transition: fill .2s, stroke .2s; }
 .node text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
@@ -170,13 +172,13 @@ svg text { font-family: var(--mono); }
 .node:focus { outline: none; }
 .node:focus-visible .ring { stroke: var(--accent); stroke-width: 2; opacity: 1; }
 .node.Background circle.body { fill: var(--s-bg); stroke: var(--s-bg-stroke); } .node.Background text { fill: var(--ink); }
-.node.False circle.body { fill: var(--s-false); stroke: var(--line); } .node.False text { fill: var(--s-false-ink); }
-.node.Solution circle.body { fill: var(--s-sol); stroke: var(--s-sol); } .node.Solution text { fill: #fff; font-weight: 500; }
+.node.False circle.body { fill: var(--s-false); stroke: var(--s-bg-stroke); } .node.False text { fill: var(--s-false-ink); }
+.node.Solution circle.body { fill: var(--s-sol); stroke: var(--s-sol); } .node.Solution text { fill: var(--on-sol); font-weight: 500; }
 .node.Rejected circle.body { fill: var(--s-rej-fill); stroke: var(--s-rej); } .node.Rejected text { fill: var(--s-rej); }
 .node .ring { fill: none; stroke: transparent; stroke-width: 3; opacity: 0; }
 .node.hl .ring { stroke: var(--s-hl); opacity: 1; }
 .node.witness .ring { stroke: var(--s-sol); opacity: 1; stroke-width: 2; }
-.node.faint { opacity: .25; }
+.node.faint { filter: grayscale(1); } .node.faint circle.body { stroke-dasharray: 3 3; }
 
 /* side panel */
 .side { padding: 16px; display: grid; gap: 18px; min-width: 0; }
@@ -187,18 +189,18 @@ svg text { font-family: var(--mono); }
 .sw.bg { background: var(--s-bg); border-color: var(--s-bg-stroke); }
 .sw.hl { background: var(--s-bg); border-color: var(--s-hl); box-shadow: 0 0 0 2px var(--s-hl); }
 .sw.sol { background: var(--s-sol); border-color: var(--s-sol); }
-.sw.fal { background: var(--s-false); border-color: var(--line); }
+.sw.fal { background: var(--s-false); border-color: var(--s-bg-stroke); }
 .sw.rej { background: var(--s-rej-fill); border-color: var(--s-rej); }
 .sw.edge { border: 0; border-radius: 0; height: 2px; background: var(--edge); align-self: center; }
 .assign { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 6px; }
-.av { font: 13px var(--mono); border: 1px solid var(--line); border-radius: 7px; padding: 5px 0; text-align: center; font-variant-numeric: tabular-nums; }
+.av { font: 13px var(--mono); border: 1px solid var(--ctrl-line); border-radius: 7px; padding: 5px 0; text-align: center; font-variant-numeric: tabular-nums; }
 .av b { font-weight: 500; }
 .av.T { border-color: var(--s-sol); color: var(--s-sol); }
 .av.F { color: var(--muted); }
 .av.tried { box-shadow: 0 0 0 2px var(--s-hl); }
 .stepper { display: grid; gap: 10px; }
 .stepper .btns { display: flex; gap: 6px; align-items: center; }
-.stepper button { font: 500 13px var(--sans); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+.stepper button { font: 500 13px var(--sans); border: 1px solid var(--ctrl-line); background: var(--surface); color: var(--ink); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
 .stepper button:disabled { opacity: .4; cursor: default; }
 .stepper input[type=range] { width: 100%; accent-color: var(--accent); }
 .count { font: 12px var(--mono); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
@@ -259,6 +261,7 @@ pre .k { color: var(--accent); }
 .keyfold[open] > summary::after { transform: rotate(-135deg); margin-top: 3px; }
 .keyfold > summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
 .keyfold > .legend { margin-top: 8px; }
+.keyfold:has(> .legend[hidden]) { display: none; }
 @media (pointer: coarse) { .keyfold > summary { min-height: 44px; } }
 @media (prefers-reduced-motion: reduce) { .keyfold > summary::after { transition: none; } }
 </style>
@@ -286,7 +289,7 @@ pre .k { color: var(--accent); }
   <div class="tab" id="tab-clause" role="tabpanel" aria-labelledby="t-clause">
   <header>
     <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="sat-type">Graph › Grouped Graph</b> · SAT, 3-SAT</div>
-    <div class="title-row"><h1 id="sat-h1">Clause Graph</h1><span class="chip">draft, not yet approved</span></div>
+    <div class="title-row"><h1 id="sat-h1">Clause Graph</h1><span class="chip">approved</span></div>
     <p class="lede" id="sat-lede-factor" hidden>Variables on the left, clauses on the right. A solid edge means the clause contains x, and a dashed edge means it contains ¬x. Once a variable is assigned, the edges it makes true turn green and the others fade, so a clause is satisfied when at least one of its edges is green. This is the same Bipartite graph type the set problems use.</p>
     <p class="lede" id="sat-lede-clause">One node per literal, grouped into one cluster per clause. Edges join a literal to its complement in another clause, so a satisfying assignment shows up as one green literal in every cluster. Hover a literal, either in the graph or in the formula, to trace that variable everywhere it appears.</p>
   </header>
@@ -395,7 +398,7 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
   <div class="tab" id="tab-auto" role="tabpanel" aria-labelledby="t-auto" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Automaton</b> · DFA, NFA</div>
-      <div class="title-row"><h1>Automaton</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Automaton</h1><span class="chip">approved</span></div>
       <p class="lede">States laid out left to right in the order the machine reaches them from the start state. The start state gets an incoming arrow and accept states get a double ring. Transitions between the same two states share one arrow with a combined label. The input tape underneath shows what has been read.</p>
     </header>
 
@@ -499,7 +502,7 @@ verdict: "accept" | "reject"</pre>
   <div class="tab" id="tab-bip" role="tabpanel" aria-labelledby="t-bip" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Bipartite Graph</b> · Set Cover, Exact Cover, Exact Hitting Set</div>
-      <div class="title-row"><h1>Bipartite Graph</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Bipartite Graph</h1><span class="chip">approved</span></div>
       <p class="lede">Elements of U on the left, the sets of S on the right, and an edge for every membership. The certificate picks from one side and constrains the other. Set Cover and Exact Cover pick sets that must cover every element. Exact Hitting Set picks elements so that every set contains exactly one of them. The steps come from whichever solver is selected.</p>
     </header>
 
@@ -608,7 +611,7 @@ frames: { chosen, trying?, focus?, missing?, trial?, caption }[]</pre>
   <div class="tab" id="tab-graph" role="tabpanel" aria-labelledby="t-graph" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph (base)</b> · 15 problems on one renderer</div>
-      <div class="title-row"><h1>Graph</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Graph</h1><span class="chip">approved</span></div>
       <p class="lede">One renderer for every plain graph problem. A problem hands over its graph and says what kind of answer it has: a set of nodes, a set of edges, a split into groups, or a tour. The base works out every color from that answer, so no problem writes its own highlight loop. Pick a problem below and the same drawing code handles all of them.</p>
     </header>
 
@@ -714,7 +717,7 @@ frames: { certificate, trying?, caption }[]</pre>
   <div class="tab" id="tab-flow" role="tabpanel" aria-labelledby="t-flow" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Flow Network</b> · Minimum S-T Cut</div>
-      <div class="title-row"><h1>Flow Network</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Flow Network</h1><span class="chip">approved</span></div>
       <p class="lede">The source sits at the far left and the sink at the far right, with every other node placed by how many hops it is from the source. Each edge reads flow/capacity and gets thicker as it fills. Each step pushes flow along one path that still has room. When no path is left, the nodes the source can still reach form one side of the cut, and the full edges leaving that side add up to the maximum flow.</p>
     </header>
 
@@ -807,7 +810,7 @@ frames: { flow: int[], path: { edge, forward }[], caption }[]</pre>
   <div class="tab" id="tab-layered" role="tabpanel" aria-labelledby="t-layered" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Layered Graph</b> · 7 directed-graph problems</div>
-      <div class="title-row"><h1>Layered Graph</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Layered Graph</h1><span class="chip">approved</span></div>
       <p class="lede">Directed graphs drawn left to right in ranks, so most edges point forward. Edges that point backward close a cycle, and they run as curves under the rows where they're easy to spot. That matters for Topological Sort and the Feedback Set problems. Shortest-path problems show each node's distance under it, filling in as Dijkstra settles nodes.</p>
     </header>
 
@@ -907,7 +910,7 @@ frames: { order? | removed? | groups? | dist + pred?, current?, caption }[]</pre
   <div class="tab" id="tab-packing" role="tabpanel" aria-labelledby="t-packing" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Packing</b> · 5 number problems on one renderer</div>
-      <div class="title-row"><h1>Packing</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Packing</h1><span class="chip">approved</span></div>
       <p class="lede">Every number problem here is the same question in a different container: which items go where so a total hits its mark. The items sit in a pool at the top. Below, each container is drawn to scale with its line: the half-way mark for Partition, a target for Subset Sum and Subset Product, a weight limit and a value goal for Knapsack, a capacity for each bin. Anything that runs past a limit turns red.</p>
     </header>
 
@@ -1001,7 +1004,7 @@ frames: { assign, trying?, rejected?, caption }[]</pre>
   <div class="tab" id="tab-schedule" role="tabpanel" aria-labelledby="t-schedule" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Schedule</b> · Job Sequencing, Pump Scheduling</div>
-      <div class="title-row"><h1>Schedule</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Schedule</h1><span class="chip">approved</span></div>
       <p class="lede">Time runs left to right, drawn to scale. For Job Sequencing each job gets a row: its bar is when it runs on the one machine, the black tick is its deadline, and a run that ends past the tick turns red and costs that job's penalty. For Pump Scheduling each pump gets a row of 24 hours, with the tank level and the cost of each hour charted underneath on the same hours. Shaded hours are the peak tariff.</p>
     </header>
 
@@ -1110,7 +1113,7 @@ frames: { order? | hourStates?, trying?, caption }[]</pre>
   <div class="tab" id="tab-quantum" role="tabpanel" aria-labelledby="t-quantum" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Quantum Circuit</b> · 6 quantum algorithms</div>
-      <div class="title-row"><h1>Quantum Circuit</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Quantum Circuit</h1><span class="chip">approved</span></div>
       <p class="lede">One wire per qubit, gates in the order they run, and the oracle drawn as a box. Each step applies one column of gates, and the bars underneath show how likely each outcome is if you measured right then. Bar color shows the sign of each amplitude, so you can watch the oracle flip signs and the final gates turn those signs into one clear answer.</p>
     </header>
 
@@ -1202,7 +1205,7 @@ frames: { column, probabilities, signs?, outcome?, caption }[]</pre>
   <div class="tab" id="tab-board" role="tabpanel" aria-labelledby="t-board" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Board</b> · Sudoku, N-Queens</div>
-      <div class="title-row"><h1>Board</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Board</h1><span class="chip">approved</span></div>
       <p class="lede">A grid of squares for puzzles that live on a board. Sudoku shows its clues in bold and the solver's digits in green, with the square being tried highlighted. N-Queens shows each queen as it lands; squares it had to skip get a red cross and a dashed line back to the queen that attacks them. Hover any square to see its row, column and box, or the lines a queen there would attack.</p>
     </header>
 
@@ -1318,7 +1321,7 @@ N-Queens: { queens: int[] <span class="c">/* row → column */</span>, row, colu
   <div class="tab" id="tab-table" role="tabpanel" aria-labelledby="t-table" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Table</b> · Edit Distance, 0-1 Integer Programming, and trace tables</div>
-      <div class="title-row"><h1>Table</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Table</h1><span class="chip">approved</span></div>
       <p class="lede">Rows and columns instead of dots and lines. Three shapes share one renderer. A dynamic-programming grid shows which neighbors each cell came from (Edit Distance). A matrix shows constraints against variables (0-1 Integer Programming). A trace table adds one row per step and marks what changed (DFA, NFA and both Shortest Path problems, as a second view next to their graphs).</p>
     </header>
 
@@ -1414,7 +1417,7 @@ C: int[][], d: int[], x: (0 | 1 | null)[]</pre>
   <div class="tab" id="tab-misc" role="tabpanel" aria-labelledby="t-misc" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="ms-type">Geometry</b> · Convex Hull, 3-Dimensional Matching, Lossless Data Compression</div>
-      <div class="title-row"><h1 id="ms-h1">Geometry &amp; More</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="ms-h1">Geometry &amp; More</h1><span class="chip">approved</span></div>
       <p class="lede" id="ms-lede"></p>
     </header>
 
@@ -1521,7 +1524,7 @@ frames:    { merged so far, merging?, codes?, caption }[]</pre>
   <div class="tab" id="tab-cgram" role="tabpanel" aria-labelledby="t-cgram" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="cg-type">Boolean Circuit</b> · not in Redux yet</div>
-      <div class="title-row"><h1 id="cg-h1">Boolean Circuit</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="cg-h1">Boolean Circuit</h1><span class="chip">approved</span></div>
       <p class="lede" id="cg-lede"></p>
     </header>
 
@@ -1623,7 +1626,7 @@ frames:   { filled, cell?, splits?, treeShown?, caption }[]</pre>
   <div class="tab" id="tab-reduction" role="tabpanel" aria-labelledby="t-reduction" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Reduction</b> · 3SAT ↦ Clique, Clique ↦ Vertex Cover, 3SAT ↦ Graph Coloring</div>
-      <div class="title-row"><h1>Reduction</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Reduction</h1><span class="chip">approved</span></div>
       <p class="lede">The instance you gave sits on the left and the instance the reduction builds sits on the right. Steps build the right side one gadget at a time, in both problems' own words. Then the right side is solved, and its answer is mapped back to the left, piece by piece. Hover any piece on either side to see what it became.</p>
     </header>
 
@@ -1729,7 +1732,7 @@ mapBack:  { fromB: string[], setsA: { id, value }[], caption }[]</pre>
   <div class="tab" id="tab-machine" role="tabpanel" aria-labelledby="t-machine" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="mc-type">Tape Machine</b> · Not in Redux yet</div>
-      <div class="title-row"><h1 id="mc-h1">Tape &amp; Stack Machines</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="mc-h1">Tape &amp; Stack Machines</h1><span class="chip">approved</span></div>
       <p class="lede" id="mc-lede"></p>
     </header>
 
@@ -1839,7 +1842,7 @@ verdict: "accept" | "reject" | "stuck" | "loop" | "step limit"</pre>
   <div class="tab" id="tab-dmap" role="tabpanel" aria-labelledby="t-dmap" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="dm-type">Dominoes</b> · not in Redux yet</div>
-      <div class="title-row"><h1 id="dm-h1">Dominoes</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="dm-h1">Dominoes</h1><span class="chip">approved</span></div>
       <p class="lede" id="dm-lede"></p>
     </header>
 
@@ -1957,7 +1960,7 @@ frames: { mapping: {from,to}[], trying?: {from,to},
   <div class="tab" id="tab-search" role="tabpanel" aria-labelledby="t-search" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Search Tree</b> · a second view for 3SAT, Knapsack, TSP, Graph Coloring, N-Queens · Game Tree for QBF and Generalized Geography</div>
-      <div class="title-row"><h1>Search Tree</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Search Tree</h1><span class="chip">approved</span></div>
       <p class="lede">The solver's choices drawn as a tree that grows step by step. Each node is one decision, such as "x2 = F" or "take (20,100)". Red dashed nodes are branches the solver cut: a false clause, a bound that can't win, a clash. Red solid nodes are branches it tried and backed out of. The answer's path turns green. When the tree gets big, finished branches fold into a "+k more" node. Game Trees add a band per turn and a badge for who wins from each position.</p>
     </header>
 
@@ -3005,7 +3008,7 @@ $("qc-play").onclick = () => {
 for (const [k, p] of Object.entries(QuantumView.PROBLEMS)) { const o = document.createElement("option"); o.value = k; o.textContent = p.label; $("qc-prob").appendChild(o); }
 function qcProblem(k) {
   QS.prob = k; const p = QuantumView.PROBLEMS[k];
-  $("qc-fmt").innerHTML = `Redux format: <code>${p.input}</code>. ${p.def} <span style="opacity:.75">Redux lists it as ${p.cls}.</span>`;
+  $("qc-fmt").innerHTML = `Redux format: <code>${p.input}</code>. ${p.def} <span>Redux lists it as ${p.cls}.</span>`;
   const sv = $("qc-solver-sel"); sv.innerHTML = "";
   p.solvers.forEach(([v, name]) => { const o = document.createElement("option"); o.value = v; o.textContent = name; sv.appendChild(o); });
   QS.solver = p.solvers[0][0]; $("qc-solver").textContent = p.solvers[0][1];

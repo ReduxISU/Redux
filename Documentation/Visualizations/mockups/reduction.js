@@ -37,56 +37,56 @@ const ReductionView = (() => {
 .rd-node.hidden { opacity: 0; pointer-events: none; }
 .rd-node.new .body { stroke: var(--av-hl); stroke-width: 3; }
 .rd-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.rd-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .rd-node.Solution text { fill: #fff; font-weight: 600; }
+.rd-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .rd-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .rd-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .rd-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .rd-node.Rejected text { fill: var(--av-rej); }
-.rd-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .rd-node.Blocked text { fill: var(--av-muted); }
-.rd-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .rd-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.rd-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .rd-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.rd-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .rd-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.rd-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .rd-node.Blocked text { fill: var(--av-muted); }
+.rd-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .rd-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.rd-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .rd-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.rd-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .rd-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .rd-node[class*=" c"] text { fill: #10131a; font-weight: 600; }
 .rd-node.trace .body { stroke: var(--av-hot); stroke-width: 3; }
-.rd-node.faint { opacity: .25; }
-.rd-node.g0 .body { stroke: #2b7fb0; stroke-width: 3; } .rd-node.g1 .body { stroke: #a87200; stroke-width: 3; }
-.rd-node.g2 .body { stroke: #7a5cb8; stroke-width: 3; } .rd-node.g3 .body { stroke: #b5a90f; stroke-width: 3; }
-.rd-node.g4 .body { stroke: #2a8a70; stroke-width: 3; } .rd-node.g5 .body { stroke: #9a4c78; stroke-width: 3; }
-.rd-clause .box { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
+.rd-node.faint { filter: grayscale(1); } .rd-node.faint .body { stroke-dasharray: 3 3; }
+.rd-node.g0 .body { stroke: var(--av-g0s); stroke-width: 3; } .rd-node.g1 .body { stroke: var(--av-g1s); stroke-width: 3; }
+.rd-node.g2 .body { stroke: var(--av-g2s); stroke-width: 3; } .rd-node.g3 .body { stroke: var(--av-g3s); stroke-width: 3; }
+.rd-node.g4 .body { stroke: var(--av-g4s); stroke-width: 3; } .rd-node.g5 .body { stroke: var(--av-g5s); stroke-width: 3; }
+.rd-clause .box { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
 .rd-clause .cid { font-size: 11px; fill: var(--av-muted); dominant-baseline: central; }
 .rd-clause .or { font-size: 12px; fill: var(--av-muted); dominant-baseline: central; text-anchor: middle; }
 .rd-clause.Covered .box { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .rd-clause.Active .box { stroke: var(--av-hl); stroke-width: 2.6; }
 .rd-clause.trace .box { stroke: var(--av-hot); stroke-width: 2.6; }
-.rd-clause.faint { opacity: .3; }
-.rd-clause.g0 .box { stroke: #2b7fb0; stroke-width: 2.6; } .rd-clause.g1 .box { stroke: #a87200; stroke-width: 2.6; }
-.rd-clause.g2 .box { stroke: #7a5cb8; stroke-width: 2.6; } .rd-clause.g3 .box { stroke: #b5a90f; stroke-width: 2.6; }
-.rd-clause.g4 .box { stroke: #2a8a70; stroke-width: 2.6; } .rd-clause.g5 .box { stroke: #9a4c78; stroke-width: 2.6; }
+.rd-clause.faint { filter: grayscale(1); }
+.rd-clause.g0 .box { stroke: var(--av-g0s); stroke-width: 2.6; } .rd-clause.g1 .box { stroke: var(--av-g1s); stroke-width: 2.6; }
+.rd-clause.g2 .box { stroke: var(--av-g2s); stroke-width: 2.6; } .rd-clause.g3 .box { stroke: var(--av-g3s); stroke-width: 2.6; }
+.rd-clause.g4 .box { stroke: var(--av-g4s); stroke-width: 2.6; } .rd-clause.g5 .box { stroke: var(--av-g5s); stroke-width: 2.6; }
 .rd-lit { cursor: pointer; }
 .rd-lit rect { fill: transparent; stroke: transparent; rx: 6; transition: fill .2s; }
 .rd-lit text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .rd-lit.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
-.rd-lit.Solution rect { fill: var(--av-sol); } .rd-lit.Solution text { fill: #fff; font-weight: 600; }
+.rd-lit.Solution rect { fill: var(--av-sol); } .rd-lit.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .rd-lit.False text { fill: var(--av-muted); text-decoration: line-through; }
 .rd-lit.trace rect { stroke: var(--av-hot); stroke-width: 2; }
-.rd-var rect { fill: var(--av-surface); stroke: var(--av-line); }
+.rd-var rect { fill: var(--av-surface); stroke: var(--av-stroke); }
 .rd-var text { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .rd-var.T rect { stroke: var(--av-sol); } .rd-var.T text { fill: var(--av-sol); font-weight: 600; }
-.rd-var.F rect { stroke: var(--av-line); } .rd-var.F text { fill: var(--av-ink); }
+.rd-var.F rect { stroke: var(--av-stroke); } .rd-var.F text { fill: var(--av-ink); }
 .rd-var.Active rect { stroke: var(--av-hl); stroke-width: 2.4; }
-.rd-hull { fill: transparent; stroke: var(--av-line); stroke-width: 1.2; stroke-dasharray: 3 4; transition: opacity .25s; }
+.rd-hull { fill: transparent; stroke: var(--av-stroke); stroke-width: 1.2; stroke-dasharray: 3 4; transition: opacity .25s; }
 .rd-hull.hidden { opacity: 0; }
 .rd-hull.Active { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: none; }
 .rd-hull.Covered { stroke: var(--av-sol); stroke-dasharray: none; }
-.rd-hull.g0 { stroke: #2b7fb0; } .rd-hull.g1 { stroke: #a87200; } .rd-hull.g2 { stroke: #7a5cb8; }
-.rd-hull.g3 { stroke: #b5a90f; } .rd-hull.g4 { stroke: #2a8a70; } .rd-hull.g5 { stroke: #9a4c78; }
+.rd-hull.g0 { stroke: var(--av-g0s); } .rd-hull.g1 { stroke: var(--av-g1s); } .rd-hull.g2 { stroke: var(--av-g2s); }
+.rd-hull.g3 { stroke: var(--av-g3s); } .rd-hull.g4 { stroke: var(--av-g4s); } .rd-hull.g5 { stroke: var(--av-g5s); }
 .rd-hlabel { font-size: 11px; fill: var(--av-muted); dominant-baseline: central; }
 .rd-edge { stroke: var(--av-edge); stroke-width: 1.2; transition: opacity .25s, stroke .2s; }
 .rd-edge.hidden { opacity: 0; }
-.rd-edge.dim { opacity: .2; }
+.rd-edge.dim { stroke: var(--av-edge-dim); stroke-width: .8; }
 .rd-edge.new { stroke: var(--av-hl); stroke-width: 2.2; opacity: 1; }
 .rd-edge.sol { stroke: var(--av-sol); stroke-width: 3; opacity: 1; }
-.rd-edge.cov { stroke: var(--av-sol); stroke-width: 1.6; opacity: .55; }
+.rd-edge.cov { stroke: var(--av-cov); stroke-width: 1.6; }
 .rd-edge.trace { stroke: var(--av-hot); stroke-width: 2.2; opacity: 1; }
-.rd-edge.faint { opacity: .06; }
+.rd-edge.faint { stroke: var(--av-edge-dim); stroke-width: .8; stroke-dasharray: 3 3; }
 .rd-phantom { stroke: var(--av-rej); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
 .rd-link { fill: none; stroke: var(--av-hot); stroke-width: 1.4; stroke-dasharray: 2 3; opacity: .85; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .rd-node, .rd-edge, .rd-hull, .rd-node .body { transition: none; } }`;
@@ -415,7 +415,7 @@ const ReductionView = (() => {
       els = { P, nodes: new Map(), edges: [], hulls: new Map(), clauses: new Map(), lits: new Map(), vars: new Map(), gLinks: null, gPh: null, srcEdges: [] };
       mk("text", { x: L.SX + 12, y: 28, class: "rd-pane-title" }, svg).textContent = `${red.fromLabel.toUpperCase()} · THE INSTANCE YOU GAVE`;
       mk("text", { x: L.TX + 12, y: 28, class: "rd-pane-title" }, svg).textContent = `${red.toLabel.toUpperCase()} · BUILT BY THE REDUCTION`;
-      mk("line", { x1: L.TX - 30, y1: 40, x2: L.TX - 30, y2: L.H - 20, stroke: "var(--av-line)", "stroke-dasharray": "2 5" }, svg);
+      mk("line", { class: "rd-sep", x1: L.TX - 30, y1: 40, x2: L.TX - 30, y2: L.H - 20, stroke: "var(--av-line)", "stroke-dasharray": "2 5" }, svg);
       mk("text", { x: L.TX - 30, y: L.H / 2 - 12, class: "rd-arrow" }, svg).textContent = "↦";
       const hookup = (g, id) => {
         const on = () => setHover(id), off = () => setHover(null);

@@ -18,7 +18,7 @@ const ScheduleView = (() => {
 .sc-svg .sc-label { font-size: 12.5px; }
 .sc-svg .sc-head { font-size: 11px; font-weight: 600; letter-spacing: .06em; fill: var(--av-muted); }
 .sc-svg .sc-read { font-size: 12.5px; }
-.sc-axis { stroke: var(--av-line); stroke-width: 1; }
+.sc-axis { stroke: var(--av-stroke); stroke-width: 1; }
 .sc-grid { stroke: var(--av-line); stroke-width: 1; opacity: .55; }
 .sc-peak { fill: var(--av-line); opacity: .35; }
 .sc-bar { stroke-width: 1.6; transition: fill .2s, stroke .2s; }
@@ -27,16 +27,16 @@ const ScheduleView = (() => {
 .sc-bar.Solution { fill: var(--av-sol); stroke: var(--av-sol); }
 .sc-bar.Active { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .sc-bar.Rejected { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.2; }
-.sc-over { fill: var(--av-rej); opacity: .35; }
-.sc-dead { stroke: var(--av-ink); stroke-width: 2; }
+.sc-over { fill: var(--av-rej); fill-opacity: .8; }
+.sc-dead { stroke: var(--av-ink); stroke-width: 2; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); }
 .sc-dead-late { stroke: var(--av-rej); }
-.sc-ghost { fill: none; stroke: var(--av-line); stroke-dasharray: 4 3; }
+.sc-ghost { fill: none; stroke: var(--av-stroke); stroke-dasharray: 4 3; }
 .sc-row.hot rect.sc-rowbg { fill: var(--av-hl-fill); opacity: .5; }
 .sc-rowbg { fill: transparent; }
-.sc-cell { fill: transparent; stroke: var(--av-line); stroke-width: .6; }
+.sc-cell { fill: transparent; stroke: var(--av-edge-dim); stroke-width: .6; }
 .sc-cell.on { fill: var(--av-sol); stroke: var(--av-sol); }
-.sc-cell.on.dim { opacity: .35; }
-.sc-start { fill: var(--av-ink); }
+.sc-cell.on.dim { filter: grayscale(1); }
+.sc-start { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1; }
 .sc-col { fill: none; stroke: var(--av-hl); stroke-width: 2.4; }
 .sc-colhover { fill: var(--av-hl-fill); opacity: .45; }
 .sc-tank { fill: none; stroke: var(--av-ink); stroke-width: 2.4; stroke-linejoin: round; }
@@ -45,9 +45,9 @@ const ScheduleView = (() => {
 .sc-band { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 1.2; }
 .sc-limit { stroke: var(--av-muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
 .sc-limit-min { stroke: var(--av-rej); }
-.sc-costbar { fill: var(--av-muted); opacity: .55; }
+.sc-costbar { fill: var(--av-muted); }
 .sc-costbar.cur { fill: var(--av-hl); opacity: 1; }
-.sc-costbar.start { fill: var(--av-ink); opacity: .85; }
+.sc-costbar.start { fill: var(--av-ink); }
 .sc-budget { fill: none; stroke: var(--av-hot); stroke-width: 2; }
 .sc-hit { fill: transparent; cursor: crosshair; }
 @media (prefers-reduced-motion: reduce) { .sc-bar { transition: none; } }`;

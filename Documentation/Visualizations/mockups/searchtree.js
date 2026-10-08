@@ -14,7 +14,7 @@ const SearchTreeView = (() => {
 .st-svg text { font-family: var(--av-mono); }
 .st-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.4; }
 .st-edge.pruned, .st-edge.skipped { stroke-dasharray: 4 4; }
-.st-edge.pruned { stroke: var(--av-rej); opacity: .55; }
+.st-edge.pruned { stroke: var(--av-rej); }
 .st-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
 .st-edge.cur { stroke: var(--av-hl); stroke-width: 2.6; }
 .st-node rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.5; }
@@ -26,20 +26,20 @@ const SearchTreeView = (() => {
 .st-node.failed text.lbl { fill: var(--av-rej); }
 .st-node.pruned rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-dasharray: 4 3; }
 .st-node.pruned text.lbl, .st-node.pruned text.note { fill: var(--av-rej); }
-.st-node.skipped rect { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 4; }
+.st-node.skipped rect { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 4; }
 .st-node.skipped text.lbl, .st-node.skipped text.note { fill: var(--av-muted); }
 .st-node.solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
-.st-node.solution text.lbl { fill: #fff; font-weight: 600; }
+.st-node.solution text.lbl { fill: var(--av-on-sol); font-weight: 600; }
 .st-node.cur rect { stroke: var(--av-hl); stroke-width: 3.2; stroke-dasharray: none; }
-.st-node.fold rect { fill: var(--av-surface); stroke: var(--av-line); stroke-dasharray: 2 3; }
+.st-node.fold rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; }
 .st-node.fold text.lbl { fill: var(--av-muted); font-size: 11px; }
 .st-node.trace rect { stroke: var(--av-hot); stroke-width: 3; }
 .st-node { cursor: default; }
-.st-ord circle { fill: var(--av-ink); } .st-ord text { fill: var(--av-surface); font-size: 9.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.st-ord circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .st-ord text { fill: var(--av-surface); font-size: 9.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .st-val circle { stroke-width: 1.6; } .st-val text { font-size: 10px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
-.st-val.win circle { fill: var(--av-sol); stroke: var(--av-sol); } .st-val.win text { fill: #fff; }
+.st-val.win circle { fill: var(--av-sol); stroke: var(--av-sol); } .st-val.win text { fill: var(--av-on-sol); }
 .st-val.lose circle { fill: var(--av-rej-fill); stroke: var(--av-rej); } .st-val.lose text { fill: var(--av-rej); }
-.st-val.p1 circle { fill: #56B4E9; stroke: #2b7fb0; } .st-val.p2 circle { fill: #E69F00; stroke: #a87200; } .st-val.p1 text, .st-val.p2 text { fill: #10131a; }
+.st-val.p1 circle { fill: var(--av-g0); stroke: var(--av-g0s); } .st-val.p2 circle { fill: var(--av-g1); stroke: var(--av-g1s); } .st-val.p1 text, .st-val.p2 text { fill: #10131a; }
 .st-band { fill: var(--av-surface); }
 .st-band.alt { fill: var(--av-hl-fill); opacity: .35; }
 .st-lvl { font-size: 11px; fill: var(--av-muted); }

@@ -7,9 +7,10 @@
   --bg: #f3f5f8; --surface: #ffffff; --ink: #19202d; --muted: #5b6577; --line: #d8dde6; --soft: #eceff4;
   --accent: #3552c9;
   --s-bg: #ffffff; --s-bg-stroke: #7d879a;
-  --s-false: #e9ecf1; --s-false-ink: #8b94a5;
-  --s-hl: #d99a0b; --s-sol: #23895a; --s-sol-fill: #d8f1e4; --s-rej: #cf3f37; --s-rej-fill: #fbe1df;
-  --edge: #9aa4b6;
+  --s-false: #e9ecf1; --s-false-ink: #646b77;
+  --s-hl: #a97809; --s-sol: #1e774e; --s-sol-fill: #d8f1e4; --s-rej: #ba3932; --s-rej-fill: #fbe1df;
+  --edge: #616773;
+  --edge-dim: #7b8392; --cov: #67927e; --sol-ink: #1e774e; --rej-ink: #ba3932; --hl-ink: #896107; --on-sol: #ffffff; --on-rej: #ffffff; --on-hl: #1b1300; --ctrl-line: #8a8d93; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #2b7fb0; --g1s: #a87200; --g2s: #7a5cb8; --g3s: #968c0c; --g4s: #2a8a70; --g5s: #9a4c78; --g0i: #2a7cac; --g1i: #a06c00; --g2i: #7a5cb8; --g3i: #827809; --g4i: #28846c; --g5i: #9a4c78; --hl-mix: 14%;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
@@ -17,21 +18,22 @@
   --bg: #11141a; --surface: #191d26; --ink: #e5e8ee; --muted: #9aa3b4; --line: #2b3240; --soft: #222835;
   --accent: #8fa3ff;
   --s-bg: #1f2430; --s-bg-stroke: #8791a5;
-  --s-false: #1a1e27; --s-false-ink: #646d7e;
+  --s-false: #1a1e27; --s-false-ink: #7e8694;
   --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
-  --edge: #5f6a7e; color-scheme: dark } }
+  --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #11141a; --surface: #191d26; --ink: #e5e8ee; --muted: #9aa3b4; --line: #2b3240; --soft: #222835;
   --accent: #8fa3ff;
   --s-bg: #1f2430; --s-bg-stroke: #8791a5;
-  --s-false: #1a1e27; --s-false-ink: #646d7e;
+  --s-false: #1a1e27; --s-false-ink: #7e8694;
   --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
-  --edge: #5f6a7e; color-scheme: dark }
+  --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark }
 
 :root {
   --av-bg: var(--s-bg); --av-stroke: var(--s-bg-stroke); --av-ink: var(--ink); --av-muted: var(--muted);
   --av-surface: var(--surface); --av-line: var(--line); --av-edge: var(--edge);
-  --av-hl: var(--s-hl); --av-hl-fill: color-mix(in srgb, var(--s-hl) 22%, var(--surface));
+  --av-hl: var(--s-hl); --av-hl-fill: color-mix(in srgb, var(--s-hl) var(--hl-mix), var(--surface));
+  --av-edge-dim: var(--edge-dim); --av-cov: var(--cov); --av-sol-ink: var(--sol-ink); --av-rej-ink: var(--rej-ink); --av-hl-ink: var(--hl-ink); --av-on-sol: var(--on-sol); --av-on-rej: var(--on-rej); --av-on-hl: var(--on-hl); --av-ctrl: var(--ctrl-line); --av-g0: var(--g0); --av-g0s: var(--g0s); --av-g0i: var(--g0i); --av-g1: var(--g1); --av-g1s: var(--g1s); --av-g1i: var(--g1i); --av-g2: var(--g2); --av-g2s: var(--g2s); --av-g2i: var(--g2i); --av-g3: var(--g3); --av-g3s: var(--g3s); --av-g3i: var(--g3i); --av-g4: var(--g4); --av-g4s: var(--g4s); --av-g4i: var(--g4i); --av-g5: var(--g5); --av-g5s: var(--g5s); --av-g5i: var(--g5i);
   --av-sol: var(--s-sol); --av-sol-fill: var(--s-sol-fill); --av-rej: var(--s-rej); --av-rej-fill: var(--s-rej-fill); --av-hot: var(--accent); --av-mono: var(--mono);
 }
 * { box-sizing: border-box; }
@@ -42,7 +44,7 @@
 .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 .tab { display: grid; gap: 22px; }
 .instbox { display: grid; gap: 6px; }
-.instbox textarea { width: 100%; resize: vertical; min-height: 44px; font: 14px/1.5 var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.instbox textarea { width: 100%; resize: vertical; min-height: 44px; font: 14px/1.5 var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--ctrl-line); border-radius: 10px; padding: 10px 14px; }
 .instbox textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; }
 .instbox .err { color: var(--s-rej); font-size: 13px; }
 .instbox.bad textarea { border-color: var(--s-rej); }
@@ -60,10 +62,10 @@
 .tape-wrap { display: grid; gap: 6px; }
 .sw.term { background: var(--s-bg); border-color: var(--s-bg-stroke); box-shadow: inset 0 0 0 2.5px var(--s-bg), inset 0 0 0 4px var(--s-bg-stroke); }
 .sw.miss { border: 0; border-radius: 0; height: 0; border-top: 2.4px dashed var(--s-rej); align-self: center; }
-.sw.grp { background: linear-gradient(90deg, #56B4E9 50%, #E69F00 50%); border-color: transparent; }
+.sw.grp { background: linear-gradient(90deg, var(--g0) 50%, var(--g1) 50%); border-color: transparent; }
 .sw.ord { background: var(--ink); color: var(--surface); border: 0; display: grid; place-items: center; font: 700 11px var(--mono); }
-.active-list span.g0 { background: #56B4E9; border-color: #2b7fb0; color: #10131a; }
-.active-list span.g1 { background: #E69F00; border-color: #a87200; color: #10131a; }
+.active-list span.g0 { background: var(--g0); border-color: var(--g0s); color: #10131a; }
+.active-list span.g1 { background: var(--g1); border-color: var(--g1s); color: #10131a; }
 .active-list span.g2 { background: #b59ce0; border-color: #7a5cb8; color: #10131a; }
 .active-list span.g3 { background: #F0E442; border-color: #b5a90f; color: #10131a; }
 .active-list span.g4 { background: #5fc4a8; border-color: #2a8a70; color: #10131a; }
@@ -77,13 +79,13 @@
 .sw.start2 { border: 0; border-radius: 0; width: 0; height: 0; border-top: 9px solid var(--ink); border-right: 9px solid transparent; background: none; }
 .sw.tankl { border: 0; border-radius: 0; height: 3px; background: var(--ink); align-self: center; }
 .sw.peak { border: 0; border-radius: 3px; background: var(--line); }
-.sw.qpos { background: #56B4E9; border-color: #2b7fb0; border-radius: 3px; }
-.sw.qneg { background: #E69F00; border-color: #a87200; border-radius: 3px; }
+.sw.qpos { background: var(--g0s); border-color: var(--g0s); border-radius: 3px; }
+.sw.qneg { background: var(--g1s); border-color: var(--g1s); border-radius: 3px; }
 .sw.qora { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-color: var(--accent); border-radius: 4px; }
 .sw.bdgiven, .sw.bdplaced, .sw.bdqueen { border-radius: 4px; display: grid; place-items: center; font: 700 12px var(--sans); }
-.sw.bdgiven { background: color-mix(in srgb, var(--line) 45%, var(--surface)); border-color: var(--line); color: var(--ink); }
-.sw.bdplaced { background: var(--surface); border-color: var(--line); color: var(--s-sol); font-weight: 500; }
-.sw.bdqueen { background: var(--surface); border-color: var(--line); color: var(--ink); font-size: 14px; }
+.sw.bdgiven { background: color-mix(in srgb, var(--line) 45%, var(--surface)); border-color: var(--s-bg-stroke); color: var(--ink); }
+.sw.bdplaced { background: var(--surface); border-color: var(--s-bg-stroke); color: var(--sol-ink); font-weight: 500; }
+.sw.bdqueen { background: var(--surface); border-color: var(--s-bg-stroke); color: var(--ink); font-size: 14px; }
 .sw.bdlink { border: 0; border-radius: 0; height: 0; border-top: 2.2px dashed var(--s-rej); align-self: center; }
 .sw.bdunit { border-radius: 4px; background: color-mix(in srgb, var(--accent) 13%, var(--surface)); border-color: var(--line); }
 .sw.bdatt { border-radius: 4px; background: color-mix(in srgb, var(--s-rej) 7%, var(--surface)); border-color: var(--line); }
@@ -91,18 +93,18 @@
 .sw.w1 { border: 0; border-radius: 0; height: 3px; background: var(--ink); align-self: center; }
 .sw.w0 { border: 0; border-radius: 0; height: 0; border-top: 2px dashed var(--muted); align-self: center; }
 .rd-phases { display: flex; gap: 4px; flex-wrap: wrap; }
-.rd-phases button { font: 500 12px var(--sans); border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.rd-phases button { font: 500 12px var(--sans); border: 1px solid var(--ctrl-line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
 .rd-phases button[aria-current="step"] { border-color: var(--accent); color: var(--ink); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
 .rd-gadgets li::before { content: "◆"; color: var(--accent); }
 .rd-gadgets li small { color: var(--muted); }
 .sw.sttry { background: var(--surface); border-color: var(--s-hl); box-shadow: 0 0 0 2px var(--s-hl); border-radius: 5px; }
 .sw.stq { background: var(--surface); border: 1.6px dashed var(--s-bg-stroke); border-radius: 5px; }
 .sw.stcut { background: var(--s-rej-fill); border: 1.6px dashed var(--s-rej); border-radius: 5px; }
-.sw.stskip { background: transparent; border: 1.6px dashed var(--line); border-radius: 5px; }
+.sw.stskip { background: transparent; border: 1.6px dashed var(--s-bg-stroke); border-radius: 5px; }
 .sw.stord { background: var(--ink); color: var(--surface); border: 0; display: grid; place-items: center; font: 700 10px var(--mono); }
-.sw.stfold { background: var(--surface); border: 1.4px dashed var(--line); border-radius: 5px; width: 30px; display: grid; place-items: center; font: 10px var(--mono); color: var(--muted); }
+.sw.stfold { background: var(--surface); border: 1.4px dashed var(--s-bg-stroke); border-radius: 5px; width: 30px; display: grid; place-items: center; font: 10px var(--mono); color: var(--muted); }
 .sw.cov { background: var(--s-sol-fill); border-color: var(--s-sol); }
-.sw.blk { background: transparent; border-style: dashed; border-color: var(--line); }
+.sw.blk { background: transparent; border-style: dashed; border-color: var(--s-bg-stroke); }
 .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
 .checks li { display: flex; gap: 8px; align-items: baseline; }
 .checks li::before { content: "○"; color: var(--muted); }
@@ -122,7 +124,7 @@ code, .mono { font-family: var(--mono); font-size: 0.92em; }
 .eyebrow b { color: var(--accent); font-weight: 500; }
 header { display: grid; gap: 8px; }
 .title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.chip { font: 500 12px var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px dashed var(--s-hl); color: var(--s-hl); }
+.chip { font: 500 12px var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--s-sol); color: var(--sol-ink); }
 .lede { color: var(--muted); max-width: 68ch; }
 
 /* formula */
@@ -134,7 +136,7 @@ header { display: grid; gap: 8px; }
 .clause.sat { background: var(--s-sol-fill); }
 .clause.rej { background: var(--s-rej-fill); }
 .lit { padding: 1px 4px; border-radius: 4px; cursor: pointer; }
-.lit.hot { background: var(--s-hl); color: #1b1300; }
+.lit.hot { background: var(--s-hl); color: var(--on-hl); }
 .or { color: var(--muted); }
 
 /* workbench */
@@ -147,13 +149,13 @@ header { display: grid; gap: 8px; }
 .seg button { font: 500 13px var(--sans); border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .seg button:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-select { font: 13px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; }
+select { font: 13px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--ctrl-line); border-radius: 7px; padding: 6px 8px; }
 label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
 svg#g { width: 100%; height: auto; display: block; max-height: 74vh; }
 svg text { font-family: var(--mono); }
 
 /* svg states */
-.hull { fill: var(--soft); stroke: var(--line); stroke-width: 1.5; transition: stroke .2s, fill .2s; }
+.hull { fill: var(--soft); stroke: var(--s-bg-stroke); stroke-width: 1.5; transition: stroke .2s, fill .2s; }
 .hull.sat { stroke: var(--s-sol); fill: var(--s-sol-fill); }
 .hull.rej { stroke: var(--s-rej); fill: var(--s-rej-fill); stroke-width: 2.5; }
 .hull.hot { stroke: var(--accent); stroke-width: 2.5; }
@@ -161,8 +163,8 @@ svg text { font-family: var(--mono); }
 .glabel.sat { fill: var(--s-sol); } .glabel.rej { fill: var(--s-rej); }
 .edge { fill: none; stroke: var(--edge); stroke-width: 1.2; transition: opacity .2s, stroke .2s; }
 .edge.intra { stroke-dasharray: 3 3; }
-.edge.dim { opacity: .22; }
-.edge.faint { opacity: .06; }
+.edge.dim { stroke: var(--edge-dim); }
+.edge.faint { stroke: var(--edge-dim); stroke-dasharray: 3 3; }
 .edge.hot { stroke: var(--accent); stroke-width: 2; opacity: 1; }
 .node circle { stroke-width: 1.6; transition: fill .2s, stroke .2s; }
 .node text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
@@ -170,13 +172,13 @@ svg text { font-family: var(--mono); }
 .node:focus { outline: none; }
 .node:focus-visible .ring { stroke: var(--accent); stroke-width: 2; opacity: 1; }
 .node.Background circle.body { fill: var(--s-bg); stroke: var(--s-bg-stroke); } .node.Background text { fill: var(--ink); }
-.node.False circle.body { fill: var(--s-false); stroke: var(--line); } .node.False text { fill: var(--s-false-ink); }
-.node.Solution circle.body { fill: var(--s-sol); stroke: var(--s-sol); } .node.Solution text { fill: #fff; font-weight: 500; }
+.node.False circle.body { fill: var(--s-false); stroke: var(--s-bg-stroke); } .node.False text { fill: var(--s-false-ink); }
+.node.Solution circle.body { fill: var(--s-sol); stroke: var(--s-sol); } .node.Solution text { fill: var(--on-sol); font-weight: 500; }
 .node.Rejected circle.body { fill: var(--s-rej-fill); stroke: var(--s-rej); } .node.Rejected text { fill: var(--s-rej); }
 .node .ring { fill: none; stroke: transparent; stroke-width: 3; opacity: 0; }
 .node.hl .ring { stroke: var(--s-hl); opacity: 1; }
 .node.witness .ring { stroke: var(--s-sol); opacity: 1; stroke-width: 2; }
-.node.faint { opacity: .25; }
+.node.faint { filter: grayscale(1); } .node.faint circle.body { stroke-dasharray: 3 3; }
 
 /* side panel */
 .side { padding: 16px; display: grid; gap: 18px; min-width: 0; }
@@ -187,18 +189,18 @@ svg text { font-family: var(--mono); }
 .sw.bg { background: var(--s-bg); border-color: var(--s-bg-stroke); }
 .sw.hl { background: var(--s-bg); border-color: var(--s-hl); box-shadow: 0 0 0 2px var(--s-hl); }
 .sw.sol { background: var(--s-sol); border-color: var(--s-sol); }
-.sw.fal { background: var(--s-false); border-color: var(--line); }
+.sw.fal { background: var(--s-false); border-color: var(--s-bg-stroke); }
 .sw.rej { background: var(--s-rej-fill); border-color: var(--s-rej); }
 .sw.edge { border: 0; border-radius: 0; height: 2px; background: var(--edge); align-self: center; }
 .assign { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 6px; }
-.av { font: 13px var(--mono); border: 1px solid var(--line); border-radius: 7px; padding: 5px 0; text-align: center; font-variant-numeric: tabular-nums; }
+.av { font: 13px var(--mono); border: 1px solid var(--ctrl-line); border-radius: 7px; padding: 5px 0; text-align: center; font-variant-numeric: tabular-nums; }
 .av b { font-weight: 500; }
 .av.T { border-color: var(--s-sol); color: var(--s-sol); }
 .av.F { color: var(--muted); }
 .av.tried { box-shadow: 0 0 0 2px var(--s-hl); }
 .stepper { display: grid; gap: 10px; }
 .stepper .btns { display: flex; gap: 6px; align-items: center; }
-.stepper button { font: 500 13px var(--sans); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+.stepper button { font: 500 13px var(--sans); border: 1px solid var(--ctrl-line); background: var(--surface); color: var(--ink); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
 .stepper button:disabled { opacity: .4; cursor: default; }
 .stepper input[type=range] { width: 100%; accent-color: var(--accent); }
 .count { font: 12px var(--mono); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
@@ -259,6 +261,7 @@ pre .k { color: var(--accent); }
 .keyfold[open] > summary::after { transform: rotate(-135deg); margin-top: 3px; }
 .keyfold > summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
 .keyfold > .legend { margin-top: 8px; }
+.keyfold:has(> .legend[hidden]) { display: none; }
 @media (pointer: coarse) { .keyfold > summary { min-height: 44px; } }
 @media (prefers-reduced-motion: reduce) { .keyfold > summary::after { transition: none; } }
 </style>
@@ -286,7 +289,7 @@ pre .k { color: var(--accent); }
   <div class="tab" id="tab-clause" role="tabpanel" aria-labelledby="t-clause">
   <header>
     <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="sat-type">Graph › Grouped Graph</b> · SAT, 3-SAT</div>
-    <div class="title-row"><h1 id="sat-h1">Clause Graph</h1><span class="chip">draft, not yet approved</span></div>
+    <div class="title-row"><h1 id="sat-h1">Clause Graph</h1><span class="chip">approved</span></div>
     <p class="lede" id="sat-lede-factor" hidden>Variables on the left, clauses on the right. A solid edge means the clause contains x, and a dashed edge means it contains ¬x. Once a variable is assigned, the edges it makes true turn green and the others fade, so a clause is satisfied when at least one of its edges is green. This is the same Bipartite graph type the set problems use.</p>
     <p class="lede" id="sat-lede-clause">One node per literal, grouped into one cluster per clause. Edges join a literal to its complement in another clause, so a satisfying assignment shows up as one green literal in every cluster. Hover a literal, either in the graph or in the formula, to trace that variable everywhere it appears.</p>
   </header>
@@ -395,7 +398,7 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
   <div class="tab" id="tab-auto" role="tabpanel" aria-labelledby="t-auto" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Automaton</b> · DFA, NFA</div>
-      <div class="title-row"><h1>Automaton</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Automaton</h1><span class="chip">approved</span></div>
       <p class="lede">States laid out left to right in the order the machine reaches them from the start state. The start state gets an incoming arrow and accept states get a double ring. Transitions between the same two states share one arrow with a combined label. The input tape underneath shows what has been read.</p>
     </header>
 
@@ -499,7 +502,7 @@ verdict: "accept" | "reject"</pre>
   <div class="tab" id="tab-bip" role="tabpanel" aria-labelledby="t-bip" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Bipartite Graph</b> · Set Cover, Exact Cover, Exact Hitting Set</div>
-      <div class="title-row"><h1>Bipartite Graph</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Bipartite Graph</h1><span class="chip">approved</span></div>
       <p class="lede">Elements of U on the left, the sets of S on the right, and an edge for every membership. The certificate picks from one side and constrains the other. Set Cover and Exact Cover pick sets that must cover every element. Exact Hitting Set picks elements so that every set contains exactly one of them. The steps come from whichever solver is selected.</p>
     </header>
 
@@ -608,7 +611,7 @@ frames: { chosen, trying?, focus?, missing?, trial?, caption }[]</pre>
   <div class="tab" id="tab-graph" role="tabpanel" aria-labelledby="t-graph" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph (base)</b> · 15 problems on one renderer</div>
-      <div class="title-row"><h1>Graph</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Graph</h1><span class="chip">approved</span></div>
       <p class="lede">One renderer for every plain graph problem. A problem hands over its graph and says what kind of answer it has: a set of nodes, a set of edges, a split into groups, or a tour. The base works out every color from that answer, so no problem writes its own highlight loop. Pick a problem below and the same drawing code handles all of them.</p>
     </header>
 
@@ -714,7 +717,7 @@ frames: { certificate, trying?, caption }[]</pre>
   <div class="tab" id="tab-flow" role="tabpanel" aria-labelledby="t-flow" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Flow Network</b> · Minimum S-T Cut</div>
-      <div class="title-row"><h1>Flow Network</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Flow Network</h1><span class="chip">approved</span></div>
       <p class="lede">The source sits at the far left and the sink at the far right, with every other node placed by how many hops it is from the source. Each edge reads flow/capacity and gets thicker as it fills. Each step pushes flow along one path that still has room. When no path is left, the nodes the source can still reach form one side of the cut, and the full edges leaving that side add up to the maximum flow.</p>
     </header>
 
@@ -807,7 +810,7 @@ frames: { flow: int[], path: { edge, forward }[], caption }[]</pre>
   <div class="tab" id="tab-layered" role="tabpanel" aria-labelledby="t-layered" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Graph › Layered Graph</b> · 7 directed-graph problems</div>
-      <div class="title-row"><h1>Layered Graph</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Layered Graph</h1><span class="chip">approved</span></div>
       <p class="lede">Directed graphs drawn left to right in ranks, so most edges point forward. Edges that point backward close a cycle, and they run as curves under the rows where they're easy to spot. That matters for Topological Sort and the Feedback Set problems. Shortest-path problems show each node's distance under it, filling in as Dijkstra settles nodes.</p>
     </header>
 
@@ -907,7 +910,7 @@ frames: { order? | removed? | groups? | dist + pred?, current?, caption }[]</pre
   <div class="tab" id="tab-packing" role="tabpanel" aria-labelledby="t-packing" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Packing</b> · 5 number problems on one renderer</div>
-      <div class="title-row"><h1>Packing</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Packing</h1><span class="chip">approved</span></div>
       <p class="lede">Every number problem here is the same question in a different container: which items go where so a total hits its mark. The items sit in a pool at the top. Below, each container is drawn to scale with its line: the half-way mark for Partition, a target for Subset Sum and Subset Product, a weight limit and a value goal for Knapsack, a capacity for each bin. Anything that runs past a limit turns red.</p>
     </header>
 
@@ -1001,7 +1004,7 @@ frames: { assign, trying?, rejected?, caption }[]</pre>
   <div class="tab" id="tab-schedule" role="tabpanel" aria-labelledby="t-schedule" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Schedule</b> · Job Sequencing, Pump Scheduling</div>
-      <div class="title-row"><h1>Schedule</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Schedule</h1><span class="chip">approved</span></div>
       <p class="lede">Time runs left to right, drawn to scale. For Job Sequencing each job gets a row: its bar is when it runs on the one machine, the black tick is its deadline, and a run that ends past the tick turns red and costs that job's penalty. For Pump Scheduling each pump gets a row of 24 hours, with the tank level and the cost of each hour charted underneath on the same hours. Shaded hours are the peak tariff.</p>
     </header>
 
@@ -1110,7 +1113,7 @@ frames: { order? | hourStates?, trying?, caption }[]</pre>
   <div class="tab" id="tab-quantum" role="tabpanel" aria-labelledby="t-quantum" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Quantum Circuit</b> · 6 quantum algorithms</div>
-      <div class="title-row"><h1>Quantum Circuit</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Quantum Circuit</h1><span class="chip">approved</span></div>
       <p class="lede">One wire per qubit, gates in the order they run, and the oracle drawn as a box. Each step applies one column of gates, and the bars underneath show how likely each outcome is if you measured right then. Bar color shows the sign of each amplitude, so you can watch the oracle flip signs and the final gates turn those signs into one clear answer.</p>
     </header>
 
@@ -1202,7 +1205,7 @@ frames: { column, probabilities, signs?, outcome?, caption }[]</pre>
   <div class="tab" id="tab-board" role="tabpanel" aria-labelledby="t-board" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Board</b> · Sudoku, N-Queens</div>
-      <div class="title-row"><h1>Board</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Board</h1><span class="chip">approved</span></div>
       <p class="lede">A grid of squares for puzzles that live on a board. Sudoku shows its clues in bold and the solver's digits in green, with the square being tried highlighted. N-Queens shows each queen as it lands; squares it had to skip get a red cross and a dashed line back to the queen that attacks them. Hover any square to see its row, column and box, or the lines a queen there would attack.</p>
     </header>
 
@@ -1318,7 +1321,7 @@ N-Queens: { queens: int[] <span class="c">/* row → column */</span>, row, colu
   <div class="tab" id="tab-table" role="tabpanel" aria-labelledby="t-table" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Table</b> · Edit Distance, 0-1 Integer Programming, and trace tables</div>
-      <div class="title-row"><h1>Table</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Table</h1><span class="chip">approved</span></div>
       <p class="lede">Rows and columns instead of dots and lines. Three shapes share one renderer. A dynamic-programming grid shows which neighbors each cell came from (Edit Distance). A matrix shows constraints against variables (0-1 Integer Programming). A trace table adds one row per step and marks what changed (DFA, NFA and both Shortest Path problems, as a second view next to their graphs).</p>
     </header>
 
@@ -1414,7 +1417,7 @@ C: int[][], d: int[], x: (0 | 1 | null)[]</pre>
   <div class="tab" id="tab-misc" role="tabpanel" aria-labelledby="t-misc" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="ms-type">Geometry</b> · Convex Hull, 3-Dimensional Matching, Lossless Data Compression</div>
-      <div class="title-row"><h1 id="ms-h1">Geometry &amp; More</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="ms-h1">Geometry &amp; More</h1><span class="chip">approved</span></div>
       <p class="lede" id="ms-lede"></p>
     </header>
 
@@ -1521,7 +1524,7 @@ frames:    { merged so far, merging?, codes?, caption }[]</pre>
   <div class="tab" id="tab-cgram" role="tabpanel" aria-labelledby="t-cgram" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="cg-type">Boolean Circuit</b> · not in Redux yet</div>
-      <div class="title-row"><h1 id="cg-h1">Boolean Circuit</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="cg-h1">Boolean Circuit</h1><span class="chip">approved</span></div>
       <p class="lede" id="cg-lede"></p>
     </header>
 
@@ -1623,7 +1626,7 @@ frames:   { filled, cell?, splits?, treeShown?, caption }[]</pre>
   <div class="tab" id="tab-reduction" role="tabpanel" aria-labelledby="t-reduction" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Reduction</b> · 3SAT ↦ Clique, Clique ↦ Vertex Cover, 3SAT ↦ Graph Coloring</div>
-      <div class="title-row"><h1>Reduction</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Reduction</h1><span class="chip">approved</span></div>
       <p class="lede">The instance you gave sits on the left and the instance the reduction builds sits on the right. Steps build the right side one gadget at a time, in both problems' own words. Then the right side is solved, and its answer is mapped back to the left, piece by piece. Hover any piece on either side to see what it became.</p>
     </header>
 
@@ -1729,7 +1732,7 @@ mapBack:  { fromB: string[], setsA: { id, value }[], caption }[]</pre>
   <div class="tab" id="tab-machine" role="tabpanel" aria-labelledby="t-machine" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="mc-type">Tape Machine</b> · Not in Redux yet</div>
-      <div class="title-row"><h1 id="mc-h1">Tape &amp; Stack Machines</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="mc-h1">Tape &amp; Stack Machines</h1><span class="chip">approved</span></div>
       <p class="lede" id="mc-lede"></p>
     </header>
 
@@ -1839,7 +1842,7 @@ verdict: "accept" | "reject" | "stuck" | "loop" | "step limit"</pre>
   <div class="tab" id="tab-dmap" role="tabpanel" aria-labelledby="t-dmap" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b id="dm-type">Dominoes</b> · not in Redux yet</div>
-      <div class="title-row"><h1 id="dm-h1">Dominoes</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1 id="dm-h1">Dominoes</h1><span class="chip">approved</span></div>
       <p class="lede" id="dm-lede"></p>
     </header>
 
@@ -1957,7 +1960,7 @@ frames: { mapping: {from,to}[], trying?: {from,to},
   <div class="tab" id="tab-search" role="tabpanel" aria-labelledby="t-search" hidden>
     <header>
       <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Search Tree</b> · a second view for 3SAT, Knapsack, TSP, Graph Coloring, N-Queens · Game Tree for QBF and Generalized Geography</div>
-      <div class="title-row"><h1>Search Tree</h1><span class="chip">draft, not yet approved</span></div>
+      <div class="title-row"><h1>Search Tree</h1><span class="chip">approved</span></div>
       <p class="lede">The solver's choices drawn as a tree that grows step by step. Each node is one decision, such as "x2 = F" or "take (20,100)". Red dashed nodes are branches the solver cut: a false clause, a bound that can't win, a clash. Red solid nodes are branches it tried and backed out of. The answer's path turns green. When the tree gets big, finished branches fold into a "+k more" node. Game Trees add a band per turn and a badge for who wins from each position.</p>
     </header>
 
@@ -2349,32 +2352,32 @@ const AutomatonView = (() => {
 .au-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .au-node.Active .inner { stroke: var(--av-hl); }
 .au-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
-.au-node.Solution .inner { stroke: #fff; } .au-node.Solution text { fill: #fff; font-weight: 600; }
+.au-node.Solution .inner { stroke: var(--av-on-sol); } .au-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .au-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .au-node.Rejected .inner { stroke: var(--av-rej); } .au-node.Rejected text { fill: var(--av-rej); }
 .au-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; }
 .au-node.Untraveled .inner { stroke-dasharray: 4 4; } .au-node.Untraveled text { fill: var(--av-muted); }
 .au-node.trace .body, .au-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.au-node.faint { opacity: .3; }
+.au-node.faint { filter: grayscale(1); } .au-node.faint .body { stroke-dasharray: 3 3; }
 .au-garbage rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2; stroke-dasharray: 5 3; transition: stroke-width .2s; }
 .au-garbage text { font-size: 13px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-rej); }
 .au-garbage.Active rect { stroke-dasharray: none; stroke-width: 3; box-shadow: none; }
 .au-garbage.Active rect, .au-garbage.Rejected rect { stroke-dasharray: none; stroke-width: 3.5; }
-.au-garbage.faint { opacity: .3; }
+.au-garbage.faint { filter: grayscale(1); }
 .au-garbage text.au-garbage-note { font-size: 11px; font-weight: 400; fill: var(--av-muted); text-anchor: middle; }
 .au-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .au-edge.eps { stroke-dasharray: 5 4; }
 .au-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .au-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
-.au-edge.faint, .au-elabel.faint { opacity: .15; }
+.au-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; } .au-elabel.faint { filter: grayscale(1); }
 .au-elabel rect { fill: var(--av-surface); stroke: var(--av-line); }
 .au-elabel text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
-.au-elabel.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .au-elabel.hot text { fill: #1b1300; font-weight: 600; }
+.au-elabel.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .au-elabel.hot text { fill: var(--av-on-hl); font-weight: 600; }
 .au-elabel.trace rect { stroke: var(--av-hot); } .au-elabel.trace text { fill: var(--av-hot); }
 .au-start { stroke: var(--av-ink); stroke-width: 1.8; }
 .au-m-def { fill: var(--av-edge); } .au-m-hot { fill: var(--av-hl); } .au-m-trace { fill: var(--av-hot); } .au-m-ink { fill: var(--av-ink); }
 .au-tape { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-family: var(--av-mono); }
-.au-cell { min-width: 34px; height: 38px; display: grid; place-items: center; border: 1.5px solid var(--av-line); border-radius: 6px; font-size: 16px; background: var(--av-surface); color: var(--av-ink); transition: background .2s, border-color .2s; }
+.au-cell { min-width: 34px; height: 38px; display: grid; place-items: center; border: 1.5px solid var(--av-stroke); border-radius: 6px; font-size: 16px; background: var(--av-surface); color: var(--av-ink); transition: background .2s, border-color .2s; }
 .au-cell.read { color: var(--av-muted); background: transparent; }
 .au-cell.just { background: var(--av-hl-fill); }
 .au-cell.head { border-color: var(--av-hl); box-shadow: 0 0 0 2px var(--av-hl); }
@@ -2801,24 +2804,24 @@ const BipartiteView = (() => {
 .bp-node.el text { text-anchor: middle; font-size: 14px; }
 .bp-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .bp-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
-.bp-node.Solution text, .bp-node.Solution text.sub { fill: #fff; }
+.bp-node.Solution text, .bp-node.Solution text.sub { fill: var(--av-on-sol); }
 .bp-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; }
 .bp-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
-.bp-node.Rejected text { fill: var(--av-rej); }
-.bp-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; }
+.bp-node.Rejected text:not(.bp-count-t) { fill: var(--av-rej); }
+.bp-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; }
 .bp-node.Blocked text { fill: var(--av-muted); }
 .bp-node.focus .body { stroke: var(--av-hl); stroke-width: 3; }
 .bp-node.trace .body, .bp-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.bp-node.faint { opacity: .28; }
+.bp-node.faint { filter: grayscale(1); } .bp-node.faint .body { stroke-dasharray: 3 3; }
 .bp-count { font-size: 11px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
 .bp-count-bg { fill: var(--av-rej); }
-.bp-count-t { fill: #fff; }
+.bp-node text.bp-count-t { fill: var(--av-on-rej); }
 .bp-edge { stroke: var(--av-edge); stroke-width: 1.4; transition: opacity .2s, stroke .2s; }
 .bp-edge.sol { stroke: var(--av-sol); stroke-width: 2.6; }
 .bp-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .bp-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
-.bp-edge.dim { opacity: .3; }
-.bp-edge.faint { opacity: .08; }
+.bp-edge.dim { stroke: var(--av-edge-dim); }
+.bp-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 @media (prefers-reduced-motion: reduce) { .bp-node, .bp-node .body, .bp-edge { transition: none; } }`;
 
   const KINDS = {
@@ -3124,7 +3127,7 @@ const BipartiteView = (() => {
      Frames are the same {asg, tried, failed, done, ok} frames the clause graph uses. */
   const satCss = `
 .bp-edge.neg { stroke-dasharray: 5 4; }
-.bp-node.False .body { fill: var(--av-surface); stroke: var(--av-line); }
+.bp-node.False .body { fill: var(--av-surface); stroke: var(--av-stroke); }
 .bp-node.False text { fill: var(--av-muted); }
 .bp-val { font-size: 12px; font-weight: 600; text-anchor: end; dominant-baseline: central; fill: var(--av-muted); }
 .bp-val.T { fill: var(--av-sol); }`;
@@ -3378,32 +3381,32 @@ const GraphView = (() => {
 .gb-node .body { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.8; transition: fill .2s, stroke .2s; }
 .gb-node text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .gb-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.gb-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .gb-node.Solution text { fill: #fff; font-weight: 600; }
+.gb-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .gb-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .gb-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .gb-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .gb-node.Rejected text { fill: var(--av-rej); }
-.gb-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .gb-node.Blocked text { fill: var(--av-muted); }
-.gb-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .gb-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.gb-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .gb-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.gb-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .gb-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.gb-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .gb-node.Blocked text { fill: var(--av-muted); }
+.gb-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .gb-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.gb-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .gb-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.gb-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .gb-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .gb-node[class*=" c"] text { fill: #10131a; font-weight: 600; }
 .gb-node.ring .body { stroke: var(--av-hl); stroke-width: 3.5; }
 .gb-node.badnode .body { stroke: var(--av-rej); stroke-width: 3.5; }
 .gb-node.trace .body, .gb-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.gb-node.faint { opacity: .28; }
+.gb-node.faint { filter: grayscale(1); } .gb-node.faint .body { stroke-dasharray: 3 3; }
 .gb-term { fill: none; stroke: var(--av-ink); stroke-width: 1.6; pointer-events: none; }
-.gb-order circle { fill: var(--av-ink); } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.gb-order circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .gb-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .gb-edge.sol { stroke: var(--av-sol); stroke-width: 3.2; }
-.gb-edge.cov { stroke: var(--av-sol); stroke-width: 2; opacity: .55; }
+.gb-edge.cov { stroke: var(--av-cov); stroke-width: 2; }
 .gb-edge.rej { stroke: var(--av-rej); stroke-width: 3.2; }
 .gb-edge.hot { stroke: var(--av-hl); stroke-width: 3.2; }
-.gb-edge.dim { opacity: .22; }
+.gb-edge.dim { stroke: var(--av-edge-dim); }
 .gb-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; opacity: 1; }
-.gb-edge.faint { opacity: .07; }
+.gb-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .gb-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .gb-w rect { fill: var(--av-surface); stroke: var(--av-line); } .gb-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .gb-w.sol rect { stroke: var(--av-sol); } .gb-w.sol text { fill: var(--av-sol); font-weight: 700; }
-.gb-w.faint { opacity: .15; }
+.gb-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .gb-node, .gb-node .body, .gb-edge { transition: none; } }`;
 
   /* ---------- parsing: Redux's ((N,E),K) and (N,E) shapes, weighted edges as ({a,b},w) ---------- */
@@ -4357,26 +4360,26 @@ const FlowView = (() => {
 .fl-node .role { font-size: 11px; fill: var(--av-muted); }
 .fl-node.end .body { stroke-width: 2.6; }
 .fl-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.fl-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .fl-node.c1 .body { fill: #E69F00; stroke: #a87200; }
+.fl-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .fl-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
 .fl-node.c0 text:not(.role), .fl-node.c1 text:not(.role) { fill: #10131a; font-weight: 600; }
 .fl-node.trace .body, .fl-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.fl-node.faint { opacity: .28; }
+.fl-node.faint { filter: grayscale(1); } .fl-node.faint .body { stroke-dasharray: 3 3; }
 .fl-edge { fill: none; stroke: var(--av-edge); transition: opacity .2s, stroke .2s; }
 .fl-edge.flowing { stroke: var(--av-stroke); }
 .fl-edge.sat { stroke: var(--av-ink); }
 .fl-edge.hot { stroke: var(--av-hl); }
 .fl-edge.sol { stroke: var(--av-sol); }
-.fl-edge.dim { opacity: .25; }
+.fl-edge.dim { stroke: var(--av-edge-dim); }
 .fl-edge.trace { stroke: var(--av-hot); opacity: 1; }
-.fl-edge.faint { opacity: .08; }
+.fl-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .fl-back { fill: none; stroke: var(--av-muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
 .fl-back.hot { stroke: var(--av-hl); stroke-width: 3; }
 .fl-lab rect { fill: var(--av-surface); stroke: var(--av-line); }
 .fl-lab text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .fl-lab.sat rect { fill: var(--av-ink); stroke: var(--av-ink); } .fl-lab.sat text { fill: var(--av-surface); font-weight: 700; }
-.fl-lab.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .fl-lab.hot text { fill: #1b1300; font-weight: 700; }
-.fl-lab.sol rect { fill: var(--av-sol); stroke: var(--av-sol); } .fl-lab.sol text { fill: #fff; font-weight: 700; }
-.fl-lab.dim, .fl-lab.faint { opacity: .25; }
+.fl-lab.hot rect { fill: var(--av-hl); stroke: var(--av-hl); } .fl-lab.hot text { fill: var(--av-on-hl); font-weight: 700; }
+.fl-lab.sol rect { fill: var(--av-sol); stroke: var(--av-sol); } .fl-lab.sol text { fill: var(--av-on-sol); font-weight: 700; }
+.fl-lab.dim, .fl-lab.faint { filter: grayscale(1); }
 .fl-lab.back rect { stroke-dasharray: 3 2; }
 .fl-m-def { fill: var(--av-edge); } .fl-m-flow { fill: var(--av-stroke); } .fl-m-sat { fill: var(--av-ink); }
 .fl-m-hot { fill: var(--av-hl); } .fl-m-sol { fill: var(--av-sol); } .fl-m-trace { fill: var(--av-hot); } .fl-m-back { fill: var(--av-muted); }
@@ -4793,18 +4796,18 @@ const LayeredView = (() => {
 .ly-node .body { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.8; transition: fill .2s, stroke .2s; }
 .ly-node text.nm { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ly-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.ly-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ly-node.Solution text.nm { fill: #fff; font-weight: 600; }
+.ly-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ly-node.Solution text.nm { fill: var(--av-on-sol); font-weight: 600; }
 .ly-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .ly-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ly-node.Rejected text.nm { fill: var(--av-rej); }
-.ly-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .ly-node.Blocked text.nm { fill: var(--av-muted); }
+.ly-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .ly-node.Blocked text.nm { fill: var(--av-muted); }
 .ly-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; } .ly-node.Untraveled text.nm { fill: var(--av-muted); }
-.ly-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .ly-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.ly-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .ly-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.ly-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .ly-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.ly-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .ly-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.ly-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .ly-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.ly-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .ly-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .ly-node[class*=" c"] text.nm { fill: #10131a; font-weight: 600; }
 .ly-node.ring .body { stroke: var(--av-hl); stroke-width: 3.5; }
 .ly-node.trace .body, .ly-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.ly-node.faint { opacity: .28; }
+.ly-node.faint { filter: grayscale(1); } .ly-node.faint .body { stroke-dasharray: 3 3; }
 .ly-node .tag { font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-dist { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-dist.set { fill: var(--av-ink); font-weight: 600; }
@@ -4812,20 +4815,20 @@ const LayeredView = (() => {
 .ly-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ly-edge.back { stroke-dasharray: 2 0; }
 .ly-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
-.ly-edge.cov { stroke: var(--av-sol); stroke-width: 1.8; opacity: .5; }
+.ly-edge.cov { stroke: var(--av-cov); stroke-width: 1.8; }
 .ly-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
 .ly-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ly-edge.cut { stroke: var(--av-sol); stroke-width: 2.4; stroke-dasharray: 6 5; }
-.ly-edge.dim { opacity: .22; }
+.ly-edge.dim { stroke: var(--av-edge-dim); }
 .ly-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; opacity: 1; }
-.ly-edge.faint { opacity: .07; }
+.ly-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ly-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .ly-m-def { fill: var(--av-edge); } .ly-m-sol { fill: var(--av-sol); } .ly-m-rej { fill: var(--av-rej); }
 .ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); }
 .ly-w rect { fill: var(--av-surface); stroke: var(--av-line); } .ly-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-w.sol rect { stroke: var(--av-sol); } .ly-w.sol text { fill: var(--av-sol); font-weight: 700; }
 .ly-w.hot rect { stroke: var(--av-hl); } .ly-w.hot text { fill: var(--av-ink); font-weight: 700; }
-.ly-w.faint { opacity: .15; }
+.ly-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .ly-node, .ly-node .body, .ly-edge { transition: none; } }`;
 
   /* ---------- parsing: (N,E), ((N,E),K), (N,E,s), (N,E,s,t); edges (u,v) or ((u,v),w); {u,v} = both ways ---------- */
@@ -5505,34 +5508,34 @@ const PackingView = (() => {
 .pk-tile rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
 .pk-tile text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pk-tile .sub { font-size: 10.5px; fill: var(--av-muted); }
-.pk-tile.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pk-tile.Solution text { fill: #fff; font-weight: 600; }
+.pk-tile.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pk-tile.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .pk-tile.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .pk-tile.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .pk-tile.Rejected text { fill: var(--av-rej); }
-.pk-tile.Unused rect { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .pk-tile.Unused text { fill: var(--av-muted); }
+.pk-tile.Unused rect { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .pk-tile.Unused text { fill: var(--av-muted); }
 .pk-tile.trace rect, .pk-tile:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; }
-.pk-tile.faint, .pk-seg.faint { opacity: .25; }
+.pk-tile.faint, .pk-seg.faint { filter: grayscale(1); }
 .pk-row-label { font-size: 13px; font-weight: 600; fill: var(--av-ink); }
 .pk-row-sub { font-size: 11px; fill: var(--av-muted); }
-.pk-track { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.2; }
+.pk-track { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.2; }
 .pk-seg rect { stroke: var(--av-surface); stroke-width: 1.5; transition: fill .2s; }
-.pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: #fff; font-weight: 600; }
+.pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-on-sol); font-weight: 600; }
 .pk-seg.Solution rect { fill: var(--av-sol); }
-.pk-seg.Active rect { fill: var(--av-hl); } .pk-seg.Active text { fill: #1b1300; }
+.pk-seg.Active rect { fill: var(--av-hl); } .pk-seg.Active text { fill: var(--av-on-hl); }
 .pk-seg.Rejected rect { fill: var(--av-rej); }
 .pk-seg.trace rect { stroke: var(--av-hot); stroke-width: 3; }
-.pk-tile.g0 rect, .pk-seg.g0 rect { fill: #56B4E9; stroke: #2b7fb0; } .pk-tile.g1 rect, .pk-seg.g1 rect { fill: #E69F00; stroke: #a87200; }
-.pk-tile.g2 rect, .pk-seg.g2 rect { fill: #b59ce0; stroke: #7a5cb8; } .pk-tile.g3 rect, .pk-seg.g3 rect { fill: #F0E442; stroke: #b5a90f; }
-.pk-tile.g4 rect, .pk-seg.g4 rect { fill: #5fc4a8; stroke: #2a8a70; } .pk-tile.g5 rect, .pk-seg.g5 rect { fill: #CC79A7; stroke: #9a4c78; }
+.pk-tile.g0 rect, .pk-seg.g0 rect { fill: var(--av-g0); stroke: var(--av-g0s); } .pk-tile.g1 rect, .pk-seg.g1 rect { fill: var(--av-g1); stroke: var(--av-g1s); }
+.pk-tile.g2 rect, .pk-seg.g2 rect { fill: var(--av-g2); stroke: var(--av-g2s); } .pk-tile.g3 rect, .pk-seg.g3 rect { fill: var(--av-g3); stroke: var(--av-g3s); }
+.pk-tile.g4 rect, .pk-seg.g4 rect { fill: var(--av-g4); stroke: var(--av-g4s); } .pk-tile.g5 rect, .pk-seg.g5 rect { fill: var(--av-g5); stroke: var(--av-g5s); }
 .pk-tile[class*=" g"] text, .pk-seg[class*=" g"] text { fill: #10131a; font-weight: 600; }
 .pk-tile.g0.Active rect, .pk-tile.g1.Active rect, .pk-tile.g2.Active rect, .pk-tile.g3.Active rect, .pk-tile.g4.Active rect, .pk-tile.g5.Active rect,
 .pk-seg.g0.Active rect, .pk-seg.g1.Active rect, .pk-seg.g2.Active rect, .pk-seg.g3.Active rect, .pk-seg.g4.Active rect, .pk-seg.g5.Active rect { stroke: var(--av-hl); stroke-width: 3; }
-.pk-seg.over rect { fill: var(--av-rej); stroke: var(--av-rej); } .pk-seg.over text { fill: #fff; }
-.pk-line { stroke: var(--av-ink); stroke-width: 1.6; stroke-dasharray: 5 4; }
+.pk-seg.over rect { fill: var(--av-rej); stroke: var(--av-rej); } .pk-seg.over text { fill: var(--av-on-rej); }
+.pk-line { stroke: var(--av-ink); stroke-width: 1.6; stroke-dasharray: 5 4; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); }
 .pk-line-label { font-size: 11px; fill: var(--av-ink); text-anchor: middle; }
 .pk-read { font-size: 13px; font-weight: 600; fill: var(--av-ink); }
 .pk-read.ok { fill: var(--av-sol); } .pk-read.bad { fill: var(--av-rej); }
 .pk-note { font-size: 11px; fill: var(--av-muted); }
-.pk-beam { stroke: var(--av-ink); stroke-width: 3; stroke-linecap: round; transition: transform .35s; }
+.pk-beam { stroke: var(--av-ink); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); transition: transform .35s; }
 .pk-fulcrum { fill: var(--av-stroke); }
 @media (prefers-reduced-motion: reduce) { .pk-tile, .pk-tile rect, .pk-seg rect, .pk-beam { transition: none; } }`;
 
@@ -6135,7 +6138,7 @@ const ScheduleView = (() => {
 .sc-svg .sc-label { font-size: 12.5px; }
 .sc-svg .sc-head { font-size: 11px; font-weight: 600; letter-spacing: .06em; fill: var(--av-muted); }
 .sc-svg .sc-read { font-size: 12.5px; }
-.sc-axis { stroke: var(--av-line); stroke-width: 1; }
+.sc-axis { stroke: var(--av-stroke); stroke-width: 1; }
 .sc-grid { stroke: var(--av-line); stroke-width: 1; opacity: .55; }
 .sc-peak { fill: var(--av-line); opacity: .35; }
 .sc-bar { stroke-width: 1.6; transition: fill .2s, stroke .2s; }
@@ -6144,16 +6147,16 @@ const ScheduleView = (() => {
 .sc-bar.Solution { fill: var(--av-sol); stroke: var(--av-sol); }
 .sc-bar.Active { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .sc-bar.Rejected { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.2; }
-.sc-over { fill: var(--av-rej); opacity: .35; }
-.sc-dead { stroke: var(--av-ink); stroke-width: 2; }
+.sc-over { fill: var(--av-rej); fill-opacity: .8; }
+.sc-dead { stroke: var(--av-ink); stroke-width: 2; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); }
 .sc-dead-late { stroke: var(--av-rej); }
-.sc-ghost { fill: none; stroke: var(--av-line); stroke-dasharray: 4 3; }
+.sc-ghost { fill: none; stroke: var(--av-stroke); stroke-dasharray: 4 3; }
 .sc-row.hot rect.sc-rowbg { fill: var(--av-hl-fill); opacity: .5; }
 .sc-rowbg { fill: transparent; }
-.sc-cell { fill: transparent; stroke: var(--av-line); stroke-width: .6; }
+.sc-cell { fill: transparent; stroke: var(--av-edge-dim); stroke-width: .6; }
 .sc-cell.on { fill: var(--av-sol); stroke: var(--av-sol); }
-.sc-cell.on.dim { opacity: .35; }
-.sc-start { fill: var(--av-ink); }
+.sc-cell.on.dim { filter: grayscale(1); }
+.sc-start { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1; }
 .sc-col { fill: none; stroke: var(--av-hl); stroke-width: 2.4; }
 .sc-colhover { fill: var(--av-hl-fill); opacity: .45; }
 .sc-tank { fill: none; stroke: var(--av-ink); stroke-width: 2.4; stroke-linejoin: round; }
@@ -6162,9 +6165,9 @@ const ScheduleView = (() => {
 .sc-band { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 1.2; }
 .sc-limit { stroke: var(--av-muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
 .sc-limit-min { stroke: var(--av-rej); }
-.sc-costbar { fill: var(--av-muted); opacity: .55; }
+.sc-costbar { fill: var(--av-muted); }
 .sc-costbar.cur { fill: var(--av-hl); opacity: 1; }
-.sc-costbar.start { fill: var(--av-ink); opacity: .85; }
+.sc-costbar.start { fill: var(--av-ink); }
 .sc-budget { fill: none; stroke: var(--av-hot); stroke-width: 2; }
 .sc-hit { fill: transparent; cursor: crosshair; }
 @media (prefers-reduced-motion: reduce) { .sc-bar { transition: none; } }`;
@@ -6842,10 +6845,10 @@ const QuantumView = (() => {
 .qc-wire { stroke: var(--av-edge); stroke-width: 1.4; }
 .qc-wname { font-size: 13px; fill: var(--av-ink); text-anchor: end; dominant-baseline: central; }
 .qc-wrole { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }
-.qc-stage rect { fill: none; stroke: var(--av-line); stroke-dasharray: 4 4; }
+.qc-stage rect { fill: none; stroke: var(--av-stroke); stroke-dasharray: 4 4; }
 .qc-stage text { font-size: 11px; fill: var(--av-muted); text-anchor: middle; }
 .qc-col { transition: opacity .2s; }
-.qc-col.future { opacity: .32; }
+.qc-col.future { filter: grayscale(1); } .qc-col.future .qc-box, .qc-col.future .qc-meter { stroke-dasharray: 3 2; }
 .qc-col.now .qc-box, .qc-col.now .qc-meter { stroke: var(--av-hl); stroke-width: 2.6; fill: var(--av-hl-fill); }
 .qc-col.now .qc-dot { fill: var(--av-hl); }
 .qc-col.now .qc-line, .qc-col.now .qc-plus { stroke: var(--av-hl); }
@@ -6859,21 +6862,21 @@ const QuantumView = (() => {
 .qc-plus { fill: var(--av-surface); stroke: var(--av-ink); stroke-width: 1.6; }
 .qc-arc { fill: none; stroke: var(--av-ink); stroke-width: 1.4; }
 .qc-out { font-size: 13px; font-weight: 700; dominant-baseline: central; fill: var(--av-sol); }
-.qc-axis { stroke: var(--av-line); stroke-width: 1; }
+.qc-axis { stroke: var(--av-stroke); stroke-width: 1; }
 .qc-grid { stroke: var(--av-line); stroke-width: 1; stroke-dasharray: 2 4; }
 .qc-tick { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }
 .qc-blabel { font-size: 11px; fill: var(--av-muted); text-anchor: middle; }
 .qc-blabel.win { fill: var(--av-sol); font-weight: 700; }
 .qc-bar { transition: height .25s, y .25s, fill .2s; }
-.qc-bar.pos { fill: #56B4E9; }
-.qc-bar.neg { fill: #E69F00; }
+.qc-bar.pos { fill: var(--av-g0s); }
+.qc-bar.neg { fill: var(--av-g1s); }
 .qc-bar.plain { fill: var(--av-stroke); }
 .qc-bar.win { fill: var(--av-sol); }
 .qc-btitle { font-size: 12px; fill: var(--av-ink); font-weight: 600; }
 .qc-note { font-size: 12px; fill: var(--av-ink); }
 .qc-note.muted { fill: var(--av-muted); }
 .qc-empty { font-size: 13px; fill: var(--av-muted); }
-.qc-wire-g.faint { opacity: .25; }
+.qc-wire-g.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .qc-col, .qc-bar, .qc-box { transition: none; } }`;
 
   /* ---------- statevector simulator: qubit k = bit (Q-1-k) of the basis index (q0 is the leftmost bit) ---------- */
@@ -7545,7 +7548,7 @@ $("qc-play").onclick = () => {
 for (const [k, p] of Object.entries(QuantumView.PROBLEMS)) { const o = document.createElement("option"); o.value = k; o.textContent = p.label; $("qc-prob").appendChild(o); }
 function qcProblem(k) {
   QS.prob = k; const p = QuantumView.PROBLEMS[k];
-  $("qc-fmt").innerHTML = `Redux format: <code>${p.input}</code>. ${p.def} <span style="opacity:.75">Redux lists it as ${p.cls}.</span>`;
+  $("qc-fmt").innerHTML = `Redux format: <code>${p.input}</code>. ${p.def} <span>Redux lists it as ${p.cls}.</span>`;
   const sv = $("qc-solver-sel"); sv.innerHTML = "";
   p.solvers.forEach(([v, name]) => { const o = document.createElement("option"); o.value = v; o.textContent = name; sv.appendChild(o); });
   QS.solver = p.solvers[0][0]; $("qc-solver").textContent = p.solvers[0][1];
@@ -7586,8 +7589,8 @@ const BoardView = (() => {
 .bd-ring.Active { stroke: var(--av-hl); }
 .bd-ring.Rejected { stroke: var(--av-rej); }
 .bd-ring.trace { stroke: var(--av-hot); }
-.bd-thin { stroke: var(--av-line); stroke-width: 1; }
-.bd-thick { stroke: var(--av-stroke); stroke-width: 2.2; fill: none; }
+.bd-thin { stroke: var(--av-edge-dim); stroke-width: 1; }
+.bd-thick { stroke: var(--av-ink); stroke-width: 2.2; fill: none; }
 .bd-dig { text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-ink); }
 .bd-dig.given { font-weight: 700; }
 .bd-dig.placed { fill: var(--av-sol); font-weight: 500; }
@@ -8138,20 +8141,20 @@ const TableView = (() => {
 .tb-table tr.unr td { color: var(--av-muted); }
 .tb-table td.chg { font-weight: 700; box-shadow: inset 0 -2.5px 0 var(--av-hl); }
 .tb-table td.on { background: var(--av-sol-fill); font-weight: 700; }
-.tb-table td.zero { color: var(--av-muted); opacity: .6; }
-.tb-pill { display: inline-block; padding: 1px 9px; border-radius: 999px; border: 1.2px solid var(--av-line); font-size: 12px; color: var(--av-muted); }
+.tb-table td.zero { color: var(--av-muted); }
+.tb-pill { display: inline-block; padding: 1px 9px; border-radius: 999px; border: 1.2px solid var(--av-stroke); font-size: 12px; color: var(--av-muted); }
 .tb-pill.yes { border-color: var(--av-sol); color: var(--av-sol); font-weight: 600; }
 .tb-pill.no { border-color: var(--av-rej); color: var(--av-rej); font-weight: 600; }
 .tb-pill.open { border-style: dashed; }
-.tb-x { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 6px; border: 1.5px solid var(--av-line); font-weight: 700; }
-.tb-x.one { background: var(--av-sol); border-color: var(--av-sol); color: #fff; }
+.tb-x { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 6px; border: 1.5px solid var(--av-stroke); font-weight: 700; }
+.tb-x.one { background: var(--av-sol); border-color: var(--av-sol); color: var(--av-on-sol); }
 .tb-x.unset { border-style: dashed; color: var(--av-muted); font-weight: 400; }
 .tb-x.cur { box-shadow: 0 0 0 2.5px var(--av-hl); }
-.tb-x.trial.one { background: var(--av-hl); border-color: var(--av-hl); color: #1b1300; }
+.tb-x.trial.one { background: var(--av-hl); border-color: var(--av-hl); color: var(--av-on-hl); }
 .tb-note { font-size: 12.5px; color: var(--av-muted); }
 .tb-svg { width: 100%; height: auto; display: block; max-height: 520px; }
 .tb-svg text { font-family: var(--av-mono); }
-.tb-cell rect { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1; transition: fill .2s, stroke .2s; }
+.tb-cell rect { fill: var(--av-surface); stroke: var(--av-edge-dim); stroke-width: 1; transition: fill .2s, stroke .2s; }
 .tb-cell text { font-size: 15px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); transition: fill .2s; }
 .tb-cell.empty text { fill: transparent; }
 .tb-cell.base rect { fill: var(--av-bg); }
@@ -8161,13 +8164,13 @@ const TableView = (() => {
 .tb-cell.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .tb-cell.Active text { font-weight: 700; }
 .tb-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
-.tb-cell.Solution text { fill: #fff; font-weight: 700; }
+.tb-cell.Solution text { fill: var(--av-on-sol); font-weight: 700; }
 .tb-axis { font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .tb-axis.eps { fill: var(--av-muted); font-weight: 400; }
-.tb-axis.hl { fill: var(--av-hl); }
+.tb-axis.hl { fill: var(--av-hl-ink); }
 .tb-axis-name { font-size: 11px; fill: var(--av-muted); letter-spacing: .06em; }
 .tb-arrow { stroke: var(--av-hl); stroke-width: 2.2; fill: none; }
-.tb-arrow.alt { stroke-dasharray: 4 3; opacity: .55; }
+.tb-arrow.alt { stroke-dasharray: 4 3; }
 .tb-arrow.path { stroke: var(--av-sol); stroke-width: 2.8; }
 .tb-m-hl { fill: var(--av-hl); } .tb-m-sol { fill: var(--av-sol); }
 .tb-align { display: grid; gap: 3px; font-family: var(--av-mono); font-size: 15px; overflow-x: auto; padding-bottom: 2px; }
@@ -8859,13 +8862,13 @@ const MiscView = (() => {
 .ms-pt.Solution .dot { fill: var(--av-sol); stroke: var(--av-sol); }
 .ms-pt.Covered .dot { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-pt.Rejected .dot { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; }
-.ms-pt.c0 .dot { fill: #56B4E9; stroke: #2b7fb0; } .ms-pt.c1 .dot { fill: #E69F00; stroke: #a87200; }
+.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g1); stroke: var(--av-g1s); }
 .ms-pt.ring .dot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-pt.trace .dot, .ms-pt:focus-visible .dot { stroke: var(--av-hot); stroke-width: 3; }
-.ms-pt.faint { opacity: .3; }
+.ms-pt.faint { filter: grayscale(1); }
 .ms-hull { fill: none; stroke: var(--av-edge); stroke-width: 1.4; stroke-dasharray: 4 3; }
-.ms-hull.c0 { stroke: #2b7fb0; fill: rgba(86,180,233,.13); stroke-dasharray: none; stroke-width: 1.8; }
-.ms-hull.c1 { stroke: #a87200; fill: rgba(230,159,0,.13); stroke-dasharray: none; stroke-width: 1.8; }
+.ms-hull.c0 { stroke: var(--av-g0s); fill: rgba(86,180,233,.13); stroke-dasharray: none; stroke-width: 1.8; }
+.ms-hull.c1 { stroke: var(--av-g1s); fill: rgba(230,159,0,.13); stroke-dasharray: none; stroke-width: 1.8; }
 .ms-hull.hot { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: none; fill: var(--av-hl-fill); fill-opacity: .5; }
 .ms-hull.sol { stroke: var(--av-sol); stroke-width: 2.6; stroke-dasharray: none; fill: var(--av-sol-fill); fill-opacity: .55; }
 .ms-chain { fill: none; stroke: var(--av-hl); stroke-width: 2.6; }
@@ -8880,15 +8883,15 @@ const MiscView = (() => {
 .ms-el text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ms-el.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ms-el.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
-.ms-el.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ms-el.Rejected text { fill: var(--av-rej); }
+.ms-el.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ms-el.Rejected text:not(.ms-badge *) { fill: var(--av-rej); }
 .ms-el.trace .body, .ms-el:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.ms-el.faint, .ms-tri.faint, .ms-trow.faint { opacity: .22; }
+.ms-el.faint, .ms-trow.faint { filter: grayscale(1); } .ms-tri.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ms-tri { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ms-tri.sol { stroke: var(--av-sol); stroke-width: 3.4; }
 .ms-tri.hot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-tri.rej { stroke: var(--av-rej); stroke-width: 3; }
-.ms-tri.blk { stroke-dasharray: 4 4; opacity: .45; }
-.ms-tri.dim { opacity: .2; }
+.ms-tri.blk { stroke: var(--av-edge-dim); stroke-dasharray: 4 4; }
+.ms-tri.dim { stroke: var(--av-edge-dim); }
 .ms-tri.trace { stroke: var(--av-hot); stroke-width: 3; opacity: 1; }
 .ms-trow { cursor: pointer; transition: opacity .2s; }
 .ms-trow:focus { outline: none; }
@@ -8901,7 +8904,7 @@ const MiscView = (() => {
 .ms-trow.blk text, .ms-trow.dim text { fill: var(--av-muted); }
 .ms-trow.trace rect, .ms-trow:focus-visible rect { stroke: var(--av-hot); stroke-width: 2; }
 .ms-colhead { font-size: 11px; font-weight: 700; letter-spacing: .08em; fill: var(--av-muted); }
-.ms-badge circle { fill: var(--av-rej); } .ms-badge text { fill: #fff; font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.ms-badge circle { fill: var(--av-rej); } .ms-badge text { fill: var(--av-on-rej); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .ms-tn { cursor: pointer; transition: opacity .25s; }
 .ms-tn:focus { outline: none; }
 .ms-tn .body { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.6; transition: fill .2s, stroke .2s; }
@@ -8910,10 +8913,10 @@ const MiscView = (() => {
 .ms-tn .w { font-size: 10.5px; fill: var(--av-muted); }
 .ms-tn.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ms-tn.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); }
-.ms-tn.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ms-tn.Solution text { fill: #fff; }
+.ms-tn.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ms-tn.Solution text { fill: var(--av-on-sol); }
 .ms-tn.trace .body, .ms-tn:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .ms-tn.hidden, .ms-te.hidden, .ms-bit.hidden, .ms-code.hidden { opacity: 0; pointer-events: none; }
-.ms-tn.faint { opacity: .3; }
+.ms-tn.faint { filter: grayscale(1); }
 .ms-te { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .25s, stroke .2s; }
 .ms-te.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ms-te.sol { stroke: var(--av-sol); stroke-width: 2.2; }
@@ -8921,7 +8924,7 @@ const MiscView = (() => {
 .ms-bit { font-size: 11px; font-weight: 700; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; transition: opacity .25s; }
 .ms-bit.trace { fill: var(--av-hot); }
 .ms-code { font-size: 10.5px; font-weight: 700; fill: var(--av-sol); text-anchor: middle; dominant-baseline: central; transition: opacity .25s; }
-.ms-cell rect { fill: var(--av-surface); stroke: var(--av-line); }
+.ms-cell rect { fill: var(--av-surface); stroke: var(--av-edge-dim); }
 .ms-cell.alt rect { fill: var(--av-bg); }
 .ms-cell .c { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .ms-cell .b { font-size: 10px; text-anchor: middle; dominant-baseline: central; fill: var(--av-sol); font-weight: 700; transition: opacity .25s; }
@@ -9762,7 +9765,7 @@ const CircuitGrammarView = (() => {
 .cg-gate.Solution .body, .cg-gate.Solution .bub { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
 .cg-gate.Rejected .body, .cg-gate.Rejected .bub { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .cg-gate.trace .body, .cg-gate:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.cg-gate.faint { opacity: .25; }
+.cg-gate.faint { filter: grayscale(1); }
 .cg-val { font-size: 12px; font-weight: 700; dominant-baseline: central; fill: var(--av-ink); }
 .cg-val.v0 { font-weight: 400; fill: var(--av-muted); }
 .cg-val.Solution { fill: var(--av-sol); } .cg-val.Rejected { fill: var(--av-rej); }
@@ -9771,13 +9774,13 @@ const CircuitGrammarView = (() => {
 .cg-wire.v0 { stroke: var(--av-muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
 .cg-wire.hot { stroke: var(--av-hl); }
 .cg-wire.trace { stroke: var(--av-hot); stroke-width: 2.8; opacity: 1; }
-.cg-wire.faint { opacity: .12; }
+.cg-wire.faint { stroke: var(--av-edge-dim); }
 .cg-out { stroke: var(--av-ink); stroke-width: 1.6; }
 .cg-out-l { font-size: 11px; fill: var(--av-muted); dominant-baseline: central; }
 .cg-m { fill: var(--av-ink); }
 .cg-cell { cursor: pointer; transition: opacity .2s; }
 .cg-cell:focus { outline: none; }
-.cg-cell rect { fill: var(--av-bg); stroke: var(--av-line); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
+.cg-cell rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
 .cg-cell text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .cg-cell.unset rect { fill: transparent; stroke-dasharray: 3 3; }
 .cg-cell.empty text { fill: var(--av-muted); }
@@ -9787,7 +9790,7 @@ const CircuitGrammarView = (() => {
 .cg-cell.Solution rect { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
 .cg-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .cg-cell.Rejected text { fill: var(--av-rej); }
 .cg-cell.trace rect, .cg-cell:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; }
-.cg-cell.faint { opacity: .3; }
+.cg-cell.faint { filter: grayscale(1); }
 .cg-ch { font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .cg-ch.lit { fill: var(--av-hot); }
 .cg-rowl { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }
@@ -10507,56 +10510,56 @@ const ReductionView = (() => {
 .rd-node.hidden { opacity: 0; pointer-events: none; }
 .rd-node.new .body { stroke: var(--av-hl); stroke-width: 3; }
 .rd-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
-.rd-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .rd-node.Solution text { fill: #fff; font-weight: 600; }
+.rd-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .rd-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .rd-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .rd-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .rd-node.Rejected text { fill: var(--av-rej); }
-.rd-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .rd-node.Blocked text { fill: var(--av-muted); }
-.rd-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .rd-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.rd-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .rd-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.rd-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .rd-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.rd-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .rd-node.Blocked text { fill: var(--av-muted); }
+.rd-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .rd-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.rd-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .rd-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.rd-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .rd-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .rd-node[class*=" c"] text { fill: #10131a; font-weight: 600; }
 .rd-node.trace .body { stroke: var(--av-hot); stroke-width: 3; }
-.rd-node.faint { opacity: .25; }
-.rd-node.g0 .body { stroke: #2b7fb0; stroke-width: 3; } .rd-node.g1 .body { stroke: #a87200; stroke-width: 3; }
-.rd-node.g2 .body { stroke: #7a5cb8; stroke-width: 3; } .rd-node.g3 .body { stroke: #b5a90f; stroke-width: 3; }
-.rd-node.g4 .body { stroke: #2a8a70; stroke-width: 3; } .rd-node.g5 .body { stroke: #9a4c78; stroke-width: 3; }
-.rd-clause .box { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
+.rd-node.faint { filter: grayscale(1); } .rd-node.faint .body { stroke-dasharray: 3 3; }
+.rd-node.g0 .body { stroke: var(--av-g0s); stroke-width: 3; } .rd-node.g1 .body { stroke: var(--av-g1s); stroke-width: 3; }
+.rd-node.g2 .body { stroke: var(--av-g2s); stroke-width: 3; } .rd-node.g3 .body { stroke: var(--av-g3s); stroke-width: 3; }
+.rd-node.g4 .body { stroke: var(--av-g4s); stroke-width: 3; } .rd-node.g5 .body { stroke: var(--av-g5s); stroke-width: 3; }
+.rd-clause .box { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
 .rd-clause .cid { font-size: 11px; fill: var(--av-muted); dominant-baseline: central; }
 .rd-clause .or { font-size: 12px; fill: var(--av-muted); dominant-baseline: central; text-anchor: middle; }
 .rd-clause.Covered .box { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .rd-clause.Active .box { stroke: var(--av-hl); stroke-width: 2.6; }
 .rd-clause.trace .box { stroke: var(--av-hot); stroke-width: 2.6; }
-.rd-clause.faint { opacity: .3; }
-.rd-clause.g0 .box { stroke: #2b7fb0; stroke-width: 2.6; } .rd-clause.g1 .box { stroke: #a87200; stroke-width: 2.6; }
-.rd-clause.g2 .box { stroke: #7a5cb8; stroke-width: 2.6; } .rd-clause.g3 .box { stroke: #b5a90f; stroke-width: 2.6; }
-.rd-clause.g4 .box { stroke: #2a8a70; stroke-width: 2.6; } .rd-clause.g5 .box { stroke: #9a4c78; stroke-width: 2.6; }
+.rd-clause.faint { filter: grayscale(1); }
+.rd-clause.g0 .box { stroke: var(--av-g0s); stroke-width: 2.6; } .rd-clause.g1 .box { stroke: var(--av-g1s); stroke-width: 2.6; }
+.rd-clause.g2 .box { stroke: var(--av-g2s); stroke-width: 2.6; } .rd-clause.g3 .box { stroke: var(--av-g3s); stroke-width: 2.6; }
+.rd-clause.g4 .box { stroke: var(--av-g4s); stroke-width: 2.6; } .rd-clause.g5 .box { stroke: var(--av-g5s); stroke-width: 2.6; }
 .rd-lit { cursor: pointer; }
 .rd-lit rect { fill: transparent; stroke: transparent; rx: 6; transition: fill .2s; }
 .rd-lit text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .rd-lit.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
-.rd-lit.Solution rect { fill: var(--av-sol); } .rd-lit.Solution text { fill: #fff; font-weight: 600; }
+.rd-lit.Solution rect { fill: var(--av-sol); } .rd-lit.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .rd-lit.False text { fill: var(--av-muted); text-decoration: line-through; }
 .rd-lit.trace rect { stroke: var(--av-hot); stroke-width: 2; }
-.rd-var rect { fill: var(--av-surface); stroke: var(--av-line); }
+.rd-var rect { fill: var(--av-surface); stroke: var(--av-stroke); }
 .rd-var text { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .rd-var.T rect { stroke: var(--av-sol); } .rd-var.T text { fill: var(--av-sol); font-weight: 600; }
-.rd-var.F rect { stroke: var(--av-line); } .rd-var.F text { fill: var(--av-ink); }
+.rd-var.F rect { stroke: var(--av-stroke); } .rd-var.F text { fill: var(--av-ink); }
 .rd-var.Active rect { stroke: var(--av-hl); stroke-width: 2.4; }
-.rd-hull { fill: transparent; stroke: var(--av-line); stroke-width: 1.2; stroke-dasharray: 3 4; transition: opacity .25s; }
+.rd-hull { fill: transparent; stroke: var(--av-stroke); stroke-width: 1.2; stroke-dasharray: 3 4; transition: opacity .25s; }
 .rd-hull.hidden { opacity: 0; }
 .rd-hull.Active { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: none; }
 .rd-hull.Covered { stroke: var(--av-sol); stroke-dasharray: none; }
-.rd-hull.g0 { stroke: #2b7fb0; } .rd-hull.g1 { stroke: #a87200; } .rd-hull.g2 { stroke: #7a5cb8; }
-.rd-hull.g3 { stroke: #b5a90f; } .rd-hull.g4 { stroke: #2a8a70; } .rd-hull.g5 { stroke: #9a4c78; }
+.rd-hull.g0 { stroke: var(--av-g0s); } .rd-hull.g1 { stroke: var(--av-g1s); } .rd-hull.g2 { stroke: var(--av-g2s); }
+.rd-hull.g3 { stroke: var(--av-g3s); } .rd-hull.g4 { stroke: var(--av-g4s); } .rd-hull.g5 { stroke: var(--av-g5s); }
 .rd-hlabel { font-size: 11px; fill: var(--av-muted); dominant-baseline: central; }
 .rd-edge { stroke: var(--av-edge); stroke-width: 1.2; transition: opacity .25s, stroke .2s; }
 .rd-edge.hidden { opacity: 0; }
-.rd-edge.dim { opacity: .2; }
+.rd-edge.dim { stroke: var(--av-edge-dim); stroke-width: .8; }
 .rd-edge.new { stroke: var(--av-hl); stroke-width: 2.2; opacity: 1; }
 .rd-edge.sol { stroke: var(--av-sol); stroke-width: 3; opacity: 1; }
-.rd-edge.cov { stroke: var(--av-sol); stroke-width: 1.6; opacity: .55; }
+.rd-edge.cov { stroke: var(--av-cov); stroke-width: 1.6; }
 .rd-edge.trace { stroke: var(--av-hot); stroke-width: 2.2; opacity: 1; }
-.rd-edge.faint { opacity: .06; }
+.rd-edge.faint { stroke: var(--av-edge-dim); stroke-width: .8; stroke-dasharray: 3 3; }
 .rd-phantom { stroke: var(--av-rej); stroke-width: 2; stroke-dasharray: 5 4; fill: none; }
 .rd-link { fill: none; stroke: var(--av-hot); stroke-width: 1.4; stroke-dasharray: 2 3; opacity: .85; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .rd-node, .rd-edge, .rd-hull, .rd-node .body { transition: none; } }`;
@@ -10885,7 +10888,7 @@ const ReductionView = (() => {
       els = { P, nodes: new Map(), edges: [], hulls: new Map(), clauses: new Map(), lits: new Map(), vars: new Map(), gLinks: null, gPh: null, srcEdges: [] };
       mk("text", { x: L.SX + 12, y: 28, class: "rd-pane-title" }, svg).textContent = `${red.fromLabel.toUpperCase()} · THE INSTANCE YOU GAVE`;
       mk("text", { x: L.TX + 12, y: 28, class: "rd-pane-title" }, svg).textContent = `${red.toLabel.toUpperCase()} · BUILT BY THE REDUCTION`;
-      mk("line", { x1: L.TX - 30, y1: 40, x2: L.TX - 30, y2: L.H - 20, stroke: "var(--av-line)", "stroke-dasharray": "2 5" }, svg);
+      mk("line", { class: "rd-sep", x1: L.TX - 30, y1: 40, x2: L.TX - 30, y2: L.H - 20, stroke: "var(--av-line)", "stroke-dasharray": "2 5" }, svg);
       mk("text", { x: L.TX - 30, y: L.H / 2 - 12, class: "rd-arrow" }, svg).textContent = "↦";
       const hookup = (g, id) => {
         const on = () => setHover(id), off = () => setHover(null);
@@ -11201,29 +11204,29 @@ const MachineView = (() => {
 .mc-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .mc-node.Active .inner { stroke: var(--av-hl); }
 .mc-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
-.mc-node.Solution .inner { stroke: #fff; } .mc-node.Solution text { fill: #fff; font-weight: 600; }
+.mc-node.Solution .inner { stroke: var(--av-on-sol); } .mc-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .mc-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .mc-node.Rejected .inner { stroke: var(--av-rej); } .mc-node.Rejected text { fill: var(--av-rej); }
 .mc-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; }
 .mc-node.Untraveled .inner { stroke-dasharray: 4 4; } .mc-node.Untraveled text { fill: var(--av-muted); }
 .mc-node.reject .body { stroke-dasharray: 2 3; }
 .mc-node.trace .body, .mc-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
-.mc-node.faint { opacity: .3; }
+.mc-node.faint { filter: grayscale(1); } .mc-node.faint .body { stroke-dasharray: 3 3; }
 .mc-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .mc-edge.eps { stroke-dasharray: 5 4; }
 .mc-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .mc-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
-.mc-edge.faint, .mc-elabel.faint { opacity: .15; }
+.mc-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; } .mc-elabel.faint { filter: grayscale(1); }
 .mc-elabel rect { fill: var(--av-surface); stroke: var(--av-line); }
 .mc-elabel text { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
-.mc-elabel text.on { fill: #1b1300; font-weight: 700; }
+.mc-elabel text.on { fill: var(--av-on-hl); font-weight: 700; }
 .mc-elabel.hot rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
 .mc-elabel.trace rect { stroke: var(--av-hot); } .mc-elabel.trace text { fill: var(--av-hot); }
 .mc-elabel rect.lineon { fill: var(--av-hl); stroke: none; }
 .mc-start { stroke: var(--av-ink); stroke-width: 1.8; }
 .mc-m-def { fill: var(--av-edge); } .mc-m-hot { fill: var(--av-hl); } .mc-m-trace { fill: var(--av-hot); } .mc-m-ink { fill: var(--av-ink); }
 .mc-sect { font-size: 11px; font-weight: 600; letter-spacing: .08em; fill: var(--av-muted); }
-.mc-cell rect { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
+.mc-cell rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.5; transition: fill .2s, stroke .2s; }
 .mc-cell text { font-size: 15px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .mc-cell.blank text { fill: var(--av-muted); }
 .mc-cell.marker rect { fill: transparent; stroke-dasharray: 3 3; } .mc-cell.marker text { fill: var(--av-muted); }
@@ -11237,7 +11240,7 @@ const MachineView = (() => {
 .mc-headmark { fill: var(--av-hl); }
 .mc-headlbl { font-size: 12px; font-weight: 600; text-anchor: middle; fill: var(--av-ink); }
 .mc-gap { font-size: 12px; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; }
-.mc-stack rect { fill: var(--av-surface); stroke: var(--av-line); stroke-width: 1.5; }
+.mc-stack rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.5; }
 .mc-stack text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .mc-stack .top rect { stroke: var(--av-hl); stroke-width: 2.6; fill: var(--av-hl-fill); }
 .mc-stack .top text { font-weight: 700; }
@@ -11965,28 +11968,28 @@ const PairView = (() => {
 .pv-tile .mid { stroke: var(--av-stroke); stroke-width: 1; }
 .pv-tile text { font-size: 14px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pv-tile .num { font-size: 11px; font-weight: 700; fill: var(--av-muted); }
-.pv-tile.c0 .half { stroke: #2b7fb0; } .pv-tile.c1 .half { stroke: #a87200; } .pv-tile.c2 .half { stroke: #7a5cb8; }
-.pv-tile.c3 .half { stroke: #b5a90f; } .pv-tile.c4 .half { stroke: #2a8a70; } .pv-tile.c5 .half { stroke: #9a4c78; }
+.pv-tile.c0 .half { stroke: var(--av-g0s); } .pv-tile.c1 .half { stroke: var(--av-g1s); } .pv-tile.c2 .half { stroke: var(--av-g2s); }
+.pv-tile.c3 .half { stroke: var(--av-g3s); } .pv-tile.c4 .half { stroke: var(--av-g4s); } .pv-tile.c5 .half { stroke: var(--av-g5s); }
 .pv-tile.used .half { stroke-width: 2.4; }
 .pv-tile.Active .half { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .pv-tile.trace .half, .pv-tile:focus-visible .half { stroke: var(--av-hot); stroke-width: 3; }
-.pv-tile.faint { opacity: .3; }
-.pv-cell rect { fill: var(--av-bg); stroke: var(--av-line); stroke-width: 1.2; transition: fill .2s, stroke .2s; }
+.pv-tile.faint { filter: grayscale(1); }
+.pv-cell rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.2; transition: fill .2s, stroke .2s; }
 .pv-cell text { font-size: 14px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .pv-cell.Covered rect { fill: var(--av-sol-fill); stroke: var(--av-sol); }
-.pv-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pv-cell.Solution text { fill: #fff; font-weight: 600; }
+.pv-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pv-cell.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .pv-cell.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.2; }
 .pv-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; } .pv-cell.Rejected text { fill: var(--av-rej); font-weight: 700; }
 .pv-cell.slot rect { fill: transparent; stroke: var(--av-hl); stroke-dasharray: 3 3; }
 .pv-span line { stroke-width: 3; stroke-linecap: round; }
 .pv-span text { font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
-.pv-span.c0 line { stroke: #56B4E9; } .pv-span.c0 text { fill: #2b7fb0; }
-.pv-span.c1 line { stroke: #E69F00; } .pv-span.c1 text { fill: #a87200; }
-.pv-span.c2 line { stroke: #b59ce0; } .pv-span.c2 text { fill: #7a5cb8; }
-.pv-span.c3 line { stroke: #d6c81f; } .pv-span.c3 text { fill: #8a800a; }
-.pv-span.c4 line { stroke: #5fc4a8; } .pv-span.c4 text { fill: #2a8a70; }
-.pv-span.c5 line { stroke: #CC79A7; } .pv-span.c5 text { fill: #9a4c78; }
-.pv-tick { stroke: var(--av-line); stroke-width: 1; }
+.pv-span.c0 line { stroke: var(--av-g0s); } .pv-span.c0 text { fill: var(--av-g0i); }
+.pv-span.c1 line { stroke: var(--av-g1s); } .pv-span.c1 text { fill: var(--av-g1i); }
+.pv-span.c2 line { stroke: var(--av-g2s); } .pv-span.c2 text { fill: var(--av-g2i); }
+.pv-span.c3 line { stroke: var(--av-g3s); } .pv-span.c3 text { fill: var(--av-g3i); }
+.pv-span.c4 line { stroke: var(--av-g4s); } .pv-span.c4 text { fill: var(--av-g4i); }
+.pv-span.c5 line { stroke: var(--av-g5s); } .pv-span.c5 text { fill: var(--av-g5i); }
+.pv-tick { stroke: var(--av-stroke); stroke-width: 1; }
 .pv-panel { fill: none; stroke: var(--av-line); stroke-width: 1; stroke-dasharray: 2 4; }
 .pv-node { cursor: pointer; transition: opacity .2s; }
 .pv-node:focus { outline: none; }
@@ -11994,21 +11997,21 @@ const PairView = (() => {
 .pv-node text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pv-node .deg { font-size: 10.5px; fill: var(--av-muted); }
 .pv-node .tag { font-size: 11px; font-weight: 700; fill: var(--av-ink); }
-.pv-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .pv-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.pv-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .pv-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.pv-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .pv-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.pv-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .pv-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.pv-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .pv-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.pv-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .pv-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .pv-node[class*=" c"] text.lbl { fill: #10131a; font-weight: 600; }
-.pv-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .pv-node.Blocked text.lbl { fill: var(--av-muted); }
+.pv-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .pv-node.Blocked text.lbl { fill: var(--av-muted); }
 .pv-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .pv-node.Rejected text.lbl { fill: var(--av-rej); }
 .pv-node.ring .body { stroke: var(--av-hl); stroke-width: 3.6; }
 .pv-node.trace .body, .pv-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3.2; }
-.pv-node.faint { opacity: .28; }
+.pv-node.faint { filter: grayscale(1); } .pv-node.faint .body { stroke-dasharray: 3 3; }
 .pv-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .pv-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
 .pv-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
-.pv-edge.extra { stroke-dasharray: 2 4; opacity: .55; }
+.pv-edge.extra { stroke: var(--av-edge-dim); stroke-dasharray: 2 4; }
 .pv-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; }
-.pv-edge.faint { opacity: .1; }
+.pv-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .pv-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .pv-link { stroke: var(--av-hot); stroke-width: 1.6; stroke-dasharray: 5 4; fill: none; }
 .pv-link.hot { stroke: var(--av-hl); stroke-width: 2.4; }
@@ -12711,7 +12714,7 @@ const SearchTreeView = (() => {
 .st-svg text { font-family: var(--av-mono); }
 .st-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.4; }
 .st-edge.pruned, .st-edge.skipped { stroke-dasharray: 4 4; }
-.st-edge.pruned { stroke: var(--av-rej); opacity: .55; }
+.st-edge.pruned { stroke: var(--av-rej); }
 .st-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
 .st-edge.cur { stroke: var(--av-hl); stroke-width: 2.6; }
 .st-node rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.5; }
@@ -12723,20 +12726,20 @@ const SearchTreeView = (() => {
 .st-node.failed text.lbl { fill: var(--av-rej); }
 .st-node.pruned rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-dasharray: 4 3; }
 .st-node.pruned text.lbl, .st-node.pruned text.note { fill: var(--av-rej); }
-.st-node.skipped rect { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 4; }
+.st-node.skipped rect { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 4; }
 .st-node.skipped text.lbl, .st-node.skipped text.note { fill: var(--av-muted); }
 .st-node.solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
-.st-node.solution text.lbl { fill: #fff; font-weight: 600; }
+.st-node.solution text.lbl { fill: var(--av-on-sol); font-weight: 600; }
 .st-node.cur rect { stroke: var(--av-hl); stroke-width: 3.2; stroke-dasharray: none; }
-.st-node.fold rect { fill: var(--av-surface); stroke: var(--av-line); stroke-dasharray: 2 3; }
+.st-node.fold rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; }
 .st-node.fold text.lbl { fill: var(--av-muted); font-size: 11px; }
 .st-node.trace rect { stroke: var(--av-hot); stroke-width: 3; }
 .st-node { cursor: default; }
-.st-ord circle { fill: var(--av-ink); } .st-ord text { fill: var(--av-surface); font-size: 9.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.st-ord circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .st-ord text { fill: var(--av-surface); font-size: 9.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .st-val circle { stroke-width: 1.6; } .st-val text { font-size: 10px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
-.st-val.win circle { fill: var(--av-sol); stroke: var(--av-sol); } .st-val.win text { fill: #fff; }
+.st-val.win circle { fill: var(--av-sol); stroke: var(--av-sol); } .st-val.win text { fill: var(--av-on-sol); }
 .st-val.lose circle { fill: var(--av-rej-fill); stroke: var(--av-rej); } .st-val.lose text { fill: var(--av-rej); }
-.st-val.p1 circle { fill: #56B4E9; stroke: #2b7fb0; } .st-val.p2 circle { fill: #E69F00; stroke: #a87200; } .st-val.p1 text, .st-val.p2 text { fill: #10131a; }
+.st-val.p1 circle { fill: var(--av-g0); stroke: var(--av-g0s); } .st-val.p2 circle { fill: var(--av-g1); stroke: var(--av-g1s); } .st-val.p1 text, .st-val.p2 text { fill: #10131a; }
 .st-band { fill: var(--av-surface); }
 .st-band.alt { fill: var(--av-hl-fill); opacity: .35; }
 .st-lvl { font-size: 11px; fill: var(--av-muted); }

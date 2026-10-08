@@ -19,28 +19,28 @@ const PairView = (() => {
 .pv-tile .mid { stroke: var(--av-stroke); stroke-width: 1; }
 .pv-tile text { font-size: 14px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pv-tile .num { font-size: 11px; font-weight: 700; fill: var(--av-muted); }
-.pv-tile.c0 .half { stroke: #2b7fb0; } .pv-tile.c1 .half { stroke: #a87200; } .pv-tile.c2 .half { stroke: #7a5cb8; }
-.pv-tile.c3 .half { stroke: #b5a90f; } .pv-tile.c4 .half { stroke: #2a8a70; } .pv-tile.c5 .half { stroke: #9a4c78; }
+.pv-tile.c0 .half { stroke: var(--av-g0s); } .pv-tile.c1 .half { stroke: var(--av-g1s); } .pv-tile.c2 .half { stroke: var(--av-g2s); }
+.pv-tile.c3 .half { stroke: var(--av-g3s); } .pv-tile.c4 .half { stroke: var(--av-g4s); } .pv-tile.c5 .half { stroke: var(--av-g5s); }
 .pv-tile.used .half { stroke-width: 2.4; }
 .pv-tile.Active .half { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .pv-tile.trace .half, .pv-tile:focus-visible .half { stroke: var(--av-hot); stroke-width: 3; }
-.pv-tile.faint { opacity: .3; }
-.pv-cell rect { fill: var(--av-bg); stroke: var(--av-line); stroke-width: 1.2; transition: fill .2s, stroke .2s; }
+.pv-tile.faint { filter: grayscale(1); }
+.pv-cell rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.2; transition: fill .2s, stroke .2s; }
 .pv-cell text { font-size: 14px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .pv-cell.Covered rect { fill: var(--av-sol-fill); stroke: var(--av-sol); }
-.pv-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pv-cell.Solution text { fill: #fff; font-weight: 600; }
+.pv-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pv-cell.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .pv-cell.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.2; }
 .pv-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; } .pv-cell.Rejected text { fill: var(--av-rej); font-weight: 700; }
 .pv-cell.slot rect { fill: transparent; stroke: var(--av-hl); stroke-dasharray: 3 3; }
 .pv-span line { stroke-width: 3; stroke-linecap: round; }
 .pv-span text { font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
-.pv-span.c0 line { stroke: #56B4E9; } .pv-span.c0 text { fill: #2b7fb0; }
-.pv-span.c1 line { stroke: #E69F00; } .pv-span.c1 text { fill: #a87200; }
-.pv-span.c2 line { stroke: #b59ce0; } .pv-span.c2 text { fill: #7a5cb8; }
-.pv-span.c3 line { stroke: #d6c81f; } .pv-span.c3 text { fill: #8a800a; }
-.pv-span.c4 line { stroke: #5fc4a8; } .pv-span.c4 text { fill: #2a8a70; }
-.pv-span.c5 line { stroke: #CC79A7; } .pv-span.c5 text { fill: #9a4c78; }
-.pv-tick { stroke: var(--av-line); stroke-width: 1; }
+.pv-span.c0 line { stroke: var(--av-g0s); } .pv-span.c0 text { fill: var(--av-g0i); }
+.pv-span.c1 line { stroke: var(--av-g1s); } .pv-span.c1 text { fill: var(--av-g1i); }
+.pv-span.c2 line { stroke: var(--av-g2s); } .pv-span.c2 text { fill: var(--av-g2i); }
+.pv-span.c3 line { stroke: var(--av-g3s); } .pv-span.c3 text { fill: var(--av-g3i); }
+.pv-span.c4 line { stroke: var(--av-g4s); } .pv-span.c4 text { fill: var(--av-g4i); }
+.pv-span.c5 line { stroke: var(--av-g5s); } .pv-span.c5 text { fill: var(--av-g5i); }
+.pv-tick { stroke: var(--av-stroke); stroke-width: 1; }
 .pv-panel { fill: none; stroke: var(--av-line); stroke-width: 1; stroke-dasharray: 2 4; }
 .pv-node { cursor: pointer; transition: opacity .2s; }
 .pv-node:focus { outline: none; }
@@ -48,21 +48,21 @@ const PairView = (() => {
 .pv-node text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pv-node .deg { font-size: 10.5px; fill: var(--av-muted); }
 .pv-node .tag { font-size: 11px; font-weight: 700; fill: var(--av-ink); }
-.pv-node.c0 .body { fill: #56B4E9; stroke: #2b7fb0; } .pv-node.c1 .body { fill: #E69F00; stroke: #a87200; }
-.pv-node.c2 .body { fill: #b59ce0; stroke: #7a5cb8; } .pv-node.c3 .body { fill: #F0E442; stroke: #b5a90f; }
-.pv-node.c4 .body { fill: #5fc4a8; stroke: #2a8a70; } .pv-node.c5 .body { fill: #CC79A7; stroke: #9a4c78; }
+.pv-node.c0 .body { fill: var(--av-g0); stroke: var(--av-g0s); } .pv-node.c1 .body { fill: var(--av-g1); stroke: var(--av-g1s); }
+.pv-node.c2 .body { fill: var(--av-g2); stroke: var(--av-g2s); } .pv-node.c3 .body { fill: var(--av-g3); stroke: var(--av-g3s); }
+.pv-node.c4 .body { fill: var(--av-g4); stroke: var(--av-g4s); } .pv-node.c5 .body { fill: var(--av-g5); stroke: var(--av-g5s); }
 .pv-node[class*=" c"] text.lbl { fill: #10131a; font-weight: 600; }
-.pv-node.Blocked .body { fill: transparent; stroke: var(--av-line); stroke-dasharray: 4 3; } .pv-node.Blocked text.lbl { fill: var(--av-muted); }
+.pv-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .pv-node.Blocked text.lbl { fill: var(--av-muted); }
 .pv-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .pv-node.Rejected text.lbl { fill: var(--av-rej); }
 .pv-node.ring .body { stroke: var(--av-hl); stroke-width: 3.6; }
 .pv-node.trace .body, .pv-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3.2; }
-.pv-node.faint { opacity: .28; }
+.pv-node.faint { filter: grayscale(1); } .pv-node.faint .body { stroke-dasharray: 3 3; }
 .pv-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .pv-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
 .pv-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
-.pv-edge.extra { stroke-dasharray: 2 4; opacity: .55; }
+.pv-edge.extra { stroke: var(--av-edge-dim); stroke-dasharray: 2 4; }
 .pv-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; }
-.pv-edge.faint { opacity: .1; }
+.pv-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .pv-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .pv-link { stroke: var(--av-hot); stroke-width: 1.6; stroke-dasharray: 5 4; fill: none; }
 .pv-link.hot { stroke: var(--av-hl); stroke-width: 2.4; }
