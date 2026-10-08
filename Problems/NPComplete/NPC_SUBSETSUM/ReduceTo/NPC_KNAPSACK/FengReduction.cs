@@ -10,6 +10,7 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
     public string reductionName { get; } = "Feng's Knapsack Reduction";
     public string reductionDefinition { get; } = "Fengs reduction converts positive integers in SUBSETSUM to items in KNAPSACK";
     public string source { get; } = "Feng, Thomas";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Steiner_tree_problem";
     public string[] contributors { get; } = { "Garret Stouffer", "Daniel Igbokwe" };
     // reduce() maps each SUBSETSUM integer to exactly one KNAPSACK item (n,n) — a

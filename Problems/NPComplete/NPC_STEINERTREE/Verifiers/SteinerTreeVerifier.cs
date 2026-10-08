@@ -12,6 +12,7 @@ class SteinerTreeVerifier : IVerifier<STEINERTREE> {
     public string verifierName { get; } = "Default Steiner Tree Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Steiner Tree";
     public string source { get; } = "Andrija Sevaljevic";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 

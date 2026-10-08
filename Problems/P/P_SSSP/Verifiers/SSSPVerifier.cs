@@ -14,6 +14,7 @@ class SSSPVerifier : IVerifier<SSSP> {
     public string verifierName { get; } = "Default Single Source Shortest Path Problem Verifier";
     public string verifierDefinition { get; } = "Verifies the solution for the Single Source Shortest Path problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Rajit Nilkar" };
     private string _certificate = "";
     public string certificate => _certificate;

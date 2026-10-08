@@ -11,6 +11,7 @@ class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
     public string solverName { get; } = "Minimum Vertex Cover Brute Force";
     public string solverDefinition { get; } = "This solver tests every subset size, smallest first, and returns the first subset that covers all edges.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.BruteForce;

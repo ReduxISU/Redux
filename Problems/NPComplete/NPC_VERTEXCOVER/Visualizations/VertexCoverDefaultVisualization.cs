@@ -12,6 +12,7 @@ class VertexCoverDefaultVisualization : IVisualization<VERTEXCOVER, API_GraphJSO
     public string visualizationName { get; } = "Vertex Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Vertex Cover";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new VertexCoverBruteForce();

@@ -8,6 +8,7 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     public string solverName { get; } = "{SOLVER}";
     public string solverDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "TODO" };
     // Declared, not derived: read the algorithm below and decide; don't guess from the
     // solver's name. Getting these wrong is a public correctness claim the API serves to callers.

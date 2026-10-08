@@ -10,6 +10,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     public string solverName { get; } = "Job Sequencing Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Job Sequencing problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.

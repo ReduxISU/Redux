@@ -9,6 +9,7 @@ class ConvexHullVisualization : IVisualization<CONVEXHULL, API_empty> {
     public string visualizationName { get; } = "Convex Hull Visualization";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "TODO";
     public string[] contributors { get; } = { "TODO" };
     public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented; //either "Boolean Satisfiability" or "Graph D3" most likely

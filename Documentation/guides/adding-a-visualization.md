@@ -151,6 +151,7 @@ The members come from [Interfaces/VisualizationInterface.cs](../../Interfaces/Vi
 | `visualizationName` | The name people see in the GUI's visualization picker. | `"Independent Set Visualization"` |
 | `visualizationDefinition` | One sentence on what the picture shows. | `"This is a default visualization for Independent Set"` |
 | `source` | A citation, if the picture comes from a paper. Empty is allowed. | `""` |
+| `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
 | `contributors` | Names of the people who wrote it. | `{ "Russell Phillips" }` |
 | `visualizationType` | Which GUI renderer draws it. Pick from the table in section 2. | `VisualizationType.GraphD3` |
 | `solver` | The solver whose answer gets highlighted. Must **not** be `null`. | `new IndependentSetBruteForce()` |

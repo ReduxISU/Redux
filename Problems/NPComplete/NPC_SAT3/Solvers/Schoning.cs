@@ -17,6 +17,7 @@ class Schoning : ISolver<SAT3> {
     + " that assignment is returned as a solution. If no satisfying assignment is found after all trials"
     + " are exhausted, the algorithm reports failure without concluding the formula is unsatisfiable.";
     public string source { get; } = "T. Schoning, \"A probabilistic algorithm for k-SAT and constraint satisfaction problems,\" 40th Annual Symposium on Foundations of Computer Science (Cat. No.99CB37039), New York, NY, USA, 1999, pp. 410-414, doi: 10.1109/SFFCS.1999.814612.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=814612";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

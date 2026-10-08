@@ -5,6 +5,8 @@ interface ISolver {
     string solverName { get; }
     string solverDefinition { get; }
     string source { get; }
+    // Repo-relative path of the file declaring this class; see SourceFile.
+    string sourceFile { get; }
     string[] contributors { get; }
 
     bool timerHasExpired { get; set; }

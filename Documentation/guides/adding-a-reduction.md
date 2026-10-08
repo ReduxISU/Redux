@@ -93,6 +93,7 @@ Every reduction implements the members in [Interfaces/ReductionInterface.cs](../
 | `reductionName` | The name people see in the GUI. A test checks its shape (see section 5). | `"Partition Reduction"` |
 | `reductionDefinition` | One sentence on what the algorithm does. | `"Karp's Reduction from Subset Sum to Partition"` |
 | `source` | A proper citation for where the algorithm comes from. | Karp, "Reducibility among combinatorial problems", 1972 |
+| `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
 | `sourceLink` | A link to that source. The template includes it. | the Karp PDF link |
 | `contributors` | Names of the people who wrote it. | `{ "Andrija Sevaljevic" }` |
 | `cost` | How much bigger the produced instance is than the input (see below). | `ReductionCost.Linear` |

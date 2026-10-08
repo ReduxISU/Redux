@@ -14,6 +14,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET> {
         + " exhausted without full domination.";
     public string source { get; } =
         "Fomin, F. V., Grandoni, F., & Kratsch, D. (2009). A measure & conquer approach for the analysis of exact algorithms. Journal of the ACM (JACM), 56(5), 1–32.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/abs/10.1145/1552285.1552286";
     public string[] contributors { get; } = { "Quinton Smith" };
     public bool timerHasExpired { get; set; }

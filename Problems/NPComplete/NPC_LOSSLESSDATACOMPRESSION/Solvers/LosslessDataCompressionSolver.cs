@@ -16,6 +16,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
 
     public string source { get; } =
         "https://www.ias.ac.in/article/fulltext/reso/011/02/0091-0099";
+    public string sourceFile { get; } = SourceFile.Path();
 
     public string[] contributors { get; } = { "Pramesh Shah", "Bektur Akkabakov" };
 

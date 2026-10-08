@@ -13,6 +13,7 @@ class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE, API_GraphJSO
     public string visualizationName { get; } = "Steiner Tree Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Steiner Tree";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new SteinerTreeBruteForce();

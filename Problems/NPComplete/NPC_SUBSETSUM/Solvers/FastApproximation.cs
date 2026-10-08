@@ -19,6 +19,7 @@ class FastApproximation : ISolver<SUBSETSUM> {
     + " returns {} whenever its best subset does not sum exactly to the target, even if an exact"
     + " subset exists.";
     public string source { get; } = "Oscar H. Ibarra and Chul E. Kim. 1975. Fast Approximation Algorithms for the Knapsack and Sum of Subset Problems. J. ACM 22, 4 (Oct. 1975), 463–468. https://doi.org/10.1145/321906.321909";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/321906.321909";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }

@@ -11,6 +11,7 @@ class IndependentSetVerifier : IVerifier<INDEPENDENTSET> {
     public string verifierName { get; } = "Default Independent Set Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Independent Set";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
 
 

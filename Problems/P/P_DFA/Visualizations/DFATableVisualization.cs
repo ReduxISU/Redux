@@ -11,6 +11,7 @@ class DFATableVisualization : IVisualization<DFA, API_empty> {
     public string visualizationName { get; } = "Deterministic Finite Automata Table Visualization";
     public string visualizationDefinition { get; } = "Displays a step-by-step table tracing the DFA's single deterministic path through the input string, showing the symbol consumed, the state transition, and whether the resulting state is accepting at each step.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new DFASolver();

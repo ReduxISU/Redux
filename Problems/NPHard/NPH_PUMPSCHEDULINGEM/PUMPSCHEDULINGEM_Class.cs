@@ -51,6 +51,7 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
     public string inputDescription { get; } = "Tank state and minimum level, hourly water demand, peak-hour tariffs, pump specifications, and budget";
     public string outputDescription { get; } = "The hourly pump activation schedule, its effective budget and cost, maximizing stored water within the budget";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string wikiName { get; } = "";
     public string[] contributors { get; } = { "Michael Trosper" };
     // Declared, not derived. Correctly filed under Problems/NPHard/ already; this

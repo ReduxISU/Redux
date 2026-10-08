@@ -24,6 +24,7 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     public string inputDescription { get; } = "A partially filled 9x9 Sudoku grid of clues";
     public string outputDescription { get; } = "True or False, whether the given grid is a valid, fully completed solution matching the clues";
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.48550/arXiv.2507.09708";
     public const string InstanceGrammar = "9 rows of 9 comma-separated digits (0 for empty, 1-9 for clues), rows separated by semicolons";
     private static readonly string _defaultInstance = "0,0,0,1,0,0,2,0,3;\n0,2,0,0,4,0,5,0,6;\n0,7,0,0,0,6,4,0,0;\n5,0,0,6,0,0,8,0,0;\n0,6,0,4,0,2,0,5,0;\n0,0,4,0,0,9,0,0,7;\n0,0,9,5,0,0,0,4,0;\n7,0,6,0,8,0,0,1,0;\n4,0,3,0,0,7,0,0,0";

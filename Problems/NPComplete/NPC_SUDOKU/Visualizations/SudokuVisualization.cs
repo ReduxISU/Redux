@@ -11,6 +11,7 @@ class SudokuVisualization : IVisualization<SUDOKU, API_QUANTUMCIRCUIT> {
     public string visualizationName { get; } = "Sudoku Visualization";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Eric Hill" };
     public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
     public ISolver solver { get; } = new SudokuSolver();

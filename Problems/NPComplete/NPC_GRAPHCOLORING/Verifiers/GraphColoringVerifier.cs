@@ -14,6 +14,7 @@ class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
     public string verifierName { get; } = "Default Graph Coloring Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Graph Coloring.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     private string _complexity = "";

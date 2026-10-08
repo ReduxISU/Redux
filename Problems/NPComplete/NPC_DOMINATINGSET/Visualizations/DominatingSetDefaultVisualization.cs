@@ -12,6 +12,7 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET, API_Grap
         "This is a default visualization for dominating set";
     public string source { get; } =
         "Wendy Myrvold, CSC 425 Notes: Domination Algorithms, University of Victoria.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://webhome.cs.uvic.ca/~wendym/courses/425/14/notes/425_03_dom_alg.pdf";
     public string[] contributors { get; } = { "Quinton Smith" };

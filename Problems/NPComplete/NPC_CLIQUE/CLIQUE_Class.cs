@@ -16,6 +16,8 @@ class CLIQUE : IGraphProblem<CliqueBruteForce, CliqueVerifier, CliqueDefaultVisu
     public string inputDescription { get; } = "G, a graph, and k, the size of clique to find";
     public string outputDescription { get; } = "True or False, whether G contains a clique of size k";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    // Virtual so subclasses (e.g. Inherited/SipserClique) can report their own file.
+    public virtual string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance = "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)";

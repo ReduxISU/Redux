@@ -12,6 +12,7 @@ class NFAVisualization : IVisualization<NFA, API_GraphJSON> {
     public string visualizationName { get; } = "Non-Deterministic Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Non-deterministic Finite Automata";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX;
     public ISolver solver { get; } = new NFASolver();

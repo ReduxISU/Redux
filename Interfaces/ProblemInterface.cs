@@ -11,6 +11,8 @@ interface IProblem {
     string inputDescription { get; }
     string outputDescription { get; }
     string source { get; }
+    // Repo-relative path of the file declaring this class; see SourceFile.
+    string sourceFile { get; }
     string wikiName { get; }
     string defaultInstance { get; }
     string instance { get; }

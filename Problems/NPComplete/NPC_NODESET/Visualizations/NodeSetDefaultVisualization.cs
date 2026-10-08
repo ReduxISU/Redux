@@ -13,6 +13,7 @@ class NodeSetDefaultVisualization : IVisualization<NODESET, API_GraphJSON> {
     public string visualizationName { get; } = "Node Set Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Node Set";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new NodeSetBruteForce();

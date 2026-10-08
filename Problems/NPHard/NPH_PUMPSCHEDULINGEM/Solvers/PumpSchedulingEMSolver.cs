@@ -18,6 +18,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
         "Certificate format: (effectiveBudget, totalCost, schedule) where schedule is\r\n" +
         "((PumpName,h0,...,h23),...) with binary per-hour on/off values.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Memo table + optimal-substructure recurrence.

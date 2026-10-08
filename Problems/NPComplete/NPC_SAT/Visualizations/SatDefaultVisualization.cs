@@ -7,6 +7,7 @@ class SatDefaultVisualization : IVisualization<SAT, API_SAT> {
     public string visualizationName { get; } = "SAT Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for SAT";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.BooleanSatisfiability;
     public ISolver solver { get; } = new SATBruteForceSolver();

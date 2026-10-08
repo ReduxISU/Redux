@@ -10,6 +10,7 @@ class DFASolver : ISolver<DFA> {
     public string solverName { get; } = "DFA Simulation";
     public string solverDefinition { get; } = "This a solver for a Determiistic Finite Automata that returns no solution in none exists, or a solution consisting of the set states that led to an acceptance.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
 
     public bool timerHasExpired { get; set; }

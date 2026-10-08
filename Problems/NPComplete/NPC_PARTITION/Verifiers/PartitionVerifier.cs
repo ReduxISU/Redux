@@ -11,6 +11,7 @@ class PartitionVerifier : IVerifier<PARTITION> {
     public string verifierName { get; } = "Default Partition Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Partition problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     private string _certificate = "";

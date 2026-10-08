@@ -11,6 +11,7 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
     public string reductionName { get; } = "{REDUCTION}";
     public string reductionDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "TODO";
     public string[] contributors { get; } = { "TODO" };
     // Declared, not derived: do NOT guess these from what {REDUCTION} "feels like" it should be.

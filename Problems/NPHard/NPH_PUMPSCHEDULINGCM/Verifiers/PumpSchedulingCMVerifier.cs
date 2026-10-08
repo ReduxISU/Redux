@@ -20,6 +20,7 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
         "using exact arithmetic, and accepts if: (1) the tank stays within [0, capacity] at every hour, " +
         "(2) the reported cost matches the computed energy and startup costs within $0.01 tolerance.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
 
     private const double CostTolerance = 0.01;

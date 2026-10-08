@@ -17,6 +17,7 @@ class NFAVerifier : IVerifier<NFA> {
     public string verifierDefinition { get; } =
         "Verifies one (or many) NFA run certificates against the input string, including ε-transitions, matching solver semantics.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
 
     private string _certificate = "";

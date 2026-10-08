@@ -16,6 +16,7 @@ class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, DummyVisualization> {
     public string inputDescription { get; } = "T, job execution times, D, job deadlines, P, job penalties, and k, the maximum allowed total penalty";
     public string outputDescription { get; } = "True or False, whether an ordering of the jobs exists with total penalty at most k";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Russell Phillips" };
 

@@ -10,6 +10,7 @@ class SAT3Verifier : IVerifier<SAT3> {
     public string verifierDefinition { get; } = "This is a verifier for 3SAT. It takes the certificate from " +
                                          "the user and validates that every clause contains a true literal";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Kaden Marchetti" };
 
     private string _certificate = "";

@@ -12,6 +12,7 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
     public string solverName { get; } = "Vertex Cover Brute Force";
     public string solverDefinition { get; } = "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

@@ -17,6 +17,7 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
     public string reductionName { get; } = "Sipser's Clique Reduction";
     public string reductionDefinition { get; } = "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist";
     public string source { get; } = "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Kaden Marchetti", "Alex Diviney", "Caleb Eardley", "Russell Phillips" };
     // reduce()'s double loop over all literal-node pairs (3 nodes per clause) adds an
     // edge for almost every pair (excluding same-clause / inverse-literal pairs) — O(n^2)

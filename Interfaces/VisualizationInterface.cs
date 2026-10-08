@@ -9,6 +9,8 @@ interface IVisualization {
     string visualizationDefinition { get; }
     VisualizationType visualizationType { get; }
     string source { get; }
+    // Repo-relative path of the file declaring this class; see SourceFile.
+    string sourceFile { get; }
     string[] contributors { get; }
     ISolver solver { get; }
     API_JSON visualize(string problem);

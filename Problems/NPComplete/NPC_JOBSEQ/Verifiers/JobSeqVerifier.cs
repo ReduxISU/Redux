@@ -9,6 +9,7 @@ class JobSeqVerifier : IVerifier<JOBSEQ> {
     public string verifierName { get; } = "Default Job Sequencing Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Job Sequencing";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
 
 

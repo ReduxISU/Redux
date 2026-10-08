@@ -9,6 +9,7 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
     public string solverName { get; } = "Bernstein-Vazirani Classical";
     public string solverDefinition { get; } = "This is a classical verifier for the Bernstein-Vazirani problem which runs in O(n) time.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Classical baseline paired with BernsteinVaziraniQuantumSolver; no

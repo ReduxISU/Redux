@@ -12,6 +12,7 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON> {
     public string visualizationName { get; } = "Deterministic Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Deterministic Finite Automata";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX;
     public ISolver solver { get; } = new DFASolver();

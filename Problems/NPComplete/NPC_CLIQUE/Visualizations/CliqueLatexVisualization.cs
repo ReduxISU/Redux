@@ -11,6 +11,7 @@ class CliqueLatexVisualization : IVisualization<CLIQUE, API_GraphJSON> {
     public string visualizationName { get; } = "Clique LaTeX Visualization";
     public string visualizationDefinition { get; } = "This is a visualization for Clique using the LaTeX visualization type";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX;
     public ISolver solver { get; } = new CliqueBruteForce();

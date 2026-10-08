@@ -10,6 +10,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE> {
     public string solverName { get; } = "Steiner Tree Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Steiner Tree problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

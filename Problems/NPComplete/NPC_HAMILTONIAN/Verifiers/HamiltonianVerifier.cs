@@ -11,6 +11,7 @@ class HamiltonianVerifier : IVerifier<HAMILTONIAN> {
     public string verifierName { get; } = "Default Hamiltonian Cycle Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Hamiltonian Cycle";
     public string source { get; } = " ";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 

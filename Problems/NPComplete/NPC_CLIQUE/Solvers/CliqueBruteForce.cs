@@ -12,6 +12,7 @@ class CliqueBruteForce : ISolver<CLIQUE> {
     public string solverName { get; } = "Clique Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Clique problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley", "Kaden Marchetti" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

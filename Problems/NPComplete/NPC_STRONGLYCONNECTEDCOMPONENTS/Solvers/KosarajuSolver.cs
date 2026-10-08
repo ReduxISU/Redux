@@ -13,6 +13,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS> {
 
     public string source { get; } =
         "Swati Dhingra, Poorvi S. Dodwad, and Meghna Madan, \"Finding Strongly Connected Components in a Social Network Graph,\" International Journal of Computer Applications, Volume 136, No. 7, February 2016. Section 4.4 describes Kosaraju's algorithm.";
+    public string sourceFile { get; } = SourceFile.Path();
 
     public string sourceLink { get; } =
         "https://ijcaonline.org/research/volume136/number7/dhingra-2016-ijca-908481.pdf";

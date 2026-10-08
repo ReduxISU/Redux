@@ -11,6 +11,7 @@ class DFAVerifier : IVerifier<DFA> {
     public string verifierName { get; } = "Default DFA Acceptance Verifier";
     public string verifierDefinition { get; } = "This is a solver for DFAs";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     private string _certificate = "";
 

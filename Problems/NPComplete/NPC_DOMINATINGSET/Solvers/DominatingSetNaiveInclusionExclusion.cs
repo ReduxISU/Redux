@@ -14,6 +14,7 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET> {
         + " in D or adjacent to a vertex in D). Returns the first such subset found.";
     public string source { get; } =
     "Fomin, F. V., & Kratsch, D. (2010). Exact Exponential Algorithms. Springer Science & Business Media.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.1007/978-3-642-16533-7";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }

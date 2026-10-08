@@ -10,6 +10,7 @@ class TSPBruteForce : ISolver<TSP> {
     public string solverName { get; } = "Traveling Salesperson Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Traveling Salesperson problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.

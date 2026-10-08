@@ -24,6 +24,7 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM> {
         "(4) if the instance specifies a positive budget, the certificate's effective budget " +
         "does not exceed that bound.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
 
     private const double CostTolerance = 0.01;
