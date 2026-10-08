@@ -10,6 +10,8 @@ The mockups are the specification. Everything here was designed, built and teste
 
 | What | Where |
 | --- | --- |
+| How to add a visualization to a problem, and steps to a solver or reduction (contributor guide, with a DFA walkthrough) | [`ADDING-A-VISUALIZATION.md`](ADDING-A-VISUALIZATION.md) |
+| What every picture type and subtype looks like, its problems, inputs and step behavior, with screenshots | [`PICTURE-TYPES.md`](PICTURE-TYPES.md) |
 | Design mockup (every picture type, one tab each) | [`mockups/design.html`](mockups/design.html), published at https://claude.ai/artifact/KZoqj8AqhHSBJYWMVLSzkx |
 | Redux_GUI mockup (the real page with every problem wired in) | [`mockups/redux-gui.html`](mockups/redux-gui.html), published at https://claude.ai/artifact/WGGHMS9UGDB8is4Bf1e4Mf |
 | Plain-language summary for people | Claude Doc "Fixing Redux's Problem Visualizations", https://claude.ai/code/artifact/eeccd33d-0a1e-4a05-836e-3ef728cc14be |
@@ -251,3 +253,5 @@ Report: files changed, test output, screenshots, open questions.
 - `test-*.js`: Node test harnesses. Each loads its module, runs every example with every solver, and cross-checks solvers against brute force on random instances. Run `node test-<name>.js`; each prints a pass line at the end.
 
 The published copies on claude.ai are updated by publishing the rebuilt HTML to the same artifact URLs.
+
+The screenshots in `images/` (used by [PICTURE-TYPES.md](PICTURE-TYPES.md)) are taken from `design.html` at 1,280 px in the light theme. Retake the affected ones when a mockup changes.
