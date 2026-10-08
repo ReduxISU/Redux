@@ -1,10 +1,10 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_C;
+using API.Problems.NPComplete.NPC_CRYPTARITHMS;
 
-namespace API.Problems.NPComplete.NPC_C.Visualizations;
+namespace API.Problems.NPComplete.NPC_CRYPTARITHMS.Visualizations;
 
-class CVisualization : IVisualization<C>
+class CryptarithmVisualization : IVisualization<CRYPTARITHMS>
 {
     public string visualizationName { get; } = "Cryptarithm Visualization";
     public string visualizationDefinition { get; } = "TODO";
@@ -19,18 +19,18 @@ class CVisualization : IVisualization<C>
     public ISolver solver { get; } = null; //TODO fill in solver to use for this visualization
 
     // --- Methods Including Constructors ---
-    public CVisualization()
+    public CryptarithmVisualization()
     {
 
     }
-    public API_JSON visualize(C instance)
+    public API_JSON visualize(CRYPTARITHMS instance)
     {
         //TODO: implement visualization
         
         return new API_empty();
     }
 
-    public API_JSON SolvedVisualization(C instance, string solution)
+    public API_JSON SolvedVisualization(CRYPTARITHMS instance, string solution)
     {
         //TODO: implement SolvedVisualization (remove method if not implemented)
 

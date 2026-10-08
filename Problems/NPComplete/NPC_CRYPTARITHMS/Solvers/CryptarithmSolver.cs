@@ -1,7 +1,7 @@
 using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_C.Solvers;
-class CSolver : ISolver<C> {
+namespace API.Problems.NPComplete.NPC_CRYPTARITHMS.Solvers;
+class CryptarithmSolver : ISolver<CRYPTARITHMS> {
 
     // --- Fields ---
     public string solverName {get;} = "Cryptharithm Solver";
@@ -21,9 +21,9 @@ class CSolver : ISolver<C> {
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
-    public CSolver() {}
+    public CryptarithmSolver() {}
 
-    public string solve(C problem){
+    public string solve(CRYPTARITHMS problem){
         // TODO: implement C Solver for C
 
         // make sure to check timerHasExpired occasionally, and return if it has

@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
 
-namespace API.Problems.NPComplete.NPC_C.Verifiers;
+namespace API.Problems.NPComplete.NPC_CRYPTARITHMS.Verifiers;
 
-class CVerifier : IVerifier<C> {
+class CryptarithmVerifier : IVerifier<CRYPTARITHMS> {
 
     // --- Fields ---
     public string verifierName {get;} = "Cryptarithm Verifier";
@@ -22,11 +22,11 @@ class CVerifier : IVerifier<C> {
     }
 
     // --- Methods Including Constructors ---
-    public CVerifier() {
+    public CryptarithmVerifier() {
         
     }
 
-    public bool verify(C problem, string certificate){
+    public bool verify(CRYPTARITHMS problem, string certificate){
         // On a malformed certificate, throw `CertificateParseException`
         // (see Interfaces/ParseExceptions.cs) rather than silently
         // returning false. The controller layer catches it and returns

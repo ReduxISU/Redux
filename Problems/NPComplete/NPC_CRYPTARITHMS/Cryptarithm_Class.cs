@@ -26,9 +26,9 @@ class CRYPTARITHMS : IProblem<CryptarithmSolver, CryptarithmVerifier, Cryptarith
     public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
-    public CSolver defaultSolver {get;} = new CSolver();
-    public CVerifier defaultVerifier {get;} = new CVerifier();
-    public CVisualization defaultVisualization {get;} = new CVisualization();
+    public CryptarithmSolver defaultSolver {get;} = new CryptarithmSolver();
+    public CryptarithmVerifier defaultVerifier {get;} = new CryptarithmVerifier();
+    public CryptarithmVisualization defaultVisualization {get;} = new CryptarithmVisualization();
     public string[] contributors {get;} = { "TODO" };
     // Declared, not derived — do NOT infer this from which Problems/<Folder>/ this file
     // lives under. The folder is a filing convention only and is wrong for a dozen-plus
@@ -41,11 +41,11 @@ class CRYPTARITHMS : IProblem<CryptarithmSolver, CryptarithmVerifier, Cryptarith
     // --- Properties ---
 
     // --- Methods and Constructors ---
-    public C() : this(_defaultInstance) {
+    public CRYPTARITHMS() : this(_defaultInstance) {
 
     }
 
-    public C(string stringInstance) {
+    public CRYPTARITHMS(string stringInstance) {
         instance = stringInstance;
 
         // On a malformed instance, throw `ProblemParseException` (see
