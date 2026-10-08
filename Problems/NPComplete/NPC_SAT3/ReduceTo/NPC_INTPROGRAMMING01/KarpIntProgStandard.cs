@@ -7,8 +7,8 @@ namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_INTPROGRAMMING01;
 class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
 
     // --- Fields ---
-    public string reductionName { get; } = "Karp's Integer Programming Reduction";
-    public string reductionDefinition { get; } = "Karps reduction maps each clause of a SAT problem into a row in a integer programming matrix.";
+    public string reductionName { get; } = "Karp's 0-1 Integer Linear Programming Reduction";
+    public string reductionDefinition { get; } = "Karp's reduction maps each clause of a SAT problem to a row in a 0-1 integer linear programming matrix.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string[] contributors { get; } = { "Caleb Eardley" };
     // reduce() builds a dense clauses x variables constraint matrix — every cell is

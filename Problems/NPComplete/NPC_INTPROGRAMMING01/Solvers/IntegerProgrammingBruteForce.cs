@@ -5,8 +5,8 @@ namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Solvers;
 class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
 
     // --- Fields ---
-    public string solverName { get; } = "Integer Programming Brute Force";
-    public string solverDefinition { get; } = "This is a generic brute force solver for 0-1 Integer Programming";
+    public string solverName { get; } = "0-1 ILP Brute Force";
+    public string solverDefinition { get; } = "Tests every binary assignment for 0-1 Integer Linear Programming and returns the first one that satisfies all constraints.";
     public string source { get; } = "";
     public string[] contributors { get; } = { "Caleb Eardley" };
     public bool timerHasExpired { get; set; }
