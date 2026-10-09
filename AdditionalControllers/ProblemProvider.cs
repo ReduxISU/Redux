@@ -143,6 +143,16 @@ public class ProblemProvider : ControllerBase {
         }
     }
 
+    // The backward map reads B's answer, so malformed text is reported against B's certificate format
+    // (and B's name), not A's. Same translation as MapSolutions above.
+    static SolveRun MapSolutionsBack(IReduction red, string solution, bool withSteps) {
+        try {
+            return red.MapBackRun(solution, withSteps)!;
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(red, solution, red.reductionTo.certificateFormat, ex.Message, ex, red.reductionTo.problemName);
+        }
+    }
+
     static IReduction Reduction(string name) {
         return Activator.CreateInstance(Reductions[name.ToLower()]) as IReduction;
     }
@@ -201,7 +211,7 @@ public class ProblemProvider : ControllerBase {
         ProblemParseException p => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
                                            LookupInstanceFormat(p.ProblemName), p.Received, p.Message)),
         ReductionInputException r => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
-                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message)),
+                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message, r.Problem)),
         CertificateParseException c => BadRequest(ParseErrorBody("certificate_parse_error",
                                            c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message)),
         _ => throw ex,
@@ -485,11 +495,43 @@ public class ProblemProvider : ControllerBase {
         }
     }
 
-    private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail) {
+    /// <summary>
+    /// Maps an answer for the target problem back to an answer for the source problem, the direction
+    /// students need after solving the target. The body is the SOURCE instance (the reduction is rebuilt from it,
+    /// so the backward map knows the construction); <c>solution</c> is the target problem's certificate.
+    /// "{}" (no answer) maps to "{}". Not every reduction has a backward map yet: those answer 400 with
+    /// <c>no_backward_map</c> (a request this reduction cannot serve, like <c>unknown_reduction</c>, rather
+    /// than a server fault). With <c>steps=true</c> the response is <c>{ answer, steps }</c> instead of the bare string.
+    /// </summary>
+    /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
+    /// <param name="solution" example = "{x1_0,x2_1,x1_2}">solution certificate of the TARGET problem</param>
+    /// <param name="steps" example = "false">true to also return the steps that mapped the answer back</param>
+    /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
+    /// <returns>solution certificate of the source problem, or { answer, steps }</returns>
+    [HttpPost("mapSolutionBack")]
+    [ProducesResponseType(400)]
+    public IActionResult mapSolutionBack(string reduction, string solution, [FromBody] string instance, bool steps = false) {
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
+        try {
+            IReduction red = Reduction(reduction, instance);
+            if (!red.hasBackwardMap())
+                return BadRequest(new { error = "no_backward_map", reduction });
+            SolveRun run = MapSolutionsBack(red, solution, steps);
+            object body = steps ? new { answer = run.Answer, steps = run.Steps } : run.Answer;
+            return Content(
+                JsonSerializer.Serialize(body, new JsonSerializerOptions() { WriteIndented = true }),
+                "application/json");
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
+    }
+
+    private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail, string? problem = null) {
         return new {
             error,
             reduction = reduction.reductionName,
-            problem = reduction.reductionFrom.problemName,
+            problem = problem ?? reduction.reductionFrom.problemName,
             expected,
             received,
             detail

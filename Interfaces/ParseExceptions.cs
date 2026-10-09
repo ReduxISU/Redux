@@ -38,8 +38,11 @@ internal class ReductionInputException : Exception {
     public IReduction Reduction { get; }
     public string Received { get; }
     public string ExpectedFormat { get; }
-    public ReductionInputException(IReduction reduction, string received, string expectedFormat, string? detail = null, Exception? innerException = null)
+    /// <summary>The problem whose text was malformed, when that is not the reduction's source problem (a backward map reads the target's answer).</summary>
+    public string? Problem { get; }
+    public ReductionInputException(IReduction reduction, string received, string expectedFormat, string? detail = null, Exception? innerException = null, string? problem = null)
         : base(detail ?? $"could not parse input to {reduction.reductionName}", innerException) {
+        Problem = problem;
         Reduction = reduction;
         Received = received;
         ExpectedFormat = expectedFormat;
