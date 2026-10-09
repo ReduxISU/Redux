@@ -306,27 +306,69 @@ public class ProblemProvider : ControllerBase {
         return false;
     }
 
-    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance) {
+    private static JsonSerializerOptions VisualizeJsonOptions() {
         var options = new JsonSerializerOptions {
             WriteIndented = true,
         };
         options.Converters.Add(new API_JSON_Converter());
+        return options;
+    }
 
+    /// <summary>
+    /// Builds the non-empty visualization items in display order: the initial visual, any solver steps, then the
+    /// solved visual. The initial visual is returned separately so each response shape can place it.
+    /// </summary>
+    private static (API_JSON? Initial, List<API_JSON> Frames) buildFrames(IVisualization visualization, List<Object> steps, string solution, string instance) {
         API_JSON visual = visualization.visualize(instance);
         List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps);
         API_JSON solutionJson = visualization.SolvedVisualization(instance, solution);
 
-        List<API_JSON> list = new List<API_JSON>();
-
-        if (!IsEmptyVisualization(visual))
-            list.Add(visual);
-
-        list.AddRange(apiSteps.Where(step => !IsEmptyVisualization(step)));
-
+        List<API_JSON> frames = new List<API_JSON>();
+        frames.AddRange(apiSteps.Where(step => !IsEmptyVisualization(step)));
         if (!IsEmptyVisualization(solutionJson))
-            list.Add(solutionJson);
+            frames.Add(solutionJson);
 
-        return JsonSerializer.Serialize(list, options);
+        return (IsEmptyVisualization(visual) ? null : visual, frames);
+    }
+
+    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance);
+        List<API_JSON> list = new List<API_JSON>();
+        if (initial != null)
+            list.Add(initial);
+        list.AddRange(frames);
+        return JsonSerializer.Serialize(list, VisualizeJsonOptions());
+    }
+
+    // Declared-type properties (not object) so payload/frames go through API_JSON_Converter exactly like list items.
+    private sealed record VisualizeFramesResponse(
+        [property: System.Text.Json.Serialization.JsonPropertyName("type")] string Type,
+        [property: System.Text.Json.Serialization.JsonPropertyName("payload")] API_JSON? Payload,
+        [property: System.Text.Json.Serialization.JsonPropertyName("frames")] List<API_JSON> Frames);
+
+    private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance);
+        var body = new VisualizeFramesResponse(visualization.visualizationType.ToString(), initial, frames);
+        return JsonSerializer.Serialize(body, VisualizeJsonOptions());
+    }
+
+    // The T of the first ISolver<T> (or IVisualization<U>'s U) a type implements, if any.
+    private static Type? ProblemTypeOf(Type type, Type openGeneric) =>
+        type.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == openGeneric)
+            ?.GetGenericArguments()[0];
+
+    /// <summary>
+    /// Whether a solver can run on the problem a visualization draws. If the problem types cannot be determined
+    /// from the generic interfaces, the solver is allowed.
+    /// </summary>
+    private static bool SolverMatchesVisualization(Type solverType, IVisualization vis) {
+        Type? solverProblem = ProblemTypeOf(solverType, typeof(ISolver<>));
+        Type? visProblem = ProblemTypeOf(vis.GetType(), typeof(IVisualization<>))
+            ?? ProblemTypeOf(vis.solver.GetType(), typeof(ISolver<>));
+        if (solverProblem == null || visProblem == null)
+            return true;
+        return solverProblem == visProblem || solverProblem.IsAssignableFrom(visProblem);
     }
 
     /// <summary>
@@ -334,15 +376,36 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="visualization" example = "Sat3DefaultVisualization">The visualization to use</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
-    /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
+    /// <param name="solver" example = "Sat3BacktrackingSolver">Optional. The solver whose steps and solution are visualized. Defaults to the visualization's own solver. Must solve the same problem as the visualization</param>
+    /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual)</param>
+    /// <returns>the basic visualization, any steps from the solver, and the solved visualization, shaped by <paramref name="format"/></returns>
     [HttpPost("visualize")]
     [ProducesResponseType(400)]
-    public IActionResult visualize(string visualization, [FromBody] string instance) {
+    public IActionResult visualize(string visualization, [FromBody] string instance, string? solver = null, string? format = null) {
         if (!Visualizers.TryGetValue(visualization.ToLower(), out _))
             return BadRequest(new { error = "unknown_visualization", received = visualization });
+        bool asFrames;
+        if (string.IsNullOrEmpty(format) || format.Equals("list", StringComparison.OrdinalIgnoreCase))
+            asFrames = false;
+        else if (format.Equals("frames", StringComparison.OrdinalIgnoreCase))
+            asFrames = true;
+        else
+            return BadRequest(new { error = "unknown_format", received = format });
         var vis = Visualization(visualization);
+        ISolver chosen = vis.solver;
+        if (!string.IsNullOrEmpty(solver)) {
+            if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
+                return BadRequest(new { error = "unknown_solver", received = solver });
+            if (!SolverMatchesVisualization(solverType, vis))
+                return BadRequest(new { error = "solver_mismatch", received = solver, visualization });
+            chosen = Solver(solver);
+        }
         try {
-            return Content(getVisualize(vis, vis.solver.GetSteps(instance), vis.solver.solve(instance), instance), "application/json");
+            var steps = chosen.GetSteps(instance);
+            var solution = chosen.solve(instance);
+            return Content(asFrames
+                ? getVisualizeFrames(vis, steps, solution, instance)
+                : getVisualize(vis, steps, solution, instance), "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
