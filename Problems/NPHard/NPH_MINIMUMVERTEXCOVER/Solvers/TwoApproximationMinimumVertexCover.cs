@@ -1,9 +1,11 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 
 namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
-class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
+class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Minimum Vertex Cover Approximation";
@@ -22,26 +24,45 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
     public string complexity { get; } = "O(E), E = |edges|";
 
     // --- Methods Including Constructors ---
+    // When set, the random choice of edges is reproducible (tests, replays). Unset keeps the original behaviour:
+    // a different random choice on every run. Private, so it does not appear in /info.
+    private readonly int? _seed;
+
     public TwoApproximationMinimumVertexCover() {
 
     }
 
-    public string solve(MINIMUMVERTEXCOVER G) {
-        //{{a,b,c,d,e,f,g} : {(a,b) & (a,c) & (c,d) & (c,e) & (d,f) & (e,f) & (e,g)}}
+    public TwoApproximationMinimumVertexCover(int seed) {
+        _seed = seed;
+    }
 
-        List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>(G.edges);
+    public string solve(MINIMUMVERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
+
+    // Steps: one per edge picked, taking both of its ends. Recorder state lives only in this call.
+    public string Solve(MINIMUMVERTEXCOVER G, StepRecorder<NodeSet> rec) {
+        var cover = Cover(G.edges, rec);
+        rec.Done(new NodeSet(cover), true, cover.Count == 0
+            ? "There are no edges to cover."
+            : $"Every edge is covered with {cover.Count} nodes. This method never uses more than twice the smallest cover.");
+        return "{" + string.Join(",", cover) + "}";
+    }
+
+    /// <summary>The 2-approximation cover of <paramref name="allEdges"/>. Records a step per edge picked.</summary>
+    internal List<string> Cover(IReadOnlyList<KeyValuePair<string, string>> allEdges, StepRecorder<NodeSet> rec) {
+        List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>(allEdges);
         List<KeyValuePair<string, string>> C = new List<KeyValuePair<string, string>>(); //This becomes our maximal matching
-        Random rnd = new Random();
+        Random rnd = _seed is int seed ? new Random(seed) : new Random();
+        List<string> leftoverNodes = new List<string>();
         while (edges.Count > 0) {
             int index = rnd.Next(edges.Count); //gets a random edge index
             KeyValuePair<string, string> edge = edges[index]; //gets a random edge
             KeyValuePair<string, string> fullEdge = new KeyValuePair<string, string>(edge.Key, edge.Value); //makes previous line more explicit
             C.Add(fullEdge); //Adds the random edge to C. 
-                             // string tempString = "";
-                             // foreach(KeyValuePair<string,string> tEdge in edges){
-                             //     tempString += tEdge.Key + " " + tEdge.Value + ",";
-                             // }
-                             // Console.WriteLine(tempString);
+            if (!leftoverNodes.Contains(edge.Key)) leftoverNodes.Add(edge.Key);
+            if (!leftoverNodes.Contains(edge.Value)) leftoverNodes.Add(edge.Value);
+            rec.Accept(() => new NodeSet(leftoverNodes),
+                () => $"Edge {{{edge.Key},{edge.Value}}} isn't covered yet. Take both ends.",
+                edge.Key, edge.Value, GraphSubsetFrames.EdgeId(edge.Key, edge.Value));
             foreach (KeyValuePair<string, string> e in new List<KeyValuePair<string, string>>(edges)) { //For the random edge {u,v}, remove every edge in vertexcover that has a node u or v.
 
                 if (e.Key.Equals(edge.Key)) {
@@ -61,19 +82,7 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
             }
         }
 
-        List<string> leftoverNodes = new List<string>();
-        foreach (KeyValuePair<string, string> cEdge in C) {
-            if (!leftoverNodes.Contains(cEdge.Key)) {
-                leftoverNodes.Add(cEdge.Key);
-            }
-            if (!leftoverNodes.Contains(cEdge.Value)) {
-                leftoverNodes.Add(cEdge.Value);
-
-            }
-        }
-
-        return "{" + string.Join(",", leftoverNodes) + "}"; ;
-
+        return leftoverNodes;
     }
 
 }

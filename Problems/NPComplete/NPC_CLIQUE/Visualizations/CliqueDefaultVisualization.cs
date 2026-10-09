@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 
-class CliqueDefaultVisualization : IVisualization<CLIQUE, API_GraphJSON> {
+class CliqueDefaultVisualization : IVisualization<CLIQUE, API_GraphJSON>, IGraphSubsetVisualization<CLIQUE> {
     public string visualizationName { get; } = "Clique Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Clique";
     public string source { get; } = "";
@@ -45,4 +47,10 @@ class CliqueDefaultVisualization : IVisualization<CLIQUE, API_GraphJSON> {
 
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(NodeSet);
+
+    GraphSubsetSpec IGraphSubsetVisualization<CLIQUE>.Describe(CLIQUE clique) =>
+        new(clique.nodes, clique.edges, clique.K, SubsetRule.Clique);
 }

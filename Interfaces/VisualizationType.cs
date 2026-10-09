@@ -29,4 +29,10 @@ public enum VisualizationType {
     PumpSchedule,
     /// <summary>Step-table view backed by API_TableJSON.</summary>
     DynamicTable,
+    /// <summary>
+    /// The shared Graph picture: a static payload plus one frame of named states per solver step. Reported only
+    /// in the <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; visualizations keep reporting their legacy
+    /// type (<see cref="GraphD3"/>, <see cref="GraphLaTeX"/>) in /info so old frontends are unaffected.
+    /// </summary>
+    Graph,
 }

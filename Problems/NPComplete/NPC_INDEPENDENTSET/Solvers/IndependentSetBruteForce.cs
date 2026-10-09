@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.Solvers;
 
-class IndependentSetBruteForce : ISolver<INDEPENDENTSET> {
+class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Independent Set Brute Force";
@@ -52,30 +53,36 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET> {
         }
         return combination;
     }
-    public string solve(INDEPENDENTSET independentSet) {
+    public string solve(INDEPENDENTSET independentSet) => Solve(independentSet, StepRecorder<NodeSet>.Off);
+
+    // Steps: one per candidate set of size K. Recorder state lives only in this call.
+    public string Solve(INDEPENDENTSET independentSet, StepRecorder<NodeSet> rec) {
         List<int> combination = new List<int>();
         for (int i = 0; i < independentSet.K; i++) {
             combination.Add(i);
         }
         long reps = factorial(independentSet.nodes.Count) / (factorial(independentSet.K) * factorial(independentSet.nodes.Count - independentSet.K));
+        int tried = 0;
+        string[] Candidate() => combination.Select(i => independentSet.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
             string certificate = indexListToCertificate(combination, independentSet.nodes);
+            tried++;
             if (independentSet.defaultVerifier.verify(independentSet, certificate)) {
+                rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. No two are joined.", Candidate);
+                rec.Done(new NodeSet(Candidate()), true,
+                    $"{GraphSubsetFrames.Braces(Candidate())} is an independent set of size {independentSet.K}, found after {tried} tries.");
                 return certificate;
             }
+            rec.Reject(() => new NodeSet(Candidate()),
+                () => $"Try {GraphSubsetFrames.Braces(Candidate())}: {GraphSubsetFrames.Why(SubsetRule.IndependentSet, independentSet.nodes, independentSet.edges, Candidate())}.",
+                Candidate);
             combination = nextComb(combination, independentSet.nodes.Count);
 
         }
+        rec.Done(new NodeSet([]), false, $"Checked all {tried} sets of {independentSet.K} nodes. None is independent.");
         return "{}";
     }
 
-    /// <summary>
-    /// Given Independent Set instance in string format and solution string, outputs a solution dictionary with 
-    /// true values mapped to nodes that are in the solution set else false. 
-    /// </summary>
-    /// <param name="problemInstance"></param>
-    /// <param name="solutionString"></param>
-    /// <returns></returns>
     public Dictionary<string, bool> getSolutionDict(string problemInstance, string solutionString) {
 
         Dictionary<string, bool> solutionDict = new Dictionary<string, bool>();

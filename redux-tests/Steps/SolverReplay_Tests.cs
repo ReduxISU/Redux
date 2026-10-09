@@ -10,13 +10,22 @@ namespace redux_tests;
 // problem's default instance.
 //
 // Note: a randomized solver must take a seed (or otherwise be deterministic) for the answer-equality
-// check (a) to hold across runs. None of the currently converted solvers are random.
+// check (a) to hold across runs. A solver with a public constructor taking one int is built with a fixed seed here
+// (see CreateSolver); the only random ones so far are the two vertex cover 2-approximations.
 public class SolverReplay_Tests {
     private static Type? TypedInterface(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>));
 
     public static TheoryData<string> TypedSolverNames =>
         new(ProblemProvider.Solvers.Where(kv => TypedInterface(kv.Value) != null).Select(kv => kv.Key).OrderBy(n => n));
+
+    private const int Seed = 12345;
+
+    // The solver as the replay should run it: seeded if it can be, so repeated runs make the same random choices.
+    private static ISolver CreateSolver(Type solverType) {
+        var seeded = solverType.GetConstructor([typeof(int)]);
+        return (ISolver)(seeded != null ? seeded.Invoke([Seed]) : Activator.CreateInstance(solverType)!);
+    }
 
     // The certificate a verifier expects, taken from a solver's answer string. Path-style answers
     // ("The sequence of states to accept is: 1, 2") carry the certificate after the colon; a solver whose
@@ -37,6 +46,10 @@ public class SolverReplay_Tests {
                 .Select(l => l.Split(':')[1].Split(',').Last().Trim());
             return new ActiveStates(ends, last.Position);
         }
+        if (lastPartial is NodeSet) {
+            // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
+            return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
@@ -55,7 +68,7 @@ public class SolverReplay_Tests {
         Type problemType = TypedInterface(solverType)!.GetGenericArguments()[0];
         var problem = (IProblem)Activator.CreateInstance(problemType)!;
         string instance = problem.defaultInstance;
-        var solver = (ISolver)Activator.CreateInstance(solverType)!;
+        var solver = CreateSolver(solverType);
 
         var withSteps = solver.Run(instance, withSteps: true);
         var withoutSteps = solver.Run(instance, withSteps: false);
@@ -81,7 +94,11 @@ public class SolverReplay_Tests {
         // (c) Done.Ok agrees with the problem's own verifier on the returned answer.
         bool? ok = last.Ok;
         Assert.NotNull(ok);
-        bool verified = problem.defaultVerifier.verify(instance, CertificateFrom(withSteps.Answer));
+        // "{}" is how the node-set solvers say "no answer"; the verifiers reject it or refuse to parse it, so it
+        // counts as not verified without asking them (a vertex cover of size 3 may simply not exist, as with
+        // the 2-approximation on the default Vertex Cover instance).
+        bool noAnswer = finalPartial is NodeSet { Nodes.Length: 0 };
+        bool verified = !noAnswer && problem.defaultVerifier.verify(instance, CertificateFrom(withSteps.Answer));
         Assert.Equal(verified, ok);
     }
 

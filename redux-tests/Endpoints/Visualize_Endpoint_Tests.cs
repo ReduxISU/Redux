@@ -43,11 +43,21 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         ("cliquedefaultvisualization", "cliquebruteforce", "GraphD3"),
         ("minimumspanningtreevisualization", "kruskalsolver", "GraphD3"),
         ("vertexcoverdefaultvisualization", "vertexcoverbruteforce", "GraphD3"),
+        ("minimumvertexcoverdefaultvisualization", "bruteforceminimumvertexcover", "GraphD3"),
+        ("independentsetdefaultvisualization", "independentsetbruteforce", "GraphD3"),
+        ("dominatingsetdefaultvisualization", "dominatingsetforcedvertex", "GraphD3"),
+    };
+
+    // Visualizations that build their own frames (the Graph picture) are checked in GraphFrames_Endpoint_Tests;
+    // for the rest, format=frames is the list reshaped.
+    private static readonly string[] OwnFrames = {
+        "cliquedefaultvisualization", "vertexcoverdefaultvisualization", "minimumvertexcoverdefaultvisualization",
+        "independentsetdefaultvisualization", "dominatingsetdefaultvisualization",
     };
 
     public static TheoryData<string> SnapshotNames => new(SnapshotCases.Select(c => c.Vis));
     public static TheoryData<string, string> SnapshotSolvers => new(SnapshotCases.Select(c => (c.Vis, c.Solver)));
-    public static TheoryData<string, string> SnapshotTypes => new(SnapshotCases.Select(c => (c.Vis, c.Type)));
+    public static TheoryData<string, string> SnapshotTypes => new(SnapshotCases.Where(c => !OwnFrames.Contains(c.Vis)).Select(c => (c.Vis, c.Type)));
 
     [Theory]
     [MemberData(nameof(SnapshotNames))]

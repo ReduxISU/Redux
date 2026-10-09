@@ -1,4 +1,6 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using System.Linq;
 using System.Numerics;
@@ -6,7 +8,7 @@ using System.Numerics;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
+class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Brute Force";
@@ -60,14 +62,13 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
     /// <returns>
     ///  Subset of nodes that cover whole graph. 
     /// </returns>
-    public string solve(VERTEXCOVER G) {
-        // K=0: the only size-0 candidate is the empty node set. VCVerifier treats "{}"
-        // as a malformed certificate rather than a legitimate empty node list (see
-        // VCVerifier.verify), so the empty set can't be checked the same way every other
-        // candidate below is checked. Decide it directly instead: the empty set covers G
-        // iff G has no edges. Either way "{}" is the right string to return here, since
-        // "{}" already doubles as this method's "no solution found" sentinel below.
+    public string solve(VERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
+
+    // Steps: one per candidate set of size K. Recorder state lives only in this call.
+    public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
         if (G.K == 0) {
+            rec.Done(new NodeSet([]), G.edges.Count == 0,
+                G.edges.Count == 0 ? "There are no edges, so the empty set covers everything." : "A cover of size 0 cannot cover any edge.");
             return "{}";
         }
         List<int> combination = new List<int>();
@@ -75,24 +76,27 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
             combination.Add(i);
         }
         BigInteger reps = factorial(G.nodes.Count) / (factorial(G.K) * factorial(G.nodes.Count - G.K));
+        int tried = 0;
+        string[] Candidate() => combination.Select(i => G.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
             string certificate = indexListToCertificate(combination, G.nodes);
+            tried++;
             if (G.defaultVerifier.verify(G, certificate)) {
+                rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. It covers every edge.", Candidate);
+                rec.Done(new NodeSet(Candidate()), true, $"{GraphSubsetFrames.Braces(Candidate())} covers every edge, found after {tried} tries.");
                 return certificate;
             }
+            rec.Reject(() => new NodeSet(Candidate()),
+                () => $"Try {GraphSubsetFrames.Braces(Candidate())}: {GraphSubsetFrames.Why(SubsetRule.VertexCover, G.nodes, G.edges, Candidate())}.",
+                Candidate);
             combination = nextComb(combination, G.nodes.Count);
 
         }
+        rec.Done(new NodeSet([]), false, $"Checked all {tried} sets of {G.K} nodes. None covers every edge.");
         return "{}";
     }
 
 
-    /// <summary>
-    ///  Copy of CliqueBruteForceMethod except with list input, note that we might want to encapsulate and have these solvers all implement a "nodeSolution" method. 
-    /// </summary>
-    /// <param name="problemInstance"></param>
-    /// <param name="solutionString"></param>
-    /// <returns></returns>
     public Dictionary<string, bool> getSolutionDict(string problemInstance, string solutionString) {
         Dictionary<string, bool> solutionDict = new Dictionary<string, bool>();
         // GraphParser gParser = new GraphParser();
