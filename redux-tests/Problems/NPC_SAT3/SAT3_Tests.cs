@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using System.Linq;
 using Xunit;
+using API.Interfaces;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 using API.Problems.NPComplete.NPC_SAT3.Verifiers;
 using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
 using API.Problems.NPComplete.NPC_CLIQUE;
 using API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
-using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_GRAPHCOLORING;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.Verifiers;
@@ -226,55 +226,48 @@ public class SAT3_Tests {
             () => reduction.mapSolutions("{x1_0,x2_1,!x3_3}"));
     }
 
-    // -------------------------------------------------------------------------
-    // SAT3 → CLIQUE reduction (Sipser) — reduce2() / SipserClique shape
-    // -------------------------------------------------------------------------
-
-    [Theory]
-    [InlineData("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)", 3)]
-    [InlineData("(x1 | x2 | x3) & (!x1 | !x2 | !x3)", 2)]
-    public void SAT3_To_CLIQUE_Reduce2_Structure(string sat3Instance, int expectedClauses) {
-        // reduce2() is a second, richer reduction shape (unused by the constructor,
-        // which calls reduce()) that returns a SipserClique carrying per-cluster
-        // node metadata instead of a plain CLIQUE.
-        SAT3 sat3 = new SAT3(sat3Instance);
+    [Fact]
+    public void SAT3_To_CLIQUE_Reduction_RepeatedLiteralInClause_GetsDistinctNodes() {
+        // (x1 | x1 | x2) used to produce two nodes named "x1_0", which the node set merged (#715).
+        SAT3 sat3 = new SAT3("(x1 | x1 | x2) & (!x1 | x2 | x2)");
         SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
+        CLIQUE clique = reduction.reductionTo;
 
-        SipserClique clique2 = reduction.reduce2();
+        Assert.Equal(6, clique.nodes.Count);
+        Assert.Equal(6, clique.nodes.Distinct().Count());
+        Assert.Contains("x1_0", clique.nodes);
+        Assert.Contains("x1'_0", clique.nodes);
+        Assert.Contains("x2'_1", clique.nodes);
 
-        Assert.Equal(expectedClauses, clique2.K);
-        Assert.Equal(expectedClauses, clique2.numberOfClusters);
-        // nodes is set directly to SAT3.literals (one entry per literal occurrence).
-        Assert.Equal(sat3.literals.Count, clique2.nodes.Count);
-        Assert.Equal(sat3.literals.Count, clique2.clusterNodes.Count);
-        Assert.NotEmpty(clique2.edges);
-        Assert.NotNull(clique2.graph);
-        Assert.NotEmpty(clique2.instance);
-        // reduce2() assigns its result to reductionTo, same as reduce() does.
-        Assert.Same(clique2, reduction.reductionTo);
+        // Every cluster still has one node per literal occurrence, and nodes of one clause stay unconnected.
+        Assert.DoesNotContain(clique.edges, e => (e.Key == "x1_0" && e.Value == "x1'_0") || (e.Key == "x1'_0" && e.Value == "x1_0"));
+        // Inverse literals across clauses stay unconnected, including the marked occurrences.
+        Assert.DoesNotContain(clique.edges, e => e.Key == "x1'_0" && e.Value == "!x1_1");
+        Assert.Contains(clique.edges, e => e.Key == "x1'_0" && e.Value == "x2_1");
     }
 
     [Fact]
-    public void SAT3_To_CLIQUE_SolutionMappedToClusterNodes_MarksMatchingNodesTrue() {
-        SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | x2 | x3)");
+    public void SAT3_To_CLIQUE_Reduction_RepeatedLiteralInClause_Gadgets_Reference_Existing_Nodes() {
+        SAT3 sat3 = new SAT3("(x1 | x1 | x2) & (!x1 | x2 | x2)");
         SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
-        SipserClique clique2 = reduction.reduce2();
-        List<string> allNodeNames = clique2.clusterNodes.Select(n => n.name).ToList();
 
-        SipserClique marked = reduction.solutionMappedToClusterNodes(clique2, allNodeNames);
-
-        Assert.All(marked.clusterNodes, n => Assert.Equal(true.ToString(), n.solutionState));
+        Assert.NotEmpty(reduction.gadgets);
+        Assert.All(reduction.gadgets, g => Assert.All(g.reductionToIds, n => Assert.Contains(n, reduction.reductionTo.nodes)));
     }
 
     [Fact]
-    public void SAT3_To_CLIQUE_SolutionMappedToClusterNodes_NoMatch_LeavesStateUnset() {
-        SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | x2 | x3)");
+    public void SAT3_To_CLIQUE_Reduction_RepeatedLiteralInClause_Solution_Maps_To_Valid_Certificate() {
+        SAT3 sat3 = new SAT3("(x1 | x1 | x2) & (!x1 | x2 | x2)");
         SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
-        SipserClique clique2 = reduction.reduce2();
+        string sat3Solution = new Sat3BacktrackingSolver().solve(sat3);
+        Assert.NotEqual("No Solution", sat3Solution);
 
-        SipserClique marked = reduction.solutionMappedToClusterNodes(clique2, new List<string> { "no_such_node" });
+        string certificate = reduction.mapSolutions(sat3Solution);
 
-        Assert.All(marked.clusterNodes, n => Assert.Equal(string.Empty, n.solutionState));
+        Assert.True(new CliqueVerifier().verify(reduction.reductionTo, certificate));
+        // The inverse reduction treats x1 and x1' as the same literal.
+        string back = new API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3.SipserReduceToSAT3(reduction.reductionTo).mapSolutions(certificate);
+        Assert.True(sat3.defaultVerifier.verify(sat3, back));
     }
 
     // -------------------------------------------------------------------------
@@ -396,14 +389,16 @@ public class SAT3_Tests {
     }
 
     [Fact]
-    public void SAT3_To_GRAPHCOLORING_MapSolutions_InvalidCertificate_ReturnsErrorString() {
+    public void SAT3_To_GRAPHCOLORING_MapSolutions_InvalidCertificate_Throws() {
         SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | !x2 | !x3)");
         KarpReduceGRAPHCOLORING reduction = new KarpReduceGRAPHCOLORING(sat3);
 
         // Fails clause 2 (all-True doesn't satisfy "!x1 | !x2 | !x3").
-        string result = reduction.mapSolutions("(x1:True,x2:True,x3:True)");
+        var ex = Assert.Throws<ReductionInputException>(() => reduction.mapSolutions("(x1:True,x2:True,x3:True)"));
 
-        Assert.Equal("Solution is inccorect", result);
+        Assert.Equal("(x1:True,x2:True,x3:True)", ex.Received);
+        Assert.Equal(sat3.certificateFormat, ex.ExpectedFormat);
+        Assert.Contains("does not satisfy", ex.Message);
     }
 
     [Fact]
@@ -589,14 +584,16 @@ public class SAT3_Tests {
     }
 
     [Fact]
-    public void SAT3_To_INTPROGRAMMING01_MapSolutions_InvalidCertificate_ReturnsErrorString() {
+    public void SAT3_To_INTPROGRAMMING01_MapSolutions_InvalidCertificate_Throws() {
         SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | !x2 | !x3)");
         KarpIntProgStandard reduction = new KarpIntProgStandard(sat3);
 
         // Fails clause 2 (all-True doesn't satisfy "!x1 | !x2 | !x3").
-        string result = reduction.mapSolutions("(x1:True,x2:True,x3:True)");
+        var ex = Assert.Throws<ReductionInputException>(() => reduction.mapSolutions("(x1:True,x2:True,x3:True)"));
 
-        Assert.Equal("Solution is inccorect", result);
+        Assert.Equal("(x1:True,x2:True,x3:True)", ex.Received);
+        Assert.Equal(sat3.certificateFormat, ex.ExpectedFormat);
+        Assert.Contains("does not satisfy", ex.Message);
     }
 
     [Fact]
