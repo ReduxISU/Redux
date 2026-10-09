@@ -10,6 +10,7 @@ class GenericVerifier01INTP : IVerifier<INTPROGRAMMING01> {
     public string verifierName { get; } = "Default 0-1 Integer Linear Programming Verifier";
     public string verifierDefinition { get; } = "Verifies that a binary assignment satisfies every constraint in a 0-1 Integer Linear Programming instance.";
     public string source { get; } = " ";
+    public string sourceFile { get; } = SourceFile.Path();
 
     private string _certificate = "";
     public string[] contributors { get; } = { "Author Unknown" };

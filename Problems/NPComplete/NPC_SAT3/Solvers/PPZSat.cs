@@ -14,6 +14,7 @@ class PPZ : ISolver<SAT3> {
     + " If no satisfying assignment is found after all trials are exhausted, the algorithm reports"
     + " failure without concluding the formula is unsatisfiable.";
     public string source { get; } = "R. Paturi, P. Pudlak and F. Zane, \"Satisfiability Coding Lemma,\" Proceedings 38th Annual Symposium on Foundations of Computer Science, Miami Beach, FL, USA, 1997, pp. 566-574, doi: 10.1109/SFCS.1997.646146.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://ieeexplore.ieee.org/document/646146";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

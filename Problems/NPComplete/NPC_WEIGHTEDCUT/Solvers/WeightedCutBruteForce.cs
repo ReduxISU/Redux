@@ -10,6 +10,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
     public string solverName { get; } = "Weighted Cut Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the Weighted Cut problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

@@ -17,6 +17,7 @@ class CarraghanPardalos : ISolver<CLIQUE> {
     + " partial clique plus the remaining candidates cannot possibly reach size k, avoiding exploration of"
     + " branches that cannot succeed.";
     public string source { get; } = "Randy Carraghan and Panos M. Pardalos. 1990. An exact algorithm for the maximum clique problem. Oper. Res. Lett. 9, 6 (November, 1990), 375–382. https://doi.org/10.1016/0167-6377(90)90057-C";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://doi.org/10.1016/0167-6377(90)90057-C";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

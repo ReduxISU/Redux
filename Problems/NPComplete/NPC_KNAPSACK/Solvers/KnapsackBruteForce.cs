@@ -10,6 +10,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
     public string solverName { get; } = "Knapsack Brute Force";
     public string solverDefinition { get; } = "This a brute force solver for the 0-1 Knapsack problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration (own complexity string above already says "O(2^n)").

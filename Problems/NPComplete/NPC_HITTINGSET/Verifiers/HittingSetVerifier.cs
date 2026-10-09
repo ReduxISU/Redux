@@ -11,6 +11,7 @@ class HittingSetVerifier : IVerifier<HITTINGSET> {
     public string verifierName { get; } = "Default Hitting Set Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Hitting Set";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     private string _certificate = "";
 

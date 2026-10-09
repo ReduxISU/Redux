@@ -8,6 +8,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
     public string solverName { get; } = "Exact Cover Recursive";
     public string solverDefinition { get; } = "This is a optimized recursive solver for Exact Cover";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact recursive search WITH pruning -- distinct from ExactCoverBruteForce,

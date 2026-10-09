@@ -16,6 +16,7 @@ public class SATBruteForceSolver : ISolver {
     public string solverName { get; } = "SAT Brute Force";
     public string solverDefinition { get; } = "This is a simple brute force solver for SAT";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration. Implements non-generic ISolver directly
     // (not ISolver<T>) -- included here so SolverTypeCatalog's `is ISolver` check (not `is ISolver<T>`)

@@ -16,6 +16,7 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
                                             This is done by first taking all possible edges in the original clique graph, and removing
                                             the edges that are actually in the clique graph from that set.";
     public string source { get; } = "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Janita Aamir", "Alex Diviney", "Caleb Eardley" };
     // reduce() explicitly materializes the complement graph (all node pairs minus the
     // clique's own edges) — up to O(n^2) edges even when the input only encodes O(n+m).

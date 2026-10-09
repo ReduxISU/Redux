@@ -26,6 +26,7 @@ class DOMINATINGSET
 
     public string source { get; } =
         "Garey, M. R., & Johnson, D. S. (1979). Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman and Company.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://dl.acm.org/doi/10.5555/574848";
     public const string InstanceGrammar =

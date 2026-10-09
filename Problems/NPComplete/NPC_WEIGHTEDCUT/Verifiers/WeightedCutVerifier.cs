@@ -15,6 +15,7 @@ class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
     public string verifierName { get; } = "Default Weighted Cut Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Weighted Cut problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 

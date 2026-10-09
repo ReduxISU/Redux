@@ -15,6 +15,7 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
     public string solverName { get; } = "Bernstein-Vazirani Algorithm";
     public string solverDefinition { get; } = "Calls external quantum computing API to solve Bernstein-Vazirani's algorithm";
     public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Grant Gardner" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Delegates to the external quantum-simulator service.

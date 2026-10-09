@@ -17,6 +17,7 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     public string inputDescription { get; } = "X, Y, and Z, three equally sized sets, and M, a set of 3-tuple constraints over X x Y x Z";
     public string outputDescription { get; } = "True or False, whether a subset of M exists that matches every element of X, Y, and Z exactly once";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{x1,...}{y1,...}{z1,...}{x,y,z},... | X,Y,Z are the three sets, followed by one 3-tuple per constraint in M";
     public static string _defaultInstance { get; } = "{Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}"; // simply a list of sets with the elements divided by commas, the first three are asumed to be X, Y, and Z, and all subsequent sets are sets in M

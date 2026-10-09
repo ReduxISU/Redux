@@ -8,6 +8,7 @@ class MinCutVerifier : IVerifier<MINCUT> {
     public string verifierName { get; } = "Default Minimum Cut Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed set of edges is a valid minimum cut of the graph by checking all edges exist, then comparing the total weight to the true minimum cut weight from Stoer-Wagner.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     private string _certificate = "";
     public string certificate => _certificate;

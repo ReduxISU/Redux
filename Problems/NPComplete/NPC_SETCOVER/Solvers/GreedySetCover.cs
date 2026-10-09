@@ -15,6 +15,7 @@ class GreedySetCover : ISolver<SETCOVER> {
     + " cover of size at most H(n) times the optimal, where H(n) is the n-th harmonic number, though in"
     + " practice performance is typically much closer to optimal than this worst-case bound suggests.";
     public string source { get; } = "Johnson, D. S. (1974). \"Approximation algorithms for combinatorial problems.\" Journal of Computer and System Sciences, 9(3), 256–278.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/800125.804034";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }

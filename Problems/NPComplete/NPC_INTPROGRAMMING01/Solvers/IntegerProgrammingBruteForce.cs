@@ -8,6 +8,7 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
     public string solverName { get; } = "0-1 ILP Brute Force";
     public string solverDefinition { get; } = "Tests every binary assignment for 0-1 Integer Linear Programming and returns the first one that satisfies all constraints.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

@@ -10,6 +10,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
     public string solverName { get; } = "Hitting Set Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for Hitting Set";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

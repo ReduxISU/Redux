@@ -12,6 +12,7 @@ class CliqueVerifier : IVerifier<CLIQUE> {
     public string verifierName { get; } = "Default Clique Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Clique";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley", "Kaden Marchetti" };
 
 

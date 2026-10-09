@@ -26,6 +26,7 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
 
     public string source { get; } =
         "David A. Huffman, A Method for the Construction of Minimum-Redundancy Codes, Proceedings of the IRE, 1952.";
+    public string sourceFile { get; } = SourceFile.Path();
 
     public string sourceLink { get; } =
         "https://doi.org/10.1109/JRPROC.1952.273898";

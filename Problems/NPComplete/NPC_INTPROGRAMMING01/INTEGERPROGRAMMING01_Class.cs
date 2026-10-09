@@ -16,6 +16,7 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public string inputDescription { get; } = "C, an integer matrix of coefficients, and d, an integer vector of bounds";
     public string outputDescription { get; } = "True or False, whether a 0-1 assignment x exists such that Cx <= d";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "(row1),...,(rowM)<=(d1 ... dM) | each row is n space-separated int coefficients (one row of C), d is the m-vector right-hand side";
     public static string _defaultInstance { get; } = "(-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)";

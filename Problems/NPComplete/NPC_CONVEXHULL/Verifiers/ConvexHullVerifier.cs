@@ -14,6 +14,7 @@ class ConvexHullVerifier : IVerifier<CONVEXHULL> {
     public string verifierName { get; } = "Default Convex Hull Verifier";
     public string verifierDefinition { get; } = "Verifies a proposed convex hull by recomputing the convex hull of the input points using the default solver and comparing it to the provided certificate.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "";
     public string[] contributors { get; } = { "Bektur Akkabakov" };
     private string _certificate = "";

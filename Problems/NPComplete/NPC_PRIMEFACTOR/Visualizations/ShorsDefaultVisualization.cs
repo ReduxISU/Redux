@@ -9,6 +9,7 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR, API_QUANTUMCIRCUIT
     public string visualizationName { get; } = "Shor's Algorithm Quantum Visualization";
     public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent Shor's algorithm for prime factorization and simulates the circuit to find the prime factors.";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Grant Gardner", "Jason L. Wright", "George Lake" };
     public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new PrimeFactorSolver();

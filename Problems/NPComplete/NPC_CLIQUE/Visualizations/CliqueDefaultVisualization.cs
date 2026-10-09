@@ -11,6 +11,7 @@ class CliqueDefaultVisualization : IVisualization<CLIQUE, API_GraphJSON> {
     public string visualizationName { get; } = "Clique Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Clique";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Kaden Marchetti", "Alex Diviney", "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new CliqueBruteForce();

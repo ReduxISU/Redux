@@ -13,6 +13,7 @@ class CutDefaultVisualization : IVisualization<CUT, API_GraphJSON> {
     public string visualizationName { get; } = " Cut Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Cut";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new CutBruteForce();

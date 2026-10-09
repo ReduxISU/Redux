@@ -8,6 +8,7 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER> {
     public string solverName { get; } = "Exact Cover Brute Force";
     public string solverDefinition { get; } = "This is a generic brute force solver for Exact Cover";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

@@ -12,6 +12,7 @@ class SetCoverVerifier : IVerifier<SETCOVER> {
     public string verifierName { get; } = "Default Set Cover Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Set Cover";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 

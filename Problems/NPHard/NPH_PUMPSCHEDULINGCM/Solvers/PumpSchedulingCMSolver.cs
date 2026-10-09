@@ -16,6 +16,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
         "total cost of the pump schedule, and schedule is a list of pump schedules (one per pump) where " +
         "each pump schedule is a list of 24 binary values indicating whether that pump is on or off for each hour.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Memo table + optimal-substructure recurrence.

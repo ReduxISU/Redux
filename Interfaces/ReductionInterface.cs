@@ -30,6 +30,8 @@ interface IReduction {
     string reductionName { get; }
     string reductionDefinition { get; }
     string source { get; }
+    // Repo-relative path of the file declaring this class; see SourceFile.
+    string sourceFile { get; }
     string[] contributors { get; }
     IVisualization visualization { get; }
     List<Gadget> gadgets { get; }

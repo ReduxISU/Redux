@@ -10,6 +10,7 @@ class MinimumSpanningTreeVisualization : IVisualization<MINIMUMSPANNINGTREE, API
     public string visualizationName { get; } = "Minimum Spanning Tree Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted graph and highlights the edges selected for a minimum spanning tree.";
     public string source { get; } = "Original visualization implementation for this repository.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;

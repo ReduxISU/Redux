@@ -16,6 +16,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
  + " returning the smallest that covers every remaining edge combined with the forced nodes, or failure"
  + " if none is found.";
     public string source { get; } = "Buss, J. F., & Goldsmith, J. (1993). Nondeterminism within P. SIAM Journal on Computing, 22(3), 560-572.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.1137/0222038";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }

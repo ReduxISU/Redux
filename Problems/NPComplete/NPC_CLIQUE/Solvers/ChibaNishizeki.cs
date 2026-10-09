@@ -18,6 +18,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
     + " arboricity and m is the number of edges.";
     public string source { get; } = "Chiba, N., & Nishizeki, T. (1985). Arboricity and subgraph listing"
     + " algorithms. SIAM Journal on Computing, 14(1), 210-223. https://doi.org/10.1137/0214017";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://doi.org/10.1137/0214017";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

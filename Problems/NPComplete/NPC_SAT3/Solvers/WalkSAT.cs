@@ -19,6 +19,7 @@ class WalkSAT : ISolver<SAT3> {
  + " the literal with the minimum break-count is flipped.";
 
     public string source { get; } = "Bart Selman, Henry A. Kautz, and Bram Cohen. 1994. Noise strategies for improving local search. In AAAI '94.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cdn.aaai.org/AAAI/1994/AAAI94-051.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }

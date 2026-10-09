@@ -18,6 +18,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     public string inputDescription { get; } = "A deterministic finite automaton and an input string";
     public string outputDescription { get; } = "True or False, whether the automaton accepts the input string";
     public string source { get; } = "N/A";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "N/A";
 
     // Follows Formal Definition of DFA (Q, Σ, δ, q₀, F) With Input String //

@@ -12,6 +12,7 @@ class ArcSetBruteForce : ISolver<ARCSET> {
     public string solverName { get; } = "Arc Set Brute Force";
     public string solverDefinition { get; } = @" This Solver is a brute force solver, which checks all combinations of k edges until a solution is found or its determined there is no solution";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;

@@ -10,6 +10,7 @@ class KnapsackDP : ISolver<KNAPSACK> {
     public string solverName { get; } = "Knapsack Dynamic Programming";
     public string solverDefinition { get; } = "A pseudo-polynomial time solver for the 0-1 Knapsack decision problem using bottom-up dynamic programming. Builds an (N+1) x (W+1) table where dp[i,w] is the maximum value achievable using the first i items within capacity w, then backtracks through the table to recover the chosen subset. Runs in O(N*W) time and space.";
     public string source { get; } = "Bellman, Richard. Dynamic Programming. Princeton University Press, 1957.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Knapsack_problem#0/1_knapsack_problem";
     public string[] contributors { get; } = { "Musab Khan", "Calvin Condie" };
     public bool timerHasExpired { get; set; }

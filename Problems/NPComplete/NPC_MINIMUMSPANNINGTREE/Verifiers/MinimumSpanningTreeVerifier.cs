@@ -16,6 +16,7 @@ class MinimumSpanningTreeVerifier : IVerifier<MINIMUMSPANNINGTREE> {
     public string verifierName { get; } = "Default Minimum Spanning Tree Verifier";
     public string verifierDefinition { get; } = "Verifies that a proposed edge set is a valid minimum spanning tree for the input graph.";
     public string source { get; } = "Original verifier implementation for this repository. It checks that a certificate is spanning and acyclic, then compares its total weight against a reference MST produced by Kruskal's algorithm.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = string.Empty;
     public string[] contributors { get; } = { "Andreas Kramer", "Val Kimbrough" };
     private string _certificate = string.Empty;

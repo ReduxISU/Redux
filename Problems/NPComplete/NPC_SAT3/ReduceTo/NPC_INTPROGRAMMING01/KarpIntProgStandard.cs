@@ -10,6 +10,7 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
     public string reductionName { get; } = "Karp's 0-1 Integer Linear Programming Reduction";
     public string reductionDefinition { get; } = "Karp's reduction maps each clause of a SAT problem to a row in a 0-1 integer linear programming matrix.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
     // reduce() builds a dense clauses x variables constraint matrix — every cell is
     // explicitly filled (0, 1, or -1), not just the 3 literals actually present per

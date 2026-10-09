@@ -12,6 +12,7 @@ class SipserClique : CLIQUE {
     // Adding cluster field to class
     private List<SipserNode> _clusterNodes = new List<SipserNode>();
     private int _numberOfClusters;
+    public override string sourceFile { get; } = SourceFile.Path();
     public SipserClique() : base() {
 
     }

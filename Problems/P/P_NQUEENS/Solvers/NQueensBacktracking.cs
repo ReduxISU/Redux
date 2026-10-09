@@ -9,6 +9,7 @@ class NQueensBacktracking : ISolver<NQUEENS> {
     public string solverDefinition { get; } =
         "Places queens row by row using backtracking and returns a valid placement if one exists.";
     public string source { get; } = "Classic backtracking approach for the N-Queens problem.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact backtracking search WITH pruning over permutation-style placements

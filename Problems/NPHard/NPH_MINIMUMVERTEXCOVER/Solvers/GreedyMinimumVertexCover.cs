@@ -14,6 +14,7 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
  + " selected nodes; does not use k, and unlike the maximal-matching approximation, offers no constant-"
  + " factor guarantee — its approximation ratio can be as bad as Theta(log n).";
     public string source { get; } = "David S. Johnson. 1974. Approximation algorithms for combinatorial problems. J. Comput. Syst. Sci. 9, 3 (December, 1974), 256–278. https://doi.org/10.1016/S0022-0000(74)80044-9";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/800125.804034";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }

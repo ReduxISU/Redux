@@ -18,6 +18,7 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     // Declared, not derived. The verifier requires an EXACT match to K crossing edges
     // over an unrestricted bipartition (no source/sink) -- this is Karp's Max-Cut-shaped

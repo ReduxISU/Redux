@@ -17,6 +17,7 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     public string inputDescription { get; } = "f, an oracle function given as its list of output bits";
     public string outputDescription { get; } = "An index x such that f(x) = 1, or no solution if none exists";
     public string source { get; } = "Grover, L. K. (1996). A fast quantum mechanical algorithm for database search. In Proceedings of the twenty-eighth annual ACM symposium on Theory of computing (pp. 212-219).";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/237814.237866";
     public const string InstanceGrammar = "{y | y is list}";
     private static readonly string _defaultInstance = "(0, 1, 0, 0)";

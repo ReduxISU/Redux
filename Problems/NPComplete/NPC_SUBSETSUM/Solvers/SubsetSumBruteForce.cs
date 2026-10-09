@@ -9,6 +9,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
     public string solverName { get; } = "Subset Sum Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for Subset Sum";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley", "Garret Stouffer" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.

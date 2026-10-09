@@ -9,6 +9,7 @@ class DancingLinks : ISolver<EXACTCOVER> {
     public string solverName { get; } = "Knuth's Algorithm X";
     public string solverDefinition { get; } = "";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning (Algorithm X via dancing links) -- distinct
