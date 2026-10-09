@@ -64,6 +64,9 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
     }
     public KarpSATToSAT3(string instance) : this(new SAT(instance)) { }
     public KarpSATToSAT3() : this(new SAT()) { }
+    // Legacy gadget ids are "i" (clause) and "i-j" (literal); the stable ids Gadget documents prefix a "c".
+    private static string StableId(string legacyId) => "c" + legacyId;
+
     public SAT3 reduce() {
         SAT SATInstance = _reductionFrom;
         SAT3 reducedSAT3 = new SAT3();
@@ -74,7 +77,9 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
         for (int clauseIndex = 0; clauseIndex < clauses.Count; clauseIndex++) {
             string clauseId = clauseIndex.ToString();
             gadgets.Add(new Gadget(
-                "ClauseHighlight",
+                GadgetKind.Group,
+                new List<string>() { StableId(clauseId) },
+                new List<string>() { StableId(clauseId) },
                 new List<string>() { clauseId },
                 new List<string>() { clauseId }
             ));
@@ -82,7 +87,9 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
             for (int literalIndex = 0; literalIndex < clauses[clauseIndex].Count; literalIndex++) {
                 string literalId = clauseId + "-" + literalIndex.ToString();
                 gadgets.Add(new Gadget(
-                    "ElementHighlight",
+                    GadgetKind.Element,
+                    new List<string>() { StableId(literalId) },
+                    new List<string>() { StableId(literalId) },
                     new List<string>() { literalId },
                     new List<string>() { literalId }
                 ));
@@ -112,14 +119,16 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
             if (i.Count == 2) {
                 instance += " " + i[0] + " |";
                 i.Add(i[0]);
-                gadgets.Add(new Gadget("ElementHighlight", new List<string>() { c + "-0" }, new List<string>() { c + "-2" }));
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { StableId(c + "-0") }, new List<string>() { StableId(c + "-2") },
+                    new List<string>() { c + "-0" }, new List<string>() { c + "-2" }));
             }
 
             if (i.Count == 1) {
                 instance += " " + i[0] + " |" + " " + i[0] + " |";
                 i.Add(i[0]);
                 i.Add(i[0]);
-                gadgets.Add(new Gadget("ElementHighlight", new List<string>() { c + "-0" }, new List<string>() { c + "-2", c + "-1" }));
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { StableId(c + "-0") }, new List<string>() { StableId(c + "-2"), StableId(c + "-1") },
+                    new List<string>() { c + "-0" }, new List<string>() { c + "-2", c + "-1" }));
             }
 
             instance = instance.TrimEnd('|') + ") & (";
@@ -158,10 +167,12 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
             g.reductionFromIds.FirstOrDefault() == index.ToString()
         );
 
-        if (existing != null)
+        if (existing != null) {
             existing.reductionToIds.Add((clauses.Count - 1).ToString());
-        else
-            gadgets.Add(new Gadget("ClauseHighlight", new List<string> { index.ToString() }, new List<string> { (clauses.Count - 1).ToString() }));
+            existing.targetIds.Add(StableId((clauses.Count - 1).ToString()));
+        } else
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { StableId(index.ToString()) }, new List<string> { StableId((clauses.Count - 1).ToString()) },
+                new List<string> { index.ToString() }, new List<string> { (clauses.Count - 1).ToString() }));
 
         // Adding element highlighting gadget
         var literal1 = gadgets.FirstOrDefault(g =>
@@ -177,10 +188,14 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
         if (literal1 != null) {
             literal1.reductionToIds.Remove(index1);
             literal1.reductionToIds.Add((clauses.Count - 1).ToString() + "-0");
+            literal1.targetIds.Remove(StableId(index1));
+            literal1.targetIds.Add(StableId((clauses.Count - 1).ToString() + "-0"));
         }
         if (literal2 != null) {
             literal2.reductionToIds.Remove(index2);
             literal2.reductionToIds.Add((clauses.Count - 1).ToString() + "-1");
+            literal2.targetIds.Remove(StableId(index2));
+            literal2.targetIds.Add(StableId((clauses.Count - 1).ToString() + "-1"));
         }
 
         // Removing last two literals from the original clause

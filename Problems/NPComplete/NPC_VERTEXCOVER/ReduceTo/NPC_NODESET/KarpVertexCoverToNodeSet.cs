@@ -72,7 +72,7 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
         }
 
         foreach (UtilCollection node in VERTEXCOVERInstance.graph.Nodes) {
-            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
         // --- Generate G string for new CLIQUE ---
 
