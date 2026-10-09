@@ -52,15 +52,44 @@ class ConvexHullSolver : ISolver<CONVEXHULL> {
         return Merge(left, right);
     }
 
-    // Merges two hulls. Every vertex of the combined hull is a vertex of one of the two sub-hulls, so
-    // it is enough to take the union of their vertices (in (x, y) order, a linear merge) and rebuild
-    // the hull from it in linear time. This is correct for equal x values and collinear points.
+    // Merges two hulls in linear time. Every vertex of the combined hull is a vertex of one of the
+    // two sub-hulls, so it is enough to rebuild the hull from the union of their vertices. Each
+    // hull's vertices are put in (x, y) order by a linear merge of its lower and upper chains, and
+    // since the halves were split by index of the sorted points, every left vertex precedes every
+    // right vertex, so the two lists just concatenate. Correct for equal x values and collinear points.
     private List<(double x, double y)> Merge(List<(double x, double y)> left, List<(double x, double y)> right) {
-        var all = new List<(double x, double y)>(left.Count + right.Count);
-        all.AddRange(left);
-        all.AddRange(right);
-        all.Sort(CompareXY);
+        var all = SortedVertices(left);
+        all.AddRange(SortedVertices(right));
         return Chain(all);
+    }
+
+    // A hull from Chain is counterclockwise starting at its lexicographically smallest vertex: the
+    // lower chain (indices 0..max) ascends in (x, y), and the upper chain (the rest) ascends when
+    // read backwards. Merging the two chains yields all vertices in (x, y) order in O(h).
+    internal static List<(double x, double y)> SortedVertices(List<(double x, double y)> hull) {
+        int h = hull.Count;
+        var result = new List<(double x, double y)>(h);
+        if (h <= 2) {
+            result.AddRange(hull);
+            if (h == 2 && CompareXY(result[0], result[1]) > 0)
+                result.Reverse();
+            return result;
+        }
+
+        int max = 0;
+        for (int i = 1; i < h; i++)
+            if (CompareXY(hull[i], hull[max]) > 0)
+                max = i;
+
+        int lo = 0;          // walks the lower chain 0..max forwards
+        int up = h - 1;      // walks the upper chain h-1..max+1 backwards
+        while (lo <= max || up > max) {
+            if (up <= max || (lo <= max && CompareXY(hull[lo], hull[up]) <= 0))
+                result.Add(hull[lo++]);
+            else
+                result.Add(hull[up--]);
+        }
+        return result;
     }
 
     private static int CompareXY((double x, double y) a, (double x, double y) b) {

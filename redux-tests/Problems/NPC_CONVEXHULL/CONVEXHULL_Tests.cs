@@ -212,4 +212,15 @@ public class CONVEXHULL_Tests {
         Assert.Equal("((4,5))", single.defaultSolver.solve(single));
         Assert.True(single.defaultVerifier.verify(single, "((4,5))"));
     }
+
+    [Fact]
+    public void CONVEXHULL_SortedVertices_Returns_Hull_In_XY_Order_Without_Sorting() {
+        var rng = new Random(7);
+        for (int t = 0; t < 300; t++) {
+            var pts = Enumerable.Range(0, rng.Next(1, 30)).Select(_ => ((double)rng.Next(0, 6), (double)rng.Next(0, 6))).ToList();
+            var hull = ReferenceHull(pts);
+            var expected = hull.OrderBy(p => p.x).ThenBy(p => p.y).ToList();
+            Assert.Equal(expected, API.Problems.NPComplete.NPC_CONVEXHULL.Solvers.ConvexHullSolver.SortedVertices(hull));
+        }
+    }
 }
