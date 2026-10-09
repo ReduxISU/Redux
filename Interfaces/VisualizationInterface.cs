@@ -16,6 +16,16 @@ interface IVisualization {
     API_JSON visualize(string problem);
     API_JSON SolvedVisualization(string problem, string solution);
     List<API_JSON> StepsVisualization(string problem, List<Object> steps);
+
+    /// <summary>
+    /// The answer shape (<c>TPartial</c> of <see cref="API.Interfaces.Steps.SolverStep{TPartial}"/>) this
+    /// visualization draws steps for; null means it draws legacy untyped steps. Implement explicitly
+    /// (<c>Type? IVisualization.StepShape =&gt; ...</c>) so it does not appear as a public member in /info.
+    /// Ignored by JSON: an object written through an <see cref="IVisualization"/>-typed property (the reduce
+    /// endpoint does this) would otherwise serialize this <see cref="Type"/>, which System.Text.Json rejects.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    Type? StepShape => null;
 }
 
 interface IVisualization<U> : IVisualization where U : IProblem {

@@ -1,5 +1,6 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.P.P_NFA;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace API.Problems.P.P_NFA.Solvers;
 
-class NFASolver : ISolver<NFA> {
+class NFASolver : ISolver<NFA, ActiveStates> {
     public string solverName { get; } = "NFA Backtracking";
     public string solverDefinition { get; } = "This solver enumerates all accepting runs of a nondeterministic finite automaton (returns all successful state sequences).";
     public string source { get; } = "";
@@ -26,15 +27,24 @@ class NFASolver : ISolver<NFA> {
 
     public NFASolver() { }
 
-    public string solve(NFA problem) {
+    public string solve(NFA problem) => Solve(problem, StepRecorder<ActiveStates>.Off);
+
+    // Steps: Try for each move taken (an input symbol or an epsilon move), Accept when a run uses up the
+    // input in an accept state, Reject at a dead end, Backtrack when the search backs out of a move, and
+    // Done with the end states of all accepting runs. Recorder state lives only in this call.
+    public string Solve(NFA problem, StepRecorder<ActiveStates> rec) {
         // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
 
         // Validate characters
         foreach (char c in input) {
-            if (!problem.alphabet.Contains(c))
+            if (!problem.alphabet.Contains(c)) {
+                rec.Reject(() => new ActiveStates([problem.startState], 0),
+                    () => $"'{c}' is not in the alphabet, so the NFA cannot read it.", problem.startState);
+                rec.Done(new ActiveStates([], 0), false, $"Rejected: '{c}' is not in the alphabet.");
                 return $"No Solution: Input contains character '{c}' not in NFA alphabet";
+            }
         }
 
         var edges = problem.edges; // List<NFAEdge>
@@ -43,8 +53,12 @@ class NFASolver : ISolver<NFA> {
         // DFS exploring nondeterministic runs; visitedPerPath prevents infinite loops for epsilon cycles
         void DFS(string state, int pos, List<string> path, HashSet<(string, int)> visitedPerPath) {
             // If consumed all input and in accept state, record a copy of the path
-            if (pos >= input.Length && problem.acceptStates.Contains(state)) {
+            bool acceptingHere = pos >= input.Length && problem.acceptStates.Contains(state);
+            bool moved = false;
+            if (acceptingHere) {
                 acceptPaths.Add(new List<string>(path));
+                rec.Accept(() => new ActiveStates([state], pos),
+                    () => $"The input is used up in {state}, an accept state: this run accepts.", state);
                 // Do not return: still allow further epsilon transitions that may produce other accept runs
             }
 
@@ -54,7 +68,12 @@ class NFASolver : ISolver<NFA> {
                 if (visitedPerPath.Contains(key)) continue;
                 visitedPerPath.Add(key);
                 path.Add(e.To);
+                moved = true;
+                rec.Try(() => new ActiveStates([e.To], pos),
+                    () => $"Take an ε-move from {state} to {e.To}.", state, e.To);
                 DFS(e.To, pos, path, visitedPerPath);
+                rec.Backtrack(() => new ActiveStates([state], pos),
+                    () => $"Back out of {e.To} to {state} to try another move.", e.To, state);
                 path.RemoveAt(path.Count - 1);
                 visitedPerPath.Remove(key);
             }
@@ -67,22 +86,41 @@ class NFASolver : ISolver<NFA> {
                     if (visitedPerPath.Contains(key)) continue;
                     visitedPerPath.Add(key);
                     path.Add(e.To);
+                    moved = true;
+                    rec.Try(() => new ActiveStates([e.To], pos + 1),
+                        () => $"Read '{need}': move from {state} to {e.To}.", state, e.To);
                     DFS(e.To, pos + 1, path, visitedPerPath);
+                    rec.Backtrack(() => new ActiveStates([state], pos),
+                        () => $"Back out of {e.To} to {state} to try another move.", e.To, state);
                     path.RemoveAt(path.Count - 1);
                     visitedPerPath.Remove(key);
                 }
+            }
+
+            if (!moved && !acceptingHere) {
+                rec.Reject(() => new ActiveStates([state], pos),
+                    () => pos < input.Length
+                        ? $"{state} has no move on '{input[pos]}': this run is a dead end."
+                        : $"The input is used up in {state}, which is not an accept state: this run is a dead end.",
+                    state);
             }
         }
 
         // Seed DFS with start state
         var startPath = new List<string> { problem.startState };
         var startVisited = new HashSet<(string, int)> { (problem.startState, 0) };
+        rec.Try(() => new ActiveStates([problem.startState], 0),
+            () => $"Start in {problem.startState}.", problem.startState);
         DFS(problem.startState, 0, startPath, startVisited);
 
         // Build output
         if (acceptPaths.Count == 0) {
+            rec.Done(new ActiveStates([], input.Length), false, "Rejected: no run accepts the input.");
             return "No Solution Exists: No run accepts the input";
         }
+
+        rec.Done(new ActiveStates(acceptPaths.Select(p => p[^1]), input.Length), true,
+            acceptPaths.Count == 1 ? "Accepted: one run accepts the input." : $"Accepted: {acceptPaths.Count} runs accept the input.");
 
         var sb = new StringBuilder();
         foreach (var p in acceptPaths) {
@@ -90,15 +128,6 @@ class NFASolver : ISolver<NFA> {
         }
 
         return sb.ToString().TrimEnd();
-    }
-
-    // GetSteps: The default steps for an NFA are the states of its default run (first accepting
-    // run, or first rejected run if none accept) — needed so that IVisualization's non-generic
-    // `StepsVisualization` guard (which short-circuits to empty when GetSteps is empty) doesn't
-    // skip table-style visualizations that recompute their own step data via GetTableSteps.
-    public List<Object> GetSteps(NFA problem) {
-        var runs = GetPathRuns(problem);
-        return runs.Count > 0 ? runs[0].states.Cast<Object>().ToList() : new List<Object>();
     }
 
     // ----- Table Visualization Support ----- //

@@ -306,7 +306,7 @@ public class ProblemProvider : ControllerBase {
         return false;
     }
 
-    private static JsonSerializerOptions VisualizeJsonOptions() {
+    internal static JsonSerializerOptions VisualizeJsonOptions() {
         var options = new JsonSerializerOptions {
             WriteIndented = true,
         };
@@ -401,8 +401,9 @@ public class ProblemProvider : ControllerBase {
             chosen = Solver(solver);
         }
         try {
-            var steps = chosen.GetSteps(instance);
-            var solution = chosen.solve(instance);
+            var run = chosen.Run(instance, withSteps: true);
+            var steps = run.StepsFor(vis.StepShape);
+            var solution = run.Answer;
             return Content(asFrames
                 ? getVisualizeFrames(vis, steps, solution, instance)
                 : getVisualize(vis, steps, solution, instance), "application/json");

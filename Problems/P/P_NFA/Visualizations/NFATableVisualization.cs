@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Tables;
 using API.Problems.P.P_NFA;
@@ -15,6 +16,11 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new NFASolver();
+
+    // Implemented explicitly so it is not a public member (and so not part of /info).
+    // The table is still built from the solver's own run enumeration (GetTableSteps), not from the typed
+    // steps, but it declares the shape its solver records so the steps are not dropped as a mismatch.
+    Type? IVisualization.StepShape => typeof(ActiveStates);
 
     public NFATableVisualization() { }
 
