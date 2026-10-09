@@ -43,4 +43,17 @@ public class SolverStep_Serialization_Tests {
         var step = new SolverStep<ActiveStates>(new ActiveStates([], 0), StepEvent.Done, [], "Rejected.") { Ok = false };
         Assert.False(Serialize(step).GetProperty("ok").GetBoolean());
     }
+
+    // A visualization written through an IVisualization-typed property (as the reduce endpoint writes a
+    // reduction's visualizations) must serialize, and must not expose StepShape: System.Text.Json rejects Type.
+    [Fact]
+    public void Visualization_WithAStepShape_SerializesThroughTheInterface_WithoutStepShape() {
+        API.Interfaces.IVisualization vis = new API.Problems.P.P_DFA.Visualizations.DFAVisualization();
+        Assert.NotNull(vis.StepShape);
+
+        var json = JsonDocument.Parse(JsonSerializer.Serialize(vis, new JsonSerializerOptions { IncludeFields = true })).RootElement;
+
+        Assert.False(json.TryGetProperty("StepShape", out _));
+        Assert.False(json.TryGetProperty("stepShape", out _));
+    }
 }
