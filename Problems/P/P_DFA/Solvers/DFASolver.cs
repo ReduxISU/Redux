@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.P.P_DFA;
 
 namespace API.Problems.P.P_DFA.Solvers;
 
-class DFASolver : ISolver<DFA> {
+class DFASolver : ISolver<DFA, ActiveStates> {
 
     // ----- Fields ----- //
     public string solverName { get; } = "DFA Simulation";
@@ -23,26 +24,44 @@ class DFASolver : ISolver<DFA> {
     // dictionary/table lookup, so this is O(n * E), not the ideal O(n).
     public string complexity { get; } = "O(n * E)";
 
-    private List<string> nodePath = [];
-
     // Methods Including Constructors //
     public DFASolver() { }
 
-    public string solve(DFA problem) {
+    public string solve(DFA problem) => Solve(problem, StepRecorder<ActiveStates>.Off);
+
+    // Steps: one Try for the start state, then one Try per input symbol consumed (the transition taken).
+    // The run dies with a Reject; Done always closes the run with the states it stopped in.
+    // Recorder state lives only in this call, so the solver object stays stateless.
+    public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
         // Input String //
         string inputString = problem.inputString;
         // First Node To Be Analyzed //
         string currentNode = problem.startState;
         // Will Track Path Through Nodes //
-        nodePath = new List<string> { currentNode };
+        var nodePath = new List<string> { currentNode };
+        int consumed = 0;
+
+        rec.Try(() => new ActiveStates([problem.startState], 0),
+            () => $"Start in {problem.startState}.", problem.startState);
+
+        string Finish(string answer, bool ok, string caption) {
+            string end = currentNode;
+            int at = consumed;
+            rec.Done(new ActiveStates([end], at), ok, caption);
+            return answer;
+        }
 
         foreach (char character in inputString) {
             // Accept Empty String If Start State Is an Accept State //
-            if (character == 'ε' && problem.acceptStates.Contains(currentNode)) return $"The sequence of states to accept is: {currentNode}";
+            if (character == 'ε' && problem.acceptStates.Contains(currentNode))
+                return Finish($"The sequence of states to accept is: {currentNode}", true, $"The input is empty and {currentNode} is an accept state, so the DFA accepts.");
 
             // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character)) {
-                return $"No Solution: Input contains character '{character}' not in DFA alphabet";
+                rec.Reject(() => new ActiveStates([currentNode], consumed),
+                    () => $"'{character}' is not in the alphabet, so the DFA cannot read it.", currentNode);
+                return Finish($"No Solution: Input contains character '{character}' not in DFA alphabet", false,
+                    $"Rejected: '{character}' is not in the alphabet.");
             }
 
             // Follow the Edge //
@@ -51,93 +70,32 @@ class DFASolver : ISolver<DFA> {
                 if (edge.From == currentNode && edge.Symbol == character) {
                     currentNode = edge.To;
                     nodePath.Add(currentNode);
+                    consumed++;
                     foundEdge = true;
+                    rec.Try(() => new ActiveStates([edge.To], consumed),
+                        () => $"Read '{character}': move from {edge.From} to {edge.To}.", edge.From, edge.To);
                     break;
                 }
             }
 
             // If No Edge, DFA Stops //
             if (!foundEdge) {
-                return "No Solution Exists: DFA cannot transition with this character";
+                rec.Reject(() => new ActiveStates([currentNode], consumed),
+                    () => $"No move from {currentNode} on '{character}', so the run stops.", currentNode);
+                return Finish("No Solution Exists: DFA cannot transition with this character", false,
+                    $"Rejected: {currentNode} has no move on '{character}'.");
             }
         }
 
         // Check If Last State Is Accept State //
         if (problem.acceptStates.Contains(currentNode)) {
-            return "The sequence of states to accept is: " + string.Join(", ", nodePath);
+            return Finish("The sequence of states to accept is: " + string.Join(", ", nodePath), true,
+                $"The input is used up in {currentNode}, an accept state, so the DFA accepts.");
         } else {
-            return "No Solution Exists: The DFA ended in a non-accepting state";
+            rec.Reject(() => new ActiveStates([currentNode], consumed),
+                () => $"The input is used up in {currentNode}, which is not an accept state.", currentNode);
+            return Finish("No Solution Exists: The DFA ended in a non-accepting state", false,
+                $"Rejected: the run ended in {currentNode}, which is not an accept state.");
         }
-    }
-
-    public List<Object> GetSteps(string instance) {
-        solve(ParseGuard.CreateProblem<DFA>(instance));
-
-        return nodePath.Cast<Object>().ToList();
-    }
-
-    // ----- Table Visualization Support ----- //
-
-    public class DFATableStepRow {
-        public int step { get; set; }
-        public string symbol { get; set; } = "-";
-        public string fromState { get; set; } = "-";
-        public string toState { get; set; } = "";
-        public bool accepting { get; set; }
-    }
-
-    // One frame of the step slider: the whole trace (`rows`) plus the row that frame is "at"
-    // (`currentRow`). Every frame carries every row, so the table itself never changes shape and
-    // only the highlight moves -- the same frame shape SPSP/SSSP feed to the shared DynamicTable
-    // renderer, which is why no DFA-specific renderer or first/last-step special case is needed.
-    public class DFATableStep {
-        public int currentRow { get; set; }
-        public List<DFATableStepRow> rows { get; set; } = new();
-    }
-
-    // GetTableSteps: Traces the single deterministic path through the DFA once, then emits one
-    // frame per row of that trace, walking the highlight down the table.
-    public List<Object> GetTableSteps(DFA problem) {
-        string inputString = problem.inputString;
-        string currentNode = problem.startState;
-
-        var rows = new List<DFATableStepRow>
-        {
-            new DFATableStepRow
-            {
-                step = 0,
-                toState = currentNode,
-                accepting = problem.acceptStates.Contains(currentNode)
-            }
-        };
-
-        int stepIndex = 1;
-        foreach (char character in inputString) {
-            if (character == 'ε' && problem.acceptStates.Contains(currentNode))
-                break;
-
-            if (!problem.alphabet.Contains(character))
-                break; // Input invalid for this DFA; table stops where the trace stalls
-
-            var matchedEdge = problem.edges.FirstOrDefault(e => e.From == currentNode && e.Symbol == character);
-            if (matchedEdge == null)
-                break; // No transition available; DFA rejects, table stops where the trace stalls
-
-            currentNode = matchedEdge.To;
-            rows.Add(new DFATableStepRow {
-                step = stepIndex,
-                symbol = character.ToString(),
-                fromState = matchedEdge.From,
-                toState = matchedEdge.To,
-                accepting = problem.acceptStates.Contains(currentNode)
-            });
-            stepIndex++;
-        }
-
-        // `rows` is shared by reference across frames: it is finished being built here and every
-        // frame is a read-only view of the same completed trace.
-        return rows
-            .Select((_, i) => (Object)new DFATableStep { currentRow = i, rows = rows })
-            .ToList();
     }
 }

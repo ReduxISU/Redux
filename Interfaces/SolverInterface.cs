@@ -1,4 +1,6 @@
 
+using API.Interfaces.Steps;
+
 namespace API.Interfaces;
 
 interface ISolver {
@@ -52,6 +54,30 @@ interface ISolver {
     List<Object> GetSteps(string instance) {
         return new List<Object>();
     }
+
+    /// <summary>
+    /// Solves an instance, optionally recording steps, in one call. The default is the legacy behaviour:
+    /// <see cref="GetSteps(string)"/> and then <see cref="solve(string)"/> (two runs, untyped steps).
+    /// Solvers implementing <see cref="ISolver{T, TPartial}"/> override it to run once with typed steps.
+    /// </summary>
+    SolveRun Run(string instance, bool withSteps) {
+        var steps = withSteps ? GetSteps(instance).ToList() : new List<Object>();
+        return new SolveRun(solve(instance), steps, null);
+    }
+}
+
+/// <summary>The result of <see cref="ISolver.Run"/>: the answer, the recorded steps, and the shape of their partial answers.</summary>
+/// <param name="Answer">The same string <c>solve</c> returns.</param>
+/// <param name="Steps">The steps, as objects. <see cref="SolverStep{TPartial}"/> for typed solvers, solver-specific objects for legacy ones.</param>
+/// <param name="StepShape">The <c>TPartial</c> of the typed steps, or null for legacy untyped steps.</param>
+sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepShape) {
+    /// <summary>
+    /// The steps to hand a visualization that draws <paramref name="visualizationShape"/>. If the shapes differ
+    /// (including one typed and one legacy) the steps cannot be drawn, so none are given: the response then
+    /// shows the initial and solved pictures instead of failing.
+    /// </summary>
+    public List<object> StepsFor(Type? visualizationShape) =>
+        StepShape == visualizationShape ? Steps.ToList() : new List<object>();
 }
 
 interface ISolver<T> : ISolver where T : IProblem {
@@ -76,5 +102,28 @@ interface ISolver<T> : ISolver where T : IProblem {
 
     List<Object> GetSteps(T problem) {
         return new List<Object>();
+    }
+}
+
+/// <summary>
+/// A solver whose steps are typed by the shape of its answer. Implement <see cref="Solve"/>; the plain
+/// <c>solve</c> runs it with recording off.
+/// </summary>
+interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
+    string Solve(T problem, StepRecorder<TPartial> rec);
+
+    string ISolver<T>.solve(T problem) => Solve(problem, StepRecorder<TPartial>.Off);
+
+    SolveRun ISolver.Run(string instance, bool withSteps) {
+        T parsed = ParseGuard.CreateProblem<T>(instance);
+        var rec = withSteps ? new StepRecorder<TPartial>() : StepRecorder<TPartial>.Off;
+        string answer = Solve(parsed, rec);
+        return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
+    }
+
+    List<Object> ISolver<T>.GetSteps(T problem) {
+        var rec = new StepRecorder<TPartial>();
+        Solve(problem, rec);
+        return rec.Steps.Cast<object>().ToList();
     }
 }
