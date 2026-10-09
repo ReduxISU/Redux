@@ -7,8 +7,8 @@ namespace API.Problems.NPComplete.NPC_HITTINGSET.Solvers;
 class HittingSetBruteForce : ISolver<HITTINGSET> {
 
     // --- Fields ---
-    public string solverName { get; } = "Hitting Set Brute Force";
-    public string solverDefinition { get; } = "This is a brute force solver for Hitting Set";
+    public string solverName { get; } = "Exact Hitting Set Brute Force";
+    public string solverDefinition { get; } = "This is a brute force solver for Exact Hitting Set. It tests every subset of U and returns the first one that intersects every subset in S in exactly one element.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };

@@ -12,11 +12,11 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
         // "encoded:" suffix glued on outside any bracket, neither of which SPADE's
         // set/list grammar can express, so it was hand-parsed with Substring/Split.
         // "()" (an empty pair) is a special-cased certificate for an empty instance.
-        public const string CertificateGrammar = "({(asciiCode1,code1),(asciiCode2,code2),...},bitstring) | prefix-free code table paired with S encoded using it; () if S is empty";
+        public const string CertificateGrammar = "({(asciiCode1,code1),(asciiCode2,code2),...},bitstring) | prefix-free binary code table paired with S encoded using it, whose total length is the minimum possible (optimal/Huffman); () if S is empty";
         public const string CertificateExample = "({(97,0),(98,10),(99,11)},01011)";
 
         public string verifierName { get; } = "Default Lossless Data Compression Verifier";
-        public string verifierDefinition { get; } = "Verifies a proposed encoding by checking prefix-free property, decoding the bitstring, and comparing with original input.";
+        public string verifierDefinition { get; } = "Verifies a proposed encoding by checking the prefix-free property, decoding the bitstring, comparing it with the original input, and checking that the encoded length equals the optimal (Huffman) length for the input's symbol frequencies.";
         public string source { get; } = "Sayood, K. (2018). Introduction to data compression (5th ed.). Morgan Kaufmann.";
         public string sourceFile { get; } = SourceFile.Path();
         public string sourceLink { get; } = "https://www.vitalsource.com/products/introduction-to-data-compression-khalid-sayood-v9780128097052?srsltid=AfmBOoqEi_U3xj4PdBt2TaKZYgScGWnKA-v0OVyiworUKPYHJT0RWvPQ";
@@ -40,10 +40,39 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
 
                 string decoded = Decode(encodedText, codeTable);
 
-                return decoded == problem.instance;
+                if (decoded != problem.instance)
+                    return false;
+
+                // Optimization version: the code must also be optimal, i.e. no prefix-free
+                // code encodes this instance in fewer bits.
+                return encodedText.Length == OptimalEncodedLength(problem.instance);
             } catch {
                 return false;
             }
+        }
+
+        // Total bits of an optimal prefix-free binary code for the instance's symbol frequencies,
+        // computed independently of the solver: the sum of the weights of all internal nodes
+        // merged by Huffman's algorithm. With one distinct symbol the code still needs one bit
+        // per symbol, so the length is the instance length.
+        private static long OptimalEncodedLength(string instance) {
+            var counts = instance.GroupBy(c => c).Select(g => (long)g.Count()).ToList();
+            if (counts.Count == 0)
+                return 0;
+            if (counts.Count == 1)
+                return counts[0];
+
+            var queue = new PriorityQueue<long, long>();
+            foreach (long count in counts)
+                queue.Enqueue(count, count);
+
+            long total = 0;
+            while (queue.Count > 1) {
+                long merged = queue.Dequeue() + queue.Dequeue();
+                total += merged;
+                queue.Enqueue(merged, merged);
+            }
+            return total;
         }
 
         // parsing (SPADE-based)
@@ -69,6 +98,9 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
                 throw new Exception("Empty code table");
 
             string encoded = cert[1].ToString();
+            if (table.Values.Any(code => code.Length == 0 || code.Any(bit => bit != '0' && bit != '1'))
+                || encoded.Any(bit => bit != '0' && bit != '1'))
+                throw new Exception("Codes and the encoded text must be bitstrings");
             return (table, encoded);
         }
 

@@ -520,6 +520,22 @@ public class SAT3_Tests {
         Assert.NotNull(certificate);
     }
 
+    [Theory]
+    [InlineData("(x1 | x2 | x3) & (!x1 | x2 | !x3)")]
+    [InlineData("(x1 | x2 | x3) & (!x1 | !x2 | x3) & (x1 | !x2 | !x3)")]
+    [InlineData("(!x1 | !x2 | !x3) & (x1 | x2 | !x3)")]
+    public void SAT3_To_DM3_Reduction_Mapped_Certificate_Is_A_Perfect_Matching_Of_M(string sat3Instance) {
+        // The DM3 verifier requires triples drawn from M that cover X, Y and Z exactly (#710).
+        SAT3 sat3 = new SAT3(sat3Instance);
+        GareyJohnson reduction = new GareyJohnson(sat3);
+        string sat3Solution = new Sat3BacktrackingSolver().solve(sat3);
+        Assert.NotEqual("No Solution", sat3Solution);
+
+        string certificate = reduction.mapSolutions(sat3Solution);
+
+        Assert.True(new GenericVerifierDM3().verify(reduction.reductionTo, certificate));
+    }
+
     [Fact]
     public void SAT3_To_DM3_Reduction_SAT3Solution_MapsToValidCertificate() {
         SAT3 sat3 = new SAT3("(x1 | x2 | x3) & (!x1 | x2 | !x3)");
