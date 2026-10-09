@@ -19,7 +19,7 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "(row1),...,(rowM)<=(d1 ... dM) | each row is n space-separated int coefficients (one row of C), d is the m-vector right-hand side";
-    public static string _defaultInstance { get; } = "(-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)";
+    public static string _defaultInstance { get; } = "(-1 -1 0),(0 -1 -1),(1 1 1)<=(-1 -1 2)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
     public string certificateFormat { get; } =
@@ -59,37 +59,52 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
 
     }
     public INTPROGRAMMING01(string instanceInput) {
-        // TODO Validate there are only a maximum of 3 literals in each clause
         instance = instanceInput;
         C = getMatrixC(instance);
         d = getVectorD(instance);
+
+        // Every row of C needs the same number of columns, and d needs one bound per row.
+        if (C.Count != d.Count)
+            throw new ProblemParseException("0-1 Integer Linear Programming", instanceInput,
+                $"d has {d.Count} entries but C has {C.Count} rows; they must match");
+        if (C.Any(row => row.Count != C[0].Count))
+            throw new ProblemParseException("0-1 Integer Linear Programming", instanceInput,
+                "every row of C must have the same number of coefficients");
     }
 
+    private static string[] splitConstraintSides(string instance) {
+        string[] sides = instance.Split("<=");
+        if (sides.Length != 2)
+            throw new ProblemParseException("0-1 Integer Linear Programming", instance,
+                "expected exactly one '<=' separating C from d");
+        return sides;
+    }
+
+    // Splits on any run of whitespace, so repeated spaces are tolerated.
+    private static List<int> parseInts(string text, string instance) {
+        List<int> values = new List<int>();
+        foreach (string token in text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)) {
+            if (!int.TryParse(token, out int value))
+                throw new ProblemParseException("0-1 Integer Linear Programming", instance, $"'{token}' is not an integer");
+            values.Add(value);
+        }
+        if (values.Count == 0)
+            throw new ProblemParseException("0-1 Integer Linear Programming", instance, "found an empty row or vector");
+        return values;
+    }
+
+    private static string stripParens(string text) => text.Replace("(", " ").Replace(")", " ");
+
     public List<List<int>> getMatrixC(string G) {
-        string strippedG = G.Replace(" )", "").Replace("( ", "").Replace("(", "").Replace(")", "");
-        string[] matrixString = strippedG.Split("<=")[0].Split(",");
+        string[] rows = stripParens(splitConstraintSides(G)[0]).Split(",");
         List<List<int>> C = new List<List<int>>();
-        for (int i = 0; i < matrixString.Length; i++) {
-            string[] stringVariables = matrixString[i].Split(" ");
-            List<int> row = new List<int>();
-            for (int j = 0; j < stringVariables.Length; j++) {
-                row.Add(int.Parse(stringVariables[j]));
-                //row.Add(stringVariables[j]);
-            }
-            C.Add(row);
+        foreach (string row in rows) {
+            C.Add(parseInts(row, G));
         }
         return C;
-
     }
 
     public List<int> getVectorD(string G) {
-        string strippedG = G.Replace(" )", "").Replace("( ", "").Replace("(", "").Replace(")", "");
-        string[] vectorStringArray = strippedG.Split("<=")[1].Split(" ");
-        List<int> d = new List<int>();
-        for (int i = 0; i < vectorStringArray.Length; i++) {
-            d.Add(int.Parse(vectorStringArray[i]));
-            //d.Add(vectorStringArray[i]);
-        }
-        return d;
+        return parseInts(stripParens(splitConstraintSides(G)[1]), G);
     }
 }
