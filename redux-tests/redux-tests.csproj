@@ -28,4 +28,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Endpoints/Snapshots/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

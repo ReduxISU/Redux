@@ -1,0 +1,132 @@
+[
+  {
+    "kind": "sat",
+    "clauses": [
+      {
+        "id": "0",
+        "literals": [
+          {
+            "id": "0-0",
+            "literal": "x1",
+            "color": "Background"
+          },
+          {
+            "id": "0-1",
+            "literal": "!x2",
+            "color": "Background"
+          },
+          {
+            "id": "0-2",
+            "literal": "x3",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "1",
+        "literals": [
+          {
+            "id": "1-0",
+            "literal": "!x1",
+            "color": "Background"
+          },
+          {
+            "id": "1-1",
+            "literal": "x3",
+            "color": "Background"
+          },
+          {
+            "id": "1-2",
+            "literal": "x1",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "literals": [
+          {
+            "id": "2-0",
+            "literal": "x2",
+            "color": "Background"
+          },
+          {
+            "id": "2-1",
+            "literal": "!x3",
+            "color": "Background"
+          },
+          {
+            "id": "2-2",
+            "literal": "!x1",
+            "color": "Background"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "sat",
+    "clauses": [
+      {
+        "id": "0",
+        "literals": [
+          {
+            "id": "0-0",
+            "literal": "x1",
+            "color": "Solution"
+          },
+          {
+            "id": "0-1",
+            "literal": "!x2",
+            "color": "Background"
+          },
+          {
+            "id": "0-2",
+            "literal": "x3",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "1",
+        "literals": [
+          {
+            "id": "1-0",
+            "literal": "!x1",
+            "color": "Background"
+          },
+          {
+            "id": "1-1",
+            "literal": "x3",
+            "color": "Background"
+          },
+          {
+            "id": "1-2",
+            "literal": "x1",
+            "color": "Solution"
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "literals": [
+          {
+            "id": "2-0",
+            "literal": "x2",
+            "color": "Solution"
+          },
+          {
+            "id": "2-1",
+            "literal": "!x3",
+            "color": "Solution"
+          },
+          {
+            "id": "2-2",
+            "literal": "!x1",
+            "color": "Background"
+          }
+        ]
+      }
+    ]
+  }
+]
