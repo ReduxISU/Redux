@@ -36,7 +36,7 @@ public class DM3_Tests {
         DM3 problem = new DM3();
         Assert.NotNull(problem.certificateFormat);
         Assert.NotEmpty(problem.certificateFormat);
-        Assert.Contains("3-tuples", problem.certificateFormat);
+        Assert.Contains("{x,y,z}", problem.certificateFormat);
     }
 
     [Fact]
@@ -88,6 +88,37 @@ public class DM3_Tests {
     }
 
     // -------------------------------------------------------------------------
+    // GenericVerifierDM3 (#710): a certificate must be a perfect matching
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("{Paul,Austin,Jake}{Sally,Madison,Frank}{Dave,Bob,Chloe}", true)]
+    [InlineData("{{Paul,Austin,Jake},{Sally,Madison,Frank},{Dave,Bob,Chloe}}", true)] // the solver's output shape
+    [InlineData("{Dave,Bob,Chloe}{Paul,Austin,Jake}{Sally,Madison,Frank}", true)]     // order does not matter
+    [InlineData("{Paul,Austin,Jake}", false)]                                         // a single triple does not cover X, Y and Z
+    [InlineData("{Paul,Austin,Jake}{Sally,Madison,Frank}", false)]                    // Dave, Bob, Chloe uncovered
+    [InlineData("{Paul,Austin,Jake}{Sally,Madison,Chloe}{Dave,Bob,Frank}", false)]    // all elements covered, but triples not in M
+    [InlineData("{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Madison,Frank}", false)] // Paul used twice
+    [InlineData("{Paul,Austin,Jake}{Sally,Madison,Frank}{Dave,Austin,Chloe}", false)] // Austin used twice
+    [InlineData("{Paul,Austin,Jake}{Sally,Madison,Frank}{Dave,Bob,Chloe}{Dave,Bob,Chloe}", false)] // repeated triple
+    [InlineData("{Paul,Austin}", false)]                                              // not a triple
+    [InlineData("{Nobody,Austin,Jake}", false)]                                       // unknown element
+    [InlineData("{}", false)]
+    [InlineData("", false)]
+    public void DM3_Verifier_Requires_Perfect_Matching_From_M(string certificate, bool expected) {
+        DM3 problem = new DM3();
+        Assert.Equal(expected, new GenericVerifierDM3().verify(problem, certificate));
+    }
+
+    [Fact]
+    public void DM3_Verifier_Rejects_Triple_Not_In_M_Even_When_Elements_Are_Valid() {
+        // The only constraint is {A,B,C}; {A,B,D} uses valid elements but is not in M.
+        DM3 problem = new DM3("{A,E}{B,F}{C,D}{A,B,C}{E,F,D}");
+        Assert.True(new GenericVerifierDM3().verify(problem, "{A,B,C}{E,F,D}"));
+        Assert.False(new GenericVerifierDM3().verify(problem, "{A,B,D}{E,F,C}"));
+    }
+
+    // -------------------------------------------------------------------------
     // ThreeDimensionalMatchingBruteForce
     //
     // The instance below is deliberately built with single-element X/Y/Z header groups so
@@ -121,41 +152,44 @@ public class DM3_Tests {
     }
 
     // -------------------------------------------------------------------------
-    // HurkensShrijver
+    // HurkensSchrijver
     //
-    // Note: HurkensShrijver does not implement ISolver<DM3> (the interface is commented
-    // out in source: "class HurkensShrijver /*: ISolver*/") and its solve() returns
+    // Note: HurkensSchrijver does not implement ISolver<DM3> (the interface is commented
+    // out in source: "class HurkensSchrijver /*: ISolver*/") and its solve() returns
     // List<List<string>> rather than a certificate string, so it is exercised directly
     // (not through the ISolver contract) and its output is converted to the
     // GenericVerifierDM3 certificate format by the helper below.
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void HurkensShrijver_Minimal_Instance_No_Swap_Available_Keeps_Single_Triple() {
+    public void HurkensSchrijver_Minimal_Instance_No_Swap_Available_Keeps_Single_Triple() {
         // X = {A}, Y = {B}, Z = {C}, M = {{A,B,C}}. S seeds with M[0] = {A,B,C}; after
         // RemoveAt(0), M is empty, so the inner search never finds a swap and the
         // S.Count == currentCount fallback branch is taken every pass, leaving S unchanged
         // at a single triple.
         string instance = "{A}{B}{C}{A,B,C}";
         DM3 problem = new DM3(instance);
-        HurkensShrijver solver = new HurkensShrijver();
+        List<List<string>> originalM = problem.M.Select(t => t.ToList()).ToList();
+        HurkensSchrijver solver = new HurkensSchrijver();
 
         List<List<string>> result = solver.solve(problem);
 
         Assert.Single(result);
         Assert.Equal(new List<string> { "A", "B", "C" }, result[0]);
 
-        string certificate = CertificateFromTriples(result);
-        Assert.True(new GenericVerifierDM3().verify(problem, certificate));
+        // solve() mutates problem.M (see below), so check against the copy taken beforehand.
+        // The verifier requires a perfect matching, so only the packing property is checked here.
+        Assert.True(IsPacking(originalM, result));
     }
 
     [Fact]
-    public void HurkensShrijver_Default_Instance_Swaps_Seed_For_Two_Compatible_Triples() {
+    public void HurkensSchrijver_Default_Instance_Swaps_Seed_For_Two_Compatible_Triples() {
         // On the default instance (M seeded from the 6 real candidate triples -- see
         // DM3_ParseM_Only_Contains_M_Triples above), the solver's swap search settles on
         // 2 mutually-disjoint triples covering all 6 elements without overlap.
         DM3 problem = new DM3();
-        HurkensShrijver solver = new HurkensShrijver();
+        List<List<string>> originalM = problem.M.Select(t => t.ToList()).ToList();
+        HurkensSchrijver solver = new HurkensSchrijver();
 
         List<List<string>> result = solver.solve(problem);
 
@@ -168,18 +202,18 @@ public class DM3_Tests {
         var flattened = result.SelectMany(t => t).ToList();
         Assert.Equal(flattened.Count, flattened.Distinct().Count());
 
-        string certificate = CertificateFromTriples(result);
-        Assert.True(new GenericVerifierDM3().verify(problem, certificate));
+        // A local-search packing of 2 triples, not a perfect matching (that needs 3).
+        Assert.True(IsPacking(originalM, result));
     }
 
     [Fact]
-    public void HurkensShrijver_Solve_Mutates_Input_Problem_M() {
+    public void HurkensSchrijver_Solve_Mutates_Input_Problem_M() {
         // solve() aliases problem.M directly (List<List<string>> M = problem.M;) rather
         // than copying it, so RemoveAt(0) on the local variable mutates the caller's
         // problem.M as a side effect of calling solve().
         DM3 problem = new DM3();
         int originalCount = problem.M.Count;
-        HurkensShrijver solver = new HurkensShrijver();
+        HurkensSchrijver solver = new HurkensSchrijver();
 
         solver.solve(problem);
 
@@ -190,13 +224,11 @@ public class DM3_Tests {
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static string CertificateFromTriples(List<List<string>> triples) {
-        var sb = new System.Text.StringBuilder("{");
-        for (int t = 0; t < triples.Count; t++) {
-            if (t > 0) sb.Append(',');
-            sb.Append('{').Append(string.Join(",", triples[t])).Append('}');
+    // True when every triple is in M and no two triples share an element in any coordinate.
+    private static bool IsPacking(List<List<string>> m, List<List<string>> triples) {
+        for (int c = 0; c < 3; c++) {
+            if (triples.Select(t => t[c]).Distinct().Count() != triples.Count) return false;
         }
-        sb.Append('}');
-        return sb.ToString();
+        return triples.All(t => m.Any(mt => mt.SequenceEqual(t)));
     }
 }
