@@ -1,9 +1,11 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
+class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Buss Kernelization";
@@ -28,7 +30,11 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
     public VertexCoverBussKernelization() {
 
     }
-    public string solve(VERTEXCOVER G) {
+    public string solve(VERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
+
+    // Steps: nodes forced into the cover, the size check on what is left, then the candidate sets tried on the kernel.
+    // Recorder state lives only in this call.
+    public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         var mandatory = new List<string>();
         int k = G.K;
@@ -48,33 +54,44 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
             foreach (var kv in degree) {
                 if (kv.Value > k) {
                     mandatory.Add(kv.Key);
+                    int budget = k;
                     k--;
                     edges = edges.Where(e => e.Key != kv.Key && e.Value != kv.Key).ToList();
                     changed = true;
+                    rec.Accept(() => new NodeSet(mandatory),
+                        () => $"Take {kv.Key}: it touches {kv.Value} edges, more than the {budget} nodes still allowed, so every small enough cover must include it.", kv.Key);
                     break;
                 }
             }
 
             if (k < 0) {
+                rec.Reject(() => new NodeSet(mandatory), () => "The forced nodes already use more than K nodes.");
+                rec.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
                 return "{}";
             }
         }
 
         if (edges.Count > k * k) {
+            rec.Reject(() => new NodeSet(mandatory),
+                () => $"{edges.Count} edges are left but {k} more nodes can cover at most {k * k} of them here.");
+            rec.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
             return "{}";
         }
 
         var kernelNodes = edges.SelectMany(e => new[] { e.Key, e.Value }).Distinct().ToList();
-        var kernelCover = bruteForceOnKernel(kernelNodes, edges, k);
+        var kernelCover = bruteForceOnKernel(kernelNodes, edges, k, G, mandatory, rec);
         if (kernelCover == null) {
+            rec.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
             return "{}";
         }
 
         mandatory.AddRange(kernelCover);
+        rec.Done(new NodeSet(mandatory), true, $"{GraphSubsetFrames.Braces(mandatory)} covers every edge, within K = {G.K}.");
         return "{" + string.Join(",", mandatory) + "}";
     }
 
-    private List<string>? bruteForceOnKernel(List<string> nodes, List<KeyValuePair<string, string>> edges, int k) {
+    private List<string>? bruteForceOnKernel(List<string> nodes, List<KeyValuePair<string, string>> edges, int k,
+        VERTEXCOVER G, List<string> mandatory, StepRecorder<NodeSet> rec) {
         if (edges.Count == 0) {
             return new List<string>();
         }
@@ -82,9 +99,14 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
         int limit = Math.Min(k, nodes.Count);
         for (int size = 0; size <= limit; size++) {
             foreach (var combo in combinations(nodes, size)) {
+                string[] Candidate() => mandatory.Concat(combo).ToArray();
                 if (coversAll(combo, edges)) {
+                    rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. It covers every edge.", Candidate);
                     return combo;
                 }
+                rec.Reject(() => new NodeSet(Candidate()),
+                    () => $"Try {GraphSubsetFrames.Braces(Candidate())}: {GraphSubsetFrames.Why(SubsetRule.VertexCover, G.nodes, G.edges, Candidate())}.",
+                    Candidate);
             }
         }
         return null;
