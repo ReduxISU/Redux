@@ -6,12 +6,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 using SPADE;
 using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
 
-class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
+class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignment> {
 
     // --- Fields ---
     public string reductionName { get; } = "Sipser's Clique Reduction";
@@ -366,6 +368,51 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
         foreach (string node in potentialNodes)
             mappedSol += node + ",";
         return mappedSol.TrimEnd(',') + "}";
+    }
+
+    public Assignment EmptyAnswer() => new Assignment([]);
+
+    // Backward map: the clique picks one literal node per clause, and making those literals true
+    // satisfies every clause. Nodes are named '<literal>_<clauseIdx>' (see SipserNodes). A variable the
+    // clique never mentions is free, so it is set to False (any value works; False is just the default).
+    // If the clique contains both x and !x (not a real clique: those nodes share no edge) the first
+    // one wins and the later node is rejected, and the Done step says the answer is not reliable.
+    public string MapSolutionBack(string problemToSolution, StepRecorder<Assignment> rec) {
+        List<string> cliqueNodes = ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes);
+
+        var values = new Dictionary<string, string>();
+        bool consistent = true;
+        Assignment Snapshot() => new Assignment(values);
+
+        foreach (string node in cliqueNodes) {
+            (string variable, bool value) = SipserNodes.Assignment(node);
+            string word = value ? "True" : "False";
+            if (!values.TryGetValue(variable, out string? already)) {
+                values[variable] = word;
+                rec.Accept(Snapshot, () => $"Node {node} is in the clique, so {variable} = {word}.", node);
+            } else if (already != word) {
+                consistent = false;
+                rec.Reject(Snapshot, () => $"Node {node} would make {variable} = {word}, but {variable} is already {already}, so it is ignored.", node);
+            }
+        }
+
+        // Variables in the order the formula first mentions them.
+        var order = new List<string>();
+        foreach (string literal in reductionFrom.literals) {
+            string variable = literal.StartsWith("!") ? literal.Substring(1) : literal;
+            if (!order.Contains(variable)) order.Add(variable);
+        }
+        foreach (string variable in order) {
+            if (values.ContainsKey(variable)) continue;
+            values[variable] = "False";
+            rec.Accept(Snapshot, () => $"No clique node mentions {variable}, so it can be anything: {variable} = False.");
+        }
+
+        string answer = "(" + string.Join(",", order.Select(v => $"{v}:{values[v]}")) + ")";
+        rec.Done(Snapshot(), consistent, consistent
+            ? "Every variable has a value, and each clause has a true literal from the clique."
+            : "The clique has both a literal and its opposite, so it is not a real clique and this assignment may not satisfy the formula.");
+        return answer;
     }
 
 }
