@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -7,7 +9,7 @@ using API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
 namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Visualizations;
 
-class MinimumVertexCoverDefaultVisualization : IVisualization<MINIMUMVERTEXCOVER> {
+class MinimumVertexCoverDefaultVisualization : IVisualization<MINIMUMVERTEXCOVER>, IGraphSubsetVisualization<MINIMUMVERTEXCOVER> {
     // --- Fields ---
     public string visualizationName { get; } = "Minimum Vertex Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Minimum Vertex Cover";
@@ -36,4 +38,10 @@ class MinimumVertexCoverDefaultVisualization : IVisualization<MINIMUMVERTEXCOVER
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(NodeSet);
+
+    GraphSubsetSpec IGraphSubsetVisualization<MINIMUMVERTEXCOVER>.Describe(MINIMUMVERTEXCOVER vertexcover) =>
+        new(vertexcover.nodes, vertexcover.edges, null, SubsetRule.MinVertexCover);
 }

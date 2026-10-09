@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects.Graphs;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using API.Interfaces.Tools;
@@ -377,7 +378,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="visualization" example = "Sat3DefaultVisualization">The visualization to use</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <param name="solver" example = "Sat3BacktrackingSolver">Optional. The solver whose steps and solution are visualized. Defaults to the visualization's own solver. Must solve the same problem as the visualization</param>
-    /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual)</param>
+    /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual). A picture type that builds its own frames (type "Graph") returns its own payload and frames instead</param>
     /// <returns>the basic visualization, any steps from the solver, and the solved visualization, shaped by <paramref name="format"/></returns>
     [HttpPost("visualize")]
     [ProducesResponseType(400)]
@@ -402,7 +403,12 @@ public class ProblemProvider : ControllerBase {
         }
         try {
             var run = chosen.Run(instance, withSteps: true);
-            var steps = run.StepsFor(vis.StepShape);
+            // A picture type that builds its own frames serves them only for format=frames.
+            if (asFrames && vis is IFramesVisualization framesVis)
+                return Content(JsonSerializer.Serialize(framesVis.BuildFrames(instance, run), FramesResponse.JsonOptions), "application/json");
+            // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
+            // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
+            var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
             var solution = run.Answer;
             return Content(asFrames
                 ? getVisualizeFrames(vis, steps, solution, instance)
