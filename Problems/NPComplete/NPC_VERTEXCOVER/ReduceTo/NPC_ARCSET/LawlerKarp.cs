@@ -87,7 +87,7 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
             newNode2.name = name + "1";
             newNodes.Add(newNode1);
             newNodes.Add(newNode2);
-            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { name.ToString() }, new List<string>() { name + "0", name + "1" }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { name.ToString() }, new List<string>() { name + "0", name + "1" }));
         }
 
         //Turn undirected edges into paired directed edges.
