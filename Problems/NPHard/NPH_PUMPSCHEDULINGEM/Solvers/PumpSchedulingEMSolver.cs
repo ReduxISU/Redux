@@ -32,6 +32,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
 
     public List<object> GetSteps(PUMPSCHEDULINGEM _) => [true];
 
+    private const string NoSolution = "{}";
     private const int Hours = 24;
     private const double BudgetSlack = 1.5;
     private const double Inf = double.PositiveInfinity;
@@ -48,13 +49,10 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
 
         int[]? schedMasks = RunEmergencyResilience(problem, effectiveBudget);
 
-        // Fallback: no feasible EM path — use all pumps every hour.
-        if (schedMasks == null) {
-            schedMasks = new int[Hours];
-            int fullMask = (1 << problem.Pumps.Count) - 1;
-            for (int h = 0; h < Hours; h++)
-                schedMasks[h] = fullMask;
-        }
+        // No schedule fits the tank limits and the budget: report "no solution" ("{}", the repo's
+        // standard convention, see #605) rather than inventing an over-budget schedule.
+        if (schedMasks == null)
+            return timerHasExpired ? "timeout" : NoSolution;
 
         double totalCost = ComputeTotalCost(problem, schedMasks);
 
@@ -128,7 +126,38 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
         return minCost >= Inf ? 0.0 : minCost;
     }
 
+    // One DP label: a path to some (tank bucket, mask) state with its cumulative cost and score.
+    private sealed class Label {
+        public readonly double Cost;
+        public readonly double Score;
+        public readonly int Mask;
+        public readonly Label? Parent;
+        public Label(double cost, double score, int mask, Label? parent) {
+            Cost = cost; Score = score; Mask = mask; Parent = parent;
+        }
+    }
+
+    // Adds a label to a state's Pareto front (lower cost and higher score are better), discarding
+    // it if an existing label dominates it and evicting labels it dominates.
+    private static void AddToFront(List<Label>? front, Label cand, out List<Label> result) {
+        if (front == null) {
+            result = new List<Label> { cand };
+            return;
+        }
+        foreach (var l in front)
+            if (l.Cost <= cand.Cost && l.Score >= cand.Score) {
+                result = front;
+                return;
+            }
+        front.RemoveAll(l => cand.Cost <= l.Cost && cand.Score >= l.Score);
+        front.Add(cand);
+        result = front;
+    }
+
     // ── Emergency resilience solve (constrained longest path) ─────────────────
+    // Each (tank bucket, previous mask) state keeps the Pareto front of (cost, score) labels instead
+    // of a single max-score path: a cheaper, lower-scoring path may be the only one that still fits
+    // the budget in later hours, so it must not be discarded.
     private int[]? RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
@@ -143,104 +172,65 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
 
         double[] maskFlow = BuildMaskFlow(problem, n, nMasks);
 
-        // dp_cost[b, m]  = cumulative cost of the best path to (b, m)
-        //                  "best" = highest score path still within budget
-        // dp_score[b, m] = cumulative water stored along that path
-        double[,] dpCost = new double[stateB, nMasks];
-        double[,] dpScore = new double[stateB, nMasks];
-
-        // parent arrays indexed by hour (after transition), to allow backtracking
-        int[,,] parentB = new int[Hours + 1, stateB, nMasks];
-        int[,,] parentM = new int[Hours + 1, stateB, nMasks];
-
-        for (int b = 0; b < stateB; b++)
-            for (int m = 0; m < nMasks; m++) {
-                dpCost[b, m] = Inf;
-                dpScore[b, m] = NegInf;
-            }
-        for (int h = 0; h <= Hours; h++)
-            for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++) {
-                    parentB[h, b, m] = -1;
-                    parentM[h, b, m] = -1;
-                }
-
+        List<Label>?[,] dp = new List<Label>?[stateB, nMasks];
         int initB = ToBucket(problem.TankCurrentLevel);
-        dpCost[initB, 0] = 0.0;
-        dpScore[initB, 0] = 0.0;
+        dp[initB, 0] = new List<Label> { new Label(0.0, 0.0, 0, null) };
 
         for (int h = 0; h < Hours; h++) {
             if (timerHasExpired) return null;
 
-            double[,] nextCost = new double[stateB, nMasks];
-            double[,] nextScore = new double[stateB, nMasks];
-            for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++) {
-                    nextCost[b, m] = Inf;
-                    nextScore[b, m] = NegInf;
-                }
-
+            List<Label>?[,] next = new List<Label>?[stateB, nMasks];
             double demand = problem.DemandGph[h];
 
             for (int b = 0; b < stateB; b++) {
                 double levelNow = ToLevel(b);
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
-                    double curCost = dpCost[b, prevMask];
-                    if (curCost >= Inf) continue;
-                    double curScore = dpScore[b, prevMask];
+                    var front = dp[b, prevMask];
+                    if (front == null) continue;
 
                     for (int mask = 0; mask < nMasks; mask++) {
                         double newLevel = levelNow - demand + maskFlow[mask];
                         if (newLevel < minLevel || newLevel > cap) continue;
 
                         double edgeCost = EdgeCost(problem, prevMask, mask, h, n, nMasks);
-                        double totalCost = curCost + edgeCost;
-
-                        // Prune paths that exceed the budget.
-                        if (totalCost > budgetLimit) continue;
-
-                        double edgeScore = newLevel; // water stored after this hour
-                        double totalScore = curScore + edgeScore;
-
                         int newB = ToBucket(newLevel);
 
-                        // Keep the path with the highest cumulative water score.
-                        if (totalScore > nextScore[newB, mask]) {
-                            nextCost[newB, mask] = totalCost;
-                            nextScore[newB, mask] = totalScore;
-                            parentB[h + 1, newB, mask] = b;
-                            parentM[h + 1, newB, mask] = prevMask;
+                        foreach (var label in front) {
+                            double totalCost = label.Cost + edgeCost;
+                            // Prune paths that exceed the budget.
+                            if (totalCost > budgetLimit) continue;
+
+                            // Score is the water stored after this hour.
+                            var cand = new Label(totalCost, label.Score + newLevel, mask, label);
+                            AddToFront(next[newB, mask], cand, out var updated);
+                            next[newB, mask] = updated;
                         }
                     }
                 }
             }
 
-            dpCost = nextCost;
-            dpScore = nextScore;
+            dp = next;
         }
 
-        // Pick the terminal state with the highest cumulative water score.
-        double bestScore = NegInf;
-        int bestB = -1, bestM = -1;
+        // Pick the terminal label with the highest cumulative water score.
+        Label? best = null;
         for (int b = 0; b < stateB; b++)
-            for (int m = 0; m < nMasks; m++)
-                if (dpCost[b, m] < Inf && dpScore[b, m] > bestScore) {
-                    bestScore = dpScore[b, m];
-                    bestB = b;
-                    bestM = m;
-                }
+            for (int m = 0; m < nMasks; m++) {
+                var front = dp[b, m];
+                if (front == null) continue;
+                foreach (var l in front)
+                    if (best == null || l.Score > best.Score)
+                        best = l;
+            }
 
-        if (bestB == -1) return null;
+        if (best == null) return null;
 
-        // Backtrack to recover the per-hour masks.
+        // Walk the parent chain to recover the per-hour masks.
         int[] schedMasks = new int[Hours];
-        int curB = bestB, curM = bestM;
+        Label? cur = best;
         for (int h = Hours; h > 0; h--) {
-            schedMasks[h - 1] = curM;
-            int pb = parentB[h, curB, curM];
-            int pm = parentM[h, curB, curM];
-            curB = pb;
-            curM = pm;
+            schedMasks[h - 1] = cur!.Mask;
+            cur = cur.Parent;
         }
 
         return schedMasks;
