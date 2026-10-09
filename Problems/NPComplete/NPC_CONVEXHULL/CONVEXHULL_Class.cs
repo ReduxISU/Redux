@@ -13,9 +13,9 @@ class CONVEXHULL : IProblem<ConvexHullSolver, ConvexHullVerifier, ConvexHullVisu
     public string problemName { get; } = "Convex Hull";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Convex_hull#Definitions";
     public string formalDefinition { get; } = "{X ⊆ ℝ² | output the extreme points of X forming the convex hull in counterclockwise order}";
-    public string problemDefinition { get; } = "Given a set of points in the plane, compute the smallest convex polygon that contains all the points. The output is typically given as the vertices of the polygon in clockwise order.";
+    public string problemDefinition { get; } = "Given a set of points in the plane, compute the smallest convex polygon that contains all the points. The output is typically given as the vertices of the polygon in counterclockwise order. Points that lie on an edge of the hull but are not corners are not vertices and are left out.";
     public string inputDescription { get; } = "P, a set of points in the plane";
-    public string outputDescription { get; } = "The vertices of the convex hull enclosing P, in order";
+    public string outputDescription { get; } = "The vertices of the convex hull enclosing P, in counterclockwise order (any starting vertex is accepted by the verifier)";
     public string source { get; } = "de Berg, M.; van Kreveld, M.; Overmars, Mark; Schwarzkopf, O. (2008), Computational Geometry: Algorithms and Applications (3rd ed.), Springer";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.1007/978-3-540-77974-2_1";
