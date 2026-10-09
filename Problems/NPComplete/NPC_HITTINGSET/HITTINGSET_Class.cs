@@ -11,12 +11,12 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
 
 
     #region Fields
-    public string problemName { get; } = "Hitting Set";
+    public string problemName { get; } = "Exact Hitting Set";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Set_cover_problem#Hitting_set_formulation";
-    public string formalDefinition { get; } = "Hitting set family of subsets {U_i} of a set {S_j} where there is a set W such that, for each i, |W union U_i| = 1.";
-    public string problemDefinition { get; } = "Hitting set is the problem of finding a set where it shares exactly one element with each subset U_i. ";
+    public string formalDefinition { get; } = "Exact Hitting Set = {<U, S> | U is a set, S is a family of subsets {S_i} of U, and there is a set W subset of U such that, for each i, |W intersect S_i| = 1}.";
+    public string problemDefinition { get; } = "Exact Hitting Set is the problem of finding a set W of elements of U that shares exactly one element with each subset S_i. This is stricter than the textbook Hitting Set, which only requires W to share at least one element with each subset (and to have at most k elements).";
     public string inputDescription { get; } = "U, a universal set, and S, a collection of subsets of U";
-    public string outputDescription { get; } = "True or False, whether a hitting set exists that shares exactly one element with each subset in S";
+    public string outputDescription { get; } = "True or False, whether a set W exists that shares exactly one element with each subset in S";
 
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceFile { get; } = SourceFile.Path();
