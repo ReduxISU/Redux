@@ -36,6 +36,28 @@ public class JOBSEQ_tests {
     }
 
 
+    [Theory] // malformed or non-permutation certificates are rejected, never thrown on (#702)
+    [InlineData("(0)")]              // skips jobs
+    [InlineData("(3,2,1)")]          // skips a job
+    [InlineData("(3,2,1,1)")]        // repeats a job
+    [InlineData("(3,2,1,0,0)")]      // too many entries
+    [InlineData("(3,2,1,4)")]        // index out of range
+    [InlineData("(3,2,1,-1)")]       // negative index
+    [InlineData("(3,2,a,0)")]        // not a number
+    [InlineData("(3,,1,0)")]         // empty entry
+    [InlineData("")]
+    [InlineData("()")]
+    public void JOBSEQ_verifier_rejects_bad_certificates(string certificate) {
+        JOBSEQ jobSeq = new JOBSEQ("((5,1,5,4),(6,12,9,6),(7,9,12,17),9)");
+        Assert.False(new JobSeqVerifier().verify(jobSeq, certificate));
+    }
+
+    [Fact]
+    public void JOBSEQ_verifier_accepts_spaces_in_certificate() {
+        JOBSEQ jobSeq = new JOBSEQ("((5,1,5,4),(6,12,9,6),(7,9,12,17),9)");
+        Assert.True(new JobSeqVerifier().verify(jobSeq, "(3, 2, 1, 0)"));
+    }
+
     [Theory] //tests solver
     [InlineData("((5,1,5,4),(6,12,9,6),(7,9,12,17),9)", "(3,2,1,0)")]
     [InlineData("((4,2,5,9,4,3),(9,13,2,17,21,16),(1,4,3,2,5,8),4)", "(1,3,5,4,0,2)")]
