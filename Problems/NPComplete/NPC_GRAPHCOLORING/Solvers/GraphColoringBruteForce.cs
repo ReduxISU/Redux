@@ -70,6 +70,8 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
 
         int numColors = gColor.K;
         if (gColor.K > gColor.nodes.Count) numColors = gColor.nodes.Count();
+        // No colors to give: nextBinary could never carry, so stop here. Only a graph with no nodes is colored, by "{}".
+        if (numColors <= 0) return "{}";
 
 
         List<int> binary = new List<int>();
