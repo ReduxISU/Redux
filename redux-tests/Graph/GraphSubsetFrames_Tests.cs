@@ -290,6 +290,54 @@ public class GraphSubsetFrames_Tests {
         }
     }
 
+    // ---- incremental runs: the committed set stays Solution, only the piece under test is marked ----
+
+    [Fact]
+    public void Incremental_Reject_KeepsTheCommittedSetSolution_AndRejectsOnlyThePieceUnderTest() {
+        // A backtracking clique search holds {a,b} and skips d: {a,b} is still the clique so far.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b"), StepEvent.Reject, ["d"], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, State(f, "a"));
+        Assert.Equal(PictureState.Solution, State(f, "b"));
+        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Rejected, State(f, "d"));
+        Assert.Null(State(f, "c"));
+    }
+
+    [Fact]
+    public void Incremental_Try_HighlightsOnlyThePieceUnderTest_AndJudgesNothingYet() {
+        // A search holds the cover {a} and looks at c next: {a} is Solution, c is highlighted, and the edge c-d that
+        // nothing covers yet is not a failure, because the cover is still being built.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.VertexCover, 2), Set("a"), StepEvent.Try, ["c"], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, State(f, "a"));
+        Assert.Equal(PictureState.ElementHighlight, State(f, "c"));
+        Assert.Null(EdgeState(f, "c-d"));
+        Assert.Equal(PictureState.Covered, EdgeState(f, "a-b"));
+    }
+
+    [Fact]
+    public void Incremental_RejectOfTheCommittedSet_StillJudgesIt() {
+        // Out of budget with {a}: the set is still the one built so far (Solution), and what it leaves uncovered failed.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.VertexCover, 1), Set("a"), StepEvent.Reject, [], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, State(f, "a"));
+        Assert.Equal(PictureState.Rejected, EdgeState(f, "c-d"));
+        Assert.Equal(PictureState.Rejected, EdgeState(f, "b-c"));
+    }
+
+    [Fact]
+    public void Build_ReadsIncrementalFromTheRun() {
+        var steps = new List<object> {
+            new SolverStep<NodeSet>(Set("a", "b"), StepEvent.Reject, ["d"], "skip d"),
+            new SolverStep<NodeSet>(Set("a", "b", "c"), StepEvent.Done, [], "done") { Ok = true },
+        };
+        GraphFrame First(bool incremental) => (GraphFrame)GraphSubsetFrames.Build(Spec(SubsetRule.Clique, 3),
+            new SolveRun("{a,b,c}", steps, typeof(NodeSet)) { Incremental = incremental }, _ => Set(), _ => true).Frames[0];
+        Assert.Equal(PictureState.Solution, State(First(true), "a"));
+        Assert.Equal(PictureState.Rejected, State(First(true), "d"));
+        // The same step from a run that judges whole candidates is a candidate being tried.
+        Assert.Equal(PictureState.ElementHighlight, State(First(false), "a"));
+        Assert.Equal(PictureState.ElementHighlight, State(First(false), "d"));
+    }
+
     // ---- runs stopped by the time limit ----
 
     [Fact]

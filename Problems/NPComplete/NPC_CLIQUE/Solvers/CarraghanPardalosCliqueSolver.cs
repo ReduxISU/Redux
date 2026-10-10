@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
-class CarraghanPardalos : ISolver<CLIQUE, NodeSet> {
+class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Clique Carraghan-Pardalos Branch and Bound";

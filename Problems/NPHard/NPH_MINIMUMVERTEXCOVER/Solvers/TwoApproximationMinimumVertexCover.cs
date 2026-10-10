@@ -5,7 +5,7 @@ using API.Interfaces.Graphs.GraphParser;
 
 namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
-class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
+class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Minimum Vertex Cover Approximation";
