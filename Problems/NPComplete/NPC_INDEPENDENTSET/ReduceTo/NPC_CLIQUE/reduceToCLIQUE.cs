@@ -90,6 +90,8 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
     // Construction steps (see IRecordedReduction): the nodes copied, one step per node for the complement
     // edges it gets, then K unchanged. The per-node edges are collected inside the loop that builds them.
     private CLIQUE Build(StepRecorder<BuildDelta> rec) {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         INDEPENDENTSET INDPENDENTSETInstance = _reductionFrom;
         CLIQUE reducedCLIQUE = new CLIQUE();
         reducedCLIQUE.nodes = INDPENDENTSETInstance.nodes;
@@ -138,15 +140,20 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
             int[] gadgetIdx = Enumerable.Range(0, gadgets.Count).ToArray();
             rec.Accept(
                 () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
-                () => $"Copy every node of the graph ({BuildCaptions.Names(all)}) into the clique graph, with the same names. Its edges will be the pairs the graph is missing.",
+                () => all.Length > 0
+                    ? $"Copy every node of the graph ({BuildCaptions.Names(all)}) into the clique graph, with the same names. Its edges will be the pairs the graph is missing."
+                    : "The graph has no nodes, so the clique graph has none either.",
                 all);
-            foreach (var (node, later) in perNode!) {
-                string u = node;
-                string[] added = later.Select(v => BuildCaptions.Edge(u, v)).ToArray();
+            for (int n = 0; n < perNode!.Count; n++) {
+                var (u, later) = perNode[n];
+                bool lastNode = n == perNode.Count - 1;
+                BuildEdge[] added = BuildEdge.Sorted(later.Select(v => new BuildEdge(u, v)));
                 Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added };
                 Func<string> caption = () => later.Length > 0
                     ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the original graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
-                    : $"Node {u} is already joined to every later node in the original graph, so it gets no new edges.";
+                    : lastNode
+                        ? $"Node {u} is the last node: the steps above already gave it its edges in the complement."
+                        : $"Node {u} is already joined to every later node in the original graph, so it gets no new edges.";
                 string[] focus = new[] { u }.Concat(later).ToArray();
                 if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
             }
