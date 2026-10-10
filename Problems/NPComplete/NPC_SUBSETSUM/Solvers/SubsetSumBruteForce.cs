@@ -25,26 +25,37 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
 
     }
 
-    private static string SubsetToCertificate(int mask, List<string> S) {
+    private static string SubsetToCertificate(bool[] picked, List<string> S) {
         UtilCollection certificate = new UtilCollection("{}");
         for (int i = 0; i < S.Count; i++) {
-            if ((mask & (1 << i)) != 0)
+            if (picked[i])
                 certificate.Add(new UtilCollection(S[i]));
         }
         return certificate.ToString();
     }
 
+    // Moves to the next subset in mask order (bit i picks item i), like adding 1 to the mask. Returns false once every
+    // subset has been seen. A bool per item, not an int mask, so there is no limit on the number of items (#791).
+    private static bool NextSubset(bool[] picked) {
+        for (int i = 0; i < picked.Length; i++) {
+            picked[i] = !picked[i];
+            if (picked[i]) return true;
+        }
+        return false;
+    }
+
     public string solve(SUBSETSUM subsetSum) {
         int n = subsetSum.S.Count;
 
-        // Enumerate every subset by its bitmask so that all 2^n subsets -- including
+        // Enumerate every subset in bitmask order (mask 1, 2, 3, ...) so that all 2^n subsets -- including
         // the singleton {S[0]} -- are tested exactly once. Mask 0 (the empty subset)
         // is skipped: with positive integers and T > 0 it is never a witness, and
         // "{}" doubles as the no-solution sentinel.
-        for (int mask = 1; mask < (1 << n); mask++) {
+        bool[] picked = new bool[n];
+        while (NextSubset(picked)) {
             if (timerHasExpired) return "{}";
 
-            string certificate = SubsetToCertificate(mask, subsetSum.S);
+            string certificate = SubsetToCertificate(picked, subsetSum.S);
             if (subsetSum.defaultVerifier.verify(subsetSum, certificate)) {
                 return certificate;
             }

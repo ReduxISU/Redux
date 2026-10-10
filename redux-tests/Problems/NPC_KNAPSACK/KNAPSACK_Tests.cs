@@ -107,6 +107,25 @@ public class KNAPSACK_Tests {
         Assert.True(new KnapsackVerifier().verify(problem, certificate));
     }
 
+    // #791: with 31 items the candidate count (int)Math.Pow(2, 31) saturated, so the first candidate held every item instead
+    // of none, and the second never ended.
+    [Fact]
+    public void BruteForce_ThirtyOneItems_StartsWithTheEmptySet() {
+        var first = new KnapsackBruteForce().possibleSolutions(31).First();
+        Assert.Equal(Enumerable.Repeat(0, 31), first);
+        // The empty set is worth V = 0 and fits, so it is the answer. (W holds all 31 items too, so the old order answered
+        // with all of them instead of looping forever.)
+        var items = string.Join(",", Enumerable.Range(1, 31).Select(i => $"({i},1)"));
+        Assert.Equal("{}", new KnapsackBruteForce().solve(new KNAPSACK($"({{{items}}},1000,0)")));
+    }
+
+    [Fact]
+    public void BruteForce_Candidates_AreTheMasksInOrder_BitKPickingItemK() {
+        var candidates = new KnapsackBruteForce().possibleSolutions(3).Take(10).Select(c => string.Concat(c)).ToList();
+        Assert.Equal(["000", "100", "010", "110", "001", "101", "011", "111"], candidates);
+        Assert.Equal([[]], new KnapsackBruteForce().possibleSolutions(0).ToList());
+    }
+
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
