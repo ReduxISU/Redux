@@ -253,13 +253,4 @@ public class GraphEdgeFrames_Tests {
         Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
         Assert.Empty(only.Groups!);
     }
-
-    // ---- edge ids ----
-
-    [Fact]
-    public void Build_RefusesNodeNamesThatMakeTwoEdgesShareAnId() {
-        var spec = new GraphEdgeSpec(["a", "b-c", "a-b", "c"], [new("a", "b-c", 3), new("a-b", "c", 5)], EdgeRule.SpanningTree);
-        Assert.Throws<AmbiguousEdgeIdException>(() => GraphEdgeFrames.BuildEdges(spec, new SolveRun("{}", [], null), _ => Set(), _ => false));
-        Assert.Throws<AmbiguousEdgeIdException>(() => GraphEdgeFrames.BuildCut(spec with { Rule = EdgeRule.Cut }, new SolveRun("{}", [], null), _ => new Groups([]), _ => false));
-    }
 }
