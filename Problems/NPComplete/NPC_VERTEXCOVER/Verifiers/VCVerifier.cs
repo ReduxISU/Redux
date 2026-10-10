@@ -41,6 +41,11 @@ class VCVerifier : IVerifier<VERTEXCOVER> {
             throw new CertificateParseException(problem, certificate, "certificate is empty");
         }
 
+        // "{}" is the empty set, a cover of size 0: it covers a graph with no edges, within any K >= 0.
+        if (string.Concat(certificate.Where(c => !char.IsWhiteSpace(c))) == "{}") {
+            return problem.edges.Count == 0 && problem.K >= 0;
+        }
+
         List<string> certificateNodes;
         try {
             certificateNodes = getNodes(certificate);
