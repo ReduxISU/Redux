@@ -68,6 +68,10 @@ interface IReduction {
     // The backward answer plus, when asked, the steps that produced it; null when there is no backward map.
     SolveRun? MapBackRun(string problemToSolution, bool withSteps) => null;
 
+    // Whether "{}" is a real answer (the empty set) for THIS target instance rather than "no answer"; see
+    // IReversibleReduction.TargetAcceptsEmpty, which reductions with a backward map answer. Default: the target's verifier.
+    bool targetAcceptsEmptyAnswer() => ReductionBack.Accepts(reductionTo, ReductionBack.NoAnswer);
+
     // Construction steps: what the reduction built, piece by piece (one step per gadget, in both problems'
     // words). Reductions that record them implement IRecordedReduction<T, U>. Methods, not properties, for the
     // same reason as the backward map above.
@@ -151,6 +155,8 @@ interface IReversibleReduction<T, U, TPartial> : IReduction<T, U> where T : IPro
 
     /// <summary>Same question as <see cref="TargetAcceptsEmpty"/> for A, asked when the mapped answer is "{}".</summary>
     bool SourceAcceptsEmpty() => ReductionBack.Accepts(reductionFrom, ReductionBack.NoAnswer);
+
+    bool IReduction.targetAcceptsEmptyAnswer() => TargetAcceptsEmpty();
 
     bool IReduction.hasBackwardMap() => true;
 

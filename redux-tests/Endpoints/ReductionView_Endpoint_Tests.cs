@@ -233,7 +233,9 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         IReduction red = Build(reduction, instance);
         string targetInstance = red.reductionTo.instance;
         string answer = red.reductionTo.defaultVisualization.solver.Run(targetInstance, false).Answer;
-        bool expected = Verifies(red.reductionTo, targetInstance, answer);
+        // "{}" is judged by the reduction's targetAcceptsEmptyAnswer: the empty set can be a real answer (Clique -> VC on a triangle
+        // with K = 3 gives an edgeless target with K' = 0) that the VC verifier refuses as unreadable.
+        bool expected = answer.Trim() == "{}" ? red.targetAcceptsEmptyAnswer() : Verifies(red.reductionTo, targetInstance, answer);
 
         var solve = Phase(view, "solve");
         Assert.Equal(expected, solve[^1].GetProperty("ok").GetBoolean());
@@ -264,6 +266,21 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
     [Fact]
     public async Task Map_EmptyAnswerThatIsReal_EndsOk() {
         var view = await View("reduceToCLIQUE", "(({a,b},{{a,b}}),0)");
+        var map = Phase(view, "map");
+        Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
+    }
+
+    // Clique -> Vertex Cover on a triangle with K = N = 3: the complement has no edges and K' = 0, so the empty cover is a
+    // valid answer. The VC verifier refuses "{}" as unreadable; the solve phase must take the reduction's own word for it.
+    [Fact]
+    public async Task Solve_EmptyAnswerThatIsReal_EndsOk() {
+        const string instance = "(({a,b,c},{{a,b},{b,c},{a,c}}),3)";
+        IReduction red = Build(Vc, instance);
+        Assert.Equal("{}", red.reductionTo.defaultVisualization.solver.Run(red.reductionTo.instance, false).Answer);
+
+        var view = await View(Vc, instance);
+        var solve = Phase(view, "solve");
+        Assert.True(solve[^1].GetProperty("ok").GetBoolean(), solve[^1].GetProperty("caption").GetString());
         var map = Phase(view, "map");
         Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
     }
@@ -403,5 +420,44 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
             var instance = Activator.CreateInstance(vis) as IVisualization;
             if (instance != null) Assert.NotEqual(VisualizationType.Reduction, instance.visualizationType);
         }
+    }
+}
+
+// The Reduction View with a 50 ms solve budget: a solve that runs past it ends the solve phase with its stopped Done frame, and
+// the map phase is a single Done frame saying there is nothing to map back.
+public class ReductionView_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory> {
+    private readonly HttpClient _client;
+
+    public ReductionView_TimeLimit_Tests(TinyBudgetAppFactory factory) {
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task StoppedSolve_EndsTheSolvePhaseWithTheStoppedFrame_AndSkipsTheMap() {
+        // Independent Set on K30 with K = 15 becomes Clique on the edgeless complement with K = 15: the brute force tries
+        // C(30,15) sets, none a clique, far longer than the budget.
+        var nodes = Enumerable.Range(1, 30).Select(i => $"n{i}").ToList();
+        var edges = from a in nodes from b in nodes where string.CompareOrdinal(a, b) < 0 select $"{{{a},{b}}}";
+        string instance = $"(({{{string.Join(",", nodes)}}},{{{string.Join(",", edges)}}}),15)";
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var response = await _client.PostAsync("/ProblemProvider/reductionView?reduction=reduceToCLIQUE&solver=cliquebruteforce",
+            content, TestContext.Current.CancellationToken);
+        string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.True(response.StatusCode == HttpStatusCode.OK, body);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(20), $"took {sw.Elapsed}");
+
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        var solve = frames.Where(f => f.GetProperty("phase").GetString() == "solve").ToList();
+        var map = frames.Where(f => f.GetProperty("phase").GetString() == "map").ToList();
+        Assert.Equal("Done", solve[^1].GetProperty("event").GetString());
+        Assert.False(solve[^1].GetProperty("ok").GetBoolean());
+        Assert.StartsWith("Stopped after 0.05 s and ", solve[^1].GetProperty("caption").GetString());
+        Assert.Single(solve, f => f.GetProperty("event").GetString() == "Done");
+        var only = Assert.Single(map);
+        Assert.Equal("Done", only.GetProperty("event").GetString());
+        Assert.False(only.GetProperty("ok").GetBoolean());
+        Assert.Equal("The solver had not finished, so there is no Clique answer to map back.", only.GetProperty("caption").GetString());
+        Assert.Equal("map", frames[^1].GetProperty("phase").GetString());
     }
 }
