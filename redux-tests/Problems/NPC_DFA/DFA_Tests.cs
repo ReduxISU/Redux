@@ -210,13 +210,31 @@ public class DFA_Tests {
     // Verifier
     // -------------------------------------------------------------------------
 
+    // The default machine with another input string.
+    private static string DefaultMachineWithInput(string input) =>
+        "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2})," + input + ")";
+
     [Theory]
-    [InlineData("1,2")]    // 1 →a→ 2 (accept)
-    [InlineData("1,3,2")]  // 1 →b→ 3 →a→ 2 (accept)
-    public void DFA_Verifier_Accepts_Valid_Path(string certificate) {
-        DFA dfa = new DFA(DefaultInstance);
+    [InlineData("a", "1,2")]       // 1 →a→ 2 (accept)
+    [InlineData("ba", "1,3,2")]    // 1 →b→ 3 →a→ 2 (accept)
+    [InlineData("aa", "1, 2, 2")]  // spaces after the commas are fine
+    public void DFA_Verifier_Accepts_Valid_Path(string input, string certificate) {
+        DFA dfa = new DFA(DefaultMachineWithInput(input));
         DFAVerifier verifier = new DFAVerifier();
         Assert.True(verifier.verify(dfa, certificate));
+    }
+
+    // #777: the certificate must be the run on this input, not just any walk to an accept state.
+    [Theory]
+    [InlineData("b", "1,2")]      // on b, 1 goes to 3
+    [InlineData("a", "1,3,2")]    // that run reads "ba"
+    [InlineData("aa", "1,2")]     // reads one symbol of two
+    [InlineData("a", "1,2,2")]    // reads two symbols of one
+    [InlineData("ε", "1,2")]      // the empty input reads nothing
+    public void DFA_Verifier_Rejects_Path_That_Does_Not_Follow_The_Input(string input, string certificate) {
+        DFA dfa = new DFA(DefaultMachineWithInput(input));
+        DFAVerifier verifier = new DFAVerifier();
+        Assert.False(verifier.verify(dfa, certificate));
     }
 
     [Theory]
