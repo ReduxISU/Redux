@@ -111,8 +111,12 @@ public class SATBruteForceSolver : ISolver {
 
     // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
     // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
-    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) =>
-        SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(instance, rec));
+    // The instance is checked as a SAT formula first (as ISolver<T> does), so text the solver's own parser would trip over
+    // ("(x1) & & (x2)" leaves an empty clause) is a parse error (HTTP 400), not a crash inside the solve.
+    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
+        ParseGuard.CreateProblem<SAT>(instance);
+        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(instance, rec));
+    }
 
     // Steps: one per candidate assignment, in the order the counter tries them. A candidate is a Reject naming the first
     // clause with no true literal (the solver stops checking there), or the Accept that ends the search. The recorder's cap
@@ -138,8 +142,11 @@ public class SATBruteForceSolver : ISolver {
         // Loop through all combinations. The total number of binary choices you can make is 2^(number of items). E.G. 3 variables is 2^3.
         for (int currentCombination = 0; currentCombination < Math.Pow(2, literals.Count); currentCombination++) {
             int trueClauses = 0;
-            if (timerHasExpired)
-                return "timeout";
+            if (timerHasExpired) {
+                // Its own timer stopped it: there is no answer, so the run ends on a Done that says so (never on a candidate).
+                rec.Done(new Assignment([]), false, GroupedGraphFrames.SolverTimeoutCaption);
+                return GroupedGraphFrames.SolverTimeoutAnswer;
+            }
 
             // Combination 0 is the starting all-false assignment; advance once per later combination.
             if (currentCombination > 0)
