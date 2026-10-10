@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
-class TSPGreedy : ISolver<TSP> {
+class TSPGreedy : ISolver<TSP, Tour> {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Greedy";
@@ -51,8 +52,15 @@ class TSPGreedy : ISolver<TSP> {
         return "{" + string.Join(',', path) + "}";
     }
 
-    public string solve(TSP tsp) {
+    public string solve(TSP tsp) => Solve(tsp, StepRecorder<Tour>.Off);
+
+    // Steps: for each start city, a Try to start there, an Accept for every nearest-neighbour move (with the running path
+    // cost), then either a Reject (a dead end, or a closing edge the graph does not have, or a closed tour that is over K or
+    // no better than the best so far) or an Accept for a closed tour that is the best so far. Recorder state lives only in
+    // this call.
+    public string Solve(TSP tsp, StepRecorder<Tour> rec) {
         if (tsp.nodes.Count == 0) {
+            rec.Done(new Tour([]), false, "There are no cities to tour.");
             return "{}";
         }
 
@@ -67,6 +75,7 @@ class TSPGreedy : ISolver<TSP> {
             string currentNode = startNode;
             route.Add(currentNode);
             visited.Add(currentNode);
+            rec.Try(() => new Tour(route), () => $"Start at {startNode}.", startNode);
 
             bool pathFailed = false;
             int totalWeight = 0;
@@ -91,13 +100,22 @@ class TSPGreedy : ISolver<TSP> {
 
                 if (nextNode == "") {
                     pathFailed = true;
+                    string stuckAt = currentNode;
+                    rec.Reject(() => new Tour(route),
+                        () => $"Dead end at {stuckAt}: it has no edge to a city that is not already on the path, so starting from {startNode} fails.",
+                        stuckAt);
                     break;
                 }
 
+                string previous = currentNode;
                 totalWeight += bestWeight;
                 route.Add(nextNode);
                 visited.Add(nextNode);
                 currentNode = nextNode;
+                int weightOfMove = bestWeight, costSoFar = totalWeight;
+                rec.Accept(() => new Tour(route),
+                    () => $"Go {previous} → {nextNode} (weight {weightOfMove}, path cost {costSoFar}): the nearest city not yet visited.",
+                    nextNode, GraphTourFrames.EdgeId(false, previous, nextNode));
             }
 
             if (pathFailed) {
@@ -106,6 +124,10 @@ class TSPGreedy : ISolver<TSP> {
 
             int returnEdgeWeight;
             if (!getEdgeWeight(tsp, currentNode, startNode, out returnEdgeWeight)) {
+                string last = currentNode;
+                rec.Reject(() => new Tour(route.Append(startNode)),
+                    () => $"Close the tour {last} → {startNode}: there is no such edge, so starting from {startNode} fails.",
+                    last, startNode);
                 continue;
             }
 
@@ -113,12 +135,30 @@ class TSPGreedy : ISolver<TSP> {
             route.Add(startNode);
             string certificate = pathToCertificate(route);
 
-            if (tsp.defaultVerifier.verify(tsp, certificate) && totalWeight < bestTotalWeight) {
+            bool withinK = tsp.defaultVerifier.verify(tsp, certificate);
+            if (withinK && totalWeight < bestTotalWeight) {
+                int previousBest = bestTotalWeight, total = totalWeight;
                 bestTotalWeight = totalWeight;
                 bestCertificate = certificate;
+                rec.Accept(() => new Tour(route),
+                    () => $"Close the tour {route[^2]} → {startNode}: total {total}, the best so far{(previousBest == int.MaxValue ? "" : $" (it beats {previousBest})")}.",
+                    route[^2], startNode);
+            } else {
+                int total = totalWeight, best = bestTotalWeight;
+                rec.Reject(() => new Tour(route),
+                    () => withinK
+                        ? $"Close the tour {route[^2]} → {startNode}: total {total} is no better than the best so far ({best})."
+                        : $"Close the tour {route[^2]} → {startNode}: total {total} is more than K = {tsp.K}.",
+                    () => TSPTourSteps.EdgeIds(tsp, route));
             }
         }
 
+        if (bestCertificate == "{}") {
+            rec.Done(new Tour([]), false, $"No start gave a tour within K = {tsp.K}.");
+        } else {
+            rec.Done(GraphTourFrames.ParseTour(bestCertificate), true,
+                $"The best tour is {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(bestCertificate).Order)}, total {bestTotalWeight}.");
+        }
         return bestCertificate;
     }
 }
