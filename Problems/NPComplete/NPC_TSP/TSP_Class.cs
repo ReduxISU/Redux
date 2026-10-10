@@ -12,10 +12,10 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     // --- Fields ---
     public string problemName { get; } = "Traveling Salesperson";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Travelling_salesman_problem";
-    public string formalDefinition { get; } = "TSP = {<G,k> | G is a weighted graph where there is a path through every vertex whose weights add up to less than k}";
-    public string problemDefinition { get; } = "";
-    public string inputDescription { get; } = "G, a weighted graph of cities, and k, a maximum tour weight";
-    public string outputDescription { get; } = "The shortest tour visiting every city exactly once";
+    public string formalDefinition { get; } = "TSP = {<G,K> | G is a weighted graph with a tour (a cycle that visits every vertex exactly once and returns to its start) whose edge weights add up to at most K}";
+    public string problemDefinition { get; } = "A salesperson must visit every city exactly once and then return home. Given a graph of cities whose edge weights are the costs of traveling between them, and a budget K, the question is whether some tour (a route that visits every city exactly once and ends back at the city it started from) costs at most K in total.";
+    public string inputDescription { get; } = "G, a weighted graph of cities, and K, the most a tour may cost";
+    public string outputDescription { get; } = "A tour that visits every city exactly once, returns to its start, and costs at most K, if there is one";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     public string source { get; } = "";
