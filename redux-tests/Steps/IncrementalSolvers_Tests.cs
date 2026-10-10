@@ -36,6 +36,10 @@ public class IncrementalSolvers_Tests {
         ["weightedcutbruteforce"] = false,
         ["maxcutsolver"] = false,
         ["mincutstoerwagner"] = false,
+        // Groups (groups pictures)
+        ["graphcoloringbruteforce"] = false,
+        ["graphcoloringgreedy"] = true,
+        ["cliquecoverbruteforce"] = false,
     };
 
     // The answer shapes a Graph picture draws.
@@ -128,6 +132,27 @@ public class IncrementalSolvers_Tests {
             Assert.NotEmpty(step.Partial.Edges);
             foreach (var edge in step.Partial.Edges) Assert.Equal(PictureState.Solution, frame.Edges[edge].State);
             Assert.Equal(PictureState.Rejected, frame.Edges[Assert.Single(step.Focus)].State);
+        }
+    }
+
+    // ---- Groups pictures, from real runs ----
+
+    [Fact]
+    public void GreedyColoring_ANodeThatNeedsTooManyColors_IsRejected_AndTheColoringSoFarIsKept() {
+        // A triangle with K = 2: the greedy colors a and b, then c needs color 2.
+        const string instance = "(({a,b,c},{{a,b},{b,c},{a,c}}),2)";
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringGreedy()).Run(instance, withSteps: true);
+        Assert.True(run.Incremental);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["graphcoloringdefaultvisualization"])!;
+        var frames = vis.BuildFrames(instance, run).Frames.Cast<GraphFrame>().ToList();
+        var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
+        int at = steps.FindIndex(s => s.Event == StepEvent.Reject);
+        Assert.True(at >= 0);
+        Assert.Equal(PictureState.Rejected, frames[at].Nodes[Assert.Single(steps[at].Focus)].State);
+        // The nodes colored before it keep their groups and are not marked as tried.
+        foreach (var node in steps[at].Partial.Of.Keys.Except(steps[at].Focus)) {
+            Assert.True(frames[at].Groups!.ContainsKey(node));
+            Assert.False(frames[at].Nodes.TryGetValue(node, out var state) && state.State == PictureState.ElementHighlight);
         }
     }
 }
