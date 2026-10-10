@@ -9,7 +9,7 @@ namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Verifiers;
 class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM> {
     public const string CertificateGrammar = "{(budget,cost,S) | budget and cost are numbers, S is list}";
     public const string CertificateExample =
-        "(45.72,38.15,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
+        "(93.48,62.32,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
         "(PumpB,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)," +
         "(PumpC,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,1)))";
 
@@ -31,6 +31,9 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM> {
 
     public bool verify(PUMPSCHEDULINGEM problem, string certificate) {
         this.certificate = certificate ?? string.Empty;
+
+        // "{}" is the solver's "no solution" value; it is never a valid schedule.
+        if (this.certificate.Trim() == "{}") return false;
 
         UtilCollection parsed;
         try {
