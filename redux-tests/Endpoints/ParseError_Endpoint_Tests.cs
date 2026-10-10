@@ -50,6 +50,20 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // -- The concrete repros from the issue ------------------------------------
 
+    // #786, #787: Minimum S-T Cut instances its grammar accepts but the problem cannot have. (#785, a source equal to the
+    // sink, is covered by MINSTCUT_Tests: before its fix the request never returned.)
+    [Theory]
+    [InlineData("({1,2,3},{((1,4),5)},1,3)", "node '4'")]
+    [InlineData("({1,2,3},{((1,3),1),((2,1),-3),((2,3),-3)},1,3)", "capacity -3")]
+    public async Task Solve_MinSTCut_ImpossibleInstance_Returns400(string instance, string detail) {
+        foreach (var url in new[] { "/ProblemProvider/solve?solver=minstcutsolver", "/ProblemProvider/visualize?visualization=minstcutvisualization" }) {
+            var (status, body) = await PostAsync(url, instance);
+            Assert.Equal(HttpStatusCode.BadRequest, status);
+            Assert.Contains("instance_parse_error", body);
+            Assert.Contains(detail, body);
+        }
+    }
+
     [Fact]
     public async Task Solve_MinCutStoerWagner_MalformedInstance_Returns400WithInstanceFormat() {
         var (status, body) = await PostAsync("/ProblemProvider/solve?solver=MinCutStoerWagner", "({1,2,3},{({1,2}");

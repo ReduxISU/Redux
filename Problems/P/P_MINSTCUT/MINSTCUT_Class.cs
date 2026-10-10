@@ -79,6 +79,21 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
             throw new InvalidOperationException($"Source node '{sourceNode}' is not in the node set.");
         if (!nodes.Contains(targetNode))
             throw new InvalidOperationException($"Target node '{targetNode}' is not in the node set.");
+        // An S-T cut puts the source in S and the sink outside it, so they must differ; Edmonds-Karp would otherwise find
+        // the empty path from the source to itself forever (#785).
+        if (sourceNode == targetNode)
+            throw new InvalidOperationException($"The source and the sink must be different nodes; both are '{sourceNode}'.");
+        // The grammar reads an edge's ends and capacity without checking them against N or the definition (#786, #787).
+        var nodeSet = new HashSet<string>(nodes);
+        foreach (var (from, to, weight) in edges) {
+            foreach (var end in new[] { from, to })
+                if (!nodeSet.Contains(end))
+                    throw new InvalidOperationException($"Edge ({from},{to}) uses node '{end}', which is not in the node set.");
+            // Max-flow min-cut holds only for non-negative capacities: a negative edge never carries flow, yet it lowers
+            // a cut's capacity, so the solver's cut would not be the minimum.
+            if (weight < 0)
+                throw new InvalidOperationException($"Edge ({from},{to}) has capacity {weight}; capacities must not be negative.");
+        }
     }
 
     private static List<string> SplitOuterTuple(string input) {
