@@ -24,14 +24,15 @@ static class GraphCertificateChecks {
     }
 
     /// <summary>
-    /// True when there is a partition of the vertices into S and V\S whose set of crossing
-    /// edges is exactly the certificate edges. Equivalently, the parity constraints
+    /// True when there is a partition of the vertices into S and V\S, both non-empty, whose set of
+    /// crossing edges is exactly the certificate edges. Equivalently, the parity constraints
     /// "endpoints differ iff the edge is in the certificate" are consistent over every graph
     /// edge. Components (and isolated vertices) are free to flip independently, which the
     /// union-find with parity handles without enumerating colorings.
     /// </summary>
     public static bool IsExactCut(IEnumerable<string> nodes, IEnumerable<(string, string)> graphEdges, IEnumerable<(string, string)> certificateEdges) {
         HashSet<(string, string)> inCut = certificateEdges.Select(e => Canonical(e.Item1, e.Item2)).ToHashSet();
+        bool crossed = false;
         Dictionary<string, string> parent = new Dictionary<string, string>();
         Dictionary<string, int> parity = new Dictionary<string, int>(); // parity of a node relative to its parent
 
@@ -66,6 +67,7 @@ static class GraphCertificateChecks {
             parent.TryAdd(b, b);
             parity.TryAdd(b, 0);
             int required = inCut.Contains(Canonical(a, b)) ? 1 : 0;
+            crossed |= required == 1;
             (string ra, int pa) = Find(a);
             (string rb, int pb) = Find(b);
             if (ra == rb) {
@@ -77,6 +79,9 @@ static class GraphCertificateChecks {
                 parity[ra] = pa ^ pb ^ required;
             }
         }
-        return true;
+        // A partition has no empty part, so S and V\S must both hold a vertex. A crossing edge puts one on each side.
+        // With none, the graph must fall into at least two pieces, so that one side can take some and the other the
+        // rest; a connected graph (or one with fewer than two vertices) has no cut of size 0 (#770).
+        return crossed || parent.Keys.ToList().Select(n => Find(n).root).Distinct().Count() >= 2;
     }
 }

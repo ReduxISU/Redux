@@ -72,6 +72,15 @@ public class WEIGHTEDCUT_Tests {
         Assert.True(new WeightedCutVerifier().verify(cut, "{({2,3},1),({4,1},1)}"));
     }
 
+    [Theory] // as for Cut, {} is a cut only of a graph in separate pieces, and then its weight is 0 (#770)
+    [InlineData("(({1,2,3},{({1,2},3),({2,3},2)}),0)", false)]          // connected: every split cuts an edge
+    [InlineData("(({1,2,3,4},{({1,2},3),({3,4},2)}),0)", true)]         // two pieces: {1,2} against {3,4}
+    [InlineData("(({1,2,3},{({1,2},3)}),0)", true)]                     // node 3 is a piece of its own
+    [InlineData("(({1,2,3,4},{({1,2},3),({3,4},2)}),5)", false)]        // {} weighs 0, not K
+    public void WEIGHTEDCUT_verifier_empty_certificate_needs_a_split_with_no_crossing_edge(string instance, bool expected) {
+        Assert.Equal(expected, new WeightedCutVerifier().verify(new WEIGHTEDCUT(instance), "{}"));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("garbage")]

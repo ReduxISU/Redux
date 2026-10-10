@@ -5,12 +5,12 @@ using SPADE;
 namespace API.Problems.NPComplete.NPC_CUT.Verifiers;
 
 class CutVerifier : IVerifier<CUT> {
-    public const string CertificateGrammar = "{S} subset E | S has no duplicate edges (either orientation), S is exactly the set of edges crossing some partition of N into two sets, |S| = K";
+    public const string CertificateGrammar = "{S} subset E | S has no duplicate edges (either orientation), S is exactly the set of edges crossing some partition of N into two non-empty sets, |S| = K";
     public const string CertificateExample = "{{2,1},{1,3},{2,3},{3,5},{2,4}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Cut Verifier";
-    public string verifierDefinition { get; } = "Checks that the certificate edges all exist in G, are distinct, are exactly the edges crossing some partition of the vertices into two sets, and number exactly K.";
+    public string verifierDefinition { get; } = "Checks that the certificate edges all exist in G, are distinct, are exactly the edges crossing some partition of the vertices into two non-empty sets, and number exactly K.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
