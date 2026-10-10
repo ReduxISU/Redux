@@ -46,6 +46,8 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         ("minimumvertexcoverdefaultvisualization", "bruteforceminimumvertexcover", "GraphD3"),
         ("independentsetdefaultvisualization", "independentsetbruteforce", "GraphD3"),
         ("dominatingsetdefaultvisualization", "dominatingsetforcedvertex", "GraphD3"),
+        // A legacy type that is still the list reshaped, now that every other case here builds its own frames (#666).
+        ("dfatablevisualization", "dfasolver", "DynamicTable"),
     };
 
     // Visualizations that build their own frames (the Graph picture, the Grouped Graph picture) are checked in
@@ -162,13 +164,16 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(JsonValueKind.Object, root.ValueKind);
         Assert.Equal(JsonValueKind.String, root.GetProperty("type").ValueKind);
         Assert.Equal(expectedType, root.GetProperty("type").GetString());
-        Assert.Equal(JsonValueKind.Object, root.GetProperty("payload").ValueKind);
+        // The payload is the initial picture, or null when the visualization has none (a table: the list then starts
+        // with the first step).
+        var payload = root.GetProperty("payload");
+        Assert.Contains(payload.ValueKind, new[] { JsonValueKind.Object, JsonValueKind.Null });
         var frames = root.GetProperty("frames");
         Assert.Equal(JsonValueKind.Array, frames.ValueKind);
 
         var list = JsonDocument.Parse(ReadSnapshot($"{vis}.json")).RootElement;
         // Nesting changes the indentation of each item, so compare compacted text (same properties, same order).
-        var reshaped = new List<string> { Compact(root.GetProperty("payload")) };
+        var reshaped = payload.ValueKind == JsonValueKind.Null ? new List<string>() : new List<string> { Compact(payload) };
         reshaped.AddRange(frames.EnumerateArray().Select(Compact));
         Assert.Equal(list.EnumerateArray().Select(Compact).ToList(), reshaped);
     }
