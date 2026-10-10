@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Packing;
 using API.Interfaces.Steps;
 using Xunit;
 
@@ -96,6 +97,13 @@ public class SolverReplay_Tests {
         if (lastPartial is NetworkFlow flow) {
             // Minimum S-T Cut answers its S side ("{1,2}"); the flow itself is checked in FlowSolvers_Tests.
             return new NetworkFlow(flow.Flow, flow.Path, flow.Value, answer.Trim('{', '}').Split(',').Where(x => x.Length > 0));
+        }
+        if (lastPartial is Placement) {
+            // Packing answers name numbers, not positions: the problem's Packing visualization reads them as a placement (equal
+            // numbers fill items in order, which the default instances never repeat).
+            var hook = typeof(IPackingVisualization<>).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
         }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");

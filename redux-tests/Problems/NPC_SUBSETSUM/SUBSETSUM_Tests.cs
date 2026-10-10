@@ -220,4 +220,21 @@ public class SUBSETSUM_Tests {
         Assert.NotEqual("{}", solution);
         Assert.True(new SubsetSumVerifier().verify(problem, solution));
     }
+
+    // #791: with 31 or more items the bitmask 1 << n overflowed, so no subset was tried and "{}" came back at once.
+    [Theory]
+    [InlineData(31)]
+    [InlineData(32)]
+    public void BruteForce_ManyItems_StillTriesTheFirstItemAlone(int count) {
+        var items = new[] { 5 }.Concat(Enumerable.Range(100, count - 1));
+        SUBSETSUM problem = new SUBSETSUM($"({{{string.Join(",", items)}}},5)");
+        Assert.Equal(count, problem.S.Count);
+        Assert.Equal("{5}", new SubsetSumBruteForce().solve(problem));
+    }
+
+    // The candidates keep their order: mask 1, 2, 3, ... with bit i picking item i, so {1,2} (mask 3) comes before {4} (mask 4).
+    [Fact]
+    public void BruteForce_TriesSubsetsInMaskOrder() {
+        Assert.Equal("{1,2}", new SubsetSumBruteForce().solve(new SUBSETSUM("({1,2,3},3)")));
+    }
 }

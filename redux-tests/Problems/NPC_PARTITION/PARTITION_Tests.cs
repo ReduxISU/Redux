@@ -135,4 +135,15 @@ public class PARTITION_Tests {
         Assert.NotEqual("{}", solution);
         Assert.True(verifier.verify(problem, solution), $"Solver output failed verifier for: {solution}");
     }
+
+    // #796: with no split the solver answers {}, and the solved picture threw reading a first group that isn't there. It
+    // draws the unsolved picture instead.
+    [Theory]
+    [InlineData("{3,5,7}", "{}")]
+    [InlineData("{3,5,7}", "{(3)}")]
+    public void Visualization_NoSplit_DrawsTheUnsolvedPicture(string instance, string answer) {
+        var vis = (API.Interfaces.IVisualization)new API.Problems.NPComplete.NPC_PARTITION.Visualizations.PartitionDefaultVisualization();
+        string Json(object o) => System.Text.Json.JsonSerializer.Serialize(o);
+        Assert.Equal(Json(vis.visualize(instance)), Json(vis.SolvedVisualization(instance, answer)));
+    }
 }
