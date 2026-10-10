@@ -75,6 +75,11 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     public List<string> acceptStates { get => _acceptStates; set => _acceptStates = value; }
     public string inputString { get => _inputString; set => _inputString = value; }
 
+    // A symbol as one character, or a parse error that says so instead of keeping only its first character (#780).
+    private static char OneCharacter(string symbol, string what) =>
+        symbol.Length == 1 ? symbol[0]
+            : throw new InvalidOperationException($"{what} '{symbol}' must be one character; the input is read one character at a time.");
+
     // ----- Constructors ----- //
     public DFA() : this(_defaultInstance) { }
 
@@ -97,14 +102,15 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
 
         // Convert Nodes and Alphabet //
         nodes = N.ToList().Select(x => x.ToString()).ToList();
-        alphabet = A.ToList().Select(x => x.ToString()[0]).ToList();
+        // A symbol is one character: the input is read one character at a time (#780).
+        alphabet = A.ToList().Select(x => OneCharacter(x.ToString(), "Alphabet symbol")).ToList();
 
         // Parse and Validate Edges //
         edges = new List<DFAEdge>();
         foreach (var e in E.ToList()) {
             if (e is UtilCollection tuple && tuple.Count() == 3) {
                 string from = tuple[0].ToString();
-                char symbol = tuple[1].ToString()[0];
+                char symbol = OneCharacter(tuple[1].ToString(), "Edge symbol");
                 string to = tuple[2].ToString();
 
                 // Validate Edge //

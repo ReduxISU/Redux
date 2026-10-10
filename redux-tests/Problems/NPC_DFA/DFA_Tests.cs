@@ -112,6 +112,15 @@ public class DFA_Tests {
         Assert.Contains("1, 2", new DFASolver().solve(dfa));
     }
 
+    // #780: a symbol is one character; "ab" used to be cut to "a" without a word.
+    [Theory]
+    [InlineData("(({1,2},{ab,c},{(1,c,2)},1,{2}),c)")]   // in the alphabet
+    [InlineData("(({1,2},{a,c},{(1,ab,2)},1,{2}),a)")]   // in a transition
+    public void DFA_Rejects_Multi_Character_Symbol(string instance) {
+        var ex = Assert.Throws<InvalidOperationException>(() => new DFA(instance));
+        Assert.Contains("one character", ex.Message);
+    }
+
     [Fact]
     public void DFA_Rejects_Edge_With_Symbol_Not_In_Alphabet() {
         string instance = "(({1,2},{a},{(1,c,2)},1,{2}),a)";
