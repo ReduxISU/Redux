@@ -1,0 +1,307 @@
+{
+  "reductionName": "Sipser\u0027s Clique Reduction",
+  "reductionDefinition": "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs",
+  "contributors": [
+    "Kaden Marchetti",
+    "Alex Diviney",
+    "Caleb Eardley",
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1"
+      ],
+      "reductionToIds": [
+        "!x2_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-2"
+      ],
+      "reductionToIds": [
+        "x3_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-0"
+      ],
+      "reductionToIds": [
+        "!x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-1"
+      ],
+      "reductionToIds": [
+        "x3_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-2"
+      ],
+      "reductionToIds": [
+        "x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-0"
+      ],
+      "reductionToIds": [
+        "x2_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-1"
+      ],
+      "reductionToIds": [
+        "!x3_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-2"
+      ],
+      "reductionToIds": [
+        "!x1_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "3SAT",
+    "formalDefinition": "3SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula in 3CNF}",
+    "problemDefinition": "3SAT is the Boolean satisfiability problem restricted to formulas in conjunctive normal form with at most three literals per clause. It asks whether there is an assignment of True/False values to the variables of \u03A6 that makes the whole formula True.",
+    "inputDescription": "\u03A6, a boolean formula",
+    "outputDescription": "True or False, whether \u03A6 is satisfiable",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
+    "complexityClass": "NPComplete",
+    "problemType": "Logic",
+    "contributors": [
+      "Kaden Marchetti"
+    ],
+    "defaultSolver": {
+      "solverName": "3SAT Backtracking",
+      "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+      "contributors": [
+        "David Lindeman",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "Backtracking",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default 3SAT Verifier",
+      "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "3SAT Visualization",
+      "visualizationDefinition": "This is a default visualization for 3SAT",
+      "visualizationType": "BooleanSatisfiability",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti"
+      ],
+      "solver": {
+        "solverName": "3SAT Backtracking",
+        "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+        "contributors": [
+          "David Lindeman",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({x1_0,!x2_0,x3_0,!x1_1,x3_1,x1_1,x2_2,!x3_2,!x1_2},{{x1_0,x3_1},{x1_0,x1_1},{x1_0,x2_2},{x1_0,!x3_2},{!x2_0,!x1_1},{!x2_0,x3_1},{!x2_0,x1_1},{!x2_0,!x3_2},{!x2_0,!x1_2},{x3_0,!x1_1},{x3_0,x3_1},{x3_0,x1_1},{x3_0,x2_2},{x3_0,!x1_2},{!x1_1,!x2_0},{!x1_1,x3_0},{!x1_1,x2_2},{!x1_1,!x3_2},{!x1_1,!x1_2},{x3_1,x1_0},{x3_1,!x2_0},{x3_1,x3_0},{x3_1,x2_2},{x3_1,!x1_2},{x1_1,x1_0},{x1_1,!x2_0},{x1_1,x3_0},{x1_1,x2_2},{x1_1,!x3_2},{x2_2,x1_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,x3_1},{x2_2,x1_1},{!x3_2,x1_0},{!x3_2,!x2_0},{!x3_2,!x1_1},{!x3_2,x1_1},{!x1_2,!x2_0},{!x1_2,x3_0},{!x1_2,!x1_1},{!x1_2,x3_1}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}

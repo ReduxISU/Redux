@@ -2,12 +2,13 @@ using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_VERTEXCOVER;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_VertexCover;
 
-class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
+class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, NodeSet> {
 
 
     // --- Fields ---
@@ -146,5 +147,33 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
         }
         return '{' + problemToSolution.TrimEnd(',') + '}';
 
+    }
+
+    public NodeSet EmptyAnswer() => new NodeSet([]);
+
+    // Backward map: the clique is the nodes the cover leaves out (an independent set in the complement
+    // graph is a clique in the original). A cover smaller than N-K leaves out more than K nodes; any K
+    // of them are still a clique, so the first K (in the graph's node order) are kept.
+    public string MapSolutionBack(string problemToSolution, StepRecorder<NodeSet> rec) {
+        var cover = new HashSet<string>(ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes));
+        int k = reductionFrom.K;
+
+        var clique = new List<string>();
+        foreach (string node in reductionFrom.nodes) {
+            if (cover.Contains(node)) {
+                rec.Reject(() => new NodeSet(clique), () => $"Node {node} is in the vertex cover, so it is left out of the clique.", node);
+            } else if (clique.Count < k) {
+                clique.Add(node);
+                rec.Accept(() => new NodeSet(clique), () => $"Node {node} is not in the vertex cover, so it is in the clique.", node);
+            } else {
+                rec.Reject(() => new NodeSet(clique), () => $"Node {node} is not in the cover, but the clique already has {k} nodes, so it is left out.", node);
+            }
+        }
+
+        bool ok = clique.Count == k;
+        rec.Done(new NodeSet(clique), ok, ok
+            ? $"The {k} nodes outside the cover form a clique of size {k}."
+            : $"Only {clique.Count} nodes are outside the cover, fewer than the {k} the clique needs.");
+        return ReductionBack.FormatNodeSet(clique);
     }
 }
