@@ -510,4 +510,17 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         var malformed = await Post(reduction, "(((");
         Assert.Equal(HttpStatusCode.BadRequest, malformed.StatusCode);
     }
+
+    // #760: a Clique K outside 0..N would make K' = N - K negative (or above N); the build refuses it with the
+    // reduction-input 400 that /reduce gives, before recording anything.
+    [Theory]
+    [InlineData("(({a,b,c},{{a,b}}),4)")]
+    [InlineData("(({a,b,c},{{a,b}}),-1)")]
+    public async Task Endpoint_CliqueKOutsideZeroToN_Is400ReductionInput(string instance) {
+        var response = await Post(Vc, instance);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal("reduction_input_parse_error", doc.RootElement.GetProperty("error").GetString());
+        Assert.Contains("K must be between 0 and the number of nodes (3)", doc.RootElement.GetProperty("detail").GetString());
+    }
 }
