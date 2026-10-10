@@ -12,6 +12,7 @@ namespace redux_tests;
 // 3SAT, plus the guards that keep everything old frontends read exactly as it was:
 //   - the list format (snapshots in Snapshots/, captured before the picture existed),
 //   - /info for every visualization, solver and reduction that was touched (info.<name>.json, captured the same way).
+// The one deliberate exception is SAT's default visualization, which moved off DummyVisualization: see the "rewire" tests.
 public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -44,10 +45,10 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     public static TheoryData<string> Visualizations => new(CaseRows.Select(c => c.Vis));
     public static TheoryData<string, string> Cases => new(CaseRows.Select(c => (c.Vis, c.Solver)));
 
-    // Every visualization, solver and reduction whose /info must not change.
+    // Every visualization and solver whose /info must not change.
     public static TheoryData<string> TouchedInterfaces => new() {
-        "sat", "sat3", SatVis, Sat3Vis, "satgrovervisualization", "satbruteforcesolver", "satgroversolver",
-        "sat3backtrackingsolver", "ppz", "schoning", "walksat", "karpreducesat", "karpsattosat3",
+        "sat3", SatVis, Sat3Vis, "satgrovervisualization", "satbruteforcesolver", "satgroversolver",
+        "sat3backtrackingsolver", "ppz", "schoning", "walksat",
     };
 
     private static string DefaultInstance(string vis) => vis == SatVis ? new SAT().defaultInstance : new SAT3().defaultInstance;
@@ -76,6 +77,81 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken);
         var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement;
         Assert.Equal("BooleanSatisfiability", json.GetProperty("visualizationType").GetString());
+    }
+
+    // ---- SAT's default visualization moved off DummyVisualization: the only thing that may change. ----
+
+    // What embeds SAT's defaultVisualization: SAT itself, the reduction into SAT and the reduction out of SAT (its reductionFrom).
+    // Their snapshots were retaken after the rewire; the diff against the pre-change capture is only that nested object.
+    public static TheoryData<string> EmbedsSatsVisualization => new() { "sat", "karpreducesat", "karpsattosat3" };
+
+    [Theory]
+    [MemberData(nameof(EmbedsSatsVisualization))]
+    public async Task Rewire_Info_ShowsSatsRealVisualization_AndNothingElse(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        Assert.Contains("\"visualizationName\":\"SAT Visualization\"", body);
+        Assert.DoesNotContain("DummyVisualization", body);
+    }
+
+    [Fact]
+    public async Task Rewire_SatInfo_ReportsTheSatVisualizationAndItsSolver() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=sat", TestContext.Current.CancellationToken);
+        var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement;
+        var vis = json.GetProperty("defaultVisualization");
+        Assert.Equal("SAT Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("BooleanSatisfiability", vis.GetProperty("visualizationType").GetString());
+        Assert.Equal("SAT Brute Force", vis.GetProperty("solver").GetProperty("solverName").GetString());
+        // The same object the visualization reports about itself.
+        var own = JsonDocument.Parse(ReadSnapshot($"info.{SatVis}.json")).RootElement;
+        Assert.Equal(own.GetProperty("visualizationName").GetString(), vis.GetProperty("visualizationName").GetString());
+        Assert.Equal(own.GetProperty("sourceFile").GetString(), vis.GetProperty("sourceFile").GetString());
+    }
+
+    [Theory]
+    [InlineData("karpreducesat")]
+    [InlineData("karpsattosat3")]
+    public async Task Rewire_Reduce_ChangesOnlyTheNestedVisualization(string reduction) {
+        string instance = ReadSnapshot($"{reduction}.instance.txt");
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync($"/ProblemProvider/reduce?reduction={reduction}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(ReadSnapshot($"{reduction}.reduce.json"), (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
+    }
+
+    [Fact]
+    public async Task Rewire_VisualizeReduction_IntoSat_NowReturnsTheSatPicture() {
+        // Before the rewire the reduction's target visualization was DummyVisualization, which cannot parse a problem, so
+        // the endpoint failed. Now it answers with SAT's list items.
+        string instance = ReadSnapshot("karpreducesat.instance.txt");
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=karpreducesat&solution=" + Uri.EscapeDataString("{{c,e,g,i},{b,d,f,h},{a}}"), content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot("karpreducesat.visualizereduction.json"), body);
+        var items = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, items.Count);
+        Assert.All(items, i => Assert.Equal("sat", i.GetProperty("kind").GetString()));
+    }
+
+    [Fact]
+    public async Task Rewire_VisualizeReduction_OutOfSat_IsUnchanged() {
+        string instance = ReadSnapshot("karpsattosat3.instance.txt");
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=karpsattosat3&solution=" + Uri.EscapeDataString("(x1:True,x2:True,x3:False,x4:False)"), content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(ReadSnapshot("karpsattosat3.visualizereduction.json"), (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
+    }
+
+    [Fact]
+    public async Task Rewire_SatsVisualization_AnUnsatisfiableFormulaNoLongerThrows() {
+        // SolvedVisualization used to index past the end of "No solution exists".split(":"); the list items now come back
+        // with no literal highlighted.
+        var (status, body) = await Visualize($"visualization={SatVis}", "(x1) & (!x1)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.DoesNotContain("Solution", body);
+        Assert.Equal(2, JsonDocument.Parse(body).RootElement.GetArrayLength());
     }
 
     // ---- The list format is what old frontends read: it must not change. ----

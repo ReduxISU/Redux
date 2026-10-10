@@ -7,26 +7,27 @@
     "Daniel Igbokwe"
   ],
   "visualization": {
-    "visualizationName": "",
-    "visualizationDefinition": "This is a placeholder visualization class for problems with no visualization",
-    "visualizationType": "Unimplemented",
-    "source": " ",
-    "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+    "visualizationName": "SAT Visualization",
+    "visualizationDefinition": "This is a default visualization for SAT",
+    "visualizationType": "BooleanSatisfiability",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_SAT/Visualizations/SatDefaultVisualization.cs",
     "contributors": [
-      ""
+      "Andrija Sevaljevic"
     ],
     "solver": {
-      "solverName": "",
-      "solverDefinition": "This is a placeholder solver class for DummyVisualization",
+      "solverName": "SAT Brute Force",
+      "solverDefinition": "This is a simple brute force solver for SAT",
       "source": "",
-      "sourceFile": "Interfaces/DummyClasses/DummySolver.cs",
+      "sourceFile": "Problems/NPComplete/NPC_SAT/Solvers/SATBruteForceSolver.cs",
       "contributors": [
-        ""
+        "Daniel Igbokwe",
+        "Show Pratoomratana"
       ],
       "timerHasExpired": false,
-      "solverType": "Unclassified",
-      "complexity": "",
-      "complexityBucket": "Unclassified"
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
     }
   },
   "gadgets": [],
@@ -141,26 +142,27 @@
       ]
     },
     "defaultVisualization": {
-      "visualizationName": "",
-      "visualizationDefinition": "This is a placeholder visualization class for problems with no visualization",
-      "visualizationType": "Unimplemented",
-      "source": " ",
-      "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+      "visualizationName": "SAT Visualization",
+      "visualizationDefinition": "This is a default visualization for SAT",
+      "visualizationType": "BooleanSatisfiability",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT/Visualizations/SatDefaultVisualization.cs",
       "contributors": [
-        ""
+        "Andrija Sevaljevic"
       ],
       "solver": {
-        "solverName": "",
-        "solverDefinition": "This is a placeholder solver class for DummyVisualization",
+        "solverName": "SAT Brute Force",
+        "solverDefinition": "This is a simple brute force solver for SAT",
         "source": "",
-        "sourceFile": "Interfaces/DummyClasses/DummySolver.cs",
+        "sourceFile": "Problems/NPComplete/NPC_SAT/Solvers/SATBruteForceSolver.cs",
         "contributors": [
-          ""
+          "Daniel Igbokwe",
+          "Show Pratoomratana"
         ],
         "timerHasExpired": false,
-        "solverType": "Unclassified",
-        "complexity": "",
-        "complexityBucket": "Unclassified"
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "complexityBucket": "Exponential"
       }
     }
   },
