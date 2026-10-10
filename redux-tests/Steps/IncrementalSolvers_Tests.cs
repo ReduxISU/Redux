@@ -51,10 +51,18 @@ public class IncrementalSolvers_Tests {
         // typed solver interface.
         ["satbruteforcesolver"] = false,
         ["sat3backtrackingsolver"] = true,
+        // ChosenSets and NodeSet (Bipartite pictures)
+        ["setcoverbruteforce"] = false,
+        ["greedysetcover"] = true,
+        ["heuristicsolver"] = true,
+        ["exactcoverbruteforce"] = false,
+        ["dancinglinks"] = true,
+        ["exactcoverrecursive"] = true,
+        ["hittingsetbruteforce"] = false,
     };
 
-    // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment)];
+    // The answer shapes a Graph, Grouped Graph or Bipartite picture draws.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
@@ -229,6 +237,33 @@ public class IncrementalSolvers_Tests {
                 else if (node.Variable == tried) Assert.Equal(PictureState.ElementHighlight, state?.State);
                 else Assert.Equal(PictureState.Solution, state?.State);
             }
+        }
+    }
+
+    // ---- Bipartite pictures, from real runs ----
+
+    [Theory]
+    // Picks the set covering the most new elements (Accept), then is over K (Reject naming the sets past K).
+    [InlineData("greedysetcover", "setcoverdefaultvisualization", "({1,2,3,4,5,6},{{1,2,3,4},{1,2,5},{3,4,6}},2)")]
+    // Takes a set (Accept), goes over budget (Reject naming the set), undoes it (Backtrack).
+    [InlineData("heuristicsolver", "setcoverdefaultvisualization", "({1,2,3,4,5},{{1,2},{2,3},{3,4},{4,5},{1,5}},3)")]
+    // Reaches an element no set can cover (Reject naming the element) and backs out.
+    [InlineData("dancinglinks", "exactcoverdefaultvisualization", "({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})")]
+    [InlineData("exactcoverrecursive", "exactcoverdefaultvisualization", "({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})")]
+    public void Bipartite_Steps_KeepTheCommittedSetsSolution_AndMarkOnlyTheFocus(string solverName, string visualizationName, string instance) {
+        var solver = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solverName])!;
+        var run = solver.Run(instance, withSteps: true);
+        Assert.True(run.Incremental);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers[visualizationName])!;
+        var frames = vis.BuildFrames(instance, run).Frames.Cast<BipartiteFrame>().ToList();
+        var steps = run.Steps.Cast<SolverStep<ChosenSets>>().ToList();
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject);
+        foreach (var (step, frame) in steps.Zip(frames).Where(p => p.First.Event != StepEvent.Done)) {
+            foreach (var set in step.Partial.Sets.Except(step.Focus))
+                Assert.Equal(PictureState.Solution, frame.Nodes[set].State);
+            var mark = step.Event == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
+            foreach (var id in step.Focus)
+                Assert.Equal(mark, frame.Nodes[id].State);
         }
     }
 }

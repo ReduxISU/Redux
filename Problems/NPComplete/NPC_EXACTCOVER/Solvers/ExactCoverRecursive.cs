@@ -1,8 +1,10 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 
-class ExactCoverRecursive : ISolver<EXACTCOVER> {
+class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Exact Cover Recursive";
@@ -48,7 +50,8 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
 
     private string subsetsToCertificate(List<List<string>> solution) {
         if (solution.Count == 0) {
-            return "";
+            // The empty collection, as the other Exact Cover solvers write it; also their "no answer" (#775).
+            return "{}";
         }
 
         string certificate = "{";
@@ -82,14 +85,41 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
         return false;
     }
 
-    public string solve(EXACTCOVER exactCover) {
+    public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
+
+    // Steps: take a set that shares no element with the sets taken, run out of such sets, undo a set. Recorder state lives
+    // only in this call.
+    public string Solve(EXACTCOVER exactCover, StepRecorder<ChosenSets> rec) {
         List<string> uSet = new List<string>(exactCover.X);
         List<List<string>> subsets = new List<List<string>>(exactCover.S);
         List<List<string>> choosenSubsets = new List<List<string>>();
-        return subsetsToCertificate(solve_r(exactCover, uSet, subsets, choosenSubsets));
+        // Sets are tracked by reference, so two sets with the same elements keep their own ids (S1, S2, ...).
+        var index = new Dictionary<List<string>, int>(ReferenceEqualityComparer.Instance);
+        for (int i = 0; i < exactCover.S.Count; i++) index[exactCover.S[i]] = i;
+        List<List<string>> result = solve_r(exactCover, uSet, subsets, choosenSubsets, rec, index);
+        string certificate = subsetsToCertificate(result);
+        if (result.Count > 0) {
+            rec.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(result, index).Sets)}.");
+        } else {
+            // Nothing chosen is the answer only when there are no elements.
+            bool ok = exactCover.defaultVerifier.verify(exactCover, certificate);
+            rec.Done(new ChosenSets([]), ok,
+                ok ? "There are no elements, so the empty collection {} is an exact cover." : "Every branch was undone. No exact cover exists.");
+        }
+        return certificate;
     }
 
+    private static ChosenSets Picked(List<List<string>> chosen, Dictionary<List<string>, int> index) =>
+        new(chosen.Select(s => BipartiteFrames.SetId(index[s])));
+
     public List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets) {
+        var index = new Dictionary<List<string>, int>(ReferenceEqualityComparer.Instance);
+        for (int i = 0; i < exactCover.S.Count; i++) index[exactCover.S[i]] = i;
+        return solve_r(exactCover, uSet, subsetList, choosenSubsets, StepRecorder<ChosenSets>.Off, index);
+    }
+
+    private List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets,
+        StepRecorder<ChosenSets> rec, Dictionary<List<string>, int> index) {
         //check if choosen subsets is a solution, if it is, return it
         if (exactCover.defaultVerifier.verify(exactCover, subsetsToCertificate(choosenSubsets)))
             return choosenSubsets;
@@ -101,17 +131,27 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
                 possibleSubsets.Add(possibleset);
             }
         }
+        if (possibleSubsets.Count == 0) {
+            string[] Uncovered() => exactCover.X.Where(x => !choosenSubsets.Any(s => s.Contains(x))).ToArray();
+            rec.Reject(() => Picked(choosenSubsets, index),
+                () => $"Every set left overlaps the sets taken, and {BipartiteFrames.List(Uncovered())} {(Uncovered().Length == 1 ? "is" : "are")} still not covered, so undo.",
+                () => Uncovered().Select(BipartiteFrames.ElementId).ToArray());
+        }
 
         //foreach remaining good set in subsets, add it to choosen subsets and recurse.
         foreach (List<string> set in new List<List<string>>(possibleSubsets)) {
             //if one returns a solution return it, otherwise return empty
             possibleSubsets.Remove(set);
             choosenSubsets.Add(set);
-            List<List<string>> result = solve_r(exactCover, uSet, possibleSubsets, choosenSubsets);
+            int i = index[set];
+            rec.Accept(() => Picked(choosenSubsets, index),
+                () => $"Take {BipartiteFrames.SetText(exactCover.S, i)}: it shares no element with the sets taken.", BipartiteFrames.SetId(i));
+            List<List<string>> result = solve_r(exactCover, uSet, possibleSubsets, choosenSubsets, rec, index);
             if (result.Count > 0)
                 return result;
             choosenSubsets.Remove(set);
             possibleSubsets.Add(set);
+            rec.Backtrack(() => Picked(choosenSubsets, index), () => $"Undo {BipartiteFrames.SetId(i)}: no exact cover follows from it.", BipartiteFrames.SetId(i));
         }
         return new List<List<string>>();
 
