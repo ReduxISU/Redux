@@ -173,6 +173,33 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(0, JsonDocument.Parse(body).RootElement.GetArrayLength());
     }
 
+    // #760: Clique -> Vertex Cover sets K' = N - K, so a K outside 0..N used to build a Vertex Cover instance
+    // with a negative budget (K > N) or one above N (K < 0) and answer 200. It is input the reduction cannot take.
+    [Theory]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),5)", "but it is 5")]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),-1)", "but it is -1")]
+    public async Task Reduce_CliqueToVertexCover_KOutsideZeroToN_Returns400(string clique, string detail) {
+        var content = new StringContent(JsonSerializer.Serialize(clique), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreductionvertexcover", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement;
+        Assert.Equal("reduction_input_parse_error", body.GetProperty("error").GetString());
+        Assert.Equal(clique, body.GetProperty("received").GetString());
+        Assert.Contains("K must be between 0 and the number of nodes (3)", body.GetProperty("detail").GetString());
+        Assert.Contains(detail, body.GetProperty("detail").GetString());
+    }
+
+    [Theory]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),3)", 0)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),0)", 3)]
+    public async Task Reduce_CliqueToVertexCover_KAtTheEnds_Returns200(string clique, int coverSize) {
+        var content = new StringContent(JsonSerializer.Serialize(clique), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=sipserreductionvertexcover", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement;
+        Assert.EndsWith($"),{coverSize})", body.GetProperty("reductionTo").GetProperty("instance").GetString());
+    }
+
     // ── unparsable-instance handling on the remaining reduction/visualization
     //    endpoints (issue #355) ─────────────────────────────────────────────
     // Each of these builds a SAT3 from the posted instance; a malformed SAT3

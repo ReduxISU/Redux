@@ -74,6 +74,7 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
     /// </remarks>
     public VERTEXCOVER reduce() {
         CLIQUE CLIQUEInstance = _reductionFrom;
+        RequireKWithinNodeCount(CLIQUEInstance);
         VERTEXCOVER reducedVERTEXCOVER = new VERTEXCOVER();
 
         // Assign clique nodes to vertexcover nodes.
@@ -128,6 +129,17 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
         reductionTo = reducedVERTEXCOVER;
         return reducedVERTEXCOVER;
 
+    }
+
+    // The Vertex Cover budget is K' = N - K, which is only right for 0 <= K <= N. A K above N would give a
+    // negative budget, and a negative K a budget above N (every graph has such a cover, though no clique has a
+    // negative size). Either is refused as input this reduction cannot take (a 400 from the endpoints) rather
+    // than built into a Vertex Cover instance that does not mean the same thing.
+    private void RequireKWithinNodeCount(CLIQUE clique) {
+        int n = clique.nodes.Count;
+        if (clique.K < 0 || clique.K > n)
+            throw new ReductionInputException(this, clique.instance, clique.instanceFormat,
+                $"K must be between 0 and the number of nodes ({n}) for this reduction, but it is {clique.K}: the vertex cover size N - K would be {n - clique.K}.");
     }
 
     public string mapSolutions(string problemFromSolution) {
