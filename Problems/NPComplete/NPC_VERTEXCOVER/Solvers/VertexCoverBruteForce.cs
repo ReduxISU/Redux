@@ -66,11 +66,8 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
 
     // Steps: one per candidate set of size K. Recorder state lives only in this call.
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
-        if (G.K == 0) {
-            rec.Done(new NodeSet([]), G.edges.Count == 0,
-                G.edges.Count == 0 ? "There are no edges, so the empty set covers everything." : "A cover of size 0 cannot cover any edge.");
-            return "{}";
-        }
+        // K=0: the only size-0 candidate is the empty node set, "{}", which the loop below checks like any
+        // other: the verifier accepts it when G has no edges.
         List<int> combination = new List<int>();
         for (int i = 0; i < G.K; i++) {
             combination.Add(i);

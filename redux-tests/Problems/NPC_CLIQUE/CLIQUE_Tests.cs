@@ -69,6 +69,28 @@ public class CLIQUE_Tests {
         Assert.Throws<CertificateParseException>(() => verifier.verify(clique, ""));
     }
 
+    // #762: "{}" is the empty set, a clique of size 0, so it is the answer exactly when K = 0. Text that is not a
+    // set is still a parse error, though SPADE reads some of it (such as "abc") as an empty list.
+    [Theory]
+    [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),0)", "{}", true)]
+    [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),0)", " { } ", true)]
+    [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),1)", "{}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),-1)", "{}", false)]
+    [InlineData(DefaultInstance, "{}", false)]
+    public void CLIQUE_verifier_reads_empty_set(string instance, string certificate, bool expected) {
+        CLIQUE clique = new CLIQUE(instance);
+        Assert.Equal(expected, new CliqueVerifier().verify(clique, certificate));
+    }
+
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("{,}")]
+    [InlineData("{ ,1}")]
+    public void CLIQUE_verifier_still_refuses_text_that_is_not_a_set(string certificate) {
+        CLIQUE clique = new CLIQUE("(({1,2,3},{{1,2},{2,3},{3,1}}),0)");
+        Assert.Throws<CertificateParseException>(() => new CliqueVerifier().verify(clique, certificate));
+    }
+
     [Theory] // brute-force solver returns the first clique of size K in node order
     [InlineData(DefaultInstance, "{2,3,4,5}")]
     [InlineData("(({1,2,3},{{1,2},{2,3},{3,1}}),3)", "{1,2,3}")]
@@ -80,10 +102,8 @@ public class CLIQUE_Tests {
     }
 
     [Fact] // K==0 asks for the empty clique, which is trivially correct: the
-           // solver must return "{}" directly rather than round-tripping it
-           // through CliqueVerifier, which legitimately rejects "{}" as an
-           // empty/malformed certificate for the general (K>0) case.
-    public void CliqueBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
+           // solver tries the one size-0 candidate, "{}", and CliqueVerifier accepts it.
+    public void CliqueBruteForce_KZero_ReturnsEmptyCertificate() {
         CLIQUE clique = new CLIQUE("(({1,2,3},{{1,2},{2,3},{3,1}}),0)");
         CliqueBruteForce solver = clique.defaultSolver;
         Assert.Equal("{}", solver.solve(clique));
