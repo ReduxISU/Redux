@@ -1,0 +1,246 @@
+[
+  {
+    "kind": "set",
+    "data": {
+      "isOrdered": true,
+      "isValue": false,
+      "id": "r",
+      "list": [
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-0",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-1",
+              "value": "1",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-2",
+              "value": "2",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-3",
+              "value": "3",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-4",
+              "value": "4",
+              "color": "Background"
+            }
+          ]
+        },
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-1",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{1,3}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,3}-1",
+                  "value": "1",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,3}-3",
+                  "value": "3",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{2,3,4}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{2,3,4}-2",
+                  "value": "2",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{2,3,4}-3",
+                  "value": "3",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{2,3,4}-4",
+                  "value": "4",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{1,4}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,4}-1",
+                  "value": "1",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,4}-4",
+                  "value": "4",
+                  "color": "Background"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "kind": "set",
+    "data": {
+      "isOrdered": true,
+      "isValue": false,
+      "id": "r",
+      "list": [
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-0",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-1",
+              "value": "1",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-2",
+              "value": "2",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-3",
+              "value": "3",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-4",
+              "value": "4",
+              "color": "Background"
+            }
+          ]
+        },
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-1",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{1,3}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,3}-1",
+                  "value": "1",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,3}-3",
+                  "value": "3",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{2,3,4}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{2,3,4}-2",
+                  "value": "2",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{2,3,4}-3",
+                  "value": "3",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{2,3,4}-4",
+                  "value": "4",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{1,4}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,4}-1",
+                  "value": "1",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{1,4}-4",
+                  "value": "4",
+                  "color": "Background"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -177,22 +177,19 @@ public class EXACTCOVER_Tests {
     }
 
     [Fact]
-    public void ExactCoverRecursive_Returns_Empty_String_When_Sets_Only_Overlap() {
-        // Unlike DancingLinks/BruteForce (which explicitly return the literal
-        // "{}"), ExactCoverRecursive's subsetsToCertificate short-circuits an
-        // empty solution list to "". Still correctly rejected by the verifier --
-        // just a different "no solution" sentinel than the other two solvers use.
+    public void ExactCoverRecursive_Returns_Empty_Braces_When_Sets_Only_Overlap() {
+        // Like DancingLinks/BruteForce, the empty solution list is written "{}" (it was "" before #775).
         EXACTCOVER problem = new EXACTCOVER(OverlapOnlyInstance);
         string certificate = new ExactCoverRecursive().solve(problem);
-        Assert.Equal("", certificate);
+        Assert.Equal("{}", certificate);
         Assert.False(new ExactCoverVerifier().verify(problem, certificate));
     }
 
     [Fact]
-    public void ExactCoverRecursive_Returns_Empty_String_When_Element_Is_Uncoverable() {
+    public void ExactCoverRecursive_Returns_Empty_Braces_When_Element_Is_Uncoverable() {
         EXACTCOVER problem = new EXACTCOVER(UncoverableInstance);
         string certificate = new ExactCoverRecursive().solve(problem);
-        Assert.Equal("", certificate);
+        Assert.Equal("{}", certificate);
         Assert.False(new ExactCoverVerifier().verify(problem, certificate));
     }
 
@@ -248,5 +245,39 @@ public class EXACTCOVER_Tests {
         EXACTCOVER problem = new EXACTCOVER(UncoverableInstance);
         string certificate = new ExactCoverBruteForce().solve(problem);
         Assert.Equal("{}", certificate);
+    }
+    // #773: the loop over the chosen column's rows threw "Collection was modified" when select removed a row from that
+    // same list, which happens when the row's other columns come first in its set.
+    [Theory]
+    [InlineData("({1,2,3,4},{{3,1},{1},{3,2},{3,4}})")]
+    [InlineData("({1,2,3,4,5,6,7},{{1,2,5,6},{5},{2,3,7},{1,2},{7,4,1},{1,5,7},{7,6,4}})")]
+    [InlineData("({1,2,3,4,5,6,7},{{4,5},{5,7},{3,4,6},{5,4,2,1},{7,1},{2,3,4,7}})")]
+    [InlineData("({1,2,3},{{2,1},{3,1},{2},{3}})")]
+    public void DancingLinks_Agrees_With_Brute_Force_When_A_Row_Lists_Another_Column_First(string instance) {
+        EXACTCOVER problem = new EXACTCOVER(instance);
+        string bruteForce = new ExactCoverBruteForce().solve(problem);
+        string certificate = new DancingLinks().solve(problem);
+        Assert.Equal(new ExactCoverVerifier().verify(problem, bruteForce), new ExactCoverVerifier().verify(problem, certificate));
+    }
+
+    // #775: {} is the empty collection. It is the exact cover of an empty universe, and the verifier rejected it, so every
+    // solver reported that no exact cover exists.
+    [Theory]
+    [InlineData("({},{})", "{}", true)]
+    [InlineData("({},{{}})", "{}", true)]
+    [InlineData("({1},{{1}})", "{}", false)]
+    [InlineData("({1},{{1},{}})", "{{1},{}}", true)]
+    public void ExactCoverVerifier_Reads_Empty_Braces_As_The_Empty_Collection(string instance, string certificate, bool valid) {
+        Assert.Equal(valid, new ExactCoverVerifier().verify(new EXACTCOVER(instance), certificate));
+    }
+
+    [Theory]
+    [InlineData("({},{})")]
+    [InlineData("({},{{}})")]
+    public void Every_Solver_Finds_The_Empty_Exact_Cover_Of_An_Empty_Universe(string instance) {
+        EXACTCOVER problem = new EXACTCOVER(instance);
+        // With an empty set in S, choosing it ({{}}) is an exact cover too.
+        foreach (string certificate in new[] { new ExactCoverBruteForce().solve(problem), new DancingLinks().solve(problem), new ExactCoverRecursive().solve(problem) })
+            Assert.True(new ExactCoverVerifier().verify(problem, certificate), $"got: {certificate}");
     }
 }

@@ -1,9 +1,11 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 
-class DancingLinks : ISolver<EXACTCOVER> {
+class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Knuth's Algorithm X";
@@ -29,7 +31,11 @@ class DancingLinks : ISolver<EXACTCOVER> {
 
     }
 
-    public string solve(EXACTCOVER exactCover) {
+    public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
+
+    // Steps: try a set for the element with the fewest options, reach an element no set can cover, undo a set. Recorder
+    // state lives only in this call.
+    public string Solve(EXACTCOVER exactCover, StepRecorder<ChosenSets> rec) {
 
         Dictionary<int, List<int>> Y = new Dictionary<int, List<int>>();
         Dictionary<int, List<int>> X = new Dictionary<int, List<int>>();
@@ -53,27 +59,50 @@ class DancingLinks : ISolver<EXACTCOVER> {
 
         Stack<int> selectedSets = new Stack<int>();
         bool foundSolution = false;
-        iterate(Y, ref X, ref selectedSets, ref foundSolution);
+        iterate(Y, ref X, ref selectedSets, ref foundSolution, exactCover, rec);
 
         if (selectedSets.Any()) {
+            rec.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(selectedSets).Sets)}.");
             return solutionToCertificate(selectedSets, exactCover);
         }
 
+        // With nothing selected, a solution was found only when X is empty: then {} is the exact cover.
+        rec.Done(new ChosenSets([]), foundSolution,
+            foundSolution ? "There are no elements, so the empty collection {} is an exact cover." : "Every branch was undone. No exact cover exists.");
         return "{}";
     }
 
-    private void iterate(Dictionary<int, List<int>> Y, ref Dictionary<int, List<int>> X, ref Stack<int> solution, ref bool foundSolution) {
+    // The sets on the stack, by id (S1, S2, ...).
+    private static ChosenSets Picked(Stack<int> solution) => new(solution.Select(BipartiteFrames.SetId));
+
+    private void iterate(Dictionary<int, List<int>> Y, ref Dictionary<int, List<int>> X, ref Stack<int> solution, ref bool foundSolution,
+        EXACTCOVER exactCover, StepRecorder<ChosenSets> rec) {
         if (!X.Keys.Any()) foundSolution = true;
         if (foundSolution == true) return;
         else {
             int minimumColumn = X.OrderBy(kv => kv.Value.Count).First().Key;
-            foreach (var row in X[minimumColumn]) {
+            // A copy: select and deselect change this column's row list while the loop runs (#773).
+            var rows = X[minimumColumn].ToList();
+            var stack = solution;
+            string element = exactCover.X[minimumColumn];
+            if (rows.Count == 0)
+                rec.Reject(() => Picked(stack), () => $"No set left can cover {element} without doubling up, so undo.", BipartiteFrames.ElementId(element));
+            bool first = true;
+            foreach (var row in rows) {
                 solution.Push(row);
                 Stack<List<int>> columns = select(Y, ref X, row);
-                iterate(Y, ref X, ref solution, ref foundSolution);
+                bool isFirst = first;
+                first = false;
+                rec.Accept(() => Picked(stack),
+                    () => isFirst
+                        ? $"{element} has the fewest options ({rows.Count}). Try {BipartiteFrames.SetText(exactCover.S, row)}."
+                        : $"Try {BipartiteFrames.SetText(exactCover.S, row)} for {element} instead.",
+                    BipartiteFrames.SetId(row));
+                iterate(Y, ref X, ref solution, ref foundSolution, exactCover, rec);
                 if (foundSolution == true) return;
                 deselect(Y, ref X, row, ref columns);
                 solution.Pop();
+                rec.Backtrack(() => Picked(stack), () => $"Undo {BipartiteFrames.SetId(row)}: no exact cover follows from it.", BipartiteFrames.SetId(row));
             }
         }
     }

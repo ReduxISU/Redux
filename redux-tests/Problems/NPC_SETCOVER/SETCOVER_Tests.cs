@@ -217,4 +217,33 @@ public class SETCOVER_Tests {
         Assert.True(new SetCoverVerifier().verify(problem, certificate), $"got: {certificate}");
         Assert.Equal(2, CountTopLevelSubsets(certificate));
     }
+    // -------------------------------------------------------------------------
+    // Solver: SetCoverBruteForce (#772)
+    // -------------------------------------------------------------------------
+
+    // It tried C(m, j) combinations of j + 1 sets, so it missed covers (for one set it only tried S1), and it threw
+    // ArgumentOutOfRangeException once K was larger than the number of sets.
+    [Theory]
+    [InlineData("({1,2},{{1},{1,2}},1)", true)]
+    [InlineData("({1,2,3,4},{{1},{2},{3},{4},{1,2,3}},2)", true)]
+    [InlineData("({1,2,3},{{1}},3)", false)]
+    [InlineData("({1},{},1)", false)]
+    [InlineData("({1,2,3},{{1,2},{3}},5)", true)]
+    public void SetCoverBruteForce_Tries_Every_Combination_Of_Up_To_K_Sets(string instance, bool coverExists) {
+        SETCOVER problem = new SETCOVER(instance);
+        string certificate = new SetCoverBruteForce().solve(problem);
+        Assert.Equal(coverExists, new SetCoverVerifier().verify(problem, certificate));
+        if (!coverExists) Assert.Equal("{}", certificate);
+    }
+
+    // #774: deselect stopped popping at the first already-covered column, so the columns pushed before it were lost when
+    // the search backed out, and it could stop with elements uncovered.
+    [Theory]
+    [InlineData("({1,2,3,4,5,6},{{1,2,6},{3,4,6},{3,5,6},{4,5},{3,4,5},{5}},2)")]
+    [InlineData("({1,2,3,4,5,6},{{2,5},{5},{3,6},{6,2},{6,5,4},{6,1},{3,1}},3)")]
+    public void HeuristicSolver_Restores_Every_Column_When_It_Backtracks(string instance) {
+        SETCOVER problem = new SETCOVER(instance);
+        string certificate = new HeuristicSolver().solve(problem);
+        Assert.True(new SetCoverVerifier().verify(problem, certificate), $"got: {certificate}");
+    }
 }

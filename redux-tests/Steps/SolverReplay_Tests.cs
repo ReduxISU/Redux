@@ -37,8 +37,29 @@ public class SolverReplay_Tests {
         return firstLine.StartsWith(prefix) ? firstLine[prefix.Length..].Replace(" ", "") : answer;
     }
 
+    // The sets of a problem whose answers pick sets by their elements, in instance order.
+    private static List<List<string>> SetsOf(IProblem problem) => problem switch {
+        API.Problems.NPComplete.NPC_SETCOVER.SETCOVER setCover => setCover.subsets,
+        API.Problems.NPComplete.NPC_EXACTCOVER.EXACTCOVER exactCover => exactCover.S,
+        _ => throw new NotImplementedException($"Add the sets of {problem.GetType().Name} to SolverReplay_Tests.SetsOf."),
+    };
+
     // What the final Partial must equal, derived independently from the answer string.
-    private static object ExpectedFinalPartial(object lastPartial, string answer, string solverName) {
+    private static object ExpectedFinalPartial(object lastPartial, string answer, string solverName, IProblem problem) {
+        if (lastPartial is ChosenSets) {
+            // Set answers list the chosen sets by their elements ("{{1,2,3},{4,5}}"); the partial names them S1, S2, ...
+            // by position. Each listed set is the first set of the instance with those elements not taken yet.
+            var sets = SetsOf(problem);
+            var taken = new bool[sets.Count];
+            var ids = new List<string>();
+            foreach (SPADE.UtilCollection listed in new SPADE.UtilCollection(answer).ToList()) {
+                var elements = listed.ToList().Select(x => x.ToString()).ToHashSet();
+                int i = Enumerable.Range(0, sets.Count).First(j => !taken[j] && sets[j].ToHashSet().SetEquals(elements));
+                taken[i] = true;
+                ids.Add($"S{i + 1}");
+            }
+            return new ChosenSets(ids);
+        }
         if (lastPartial is ActiveStates last) {
             // The end states of the accepting run(s): the last state of each path line.
             var ends = answer.Split('\n')
@@ -114,7 +135,7 @@ public class SolverReplay_Tests {
         Assert.Equal(StepEvent.Done, (StepEvent)last.Event);
         Assert.Equal(1, withSteps.Steps.Count(s => ((dynamic)s).Event == StepEvent.Done));
         object finalPartial = last.Partial;
-        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer, name), finalPartial);
+        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer, name, problem), finalPartial);
 
         // (c) Done.Ok agrees with the problem's own verifier on the returned answer.
         bool? ok = last.Ok;

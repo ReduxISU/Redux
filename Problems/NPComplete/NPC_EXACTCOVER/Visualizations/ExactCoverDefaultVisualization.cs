@@ -1,13 +1,15 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Visualizations;
 
-class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET> {
+class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET>, IBipartiteVisualization<EXACTCOVER> {
     public string visualizationName { get; } = "Exact Cover Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Exact Cover";
     public string source { get; } = "";
@@ -51,4 +53,13 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET> {
 
         return ec;
     }
+
+    // --- Bipartite Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(ChosenSets);
+
+    BipartiteSpec IBipartiteVisualization<EXACTCOVER>.Describe(EXACTCOVER exactCover) => Spec(exactCover);
+
+    /// <summary>Exact Cover as a Bipartite Graph: pick sets, every element exactly once. Solvers use it for captions.</summary>
+    internal static BipartiteSpec Spec(EXACTCOVER exactCover) =>
+        new(exactCover.X, exactCover.S, null, BipartitePick.Sets, BipartiteRule.ExactlyOnce);
 }

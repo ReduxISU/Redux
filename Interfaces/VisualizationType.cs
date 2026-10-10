@@ -42,4 +42,11 @@ public enum VisualizationType {
     /// <see cref="BooleanSatisfiability"/>.
     /// </summary>
     GroupedGraph,
+    /// <summary>
+    /// The Bipartite Graph picture (Set Cover, Exact Cover, Exact Hitting Set): elements in one column, sets in the other, an
+    /// edge per membership, a static payload plus one frame of named states per solver step. Like <see cref="Graph"/> it is
+    /// reported only as the <c>type</c> of the <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps
+    /// the legacy <see cref="SetD3"/>.
+    /// </summary>
+    BipartiteGraph,
 }
