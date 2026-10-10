@@ -1,15 +1,16 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CUT.Verifiers;
 
 class CutVerifier : IVerifier<CUT> {
-    public const string CertificateGrammar = "{S} subset E | S has no duplicate edges (either orientation), |S| = K";
+    public const string CertificateGrammar = "{S} subset E | S has no duplicate edges (either orientation), S is exactly the set of edges crossing some partition of N into two sets, |S| = K";
     public const string CertificateExample = "{{2,1},{1,3},{2,3},{3,5},{2,4}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Cut Verifier";
-    public string verifierDefinition { get; } = "This is a verifier for the Cut problem";
+    public string verifierDefinition { get; } = "Checks that the certificate edges all exist in G, are distinct, are exactly the edges crossing some partition of the vertices into two sets, and number exactly K.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
@@ -47,25 +48,17 @@ class CutVerifier : IVerifier<CUT> {
             return false;
         }
 
-        // Sort each edge's endpoints so {b,c} and {c,b} compare equal --
-        // an undirected edge has no canonical orientation.
-        List<List<string>> canonicalEdges = edgeList.Select(e => e.OrderBy(x => x).ToList()).ToList();
+        List<(string, string)> certEdges = edgeList.Select(e => (e[0], e[1])).ToList();
+        List<(string, string)> graphEdges = problem.edges.Select(e => (e.Key, e.Value)).ToList();
 
-        int counter = 0;
-        foreach (var edge in canonicalEdges) {
-            //makes sure there are no duplicate edges, regardless of orientation
-            if (canonicalEdges.Count(e => e.SequenceEqual(edge)) > 1) {
-                return false;
-            }
-            KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(edge[0], edge[1]);
-            KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(edge[1], edge[0]);
-            if ((problem.edges.Contains(pairCheck1) || problem.edges.Contains(pairCheck2)) && !edge[1].Equals(edge[0])) { //Checks if edge exists, then adds to cut
-                counter++;
-            }
-        }
-        if (counter != problem.K) {
+        // Every edge must exist in G and appear once (either orientation).
+        if (!GraphCertificateChecks.EdgesExistAndDistinct(graphEdges, certEdges)) {
             return false;
         }
-        return true;
+        // The certificate must be exactly the set of edges crossing some partition (S, V\S).
+        if (!GraphCertificateChecks.IsExactCut(problem.nodes, graphEdges, certEdges)) {
+            return false;
+        }
+        return certEdges.Count == problem.K;
     }
 }
