@@ -261,7 +261,7 @@ public class GraphTourFrames_Tests {
         Assert.Equal(["Try", "Accept", "Done"], response.Frames.Cast<GraphFrame>().Select(f => f.Event.ToString()));
     }
 
-    // ---- runs stopped by the time limit, and edge ids ----
+    // ---- runs stopped by the time limit ----
 
     [Fact]
     public void Build_StoppedRun_EndsWithABlankNotOkDone_WithAnEmptyOrder() {
@@ -286,16 +286,5 @@ public class GraphTourFrames_Tests {
         Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
         Assert.False(only.Ok);
         Assert.Empty(only.Order!);
-    }
-
-    [Fact]
-    public void Build_RefusesNodeNamesThatMakeTwoEdgesShareAnId() {
-        // Directed: a → b>c and a>b → c are both "a>b>c". Undirected: {a,b-c} and {a-b,c} are both "a-b-c".
-        var directed = new GraphTourSpec(["a", "b>c", "a>b", "c"], [new("a", "b>c"), new("a>b", "c")], true, null, TourRule.HamiltonianCycle);
-        Assert.Throws<AmbiguousEdgeIdException>(() => GraphTourFrames.Build(directed, new SolveRun("{}", [], null), _ => Of(), _ => false));
-        var undirected = new GraphTourSpec(["a", "b-c", "a-b", "c"], [new("a", "b-c"), new("a-b", "c")], false, null, TourRule.HamiltonianCycle);
-        Assert.Throws<AmbiguousEdgeIdException>(() => GraphTourFrames.Build(undirected, new SolveRun("{}", [], null), _ => Of(), _ => false));
-        // A directed edge and its reverse are two edges with two ids, which is fine.
-        GraphTourFrames.Build(Directed(), new SolveRun("{}", [], null), _ => Of(), _ => false);
     }
 }

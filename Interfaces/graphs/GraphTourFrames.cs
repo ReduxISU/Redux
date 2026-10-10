@@ -144,7 +144,6 @@ static class GraphTourFrames {
     /// <see cref="GraphSubsetFrames.StoppedFrame"/>) with an empty <c>order</c> instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GraphTourSpec spec, SolveRun run, Func<string, Tour> parseAnswer, Func<string, bool> verifyAnswer) {
-        GraphSubsetFrames.CheckEdgeIds(spec.Edges.Select(e => (e.From, e.To)), (a, b) => EdgeId(spec.Directed, a, b));
         var frames = new List<object>();
         SolverStep<Tour>? last = null;
         foreach (var step in run.StepsFor(typeof(Tour)).OfType<SolverStep<Tour>>()) {
@@ -182,11 +181,11 @@ interface IGraphTourVisualization<TProblem> : IFramesVisualization where TProble
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphTourFrames.Build(Describe(problem), run,
+        return GraphTourFrames.Build(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            }));
+            });
     }
 }
