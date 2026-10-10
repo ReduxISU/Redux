@@ -12,6 +12,8 @@ namespace redux_tests;
 // everything old frontends read exactly as it was:
 //   - the list format (Snapshots/layered_list_snapshots.tsv, captured before the picture existed),
 //   - /info for every problem, solver and visualization that was touched (info.<name>.json, captured the same way).
+// The one deliberate exception is Strongly Connected Components' default visualization, which moved off
+// DummyVisualization to SCCVisualization: see the "rewire" test.
 public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -57,7 +59,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         "topologicalsortdefaultvisualization", "arcsetdefaultvisualization", "nodesetdefaultvisualization", "ssspvisualization",
         "sssptablevisualization", "spspvisualization", "spsptablevisualization", "kahnsalgorithm", "arcsetbruteforce",
         "nodesetbruteforce", "kosarajusolver", "ssspsolver", "spspsolver", "topologicalsort", "arcset", "nodeset",
-        "stronglyconnectedcomponents", "sssp", "spsp",
+        "sssp", "spsp",
     ]);
 
     // ---- What old frontends read must not change. ----
@@ -72,6 +74,22 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.DoesNotContain("ListReadsTypedSteps", body);
         Assert.DoesNotContain("ListedEdges", body);
         Assert.DoesNotContain("LayeredGraph", body);
+    }
+
+    // Strongly Connected Components' default visualization moved off DummyVisualization to SCCVisualization. Its /info
+    // snapshot was retaken after the rewire; the diff against the pre-change capture is only that nested object.
+    [Fact]
+    public async Task Rewire_SccInfo_ShowsSccVisualization_AndNothingElse() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=stronglyconnectedcomponents", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot("info.stronglyconnectedcomponents.json"), body);
+        Assert.DoesNotContain("DummyVisualization", body);
+        Assert.DoesNotContain("LayeredGraph", body);
+        var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal("Strongly Connected Components Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("GraphD3", vis.GetProperty("visualizationType").GetString());
+        Assert.Equal("Kosaraju's Algorithm", vis.GetProperty("solver").GetProperty("solverName").GetString());
     }
 
     [Theory]
@@ -231,7 +249,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Frames_SccHasAPictureNow_ButItsDefaultVisualizationIsUnchanged() {
+    public async Task Frames_SccHasAPicture() {
         var (status, body) = await Visualize("visualization=sccvisualization&format=frames", "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})");
         Assert.Equal(HttpStatusCode.OK, status);
         var done = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().Last();
