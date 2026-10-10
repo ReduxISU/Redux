@@ -15,7 +15,7 @@ namespace redux_tests;
 // Cut solvers record Groups steps (the split of the nodes). Recording must never change an answer.
 // Endpoints/Snapshots/edgeset_solver_answers.tsv holds what each solver returned (solver, instance, answer; tab
 // separated) BEFORE it recorded steps, on its default instance and on 12 seeded random graphs (including ones with no
-// answer).
+// answer). A row changes only when a bug fix changes that answer (#750: a Steiner tree the brute force skipped).
 public class EdgeSetSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -177,6 +177,10 @@ public class EdgeSetSolvers_Tests {
         Assert.Matches(@"found after (\d+) tries\. \(\d+ not shown\)$", steps[^1].Caption);
         int tried = int.Parse(Regex.Match(steps[^1].Caption, @"after (\d+) tries").Groups[1].Value);
         Assert.EndsWith($"({tried - StepRecorder<EdgeSet>.DefaultCap - 1} not shown)", steps[^1].Caption);
+        // Each combination once (#750): C(10,2) + C(10,3) + C(10,4) = 45 + 120 + 210 sets of 2 to 4 edges, then the
+        // tree {2,1},{1,3},{3,5},{6,8},{6,1} is the 36th set of 5 (21 start 2,1 / 1,3 / 2,3, then 3,5 with the 15th
+        // pair of the last six edges). Re-trying the last combination of each size made it 618.
+        Assert.Equal(45 + 120 + 210 + 36, tried);
     }
 
     [Fact]
