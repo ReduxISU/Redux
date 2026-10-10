@@ -274,6 +274,8 @@ public class TourSolvers_Tests {
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         Assert.False(steps[^1].Ok);
         Assert.Empty(steps[^1].Partial.Order);
+        // The only tour, a → b → c → a, costs 1 + 2 + 3 = 6.
+        Assert.StartsWith("The cheapest tour costs 6, which is more than K = 5.", steps[^1].Caption);
     }
 
     [Fact]
@@ -299,5 +301,16 @@ public class TourSolvers_Tests {
         Assert.Equal("{}", run.Answer);
         Assert.Equal(151, run.Steps.Count);
         Assert.Contains("not shown", ((SolverStep<Tour>)run.Steps[^1]).Caption);
+    }
+
+    [Fact]
+    public void TspBruteForce_WithNoCities_SaysSo_AndDoneOkIsWhatTheVerifierSays() {
+        const string instance = "(({},{}),5)";
+        var run = Run(new TSPBruteForce(), instance);
+        Assert.Equal("{}", run.Answer);
+        var steps = StepsOf(run);
+        var done = Assert.Single(steps);   // no "Try : total 0 is more than K" step for the one empty permutation
+        Assert.Equal("There are no cities to tour.", done.Caption);
+        Assert.Equal(((IProblem)new TSP()).defaultVerifier.verify(instance, run.Answer), done.Ok);
     }
 }

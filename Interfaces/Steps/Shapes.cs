@@ -118,3 +118,20 @@ sealed record BuildDelta {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Bound { get; init; }
 }
+
+/// <summary>Empty answers of each shape.</summary>
+static class Shapes {
+    /// <summary>
+    /// The empty answer of <paramref name="shape"/> (no nodes, no edges, no groups, ...), or null when the shape has no
+    /// answer-like empty value: <see cref="ActiveStates"/> is where an automaton run is, not a candidate answer, and a
+    /// shape not listed here is unknown.
+    /// </summary>
+    public static object? EmptyAnswer(Type shape) =>
+        shape == typeof(NodeSet) ? new NodeSet([])
+        : shape == typeof(EdgeSet) ? new EdgeSet([])
+        : shape == typeof(Groups) ? new Groups([])
+        : shape == typeof(Tour) ? new Tour([])
+        : shape == typeof(Assignment) ? new Assignment([])
+        : shape == typeof(ChosenSets) ? new ChosenSets([])
+        : null;
+}

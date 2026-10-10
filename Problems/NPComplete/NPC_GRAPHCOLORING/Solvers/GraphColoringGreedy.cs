@@ -87,7 +87,7 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING, Groups> {
             }
             if (color >= gColor.K)
                 rec.Reject(() => new Groups(colorAssignment),
-                    () => $"Node {node} needs color {color}, but K = {gColor.K} allows only colors 0 to {gColor.K - 1}: {Because()}.", node);
+                    () => $"Node {node} needs color {color}, but K = {gColor.K} {(gColor.K <= 0 ? "allows no colors" : gColor.K == 1 ? "allows only color 0" : $"allows only colors 0 to {gColor.K - 1}")}: {Because()}.", node);
             else
                 rec.Accept(() => new Groups(colorAssignment), () => $"Color node {node} with color {color}: {Because()}.", node);
         }

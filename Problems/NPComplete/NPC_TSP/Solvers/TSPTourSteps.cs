@@ -8,7 +8,11 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 /// call it only inside a recorder lambda (which runs only while recording) and never on a solver's hot path.
 /// </summary>
 static class TSPTourSteps {
-    /// <summary>The weight of the edge between two cities (either direction; the first listed wins, as in the verifier), or null if there is none.</summary>
+    /// <summary>
+    /// The weight of the edge between two cities, or null if there is none: the first edge listed from <paramref name="a"/> to
+    /// <paramref name="b"/>, else the first listed from b to a. (With parallel or reversed edges of different weights this can
+    /// differ from the weight the picture draws, which is the first listed in either direction.)
+    /// </summary>
     public static int? Weight(TSP tsp, string a, string b) {
         foreach (var e in tsp.edges)
             if (e.source == a && e.target == b) return e.weight;

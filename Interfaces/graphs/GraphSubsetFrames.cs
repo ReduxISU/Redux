@@ -110,8 +110,21 @@ sealed record GraphFrame(
 /// <see cref="StepEvent.Reject"/> and <see cref="StepEvent.Done"/> judge a complete candidate, so they are.
 /// Missing clique edges and edges inside an independent set are failures in every event.
 /// </para>
+/// <para>
+/// A candidate that is only being tried (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/>) is not an answer,
+/// so its nodes and the edges it joins are <c>ElementHighlight</c>, never <c>Solution</c> (see <see cref="Picked"/>).
+/// <c>Solution</c> is for a set the solver has taken (<see cref="StepEvent.Accept"/>, and what is left after a
+/// <see cref="StepEvent.Backtrack"/>) and for the final answer (<see cref="StepEvent.Done"/>).
+/// </para>
 /// </summary>
 static class GraphSubsetFrames {
+    /// <summary>
+    /// The state of the elements a step's partial answer picks: <c>ElementHighlight</c> for a candidate that is only being
+    /// tried (Try, Reject), <c>Solution</c> otherwise (Accept, Backtrack, Done). Shared by every Graph shape.
+    /// </summary>
+    public static PictureState Picked(StepEvent ev) =>
+        ev is StepEvent.Try or StepEvent.Reject ? PictureState.ElementHighlight : PictureState.Solution;
+
     public static string RuleName(SubsetRule rule) => rule switch {
         SubsetRule.Clique => "clique",
         SubsetRule.VertexCover => "vertexCover",
@@ -121,9 +134,22 @@ static class GraphSubsetFrames {
         _ => throw new ArgumentOutOfRangeException(nameof(rule)),
     };
 
-    /// <summary>Canonical edge id: <c>"a-b"</c> with a &lt; b by ordinal comparison.</summary>
+    /// <summary>
+    /// Canonical edge id: <c>"a-b"</c> with a &lt; b by ordinal comparison of the node names. The id is a label, not
+    /// something to split: the payload gives every edge's two ends as <c>a</c> and <c>b</c>. Node names may contain the
+    /// separators, so each name is written with <see cref="EscapeName"/>; that keeps every edge's id unique (nodes
+    /// <c>n-1</c>, <c>n-2</c> give <c>n\-1-n\-2</c>, and nodes <c>n</c>, <c>1-n-2</c> give <c>n-1\-n\-2</c>) and leaves
+    /// ordinary names as they are (<c>"a-b"</c>).
+    /// </summary>
     public static string EdgeId(string a, string b) =>
-        string.CompareOrdinal(a, b) <= 0 ? $"{a}-{b}" : $"{b}-{a}";
+        string.CompareOrdinal(a, b) <= 0 ? $"{EscapeName(a)}-{EscapeName(b)}" : $"{EscapeName(b)}-{EscapeName(a)}";
+
+    /// <summary>
+    /// A node name as it is written inside an edge id: a backslash before every <c>\</c>, <c>-</c> and <c>&gt;</c> (the
+    /// separators of undirected and directed ids), so no two different edges can share an id.
+    /// </summary>
+    public static string EscapeName(string name) =>
+        name.IndexOfAny(['\\', '-', '>']) < 0 ? name : name.Replace(@"\", @"\\").Replace("-", @"\-").Replace(">", @"\>");
 
     /// <summary>The distinct edges (loops dropped) with a before b, in first-seen order.</summary>
     private static List<(string A, string B, string Id)> CanonicalEdges(GraphSubsetSpec spec) {
@@ -175,14 +201,15 @@ static class GraphSubsetFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var phantoms = new List<GraphPhantom>();
 
-        foreach (var n in chosen) Raise(nodes, n, PictureState.Solution);
+        var picked = Picked(ev);
+        foreach (var n in chosen) Raise(nodes, n, picked);
 
         switch (spec.Rule) {
             case SubsetRule.Clique:
                 var members = chosen.OrderBy(n => n, StringComparer.Ordinal).ToList();
                 for (int i = 0; i < members.Count; i++)
                     for (int j = i + 1; j < members.Count; j++) {
-                        if (adj[members[i]].Contains(members[j])) Raise(edgeStates, EdgeId(members[i], members[j]), PictureState.Solution);
+                        if (adj[members[i]].Contains(members[j])) Raise(edgeStates, EdgeId(members[i], members[j]), picked);
                         else phantoms.Add(new GraphPhantom(members[i], members[j], PictureState.Rejected));
                     }
                 break;
@@ -269,17 +296,39 @@ static class GraphSubsetFrames {
     }
 
     /// <summary>
+    /// The frame that closes a run stopped by its time limit (<see cref="SolveRun.TimedOut"/>): a Done frame with
+    /// ok = false in which every element is Background. The solver had not finished, so nothing in the graph is an
+    /// answer, and nothing is judged either (an empty set is not a failed candidate). The other shapes add their own
+    /// empty annotation (<c>groups</c>, <c>order</c>) so the frame has the fields their other frames have.
+    /// </summary>
+    public static GraphFrame StoppedFrame(string caption) =>
+        new(StepEvent.Done, caption, [], new SortedDictionary<string, StateRef>(StringComparer.Ordinal),
+            new SortedDictionary<string, StateRef>(StringComparer.Ordinal), []) { Ok = false };
+
+    /// <summary>
+    /// The caption of a stopped run's frame when the run's own stopped Done step cannot be drawn (its steps are of
+    /// another shape).
+    /// </summary>
+    public const string StoppedCaption = "The solver had not finished within the time limit, so there is no answer to show.";
+
+    /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer
-    /// unless the last step already is the Done step.
+    /// unless the last step already is the Done step. A run stopped by its time limit has no answer: its Done step
+    /// (or, when its steps cannot be drawn, an added Done frame) is drawn as <see cref="StoppedFrame"/>, and its
+    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read as nodes.
     /// </summary>
     public static FramesResponse Build(GraphSubsetSpec spec, SolveRun run, Func<string, NodeSet> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<NodeSet>? last = null;
         foreach (var step in run.StepsFor(typeof(NodeSet)).OfType<SolverStep<NodeSet>>()) {
-            frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+                ? StoppedFrame(step.Caption)
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (run.TimedOut) {
+            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(StoppedCaption));
+        } else if (last is not { Event: StepEvent.Done }) {
             NodeSet answer = parseAnswer(run.Answer);
             frames.Add(Frame(spec, answer, StepEvent.Done, [],
                 answer.Nodes.Length == 0 ? "No answer was found." : $"The answer is {Format(answer)}.",
