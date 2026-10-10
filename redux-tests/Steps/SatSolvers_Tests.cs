@@ -177,6 +177,28 @@ public class SatSolvers_Tests {
     }
 
     [Fact]
+    public void BruteForce_StoppedByItsOwnTimer_EndsWithADoneThatSaysItDidNotFinish() {
+        // timerHasExpired is the solver's own stop flag (ISolver.TimerExpired), separate from the recording time limit.
+        var solver = new SATBruteForceSolver();
+        ((ISolver)solver).TimerExpired();
+        var run = ((ISolver)solver).Run("(x1 | x2) & (!x1)", withSteps: true);
+        Assert.False(run.TimedOut);
+        Assert.Equal("timeout", run.Answer);   // what solve has always answered
+        var done = Assert.Single(StepsOf(run));
+        Assert.Equal((StepEvent.Done, (bool?)false), (done.Event, done.Ok));
+        Assert.Equal(GroupedGraphFrames.SolverTimeoutCaption, done.Caption);
+        Assert.Empty(done.Partial.Values);   // no candidate is shown as an answer
+        Assert.Equal("timeout", solver.solve("(x1 | x2) & (!x1)"));
+
+        // The frames end on that stopped Done, and the answer "timeout" is never read as an assignment.
+        var frames = GroupedGraphFrames.Build(GroupedGraphSpec.FromLiterals(new SAT("(x1 | x2) & (!x1)").clauses), run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified")).Frames;
+        var last = Assert.IsType<GroupedGraphFrame>(Assert.Single(frames));
+        Assert.Equal((StepEvent.Done, (bool?)false, GroupedGraphFrames.SolverTimeoutCaption), (last.Event, last.Ok, last.Caption));
+        Assert.Empty(last.Assignment);
+    }
+
+    [Fact]
     public void BruteForce_IsNotOfferedAsAGenericSolverForSat() {
         // It records typed steps by overriding Run, not by implementing ISolver<SAT, Assignment>: that interface would add
         // it to the navigation lists, which this change must not alter.

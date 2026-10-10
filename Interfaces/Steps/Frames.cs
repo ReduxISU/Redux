@@ -5,8 +5,8 @@ namespace API.Interfaces.Steps;
 
 /// <summary>
 /// The shared state vocabulary every picture type names its elements with; a frontend maps each name to a
-/// style in one table. Serializes as its name. A missing entry in a frame means <see cref="Background"/>.
-/// <c>False</c> (assigned and false) is deliberately absent while that state is under review.
+/// style in one table. Serializes as its name (<c>"ElementHighlight"</c>, <c>"False"</c>). A missing entry in a frame
+/// means <see cref="Background"/>. New names are added at the end, so the existing ones keep their numbers.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<PictureState>))]
 enum PictureState {
@@ -24,6 +24,11 @@ enum PictureState {
     Covered,
     /// <summary>Cannot be chosen without breaking an exactly-once rule.</summary>
     Blocked,
+    /// <summary>
+    /// Assigned, and false under the current assignment (a literal whose variable has the other value). An element
+    /// whose value is not decided yet stays <see cref="Background"/>.
+    /// </summary>
+    False,
 }
 
 /// <summary>

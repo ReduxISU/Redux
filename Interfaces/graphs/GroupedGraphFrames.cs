@@ -59,8 +59,8 @@ sealed record GroupedGraphPayload(
 /// <summary>
 /// One picture of the clause graph. <c>nodes</c> (literal occurrences) and <c>groups</c> (clauses) list only elements whose
 /// state is not <see cref="PictureState.Background"/>; an id that is absent is Background. <c>assignment</c> says what
-/// is assigned so far, keyed by variable id; a variable that is absent is unassigned. A literal that is false is Background
-/// in <c>nodes</c>: the frontend mutes it by reading <c>assignment</c> and the node's <c>positive</c>.
+/// is assigned so far, keyed by variable id; a variable that is absent is unassigned. A literal that is false under the
+/// assignment is <see cref="PictureState.False"/> in <c>nodes</c>; a literal of an unassigned variable is Background.
 /// </summary>
 sealed record GroupedGraphFrame(
     [property: JsonPropertyName("event")] StepEvent Event,
@@ -80,11 +80,13 @@ sealed record GroupedGraphFrame(
 /// <para>
 /// <b>Ids</b> (a contract: the Reduction View matches gadgets on them). Clause <c>i</c> (0-based, in formula order) is
 /// <c>c{i}</c>. The <c>j</c>-th literal of clause <c>i</c> (0-based) is <c>c{i}-{j}</c>, one node per occurrence, so a
-/// literal written twice is two nodes. Variable <c>v</c> is <c>v:{name}</c>. An edge id joins its two literal ids with
-/// <c>~</c> (<c>c0-1~c2-0</c>). The separator cannot be <c>-</c> (literal ids contain it, so <c>c0-1-c2-0</c> cannot be split
-/// back) or <c>:</c> or <c>c</c>, and <c>~</c> never appears in a clause, literal or variable id. The earlier occurrence
-/// (by clause, then position, compared as numbers, so <c>c2</c> comes before <c>c10</c>) is written first, so an edge has
-/// exactly one id.
+/// literal written twice is two nodes. Variable <c>v</c> is <c>v:{name}</c>, with the name written by
+/// <see cref="EscapeName"/> (a <c>\</c> before every <c>\</c>, <c>~</c>, <c>-</c> and <c>:</c> in it), so two variables never
+/// share an id and a separator inside a variable id never comes bare from a name. An edge id joins its two literal ids with
+/// <c>~</c> (<c>c0-1~c2-0</c>); the separator is not <c>-</c>, because literal ids contain it. Clause and literal ids hold no
+/// names, so they never contain <c>~</c>. The earlier occurrence (by clause, then position, compared as numbers, so
+/// <c>c2</c> comes before <c>c10</c>) is written first, so an edge has exactly one id. An id is a label, not something to
+/// split: every payload edge gives its two ends as <c>a</c> and <c>b</c>, and every node gives its <c>variable</c> id.
 /// </para>
 /// <para>
 /// <b>Edges.</b> <c>edges</c> are the complement pairs: a literal and the negation of the same variable in a
@@ -93,14 +95,16 @@ sealed record GroupedGraphFrame(
 /// both lists.
 /// </para>
 /// <para>
-/// <b>States.</b> A true literal is <c>Solution</c>; its clause is <c>Covered</c>. A clause whose literals are all false is
-/// <c>Rejected</c>, and so are its literals. Unassigned and false literals are <c>Background</c>; the picture does not use a
-/// <c>False</c> state (the vocabulary leaves it out while it is under review) because <c>assignment</c> already says which
-/// literals are false. The variable being tried (a <c>v:</c> id in the step's focus) is <c>ElementHighlight</c> on every
-/// occurrence; a clause in the focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a <see cref="StepEvent.Reject"/> step
-/// (the clause that just failed). When several states apply to one element the order is the Graph picture's:
-/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>. Whether a clause is falsified
-/// is judged from the assignment alone, never from the event, so no event is treated as "still in progress".
+/// <b>States.</b> A true literal is <c>Solution</c> in a step that keeps the assignment (Accept, Backtrack, Done) and
+/// <c>ElementHighlight</c> in a step that only tries it (Try, Reject: see <see cref="GraphSubsetFrames.Picked"/>); either
+/// way its clause is <c>Covered</c>. A literal that is false under the assignment is <c>False</c>; a literal whose variable
+/// is unassigned stays <c>Background</c> (nothing has been decided about it). A clause whose literals are all false is
+/// <c>Rejected</c>, and so are its literals. The variable being tried (a <c>v:</c> id in the step's focus) is
+/// <c>ElementHighlight</c> on every occurrence; a clause in the focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a
+/// <see cref="StepEvent.Reject"/> step (the clause that just failed). When several states apply to one element the order is
+/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; False &gt; Background</c>
+/// (<see cref="GraphSubsetFrames.Rank"/>). Whether a clause is falsified is judged from the assignment alone, never from
+/// the event, so no event is treated as "still in progress".
 /// </para>
 /// </summary>
 static class GroupedGraphFrames {
@@ -113,7 +117,18 @@ static class GroupedGraphFrames {
 
     public static string ClauseId(int clause) => $"c{clause}";
     public static string LiteralId(int clause, int position) => $"c{clause}-{position}";
-    public static string VariableId(string name) => $"v:{name}";
+    /// <summary><c>v:{name}</c>, the name written with <see cref="EscapeName"/>.</summary>
+    public static string VariableId(string name) => "v:" + EscapeName(name);
+
+    /// <summary>
+    /// A variable name as it is written inside an id: a backslash before every <c>\</c>, <c>~</c>, <c>-</c> and <c>:</c> (the
+    /// separators of this picture's ids), so no two different names give the same id. Ordinary names (<c>x1</c>) are
+    /// unchanged. The same rule as <see cref="GraphSubsetFrames.EscapeName"/>, over this picture's separators.
+    /// </summary>
+    public static string EscapeName(string name) =>
+        name.IndexOfAny(['\\', '~', '-', ':']) < 0
+            ? name
+            : name.Replace(@"\", @"\\").Replace("~", @"\~").Replace("-", @"\-").Replace(":", @"\:");
 
     /// <summary>The id of an edge between two literals: <c>"a~b"</c>, written in the order given (callers give the earlier first).</summary>
     public static string EdgeId(string a, string b) => $"{a}~{b}";
@@ -175,6 +190,8 @@ static class GroupedGraphFrames {
                 assignment[VariableId(spec.Variables[v - 1])] = value;
             }
 
+        // A true literal of a candidate that is only being tried is highlighted, not drawn as the answer.
+        var picked = GraphSubsetFrames.Picked(ev);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var groups = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var literalsOfVariable = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -188,11 +205,14 @@ static class GroupedGraphFrames {
                 string variableId = VariableId(spec.Variables[variable - 1]);
                 if (!literalsOfVariable.TryGetValue(variableId, out var list)) literalsOfVariable[variableId] = list = [];
                 list.Add(id);
-                if (!values.TryGetValue(variable, out bool assigned)) continue;
+                if (!values.TryGetValue(variable, out bool assigned)) continue;   // unassigned: Background
                 if (assigned == clause[j] > 0) {
                     trues++;
-                    GraphSubsetFrames.Raise(nodes, id, PictureState.Solution);
-                } else falses++;
+                    GraphSubsetFrames.Raise(nodes, id, picked);
+                } else {
+                    falses++;
+                    GraphSubsetFrames.Raise(nodes, id, PictureState.False);
+                }
             }
             if (trues > 0) GraphSubsetFrames.Raise(groups, ClauseId(i), PictureState.Covered);
             else if (clause.Length > 0 && falses == clause.Length) {
@@ -230,15 +250,19 @@ static class GroupedGraphFrames {
 
     /// <summary>
     /// The assignment named by a certificate such as <c>(x1:True,x2:False)</c> (<c>=</c> also separates; <c>T</c>/<c>F</c> are
-    /// accepted; parentheses are optional). Values are normalized to <c>True</c>/<c>False</c>. "No Solution" and anything
-    /// unreadable give no assignment.
+    /// accepted; parentheses are optional). The value follows the <i>last</i> <c>:</c> or <c>=</c> of an item, so a name
+    /// that contains one (<c>a:b:True</c>) is read whole. Values are normalized to <c>True</c>/<c>False</c>. "No Solution"
+    /// and anything unreadable give no assignment. A name that contains <c>,</c> cannot be read back (the certificate
+    /// format has no escape for it).
     /// </summary>
     public static Assignment ParseAssignment(string answer) {
         var pairs = new List<KeyValuePair<string, string>>();
         foreach (var item in answer.Trim().TrimStart('(').TrimEnd(')').Split(',')) {
-            var parts = item.Split([':', '='], 2);
-            if (parts.Length != 2 || parts[0].Trim().Length == 0 || ParseValue(parts[1]) is not bool value) continue;
-            pairs.Add(new(parts[0].Trim(), value ? "True" : "False"));
+            int at = item.LastIndexOfAny([':', '=']);
+            if (at < 0) continue;
+            string name = item[..at].Trim();
+            if (name.Length == 0 || ParseValue(item[(at + 1)..]) is not bool value) continue;
+            pairs.Add(new(name, value ? "True" : "False"));
         }
         return new Assignment(pairs.GroupBy(p => p.Key, StringComparer.Ordinal).Select(g => g.First()));
     }
@@ -300,21 +324,33 @@ static class GroupedGraphFrames {
             new SortedDictionary<string, StateRef>(StringComparer.Ordinal), new SortedDictionary<string, bool>(StringComparer.Ordinal)) { Ok = false };
 
     /// <summary>
+    /// What the SAT brute force answers when its own timer (<see cref="ISolver.timerHasExpired"/>) stops it. It is not a
+    /// certificate; <see cref="Build"/> treats it like a run stopped by the recording time limit.
+    /// </summary>
+    public const string SolverTimeoutAnswer = "timeout";
+
+    /// <summary>The caption of the Done step a solver records when its own timer stops it.</summary>
+    public const string SolverTimeoutCaption = "The solver stopped without finishing: its time ran out before it found an answer or ruled one out.";
+
+    /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
-    /// step already is the Done step. A run stopped by its time limit ends with <see cref="StoppedFrame"/> instead, and its
-    /// answer string is never read.
+    /// step already is the Done step. A run that was stopped, by the recording time limit (<see cref="SolveRun.TimedOut"/>)
+    /// or by the solver's own timer (the answer <see cref="SolverTimeoutAnswer"/>), ends with <see cref="StoppedFrame"/>
+    /// instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer) {
+        bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
         foreach (var step in run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>()) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+            frames.Add(stopped && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
                 : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (run.TimedOut) {
-            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(GraphSubsetFrames.StoppedCaption));
+        if (stopped) {
+            if (last is not { Event: StepEvent.Done })
+                frames.Add(StoppedFrame(run.TimedOut ? GraphSubsetFrames.StoppedCaption : SolverTimeoutCaption));
         } else if (last is not { Event: StepEvent.Done }) {
             Assignment answer = parseAnswer(run.Answer);
             frames.Add(Frame(spec, answer, StepEvent.Done, [],

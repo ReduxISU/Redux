@@ -30,7 +30,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "False",
     };
 
     private const string SatVis = "satdefaultvisualization";
@@ -260,9 +260,9 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                     string state = entry.Value.GetProperty("state").GetString()!;
                     Assert.Contains(state, Vocabulary);
                     Assert.NotEqual("Background", state);   // Background is omitted
-                    Assert.NotEqual("False", state);        // not in the vocabulary: the assignment says which literals are false
                 }
             Assert.All(Assignment(f).Keys, k => Assert.Contains(k, variableIds));
+            AssertLiteralStatesFollowTheAssignment(f, clauses);
             bool isDone = f.GetProperty("event").GetString() == "Done";
             Assert.Equal(isDone, f.TryGetProperty("ok", out _));
             // A clause is Rejected exactly when the assignment makes every one of its literals false, and Covered when one is true.
@@ -288,9 +288,33 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.All(States(last, "groups").Values, s => Assert.Equal("Covered", s));
         var solved = States(last, "nodes");
         Assert.DoesNotContain("Rejected", solved.Values);
-        Assert.All(solved.Values, s => Assert.Equal("Solution", s));
+        Assert.All(solved.Values, s => Assert.True(s is "Solution" or "False", s));
         for (int i = 0; i < clauses.Count; i++)
-            Assert.Contains(solved.Keys, id => id.StartsWith($"c{i}-"));
+            Assert.Contains(solved, n => n.Key.StartsWith($"c{i}-") && n.Value == "Solution");
+    }
+
+    // Every literal's state, judged here from the instance text and the frame's own assignment: a true literal is Solution
+    // only in a step that keeps the assignment (Accept, Backtrack, Done) and ElementHighlight in one that only tries it
+    // (Try, Reject); a false literal is False (or Rejected with its clause, or highlighted while its variable is tried); a
+    // literal of an unassigned variable is Background unless it is being looked at.
+    private static void AssertLiteralStatesFollowTheAssignment(JsonElement frame, List<string[]> clauses) {
+        string ev = frame.GetProperty("event").GetString()!;
+        bool onlyTried = ev is "Try" or "Reject";
+        var assigned = Assignment(frame);
+        var nodes = States(frame, "nodes");
+        for (int i = 0; i < clauses.Count; i++)
+            for (int j = 0; j < clauses[i].Length; j++) {
+                string literal = clauses[i][j];
+                string state = nodes.GetValueOrDefault($"c{i}-{j}") ?? "Background";
+                string where = $"c{i}-{j} ({literal}) in a {ev} step";
+                if (!assigned.TryGetValue("v:" + literal.TrimStart('!'), out bool value))
+                    Assert.True(state is "Background" or "ElementHighlight", $"{where}: {state}");
+                else if (value != literal.StartsWith('!'))
+                    Assert.True(onlyTried ? state is "ElementHighlight" : state is "Solution" or "ElementHighlight", $"{where}: {state}");
+                else
+                    Assert.True(state is "False" or "Rejected" or "ElementHighlight", $"{where}: {state}");
+            }
+        if (onlyTried) Assert.DoesNotContain("Solution", nodes.Values);
     }
 
     [Fact]
@@ -408,6 +432,62 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(["c0-0~c1-1", "c0-1~c1-1"], payload.GetProperty("edges").EnumerateArray().Select(e => e.GetProperty("id").GetString()));
         Assert.Equal(["c0-0~c0-1", "c1-0~c1-1"], payload.GetProperty("clauseEdges").EnumerateArray().Select(e => e.GetProperty("id").GetString()));
         Assert.True(Frames(body).Last().GetProperty("ok").GetBoolean());
+    }
+
+    [Theory]
+    [InlineData(SatVis)]
+    [InlineData(Sat3Vis)]
+    public async Task Frames_NamesWithTheSeparators_GiveUniqueEscapedIds_AndEdgesNameTheirEnds(string vis) {
+        // Names SAT and 3SAT accept that hold this picture's separators ('-', '~', '\\'). (':' is left out here only
+        // because the SAT verifiers cannot read a certificate whose names hold ':'.)
+        string instance = @"(a-b | !c~d | e\f) & (!a-b | c~d) & (!e\f | a)";
+        var (status, body) = await Visualize($"visualization={vis}&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var payload = JsonDocument.Parse(body).RootElement.GetProperty("payload");
+        var variables = payload.GetProperty("variables").EnumerateArray()
+            .ToDictionary(v => v.GetProperty("id").GetString()!, v => v.GetProperty("label").GetString()!);
+        Assert.Equal(new Dictionary<string, string> { ["v:a"] = "a", [@"v:a\-b"] = "a-b", [@"v:c\~d"] = "c~d", [@"v:e\\f"] = @"e\f" }, variables);
+        var nodes = payload.GetProperty("nodes").EnumerateArray().ToList();
+        Assert.All(nodes, n => Assert.Contains(n.GetProperty("variable").GetString()!, variables.Keys));
+        var nodeIds = nodes.Select(n => n.GetProperty("id").GetString()!).ToHashSet();
+        var edges = payload.GetProperty("edges").EnumerateArray().Concat(payload.GetProperty("clauseEdges").EnumerateArray()).ToList();
+        Assert.All(edges, e => {
+            Assert.Contains(e.GetProperty("a").GetString()!, nodeIds);
+            Assert.Contains(e.GetProperty("b").GetString()!, nodeIds);
+        });
+        Assert.Equal(["c0-0~c1-0", "c0-1~c1-1", "c0-2~c2-0"], payload.GetProperty("edges").EnumerateArray().Select(e => e.GetProperty("id").GetString()));
+        var all = variables.Keys.Concat(nodeIds).Concat(edges.Select(e => e.GetProperty("id").GetString()!)).ToList();
+        Assert.Equal(all.Count, all.Distinct().Count());
+
+        // The frames key the assignment by the same escaped ids, and the answer is right.
+        var frames = Frames(body);
+        Assert.All(frames, f => Assert.All(Assignment(f).Keys, k => Assert.Contains(k, variables.Keys)));
+        var last = frames[^1];
+        Assert.True(last.GetProperty("ok").GetBoolean());
+        string certificate = "(" + string.Join(",", Assignment(last).Select(p => $"{variables[p.Key]}:{(p.Value ? "True" : "False")}")) + ")";
+        Assert.True(Verify(vis, instance, certificate), certificate);
+    }
+
+    [Fact]
+    public async Task Frames_Sat_ARejectFrame_DrawsTrueLiteralsHighlighted_FalseOnesFalse_AndLeavesNothingAsSolution() {
+        // The first candidate, all false, fails C3 = (x1 | x2 | x3): !x1 and !x2 are true, x2 in C1 and x3 in C2 are false.
+        var (_, body) = await Visualize($"visualization={SatVis}&format=frames", "(!x1 | x2) & (!x2 | x3) & (x1 | x2 | x3)");
+        var first = Frames(body)[0];
+        Assert.Equal("Reject", first.GetProperty("event").GetString());
+        Assert.Equal(new Dictionary<string, string> {
+            ["c0-0"] = "ElementHighlight", ["c0-1"] = "False",
+            ["c1-0"] = "ElementHighlight", ["c1-1"] = "False",
+            ["c2-0"] = "Rejected", ["c2-1"] = "Rejected", ["c2-2"] = "Rejected",
+        }, States(first, "nodes"));
+    }
+
+    [Fact]
+    public async Task Frames_Sat3_ALiteralOfAnUnassignedVariableStaysBackground() {
+        // The first step tries x1 = True alone: x2 and x3 are unassigned, so their literals are not in the frame at all.
+        var (_, body) = await Visualize($"visualization={Sat3Vis}&format=frames", "(x1 | !x2) & (!x1 | x3) & (x2 | x3)");
+        var first = Frames(body)[0];
+        Assert.Equal(new Dictionary<string, bool> { ["v:x1"] = true }, Assignment(first));
+        Assert.Equal(["c0-0", "c1-0"], States(first, "nodes").Keys.Order());
     }
 
     [Fact]

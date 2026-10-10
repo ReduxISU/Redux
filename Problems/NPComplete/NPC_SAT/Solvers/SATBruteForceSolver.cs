@@ -138,8 +138,11 @@ public class SATBruteForceSolver : ISolver {
         // Loop through all combinations. The total number of binary choices you can make is 2^(number of items). E.G. 3 variables is 2^3.
         for (int currentCombination = 0; currentCombination < Math.Pow(2, literals.Count); currentCombination++) {
             int trueClauses = 0;
-            if (timerHasExpired)
-                return "timeout";
+            if (timerHasExpired) {
+                // Its own timer stopped it: there is no answer, so the run ends on a Done that says so (never on a candidate).
+                rec.Done(new Assignment([]), false, GroupedGraphFrames.SolverTimeoutCaption);
+                return GroupedGraphFrames.SolverTimeoutAnswer;
+            }
 
             // Combination 0 is the starting all-false assignment; advance once per later combination.
             if (currentCombination > 0)

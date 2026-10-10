@@ -171,12 +171,17 @@ static class GraphSubsetFrames {
             CanonicalEdges(spec).Select(e => new GraphEdgeDto(e.Id, e.A, e.B)).ToList(),
             "subset", RuleName(spec.Rule)) { K = spec.K };
 
+    /// <summary>
+    /// Which state shows when several apply to one element:
+    /// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; False &gt; Background</c>.
+    /// </summary>
     internal static int Rank(PictureState s) => s switch {
-        PictureState.Rejected => 5,
-        PictureState.ElementHighlight => 4,
-        PictureState.Solution => 3,
-        PictureState.Covered => 2,
-        PictureState.Blocked => 1,
+        PictureState.Rejected => 6,
+        PictureState.ElementHighlight => 5,
+        PictureState.Solution => 4,
+        PictureState.Covered => 3,
+        PictureState.Blocked => 2,
+        PictureState.False => 1,
         _ => 0,
     };
 
