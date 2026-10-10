@@ -174,11 +174,8 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
 
     public NodeSet EmptyAnswer() => new NodeSet([]);
 
-    // "{}" is a real answer on either side only when K = 0 (B's K is A's K). CliqueVerifier refuses
-    // empty text and IndependentSetVerifier reads "{}" as one blank node, so the rule is spelled out here.
-    public bool TargetAcceptsEmpty() => reductionTo.K == 0;
-
-    public bool SourceAcceptsEmpty() => reductionFrom.K == 0;
+    // "{}" is a real answer on either side only when K = 0 (B's K is A's K); both verifiers read it as the empty
+    // set, so TargetAcceptsEmpty and SourceAcceptsEmpty keep the default.
 
     // Backward map: reduce() keeps the nodes and complements the edges, so a clique of the complement
     // graph is exactly an independent set of the original. The same nodes are the answer; if the clique

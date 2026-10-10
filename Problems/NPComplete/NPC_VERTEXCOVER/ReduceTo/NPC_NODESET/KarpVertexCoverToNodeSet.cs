@@ -63,6 +63,8 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
     public KarpVertexCoverToNodeSet(string instance) : this(new VERTEXCOVER(instance)) { }
     public KarpVertexCoverToNodeSet() : this(new VERTEXCOVER()) { }
     public NODESET reduce() {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         VERTEXCOVER VERTEXCOVERInstance = _reductionFrom;
         NODESET reducedNODESET = new NODESET();
 
