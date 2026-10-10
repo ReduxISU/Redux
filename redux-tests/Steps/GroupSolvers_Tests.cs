@@ -11,7 +11,7 @@ namespace redux_tests;
 // The Graph Coloring (brute force, greedy) and Clique Cover (brute force) solvers record Groups steps. Recording must never
 // change an answer. Endpoints/Snapshots/groups_solver_answers.tsv holds what each solver returned (solver, instance,
 // answer; tab separated) BEFORE it recorded steps, on its default instance and on 12 seeded random graphs (including
-// ones with no answer).
+// ones with no answer). A row changes only when a bug fix changes that answer (#752: Clique Cover with K = 1 or K > n).
 public class GroupSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -153,12 +153,36 @@ public class GroupSolvers_Tests {
     }
 
     [Fact]
-    public void CliqueCoverBruteForce_WhenKExceedsTheNodesItSaysSo() {
+    public void CliqueCoverBruteForce_WhenKExceedsTheNodes_SearchesWithOneGroupPerNode() {
+        // K = 4 > 3 nodes: a cover never needs more than 3 cliques, so the search uses 3 groups (#752; it used to give up).
+        // Digits run 0..3 per node, node 1 first: 000, 100, 200, 300 (node 1 in no group), 010, then 110 is {3},{1,2},{}.
         var run = ((ISolver)new API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers.CliqueCoverBruteForce()).Run("(({1,2,3},{{1,2}}),4)", true);
+        Assert.Equal("{{3},{1,2},{}}", run.Answer);
+        var done = run.Steps.Cast<SolverStep<Groups>>().Last();
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.True(done.Ok);
+        Assert.Equal("{3},{1,2},{} covers the nodes with cliques, found after 6 tries.", done.Caption);
+    }
+
+    [Fact]
+    public void CliqueCoverBruteForce_WithKOf1_TriesTheOneGrouping() {
+        // K = 1: the only grouping puts every node in one group (#752; the loop used to end before trying it).
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers.CliqueCoverBruteForce()).Run("(({1,2,3},{{1,2},{1,3},{2,3}}),1)", true);
+        Assert.Equal("{{1,2,3}}", run.Answer);
+        var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
+        Assert.Equal([StepEvent.Accept, StepEvent.Done], steps.Select(s => s.Event));
+        Assert.Equal("{1,2,3} covers the nodes with cliques, found after 1 tries.", steps[^1].Caption);
+    }
+
+    [Fact]
+    public void CliqueCoverBruteForce_WithKOf0_SaysNoGroupsAreAllowed() {
+        // K = 0 used to hang (#752). With no groups the nodes can't be covered.
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers.CliqueCoverBruteForce()).Run("(({1,2,3},{{1,2}}),0)", true);
+        Assert.Equal("{}", run.Answer);
         var step = Assert.IsType<SolverStep<Groups>>(Assert.Single(run.Steps));
         Assert.Equal(StepEvent.Done, step.Event);
         Assert.False(step.Ok);
-        Assert.Contains("K = 4 is more than the 3 nodes", step.Caption);
+        Assert.Equal("K = 0 allows no groups, so the 3 nodes can't be covered.", step.Caption);
     }
 
     [Fact]
@@ -174,12 +198,28 @@ public class GroupSolvers_Tests {
     [Theory]
     [InlineData("(({},{}),2)")]
     [InlineData("(({},{}),0)")]
-    [InlineData("(({1,2,3},{{1,2}}),4)")]
+    [InlineData("(({1,2,3},{{1,2}}),0)")]
+    [InlineData("(({1,2,3},{{1,2}}),-1)")]
+    [InlineData("(({1,2,3,4},{{1,2},{3,4}}),1)")]
     public void CliqueCover_GivingUp_DoneOkIsWhatTheVerifierSaysOfItsAnswer(string instance) {
         var run = ((ISolver)new API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers.CliqueCoverBruteForce()).Run(instance, true);
         Assert.Equal("{}", run.Answer);
         var problem = (IProblem)new API.Problems.NPComplete.NPC_CLIQUECOVER.CLIQUECOVER();
         Assert.Equal(problem.defaultVerifier.verify(instance, run.Answer), run.Steps.Cast<SolverStep<Groups>>().Last().Ok);
+    }
+
+    [Theory]
+    [InlineData("(({1,2},{{1,2}}),0)", false, "K = 0 allows no colors, so the 2 nodes can't be colored.")]
+    [InlineData("(({1},{}),-1)", false, "K = -1 allows no colors, so the 1 node can't be colored.")]
+    [InlineData("(({},{}),2)", true, "The graph has no nodes, so there is nothing to color.")]
+    public void ColoringBruteForce_WithNoColorsToGive_AnswersAtOnce(string instance, bool ok, string caption) {
+        // K <= 0 used to hang (#758); with no nodes there is nothing to color.
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringBruteForce()).Run(instance, true);
+        Assert.Equal("{}", run.Answer);
+        var step = Assert.IsType<SolverStep<Groups>>(Assert.Single(run.Steps));
+        Assert.Equal(StepEvent.Done, step.Event);
+        Assert.Equal(ok, step.Ok);
+        Assert.Equal(caption, step.Caption);
     }
 
     [Fact]

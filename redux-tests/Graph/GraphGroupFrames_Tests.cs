@@ -210,6 +210,17 @@ public class GraphGroupFrames_Tests {
         Assert.Equal("The answer is {a,d},{b},{c},{e}.", frame.Caption);
     }
 
+    [Theory]
+    [InlineData("{{a},{b},{c}}", false)]   // a proper coloring, but 3 colors with K = 2 (#757: this was ok)
+    [InlineData("{{a,c},{b}}", true)]
+    public void Build_WithoutSteps_AColoringWithMoreThanKColorsIsNotOk(string answer, bool ok) {
+        const string instance = "(({a,b,c},{{a,b},{b,c}}),2)";
+        var vis = (IFramesVisualization)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Visualizations.GraphColoringDefaultVisualization();
+        var frame = Assert.IsType<GraphFrame>(Assert.Single(vis.BuildFrames(instance, new SolveRun(answer, [], null)).Frames));
+        Assert.Equal(StepEvent.Done, frame.Event);
+        Assert.Equal(ok, frame.Ok);
+    }
+
     [Fact]
     public void Build_AnEmptyAnswerIsAnEmptyNotOkPicture() {
         var response = GraphGroupFrames.Build(Spec(GroupRule.Coloring), new SolveRun("{}", [], null), GraphGroupFrames.ParseClasses, _ => false);

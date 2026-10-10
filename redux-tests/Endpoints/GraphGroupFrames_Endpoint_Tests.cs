@@ -289,9 +289,9 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(groups["6"], groups["8"]);
     }
 
-    // The first row has a cover ({1,2},{3}), but K is more than the nodes and this solver then gives up; the others have none.
+    // None has an answer within K: K = 0 allows no groups, and the others need more cliques or colors than K.
     [Theory]
-    [InlineData(CoverVis, "cliquecoverbruteforce", "(({1,2,3},{{1,2}}),4)")]
+    [InlineData(CoverVis, "cliquecoverbruteforce", "(({1,2,3},{{1,2}}),0)")]
     [InlineData(CoverVis, "cliquecoverbruteforce", "(({1,2,3,4},{{1,2},{3,4}}),1)")]
     [InlineData(ColoringVis, "graphcoloringbruteforce", "(({1,2,3},{{1,2},{1,3},{2,3}}),2)")]
     [InlineData(ColoringVis, "graphcoloringgreedy", "(({1,2,3},{{1,2},{1,3},{2,3}}),2)")]
@@ -304,6 +304,21 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Empty(last.GetProperty("groups").EnumerateObject());
         Assert.Empty(last.GetProperty("edges").EnumerateObject());
         Assert.Empty(last.GetProperty("nodes").EnumerateObject());
+    }
+
+    // #752: K = 1 and K > n have covers, and the frames now end in one.
+    [Theory]
+    [InlineData("(({1,2,3},{{1,2}}),4)")]
+    [InlineData("(({1,2,3},{{1,2},{1,3},{2,3}}),1)")]
+    public async Task Frames_CliqueCover_WithKOf1_OrMoreThanTheNodes_EndsInAVerifiedCover(string instance) {
+        var (status, body) = await Visualize($"visualization={CoverVis}&format=frames&solver=cliquecoverbruteforce", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var last = Frames(body).Last();
+        Assert.Equal("Done", last.GetProperty("event").GetString());
+        Assert.True(last.GetProperty("ok").GetBoolean());
+        var groups = last.GetProperty("groups").EnumerateObject().ToDictionary(g => g.Name, g => g.Value.GetInt32());
+        Assert.Equal(3, groups.Count);
+        Assert.True(ProblemOf(CoverVis).defaultVerifier.verify(instance, Certificate(groups)));
     }
 
     [Theory]
