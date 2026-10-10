@@ -4,7 +4,7 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
-class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet> {
+class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "Naive Inclusion-Exclusion Backtracking Dominating Set Solver";
     public string solverDefinition { get; } =
@@ -31,8 +31,9 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet> {
 
     public string solve(DOMINATINGSET problem) => Solve(problem, StepRecorder<NodeSet>.Off);
 
-    // Steps: include a vertex, back it out, leave it out, and the verdict on each complete subset. Recorder state
-    // lives only in this call.
+    // Steps: include a vertex, back it out, leave it out, and the verdict on each complete subset (a failed one names the
+    // vertices it leaves undominated). The set is built one decision at a time, so the solver is an IIncrementalSolver.
+    // Recorder state lives only in this call.
     public string Solve(DOMINATINGSET problem, StepRecorder<NodeSet> rec) {
         int n = problem.nodes.Count;
         int K = problem.K;
@@ -94,7 +95,8 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet> {
             }
             rec.Reject(() => new NodeSet(Names()),
                 () => $"Try {GraphSubsetFrames.Braces(Names())}: {GraphSubsetFrames.Why(SubsetRule.DominatingSet, problem.nodes, problem.edges, Names())}.",
-                Names);
+                // The set was built one decision at a time, so the focus is what failed (the vertices left undominated), not the set.
+                () => Undominated(chosen, n, adj).Select(v => problem.nodes[v]).ToArray());
             return false;
         }
 
@@ -124,5 +126,16 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet> {
             if (!dominated[v])
                 return false;
         return true;
+    }
+
+    // The vertices that neither are in 'chosen' nor have a neighbor in it, in index order.
+    private static IEnumerable<int> Undominated(List<int> chosen, int n, List<int>[] adj) {
+        var dominated = new bool[n];
+        foreach (int v in chosen) {
+            dominated[v] = true;
+            foreach (int u in adj[v])
+                dominated[u] = true;
+        }
+        return Enumerable.Range(0, n).Where(v => !dominated[v]);
     }
 }

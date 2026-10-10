@@ -85,11 +85,39 @@ sealed record GraphFrame(
 /// <para>
 /// "Partial": a step with <see cref="StepEvent.Accept"/> or <see cref="StepEvent.Backtrack"/> is a set still
 /// under construction, so an uncovered edge or undominated node is not failed yet. <see cref="StepEvent.Try"/>,
-/// <see cref="StepEvent.Reject"/> and <see cref="StepEvent.Done"/> judge a complete candidate, so they are.
-/// Missing clique edges and edges inside an independent set are failures in every event.
+/// <see cref="StepEvent.Reject"/> and <see cref="StepEvent.Done"/> judge a complete candidate, so they are; except that
+/// a Try of an incremental run (<see cref="SolveRun.Incremental"/>) only looks at the next piece, so it is still under
+/// construction too. Missing clique edges and edges inside an independent set are failures in every event.
+/// </para>
+/// <para>
+/// A whole candidate that is only being tried (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/> of a run that
+/// is not incremental) is not an answer, so its nodes and the edges it joins are <c>ElementHighlight</c>, never
+/// <c>Solution</c> (see <see cref="Picked"/>). <c>Solution</c> is for a set the solver has taken
+/// (<see cref="StepEvent.Accept"/>, what is left after a <see cref="StepEvent.Backtrack"/>, and in an incremental run the
+/// committed set of every step) and for the final answer (<see cref="StepEvent.Done"/>). The focus is
+/// <c>ElementHighlight</c>; in a Reject step of an incremental run it is the piece that failed, so <c>Rejected</c>
+/// (see <see cref="FocusMark"/>).
 /// </para>
 /// </summary>
 static class GraphSubsetFrames {
+    /// <summary>
+    /// The state of the elements a step's partial answer picks. In a run that judges whole candidates
+    /// (<paramref name="incremental"/> false): <c>ElementHighlight</c> for a candidate that is only being tried (Try,
+    /// Reject), <c>Solution</c> otherwise (Accept, Backtrack, Done). In an incremental run (<see cref="SolveRun.Incremental"/>,
+    /// <see cref="IIncrementalSolver"/>) the partial is what the solver has committed, so it is <c>Solution</c> in every
+    /// event, and only the focus (the piece under test) shows as tried or failed. Shared by every Graph shape.
+    /// </summary>
+    public static PictureState Picked(StepEvent ev, bool incremental) =>
+        !incremental && ev is StepEvent.Try or StepEvent.Reject ? PictureState.ElementHighlight : PictureState.Solution;
+
+    /// <summary>
+    /// The state of the focus in an incremental run (the piece under test): <c>Rejected</c> in a Reject step (it failed),
+    /// else <c>ElementHighlight</c>. Shapes that do not mark a failed focus for whole candidates use it only when
+    /// <see cref="SolveRun.Incremental"/> is set.
+    /// </summary>
+    public static PictureState FocusMark(StepEvent ev) =>
+        ev == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
+
     public static string RuleName(SubsetRule rule) => rule switch {
         SubsetRule.Clique => "clique",
         SubsetRule.VertexCover => "vertexCover",
@@ -136,9 +164,12 @@ static class GraphSubsetFrames {
         if (!map.TryGetValue(id, out var current) || Rank(state) > Rank(current)) map[id] = state;
     }
 
-    /// <summary>The frame for a chosen set at one step.</summary>
-    public static GraphFrame Frame(GraphSubsetSpec spec, NodeSet partial, StepEvent ev, string[] focus, string caption, bool? ok = null) {
-        bool inProgress = ev is StepEvent.Accept or StepEvent.Backtrack;
+    /// <summary>
+    /// The frame for a chosen set at one step. <c>incremental</c> says whether the step comes from an incremental run
+    /// (<see cref="SolveRun.Incremental"/>).
+    /// </summary>
+    public static GraphFrame Frame(GraphSubsetSpec spec, NodeSet partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+        bool inProgress = ev is StepEvent.Accept or StepEvent.Backtrack || (incremental && ev == StepEvent.Try);
         var nodeIds = new HashSet<string>(spec.Nodes, StringComparer.Ordinal);
         var chosen = new HashSet<string>(partial.Nodes.Where(nodeIds.Contains), StringComparer.Ordinal);
         var edges = CanonicalEdges(spec);
@@ -153,14 +184,15 @@ static class GraphSubsetFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var phantoms = new List<GraphPhantom>();
 
-        foreach (var n in chosen) Raise(nodes, n, PictureState.Solution);
+        var picked = Picked(ev, incremental);
+        foreach (var n in chosen) Raise(nodes, n, picked);
 
         switch (spec.Rule) {
             case SubsetRule.Clique:
                 var members = chosen.OrderBy(n => n, StringComparer.Ordinal).ToList();
                 for (int i = 0; i < members.Count; i++)
                     for (int j = i + 1; j < members.Count; j++) {
-                        if (adj[members[i]].Contains(members[j])) Raise(edgeStates, EdgeId(members[i], members[j]), PictureState.Solution);
+                        if (adj[members[i]].Contains(members[j])) Raise(edgeStates, EdgeId(members[i], members[j]), picked);
                         else phantoms.Add(new GraphPhantom(members[i], members[j], PictureState.Rejected));
                     }
                 break;
@@ -191,9 +223,12 @@ static class GraphSubsetFrames {
                 break;
         }
 
+        // A whole candidate's focus is only highlighted (its failures show as states of their own); an incremental run's
+        // focus is the piece under test, Rejected when the step rejects it.
+        var focusMark = incremental ? FocusMark(ev) : PictureState.ElementHighlight;
         foreach (var id in focus) {
-            if (nodeIds.Contains(id)) Raise(nodes, id, PictureState.ElementHighlight);
-            else if (edgeIds.Contains(id)) Raise(edgeStates, id, PictureState.ElementHighlight);
+            if (nodeIds.Contains(id)) Raise(nodes, id, focusMark);
+            else if (edgeIds.Contains(id)) Raise(edgeStates, id, focusMark);
         }
 
         return new GraphFrame(ev, caption, focus, ToRefs(nodes), ToRefs(edgeStates), phantoms) { Ok = ok };
@@ -254,7 +289,7 @@ static class GraphSubsetFrames {
         var frames = new List<object>();
         SolverStep<NodeSet>? last = null;
         foreach (var step in run.StepsFor(typeof(NodeSet)).OfType<SolverStep<NodeSet>>()) {
-            frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
             last = step;
         }
         if (last is not { Event: StepEvent.Done }) {

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
-class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
+class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Minimum Vertex Cover Max-Degree Greedy";

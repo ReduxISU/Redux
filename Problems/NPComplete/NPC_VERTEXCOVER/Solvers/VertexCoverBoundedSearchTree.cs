@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet> {
+class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Bounded Search Tree";

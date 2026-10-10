@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
-class ChibaNishizeki : ISolver<CLIQUE, NodeSet> {
+class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Chiba-Nishizeki k-Clique Listing Algorithm";

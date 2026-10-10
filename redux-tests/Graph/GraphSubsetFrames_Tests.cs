@@ -76,7 +76,9 @@ public class GraphSubsetFrames_Tests {
             // a-d and b-d are not edges.
             Assert.Equal([("a", "d"), ("b", "d")], f.Phantoms.Select(p => (p.A, p.B)));
             Assert.All(f.Phantoms, p => Assert.Equal(PictureState.Rejected, p.State));
-            Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+            // A candidate only being tried is highlighted; a taken set and the answer are Solution.
+            var picked = ev is StepEvent.Try or StepEvent.Reject ? PictureState.ElementHighlight : PictureState.Solution;
+            Assert.Equal(picked, EdgeState(f, "a-b"));
         }
     }
 
@@ -132,8 +134,9 @@ public class GraphSubsetFrames_Tests {
         foreach (var ev in new[] { StepEvent.Try, StepEvent.Accept, StepEvent.Done }) {
             var f = GraphSubsetFrames.Frame(Spec(SubsetRule.IndependentSet), Set("a", "b"), ev, [], "x");
             Assert.Equal(PictureState.Rejected, EdgeState(f, "a-b"));
-            Assert.Equal(PictureState.Solution, State(f, "a"));   // chosen beats Blocked
-            Assert.Equal(PictureState.Solution, State(f, "b"));
+            var picked = ev == StepEvent.Try ? PictureState.ElementHighlight : PictureState.Solution;
+            Assert.Equal(picked, State(f, "a"));   // chosen beats Blocked
+            Assert.Equal(picked, State(f, "b"));
             Assert.Equal(PictureState.Blocked, State(f, "c"));
         }
     }
@@ -241,6 +244,73 @@ public class GraphSubsetFrames_Tests {
         var frame = (GraphFrame)Assert.Single(response.Frames);
         Assert.Equal("No answer was found.", frame.Caption);
         Assert.False(frame.Ok);
+    }
+
+    // ---- candidates being tried are highlighted, not drawn as the answer ----
+
+    [Theory]
+    [InlineData("Try")]
+    [InlineData("Reject")]
+    public void Frame_ACandidateBeingTried_IsElementHighlight_NeverSolution(string ev) {
+        // {a,b,c} is a clique: on Accept and Done it is drawn as the answer, but a Try or Reject only looks at it.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b", "c"), Enum.Parse<StepEvent>(ev), [], "x");
+        Assert.DoesNotContain(f.Nodes.Values, s => s.State == PictureState.Solution);
+        Assert.DoesNotContain(f.Edges.Values, s => s.State == PictureState.Solution);
+        Assert.Equal(PictureState.ElementHighlight, State(f, "a"));
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-b"));
+        foreach (var answer in new[] { StepEvent.Accept, StepEvent.Done }) {
+            var g = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b", "c"), answer, [], "x", answer == StepEvent.Done ? true : null);
+            Assert.Equal(PictureState.Solution, State(g, "a"));
+            Assert.Equal(PictureState.Solution, EdgeState(g, "a-b"));
+        }
+    }
+
+    // ---- incremental runs: the committed set stays Solution, only the piece under test is marked ----
+
+    [Fact]
+    public void Incremental_Reject_KeepsTheCommittedSetSolution_AndRejectsOnlyThePieceUnderTest() {
+        // A backtracking clique search holds {a,b} and skips d: {a,b} is still the clique so far.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b"), StepEvent.Reject, ["d"], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, State(f, "a"));
+        Assert.Equal(PictureState.Solution, State(f, "b"));
+        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Rejected, State(f, "d"));
+        Assert.Null(State(f, "c"));
+    }
+
+    [Fact]
+    public void Incremental_Try_HighlightsOnlyThePieceUnderTest_AndJudgesNothingYet() {
+        // A search holds the cover {a} and looks at c next: {a} is Solution, c is highlighted, and the edge c-d that
+        // nothing covers yet is not a failure, because the cover is still being built.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.VertexCover, 2), Set("a"), StepEvent.Try, ["c"], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, State(f, "a"));
+        Assert.Equal(PictureState.ElementHighlight, State(f, "c"));
+        Assert.Null(EdgeState(f, "c-d"));
+        Assert.Equal(PictureState.Covered, EdgeState(f, "a-b"));
+    }
+
+    [Fact]
+    public void Incremental_RejectOfTheCommittedSet_StillJudgesIt() {
+        // Out of budget with {a}: the set is still the one built so far (Solution), and what it leaves uncovered failed.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.VertexCover, 1), Set("a"), StepEvent.Reject, [], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, State(f, "a"));
+        Assert.Equal(PictureState.Rejected, EdgeState(f, "c-d"));
+        Assert.Equal(PictureState.Rejected, EdgeState(f, "b-c"));
+    }
+
+    [Fact]
+    public void Build_ReadsIncrementalFromTheRun() {
+        var steps = new List<object> {
+            new SolverStep<NodeSet>(Set("a", "b"), StepEvent.Reject, ["d"], "skip d"),
+            new SolverStep<NodeSet>(Set("a", "b", "c"), StepEvent.Done, [], "done") { Ok = true },
+        };
+        GraphFrame First(bool incremental) => (GraphFrame)GraphSubsetFrames.Build(Spec(SubsetRule.Clique, 3),
+            new SolveRun("{a,b,c}", steps, typeof(NodeSet)) { Incremental = incremental }, _ => Set(), _ => true).Frames[0];
+        Assert.Equal(PictureState.Solution, State(First(true), "a"));
+        Assert.Equal(PictureState.Rejected, State(First(true), "d"));
+        // The same step from a run that judges whole candidates is a candidate being tried.
+        Assert.Equal(PictureState.ElementHighlight, State(First(false), "a"));
+        Assert.Equal(PictureState.ElementHighlight, State(First(false), "d"));
     }
 
     // ---- reasons used in solver captions ----
