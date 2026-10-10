@@ -48,7 +48,8 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
 
     private string subsetsToCertificate(List<List<string>> solution) {
         if (solution.Count == 0) {
-            return "";
+            // The empty collection, as the other Exact Cover solvers write it; also their "no answer" (#775).
+            return "{}";
         }
 
         string certificate = "{";
