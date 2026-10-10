@@ -1,16 +1,16 @@
-satbruteforcesolver	(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)	(x3:False,x4:False,x2:True,x1:False)
+satbruteforcesolver	(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)	(x3:False,x4:False,x2:False,x1:False)
 satbruteforcesolver	(x1) & (!x1)	No solution exists
 satbruteforcesolver	(x1 | x2) & (!x1) & (!x2)	No solution exists
 satbruteforcesolver	(a | !b) & (!a | b) & (a | b) & (!a | !b)	No solution exists
 satbruteforcesolver	(x1 | x2 | x3 | x4) & (!x1 | !x2) & (!x3 | !x4) & (x1 | !x4)	(x1:False,x2:False,x3:True,x4:False)
-satbruteforcesolver	(p | q | !r) & (!p | r)	(p:False,q:True,r:False)
+satbruteforcesolver	(p | q | !r) & (!p | r)	(p:False,q:False,r:False)
 satbruteforcesolver	(x1)	(x1:True)
-satbruteforcesolver	(x1 | !x1)	(x1:True)
+satbruteforcesolver	(x1 | !x1)	(x1:False)
 satbruteforcesolver	(!x4 | x2 | x1 | !x2) & (!x4 | x3 | x3 | x2) & (x1) & (x3 | x1 | x4 | !x2) & (x2 | x1)	(x4:False,x2:False,x1:True,x3:False)
-satbruteforcesolver	(!x1 | !x3 | x3 | !x5)	(x1:False,x3:False,x5:True)
+satbruteforcesolver	(!x1 | !x3 | x3 | !x5)	(x1:False,x3:False,x5:False)
 satbruteforcesolver	(x1 | x1 | x1) & (x1 | !x1 | x1 | x1) & (!x1 | !x1 | !x1) & (!x1 | x1 | !x1) & (x1 | x1) & (!x1 | !x1) & (!x1)	No solution exists
 satbruteforcesolver	(x3 | x4 | x4 | !x4) & (!x2 | x3) & (!x3 | x2) & (!x1) & (x2 | x1 | x4) & (x3) & (x1 | !x4 | !x1 | !x3)	(x3:True,x4:False,x2:True,x1:False)
-satbruteforcesolver	(x3 | x3 | !x2) & (!x1 | x3) & (x3 | !x3 | x3)	(x3:True,x2:False,x1:False)
+satbruteforcesolver	(x3 | x3 | !x2) & (!x1 | x3) & (x3 | !x3 | x3)	(x3:False,x2:False,x1:False)
 satbruteforcesolver	(x2 | x2 | !x1 | !x4) & (!x3) & (x1 | !x2 | !x4 | !x3) & (x2) & (!x2 | !x1 | !x2 | x4)	(x2:True,x1:False,x4:False,x3:False)
 satbruteforcesolver	(x4) & (!x2 | !x3 | !x1) & (x4 | x3) & (x1 | !x1 | x1) & (!x4) & (x2 | x3 | x3)	No solution exists
 satbruteforcesolver	(x1) & (x2 | x2 | !x1)	(x1:True,x2:True)
