@@ -1,10 +1,13 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_HITTINGSET;
+using API.Problems.NPComplete.NPC_HITTINGSET.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_HITTINGSET.Solvers;
 
-class HittingSetBruteForce : ISolver<HITTINGSET> {
+class HittingSetBruteForce : ISolver<HITTINGSET, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Hitting Set Brute Force";
@@ -40,20 +43,41 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
         }
     }
 
-    public string solve(HITTINGSET hittingSet) {
+    public string solve(HITTINGSET hittingSet) => Solve(hittingSet, StepRecorder<NodeSet>.Off);
+
+    // Steps: one per subset of U tried, in the order the solver tries them (counting in binary from the empty set, the
+    // first element the lowest bit). Recorder state lives only in this call.
+    public string Solve(HITTINGSET hittingSet, StepRecorder<NodeSet> rec) {
         List<UtilCollection> items = hittingSet.universalSet.ToList();
+        int tried = 0;
         foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
             UtilCollection certificate = new UtilCollection("{}");
             for (int i = 0; i < items.Count; i++) {
                 if (possibleSolution[i] == 1) certificate.Add(items[i]);
             }
             string strCertificate = certificate.ToString();
-            if (hittingSet.defaultVerifier.verify(hittingSet, strCertificate)) return strCertificate;
+            string[] Picked() => Enumerable.Range(0, items.Count).Where(i => possibleSolution[i] == 1).Select(i => items[i].ToString()).ToArray();
+            tried++;
+            if (hittingSet.defaultVerifier.verify(hittingSet, strCertificate)) {
+                rec.Accept(() => new NodeSet(Picked()), () => $"Try {BipartiteFrames.Braces(Picked())}. It hits every set exactly once.",
+                    () => Picked().Select(BipartiteFrames.ElementId).ToArray());
+                rec.Done(new NodeSet(Picked()), true,
+                    $"{BipartiteFrames.Braces(Picked())} hits every set exactly once, found after {tried} {(tried == 1 ? "try" : "tries")}.");
+                return strCertificate;
+            }
+            rec.Reject(() => new NodeSet(Picked()), () => $"Try {BipartiteFrames.Braces(Picked())}: {Why(hittingSet, Picked())}.",
+                () => Picked().Select(BipartiteFrames.ElementId).ToArray());
         }
 
         // No hitting set exists. "{}", as the other set solvers answer; the verifier rejects it whenever S is not empty (#776).
+        rec.Done(new NodeSet([]), false, $"Checked all {tried} subsets of U. None hits every set exactly once.");
         return "{}";
 
+    }
+
+    private static string Why(HITTINGSET hittingSet, string[] picked) {
+        string why = BipartiteFrames.Why(HittingSetDefaultVisualization.Spec(hittingSet), picked.Select(BipartiteFrames.ElementId));
+        return why.Length > 0 ? why : "the verifier rejects it";
     }
 
     /// <summary>
