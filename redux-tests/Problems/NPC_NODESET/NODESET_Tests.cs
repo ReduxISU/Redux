@@ -63,4 +63,15 @@ public class NODESET_Tests {
         string solvedString = solver.solve(nodeset);
         Assert.Equal("{}", solvedString);
     }
+
+    // #784: a certificate is a set of the graph's nodes; one that names anything else is not one, even on a graph that is
+    // already acyclic.
+    [Theory]
+    [InlineData("{9}", false)]
+    [InlineData("{1,9}", false)]
+    [InlineData("{1}", true)]
+    [InlineData("{}", true)]
+    public void NODESET_verify_rejects_nodes_outside_the_graph(string certificate, bool expected) {
+        Assert.Equal(expected, new NodeSetVerifier().verify(new NODESET("(({1,2,3},{(1,2),(2,3)}),2)"), certificate));
+    }
 }
