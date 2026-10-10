@@ -24,8 +24,10 @@ public class Reduction_Output_Snapshot_Tests : IClassFixture<AppFactory> {
     private static string DefaultInstance(string reduction) =>
         ((API.Interfaces.IReduction)Activator.CreateInstance(ProblemProvider.Reductions[reduction.ToLower()])!).reductionFrom.defaultInstance;
 
-    // reductionDefinition is a verbatim string literal, so its line endings follow the checkout.
-    private static string Normalize(string json) => json.Replace("\r\n", "\n").Replace("\r\n", "\n");
+    // reductionDefinition is a verbatim string literal, so its line endings follow the checkout and reach
+    // the JSON escaped: \r\n on a Windows checkout, \n on Linux CI. Normalize the file's own line endings
+    // and the escaped ones inside JSON strings.
+    private static string Normalize(string json) => json.Replace("\r\n", "\n").Replace(@"\r\n", @"\n");
 
     public static IEnumerable<(string Reduction, string Instance)> Cases() {
         const string Sat = "SipserReduceToCliqueStandard", Vc = "sipserReductionVertexCover", Is = "reduceToCLIQUE";
@@ -67,6 +69,6 @@ public class Reduction_Output_Snapshot_Tests : IClassFixture<AppFactory> {
             File.WriteAllText(SnapshotPath, actual);
             return;
         }
-        Assert.Equal(File.ReadAllText(SnapshotPath).Replace("\r\n", "\n"), actual);
+        Assert.Equal(Normalize(File.ReadAllText(SnapshotPath)), actual);
     }
 }
