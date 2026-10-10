@@ -44,13 +44,27 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         _ => throw new NotSupportedException(target.GetType().Name)
     };
 
-    private static string[] EndpointsOf(string edgeId, IEnumerable<string> nodes) {
-        // Edge ids are "a-b" and node names may contain '-', so find the split that leaves two real nodes.
-        var set = nodes.ToHashSet();
-        for (int i = 1; i < edgeId.Length - 1; i++)
-            if (edgeId[i] == '-' && set.Contains(edgeId[..i]) && set.Contains(edgeId[(i + 1)..]))
-                return new[] { edgeId[..i], edgeId[(i + 1)..] };
-        throw new Xunit.Sdk.XunitException($"'{edgeId}' is not an edge between two target nodes");
+    // The Graph picture's edge id (GraphSubsetFrames.EdgeId): ends ordered by ordinal, '\', '-' and '>' escaped.
+    private static string PictureEdgeId(string a, string b) {
+        static string Esc(string n) => n.Replace(@"\", @"\\").Replace("-", @"\-").Replace(">", @"\>");
+        return string.CompareOrdinal(a, b) <= 0 ? Esc(a) + "-" + Esc(b) : Esc(b) + "-" + Esc(a);
+    }
+
+    // Replays the steps in order, checking as it goes that every edge joins two nodes already built and is announced once.
+    private static (List<string> Nodes, List<string> Edges, int? Bound) Replay(IEnumerable<SolverStep<BuildDelta>> steps) {
+        var nodes = new List<string>();
+        var built = new HashSet<string>(StringComparer.Ordinal);
+        var edges = new List<string>();
+        int? bound = null;
+        foreach (var step in steps) {
+            foreach (string n in step.Partial.Nodes) { nodes.Add(n); built.Add(n); }
+            foreach (var e in step.Partial.Edges) {
+                Assert.True(built.Contains(e.A) && built.Contains(e.B), $"edge {e.Id} is added before its ends: {step.Caption}");
+                edges.Add(Pair(e.A, e.B));
+            }
+            bound = step.Partial.Bound ?? bound;
+        }
+        return (nodes, edges, bound);
     }
 
     [Theory]
@@ -77,18 +91,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         IReduction red = Build(reduction, instance);
         ConstructionRun run = red.BuildRun(true)!;
         var (nodes, edges, k) = TargetOf(red.reductionTo);
-
-        var builtNodes = new List<string>();
-        var builtEdges = new List<string>();
-        int? bound = null;
-        foreach (var step in run.Steps) {
-            builtNodes.AddRange(step.Partial.Nodes);
-            builtEdges.AddRange(step.Partial.Edges.Select(e => {
-                var ends = EndpointsOf(e, nodes);
-                return Pair(ends[0], ends[1]);
-            }));
-            bound = step.Partial.Bound ?? bound;
-        }
+        var (builtNodes, builtEdges, bound) = Replay(run.Steps);
         Assert.Equal(nodes.Distinct().OrderBy(n => n, StringComparer.Ordinal), builtNodes.Distinct().OrderBy(n => n, StringComparer.Ordinal));
         // No edge is announced twice, and none is missing.
         Assert.Equal(builtEdges.Count, builtEdges.Distinct().Count());
@@ -142,13 +145,10 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         foreach (var step in run.Steps) {
             Assert.All(step.Partial.SourceFocus, id => Assert.Contains(id, sourceIds));
             Assert.All(step.Focus, id => Assert.Contains(id, targetNodes));
-            Assert.All(step.Partial.Skipped, id => Assert.Equal(2, EndpointsOf(id, targetNodes).Length));
+            Assert.All(step.Partial.Skipped, e => { Assert.Contains(e.A, targetNodes); Assert.Contains(e.B, targetNodes); });
             // Skipped edges are exactly the ones the target does not have.
             var edges = TargetOf(red.reductionTo).Edges;
-            Assert.All(step.Partial.Skipped, id => {
-                var ends = EndpointsOf(id, targetNodes);
-                Assert.DoesNotContain(Pair(ends[0], ends[1]), edges);
-            });
+            Assert.All(step.Partial.Skipped, e => Assert.DoesNotContain(Pair(e.A, e.B), edges));
         }
         // The last step is Done, always, and the earlier ones are not.
         Assert.Equal(StepEvent.Done, run.Steps[^1].Event);
@@ -169,7 +169,8 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.Equal(StepEvent.Accept, steps[0].Event);
 
         Assert.Equal("Join clauses C1 and C2: 8 edges. x1_0 and !x1_1 contradict each other, so no edge.", steps[3].Caption);
-        Assert.Equal(new[] { "x1_0-!x1_1" }, steps[3].Partial.Skipped);
+        Assert.Equal(new[] { "!x1_1-x1_0" }, steps[3].Partial.Skipped.Select(e => e.Id));
+        Assert.Equal(("!x1_1", "x1_0"), (steps[3].Partial.Skipped[0].A, steps[3].Partial.Skipped[0].B));
         Assert.Equal(new[] { "c0", "c1" }, steps[3].Partial.SourceFocus);
         Assert.Equal(8, steps[3].Partial.Edges.Length);
 
@@ -195,7 +196,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Copy every node of the clique graph (a, b, c, d) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing.", steps[0].Caption);
         Assert.Equal(new[] { 0, 1, 2, 3 }, steps[0].Partial.Gadgets);
         Assert.Equal("Node a has no edge to d in the clique graph, so it gets that edge in the complement.", steps[1].Caption);
-        Assert.Equal(new[] { "a-d" }, steps[1].Partial.Edges);
+        Assert.Equal(new[] { "a-d" }, steps[1].Partial.Edges.Select(e => e.Id));
         Assert.Equal(new[] { "a" }, steps[1].Partial.SourceFocus);
         Assert.Equal("Node b has no edge to d in the clique graph, so it gets that edge in the complement.", steps[2].Caption);
         Assert.Equal(StepEvent.Reject, steps[3].Event);
@@ -209,20 +210,200 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         IReduction red = Build(Is, "(({a,b,c,d},{{a,b},{b,c},{c,d}}),2)");
         var steps = red.BuildRun(true)!.Steps;
         Assert.Equal("Node a has no edge to c, d in the original graph, so it gets those edges in the complement.", steps[1].Caption);
-        Assert.Equal(new[] { "a-c", "a-d" }, steps[1].Partial.Edges);
+        Assert.Equal(new[] { "a-c", "a-d" }, steps[1].Partial.Edges.Select(e => e.Id));
         Assert.Equal("Node b has no edge to d in the original graph, so it gets that edge in the complement.", steps[2].Caption);
         Assert.Equal("K stays 2. 2 nodes with no edge between them in the original graph are 2 nodes joined to each other in the complement.", steps[^1].Caption);
     }
 
+    private static string ChainFormula(int clauses) =>
+        string.Join(" & ", Enumerable.Range(0, clauses).Select(i => $"(x{i} | !x{i + 1} | x{i + 2})"));
+
     [Fact]
-    public void ManyClauses_HitTheCap_KeepDoneAndSayHowManyAreNotShown() {
-        string instance = string.Join(" & ", Enumerable.Range(0, 20).Select(i => $"(x{i} | !x{i + 1} | x{i + 2})"));
-        var steps = Build(Sat, instance).BuildRun(true)!.Steps;
-        Assert.Equal(StepRecorder<BuildDelta>.DefaultCap + 1, steps.Count);
+    public void ManyClauses_PastTheCap_CombineTheRestIntoOneStep_AndHideNothing() {
+        var steps = Build(Sat, ChainFormula(20)).BuildRun(true)!.Steps;
+        // 20 clauses + 190 pairs = 210 steps: the first 150 as they are, the other 60 combined, then Done.
+        Assert.Equal(StepRecorder<BuildDelta>.DefaultCap + 2, steps.Count);
+        var combined = steps[^2];
+        Assert.Equal(StepEvent.Accept, combined.Event);
+        Assert.StartsWith("The last 60 steps are combined into this one to keep the list short. Together they add ", combined.Caption);
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         Assert.Equal(20, steps[^1].Partial.Bound);
-        // 20 clauses + 190 pairs = 210 decisions, 150 kept.
-        Assert.EndsWith("(60 not shown)", steps[^1].Caption);
+        Assert.Equal("K = 20, one node per clause: a clique of 20 nodes has to take one node from every clause.", steps[^1].Caption);
+        Assert.DoesNotContain(steps, s => s.Caption.Contains("not shown"));
+    }
+
+    // Past the cap, on the real reductions. 3SAT passes the default cap of 150 at 17 clauses (17 clause steps + 136 pair
+    // steps), so its cases go through /buildSteps itself. The complement reductions would need 149 nodes (a copy step and
+    // one per node), where their legacy O(n^4) complement code takes 10 to 40 seconds per build, so their cases fold the
+    // full recording with a lower cap, exactly as BuildRun does with the default one. The low-cap 3SAT case also folds
+    // clause (node) steps, not only pair steps, into the combined step.
+    public static TheoryData<string, string, int> LargeCases() {
+        static string Graph(int n, Func<int, int, bool> joined, int k) {
+            var names = Enumerable.Range(0, n).Select(i => "v" + i).ToList();
+            var edges = from i in Enumerable.Range(0, n) from j in Enumerable.Range(i + 1, n - i - 1) where joined(i, j) select $"{{v{i},v{j}}}";
+            return $"(({{{string.Join(",", names)}}},{{{string.Join(",", edges)}}}),{k})";
+        }
+        static bool Some(int i, int j) => (i * 7 + j * 13) % 3 != 0;
+        int cap = StepRecorder<BuildDelta>.DefaultCap;
+        return new TheoryData<string, string, int> {
+            { Sat, ChainFormula(17), cap },
+            { Sat, ChainFormula(20), cap },
+            { Sat, string.Join(" & ", Enumerable.Range(0, 24).Select(i => $"(x{i % 4} | !x{(i + 1) % 4} | x{(i + 2) % 5})")), cap },
+            { Sat, ChainFormula(12), 5 },
+            { Vc, Graph(40, Some, 5), 20 },
+            { Is, Graph(40, Some, 5), 20 },
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(LargeCases))]
+    public async Task LargeInstances_ReplayingEveryKeptStep_GivesExactlyTheReduceTarget(string reduction, string instance, int cap) {
+        using var reduceDoc = JsonDocument.Parse(await PostOk("reduce", reduction, instance));
+        string targetInstance = reduceDoc.RootElement.GetProperty("reductionTo").GetProperty("instance").GetString()!;
+        IProblem target = reduction == Vc ? new VERTEXCOVER(targetInstance) : new CLIQUE(targetInstance);
+        var (nodes, edges, k) = TargetOf(target);
+
+        IReadOnlyList<SolverStep<BuildDelta>> steps;
+        if (cap == StepRecorder<BuildDelta>.DefaultCap) {
+            using var stepsDoc = JsonDocument.Parse(await PostOk("buildSteps", reduction, instance));
+            steps = stepsDoc.RootElement.GetProperty("steps").EnumerateArray().Select(ReadStep).ToList();
+        } else {
+            IReduction red = Build(reduction, instance);
+            var full = (ConstructionRun)red.GetType().GetMethod("Rebuild")!.Invoke(red, new object[] { new StepRecorder<BuildDelta>(cap: int.MaxValue) })!;
+            Assert.True(full.Steps.Count > cap + 2, "the case must pass the cap");
+            steps = ConstructionSteps.Limit(full.Steps, cap);
+        }
+        Assert.Equal(cap + 2, steps.Count);
+        Assert.StartsWith("The last ", steps[^2].Caption);
+        Assert.Equal(StepEvent.Done, steps[^1].Event);
+
+        var (builtNodes, builtEdges, bound) = Replay(steps);
+        Assert.Equal(nodes.Distinct().OrderBy(n => n, StringComparer.Ordinal), builtNodes.Distinct().OrderBy(n => n, StringComparer.Ordinal));
+        Assert.Equal(builtEdges.Count, builtEdges.Distinct().Count());
+        Assert.Equal(edges.Distinct().OrderBy(e => e, StringComparer.Ordinal), builtEdges.OrderBy(e => e, StringComparer.Ordinal));
+        Assert.Equal(k, bound);
+    }
+
+    // A step as /buildSteps sends it; each edge's id must be the one its two ends give.
+    private static SolverStep<BuildDelta> ReadStep(JsonElement step) {
+        var p = step.GetProperty("partial");
+        string[] Strings(JsonElement a) => a.EnumerateArray().Select(x => x.GetString()!).ToArray();
+        BuildEdge[] Edges(string field) => p.GetProperty(field).EnumerateArray().Select(e => {
+            var edge = new BuildEdge(e.GetProperty("a").GetString()!, e.GetProperty("b").GetString()!);
+            Assert.Equal(edge.Id, e.GetProperty("id").GetString());
+            return edge;
+        }).ToArray();
+        var delta = new BuildDelta {
+            SourceFocus = Strings(p.GetProperty("sourceFocus")),
+            Nodes = Strings(p.GetProperty("nodes")),
+            Edges = Edges("edges"),
+            Skipped = Edges("skipped"),
+            Gadgets = p.GetProperty("gadgets").EnumerateArray().Select(x => x.GetInt32()).ToArray(),
+            Bound = p.TryGetProperty("bound", out var b) ? b.GetInt32() : null,
+        };
+        return new SolverStep<BuildDelta>(delta, Enum.Parse<StepEvent>(step.GetProperty("event").GetString()!),
+            Strings(step.GetProperty("focus")), step.GetProperty("caption").GetString()!);
+    }
+
+    private async Task<string> PostOk(string endpoint, string reduction, string instance) {
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync($"/ProblemProvider/{endpoint}?reduction={reduction}", content, TestContext.Current.CancellationToken);
+        string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.True(response.StatusCode == HttpStatusCode.OK, $"{endpoint}: {(int)response.StatusCode} {body}");
+        return body;
+    }
+
+    [Fact]
+    public void Limit_LeavesShortRunsAlone_AndNeverCombinesASingleStep() {
+        SolverStep<BuildDelta> Step(string node) =>
+            new(new BuildDelta { Nodes = new[] { node } }, StepEvent.Accept, new[] { node }, "add " + node);
+        var done = new SolverStep<BuildDelta>(new BuildDelta { Bound = 1 }, StepEvent.Done, Array.Empty<string>(), "done") { Ok = true };
+        var three = new[] { Step("a"), Step("b"), Step("c"), done };
+        Assert.Same(three, ConstructionSteps.Limit(three, cap: 3));
+        // One step past the cap is kept as it is: "combining" it would only change its caption.
+        Assert.Equal(new[] { "add a", "add b", "add c", "done" }, ConstructionSteps.Limit(three, cap: 2).Select(s => s.Caption));
+
+        var five = new[] { Step("a"), Step("b"), Step("c"), Step("d"), Step("e"), done };
+        var limited = ConstructionSteps.Limit(five, cap: 2);
+        Assert.Equal(4, limited.Count);
+        Assert.Equal(new[] { "c", "d", "e" }, limited[2].Partial.Nodes);
+        Assert.Equal(new[] { "c", "d", "e" }, limited[2].Focus);
+        Assert.Equal("The last 3 steps are combined into this one to keep the list short. Together they add 3 nodes and 0 edges.", limited[2].Caption);
+        Assert.Same(done, limited[3]);
+    }
+
+    [Fact]
+    public void Limit_CombinedStepOfOnlyRejects_IsAReject_AndCountsTheSkippedPairs() {
+        SolverStep<BuildDelta> Rejected(string a, string b) =>
+            new(new BuildDelta { Skipped = new[] { new BuildEdge(a, b) } }, StepEvent.Reject, new[] { a, b }, "skip");
+        var steps = new[] { Rejected("a", "b"), Rejected("b", "c"), Rejected("a", "c") };
+        var limited = ConstructionSteps.Limit(steps, cap: 1);
+        Assert.Equal(2, limited.Count);
+        Assert.Equal(StepEvent.Reject, limited[1].Event);
+        Assert.Equal(new[] { "a-c", "b-c" }, limited[1].Partial.Skipped.Select(e => e.Id));
+        Assert.Equal("The last 2 steps are combined into this one to keep the list short. Together they add 0 edges, and leave 2 pairs without an edge.", limited[1].Caption);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void Reduce_CalledAgain_RebuildsTheGadgetsInsteadOfAddingMore(string reduction, string instance) {
+        IReduction red = Build(reduction, instance);
+        string gadgets = GadgetJson(red.gadgets);
+        string target = red.reductionTo.instance;
+        int count = red.gadgets.Count;
+        var reduce = red.GetType().GetMethod("reduce", Type.EmptyTypes)!;
+        reduce.Invoke(red, null);
+        reduce.Invoke(red, null);
+        Assert.Equal(count, red.gadgets.Count);
+        Assert.Equal(gadgets, GadgetJson(red.gadgets));
+        Assert.Equal(target, red.reductionTo.instance);
+        // And the steps still name every gadget exactly by index.
+        ConstructionRun run = red.BuildRun(true)!;
+        Assert.Equal(gadgets, GadgetJson(run.Gadgets));
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void EdgeIds_AreThePictureIds_SortedInEachStep_AndUnique(string reduction, string instance) {
+        var steps = Build(reduction, instance).BuildRun(true)!.Steps;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var step in steps) {
+            foreach (var e in step.Partial.Edges.Concat(step.Partial.Skipped)) {
+                Assert.True(string.CompareOrdinal(e.A, e.B) < 0, $"{e.A} before {e.B}");
+                Assert.Equal(PictureEdgeId(e.A, e.B), e.Id);
+                Assert.True(seen.Add(e.Id), $"{e.Id} announced twice");
+            }
+            Assert.Equal(step.Partial.Edges.Select(e => e.Id).OrderBy(i => i, StringComparer.Ordinal), step.Partial.Edges.Select(e => e.Id));
+            Assert.Equal(step.Partial.Skipped.Select(e => e.Id).OrderBy(i => i, StringComparer.Ordinal), step.Partial.Skipped.Select(e => e.Id));
+        }
+    }
+
+    [Theory]
+    [InlineData(Vc, "(({a-b,c,a,b-c},{}),1)")]
+    [InlineData(Is, "(({a-b,c,a,b-c},{}),1)")]
+    public void NodeNamesWithSeparators_GiveUniqueEdgeIds_AndTheEdgesNameTheirEnds(string reduction, string instance) {
+        IReduction red = Build(reduction, instance);
+        var steps = red.BuildRun(true)!.Steps;
+        var all = steps.SelectMany(s => s.Partial.Edges).ToList();
+        Assert.NotEmpty(all);
+        Assert.Equal(all.Count, all.Select(e => e.Id).Distinct().Count());
+        // Ends are given, so a client never splits an id: they are real target nodes.
+        var nodes = TargetOf(red.reductionTo).Nodes;
+        Assert.All(all, e => { Assert.Contains(e.A, nodes); Assert.Contains(e.B, nodes); });
+        // a-b / c and a / b-c would both be "a-b-c" unescaped. (3SAT variable names cannot hold a '-'.)
+        Assert.Contains(all, e => e.Id == @"a\-b-c" && e.A == "a-b" && e.B == "c");
+        Assert.Contains(all, e => e.Id == @"a-b\-c" && e.A == "a" && e.B == "b-c");
+    }
+
+    [Fact]
+    public void ComplementCaptions_SayTheLastNodeHasNothingLeft_AndEmptyGraphsSaySo() {
+        var vc = Build(Vc, "(({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)").BuildRun(true)!.Steps;
+        Assert.Equal("Node d is the last node: the steps above already gave it its edges in the complement.", vc[4].Caption);
+        Assert.Equal(StepEvent.Reject, vc[4].Event);
+        var empty = Build(Is, "(({},{}),0)").BuildRun(true)!.Steps;
+        Assert.Equal("The graph has no nodes, so the clique graph has none either.", empty[0].Caption);
+        var emptyVc = Build(Vc, "(({},{}),0)").BuildRun(true)!.Steps;
+        Assert.Equal("The clique graph has no nodes, so the new graph has none either.", emptyVc[0].Caption);
     }
 
     [Fact]
@@ -273,6 +454,9 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
             var partial = step.GetProperty("partial");
             foreach (string field in new[] { "sourceFocus", "nodes", "edges", "skipped", "gadgets" })
                 Assert.Equal(JsonValueKind.Array, partial.GetProperty(field).ValueKind);
+            foreach (string field in new[] { "edges", "skipped" })
+                foreach (var edge in partial.GetProperty(field).EnumerateArray())
+                    Assert.Equal(new[] { "id", "a", "b" }, edge.EnumerateObject().Select(p => p.Name));
             Assert.Equal(JsonValueKind.String, step.GetProperty("event").ValueKind);
         }
         var first = steps[0];
@@ -311,12 +495,11 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Endpoint_UnknownReduction_And_MalformedInstance_Are400() {
+    public async Task Endpoint_UnknownReduction_Is400() {
         var unknown = await Post("NoSuchReduction", "x");
         Assert.Equal(HttpStatusCode.BadRequest, unknown.StatusCode);
         using var unknownDoc = JsonDocument.Parse(await unknown.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         Assert.Equal("unknown_reduction", unknownDoc.RootElement.GetProperty("error").GetString());
-
     }
 
     [Theory]

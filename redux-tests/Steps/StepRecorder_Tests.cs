@@ -132,18 +132,6 @@ public class StepRecorder_Tests {
     }
 
     [Fact]
-    public void KeepLastAcceptOff_DropsAcceptsPastTheCap_WithoutRunningTheirLambdas() {
-        var rec = new StepRecorder<NodeSet>(cap: 2, keepLastAccept: false);
-        int calls = 0;
-        rec.Try(() => Nodes("a"), () => "t1");
-        rec.Try(() => Nodes("b"), () => "t2");
-        rec.Accept(() => { calls++; return Nodes("c"); }, () => { calls++; return "a"; });
-        rec.Done(Nodes("c"), true, "done");
-        Assert.Equal(new[] { "t1", "t2", "done (1 not shown)" }, rec.Steps.Select(s => s.Caption));
-        Assert.Equal(0, calls);
-    }
-
-    [Fact]
     public void UnderTheCap_IsUnchanged() {
         var rec = new StepRecorder<NodeSet>(cap: 10);
         rec.Reject(() => Nodes("a"), () => "r");

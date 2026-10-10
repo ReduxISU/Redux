@@ -200,8 +200,11 @@ interface IRecordedReduction<T, U> : IReduction<T, U> where T : IProblem where U
 
     bool IReduction.hasBuildSteps() => true;
 
-    // Construction steps are deltas replayed in order, so the recorder does not keep a late Accept past the cap:
-    // placed after the first steps it would draw a target that never existed.
-    ConstructionRun? IReduction.BuildRun(bool withSteps) =>
-        Rebuild(withSteps ? new StepRecorder<BuildDelta>(keepLastAccept: false) : StepRecorder<BuildDelta>.Off);
+    // Construction steps are deltas replayed in order, so none may be dropped: every step is recorded (no cap), and
+    // ConstructionSteps.Limit then folds the steps past the usual cap into one combined step.
+    ConstructionRun? IReduction.BuildRun(bool withSteps) {
+        if (!withSteps) return Rebuild(StepRecorder<BuildDelta>.Off);
+        ConstructionRun run = Rebuild(new StepRecorder<BuildDelta>(cap: int.MaxValue));
+        return run with { Steps = ConstructionSteps.Limit(run.Steps) };
+    }
 }
