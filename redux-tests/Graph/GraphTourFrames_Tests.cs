@@ -249,6 +249,17 @@ public class GraphTourFrames_Tests {
         Assert.Equal("No answer was found.", none.Caption);
     }
 
+    [Theory]
+    [InlineData("{a,b,a,b}", false)]   // skips c: its weight is within K, but it is no tour (#753: this was ok)
+    [InlineData("{a,b,c,a}", true)]
+    public void Build_WithoutSteps_ATSPAnswerThatSkipsACityIsNotOk(string answer, bool ok) {
+        const string instance = "(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),6)";
+        var vis = (IFramesVisualization)new API.Problems.NPComplete.NPC_TSP.Visualizations.TSPDefaultVisualization();
+        var frame = Assert.IsType<GraphFrame>(Assert.Single(vis.BuildFrames(instance, new SolveRun(answer, [], null)).Frames));
+        Assert.Equal(StepEvent.Done, frame.Event);
+        Assert.Equal(ok, frame.Ok);
+    }
+
     [Fact]
     public void Build_UsesTheSteps_AndDoesNotAddASecondDone() {
         SolverStep<Tour>[] steps = [
