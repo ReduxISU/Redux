@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_STEINERTREE.Solvers;
 
-class SteinerTreeBruteForce : ISolver<STEINERTREE> {
+class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Steiner Tree Brute Force";
@@ -58,10 +59,30 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE> {
         return "{" + certificate.TrimEnd(',') + "}";
     }
 
-    public string solve(STEINERTREE steiner) {
+    // Why a candidate edge set is not a Steiner tree, in the verifier's own order: a terminal left out, then more than one piece.
+    private static (string Reason, string[] Focus) Why(STEINERTREE steiner, IEnumerable<KeyValuePair<string, string>> candidate) {
+        var touched = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var e in candidate) {
+            touched.Add(e.Key);
+            touched.Add(e.Value);
+        }
+        var missing = steiner.terminals.Where(t => !touched.Contains(t)).ToArray();
+        if (missing.Length > 0)
+            return (missing.Length == 1 ? $"terminal {missing[0]} isn't reached" : $"terminals {string.Join(", ", missing)} aren't reached", missing);
+        return ("the edges form more than one piece", []);
+    }
+
+    public string solve(STEINERTREE steiner) => Solve(steiner, StepRecorder<EdgeSet>.Off);
+
+    // Steps: one per candidate edge set tried, in the order the solver tries them (sizes from one fewer than the
+    // terminals up to K). Recorder state lives only in this call.
+    public string Solve(STEINERTREE steiner, StepRecorder<EdgeSet> rec) {
+        int tried = 0;
+        List<int> combination = new List<int>();
+        string[] Candidate() => combination.Select(c => GraphSubsetFrames.EdgeId(steiner.edges[c].Key, steiner.edges[c].Value)).ToArray();
 
         for (int i = steiner.terminals.Count - 1; i <= steiner.K; i++) {
-            List<int> combination = new List<int>();
+            combination = new List<int>();
             for (int j = 0; j < i; j++) {
                 combination.Add(j);
             }
@@ -69,14 +90,21 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE> {
             long reps = factorial(steiner.edges.Count) / (factorial(i + 1) * factorial(steiner.edges.Count - i - 1));
             for (int k = 0; k < reps; k++) {
                 string certificate = indexListToCertificate(combination, steiner.edges);
+                tried++;
                 if (steiner.defaultVerifier.verify(steiner, certificate)) {
+                    rec.Accept(() => new EdgeSet(Candidate()), () => $"Try edges {string.Join(", ", Candidate())}. They connect every terminal.", Candidate);
+                    rec.Done(new EdgeSet(Candidate()), true, $"{Candidate().Length} edges connect every terminal, found after {tried} tries.");
                     return certificate;
                 }
+                rec.Reject(() => new EdgeSet(Candidate()),
+                    () => $"Try edges {string.Join(", ", Candidate())}: {Why(steiner, combination.Select(c => steiner.edges[c])).Reason}.",
+                    () => Why(steiner, combination.Select(c => steiner.edges[c])).Focus);
                 combination = nextComb(combination, steiner.edges.Count);
 
             }
 
         }
+        rec.Done(new EdgeSet([]), false, $"Checked {tried} candidate edge sets. None connects every terminal using at most {steiner.K} edges.");
         return "{}";
     }
 

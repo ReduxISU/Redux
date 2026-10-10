@@ -50,6 +50,15 @@ public class SolverReplay_Tests {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
         }
+        if (lastPartial is EdgeSet) {
+            // Edge-set answers list edges, plain ({{a,b},...}) or weighted ({({a,b},w),...}); the partial holds their ids.
+            return API.Interfaces.Graphs.GraphEdgeFrames.ParseEdges(answer);
+        }
+        if (lastPartial is Groups) {
+            // A split is not recoverable from the answer string (a list of cut edges names no side), so it is checked
+            // against the answer, per solver, in EdgeSetSolvers_Tests.TheDoneStep_ShowsTheAnswerTheSolverGave.
+            return lastPartial;
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }

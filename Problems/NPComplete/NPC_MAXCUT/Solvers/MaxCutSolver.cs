@@ -1,8 +1,10 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 
-class MaxCutSolver : ISolver<MAXCUT> {
+class MaxCutSolver : ISolver<MAXCUT, Groups> {
     public string solverName { get; } = "Max Cut Brute Force";
     public string solverDefinition { get; } = "Enumerates all 2^n partitions of the vertex set and returns the S side of the partition whose crossing edges have maximum total weight. Certificate format: {node1,node2,...} representing the S side.";
     public string source { get; } = "";
@@ -19,10 +21,17 @@ class MaxCutSolver : ISolver<MAXCUT> {
 
     public MaxCutSolver() { }
 
-    public string solve(MAXCUT problem) {
+    public string solve(MAXCUT problem) => Solve(problem, StepRecorder<Groups>.Off);
+
+    // Steps: one Accept each time a split beats every split before it (the 2^n splits themselves are not shown one by
+    // one). The partial answer is the split: the S side is group 0, the rest group 1; the edges that cross are the cut.
+    public string Solve(MAXCUT problem, StepRecorder<Groups> rec) {
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
-        if (n < 2) return "{}";
+        if (n < 2) {
+            rec.Done(new Groups([]), false, "A graph needs at least two nodes to have a cut.");
+            return "{}";
+        }
 
         int bestWeight = -1;
         HashSet<string> bestS = new();
@@ -39,10 +48,21 @@ class MaxCutSolver : ISolver<MAXCUT> {
             if (w > bestWeight) {
                 bestWeight = w;
                 bestS = S;
+                // Copies, so the closures below are only built for a new best, not on every pass of the loop.
+                var side = S;
+                int weight = w;
+                rec.Accept(() => GraphEdgeFrames.Split(nodes, side),
+                    () => $"Put {GraphEdgeFrames.Side(side)} against {GraphEdgeFrames.Side(nodes.Where(x => !side.Contains(x)))}: the crossing edges weigh {weight}, the most so far.",
+                    Array.Empty<string>());
             }
         }
 
-        if (bestS.Count == 0) return "{}";
+        if (bestS.Count == 0) {
+            rec.Done(new Groups([]), false, "No split was found.");
+            return "{}";
+        }
+        rec.Done(GraphEdgeFrames.Split(nodes, bestS), true,
+            $"The heaviest cut weighs {bestWeight}: {GraphEdgeFrames.Side(bestS)} against {GraphEdgeFrames.Side(nodes.Where(x => !bestS.Contains(x)))}, after trying all {limit - 2} choices of the S side.");
         return "{" + string.Join(",", bestS) + "}";
     }
 

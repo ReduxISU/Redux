@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_CUT.Solvers;
 
-class CutBruteForce : ISolver<CUT> {
+class CutBruteForce : ISolver<CUT, Groups> {
 
     // --- Fields ---
     public string solverName { get; } = "Cut Brute Force";
@@ -81,12 +82,22 @@ class CutBruteForce : ISolver<CUT> {
         }
         return combination;
     }
-    public string solve(CUT cut) {
+    public string solve(CUT cut) => Solve(cut, StepRecorder<Groups>.Off);
+
+    // Steps: one per candidate side S tried (sizes 1..K), in the order the solver tries them. The partial answer is the
+    // split (S is group 0, the rest group 1); the edges that cross it are the cut. Recorder state lives only in this call.
+    public string Solve(CUT cut, StepRecorder<Groups> rec) {
         if (cut.K > cut.edges.Count) { // impossible to do cut if not enough edges
+            rec.Done(new Groups([]), false, $"The graph has only {cut.edges.Count} edges, so no cut can have {cut.K}.");
             return "{}";
         }
+        int tried = 0;
+        List<int> combination = new List<int>();
+        string[] Side() => combination.Select(c => cut.nodes[c]).ToArray();
+        string Rest() => GraphEdgeFrames.Side(cut.nodes.Except(Side()));
+        int Crossing() => GraphEdgeFrames.Crossing(cut.edges.Select(e => new GraphEdgeInput(e.Key, e.Value)), Side().ToHashSet()).Count;
         for (int i = 0; i < cut.K; i++) {
-            List<int> combination = new List<int>();
+            combination = new List<int>();
             for (int j = 0; j <= i; j++) {
                 combination.Add(j);
             }
@@ -94,13 +105,20 @@ class CutBruteForce : ISolver<CUT> {
             for (int k = 0; k < reps; k++) {
                 string certificate = indexListToCertificate(combination, cut.nodes);
                 certificate = certificateToEdges(cut, certificate); // last two could be one function, but it is okay
+                tried++;
                 if (cut.defaultVerifier.verify(cut, certificate)) {
+                    rec.Accept(() => GraphEdgeFrames.Split(cut.nodes, Side()), () => $"Put {GraphEdgeFrames.Side(Side())} against {Rest()}: exactly {cut.K} edges cross.", Array.Empty<string>());
+                    rec.Done(GraphEdgeFrames.Split(cut.nodes, Side()), true, $"{GraphEdgeFrames.Side(Side())} against {Rest()} cuts {cut.K} edges, found after {tried} tries.");
                     return certificate;
                 }
+                rec.Reject(() => GraphEdgeFrames.Split(cut.nodes, Side()),
+                    () => $"Put {GraphEdgeFrames.Side(Side())} against {Rest()}: {Crossing()} edges cross, not {cut.K}.", Array.Empty<string>());
                 combination = nextComb(combination, cut.nodes.Count);
 
             }
         }
+        if (cut.K == 0) rec.Done(new Groups([]), true, "A cut of size 0 needs no edges.");
+        else rec.Done(new Groups([]), false, $"Checked {tried} ways to pick the S side. None cuts exactly {cut.K} edges.");
         return "{}";
     }
 }
