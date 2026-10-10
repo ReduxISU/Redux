@@ -86,7 +86,7 @@ public class VERTEXCOVER_Tests {
 
     [Theory] //tests with default graph string Certificates of this test represent junk or empty data.
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{a}")] //four node graph dependent on a with a in cert
-    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c,d}")] //four node graph dependent on a with all nodes except a in cert
+    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),3)", "{b,c,d}")] //four node graph dependent on a with all nodes except a in cert (K=3 so the 3-node cover fits)
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{a,b,c,d}}")] //five node connected graph, test four nodes
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{e,b,c,d}}")] //five node connected graph, test four nodes
     public void VERTEXCOVER_verify_theory_true(string VERTEXCOVER_Instance, string testCertificate) {
@@ -105,6 +105,28 @@ public class VERTEXCOVER_Tests {
         VCVerifier verifier = testVert.defaultVerifier;
         bool isValidCover = verifier.verify(testVert, testCertificate);
         Assert.False(isValidCover);
+    }
+
+    // -------------------------------------------------------------------------
+    // Verifier — K bound (#747): a cover with more than K nodes is rejected
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{a,b}")]     // valid cover, K+1 nodes
+    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c,d}")]   // valid cover, 3 nodes > K=1
+    [InlineData("(({a,b,c},{{a,b},{b,c}}),2)", "{a,b,c}")]           // valid cover, K+1 nodes
+    public void VERTEXCOVER_Verifier_Rejects_Cover_Larger_Than_K(string instance, string certificate) {
+        VERTEXCOVER problem = new VERTEXCOVER(instance);
+        Assert.False(problem.defaultVerifier.verify(problem, certificate));
+    }
+
+    [Theory]
+    [InlineData("(({a,b,c},{{a,b},{b,c}}),2)", "{b}")]       // fewer than K nodes is fine ("at most K")
+    [InlineData("(({a,b,c},{{a,b},{b,c}}),2)", "{a,c}")]     // exactly K nodes
+    [InlineData("(({a,b,c},{{a,b},{b,c}}),2)", "{b,b,b}")]   // repeated node counts once
+    public void VERTEXCOVER_Verifier_Accepts_Cover_Within_K(string instance, string certificate) {
+        VERTEXCOVER problem = new VERTEXCOVER(instance);
+        Assert.True(problem.defaultVerifier.verify(problem, certificate));
     }
 
     // -------------------------------------------------------------------------
