@@ -219,7 +219,7 @@ public class GraphGroupFrames_Tests {
         Assert.Equal("No answer was found.", frame.Caption);
     }
 
-    // ---- runs stopped by the time limit, and edge ids ----
+    // ---- runs stopped by the time limit ----
 
     [Fact]
     public void Build_StoppedRun_EndsWithABlankNotOkDone_WithEmptyGroups() {
@@ -244,11 +244,5 @@ public class GraphGroupFrames_Tests {
             _ => throw new InvalidOperationException("not read"), _ => true).Frames));
         Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
         Assert.False(only.Ok);
-    }
-
-    [Fact]
-    public void Build_RefusesNodeNamesThatMakeTwoEdgesShareAnId() {
-        var spec = new GraphGroupSpec(["a", "b-c", "a-b", "c"], [new("a", "b-c"), new("a-b", "c")], 2, GroupRule.Coloring);
-        Assert.Throws<AmbiguousEdgeIdException>(() => GraphGroupFrames.Build(spec, new SolveRun("{}", [], null), _ => new Groups([]), _ => false));
     }
 }

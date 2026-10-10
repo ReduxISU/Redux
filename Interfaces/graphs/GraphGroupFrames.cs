@@ -186,7 +186,6 @@ static class GraphGroupFrames {
     /// <see cref="GraphSubsetFrames.StoppedFrame"/>) with empty <c>groups</c> instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GraphGroupSpec spec, SolveRun run, Func<string, Groups> parseAnswer, Func<string, bool> verifyAnswer) {
-        GraphSubsetFrames.CheckEdgeIds(spec.Edges.Select(e => (e.Key, e.Value)), GraphSubsetFrames.EdgeId);
         var frames = new List<object>();
         SolverStep<Groups>? last = null;
         foreach (var step in run.StepsFor(typeof(Groups)).OfType<SolverStep<Groups>>()) {
@@ -223,11 +222,11 @@ interface IGraphGroupsVisualization<TProblem> : IFramesVisualization where TProb
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphGroupFrames.Build(Describe(problem), run,
+        return GraphGroupFrames.Build(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            }));
+            });
     }
 }
