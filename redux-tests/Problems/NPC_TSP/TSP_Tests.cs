@@ -222,4 +222,24 @@ public class TSP_Tests {
         Assert.Equal(24, combos.Count);
         Assert.Equal(24, combos.Select(c => string.Join(",", c)).Distinct().Count());
     }
+
+    // #753: the verifier summed the weights along the listed order and compared the total with K, but never checked
+    // that the order visits every city exactly once.
+    [Theory]
+    [InlineData("(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),6)", "{a,b,a,b}")]     // skips c, repeats a and b
+    [InlineData("(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),6)", "{a,b,a}")]       // skips c
+    [InlineData("(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),6)", "{a,b}")]         // skips c, no return to a
+    [InlineData("(({a,b,c,d},{({a,b},1),({b,c},1),({c,d},1),({a,d},1),({a,c},1)}),10)", "{a,b,c,a,d,a}")]   // visits a twice
+    public void TSP_Verifier_Rejects_Tour_That_Skips_Or_Repeats_Cities(string instance, string certificate) {
+        TSP tsp = new TSP(instance);
+        Assert.False(new TSPVerifier().verify(tsp, certificate));
+    }
+
+    [Theory]
+    [InlineData("(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),6)", "{a,b,c,a}")]   // closed by repeating the start
+    [InlineData("(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),6)", "{b,c,a}")]     // the return to the start is implied
+    public void TSP_Verifier_Accepts_Tour_Visiting_Each_City_Once(string instance, string certificate) {
+        TSP tsp = new TSP(instance);
+        Assert.True(new TSPVerifier().verify(tsp, certificate));
+    }
 }
