@@ -179,16 +179,21 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
 
     public Assignment EmptyAnswer() => new Assignment([]);
 
+    // "{}" as B's answer is a real (empty) clique only when K, the number of clauses, is 0. CliqueVerifier
+    // refuses empty text, so the rule is spelled out here. A's answer is an assignment, never "{}", so
+    // SourceAcceptsEmpty keeps the default.
+    public bool TargetAcceptsEmpty() => reductionTo.K == 0;
+
     // Backward map: the clique picks one literal node per clause, and making those literals true
     // satisfies every clause. Nodes are named '<literal>_<clauseIdx>' (see SipserNodes). A variable the
     // clique never mentions is free, so it is set to False (any value works; False is just the default).
-    // If the clique contains both x and !x (not a real clique: those nodes share no edge) the first
-    // one wins and the later node is rejected, and the Done step says the answer is not reliable.
-    public string MapSolutionBack(string problemToSolution, StepRecorder<Assignment> rec) {
+    // If B's answer contains both x and !x (not a real clique: those nodes share no edge) the first one
+    // wins and the later node is rejected; the Done step then reports what A's verifier says.
+    // No K cap: extra nodes only add true literals, which cannot unsatisfy a clause.
+    public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
         List<string> cliqueNodes = ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes);
 
         var values = new Dictionary<string, string>();
-        bool consistent = true;
         Assignment Snapshot() => new Assignment(values);
 
         foreach (string node in cliqueNodes) {
@@ -198,7 +203,6 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
                 values[variable] = word;
                 rec.Accept(Snapshot, () => $"Node {node} is in the clique, so {variable} = {word}.", node);
             } else if (already != word) {
-                consistent = false;
                 rec.Reject(Snapshot, () => $"Node {node} would make {variable} = {word}, but {variable} is already {already}, so it is ignored.", node);
             }
         }
@@ -216,10 +220,7 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
         }
 
         string answer = "(" + string.Join(",", order.Select(v => $"{v}:{values[v]}")) + ")";
-        rec.Done(Snapshot(), consistent, consistent
-            ? "Every variable has a value, and each clause has a true literal from the clique."
-            : "The clique has both a literal and its opposite, so it is not a real clique and this assignment may not satisfy the formula.");
-        return answer;
+        return (answer, Snapshot());
     }
 
 }

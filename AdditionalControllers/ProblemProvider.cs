@@ -211,7 +211,7 @@ public class ProblemProvider : ControllerBase {
         ProblemParseException p => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
                                            LookupInstanceFormat(p.ProblemName), p.Received, p.Message)),
         ReductionInputException r => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
-                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message, r.Problem)),
+                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message, r.ProblemName)),
         CertificateParseException c => BadRequest(ParseErrorBody("certificate_parse_error",
                                            c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message)),
         _ => throw ex,
@@ -502,12 +502,13 @@ public class ProblemProvider : ControllerBase {
     /// Maps an answer for the target problem back to an answer for the source problem, the direction
     /// students need after solving the target. The body is the SOURCE instance (the reduction is rebuilt from it,
     /// so the backward map knows the construction); <c>solution</c> is the target problem's certificate.
-    /// "{}" (no answer) maps to "{}". Not every reduction has a backward map yet: those answer 400 with
+    /// "{}" (no answer) maps to "{}", unless the empty set is itself a valid answer for the target instance
+    /// (e.g. the empty cover of an edgeless graph); then it is mapped like any other answer. Not every reduction has a backward map yet: those answer 400 with
     /// <c>no_backward_map</c> (a request this reduction cannot serve, like <c>unknown_reduction</c>, rather
     /// than a server fault). With <c>steps=true</c> the response is <c>{ answer, steps }</c> instead of the bare string.
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
-    /// <param name="solution" example = "{x1_0,x2_1,x1_2}">solution certificate of the TARGET problem</param>
+    /// <param name="solution" example = "{x1_0,x1_1,x1_2}">solution certificate of the TARGET problem</param>
     /// <param name="steps" example = "false">true to also return the steps that mapped the answer back</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
     /// <returns>solution certificate of the source problem, or { answer, steps }</returns>

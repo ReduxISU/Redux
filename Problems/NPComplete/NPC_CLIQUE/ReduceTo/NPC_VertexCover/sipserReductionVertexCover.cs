@@ -151,10 +151,17 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
     public NodeSet EmptyAnswer() => new NodeSet([]);
 
+    // "{}" as B's answer: the empty cover is real when B's graph has no edges (K = N in A, so B's
+    // budget is 0). VCVerifier refuses empty text, so the rule is spelled out here.
+    public bool TargetAcceptsEmpty() => reductionTo.edges.Count == 0 && reductionTo.K >= 0;
+
+    // "{}" as A's answer: the empty clique is real only when K = 0. CliqueVerifier refuses empty text.
+    public bool SourceAcceptsEmpty() => reductionFrom.K == 0;
+
     // Backward map: the clique is the nodes the cover leaves out (an independent set in the complement
     // graph is a clique in the original). A cover smaller than N-K leaves out more than K nodes; any K
     // of them are still a clique, so the first K (in the graph's node order) are kept.
-    public string MapSolutionBack(string problemToSolution, StepRecorder<NodeSet> rec) {
+    public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         var cover = new HashSet<string>(ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes));
         int k = reductionFrom.K;
 
@@ -169,11 +176,6 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
                 rec.Reject(() => new NodeSet(clique), () => $"Node {node} is not in the cover, but the clique already has {k} nodes, so it is left out.", node);
             }
         }
-
-        bool ok = clique.Count == k;
-        rec.Done(new NodeSet(clique), ok, ok
-            ? $"The {k} nodes outside the cover form a clique of size {k}."
-            : $"Only {clique.Count} nodes are outside the cover, fewer than the {k} the clique needs.");
-        return ReductionBack.FormatNodeSet(clique);
+        return (ReductionBack.FormatNodeSet(clique), new NodeSet(clique));
     }
 }

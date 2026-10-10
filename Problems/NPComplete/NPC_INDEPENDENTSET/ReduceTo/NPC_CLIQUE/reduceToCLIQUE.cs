@@ -127,10 +127,16 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
 
     public NodeSet EmptyAnswer() => new NodeSet([]);
 
+    // "{}" is a real answer on either side only when K = 0 (B's K is A's K). CliqueVerifier refuses
+    // empty text and IndependentSetVerifier reads "{}" as one blank node, so the rule is spelled out here.
+    public bool TargetAcceptsEmpty() => reductionTo.K == 0;
+
+    public bool SourceAcceptsEmpty() => reductionFrom.K == 0;
+
     // Backward map: reduce() keeps the nodes and complements the edges, so a clique of the complement
     // graph is exactly an independent set of the original. The same nodes are the answer; if the clique
     // is larger than K, any K of its nodes are still independent, so the first K are kept.
-    public string MapSolutionBack(string problemToSolution, StepRecorder<NodeSet> rec) {
+    public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         List<string> cliqueNodes = ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes);
         int k = reductionFrom.K;
 
@@ -144,11 +150,6 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
                 rec.Reject(() => new NodeSet(independent), () => $"Node {node} is in the clique, but the independent set already has {k} nodes, so it is left out.", node);
             }
         }
-
-        bool ok = independent.Count == k;
-        rec.Done(new NodeSet(independent), ok, ok
-            ? $"The {k} clique nodes are an independent set of size {k}."
-            : $"The clique has only {independent.Count} nodes, fewer than the {k} the independent set needs.");
-        return ReductionBack.FormatNodeSet(independent);
+        return (ReductionBack.FormatNodeSet(independent), new NodeSet(independent));
     }
 }
