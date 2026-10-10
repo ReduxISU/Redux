@@ -1,0 +1,366 @@
+[
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "New York",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "New York"
+      },
+      {
+        "name": "Chicago",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Chicago"
+      },
+      {
+        "name": "Denver",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Denver"
+      },
+      {
+        "name": "Los Angeles",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Los Angeles"
+      },
+      {
+        "name": "Miami",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Miami"
+      }
+    ],
+    "links": [
+      {
+        "source": "New York",
+        "target": "Chicago",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "790",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Chicago"
+      },
+      {
+        "source": "New York",
+        "target": "Denver",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1770",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Denver"
+      },
+      {
+        "source": "New York",
+        "target": "Los Angeles",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2450",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Los Angeles"
+      },
+      {
+        "source": "New York",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1280",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Miami"
+      },
+      {
+        "source": "Chicago",
+        "target": "Denver",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1000",
+        "weighted": true,
+        "directed": false,
+        "id": "Chicago-Denver"
+      },
+      {
+        "source": "Chicago",
+        "target": "Los Angeles",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2015",
+        "weighted": true,
+        "directed": false,
+        "id": "Chicago-Los Angeles"
+      },
+      {
+        "source": "Chicago",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1370",
+        "weighted": true,
+        "directed": false,
+        "id": "Chicago-Miami"
+      },
+      {
+        "source": "Denver",
+        "target": "Los Angeles",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1015",
+        "weighted": true,
+        "directed": false,
+        "id": "Denver-Los Angeles"
+      },
+      {
+        "source": "Denver",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2060",
+        "weighted": true,
+        "directed": false,
+        "id": "Denver-Miami"
+      },
+      {
+        "source": "Los Angeles",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2745",
+        "weighted": true,
+        "directed": false,
+        "id": "Los Angeles-Miami"
+      }
+    ]
+  },
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "New York",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "New York"
+      },
+      {
+        "name": "Chicago",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Chicago"
+      },
+      {
+        "name": "Denver",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Denver"
+      },
+      {
+        "name": "Los Angeles",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Los Angeles"
+      },
+      {
+        "name": "Miami",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Miami"
+      }
+    ],
+    "links": [
+      {
+        "source": "New York",
+        "target": "Chicago",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "790",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Chicago"
+      },
+      {
+        "source": "New York",
+        "target": "Denver",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1770",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Denver"
+      },
+      {
+        "source": "New York",
+        "target": "Los Angeles",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2450",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Los Angeles"
+      },
+      {
+        "source": "New York",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1280",
+        "weighted": true,
+        "directed": false,
+        "id": "New York-Miami"
+      },
+      {
+        "source": "Chicago",
+        "target": "Denver",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1000",
+        "weighted": true,
+        "directed": false,
+        "id": "Chicago-Denver"
+      },
+      {
+        "source": "Chicago",
+        "target": "Los Angeles",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2015",
+        "weighted": true,
+        "directed": false,
+        "id": "Chicago-Los Angeles"
+      },
+      {
+        "source": "Chicago",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1370",
+        "weighted": true,
+        "directed": false,
+        "id": "Chicago-Miami"
+      },
+      {
+        "source": "Denver",
+        "target": "Los Angeles",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1015",
+        "weighted": true,
+        "directed": false,
+        "id": "Denver-Los Angeles"
+      },
+      {
+        "source": "Denver",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2060",
+        "weighted": true,
+        "directed": false,
+        "id": "Denver-Miami"
+      },
+      {
+        "source": "Los Angeles",
+        "target": "Miami",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "2745",
+        "weighted": true,
+        "directed": false,
+        "id": "Los Angeles-Miami"
+      }
+    ]
+  }
+]

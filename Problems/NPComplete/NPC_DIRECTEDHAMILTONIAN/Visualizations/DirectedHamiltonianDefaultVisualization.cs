@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Visualizations;
 
-class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONIAN, API_GraphJSON> {
+class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONIAN, API_GraphJSON>, IGraphTourVisualization<DIRECTEDHAMILTONIAN> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Directed Hamiltonian Cycle Visualization";
@@ -52,4 +54,10 @@ class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONI
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Tour);
+
+    GraphTourSpec IGraphTourVisualization<DIRECTEDHAMILTONIAN>.Describe(DIRECTEDHAMILTONIAN problem) =>
+        new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.Key, e.Value)).ToList(), true, null, TourRule.HamiltonianCycle);
 }

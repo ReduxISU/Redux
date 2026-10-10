@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_HAMILTONIAN.Solvers;
 
 namespace API.Problems.NPComplete.NPC_HAMILTONIAN.Visualizations;
 
-class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN, API_GraphJSON> {
+class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN, API_GraphJSON>, IGraphTourVisualization<HAMILTONIAN> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Hamiltonian Cycle Visualization";
@@ -59,4 +61,10 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN, API_GraphJSO
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Tour);
+
+    GraphTourSpec IGraphTourVisualization<HAMILTONIAN>.Describe(HAMILTONIAN problem) =>
+        new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.Key, e.Value)).ToList(), false, null, TourRule.HamiltonianCycle);
 }

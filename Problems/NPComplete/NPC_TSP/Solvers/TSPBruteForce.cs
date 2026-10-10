@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
-class TSPBruteForce : ISolver<TSP> {
+class TSPBruteForce : ISolver<TSP, Tour> {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Brute Force";
@@ -82,16 +83,46 @@ class TSPBruteForce : ISolver<TSP> {
     }
 
 
-    public string solve(TSP tsp) {
+    public string solve(TSP tsp) => Solve(tsp, StepRecorder<Tour>.Off);
+
+    // Steps: one per complete permutation, in the order the solver tries them (the same permutation can come round as
+    // several rotations and reversals; that is what a brute force does). A permutation that is not a tour within K is a
+    // Reject that says why: the first missing edge, or a total over K. The first one that is within K is the answer, so the
+    // run stops there; every other step is a Reject. There are n! permutations, far more than the recorder's cap on all but
+    // tiny instances, so only the first ones are kept and the Done step says how many are not shown. Recorder state lives
+    // only in this call.
+    public string Solve(TSP tsp, StepRecorder<Tour> rec) {
         List<List<int>> combinations = GenerateCombinations(tsp.nodes.Count);
+        int tried = 0;
 
         foreach (List<int> combination in combinations) {
             string certificate = combinationToCertificate(combination, tsp.nodes);
+            tried++;
             if (tsp.defaultVerifier.verify(tsp, certificate)) {
+                rec.Accept(() => GraphTourFrames.ParseTour(certificate),
+                    () => $"Try {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(certificate).Order)}: total {TSPTourSteps.Num(TSPTourSteps.Cost(tsp, GraphTourFrames.ParseTour(certificate).Order) ?? 0)} is within K = {tsp.K}, so this is a tour.",
+                    () => TSPTourSteps.EdgeIds(tsp, GraphTourFrames.ParseTour(certificate).Order));
+                rec.Done(GraphTourFrames.ParseTour(certificate), true, $"Found a tour within K = {tsp.K} after trying {tried} {(tried == 1 ? "permutation" : "permutations")}.");
                 return certificate;
             }
+            rec.Reject(() => GraphTourFrames.ParseTour(certificate),
+                () => {
+                    var closed = GraphTourFrames.ParseTour(certificate).Order;
+                    var missing = TSPTourSteps.FirstMissingHop(tsp, closed);
+                    string why = missing is { } hop
+                        ? $"there is no edge between {hop.From} and {hop.To}"
+                        : $"total {TSPTourSteps.Num(TSPTourSteps.Cost(tsp, closed) ?? 0)} is more than K = {tsp.K}";
+                    return $"Try {GraphTourFrames.Arrows(closed)}: {why}.";
+                },
+                () => {
+                    var closed = GraphTourFrames.ParseTour(certificate).Order;
+                    return TSPTourSteps.FirstMissingHop(tsp, closed) is { } hop ? new[] { hop.From, hop.To } : TSPTourSteps.EdgeIds(tsp, closed);
+                });
         }
 
+        rec.Done(new Tour([]), false, tried == 0
+            ? "There are no cities to tour."
+            : $"Tried all {tried} permutations of the cities. None is a tour within K = {tsp.K}.");
         return "{}";
     }
 }
