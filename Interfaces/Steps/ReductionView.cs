@@ -11,6 +11,17 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 }
 
 /// <summary>
+/// The backward map could not read the answer the solver gave for the target. The input was fine (the solver produced the
+/// answer, not the caller), so the endpoint answers it with a 500 that names the solver and its answer, and logs it.
+/// </summary>
+sealed class SolverAnswerUnmappableException(string solver, string answer, string detail, Exception inner) : Exception(detail, inner) {
+    /// <summary>The solver's display name.</summary>
+    public string Solver { get; } = solver;
+    /// <summary>The answer the backward map could not read.</summary>
+    public string Answer { get; } = answer;
+}
+
+/// <summary>
 /// Builds the payload of <c>/ProblemProvider/reductionView</c> (picture type <see cref="VisualizationType.Reduction"/>):
 /// the source and target instances, each with its own picture payload, the gadget map between them, and one list of frames in
 /// three phases. Nothing here draws: every pane's states come from the problem's own <see cref="IFramesVisualization"/>, so a
@@ -37,17 +48,20 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 /// </para>
 /// <para>
 /// <b>Solve.</b> The chosen solver runs on the target; each of its steps is drawn by the target's picture and the source pane
-/// stays neutral. The last frame's <c>ok</c> is the target problem's own verifier on the solver's answer, except that "{}" is
-/// judged by <see cref="IReduction.targetAcceptsEmptyAnswer"/> (the empty set can be a real answer, which some verifiers refuse as
-/// unreadable). A solver stopped by the time limit ends the phase with its stopped Done frame (<c>ok</c> false).
+/// stays neutral. The last frame's <c>ok</c> is the target problem's own verifier on the solver's answer ("{}" included: a
+/// set-valued problem's verifier reads it as the empty set, which can be a real answer). A solver stopped by the time limit ends
+/// the phase with its stopped Done frame (<c>ok</c> false).
 /// </para>
 /// <para>
 /// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer as an incremental run (the
 /// part mapped so far stays Solution; only the element being read is highlighted, or Rejected when it is left out); the target pane keeps
 /// the solution and highlights the element being read. Each step's <c>targetFocus</c> is the target element read, its
-/// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. The last frame's <c>ok</c> is the backward
+/// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. A step about a source element no target
+/// element stands for (a variable no clique node mentions) focuses that source id itself (an id no gadget lists as a target id):
+/// it goes to <c>sourceFocus</c> as it is, not to <c>targetFocus</c>. The last frame's <c>ok</c> is the backward
 /// map's own Done verdict: the source problem's verifier on the mapped-back answer. When the solver was stopped there is no
-/// answer, so the phase is a single Done frame (<c>ok</c> false) saying there is nothing to map back.
+/// answer, so the phase is a single Done frame (<c>ok</c> false) saying there is nothing to map back. When the backward map
+/// cannot read the solver's answer, <see cref="Create"/> throws <see cref="SolverAnswerUnmappableException"/>.
 /// </para>
 /// </summary>
 static class ReductionView {
@@ -133,7 +147,7 @@ static class ReductionView {
             var f = solveFrames[i];
             bool last = i == solveFrames.Count - 1;
             // The solved picture is judged by the problem's own verifier, whatever the solver reported; a stopped solve has no answer.
-            bool? ok = last ? !solved.TimedOut && SolvedOk(red, targetInstance, solved.Answer) : f.Ok;
+            bool? ok = last ? !solved.TimedOut && Verify(red.reductionTo, targetInstance, solved.Answer) : f.Ok;
             frames.Add(Frame(Solve, f.Event, f.Caption, ok, [], f.Focus, neutralSource.DeepClone().AsObject(), f.Pane));
         }
         // What the target pane shows while the answer is mapped back: the solved picture. The solver's Done step holds the
@@ -149,11 +163,23 @@ static class ReductionView {
                 false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
             return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
         }
-        SolveRun mapped = mapBack(solved.Answer);
+        SolveRun mapped;
+        try {
+            mapped = mapBack(solved.Answer);
+        } catch (Exception ex) when (ex is ReductionInputException or CertificateParseException || ParseGuard.IsCertificateParseFailure(ex)) {
+            // The answer came from the solver, not the caller, so this is not bad input: it is the solver and the backward map
+            // disagreeing about the target's certificate format.
+            throw new SolverAnswerUnmappableException(solver.solverName, solved.Answer, ex.Message, ex);
+        }
         if (mapped.StepShape != sourceShape)
             throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture cannot draw the backward map's steps.");
         var mapSteps = mapped.Steps.Select(ReadStep).ToList();
-        var sourceFocuses = mapSteps.Select(s => SourceIdsOf(gadgets, s.Focus)).ToList();
+        // A focus id that no gadget lists as a target id names a source element no target element stands for (see
+        // IReversibleReduction): it is drawn on the source side only.
+        var gadgetTargets = new HashSet<string>(gadgets.SelectMany(g => g.targetIds), StringComparer.Ordinal);
+        var mapTargetFocuses = mapSteps.Select(s => s.Focus.Where(gadgetTargets.Contains).ToArray()).ToList();
+        var sourceFocuses = mapSteps.Select((s, i) => SourceIdsOf(gadgets, mapTargetFocuses[i])
+            .Concat(s.Focus.Where(id => !gadgetTargets.Contains(id))).Distinct(StringComparer.Ordinal).ToArray()).ToList();
         // The backward map builds A's answer one element at a time, so it is drawn as an incremental run: what it has mapped so
         // far stays Solution in every step, and only the element being read is highlighted (Rejected when it is left out).
         var mapSourceFrames = Render(sourceVis, sourceInstance,
@@ -162,15 +188,14 @@ static class ReductionView {
         var mapTargetPanes = solvedPartial == null || mapSteps.Count == 0 ? null
             // Drawn as the solve's Done step (with its ok), so the pane is the solved picture: a Try would draw it as a
             // candidate still being tried (highlighted), not as the answer.
-            : Render(targetVis, targetInstance, mapSteps.Select(s => NewStep(targetShape, solvedPartial, StepEvent.Done, s.Focus, "", solveFrames[^1].Ok)).ToList(), targetShape).Frames;
+            : Render(targetVis, targetInstance, mapSteps.Select((s, i) => NewStep(targetShape, solvedPartial, StepEvent.Done, mapTargetFocuses[i], "", solveFrames[^1].Ok)).ToList(), targetShape).Frames;
         for (int i = 0; i < mapSteps.Count; i++) {
             var s = mapSteps[i];
             bool last = i == mapSteps.Count - 1;
-            // The backward map's Done step already carries the source verifier's verdict (MapBackRun), including
-            // when "{}" is a real empty answer, which the verifier alone would refuse as unreadable.
+            // The backward map's Done step already carries the source verifier's verdict (MapBackRun).
             bool? ok = last && s.Event != StepEvent.Done ? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : s.Ok;
             JsonObject target = mapTargetPanes != null ? mapTargetPanes[i].Pane : solvedPane.DeepClone().AsObject();
-            frames.Add(Frame(Map, s.Event, s.Caption, ok, sourceFocuses[i], s.Focus, mapSourceFrames[i].Pane, target));
+            frames.Add(Frame(Map, s.Event, s.Caption, ok, sourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
         }
 
         if (mapSteps.Count == 0 || mapSteps[^1].Event != StepEvent.Done)
@@ -296,15 +321,8 @@ static class ReductionView {
     private static object EmptyAnswer(Type shape, string problem, string error) =>
         Shapes.EmptyAnswer(shape) ?? throw new ReductionViewException(error, $"{problem}'s picture draws {shape.Name} answers, which the Reduction View cannot show at rest yet.");
 
-    /// <summary>
-    /// Whether the solver's answer is correct for the target. "{}" is the no-answer convention, but for a set-valued target it is
-    /// also the empty set, which can be a real answer that the verifier refuses as unreadable; the reduction says which it is.
-    /// </summary>
-    private static bool SolvedOk(IReduction red, string targetInstance, string answer) =>
-        ReductionBack.IsNoAnswer(answer) ? red.targetAcceptsEmptyAnswer() : Verify(red.reductionTo, targetInstance, answer);
-
     private static bool Verify(IProblem problem, string instance, string answer) {
-        // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
+        // The problem's own verifier decides; a certificate it cannot read is not correct.
         try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
     }
 

@@ -436,10 +436,8 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
 
     public Assignment EmptyAnswer() => new Assignment([]);
 
-    // "{}" as B's answer is a real (empty) clique only when K, the number of clauses, is 0. CliqueVerifier
-    // refuses empty text, so the rule is spelled out here. A's answer is an assignment, never "{}", so
-    // SourceAcceptsEmpty keeps the default.
-    public bool TargetAcceptsEmpty() => reductionTo.K == 0;
+    // "{}" as B's answer is a real (empty) clique only when K, the number of clauses, is 0, which CliqueVerifier
+    // decides; A's answer is an assignment, never "{}". Both keep the default.
 
     // Backward map: the clique picks one literal node per clause, and making those literals true
     // satisfies every clause. Nodes are named '<literal>_<clauseIdx>' (see SipserNodes). A variable the
@@ -473,7 +471,9 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
         foreach (string variable in order) {
             if (values.ContainsKey(variable)) continue;
             values[variable] = "False";
-            rec.Accept(Snapshot, () => $"No clique node mentions {variable}, so it can be anything: {variable} = False.");
+            // No clique node stands for the variable, so the step focuses the 3SAT picture's own id for it (see MapBack).
+            rec.Accept(Snapshot, () => $"No clique node mentions {variable}, so it can be anything: {variable} = False.",
+                GroupedGraphFrames.VariableId(variable));
         }
 
         string answer = "(" + string.Join(",", order.Select(v => $"{v}:{values[v]}")) + ")";

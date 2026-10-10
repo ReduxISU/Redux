@@ -62,7 +62,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         return ids;
     }
 
-    // The problem's own verifier; a certificate it cannot read (such as "{}") is not correct.
+    // The problem's own verifier; a certificate it cannot read is not correct.
     private static bool Verifies(IProblem problem, string instance, string answer) {
         try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
     }
@@ -373,9 +373,9 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         IReduction red = Build(reduction, instance);
         string targetInstance = red.reductionTo.instance;
         string answer = red.reductionTo.defaultVisualization.solver.Run(targetInstance, false).Answer;
-        // "{}" is judged by the reduction's targetAcceptsEmptyAnswer: the empty set can be a real answer (Clique -> VC on a triangle
-        // with K = 3 gives an edgeless target with K' = 0) that the VC verifier refuses as unreadable.
-        bool expected = answer.Trim() == "{}" ? red.targetAcceptsEmptyAnswer() : Verifies(red.reductionTo, targetInstance, answer);
+        // "{}" too: the verifiers read it as the empty set, which can be a real answer (Clique -> VC on a triangle with K = 3
+        // gives an edgeless target with K' = 0).
+        bool expected = Verifies(red.reductionTo, targetInstance, answer);
 
         var solve = Phase(view, "solve");
         Assert.Equal(expected, solve[^1].GetProperty("ok").GetBoolean());
@@ -401,8 +401,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(steps.Count, map.Count);
     }
 
-    // With K = 0 the empty set is a real answer on both sides; the verifiers alone refuse "{}" as unreadable, so the
-    // last map frame must take the backward map's own verdict.
+    // With K = 0 the empty set is a real answer on both sides, and the verifiers say so (#762).
     [Fact]
     public async Task Map_EmptyAnswerThatIsReal_EndsOk() {
         var view = await View("reduceToCLIQUE", "(({a,b},{{a,b}}),0)");
@@ -411,7 +410,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // Clique -> Vertex Cover on a triangle with K = N = 3: the complement has no edges and K' = 0, so the empty cover is a
-    // valid answer. The VC verifier refuses "{}" as unreadable; the solve phase must take the reduction's own word for it.
+    // valid answer, and the VC verifier says so (#762).
     [Fact]
     public async Task Solve_EmptyAnswerThatIsReal_EndsOk() {
         const string instance = "(({a,b,c},{{a,b},{b,c},{a,c}}),3)";
@@ -464,14 +463,19 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         var view = await View(reduction, instance);
         var map = Phase(view, "map");
         var mappedSoFar = new HashSet<string>(StringComparer.Ordinal);
+        // A Grouped Graph literal is also read when its variable is (a step about a variable no clique node mentions, #692).
+        var variableOf = Pictures[reduction].SourceType != "GroupedGraph" ? new Dictionary<string, string>()
+            : view.GetProperty("source").GetProperty("picture").GetProperty("payload").GetProperty("nodes").EnumerateArray()
+                .ToDictionary(n => n.GetProperty("id").GetString()!, n => n.GetProperty("variable").GetString()!);
         foreach (var frame in map) {
             var focus = Strings(frame.GetProperty("sourceFocus")).ToHashSet();
+            bool Read(string id) => focus.Contains(id) || (variableOf.TryGetValue(id, out var v) && focus.Contains(v));
             var states = States(frame.GetProperty("source")).ToList();
             // A highlight or a rejection is only ever the element being read.
-            Assert.All(states.Where(s => s.State is "ElementHighlight" or "Rejected" && !IsClause(s.Id)), s => Assert.Contains(s.Id, focus));
+            Assert.All(states.Where(s => s.State is "ElementHighlight" or "Rejected" && !IsClause(s.Id)), s => Assert.True(Read(s.Id), $"{s.Id} is {s.State} but not read"));
             // What an earlier step mapped is still Solution now.
             var solution = states.Where(s => s.State == "Solution").Select(s => s.Id).ToHashSet();
-            Assert.All(mappedSoFar.Where(id => !focus.Contains(id)), id => Assert.Contains(id, solution));
+            Assert.All(mappedSoFar.Where(id => !Read(id)), id => Assert.Contains(id, solution));
             mappedSoFar.UnionWith(solution);
         }
         // A Reject step on a Graph source shows the element read as Rejected: it is left out.
@@ -515,7 +519,8 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
                 string? state = nodes.TryGetProperty(id, out var s) ? s.GetProperty("state").GetString() : null;
                 if (!assignment.TryGetProperty(variable, out var value)) { Assert.Null(state); continue; }
                 if (value.GetBoolean() != positive) Assert.Contains(state, new[] { "False", "Rejected" });
-                else Assert.Equal(focus.Contains(id) ? "ElementHighlight" : "Solution", state);
+                // Read as itself, or as its variable (a step about a variable no clique node mentions, #692).
+                else Assert.Equal(focus.Contains(id) || focus.Contains(variable) ? "ElementHighlight" : "Solution", state);
             }
         }
     }
@@ -605,14 +610,13 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         var solved = Phase(view, "solve")[^1].GetProperty("target").GetProperty("nodes").EnumerateObject()
             .Where(n => n.Value.GetProperty("state").GetString() == "Solution").Select(n => n.Name);
         string answer = "{" + string.Join(",", solved) + "}";
-        bool solvedOk = ReductionBack.IsNoAnswer(answer) ? red.targetAcceptsEmptyAnswer() : Verifies(red.reductionTo, red.reductionTo.instance, answer);
+        bool solvedOk = Verifies(red.reductionTo, red.reductionTo.instance, answer);
         Assert.Equal(solvedOk, Phase(view, "solve")[^1].GetProperty("ok").GetBoolean());
         var mapped = red.MapBackRun(answer, true)!;
         var done = mapped.Steps[^1];
         Assert.Equal((bool?)done.GetType().GetProperty("Ok")!.GetValue(done), Phase(view, "map")[^1].GetProperty("ok").GetBoolean());
-        // A mapped answer that is not "{}" is judged by the source verifier alone ("{}" is the reduction's call, checked above).
-        if (!ReductionBack.IsNoAnswer(mapped.Answer))
-            Assert.Equal(Verifies(red.reductionFrom, instance, mapped.Answer), Phase(view, "map")[^1].GetProperty("ok").GetBoolean());
+        // The mapped answer is judged by the source verifier alone, "{}" included.
+        Assert.Equal(Verifies(red.reductionFrom, instance, mapped.Answer), Phase(view, "map")[^1].GetProperty("ok").GetBoolean());
     }
 
     // ---- 400s ----
@@ -621,6 +625,16 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Post(reduction, instance, solver);
         Assert.Equal(HttpStatusCode.BadRequest, status);
         return JsonDocument.Parse(body).RootElement;
+    }
+
+    // #760: a Clique K outside 0..N is input Clique -> Vertex Cover cannot take (K' = N - K would be negative or above N).
+    [Theory]
+    [InlineData("(({a,b,c},{{a,b}}),4)")]
+    [InlineData("(({a,b,c},{{a,b}}),-1)")]
+    public async Task CliqueKOutsideZeroToN_Is400ReductionInput(string instance) {
+        var error = await Error(Vc, instance);
+        Assert.Equal("reduction_input_parse_error", error.GetProperty("error").GetString());
+        Assert.Contains("K must be between 0 and the number of nodes (3)", error.GetProperty("detail").GetString());
     }
 
     [Fact]

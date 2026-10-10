@@ -68,10 +68,6 @@ interface IReduction {
     // The backward answer plus, when asked, the steps that produced it; null when there is no backward map.
     SolveRun? MapBackRun(string problemToSolution, bool withSteps) => null;
 
-    // Whether "{}" is a real answer (the empty set) for THIS target instance rather than "no answer"; see
-    // IReversibleReduction.TargetAcceptsEmpty, which reductions with a backward map answer. Default: the target's verifier.
-    bool targetAcceptsEmptyAnswer() => ReductionBack.Accepts(reductionTo, ReductionBack.NoAnswer);
-
     // Construction steps: what the reduction built, piece by piece (one step per gadget, in both problems'
     // words). Reductions that record them implement IRecordedReduction<T, U>. Methods, not properties, for the
     // same reason as the backward map above.
@@ -127,14 +123,17 @@ interface IReduction<T, U> : IReduction where T : IProblem where U : IProblem {
 /// A reduction that can also map an answer for B back to an answer for A, recording one step per
 /// element of B mapped back. <typeparamref name="TPartial"/> is the SOURCE problem's (A's) answer shape
 /// (Shapes.cs): every step's partial shows A's answer growing as B's answer is read. Each step's
-/// <c>focus</c> names elements of B, in the TARGET instance's id space (the node of B being read), not A's.
+/// <c>focus</c> names elements of B, in the TARGET instance's id space (the node of B being read), not A's. The exception is a
+/// step about an element of A that no element of B stands for (a variable no clique node mentions): it focuses A's picture id
+/// for it (<c>v:y</c>), an id no gadget lists as a target id, which is how the Reduction View tells the two apart.
 /// Mirrors <see cref="ISolver{T, TPartial}"/>: implement <see cref="MapBack"/>; the untyped members run it
 /// with recording off or on and add the Done step.
 /// </summary>
 interface IReversibleReduction<T, U, TPartial> : IReduction<T, U> where T : IProblem where U : IProblem {
     /// <summary>
     /// Maps B's answer (<paramref name="problemToSolution"/>) back to A's answer, recording one step per
-    /// element of B read (focus = B's ids, partial = A's answer so far). Returns A's answer as certificate
+    /// element of B read (focus = B's ids, or A's for an element of A no element of B stands for; partial = A's answer
+    /// so far). Returns A's answer as certificate
     /// text and as <typeparamref name="TPartial"/>; do not record Done, the caller does. Receives "{}" only
     /// when <see cref="TargetAcceptsEmpty"/> says the empty set is a real answer for B. Throws a parse-failure
     /// exception (see <see cref="ParseGuard.IsCertificateParseFailure"/>) on malformed text; the endpoint turns
@@ -155,8 +154,6 @@ interface IReversibleReduction<T, U, TPartial> : IReduction<T, U> where T : IPro
 
     /// <summary>Same question as <see cref="TargetAcceptsEmpty"/> for A, asked when the mapped answer is "{}".</summary>
     bool SourceAcceptsEmpty() => ReductionBack.Accepts(reductionFrom, ReductionBack.NoAnswer);
-
-    bool IReduction.targetAcceptsEmptyAnswer() => TargetAcceptsEmpty();
 
     bool IReduction.hasBackwardMap() => true;
 

@@ -24,10 +24,15 @@ public class ProblemProvider : ControllerBase {
     public const double DefaultSolveTimeLimitSeconds = 10;
 
     private readonly IConfiguration? _configuration;
+    private readonly ILogger<ProblemProvider>? _logger;
 
-    /// <summary>Creates the controller; <paramref name="configuration"/> supplies the solve time limit.</summary>
-    public ProblemProvider(IConfiguration? configuration = null) {
+    /// <summary>
+    /// Creates the controller; <paramref name="configuration"/> supplies the solve time limit, <paramref name="logger"/>
+    /// records server-side failures (such as a solver answer the backward map cannot read).
+    /// </summary>
+    public ProblemProvider(IConfiguration? configuration = null, ILogger<ProblemProvider>? logger = null) {
         _configuration = configuration;
+        _logger = logger;
     }
 
     /// <summary>
@@ -381,9 +386,9 @@ public class ProblemProvider : ControllerBase {
     /// <paramref name="unsolvedLast"/> asks for the unsolved picture in place of the solved one (the list format).
     /// </para>
     /// </summary>
-    private static (API_JSON? Initial, List<API_JSON> Frames) buildFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, bool unsolvedLast = false) {
+    private static (API_JSON? Initial, List<API_JSON> Frames) buildFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, bool unsolvedLast = false, TimeSpan? timeLimit = null) {
         API_JSON visual = visualization.visualize(instance);
-        List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps);
+        List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps, timeLimit);
 
         List<API_JSON> frames = new List<API_JSON>();
         frames.AddRange(apiSteps.Where(step => !IsEmptyVisualization(step)));
@@ -396,8 +401,8 @@ public class ProblemProvider : ControllerBase {
         return (IsEmptyVisualization(visual) ? null : visual, frames);
     }
 
-    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false) {
-        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, unsolvedLast: true);
+    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, unsolvedLast: true, timeLimit);
         List<API_JSON> list = new List<API_JSON>();
         if (initial != null)
             list.Add(initial);
@@ -411,8 +416,8 @@ public class ProblemProvider : ControllerBase {
         [property: System.Text.Json.Serialization.JsonPropertyName("payload")] API_JSON? Payload,
         [property: System.Text.Json.Serialization.JsonPropertyName("frames")] List<API_JSON> Frames);
 
-    private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false) {
-        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped);
+    private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, timeLimit: timeLimit);
         var body = new VisualizeFramesResponse(visualization.visualizationType.ToString(), initial, frames);
         return JsonSerializer.Serialize(body, VisualizeJsonOptions());
     }
@@ -468,17 +473,22 @@ public class ProblemProvider : ControllerBase {
         try {
             // A typed solver that runs past the time limit is stopped and its run comes back with TimedOut set; an
             // uninstrumented (legacy) solver never records a step, so it cannot be stopped here (see issue #523).
-            var run = chosen.Run(instance, withSteps: true, SolveTimeLimit);
+            TimeSpan? limit = SolveTimeLimit;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var run = chosen.Run(instance, withSteps: true, limit);
             // A picture type that builds its own frames serves them only for format=frames.
             if (asFrames && vis is IFramesVisualization framesVis)
                 return Content(JsonSerializer.Serialize(framesVis.BuildFrames(instance, run), FramesResponse.JsonOptions), "application/json");
+            // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what is
+            // left of the limit, so the whole request stays within it (#764).
+            TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
             // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
             // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
             var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
             var solution = run.Answer;
             return Content(asFrames
-                ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut)
-                : getVisualize(vis, steps, solution, instance, run.TimedOut), "application/json");
+                ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
+                : getVisualize(vis, steps, solution, instance, run.TimedOut, left), "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
@@ -658,9 +668,22 @@ public class ProblemProvider : ControllerBase {
             return Content(view.ToJsonString(FramesResponse.JsonOptions), "application/json");
         } catch (ReductionViewException ex) {
             return BadRequest(new { error = ex.Error, reduction, detail = ex.Message });
+        } catch (SolverAnswerUnmappableException ex) {
+            return SolverAnswerUnmappable(reduction, ex);
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
+    }
+
+    /// <summary>
+    /// The 500 for a solver answer the backward map cannot read: the caller's input was fine, so it is not reported as a parse
+    /// error of theirs. Logged, since it is a disagreement between two parts of the server (the solver and the backward map).
+    /// </summary>
+    internal IActionResult SolverAnswerUnmappable(string reduction, SolverAnswerUnmappableException ex) {
+        _logger?.LogError(ex, "Reduction View {Reduction}: the backward map cannot read solver {Solver}'s answer {Answer}: {Detail}",
+            reduction, ex.Solver, ex.Answer, ex.Message);
+        return StatusCode(StatusCodes.Status500InternalServerError,
+            new { error = "solver_answer_unmappable", reduction, solver = ex.Solver, answer = ex.Answer, detail = ex.Message });
     }
 
     private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail, string? problem = null) {
