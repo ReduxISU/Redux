@@ -1,13 +1,13 @@
-using API.DummyClasses;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 using API.Problems.NPComplete.NPC_SETCOVER.Verifiers;
+using API.Problems.NPComplete.NPC_SETCOVER.Visualizations;
 using Microsoft.AspNetCore.Http.Features;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SETCOVER;
 
-class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, DummyVisualization> {
+class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, SetCoverDefaultVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Set Cover";
@@ -33,7 +33,7 @@ class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, DummyVisualizati
     private int _K = 3;
     public SetCoverBruteForce defaultSolver { get; } = new SetCoverBruteForce();
     public SetCoverVerifier defaultVerifier { get; } = new SetCoverVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public SetCoverDefaultVisualization defaultVisualization { get; } = new SetCoverDefaultVisualization();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // Declared, not derived. SETCOVER is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;

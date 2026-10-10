@@ -11,6 +11,7 @@ namespace redux_tests;
 // Hitting Set with every one of their solvers, plus the guards that keep everything old frontends read exactly as it was:
 //   - the list format (snapshots in Snapshots/, captured before the Bipartite picture existed),
 //   - /info for every visualization and solver that was touched (info.<name>.json, captured the same way).
+// The one deliberate exception is Set Cover's default visualization, which moved off DummyVisualization: see the "rewire" tests.
 public class BipartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -76,6 +77,60 @@ public class BipartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken);
         var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement;
         Assert.Equal("SetD3", json.GetProperty("visualizationType").GetString());
+    }
+
+    // ---- Set Cover's default visualization moved off DummyVisualization: the only thing that may change. ----
+
+    // What embeds Set Cover's defaultVisualization: Set Cover itself and the reduction into it (Vertex Cover to Set Cover).
+    // Their snapshots were taken after the rewire; the diff against the pre-change capture is only that nested object.
+    public static TheoryData<string> EmbedsSetCoversVisualization => new() { "setcover", "karpvertexcovertosetcover" };
+
+    [Theory]
+    [MemberData(nameof(EmbedsSetCoversVisualization))]
+    public async Task Rewire_Info_ShowsSetCoversRealVisualization_AndNothingElse(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        Assert.Contains("\"visualizationName\":\"Set Cover Visualization\"", body);
+        Assert.DoesNotContain("DummyVisualization", body);
+    }
+
+    [Fact]
+    public async Task Rewire_SetCoverInfo_ReportsTheSetCoverVisualizationAndItsSolver() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=setcover", TestContext.Current.CancellationToken);
+        var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement;
+        var vis = json.GetProperty("defaultVisualization");
+        Assert.Equal("Set Cover Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("SetD3", vis.GetProperty("visualizationType").GetString());
+        Assert.Equal("Set Cover Brute Force", vis.GetProperty("solver").GetProperty("solverName").GetString());
+        // The same object the visualization reports about itself.
+        var own = JsonDocument.Parse(ReadSnapshot("info.setcoverdefaultvisualization.json")).RootElement;
+        Assert.Equal(own.GetProperty("visualizationName").GetString(), vis.GetProperty("visualizationName").GetString());
+        Assert.Equal(own.GetProperty("sourceFile").GetString(), vis.GetProperty("sourceFile").GetString());
+    }
+
+    [Fact]
+    public async Task Rewire_Reduce_IntoSetCover_ChangesOnlyTheNestedVisualization() {
+        string instance = ReadSnapshot("karpvertexcovertosetcover.instance.txt");
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=karpvertexcovertosetcover", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(ReadSnapshot("karpvertexcovertosetcover.reduce.json"), (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
+    }
+
+    [Fact]
+    public async Task Rewire_VisualizeReduction_IntoSetCover_NowReturnsTheSetCoverPicture() {
+        // Before the rewire the reduction's target visualization was DummyVisualization, so the endpoint answered an
+        // empty list (#755). Now it answers with Set Cover's list items.
+        string instance = ReadSnapshot("karpvertexcovertosetcover.instance.txt");
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=karpvertexcovertosetcover&solution=" + Uri.EscapeDataString("{a,b,c}"), content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot("karpvertexcovertosetcover.visualizereduction.json"), body);
+        var items = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, items.Count);
+        Assert.All(items, i => Assert.Equal("set", i.GetProperty("kind").GetString()));
     }
 
     // ---- The list format is what old frontends read: it must not change. ----
