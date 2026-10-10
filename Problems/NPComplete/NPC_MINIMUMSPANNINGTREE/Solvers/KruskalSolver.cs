@@ -79,7 +79,9 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
                 }
             }
         }
-        return edges;
+        // A tree takes the lightest edge between two nodes, so parallel edges merge into the lightest (#769), as the verifier
+        // does; a heavier parallel edge is never even looked at.
+        return ParallelEdges.Lightest(edges);
     }
 
     internal static string EdgeListToCertificate(List<(string u, string v, int weight)> edges) {
