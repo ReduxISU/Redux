@@ -61,5 +61,5 @@ class TSPDefaultVisualization : IVisualization<TSP, API_GraphJSON>, IGraphTourVi
     Type? IVisualization.StepShape => typeof(Tour);
 
     GraphTourSpec IGraphTourVisualization<TSP>.Describe(TSP problem) =>
-        new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, problem.K, TourRule.TravelingSalesperson);
+        new(problem.nodes, problem.listedEdges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, problem.K, TourRule.TravelingSalesperson);
 }

@@ -14,7 +14,8 @@ sealed record GraphEdgeInput(string A, string B, double? Weight = null);
 /// terminals and K. No colors, no drawing.
 /// </summary>
 /// <param name="Nodes">Node ids, in instance order.</param>
-/// <param name="Edges">Undirected edges as given (either endpoint order). Loops are dropped; for parallel edges the lightest is drawn.</param>
+/// <param name="Edges">Undirected edges as listed in the instance (either endpoint order), parallel edges included. Loops are
+/// dropped; parallel edges are drawn as one edge (see <see cref="GraphEdgeFrames.CanonicalEdges"/>).</param>
 /// <param name="Rule">How an answer is judged and which shape it is drawn in.</param>
 sealed record GraphEdgeSpec(IReadOnlyList<string> Nodes, IReadOnlyList<GraphEdgeInput> Edges, EdgeRule Rule) {
     /// <summary>Steiner terminals: nodes the tree must reach. Empty for every other rule.</summary>
@@ -61,30 +62,51 @@ static class GraphEdgeFrames {
     public static string ShapeName(EdgeRule rule) =>
         rule is EdgeRule.Cut or EdgeRule.WeightedCut or EdgeRule.MaxCut or EdgeRule.MinCut ? "cut" : "edges";
 
-    /// <summary>The distinct edges (loops dropped, the lightest of parallel edges kept) with a before b, in first-seen order.</summary>
-    internal static List<(string A, string B, string Id, double? Weight)> CanonicalEdges(IEnumerable<GraphEdgeInput> edges) {
+    /// <summary>
+    /// True for the rules whose parallel edges add up: the weighted cut problems, since every parallel edge crosses the cut.
+    /// Every other rule counts the lightest (#769).
+    /// </summary>
+    public static bool AddsParallelWeights(EdgeRule rule) => rule is EdgeRule.WeightedCut or EdgeRule.MaxCut or EdgeRule.MinCut;
+
+    /// <summary>
+    /// The distinct edges (loops dropped) with a before b, in first-seen order: one per pair of nodes, however many the
+    /// instance lists. Its weight is the one that counts, the sum of the pair's weights if <paramref name="addWeights"/>, else
+    /// the lightest; its label is every listed weight in the order listed, comma-separated (<c>"2,5"</c>), or null when the
+    /// pair has a single edge or the graph is unweighted (#769).
+    /// </summary>
+    internal static List<(string A, string B, string Id, double? Weight, string? Label)> CanonicalEdges(IEnumerable<GraphEdgeInput> edges, bool addWeights) {
         var index = new Dictionary<string, int>(StringComparer.Ordinal);
-        var result = new List<(string A, string B, string Id, double? Weight)>();
+        var result = new List<(string A, string B, string Id, List<double?> Weights)>();
         foreach (var e in edges) {
             if (e.A == e.B) continue;
             string a = string.CompareOrdinal(e.A, e.B) < 0 ? e.A : e.B;
             string b = a == e.A ? e.B : e.A;
             string id = GraphSubsetFrames.EdgeId(a, b);
-            if (!index.TryGetValue(id, out int at)) {
+            if (index.TryGetValue(id, out int at)) {
+                result[at].Weights.Add(e.Weight);
+            } else {
                 index[id] = result.Count;
-                result.Add((a, b, id, e.Weight));
-            } else if (e.Weight < result[at].Weight) {
-                result[at] = (a, b, id, e.Weight);
+                result.Add((a, b, id, [e.Weight]));
             }
         }
-        return result;
+        return result.Select(e => (e.A, e.B, e.Id, Counted(e.Weights, addWeights), WeightLabel(e.Weights))).ToList();
     }
+
+    /// <summary>The weight that counts for a pair's listed weights: their sum or the lightest; null if any is missing.</summary>
+    internal static double? Counted(IReadOnlyList<double?> weights, bool addWeights) =>
+        weights.Any(w => w is null) ? null : addWeights ? weights.Sum(w => w!.Value) : weights.Min(w => w!.Value);
+
+    /// <summary>A pair's listed weights in the order listed, comma-separated (<c>"2,5"</c>), or null for a single or unweighted edge.</summary>
+    internal static string? WeightLabel(IReadOnlyList<double?> weights) =>
+        weights.Count < 2 || weights.Any(w => w is null)
+            ? null
+            : string.Join(",", weights.Select(w => w!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
     public static GraphPayload Payload(GraphEdgeSpec spec) {
         var terminals = new HashSet<string>(spec.Terminals, StringComparer.Ordinal);
         return new GraphPayload("graph", "undirected", "force",
             spec.Nodes.Select(n => new GraphNodeDto(n, n) { Terminal = terminals.Contains(n) ? true : null }).ToList(),
-            CanonicalEdges(spec.Edges).Select(e => new GraphEdgeDto(e.Id, e.A, e.B) { Weight = e.Weight }).ToList(),
+            CanonicalEdges(spec.Edges, AddsParallelWeights(spec.Rule)).Select(e => new GraphEdgeDto(e.Id, e.A, e.B) { Weight = e.Weight, Label = e.Label }).ToList(),
             ShapeName(spec.Rule), RuleName(spec.Rule)) { K = spec.K };
     }
 
@@ -103,7 +125,7 @@ static class GraphEdgeFrames {
     /// run (<see cref="SolveRun.Incremental"/>).
     /// </summary>
     public static GraphFrame EdgeFrame(GraphEdgeSpec spec, EdgeSet partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
-        var edges = CanonicalEdges(spec.Edges);
+        var edges = CanonicalEdges(spec.Edges, AddsParallelWeights(spec.Rule));
         var byId = edges.ToDictionary(e => e.Id, StringComparer.Ordinal);
         var nodeIds = new HashSet<string>(spec.Nodes, StringComparer.Ordinal);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
@@ -130,7 +152,7 @@ static class GraphEdgeFrames {
     /// the step comes from an incremental run (<see cref="SolveRun.Incremental"/>).
     /// </summary>
     public static GraphFrame CutFrame(GraphEdgeSpec spec, Groups partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
-        var edges = CanonicalEdges(spec.Edges);
+        var edges = CanonicalEdges(spec.Edges, AddsParallelWeights(spec.Rule));
         var nodeIds = new HashSet<string>(spec.Nodes, StringComparer.Ordinal);
         var groups = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var (id, group) in partial.Of)
@@ -173,7 +195,7 @@ static class GraphEdgeFrames {
         if (cut.Count == 0) return new Groups([]);
         var adjacent = spec.Nodes.Distinct(StringComparer.Ordinal)
             .ToDictionary(n => n, _ => new List<(string To, bool Cut)>(), StringComparer.Ordinal);
-        foreach (var e in CanonicalEdges(spec.Edges)) {
+        foreach (var e in CanonicalEdges(spec.Edges, AddsParallelWeights(spec.Rule))) {
             bool isCut = cut.Contains(e.Id);
             if (adjacent.TryGetValue(e.A, out var fromA) && adjacent.TryGetValue(e.B, out var fromB)) {
                 fromA.Add((e.B, isCut));
@@ -209,11 +231,14 @@ static class GraphEdgeFrames {
     /// <summary>"{1,2,3}" for the nodes on one side.</summary>
     public static string Side(IEnumerable<string> nodes) => GraphSubsetFrames.Braces(nodes.OrderBy(n => n, StringComparer.Ordinal));
 
-    /// <summary>How many distinct edges join one side of the split to the other, and their total weight.</summary>
+    /// <summary>
+    /// How many distinct edges join one side of the split to the other, and their total weight. Parallel edges count as one
+    /// edge whose weight is their sum, since every one of them crosses (#769).
+    /// </summary>
     public static (int Count, double Weight) Crossing(IEnumerable<GraphEdgeInput> edges, ISet<string> sSide) {
         int count = 0;
         double weight = 0;
-        foreach (var e in CanonicalEdges(edges))
+        foreach (var e in CanonicalEdges(edges, addWeights: true))
             if (sSide.Contains(e.A) != sSide.Contains(e.B)) {
                 count++;
                 weight += e.Weight ?? 0;
