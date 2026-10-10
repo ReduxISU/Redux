@@ -40,10 +40,16 @@ public class IncrementalSolvers_Tests {
         ["graphcoloringbruteforce"] = false,
         ["graphcoloringgreedy"] = true,
         ["cliquecoverbruteforce"] = false,
+        // Tour (tour pictures)
+        ["hamiltonianbruteforce"] = true,
+        ["directedhamiltonianbruteforce"] = true,
+        ["tspbruteforce"] = false,
+        ["tspbranchandbound"] = true,
+        ["tspgreedy"] = true,
     };
 
     // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups)];
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
@@ -153,6 +159,40 @@ public class IncrementalSolvers_Tests {
         foreach (var node in steps[at].Partial.Of.Keys.Except(steps[at].Focus)) {
             Assert.True(frames[at].Groups!.ContainsKey(node));
             Assert.False(frames[at].Nodes.TryGetValue(node, out var state) && state.State == PictureState.ElementHighlight);
+        }
+    }
+
+    // ---- Tour pictures, from real runs ----
+
+    // Every Try and Reject frame of an incremental tour run: the hops of the path so far that the focus does not name are
+    // Solution, the nodes on it that the focus does not name are Covered, and the focus is marked (Rejected in a Reject).
+    [Theory]
+    [InlineData("hamiltonianbruteforce", "hamiltoniandefaultvisualization", "({1,2,3,4,5},{{1,2},{1,3},{2,4},{3,4},{4,5},{3,5}})")]
+    [InlineData("directedhamiltonianbruteforce", "directedhamiltoniandefaultvisualization", null)]
+    [InlineData("tspgreedy", "tspdefaultvisualization", null)]
+    [InlineData("tspbranchandbound", "tspdefaultvisualization", null)]
+    public void Tour_TriedAndRejectedSteps_KeepThePathSoFar_AndMarkOnlyTheFocus(string solverName, string visualizationName, string? instance) {
+        var type = ProblemProvider.Solvers[solverName];
+        var problemType = type.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0];
+        instance ??= ((IProblem)Activator.CreateInstance(problemType)!).defaultInstance;
+        var run = ((ISolver)Activator.CreateInstance(type)!).Run(instance, withSteps: true);
+        Assert.True(run.Incremental);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers[visualizationName])!;
+        var frames = vis.BuildFrames(instance, run).Frames.Cast<GraphFrame>().ToList();
+        var steps = run.Steps.Cast<SolverStep<Tour>>().ToList();
+        var payloadEdges = ((GraphPayload)vis.BuildFrames(instance, run).Payload).Edges.Select(e => e.Id).ToHashSet();
+        bool directed = ((GraphPayload)vis.BuildFrames(instance, run).Payload).Subtype == "directed";
+        var checkedSteps = steps.Select((s, i) => (Step: s, Frame: frames[i])).Where(p => p.Step.Event is StepEvent.Try or StepEvent.Reject).ToList();
+        Assert.Contains(checkedSteps, p => p.Step.Event == StepEvent.Reject);
+        foreach (var (step, frame) in checkedSteps) {
+            var order = step.Partial.Order;
+            for (int i = 0; i + 1 < order.Length; i++) {
+                string id = GraphTourFrames.EdgeId(directed, order[i], order[i + 1]);
+                if (payloadEdges.Contains(id) && !step.Focus.Contains(id)) Assert.Equal(PictureState.Solution, frame.Edges[id].State);
+            }
+            foreach (var node in order.Except(step.Focus)) Assert.Equal(PictureState.Covered, frame.Nodes[node].State);
+            var mark = step.Event == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
+            foreach (var id in step.Focus) Assert.Equal(mark, (frame.Nodes.TryGetValue(id, out var n) ? n : frame.Edges[id]).State);
         }
     }
 }

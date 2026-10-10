@@ -39,8 +39,10 @@ sealed record GraphTourSpec(
 /// <item>every node on the path is <c>Covered</c>; once the run is over and correct (a <see cref="StepEvent.Done"/> frame
 /// with ok true) they are <c>Solution</c>, like the green nodes of the solved mockups;</item>
 /// <item>each hop of the path that is an edge of the graph (in the hop's direction, for a directed graph) is <c>Solution</c>;</item>
-/// <item>in a step that only tries a path (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/>) its nodes and hops are
-/// <c>ElementHighlight</c> instead (see <see cref="GraphSubsetFrames.Picked"/>);</item>
+/// <item>in a step that only tries a whole tour (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/> of a run that is
+/// not <see cref="SolveRun.Incremental"/>) its nodes and hops are <c>ElementHighlight</c> instead (see
+/// <see cref="GraphSubsetFrames.Picked"/>); an incremental run's path is the path so far, so it keeps its states in every
+/// step and only the focus (the next node, the hop to it, or the closing hop) is marked;</item>
 /// <item>a hop that is not an edge (a dead end the solver tried, or a closing edge the graph does not have) is a
 /// <c>Rejected</c> phantom between its two nodes, drawn as a dashed line;</item>
 /// <item>what the solver is looking at (the focus) is <c>ElementHighlight</c>; in a <see cref="StepEvent.Reject"/> step it
@@ -90,8 +92,11 @@ static class GraphTourFrames {
             CanonicalEdges(spec).Select(e => new GraphEdgeDto(e.Id, e.A, e.B) { Weight = e.Weight }).ToList(),
             ShapeName, RuleName(spec.Rule)) { K = spec.K };
 
-    /// <summary>The frame for a path at one step.</summary>
-    public static GraphFrame Frame(GraphTourSpec spec, Tour partial, StepEvent ev, string[] focus, string caption, bool? ok = null) {
+    /// <summary>
+    /// The frame for a path at one step. <c>incremental</c> says whether the step comes from an incremental run
+    /// (<see cref="SolveRun.Incremental"/>).
+    /// </summary>
+    public static GraphFrame Frame(GraphTourSpec spec, Tour partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
         var nodeIds = new HashSet<string>(spec.Nodes, StringComparer.Ordinal);
         var edgeIds = new HashSet<string>(CanonicalEdges(spec).Select(e => e.Id), StringComparer.Ordinal);
         var order = partial.Order.Where(nodeIds.Contains).ToList();
@@ -100,9 +105,10 @@ static class GraphTourFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var phantoms = new List<GraphPhantom>();
 
-        // A path only being tried (Try, Reject) is highlighted, nodes and hops alike; otherwise its hops are Solution and its
-        // nodes Covered, or Solution once the run is over and correct.
-        var picked = GraphSubsetFrames.Picked(ev, incremental: false);
+        // A whole tour only being tried (Try, Reject) is highlighted, nodes and hops alike; otherwise (and always in an
+        // incremental run, whose path is the path so far) its hops are Solution and its nodes Covered, or Solution once the
+        // run is over and correct.
+        var picked = GraphSubsetFrames.Picked(ev, incremental);
         var onPath = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight
             : ev == StepEvent.Done && ok == true ? PictureState.Solution : PictureState.Covered;
         foreach (var n in order) GraphSubsetFrames.Raise(nodes, n, onPath);
@@ -160,7 +166,7 @@ static class GraphTourFrames {
         foreach (var step in run.StepsFor(typeof(Tour)).OfType<SolverStep<Tour>>()) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
             last = step;
         }
         if (run.TimedOut) {
