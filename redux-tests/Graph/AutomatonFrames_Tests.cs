@@ -315,6 +315,10 @@ public class AutomatonFrames_Tests {
         var fell = Assert.IsType<AutomatonFrame>(Assert.Single(AutomatonFrames.Build(Partial("ba"), new SolveRun("x", [], null)).Frames));
         Assert.Equal((false, "garbage"), (fell.Ok, fell.Active.Single()));
         Assert.Equal("The machine falls into Garbage, so it rejects the input.", fell.Caption);
+        // A symbol outside the alphabet is no move into Garbage: the machine stops where it is.
+        var stuck = Assert.IsType<AutomatonFrame>(Assert.Single(AutomatonFrames.Build(Partial("ac"), new SolveRun("x", [], null)).Frames));
+        Assert.Equal((false, "q:2", 1), (stuck.Ok, stuck.Active.Single(), stuck.Position));
+        Assert.Equal("The machine rejects the input.", stuck.Caption);
     }
 
     [Fact]

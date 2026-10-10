@@ -255,7 +255,8 @@ static class AutomatonFrames {
             foreach (char c in Input) {
                 var next = Closure(active.SelectMany(s => Moves(s, c.ToString())));
                 if (next.Count == 0) {
-                    FellIntoGarbage = GarbageLabel != null;
+                    // A missing move falls into Garbage; a symbol outside the alphabet is not a move at all.
+                    FellIntoGarbage = GarbageLabel != null && Spec.Alphabet.Contains(c.ToString());
                     break;
                 }
                 Reached.UnionWith(next);
@@ -451,8 +452,13 @@ static class AutomatonFrames {
         var active = m.Closure([m.Spec.Start]);
         int read = 0;
         foreach (char c in m.Input) {
-            active = m.Closure(active.SelectMany(s => m.Moves(s, c.ToString())));
-            if (active.Count == 0) break;
+            var next = m.Closure(active.SelectMany(s => m.Moves(s, c.ToString())));
+            // Stuck: a DFA's missing move leaves no state (Garbage); a symbol outside the alphabet leaves the machine where it is.
+            if (next.Count == 0) {
+                if (m.FellIntoGarbage) active = next;
+                break;
+            }
+            active = next;
             read++;
         }
         bool accepted = read == m.Input.Length && active.Any(m.Accepting.Contains);
