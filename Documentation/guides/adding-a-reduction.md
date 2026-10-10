@@ -160,6 +160,17 @@ A reduction can also tell the story of how it built the target, one step per gad
 
 The endpoint is `POST /ProblemProvider/buildSteps?reduction=...` with the source instance as the body. A reduction without steps answers 400 `{"error":"no_build_steps"}`.
 
+### Step 6 (optional). Show it in the Reduction View
+
+`POST /ProblemProvider/reductionView?reduction=...&solver=...` (source instance as the body) draws the whole reduction side by side: problem A and problem B each in their own picture, the gadget map between them, and three phases of frames: **Build** (your construction steps), **Solve** (B's solver, `solver=` or B's default) and **Map back** (B's answer turned into A's). It reuses the pictures the two problems already have; a reduction does not draw anything itself. To appear there a reduction needs four things:
+
+1. **Stable gadget ids that match the pictures.** Every id in a gadget's `sourceIds` must be an id in A's picture, and every `targetIds` id one in B's. The convention is in the `Gadget` class: graph nodes by name, edges `a-b`, and for formulas clause `c{i}`, its j-th literal `c{i}-{j}`, variable `v:{name}`. The Reduction View links the two panes through these ids, so a gadget id the picture does not have breaks the link.
+2. **Construction steps** (Step 5 above): `IRecordedReduction<FROM, TO>`. Without them the view answers 400 `{"error":"no_build_steps"}`.
+3. **A backward map**: `IReversibleReduction<FROM, TO, TPartial>`, where `TPartial` is A's answer shape from `Interfaces/Steps/Shapes.cs`. Its `MapSolutionBack` records one step per element of B's answer it reads (the step's focus is that B element). Without it the view answers 400 `{"error":"no_backward_map"}`.
+4. **Typed pictures on both ends.** A's and B's default visualizations must build frames (`IFramesVisualization`, for example `IGraphSubsetVisualization`), and their `StepShape` must be the shape the backward map and the solver record. Otherwise the answer is 400 `no_source_picture` or `no_target_picture`.
+
+Reductions that do all of this today: 3SAT to Clique, Clique to Vertex Cover and Independent Set to Clique. To check yours, add it to `Cases()` in `redux-tests/Reductions/Reduction_Output_Snapshot_Tests.cs` and to the `Pictures` table in `redux-tests/Endpoints/ReductionView_Endpoint_Tests.cs`, and run those tests: they check that every gadget id is in its picture, that the phases come in order, that the Build phase ends with exactly the target's nodes and edges, and that the last Solve and Map frames agree with the problems' own verifiers.
+
 ## 5. Write tests
 
 ### Tests that already check your reduction for free

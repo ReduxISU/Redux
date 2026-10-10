@@ -561,6 +561,50 @@ public class ProblemProvider : ControllerBase {
         }
     }
 
+    /// <summary>
+    /// The Reduction View of a reduction: the source and target instances, each drawn with its own problem's picture, the
+    /// gadget map between them, and one list of frames in three phases - <c>build</c> (the construction steps), <c>solve</c> (the
+    /// target's solver) and <c>map</c> (the answer mapped back). The body is the SOURCE instance. Only a reduction that records
+    /// construction steps AND has a backward map can be shown; the rest answer 400 with <c>no_build_steps</c> or
+    /// <c>no_backward_map</c>. See <c>Interfaces/Steps/ReductionView.cs</c> for the payload.
+    /// </summary>
+    /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
+    /// <param name="solver" example = "CliqueBruteForceSolver">Optional. The TARGET problem's solver for the solve phase. Defaults to the target's default solver. Must solve the target problem</param>
+    /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
+    /// <returns>{ type: "Reduction", kind, reduction, source, target, gadgets, frames }</returns>
+    [HttpPost("reductionView")]
+    [ProducesResponseType(400)]
+    public IActionResult reductionView(string reduction, [FromBody] string instance, string? solver = null) {
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
+        try {
+            IReduction red = Reduction(reduction, instance);
+            if (!red.hasBuildSteps())
+                return BadRequest(new { error = "no_build_steps", reduction });
+            if (!red.hasBackwardMap())
+                return BadRequest(new { error = "no_backward_map", reduction });
+            if (red.reductionFrom.defaultVisualization is not IFramesVisualization sourceVis)
+                return BadRequest(new { error = "no_source_picture", reduction, problem = red.reductionFrom.problemName });
+            IVisualization targetVisualization = red.reductionTo.defaultVisualization;
+            if (targetVisualization is not IFramesVisualization targetVis)
+                return BadRequest(new { error = "no_target_picture", reduction, problem = red.reductionTo.problemName });
+            ISolver chosen = targetVisualization.solver;
+            if (!string.IsNullOrEmpty(solver)) {
+                if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
+                    return BadRequest(new { error = "unknown_solver", received = solver });
+                if (!SolverMatchesVisualization(solverType, targetVisualization))
+                    return BadRequest(new { error = "solver_mismatch", received = solver, problem = red.reductionTo.problemName });
+                chosen = Solver(solver);
+            }
+            var view = ReductionView.Create(red, instance, chosen, sourceVis, targetVis, answer => MapSolutionsBack(red, answer, true));
+            return Content(view.ToJsonString(FramesResponse.JsonOptions), "application/json");
+        } catch (ReductionViewException ex) {
+            return BadRequest(new { error = ex.Error, reduction, detail = ex.Message });
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
+    }
+
     private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail, string? problem = null) {
         return new {
             error,

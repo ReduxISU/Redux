@@ -42,4 +42,11 @@ public enum VisualizationType {
     /// <see cref="BooleanSatisfiability"/>.
     /// </summary>
     GroupedGraph,
+    /// <summary>
+    /// The Reduction View: problem A and problem B side by side, the gadget map between them, and three phases of frames
+    /// (build the target, solve it, map the answer back). Each pane is drawn with its problem's own picture. Like
+    /// <see cref="Graph"/> it is reported only by its own endpoint (<c>/ProblemProvider/reductionView</c>, as <c>type</c>);
+    /// /info is unaffected.
+    /// </summary>
+    Reduction,
 }
