@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Tools;
 using API.DummyClasses;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
@@ -24,7 +25,7 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
 
     public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
+    public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!' written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
     public string certificateFormat { get; } = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public string instance { get; set; } = string.Empty;
 
@@ -83,27 +84,14 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
     }
     public SAT(string phiInput) {
         validateInstance(phiInput);
-        instance = phiInput;
-        clauses = getClauses(phiInput);
-        literals = getLiterals(phiInput);
+        instance = CnfFormula.NormalizeWhitespace(phiInput);
+        clauses = getClauses(instance);
+        literals = getLiterals(instance);
     }
 
+    // Throws ProblemParseException (HTTP 400) unless phiInput follows the CNF grammar in CnfFormula (#759).
     private static void validateInstance(string phiInput) {
-        if (string.IsNullOrWhiteSpace(phiInput)) {
-            throw new ProblemParseException("SAT", phiInput, "instance is empty");
-        }
-        string stripped = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-        string[] rawClauses = stripped.Split('&');
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('|');
-            foreach (string literal in rawLiterals) {
-                string name = literal.StartsWith("!") ? literal.Substring(1) : literal;
-                if (string.IsNullOrEmpty(name) || !char.IsLetter(name[0])) {
-                    throw new ProblemParseException("SAT", phiInput,
-                        $"literal '{literal}' is not a valid identifier (optionally prefixed with '!')");
-                }
-            }
-        }
+        CnfFormula.Parse("SAT", phiInput);
     }
 
     #endregion

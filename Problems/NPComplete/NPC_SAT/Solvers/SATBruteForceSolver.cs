@@ -107,6 +107,10 @@ public class SATBruteForceSolver : ISolver {
 
     public string solve(string SATInstance) {
         //string SATInstance = "(!x1 | !x2 | !x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
+        // This solver takes the raw string (it is not an ISolver<SAT>), so check it as a SAT formula first, as
+        // ISolver<T> does: text outside the formula rule is a parse error (HTTP 400), not a run over made-up
+        // variables (#759). The SAT keeps the formula with tabs and newlines turned into spaces for the parser below.
+        SATInstance = ParseGuard.CreateProblem<SAT>(SATInstance).instance;
         Boolean_Parser parser = new Boolean_Parser(SATInstance);
         List<string> literals = parser.getLiterals();
         // Removing all ! from the literals and removing duplicates for the dictionary
