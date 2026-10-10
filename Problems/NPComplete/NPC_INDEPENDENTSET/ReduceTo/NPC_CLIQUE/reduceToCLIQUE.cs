@@ -77,6 +77,9 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
 
     }
     public reduceToCLIQUE() : this(new INDEPENDENTSET()) { }
+    // Builds from the instance with rec recording the construction as it goes (IRecordedReduction): the Reduction View
+    // and /buildSteps use it so that one build gives both the reduction and its steps.
+    public reduceToCLIQUE(string instance, StepRecorder<BuildDelta> rec) : this(new INDEPENDENTSET(instance), rec) { }
 
     /// <summary>
     /// Reduces a CLIQUE instance to a VERTEXCOVER instance.

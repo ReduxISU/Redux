@@ -197,6 +197,12 @@ interface IReversibleReduction<T, U, TPartial> : IReduction<T, U> where T : IPro
 /// finished target elsewhere), and return that copy's target and gadgets. The normal constructor builds with
 /// <see cref="StepRecorder{TPartial}.Off"/>, so recording costs nothing unless asked for.
 /// <para>
+/// Also give the class a public constructor <c>(string instance, StepRecorder&lt;BuildDelta&gt; rec)</c> that builds from the
+/// instance with <c>rec</c>. <c>/buildSteps</c> and <c>/reductionView</c> construct the reduction with it, so the one build
+/// gives the reduction (its target, gadgets and backward map) and its steps; without it they build twice (the constructor,
+/// then <see cref="Rebuild"/>). A test checks every recorded reduction has it.
+/// </para>
+/// <para>
 /// The step shape is fixed (<see cref="BuildDelta"/>) rather than a type parameter: every construction adds
 /// pieces to a target, so one shape lets the Reduction View replay any reduction's Build phase the same way.
 /// </para>

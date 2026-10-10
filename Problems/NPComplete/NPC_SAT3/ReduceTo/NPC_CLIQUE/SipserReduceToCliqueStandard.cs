@@ -72,6 +72,9 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
         return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
     }
     public SipserReduceToCliqueStandard(string instance) : this(new SAT3(instance)) { }
+    // Builds from the instance with rec recording the construction as it goes (IRecordedReduction): the Reduction View
+    // and /buildSteps use it so that one build gives both the reduction and its steps.
+    public SipserReduceToCliqueStandard(string instance, StepRecorder<BuildDelta> rec) : this(new SAT3(instance), rec) { }
     public SipserReduceToCliqueStandard() : this(new SAT3()) { }
 
     private bool fromSameClause(UtilCollection node1, UtilCollection node2) {
