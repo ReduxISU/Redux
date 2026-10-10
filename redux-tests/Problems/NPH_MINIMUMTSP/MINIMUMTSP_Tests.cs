@@ -67,7 +67,6 @@ public class MINIMUMTSP_Tests {
     [InlineData("({a,b,c},{{a,b},{b,c}})")]                       // unweighted edges
     [InlineData("({a,b,c},{({a,b},x)})")]                         // non-integer weight
     [InlineData("({a,b},{({a,z},1)})")]                           // edge to a node not in the graph
-    [InlineData("({a,b,c},{({a,b},1),({b,a},2),({b,c},1)})")]     // two edges join a and b
     [InlineData("({a,b,c},{({a,b},1)")]                           // unbalanced / truncated
     public void MINIMUMTSP_Constructor_Throws_On_Invalid_Instance(string instance) {
         Assert.Throws<ProblemParseException>(() => new MINIMUMTSP(instance));
@@ -223,5 +222,38 @@ public class MINIMUMTSP_Tests {
                 yield return tail;
             }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Parallel edges (#769): the lightest edge between two cities is the one a tour uses
+    // -------------------------------------------------------------------------
+
+    // a and b are joined twice (10, then 1). With the lightest, a-b-c-d-a costs 4 and every other tour 12. Before #769 the
+    // constructor rejected the instance ("more than one edge joins a and b").
+    private const string ParallelInstance =
+        "({a,b,c,d},{({a,b},10),({a,b},1),({b,c},1),({c,d},1),({d,a},1),({a,c},5),({b,d},5)})";
+
+    [Fact]
+    public void MINIMUMTSP_Parallel_Edges_Merge_Into_The_Lightest() {
+        MINIMUMTSP problem = new MINIMUMTSP(ParallelInstance);
+        Assert.Equal(6, problem.edges.Count);
+        Assert.Equal(7, problem.listedEdges.Count);
+        Assert.Equal(1, problem.Weight("a", "b"));
+        Assert.Equal(1, problem.Weight("b", "a"));
+    }
+
+    [Fact]
+    public void MINIMUMTSP_Parallel_Edges_Solver_And_Verifier_Use_The_Lightest() {
+        MINIMUMTSP problem = new MINIMUMTSP(ParallelInstance);
+        string answer = new BruteForceMinimumTSP().solve(problem);
+        Assert.True(problem.defaultVerifier.verify(problem, answer));
+        Assert.Equal(4, MinimumTSPVerifier.TourCost(problem, MinimumTSPVerifier.ReadCities(problem, answer)));
+    }
+
+    [Fact]
+    public void MINIMUMTSP_Parallel_Edges_Written_Either_Way_Round_Merge() {
+        // {b,a} names the same pair as {a,b}.
+        MINIMUMTSP problem = new MINIMUMTSP("({a,b,c},{({a,b},3),({b,a},2),({b,c},1),({a,c},1)})");
+        Assert.Equal(2, problem.Weight("a", "b"));
     }
 }
