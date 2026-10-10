@@ -2,10 +2,12 @@
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 using System.Numerics;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_NODESET.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Solvers;
 
-class NodeSetBruteForce : ISolver<NODESET> {
+class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Node Set Brute Force";
@@ -57,7 +59,11 @@ class NodeSetBruteForce : ISolver<NODESET> {
         }
         return combination;
     }
-    public string solve(NODESET nodeSet) {
+    public string solve(NODESET nodeSet) => Solve(nodeSet, StepRecorder<NodeSet>.Off);
+
+    public string Solve(NODESET nodeSet, StepRecorder<NodeSet> rec) {
+        var cycle = LayeredFrames.SurvivingCycle(NodeSetDefaultVisualization.Spec(nodeSet));
+        int tried = 0;
         for (int i = 0; i < nodeSet.K; i++) {
             List<int> combination = new List<int>();
             for (int j = 0; j <= i; j++) {
@@ -66,16 +72,26 @@ class NodeSetBruteForce : ISolver<NODESET> {
             BigInteger reps = factorial(nodeSet.nodes.Count) / (factorial(i + 1) * factorial(nodeSet.nodes.Count - i - 1));
             for (BigInteger k = 0; k < reps; k++) {
                 string certificate = indexListToCertificate(combination, nodeSet.nodes);
+                tried++;
+                string[] Candidate() => combination.Select(c => nodeSet.nodes[c]).ToArray();
+                string[] Ids() => Candidate().Select(LayeredFrames.NodeId).ToArray();
                 if (nodeSet.defaultVerifier.verify(nodeSet, certificate)) {
+                    rec.Accept(() => new NodeSet(Candidate()), () => $"Try removing {certificate}. No cycle is left.", Ids);
+                    rec.Done(new NodeSet(Candidate()), true, $"Removing {certificate} leaves no cycle, within K = {nodeSet.K}. Found after {tried} {(tried == 1 ? "try" : "tries")}.");
                     return certificate;
                 }
+                rec.Reject(() => new NodeSet(Candidate()), () => $"Try removing {certificate}: the cycle {cycle([], Candidate())} is still there.", Ids);
                 combination = nextComb(combination, nodeSet.nodes.Count);
 
             }
         }
+        // Nothing of size 1 to K works; removing nothing is the answer only when the graph has no cycle at all.
+        bool acyclic = nodeSet.defaultVerifier.verify(nodeSet, "{}");
+        rec.Done(new NodeSet([]), acyclic, acyclic
+            ? "The graph has no cycle, so removing nothing is enough."
+            : $"Checked every way to remove up to K = {nodeSet.K} {(nodeSet.K == 1 ? "node" : "nodes")} ({tried} {(tried == 1 ? "try" : "tries")}). A cycle always survives.");
         return "{}";
     }
-
 }
 
 

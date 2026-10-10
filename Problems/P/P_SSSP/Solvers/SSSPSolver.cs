@@ -1,5 +1,6 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using SPADE;
 using System;
@@ -7,7 +8,8 @@ using System.Collections.Generic;
 
 namespace API.Problems.P.P_SSSP.Solvers;
 
-class SSSPSolver : ISolver<SSSP> {
+// Incremental: each step settles one more node for good; settled distances and tree edges never change.
+class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
     public string solverName { get; } = "Dijkstra's Algorithm";
     public string solverDefinition { get; } = "";
     public string source { get; } = "";
@@ -24,17 +26,23 @@ class SSSPSolver : ISolver<SSSP> {
     public string complexity { get; } = "O((V + E) log V)";
     PriorityQueue<string, int>? pq;
 
-    public string solve(SSSP problem) {
+    public string solve(SSSP problem) => Solve(problem, StepRecorder<Distances>.Off);
+
+    public string Solve(SSSP problem, StepRecorder<Distances> rec) {
         UtilCollectionGraph graph = problem.graph;
         List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
 
-        if (nodes.Count == 0)
+        if (nodes.Count == 0) {
+            rec.Done(new Distances([], [], []), true, "The graph has no nodes, so there is nothing to reach.");
             return "{}"; // No nodes, return empty path
+        }
 
         string sourceNode = problem.sourceNode;
 
-        if (!nodes.Contains(sourceNode))
+        if (!nodes.Contains(sourceNode)) {
+            rec.Done(new Distances([], [], []), false, $"The source {sourceNode} is not a node of the graph.");
             return "{}";
+        }
 
         var adjacency = BuildAdjacencyList(graph);
 
@@ -42,13 +50,17 @@ class SSSPSolver : ISolver<SSSP> {
         var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
         pq = new PriorityQueue<string, int>();
+        Distances Partial() => Dijkstra.Partial(dist, prev, visited);
 
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
+        rec.Try(Partial, () => $"Start at {sourceNode} with distance 0. Every other node starts at ∞.", LayeredFrames.NodeId(sourceNode));
 
         while (pq.Count > 0) {
-            if (timerHasExpired)
+            if (timerHasExpired) {
+                rec.Done(new Distances([], [], []), false, "The solver ran out of time.");
                 return "{}";
+            }
 
             string current = pq.Dequeue();
 
@@ -56,25 +68,31 @@ class SSSPSolver : ISolver<SSSP> {
                 continue;
             visited.Add(current);
 
-            if (!adjacency.TryGetValue(current, out var neighbors))
-                continue;
-
-            foreach (var (next, weight) in neighbors) {
+            var relaxed = new List<string>();
+            var shorter = new List<string>();
+            foreach (var (next, weight) in adjacency.TryGetValue(current, out var neighbors) ? neighbors : []) {
                 if (visited.Contains(next))
                     continue;
 
                 if (dist[current] == int.MaxValue)
                     continue;
 
+                relaxed.Add(LayeredFrames.EdgeId(problem.isDirected, current, next));
                 int candidate = dist[current] + weight;
                 if (candidate < dist[next]) {
+                    shorter.Add($"{next}: {Dijkstra.Show(dist[next])} → {candidate}");
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
                 }
             }
+            rec.Accept(Partial, () => Dijkstra.SettleCaption(current, dist[current], shorter),
+                () => relaxed.Distinct().Prepend(LayeredFrames.NodeId(current)).ToArray());
         }
 
+        var lost = nodes.Where(n => dist[n] == int.MaxValue).ToList();
+        rec.Done(Partial(), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree."
+            + (lost.Count > 0 ? $" {LayeredFrames.List(lost)} can't be reached." : ""));
         return NodeListCertificate(nodes, sourceNode, prev);
     }
 

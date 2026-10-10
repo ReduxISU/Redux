@@ -2,10 +2,12 @@ using API.Interfaces;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Solvers;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Visualizations;
 
-class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT, API_GraphJSON> {
+class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT, API_GraphJSON>, ILayeredVisualization<TOPOLOGICALSORT> {
     // --- Fields ---
     public string visualizationName { get; } = "Topological Sort Visualization";
     public string visualizationDefinition { get; } = "Animates the graph by topological rank: all source nodes (in-degree zero) highlight first, followed by their successors in waves. This mirrors how Kahn's Algorithm peels off layers of zero-in-degree nodes during execution. Every edge is highlighted because, in a valid topological ordering, every directed edge points forward.";
@@ -14,6 +16,14 @@ class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT, API_
     public string[] contributors { get; } = { "Pravesh Aryal", "Koras Koirala", "Dinesh Khanal" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new KahnsAlgorithm();
+
+    // The Layered Graph picture (format=frames only; /info keeps GraphD3). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(Tour);
+    LayeredSpec ILayeredVisualization<TOPOLOGICALSORT>.Describe(TOPOLOGICALSORT problem) => Spec(problem);
+
+    /// <summary>The instance as the Layered Graph picture describes it.</summary>
+    internal static LayeredSpec Spec(TOPOLOGICALSORT problem) => new(
+        problem.nodes, problem.edges.Select(e => new LayeredEdgeInput(e.Key, e.Value)).ToList(), LayeredRule.TopologicalSort);
 
     // --- Constructors ---
     public TopologicalSortDefaultVisualization() { }

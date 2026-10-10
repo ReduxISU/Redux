@@ -38,7 +38,8 @@ public class SolverReplay_Tests {
     }
 
     // What the final Partial must equal, derived independently from the answer string.
-    private static object ExpectedFinalPartial(object lastPartial, string answer) {
+    private static object ExpectedFinalPartial(object lastPartial, string answer, string solverName, IProblem problem) {
+        if (LayeredFinalPartial(lastPartial, answer, solverName, problem) is { } layered) return layered;
         if (lastPartial is ActiveStates last) {
             // The end states of the accepting run(s): the last state of each path line.
             var ends = answer.Split('\n')
@@ -52,6 +53,39 @@ public class SolverReplay_Tests {
         }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
+    }
+
+    // The Layered Graph solvers (#667), read with the picture's own answer readers. Null for any other solver.
+    private static object? LayeredFinalPartial(object lastPartial, string answer, string solverName, IProblem problem) {
+        switch (problem) {
+            case API.Problems.NPComplete.NPC_TOPOLOGICALSORT.TOPOLOGICALSORT topo:
+                return API.Interfaces.Graphs.LayeredFrames.ParseAnswer(
+                    API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Visualizations.TopologicalSortDefaultVisualization.Spec(topo), answer);
+            case API.Problems.NPComplete.NPC_ARCSET.ARCSET:
+                // Edges are named by the picture's directed edge ids ("2>3").
+                return API.Interfaces.Graphs.LayeredFrames.ParseArcs(answer);
+            case API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.STRONGLYCONNECTEDCOMPONENTS: {
+                    // Components are numbered in the order they are found, the answer lists them sorted: compare the split.
+                    var done = (Components)lastPartial;
+                    var parsed = API.Interfaces.Graphs.LayeredFrames.ParseComponents(answer);
+                    static HashSet<string> Split(IReadOnlyDictionary<string, int> of) =>
+                        of.GroupBy(p => p.Value).Select(g => string.Join(",", g.Select(p => p.Key).Order(StringComparer.Ordinal))).ToHashSet();
+                    Assert.True(Split(parsed.Of).SetEquals(Split(done.Of)));
+                    return lastPartial;
+                }
+            case API.Problems.P.P_SSSP.SSSP sssp:
+                return API.Interfaces.Graphs.LayeredFrames.ParseAnswer(API.Problems.P.P_SSSP.Visualizations.SSSPVisualization.Spec(sssp), answer);
+            case API.Problems.P.P_SPSP.SPSP spsp: {
+                    // Dijkstra stops at the target, having settled other nodes too: the path it leads back along is the answer.
+                    var done = (Distances)lastPartial;
+                    var path = new List<string>();
+                    for (string? x = spsp.targetNode; x != null; x = done.Pred.TryGetValue(x, out var u) ? u : null) path.Insert(0, x);
+                    Assert.Equal("{" + string.Join(",", path) + "}", answer);
+                    return lastPartial;
+                }
+            default:
+                return null;
+        }
     }
 
     [Fact]
@@ -89,7 +123,7 @@ public class SolverReplay_Tests {
         Assert.Equal(StepEvent.Done, (StepEvent)last.Event);
         Assert.Equal(1, withSteps.Steps.Count(s => ((dynamic)s).Event == StepEvent.Done));
         object finalPartial = last.Partial;
-        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer), finalPartial);
+        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer, name, problem), finalPartial);
 
         // (c) Done.Ok agrees with the problem's own verifier on the returned answer.
         bool? ok = last.Ok;
@@ -111,11 +145,11 @@ public class SolverReplay_Tests {
 
     [Fact]
     public void LegacySolver_RunKeepsUntypedSteps() {
-        // A solver that has not been converted reports no shape and keeps its untyped steps.
-        var sssp = ProblemProvider.Solvers.Values.First(t => TypedInterface(t) == null && typeof(ISolver).IsAssignableFrom(t) && t.Name == "SSSPSolver");
-        var legacy = (ISolver)Activator.CreateInstance(sssp)!;
+        // A solver that has not been converted reports no shape and keeps its untyped steps (SSSP was the example until #667 typed it).
+        var pumps = ProblemProvider.Solvers.Values.First(t => TypedInterface(t) == null && typeof(ISolver).IsAssignableFrom(t) && t.Name == "PumpSchedulingCMSolver");
+        var legacy = (ISolver)Activator.CreateInstance(pumps)!;
         var problem = (IProblem)Activator.CreateInstance(
-            sssp.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0])!;
+            pumps.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0])!;
         var run = legacy.Run(problem.defaultInstance, true);
         Assert.Null(run.StepShape);
         Assert.NotEmpty(run.Steps);

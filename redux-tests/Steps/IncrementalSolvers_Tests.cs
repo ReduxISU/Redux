@@ -28,10 +28,17 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        // Layered Graph pictures
+        ["kahnsalgorithm"] = true,
+        ["arcsetbruteforce"] = false,
+        ["nodesetbruteforce"] = false,
+        ["kosarajusolver"] = true,
+        ["ssspsolver"] = true,
+        ["spspsolver"] = true,
     };
 
     // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet)];
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(Tour), typeof(EdgeSet), typeof(Components), typeof(Distances)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

@@ -159,6 +159,17 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         }).ToList();
     }
 
+    /// <summary>
+    /// The edges as the instance lists them, parallel edges included: (from, to, weight), the weight null in an unweighted
+    /// instance (the solver counts such an edge as 1). An undirected edge is listed once, in the order it is written.
+    /// A method, not a property, so it never appears in /info.
+    /// </summary>
+    internal List<(string From, string To, int? Weight)> ListedEdges() =>
+        graph.Edges.ToList().Select(rawEdge => {
+            ParsedEdge edge = ParseEdge(rawEdge);
+            return (edge.From, edge.To, isWeighted ? edge.Weight : (int?)null);
+        }).ToList();
+
     private static ParsedEdge ParseEdge(UtilCollection rawEdge) {
         // The unweighted/undirected grammar pattern binds a raw edge directly to an
         // unordered node-set (e.g. {1,2}), which cannot be indexed by position (only

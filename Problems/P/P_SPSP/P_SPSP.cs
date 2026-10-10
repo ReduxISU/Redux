@@ -182,6 +182,17 @@ class SPSP : IGraphProblem<SPSPSolver, SPSPVerifier, SPSPVisualization, UtilColl
         }).ToList();
     }
 
+    /// <summary>
+    /// The edges as the instance lists them, parallel edges included: (from, to, weight), the weight null in an unweighted
+    /// instance (the solver counts such an edge as 1). An undirected edge is listed once, in the order it is written.
+    /// A method, not a property, so it never appears in /info.
+    /// </summary>
+    internal List<(string From, string To, int? Weight)> ListedEdges() =>
+        graph.Edges.ToList().Select(rawEdge => {
+            ParsedEdge edge = ParseEdge(rawEdge);
+            return (edge.From, edge.To, isWeighted ? edge.Weight : (int?)null);
+        }).ToList();
+
     private static ParsedEdge ParseEdge(UtilCollection rawEdge) {
         // An unordered rawEdge (a plain set like {1,2}) is a genuine SPADE set and
         // does not support indexing. It can never be the weighted (endpoints, weight)
