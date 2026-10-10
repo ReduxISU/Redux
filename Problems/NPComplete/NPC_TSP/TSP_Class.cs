@@ -20,7 +20,9 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
 
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
-    public const string InstanceGrammar = "{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}";
+    // The weighted graph, shared with Minimum Traveling Salesperson, whose instance is the same graph without K.
+    public const string WeightedGraphGrammar = "N is set, E subset {(e, w) | e is N unorderedcross N, w is int}";
+    public const string InstanceGrammar = "{((N,E),K) | " + WeightedGraphGrammar + ", K is int}";
     private static string _defaultInstance { get; } = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
@@ -81,12 +83,16 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
         StringParser tsp = new(InstanceGrammar);
         tsp.parse(GInput);
         nodes = tsp["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = tsp["E"].ToList().Select(edge => {
-            List<UtilCollection> cast = edge[0].ToList();
-            return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
-        }).ToList();
+        edges = ReadWeightedEdges(tsp["E"]);
         _K = int.Parse(tsp["K"].ToString());
 
         graph = new UtilCollectionGraph(tsp["N"], tsp["E"]);
     }
+
+    /// <summary>The edges of a parsed <see cref="WeightedGraphGrammar"/> E, as (one end, other end, weight), in the order listed.</summary>
+    public static List<(string source, string target, int weight)> ReadWeightedEdges(UtilCollection E) =>
+        E.ToList().Select(edge => {
+            List<UtilCollection> cast = edge[0].ToList();
+            return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
+        }).ToList();
 }
