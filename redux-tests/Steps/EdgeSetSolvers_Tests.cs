@@ -81,8 +81,15 @@ public class EdgeSetSolvers_Tests {
             var s = answer.Replace("{", "").Replace("}", "").Split(',').Where(x => x.Length > 0).ToHashSet();
             Assert.Equal(s, groups.Of.Where(p => p.Value == 0).Select(p => p.Key).ToHashSet());
         } else if (answer == "{}") {
-            // No answer (no split is shown), or, for Minimum Cut, a graph that is already in pieces (its split is shown).
-            Assert.True(solverName == "mincutstoerwagner" || groups.Of.Count == 0);
+            // No answer (no split is shown), or, for Minimum Cut, a graph that is already in pieces: its split is shown, and no
+            // edge crosses it.
+            if (solverName == "mincutstoerwagner")
+                Assert.DoesNotContain(GraphEdgeFrames.ParseEdges(instance).Edges, id => {
+                    int dash = id.IndexOf('-');
+                    return groups.Of.TryGetValue(id[..dash], out int a) && groups.Of.TryGetValue(id[(dash + 1)..], out int b) && a != b;
+                });
+            else
+                Assert.Empty(groups.Of);
         } else {
             // The other cuts answer with their crossing edges: the final split must cross exactly those.
             var cut = GraphEdgeFrames.ParseEdges(answer).Edges.ToHashSet();
@@ -170,5 +177,31 @@ public class EdgeSetSolvers_Tests {
         Assert.Matches(@"found after (\d+) tries\. \(\d+ not shown\)$", steps[^1].Caption);
         int tried = int.Parse(Regex.Match(steps[^1].Caption, @"after (\d+) tries").Groups[1].Value);
         Assert.EndsWith($"({tried - StepRecorder<EdgeSet>.DefaultCap - 1} not shown)", steps[^1].Caption);
+    }
+
+    [Fact]
+    public void MinCut_WithParallelEdges_DoneIsOkOnlyIfTheVerifierAcceptsTheAnswer() {
+        // Stoer-Wagner adds the parallel 1-2 edges up (a cut of 8), but the answer lists one of them (weight 3), which the
+        // verifier refuses. The answer is what it always was; the Done step must not claim it is right.
+        const string instance = "({1,2},{({1,2},3),({2,1},5)})";
+        var solver = new API.Problems.P.P_MINCUT.Solvers.MinCutStoerWagner();
+        var run = ((ISolver)solver).Run(instance, true);
+        Assert.Equal("{({1,2},3)}", run.Answer);
+        Assert.False(((API.Interfaces.IProblem)new MINCUT()).defaultVerifier.verify(instance, run.Answer));
+        var done = run.Steps.Cast<SolverStep<Groups>>().Last();
+        Assert.False(done.Ok);
+        Assert.Equal("The minimum cut weighs 8, but the answer lists one edge per pair of nodes, weighing 3, so it does not show that cut.", done.Caption);
+    }
+
+    [Fact]
+    public void CutBruteForce_GivingUp_SaysWhichSidesItTried_NotThatNoCutExists() {
+        // Two triangles joined by 3-4: S = {1,2,3} cuts exactly one edge, but the solver only tries S sides of at most K = 1
+        // node, so it gives up. Its caption must say what it searched, not that no such cut exists.
+        const string instance = "(({1,2,3,4,5,6},{{1,2},{2,3},{1,3},{4,5},{5,6},{4,6},{3,4}}),1)";
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CUT.Solvers.CutBruteForce()).Run(instance, true);
+        Assert.Equal("{}", run.Answer);
+        var done = run.Steps.Cast<SolverStep<Groups>>().Last();
+        Assert.False(done.Ok);
+        Assert.Equal("Checked 6 S sides of at most 1 nodes (this solver tries no larger ones). None cuts exactly 1 edges.", done.Caption);
     }
 }

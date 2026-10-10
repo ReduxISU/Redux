@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using API.Interfaces.Steps;
 using Xunit;
 
 namespace redux_tests;
@@ -170,6 +171,8 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var last = frames[^1];
         Assert.Equal("Done", last.GetProperty("event").GetString());
         Assert.True(last.GetProperty("ok").GetBoolean());
+        string solverAnswer = ((API.Interfaces.ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver])!).solve(instance);
+        Assert.True(problem.defaultVerifier.verify(instance, solverAnswer), solverAnswer);
         var solution = last.GetProperty("edges").EnumerateObject().Where(e => e.Value.GetProperty("state").GetString() == "Solution").Select(e => e.Name).ToList();
         Assert.NotEmpty(solution);
         if (shape == "edges") {
@@ -340,7 +343,7 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Visualize("visualization=cutdefaultvisualization&format=frames&solver=cutbruteforce", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count <= 151, $"{frames.Count} frames");
+        Assert.Equal(StepRecorder<Groups>.DefaultCap + 1, frames.Count);   // the cap, then Done (no cut of 9 exists, so no Accept is kept)
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
         Assert.Contains("not shown", frames[^1].GetProperty("caption").GetString());
     }
