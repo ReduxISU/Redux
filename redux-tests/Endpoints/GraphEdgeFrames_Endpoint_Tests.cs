@@ -304,6 +304,51 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(3, total);
     }
 
+    // ---- parallel edges (#769) ----
+
+    private static Dictionary<string, JsonElement> PayloadEdges(JsonElement root) =>
+        root.GetProperty("payload").GetProperty("edges").EnumerateArray().ToDictionary(e => e.GetProperty("id").GetString()!, e => e);
+
+    // 1 and 2 are joined by two edges, 5 and 2. The cut problems draw one 1-2 edge weighing 7 (every parallel edge
+    // crosses), the spanning tree one weighing 2 (it takes the lightest); each is labelled "5,2", and the frames name
+    // only that one edge id. Before #769 every picture drew the lightest (2), so the cut pictures' weights did not add up
+    // to the weight their captions and answers gave.
+    [Theory]
+    [InlineData("maxcutvisualization", "({1,2,3},{({1,2},5),({1,2},2),({2,3},4)})", 7, "The heaviest cut weighs 11:", 11)]
+    [InlineData("mincutvisualization", "({1,2,3},{({1,2},5),({1,2},2),({2,3},9)})", 7, "The minimum cut weighs 7:", 7)]
+    [InlineData("weightedcutdefaultvisualization", "(({1,2,3},{({1,2},5),({1,2},2),({2,3},4)}),7)", 7, "cuts edges of total weight 7, found after", 7)]
+    public async Task Frames_Cut_ParallelEdges_AreOneEdge_WhoseWeightsAdd(string vis, string instance, int counted, string doneText, int cutWeight) {
+        var (status, body) = await Visualize($"visualization={vis}&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        var edges = PayloadEdges(root);
+        Assert.Equal(2, edges.Count);
+        Assert.Equal(counted, edges["1-2"].GetProperty("weight").GetInt32());
+        Assert.Equal("5,2", edges["1-2"].GetProperty("label").GetString());
+        Assert.False(edges.Values.Single(e => e.GetProperty("id").GetString() != "1-2").TryGetProperty("label", out _));
+        var frames = root.GetProperty("frames").EnumerateArray().ToList();
+        Assert.All(frames, f => Assert.All(f.GetProperty("edges").EnumerateObject(), e => Assert.Contains(e.Name, edges.Keys)));
+        var done = frames[^1];
+        Assert.True(done.GetProperty("ok").GetBoolean());
+        Assert.Contains(doneText, done.GetProperty("caption").GetString());
+        Assert.Equal(cutWeight, done.GetProperty("edges").EnumerateObject().Sum(e => edges[e.Name].GetProperty("weight").GetInt32()));
+    }
+
+    [Fact]
+    public async Task Frames_SpanningTree_ParallelEdges_AreOneEdge_WeighingTheLightest() {
+        // Kruskal takes the 1 and never looks at the 5 (the edges are merged before it starts), so no frame marks 1-2 as
+        // closing a cycle while it is in the tree.
+        var (_, body) = await Visualize("visualization=minimumspanningtreevisualization&format=frames", "({1,2,3},{({1,2},5),({1,2},1),({2,3},1),({1,3},3)})");
+        var root = JsonDocument.Parse(body).RootElement;
+        var edges = PayloadEdges(root);
+        Assert.Equal(["1-2", "2-3", "1-3"], edges.Keys);
+        Assert.Equal(1, edges["1-2"].GetProperty("weight").GetInt32());
+        Assert.Equal("5,1", edges["1-2"].GetProperty("label").GetString());
+        var frames = root.GetProperty("frames").EnumerateArray().ToList();
+        Assert.DoesNotContain(frames, f => f.GetProperty("edges").TryGetProperty("1-2", out var s) && s.GetProperty("state").GetString() == "Rejected");
+        Assert.Equal("The tree uses 2 edges with total weight 2.", frames[^1].GetProperty("caption").GetString());
+    }
+
     [Fact]
     public async Task Frames_WeightedCut_CaptionsTheCrossingWeight() {
         var (_, body) = await Visualize("visualization=weightedcutdefaultvisualization&format=frames", DefaultInstance("weightedcutdefaultvisualization"));

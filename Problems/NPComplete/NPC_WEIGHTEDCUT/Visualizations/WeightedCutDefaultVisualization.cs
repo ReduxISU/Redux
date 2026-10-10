@@ -71,5 +71,5 @@ class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT, API_GraphJSO
     Type? IVisualization.StepShape => typeof(Groups);
 
     GraphEdgeSpec IGraphCutVisualization<WEIGHTEDCUT>.Describe(WEIGHTEDCUT problem) =>
-        new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.WeightedCut) { K = problem.K };
+        new(problem.nodes, problem.listedEdges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.WeightedCut) { K = problem.K };
 }

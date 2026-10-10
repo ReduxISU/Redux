@@ -172,4 +172,24 @@ public class MINCUT_Tests {
             total += int.Parse(item[1].ToString());
         return total;
     }
+
+    // ----- Parallel edges (#769): a cut adds the weights of parallel edges ----- //
+
+    // Two edges join 1 and 2, weighing 5 and 2, so the minimum cut ({1} against {2,3}) weighs 7. Before #769 Stoer-Wagner
+    // added them, but its answer listed only the first edge, {({1,2},5)}, which the verifier (expecting 7) rejected.
+    [Fact]
+    public void MINCUT_Parallel_Edges_Are_Added() {
+        MINCUT problem = new MINCUT("({1,2,3},{({1,2},5),({1,2},2),({2,3},9)})");
+        Assert.Equal(2, problem.edges.Count);
+        Assert.Contains(("1", "2", 7), problem.edges);
+        Assert.Equal(3, problem.listedEdges.Count);
+    }
+
+    [Fact]
+    public void MINCUT_Parallel_Edges_Solver_Answer_Is_Verified() {
+        MINCUT problem = new MINCUT("({1,2,3},{({1,2},5),({1,2},2),({2,3},9)})");
+        string answer = new MinCutStoerWagner().solve(problem);
+        Assert.Equal("{({1,2},7)}", answer);
+        Assert.True(problem.defaultVerifier.verify(problem, answer));
+    }
 }
