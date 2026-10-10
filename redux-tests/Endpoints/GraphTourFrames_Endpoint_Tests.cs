@@ -7,7 +7,7 @@ namespace redux_tests;
 #pragma warning disable CS1591
 
 // The Graph picture's tour shape on the actual /ProblemProvider/visualize?format=frames output, for Hamiltonian Cycle,
-// Directed Hamiltonian Cycle and Traveling Salesperson, plus the guards that keep everything old frontends read exactly as
+// Directed Hamiltonian Cycle, Traveling Salesperson and Minimum Traveling Salesperson, plus the guards that keep everything old frontends read exactly as
 // it was:
 //   - the list format (snapshots in Snapshots/, captured before the tour shape existed),
 //   - /info for every visualization and solver that was touched (info.<name>.json, captured the same way).
@@ -34,12 +34,14 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private const string HamiltonianVis = "hamiltoniandefaultvisualization";
     private const string DirectedVis = "directedhamiltoniandefaultvisualization";
     private const string TspVis = "tspdefaultvisualization";
+    private const string MinTspVis = "minimumtspdefaultvisualization";
 
     // visualization, its default solver, rule, subtype
     private static readonly (string Vis, string Solver, string Rule, string Subtype)[] CaseRows = {
         (HamiltonianVis, "hamiltonianbruteforce", "hamiltonianCycle", "undirected"),
         (DirectedVis, "directedhamiltonianbruteforce", "hamiltonianCycle", "directed"),
         (TspVis, "tspbruteforce", "tsp", "undirected"),
+        (MinTspVis, "bruteforceminimumtsp", "minTsp", "undirected"),
     };
 
     public static TheoryData<string, string, string, string> Cases {
@@ -54,7 +56,7 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // Every visualization and solver touched by the tour shape and the step recording.
     public static TheoryData<string> TouchedInterfaces => new(CaseRows.Select(c => c.Vis)
-        .Concat(["hamiltonianbruteforce", "directedhamiltonianbruteforce", "tspbruteforce", "tspgreedy", "tspbranchandbound"]));
+        .Concat(["hamiltonianbruteforce", "directedhamiltonianbruteforce", "tspbruteforce", "tspgreedy", "tspbranchandbound", "bruteforceminimumtsp"]));
 
     // Every (visualization, solver) pair a frontend can ask for.
     public static TheoryData<string, string> EverySolver => new() {
@@ -63,6 +65,7 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         { TspVis, "tspbruteforce" },
         { TspVis, "tspgreedy" },
         { TspVis, "tspbranchandbound" },
+        { MinTspVis, "bruteforceminimumtsp" },
     };
 
     private static API.Interfaces.IProblem ProblemOf(string vis) =>
@@ -139,9 +142,10 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("circle", payload.GetProperty("layout").GetString());
         Assert.Equal("tour", payload.GetProperty("shape").GetString());
         Assert.Equal(rule, payload.GetProperty("rule").GetString());
-        bool weighted = rule == "tsp";
-        Assert.Equal(weighted, payload.TryGetProperty("k", out var k));
-        if (weighted) Assert.Equal(8000, k.GetInt32());
+        bool weighted = rule is "tsp" or "minTsp";
+        bool hasK = rule == "tsp";   // Minimum Traveling Salesperson has no K
+        Assert.Equal(hasK, payload.TryGetProperty("k", out var k));
+        if (hasK) Assert.Equal(8000, k.GetInt32());
 
         var nodes = payload.GetProperty("nodes").EnumerateArray().ToList();
         var nodeIds = nodes.Select(n => n.GetProperty("id").GetString()!).ToHashSet();
@@ -284,6 +288,75 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(["New York", "Chicago", "Denver", "Los Angeles", "Miami", "New York"], Order(frames[^1]));
     }
 
+    // Minimum Traveling Salesperson's brute force judges whole tours: a tour it only tries is highlighted, never drawn as
+    // Solution; a new best tour (Accept) and the answer (Done) are.
+    [Fact]
+    public async Task Frames_MinimumTsp_TriesAreHighlighted_OnlyAcceptsAndDoneAreSolution() {
+        var (status, body) = await Visualize($"visualization={MinTspVis}&format=frames", DefaultInstance(MinTspVis));
+        Assert.Equal(HttpStatusCode.OK, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        var payload = root.GetProperty("payload");
+        Assert.Equal("minTsp", payload.GetProperty("rule").GetString());
+        Assert.False(payload.TryGetProperty("k", out _));
+        var ab = payload.GetProperty("edges").EnumerateArray().First(e => e.GetProperty("id").GetString() == "a-b");
+        Assert.Equal(3, ab.GetProperty("weight").GetDouble());
+
+        var frames = Frames(body);
+        Assert.Equal(24 + 1, frames.Count);
+        foreach (var f in frames) {
+            string ev = f.GetProperty("event").GetString()!;
+            var nodes = States(f, "nodes");
+            var edges = States(f, "edges");
+            Assert.Equal(5, Order(f).Length - 1);   // every frame is a whole closed tour
+            switch (ev) {
+                case "Accept":
+                    Assert.Equal(5, edges.Count);
+                    Assert.All(edges.Values, s => Assert.Equal("Solution", s));
+                    Assert.All(nodes.Values, s => Assert.Equal("Covered", s));
+                    break;
+                case "Reject":
+                    Assert.DoesNotContain("Solution", nodes.Values.Concat(edges.Values));
+                    Assert.Contains("Rejected", nodes.Values.Concat(edges.Values));
+                    break;
+                case "Done":
+                    Assert.All(nodes.Values.Concat(edges.Values), s => Assert.Equal("Solution", s));
+                    break;
+                default:
+                    Assert.Fail($"unexpected {ev}");
+                    break;
+            }
+        }
+        Assert.Equal("Try a → c → b → e → d → a: cost 19, a new best tour (it beats 21).",
+            frames.Last(f => f.GetProperty("event").GetString() == "Accept").GetProperty("caption").GetString());
+        Assert.Equal(["a", "c", "b", "e", "d", "a"], Order(frames[^1]));
+        Assert.True(frames[^1].GetProperty("ok").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Frames_MinimumTsp_PastTheCap_TheLastAcceptIsKeptAndDrawnAsSolution() {
+        // K7 whose only cheapest tour, a-f-b-d-c-e-g-a (cost 7), is found long after the first 150 orderings.
+        string[] cities = ["a", "b", "c", "d", "e", "f", "g"];
+        var cheap = new HashSet<string> { "a-f", "b-f", "b-d", "c-d", "c-e", "e-g", "a-g" };
+        var edges = new List<string>();
+        for (int i = 0; i < 7; i++)
+            for (int j = i + 1; j < 7; j++)
+                edges.Add($"({{{cities[i]},{cities[j]}}},{(cheap.Contains($"{cities[i]}-{cities[j]}") ? 1 : 10)})");
+        string instance = $"({{{string.Join(",", cities)}}},{{{string.Join(",", edges)}}})";
+
+        var (status, body) = await Visualize($"visualization={MinTspVis}&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var frames = Frames(body);
+        Assert.Equal(152, frames.Count);
+        var lastAccept = frames[^2];
+        Assert.Equal("Accept", lastAccept.GetProperty("event").GetString());
+        Assert.StartsWith("Try a → f → b → d → c → e → g → a: cost 7, a new best tour", lastAccept.GetProperty("caption").GetString());
+        Assert.Equal(cheap.Order(), States(lastAccept, "edges").Keys.Order());
+        Assert.All(States(lastAccept, "edges").Values, s => Assert.Equal("Solution", s));
+        Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
+        Assert.Contains("not shown", frames[^1].GetProperty("caption").GetString());
+        Assert.Equal(["a", "f", "b", "d", "c", "e", "g", "a"], Order(frames[^1]));
+    }
+
     [Theory]
     [MemberData(nameof(EverySolver))]
     public async Task Frames_EveryCompatibleSolver_EndsInAVerifiedDoneFrame(string vis, string solver) {
@@ -317,6 +390,7 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData(TspVis, "tspbruteforce", "(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),5)")]
     [InlineData(TspVis, "tspgreedy", "(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),5)")]
     [InlineData(TspVis, "tspbranchandbound", "(({a,b,c},{({a,b},1),({b,c},2),({a,c},3)}),5)")]
+    [InlineData(MinTspVis, "bruteforceminimumtsp", "({a,b,c},{({a,b},1),({b,c},2)})")]
     public async Task Frames_WhenThereIsNoAnswer_EndsNotOkWithAnEmptyTour(string vis, string solver, string instance) {
         var (status, body) = await Visualize($"visualization={vis}&format=frames&solver={solver}", instance);
         Assert.Equal(HttpStatusCode.OK, status);
