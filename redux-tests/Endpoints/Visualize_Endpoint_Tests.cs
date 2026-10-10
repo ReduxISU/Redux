@@ -116,6 +116,18 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("sat3defaultvisualization", json.GetProperty("visualization").GetString());
     }
 
+    [Theory] // DummySolver solves the abstract IProblem, so it can't build a problem from any instance (#768)
+    [InlineData("sat3defaultvisualization", "(x1 | !x2 | x3)")]
+    [InlineData("dummyvisualization", "(x1 | !x2 | x3)")]
+    public async Task Visualize_PlaceholderSolver_Returns400SolverMismatch_NotInstanceError(string vis, string instance) {
+        var (status, body) = await Visualize($"visualization={vis}&solver=dummysolver", instance);
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        var json = JsonDocument.Parse(body).RootElement;
+        Assert.Equal("solver_mismatch", json.GetProperty("error").GetString());
+        Assert.Equal("dummysolver", json.GetProperty("received").GetString());
+        Assert.Equal(vis, json.GetProperty("visualization").GetString());
+    }
+
     [Fact]
     public async Task Visualize_UnknownFormat_Returns400() {
         var (status, body) = await Visualize("visualization=sat3defaultvisualization&format=xml", "(x1 | !x2 | x3)");

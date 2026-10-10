@@ -359,10 +359,21 @@ public class ProblemProvider : ControllerBase {
             ?.GetGenericArguments()[0];
 
     /// <summary>
+    /// Whether a solver can build its problem from instance text. A solver for an interface or abstract problem type
+    /// (DummySolver solves IProblem) cannot, so running it fails as if the instance were malformed (#768).
+    /// </summary>
+    private static bool SolverCanRun(Type solverType) {
+        Type? solverProblem = ProblemTypeOf(solverType, typeof(ISolver<>));
+        return solverProblem == null || !(solverProblem.IsInterface || solverProblem.IsAbstract);
+    }
+
+    /// <summary>
     /// Whether a solver can run on the problem a visualization draws. If the problem types cannot be determined
-    /// from the generic interfaces, the solver is allowed.
+    /// from the generic interfaces, the solver is allowed. A solver that cannot run at all never matches.
     /// </summary>
     private static bool SolverMatchesVisualization(Type solverType, IVisualization vis) {
+        if (!SolverCanRun(solverType))
+            return false;
         Type? solverProblem = ProblemTypeOf(solverType, typeof(ISolver<>));
         Type? visProblem = ProblemTypeOf(vis.GetType(), typeof(IVisualization<>))
             ?? ProblemTypeOf(vis.solver.GetType(), typeof(ISolver<>));
