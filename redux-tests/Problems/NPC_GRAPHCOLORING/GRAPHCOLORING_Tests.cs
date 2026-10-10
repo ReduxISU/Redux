@@ -199,4 +199,50 @@ public class GRAPHCOLORING_Tests {
         string certificate = solver.solve(problem);
         Assert.Equal("{}", certificate);
     }
+
+    // --- #757: the verifier checks K ---
+
+    // A proper coloring that uses more than K colors is not a K-coloring.
+    [Theory]
+    [InlineData("(({a,b,c},{{a,b},{b,c},{a,c}}),2)", "{{a},{b},{c}}")]
+    [InlineData("(({a,b},{}),1)", "{{a},{b}}")]
+    [InlineData("(({a,b,c},{{a,b}}),0)", "{{a,c},{b}}")]
+    public void Verifier_Rejects_Coloring_With_More_Than_K_Colors(string instance, string certificate) {
+        GRAPHCOLORING problem = new GRAPHCOLORING(instance);
+        Assert.False(new GraphColoringVerifier().verify(problem, certificate));
+    }
+
+    [Theory]
+    [InlineData("(({a,b,c},{{a,b},{b,c},{a,c}}),3)", "{{a},{b},{c}}")]   // exactly K colors
+    [InlineData("(({a,b,c},{{a,b}}),3)", "{{a,c},{b}}")]                  // fewer than K
+    [InlineData("(({a,b,c},{{a,b}}),2)", "{{a,c},{b},{}}")]               // an empty class uses no color
+    public void Verifier_Accepts_Coloring_Within_K_Colors(string instance, string certificate) {
+        GRAPHCOLORING problem = new GRAPHCOLORING(instance);
+        Assert.True(new GraphColoringVerifier().verify(problem, certificate));
+    }
+
+    // --- #758: K <= 0 ---
+
+    // With no colors, nextBinary never carried, so the brute force never returned. No coloring exists unless the
+    // graph has no nodes.
+    [Theory]
+    [InlineData("(({a,b},{{a,b}}),0)", false)]
+    [InlineData("(({a},{}),-2)", false)]
+    [InlineData("(({},{}),0)", true)]
+    public async Task BruteForceSolver_KNotPositive_AnswersAtOnce(string instance, bool colorable) {
+        GRAPHCOLORING problem = new GRAPHCOLORING(instance);
+        string certificate = await Task.Run(() => new GraphColoringBruteForce().solve(problem), TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        Assert.Equal("{}", certificate);
+        Assert.Equal(colorable, new GraphColoringVerifier().verify(problem, certificate));
+    }
+
+    // The greedy already answered here (it gives up when it needs more colors than K); kept alongside the brute force.
+    [Theory]
+    [InlineData("(({a,b},{{a,b}}),0)")]
+    [InlineData("(({a},{}),-2)")]
+    public void GreedySolver_KNotPositive_ReturnsEmpty(string instance) {
+        GRAPHCOLORING problem = new GRAPHCOLORING(instance);
+        Assert.Equal("{}", new GraphColoringGreedy().solve(problem));
+    }
 }

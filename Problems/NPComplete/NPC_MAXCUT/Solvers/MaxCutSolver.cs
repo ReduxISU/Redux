@@ -33,7 +33,8 @@ class MaxCutSolver : ISolver<MAXCUT, Groups> {
             return "{}";
         }
 
-        int bestWeight = -1;
+        // Any split beats this, even one whose crossing edges weigh less than zero.
+        int bestWeight = int.MinValue;
         HashSet<string> bestS = new();
 
         int limit = 1 << n;
@@ -71,7 +72,7 @@ class MaxCutSolver : ISolver<MAXCUT, Groups> {
         int n = nodes.Count;
         if (n < 2) return 0;
 
-        int bestWeight = 0;
+        int bestWeight = int.MinValue; // as in solve(), so negative weights give the same maximum
         int limit = 1 << n;
         for (int mask = 1; mask < limit - 1; mask++) {
             HashSet<string> S = new();

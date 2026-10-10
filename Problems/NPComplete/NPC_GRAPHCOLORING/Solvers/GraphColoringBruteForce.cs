@@ -76,6 +76,15 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING, Groups> {
 
         int numColors = gColor.K;
         if (gColor.K > gColor.nodes.Count) numColors = gColor.nodes.Count();
+        // No colors to give: nextBinary could never carry, so stop here. Only a graph with no nodes is colored, by "{}".
+        if (numColors <= 0) {
+            bool ok = false;
+            try { ok = gColor.defaultVerifier.verify(gColor, "{}"); } catch { }
+            rec.Done(new Groups([]), ok, gColor.nodes.Count == 0
+                ? "The graph has no nodes, so there is nothing to color."
+                : $"K = {gColor.K} allows no colors, so the {gColor.nodes.Count} {(gColor.nodes.Count == 1 ? "node" : "nodes")} can't be colored.");
+            return "{}";
+        }
 
 
         List<int> binary = new List<int>();

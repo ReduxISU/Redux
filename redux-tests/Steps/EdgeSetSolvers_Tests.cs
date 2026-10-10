@@ -15,7 +15,7 @@ namespace redux_tests;
 // Cut solvers record Groups steps (the split of the nodes). Recording must never change an answer.
 // Endpoints/Snapshots/edgeset_solver_answers.tsv holds what each solver returned (solver, instance, answer; tab
 // separated) BEFORE it recorded steps, on its default instance and on 12 seeded random graphs (including ones with no
-// answer).
+// answer). A row changes only when a bug fix changes that answer (#750: a Steiner tree the brute force skipped).
 public class EdgeSetSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -177,6 +177,10 @@ public class EdgeSetSolvers_Tests {
         Assert.Matches(@"found after (\d+) tries\. \(\d+ not shown\)$", steps[^1].Caption);
         int tried = int.Parse(Regex.Match(steps[^1].Caption, @"after (\d+) tries").Groups[1].Value);
         Assert.EndsWith($"({tried - StepRecorder<EdgeSet>.DefaultCap - 1} not shown)", steps[^1].Caption);
+        // Each combination once (#750): C(10,2) + C(10,3) + C(10,4) = 45 + 120 + 210 sets of 2 to 4 edges, then the
+        // tree {2,1},{1,3},{3,5},{6,8},{6,1} is the 36th set of 5 (21 start 2,1 / 1,3 / 2,3, then 3,5 with the 15th
+        // pair of the last six edges). Re-trying the last combination of each size made it 618.
+        Assert.Equal(45 + 120 + 210 + 36, tried);
     }
 
     [Fact]
@@ -194,14 +198,27 @@ public class EdgeSetSolvers_Tests {
     }
 
     [Fact]
-    public void CutBruteForce_GivingUp_SaysWhichSidesItTried_NotThatNoCutExists() {
-        // Two triangles joined by 3-4: S = {1,2,3} cuts exactly one edge, but the solver only tries S sides of at most K = 1
-        // node, so it gives up. Its caption must say what it searched, not that no such cut exists.
+    public void CutBruteForce_TriesSidesLargerThanK() {
+        // Two triangles joined by 3-4: S = {1,2,3} cuts exactly one edge. The solver used to try S sides of at most K = 1
+        // node and give up (#751). Now it tries the 6 sides of one node and the 15 of two (none cuts one edge), then
+        // {1,2,3}, the first side of three.
         const string instance = "(({1,2,3,4,5,6},{{1,2},{2,3},{1,3},{4,5},{5,6},{4,6},{3,4}}),1)";
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CUT.Solvers.CutBruteForce()).Run(instance, true);
+        Assert.Equal("{{3,4}}", run.Answer);
+        var done = run.Steps.Cast<SolverStep<Groups>>().Last();
+        Assert.True(done.Ok);
+        Assert.Equal("{1,2,3} against {4,5,6} cuts 1 edges, found after 22 tries.", done.Caption);
+    }
+
+    [Fact]
+    public void CutBruteForce_GivingUp_SaysEverySplitWasTried() {
+        // K4 with K = 1: each one-node side cuts 3 edges and each two-node side cuts 4. Sides of 1 to n/2 = 2 nodes cover
+        // every split, so the 4 + 6 = 10 tries are the whole search and no cut of one edge exists.
+        const string instance = "(({1,2,3,4},{{1,2},{1,3},{1,4},{2,3},{2,4},{3,4}}),1)";
         var run = ((ISolver)new API.Problems.NPComplete.NPC_CUT.Solvers.CutBruteForce()).Run(instance, true);
         Assert.Equal("{}", run.Answer);
         var done = run.Steps.Cast<SolverStep<Groups>>().Last();
         Assert.False(done.Ok);
-        Assert.Equal("Checked 6 S sides of at most 1 nodes (this solver tries no larger ones). None cuts exactly 1 edges.", done.Caption);
+        Assert.Equal("Checked 10 S sides of 1 to 2 nodes, which covers every split of the nodes into two sides. None cuts exactly 1 edge.", done.Caption);
     }
 }

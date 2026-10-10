@@ -17,7 +17,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    // The outer loop sums C(m, i+1) (m = |edges|) over i from |terminals|-1 to K -- a partial sum of
+    // The outer loop sums C(m, i) (m = |edges|) over i from |terminals|-1 to min(K, m) -- a partial sum of
     // binomial coefficients of m, which is bounded above by the sum of ALL of them, 2^m, regardless of
     // where K falls (and reaches that order whenever K is near m/2). So this enumerates edge subsets,
     // not node subsets or permutations. Each candidate costs O(i) to build (indexListToCertificate) and
@@ -30,25 +30,19 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
 
     }
 
-    private long factorial(long x) {
-        long y = 1;
-        for (long i = 1; i <= x; i++) {
-            y *= i;
-        }
-        return y;
-    }
-
-    private List<int> nextComb(List<int> combination, int size) {
+    // Moves combination to the next combination of its size from 0..size-1, in lexicographic order. Returns false,
+    // leaving it unchanged, when it is already the last one (an empty combination has no next one).
+    private bool nextComb(List<int> combination, int size) {
         for (int i = combination.Count - 1; i >= 0; i--) {
             if (combination[i] + 1 <= (i + size - combination.Count)) {
                 combination[i] += 1;
                 for (int j = i + 1; j < combination.Count; j++) {
                     combination[j] = combination[j - 1] + 1;
                 }
-                return combination;
+                return true;
             }
         }
-        return combination;
+        return false;
     }
 
     private string indexListToCertificate(List<int> binary, List<KeyValuePair<string, string>> edges) {
@@ -74,21 +68,22 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
 
     public string solve(STEINERTREE steiner) => Solve(steiner, StepRecorder<EdgeSet>.Off);
 
-    // Steps: one per candidate edge set tried, in the order the solver tries them (sizes from one fewer than the
-    // terminals up to K). Recorder state lives only in this call.
+    // Steps: one per candidate edge set tried, in the order the solver tries them (every combination of each size, from
+    // one fewer than the terminals up to K or the edge count, whichever is smaller). Recorder state lives only in this call.
     public string Solve(STEINERTREE steiner, StepRecorder<EdgeSet> rec) {
         int tried = 0;
         List<int> combination = new List<int>();
         string[] Candidate() => combination.Select(c => GraphSubsetFrames.EdgeId(steiner.edges[c].Key, steiner.edges[c].Value)).ToArray();
 
-        for (int i = steiner.terminals.Count - 1; i <= steiner.K; i++) {
+        // Every combination of i edges, for i from one fewer than the terminals up to K (no more than the edges there are).
+        int largest = Math.Min(steiner.K, steiner.edges.Count);
+        for (int i = Math.Max(steiner.terminals.Count - 1, 0); i <= largest; i++) {
             combination = new List<int>();
             for (int j = 0; j < i; j++) {
                 combination.Add(j);
             }
 
-            long reps = factorial(steiner.edges.Count) / (factorial(i + 1) * factorial(steiner.edges.Count - i - 1));
-            for (int k = 0; k < reps; k++) {
+            do {
                 string certificate = indexListToCertificate(combination, steiner.edges);
                 tried++;
                 if (steiner.defaultVerifier.verify(steiner, certificate)) {
@@ -99,9 +94,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
                 rec.Reject(() => new EdgeSet(Candidate()),
                     () => $"Try edges {string.Join(", ", Candidate())}: {Why(steiner, combination.Select(c => steiner.edges[c])).Reason}.",
                     () => Why(steiner, combination.Select(c => steiner.edges[c])).Focus);
-                combination = nextComb(combination, steiner.edges.Count);
-
-            }
+            } while (nextComb(combination, steiner.edges.Count));
 
         }
         rec.Done(new EdgeSet([]), false, $"Checked {tried} candidate edge sets. None of them connects every terminal using at most {steiner.K} edges.");
