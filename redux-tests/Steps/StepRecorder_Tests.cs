@@ -82,6 +82,172 @@ public class StepRecorder_Tests {
         Assert.Equal(50, rec.Hidden);
     }
 
+    // A brute-force-like run: 500 failed tries, the answer found at the 400th, then Done.
+    [Fact]
+    public void PastTheCap_TheWinningAcceptIsKept_JustBeforeDone() {
+        var rec = new StepRecorder<NodeSet>();
+        for (int i = 1; i <= 500; i++) {
+            int n = i;
+            if (n == 400) rec.Accept(() => Nodes(n.ToString()), () => $"accept {n}");
+            else rec.Reject(() => Nodes(n.ToString()), () => $"reject {n}");
+        }
+        rec.Done(Nodes("400"), true, "found");
+
+        Assert.Equal(StepRecorder<NodeSet>.DefaultCap + 2, rec.Steps.Count);
+        Assert.Equal(Enumerable.Range(1, 150).Select(n => $"reject {n}"), rec.Steps.Take(150).Select(s => s.Caption));
+        Assert.Equal(StepEvent.Accept, rec.Steps[150].Event);
+        Assert.Equal("accept 400", rec.Steps[150].Caption);
+        Assert.Equal(Nodes("400"), rec.Steps[150].Partial);
+        Assert.Equal(StepEvent.Done, rec.Steps[151].Event);
+        // 500 reported decisions, 151 kept (150 + the Accept): 349 not shown.
+        Assert.Equal("found (349 not shown)", rec.Steps[151].Caption);
+        Assert.Equal(349, rec.Hidden);
+        Assert.Equal(501, rec.Total);
+    }
+
+    [Fact]
+    public void PastTheCap_OnlyTheLastAcceptIsKept_InChronologicalOrder() {
+        var rec = new StepRecorder<NodeSet>(cap: 2);
+        rec.Try(() => Nodes("a"), () => "t1");
+        rec.Accept(() => Nodes("a"), () => "a1");   // within the cap
+        rec.Accept(() => Nodes("b"), () => "a2");   // past the cap, superseded
+        rec.Reject(() => Nodes("c"), () => "r1");
+        rec.Accept(() => Nodes("d"), () => "a3");   // past the cap, the last one
+        rec.Reject(() => Nodes("e"), () => "r2");
+        rec.Done(Nodes("d"), true, "done");
+
+        Assert.Equal(new[] { "t1", "a1", "a3", "done (3 not shown)" }, rec.Steps.Select(s => s.Caption));
+        Assert.True(rec.Steps.Count <= 2 + 2);
+    }
+
+    [Fact]
+    public void PastTheCap_WithNoAccept_IsUnchanged() {
+        var rec = new StepRecorder<NodeSet>(cap: 3);
+        rec.Accept(() => Nodes("a"), () => "kept accept");   // an Accept inside the cap adds nothing at Done
+        for (int i = 0; i < 9; i++) rec.Reject(() => Nodes("x"), () => "r");
+        rec.Done(Nodes("a"), false, "finished");
+
+        Assert.Equal(new[] { StepEvent.Accept, StepEvent.Reject, StepEvent.Reject, StepEvent.Done }, rec.Steps.Select(s => s.Event));
+        Assert.Equal("finished (7 not shown)", rec.Steps[^1].Caption);
+    }
+
+    [Fact]
+    public void KeepLastAcceptOff_DropsAcceptsPastTheCap_WithoutRunningTheirLambdas() {
+        var rec = new StepRecorder<NodeSet>(cap: 2, keepLastAccept: false);
+        int calls = 0;
+        rec.Try(() => Nodes("a"), () => "t1");
+        rec.Try(() => Nodes("b"), () => "t2");
+        rec.Accept(() => { calls++; return Nodes("c"); }, () => { calls++; return "a"; });
+        rec.Done(Nodes("c"), true, "done");
+        Assert.Equal(new[] { "t1", "t2", "done (1 not shown)" }, rec.Steps.Select(s => s.Caption));
+        Assert.Equal(0, calls);
+    }
+
+    [Fact]
+    public void UnderTheCap_IsUnchanged() {
+        var rec = new StepRecorder<NodeSet>(cap: 10);
+        rec.Reject(() => Nodes("a"), () => "r");
+        rec.Accept(() => Nodes("b"), () => "a");
+        rec.Reject(() => Nodes("c"), () => "r2");
+        rec.Done(Nodes("b"), true, "done");
+        Assert.Equal(new[] { "r", "a", "r2", "done" }, rec.Steps.Select(s => s.Caption));
+        Assert.Equal(0, rec.Hidden);
+    }
+
+    // Past the cap only an Accept's lambdas run (once per Accept); every other step's lambdas never run.
+    [Fact]
+    public void PastTheCap_LambdasRunOnlyForAccepts() {
+        var rec = new StepRecorder<NodeSet>(cap: 5);
+        int rejectCalls = 0, acceptCalls = 0;
+        for (int i = 0; i < 1000; i++) {
+            if (i % 100 == 99)
+                rec.Accept(() => { acceptCalls++; return Nodes("a"); }, () => { acceptCalls++; return "a"; });
+            else
+                rec.Reject(() => { rejectCalls++; return Nodes("r"); }, () => { rejectCalls++; return "r"; });
+        }
+        rec.Done(Nodes("a"), true, "done");
+
+        Assert.Equal(5 * 2, rejectCalls);   // only the five kept Rejects
+        Assert.Equal(10 * 2, acceptCalls);  // all ten Accepts are past the cap: one partial + one caption each
+        Assert.Equal(7, rec.Steps.Count);
+    }
+
+    // The lambdas of an Accept past the cap are evaluated when it is reported, so a later change to the
+    // solver's state does not leak into the kept step.
+    [Fact]
+    public void PastTheCap_KeptAccept_SeesTheStateWhenItWasReported() {
+        var rec = new StepRecorder<NodeSet>(cap: 0);
+        var chosen = new List<string> { "a" };
+        rec.Accept(() => Nodes(chosen.ToArray()), () => $"accept {string.Join(",", chosen)}");
+        chosen.Add("b");
+        rec.Reject(() => Nodes(chosen.ToArray()), () => "r");
+        rec.Done(Nodes("a"), true, "done");
+        Assert.Equal(Nodes("a"), rec.Steps[0].Partial);
+        Assert.Equal("accept a", rec.Steps[0].Caption);
+    }
+
+    [Fact]
+    public void TimeLimit_ThrowsOnTheNextStepAfterTheLimit_EvenPastTheCap() {
+        var rec = new StepRecorder<NodeSet>(cap: 1, timeLimit: TimeSpan.FromMilliseconds(30));
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        int lambdaCalls = 0;
+        Action runForever = () => {
+            while (true) rec.Reject(() => { lambdaCalls++; return Nodes("x"); }, () => "r");
+        };
+        Assert.Throws<StepBudgetExceededException>(runForever);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5));
+        Assert.Single(rec.Steps);
+        Assert.Equal(1, lambdaCalls);   // the clock is checked on skipped steps without running their lambdas
+        Assert.True(rec.Total > 1);
+    }
+
+    [Fact]
+    public void NoTimeLimit_NeverThrows() {
+        var rec = new StepRecorder<NodeSet>(cap: 1);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < 50) rec.Reject(() => Nodes("x"), () => "r");
+        rec.Done(Nodes("x"), false, "done");
+        Assert.Equal(StepEvent.Done, rec.Steps[^1].Event);
+    }
+
+    [Fact]
+    public void Record_StoppedRun_EndsWithAStoppedDone_AndIsMarkedTimedOut() {
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(20), rec => {
+            for (int i = 0; ; i++) {
+                int n = i;
+                if (n == 3) rec.Accept(() => Nodes("win"), () => "accept");
+                else rec.Reject(() => Nodes(n.ToString()), () => $"reject {n}");
+            }
+        });
+
+        Assert.True(run.TimedOut);
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, run.Answer);
+        Assert.NotEqual("{}", run.Answer);
+        var steps = run.Steps.Cast<SolverStep<NodeSet>>().ToList();
+        Assert.True(steps.Count <= StepRecorder<NodeSet>.DefaultCap + 2);
+        var done = steps[^1];
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.Matches(@"^Stopped after 0\.02 s and [\d,]+ steps; the solver had not finished\. \([\d,]+ not shown\)$", done.Caption);
+        // Its partial is the last kept partial.
+        Assert.Equal(steps[^2].Partial, done.Partial);
+        Assert.Equal(1, steps.Count(s => s.Event == StepEvent.Done));
+    }
+
+    [Fact]
+    public void Record_WithStepsOff_IgnoresTheTimeLimit() {
+        int calls = 0;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(false, TimeSpan.FromMilliseconds(1), rec => {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (sw.ElapsedMilliseconds < 40) { calls++; rec.Reject(() => Nodes("x"), () => "r"); }
+            return "{a}";
+        });
+        Assert.False(run.TimedOut);
+        Assert.Equal("{a}", run.Answer);
+        Assert.Empty(run.Steps);
+        Assert.True(calls > 0);
+    }
+
     [Fact]
     public void Shapes_HaveValueEquality_IndependentOfOrder() {
         Assert.Equal(Nodes("b", "a", "a"), Nodes("a", "b"));
