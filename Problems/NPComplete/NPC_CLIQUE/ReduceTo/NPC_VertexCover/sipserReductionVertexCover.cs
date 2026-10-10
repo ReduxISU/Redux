@@ -165,12 +165,8 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
     public NodeSet EmptyAnswer() => new NodeSet([]);
 
-    // "{}" as B's answer: the empty cover is real when B's graph has no edges (K = N in A, so B's
-    // budget is 0). VCVerifier refuses empty text, so the rule is spelled out here.
-    public bool TargetAcceptsEmpty() => reductionTo.edges.Count == 0 && reductionTo.K >= 0;
-
-    // "{}" as A's answer: the empty clique is real only when K = 0. CliqueVerifier refuses empty text.
-    public bool SourceAcceptsEmpty() => reductionFrom.K == 0;
+    // "{}" on either side keeps the default (the verifiers, which read it as the empty set): the empty cover is
+    // real when B's graph has no edges (K = N in A, so B's budget is 0), the empty clique only when A's K = 0.
 
     // Backward map: the clique is the nodes the cover leaves out (an independent set in the complement
     // graph is a clique in the original). A cover smaller than N-K leaves out more than K nodes; any K

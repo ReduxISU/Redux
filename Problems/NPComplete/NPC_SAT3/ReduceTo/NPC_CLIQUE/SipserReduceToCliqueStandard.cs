@@ -374,10 +374,8 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
 
     public Assignment EmptyAnswer() => new Assignment([]);
 
-    // "{}" as B's answer is a real (empty) clique only when K, the number of clauses, is 0. CliqueVerifier
-    // refuses empty text, so the rule is spelled out here. A's answer is an assignment, never "{}", so
-    // SourceAcceptsEmpty keeps the default.
-    public bool TargetAcceptsEmpty() => reductionTo.K == 0;
+    // "{}" as B's answer is a real (empty) clique only when K, the number of clauses, is 0, which CliqueVerifier
+    // decides; A's answer is an assignment, never "{}". Both keep the default.
 
     // Backward map: the clique picks one literal node per clause, and making those literals true
     // satisfies every clause. Nodes are named '<literal>_<clauseIdx>' (see SipserNodes). A variable the
