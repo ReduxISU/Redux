@@ -11,6 +11,17 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 }
 
 /// <summary>
+/// The backward map could not read the answer the solver gave for the target. The input was fine (the solver produced the
+/// answer, not the caller), so the endpoint answers it with a 500 that names the solver and its answer, and logs it.
+/// </summary>
+sealed class SolverAnswerUnmappableException(string solver, string answer, string detail, Exception inner) : Exception(detail, inner) {
+    /// <summary>The solver's display name.</summary>
+    public string Solver { get; } = solver;
+    /// <summary>The answer the backward map could not read.</summary>
+    public string Answer { get; } = answer;
+}
+
+/// <summary>
 /// Builds the payload of <c>/ProblemProvider/reductionView</c> (picture type <see cref="VisualizationType.Reduction"/>):
 /// the source and target instances, each with its own picture payload, the gadget map between them, and one list of frames in
 /// three phases. Nothing here draws: every pane's states come from the problem's own <see cref="IFramesVisualization"/>, so a
@@ -47,7 +58,8 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 /// the solution and highlights the element being read. Each step's <c>targetFocus</c> is the target element read, its
 /// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. The last frame's <c>ok</c> is the backward
 /// map's own Done verdict: the source problem's verifier on the mapped-back answer. When the solver was stopped there is no
-/// answer, so the phase is a single Done frame (<c>ok</c> false) saying there is nothing to map back.
+/// answer, so the phase is a single Done frame (<c>ok</c> false) saying there is nothing to map back. When the backward map
+/// cannot read the solver's answer, <see cref="Create"/> throws <see cref="SolverAnswerUnmappableException"/>.
 /// </para>
 /// </summary>
 static class ReductionView {
@@ -149,7 +161,14 @@ static class ReductionView {
                 false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
             return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
         }
-        SolveRun mapped = mapBack(solved.Answer);
+        SolveRun mapped;
+        try {
+            mapped = mapBack(solved.Answer);
+        } catch (Exception ex) when (ex is ReductionInputException or CertificateParseException || ParseGuard.IsCertificateParseFailure(ex)) {
+            // The answer came from the solver, not the caller, so this is not bad input: it is the solver and the backward map
+            // disagreeing about the target's certificate format.
+            throw new SolverAnswerUnmappableException(solver.solverName, solved.Answer, ex.Message, ex);
+        }
         if (mapped.StepShape != sourceShape)
             throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture cannot draw the backward map's steps.");
         var mapSteps = mapped.Steps.Select(ReadStep).ToList();

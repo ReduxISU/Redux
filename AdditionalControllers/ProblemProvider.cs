@@ -24,10 +24,15 @@ public class ProblemProvider : ControllerBase {
     public const double DefaultSolveTimeLimitSeconds = 10;
 
     private readonly IConfiguration? _configuration;
+    private readonly ILogger<ProblemProvider>? _logger;
 
-    /// <summary>Creates the controller; <paramref name="configuration"/> supplies the solve time limit.</summary>
-    public ProblemProvider(IConfiguration? configuration = null) {
+    /// <summary>
+    /// Creates the controller; <paramref name="configuration"/> supplies the solve time limit, <paramref name="logger"/>
+    /// records server-side failures (such as a solver answer the backward map cannot read).
+    /// </summary>
+    public ProblemProvider(IConfiguration? configuration = null, ILogger<ProblemProvider>? logger = null) {
         _configuration = configuration;
+        _logger = logger;
     }
 
     /// <summary>
@@ -663,9 +668,22 @@ public class ProblemProvider : ControllerBase {
             return Content(view.ToJsonString(FramesResponse.JsonOptions), "application/json");
         } catch (ReductionViewException ex) {
             return BadRequest(new { error = ex.Error, reduction, detail = ex.Message });
+        } catch (SolverAnswerUnmappableException ex) {
+            return SolverAnswerUnmappable(reduction, ex);
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
+    }
+
+    /// <summary>
+    /// The 500 for a solver answer the backward map cannot read: the caller's input was fine, so it is not reported as a parse
+    /// error of theirs. Logged, since it is a disagreement between two parts of the server (the solver and the backward map).
+    /// </summary>
+    internal IActionResult SolverAnswerUnmappable(string reduction, SolverAnswerUnmappableException ex) {
+        _logger?.LogError(ex, "Reduction View {Reduction}: the backward map cannot read solver {Solver}'s answer {Answer}: {Detail}",
+            reduction, ex.Solver, ex.Answer, ex.Message);
+        return StatusCode(StatusCodes.Status500InternalServerError,
+            new { error = "solver_answer_unmappable", reduction, solver = ex.Solver, answer = ex.Answer, detail = ex.Message });
     }
 
     private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail, string? problem = null) {
