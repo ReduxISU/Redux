@@ -1,9 +1,11 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-class Sat3DefaultVisualization : IVisualization<SAT3> {
+class Sat3DefaultVisualization : IVisualization<SAT3>, IGroupedGraphVisualization<SAT3> {
     public string visualizationName { get; } = "3SAT Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for 3SAT";
     public string source { get; } = "";
@@ -45,4 +47,10 @@ class Sat3DefaultVisualization : IVisualization<SAT3> {
 
         return sat;
     }
+
+    // --- Grouped Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Assignment);
+
+    GroupedGraphSpec IGroupedGraphVisualization<SAT3>.Describe(SAT3 problem) =>
+        GroupedGraphSpec.FromLiterals(problem.clauses);
 }
