@@ -314,15 +314,26 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Frames_Sat_FirstFrameIsTheFirstCandidate_AndTheFailedClauseIsRejected() {
-        var (_, body) = await Visualize($"visualization={SatVis}&format=frames", DefaultInstance(SatVis));
+        // The default instance is satisfied by the first candidate, all-false (#754), so use one whose third clause fails it.
+        var (_, body) = await Visualize($"visualization={SatVis}&format=frames", "(!x1 | x2) & (!x2 | x3) & (x1 | x2 | x3)");
         var first = Frames(body)[0];
         Assert.Equal("Reject", first.GetProperty("event").GetString());
-        Assert.Equal("Try x3 = False, x4 = False, x2 = False, x1 = True: clause C3 (x4 | x3 | !x1) has no true literal.", first.GetProperty("caption").GetString());
+        Assert.Equal("Try x1 = False, x2 = False, x3 = False: clause C3 (x1 | x2 | x3) has no true literal.", first.GetProperty("caption").GetString());
         Assert.Equal(["c2"], first.GetProperty("focus").EnumerateArray().Select(x => x.GetString()));
         Assert.Equal("Rejected", States(first, "groups")["c2"]);
         // Every literal of the failed clause is Rejected; the others hold true literals.
         Assert.Equal(["c2-0", "c2-1", "c2-2"], States(first, "nodes").Where(n => n.Value == "Rejected").Select(n => n.Key).Order());
         Assert.Equal(["c0", "c1"], States(first, "groups").Where(g => g.Value == "Covered").Select(g => g.Key).Order());
+    }
+
+    [Fact]
+    public async Task Frames_Sat_DefaultInstance_FirstCandidateIsAllFalse_AndIsAccepted() {
+        // #754: the brute force counter starts at all-false, which satisfies the default instance.
+        var (_, body) = await Visualize($"visualization={SatVis}&format=frames", DefaultInstance(SatVis));
+        var first = Frames(body)[0];
+        Assert.Equal("Accept", first.GetProperty("event").GetString());
+        Assert.Equal("Try x3 = False, x4 = False, x2 = False, x1 = False: every clause has a true literal.", first.GetProperty("caption").GetString());
+        Assert.All(Assignment(first).Values, v => Assert.False(v));
     }
 
     [Theory]
