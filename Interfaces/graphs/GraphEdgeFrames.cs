@@ -31,14 +31,16 @@ sealed record GraphEdgeSpec(IReadOnlyList<string> Nodes, IReadOnlyList<GraphEdge
 /// <para>
 /// Edges answer, from the partial <see cref="EdgeSet"/> (edge keys are the payload's edge ids, <c>"a-b"</c>):
 /// chosen edges are <c>Solution</c>; a node an edge of the answer touches is <c>Covered</c> (the nodes joined so
-/// far); what the solver is looking at is <c>ElementHighlight</c>, or <c>Rejected</c> in a
+/// far). In a step that only tries a candidate (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/>) those edges
+/// and nodes are <c>ElementHighlight</c> instead (see <see cref="GraphSubsetFrames.Picked"/>). What the solver is looking at is <c>ElementHighlight</c>, or <c>Rejected</c> in a
 /// <see cref="StepEvent.Reject"/> step (an edge that would close a cycle, a terminal that is not reached).
 /// Everything else is Background. Steiner terminals are not a state: the payload marks them (<c>terminal: true</c>).
 /// </para>
 /// <para>
 /// Cut answer, from the partial <see cref="Groups"/> (node id to 0, the S side, or 1, the T side): the frame carries
 /// the split as <c>groups</c> (an annotation, so the frontend can color the sides) and every edge that crosses it
-/// is <c>Solution</c>, tentative or not. Nodes keep their ordinary states.
+/// is <c>Solution</c>, or <c>ElementHighlight</c> in a step that only tries the split (Try, Reject). Nodes keep their
+/// ordinary states.
 /// </para>
 /// </summary>
 static class GraphEdgeFrames {
@@ -101,11 +103,15 @@ static class GraphEdgeFrames {
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
 
+        // A candidate only being tried (Try, Reject) is highlighted, edges and the nodes they touch alike; a set the solver
+        // has taken, and the answer, are Solution edges joining Covered nodes.
+        var picked = GraphSubsetFrames.Picked(ev);
+        var touched = picked == PictureState.Solution ? PictureState.Covered : PictureState.ElementHighlight;
         foreach (var id in partial.Edges) {
             if (!byId.TryGetValue(id, out var e)) continue;
-            GraphSubsetFrames.Raise(edgeStates, id, PictureState.Solution);
-            GraphSubsetFrames.Raise(nodes, e.A, PictureState.Covered);
-            GraphSubsetFrames.Raise(nodes, e.B, PictureState.Covered);
+            GraphSubsetFrames.Raise(edgeStates, id, picked);
+            GraphSubsetFrames.Raise(nodes, e.A, touched);
+            GraphSubsetFrames.Raise(nodes, e.B, touched);
         }
         MarkFocus(focus, ev, nodeIds, new HashSet<string>(byId.Keys, StringComparer.Ordinal), nodes, edgeStates);
 
@@ -124,7 +130,7 @@ static class GraphEdgeFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         foreach (var e in edges)
             if (groups.TryGetValue(e.A, out int ga) && groups.TryGetValue(e.B, out int gb) && ga != gb)
-                GraphSubsetFrames.Raise(edgeStates, e.Id, PictureState.Solution);
+                GraphSubsetFrames.Raise(edgeStates, e.Id, GraphSubsetFrames.Picked(ev));
         // A rejected split is not an element that failed (nothing in it is wrong, it is just the wrong size), so its focus is
         // only highlighted; the event tells the frontend it was rejected.
         MarkFocus(focus, StepEvent.Try, nodeIds, new HashSet<string>(edges.Select(e => e.Id), StringComparer.Ordinal), nodes, edgeStates);
@@ -206,16 +212,12 @@ static class GraphEdgeFrames {
 
     // ---- The whole response ----
 
-    private static void CheckEdgeIds(GraphEdgeSpec spec) =>
-        GraphSubsetFrames.CheckEdgeIds(spec.Edges.Select(e => (e.A, e.B)), GraphSubsetFrames.EdgeId);
-
     /// <summary>
     /// The whole response for an edges answer: the payload, a frame per kept step, then a solved frame built from the
     /// answer unless the last step already is the Done step. A run stopped by its time limit ends with
     /// <see cref="GraphSubsetFrames.StoppedFrame"/> instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse BuildEdges(GraphEdgeSpec spec, SolveRun run, Func<string, EdgeSet> parseAnswer, Func<string, bool> verifyAnswer) {
-        CheckEdgeIds(spec);
         var frames = new List<object>();
         SolverStep<EdgeSet>? last = null;
         foreach (var step in run.StepsFor(typeof(EdgeSet)).OfType<SolverStep<EdgeSet>>()) {
@@ -241,7 +243,6 @@ static class GraphEdgeFrames {
 
     /// <summary>The same for a cut answer.</summary>
     public static FramesResponse BuildCut(GraphEdgeSpec spec, SolveRun run, Func<string, Groups> parseAnswer, Func<string, bool> verifyAnswer) {
-        CheckEdgeIds(spec);
         var frames = new List<object>();
         SolverStep<Groups>? last = null;
         foreach (var step in run.StepsFor(typeof(Groups)).OfType<SolverStep<Groups>>()) {
@@ -277,12 +278,12 @@ interface IGraphEdgesVisualization<TProblem> : IFramesVisualization where TProbl
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphEdgeFrames.BuildEdges(Describe(problem), run,
+        return GraphEdgeFrames.BuildEdges(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            }));
+            });
     }
 }
 
@@ -304,10 +305,10 @@ interface IGraphCutVisualization<TProblem> : IFramesVisualization where TProblem
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphEdgeFrames.BuildCut(Describe(problem), run,
+        return GraphEdgeFrames.BuildCut(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            }));
+            });
     }
 }
