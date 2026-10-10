@@ -104,7 +104,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
             }
 
         }
-        rec.Done(new EdgeSet([]), false, $"Checked {tried} candidate edge sets. None connects every terminal using at most {steiner.K} edges.");
+        rec.Done(new EdgeSet([]), false, $"Checked {tried} candidate edge sets. None of them connects every terminal using at most {steiner.K} edges.");
         return "{}";
     }
 

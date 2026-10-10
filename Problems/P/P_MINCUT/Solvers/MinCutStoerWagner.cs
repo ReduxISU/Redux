@@ -42,6 +42,7 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
 
         List<string> cutEdgeParts = new();
         HashSet<string> seen = new();
+        int listedWeight = 0;
         foreach (var edge in problem.edges) {
             int u = nodeIndex[edge.source];
             int v = nodeIndex[edge.destination];
@@ -50,10 +51,16 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
             string key = $"{Math.Min(u, v)}-{Math.Max(u, v)}";
             if (!seen.Add(key)) continue;
             cutEdgeParts.Add("({" + edge.source + "," + edge.destination + "}," + edge.weight + ")");
+            listedWeight += edge.weight;
         }
 
-        rec.Done(GraphEdgeFrames.Split(problem.nodes, minSide.Select(i => problem.nodes[i])), true,
-            minWeight == 0
+        // The answer lists one edge per pair of nodes, but Stoer-Wagner adds parallel edges up, so with parallel edges the
+        // answer can weigh less than the cut it names. The verifier then refuses it, and so must the Done step.
+        bool listsTheCut = listedWeight == minWeight;
+        rec.Done(GraphEdgeFrames.Split(problem.nodes, minSide.Select(i => problem.nodes[i])), listsTheCut,
+            !listsTheCut
+                ? $"The minimum cut weighs {minWeight}, but the answer lists one edge per pair of nodes, weighing {listedWeight}, so it does not show that cut."
+            : minWeight == 0 && cutEdgeParts.Count == 0
                 ? "The graph is already in more than one piece, so the minimum cut weighs 0."
                 : $"The minimum cut weighs {minWeight}: {GraphEdgeFrames.Side(minSide.Select(i => problem.nodes[i]))} against {GraphEdgeFrames.Side(problem.nodes.Where((_, i) => !minSide.Contains(i)))}.");
         return "{" + string.Join(",", cutEdgeParts) + "}";

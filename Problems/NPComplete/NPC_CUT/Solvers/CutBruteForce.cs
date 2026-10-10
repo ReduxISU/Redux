@@ -118,7 +118,7 @@ class CutBruteForce : ISolver<CUT, Groups> {
             }
         }
         if (cut.K == 0) rec.Done(new Groups([]), true, "A cut of size 0 needs no edges.");
-        else rec.Done(new Groups([]), false, $"Checked {tried} ways to pick the S side. None cuts exactly {cut.K} edges.");
+        else rec.Done(new Groups([]), false, $"Checked {tried} S sides of at most {Math.Min(cut.K, cut.nodes.Count)} nodes (this solver tries no larger ones). None cuts exactly {cut.K} edges.");
         return "{}";
     }
 }

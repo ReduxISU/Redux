@@ -107,13 +107,13 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING, Groups> {
                 return certificate;
             }
             rec.Reject(() => new Groups(Candidate()),
-                () => $"Try {GraphGroupFrames.Classes(Candidate(), numColors)}: {GraphGroupFrames.Why(GroupRule.Coloring, gColor.nodes, gColor.edges, Candidate())?.Reason}.",
+                () => $"Try {GraphGroupFrames.Classes(Candidate(), numColors)}: {GraphGroupFrames.Why(GroupRule.Coloring, gColor.nodes, gColor.edges, Candidate())?.Reason ?? "the verifier rejects it"}.",
                 () => GraphGroupFrames.Why(GroupRule.Coloring, gColor.nodes, gColor.edges, Candidate())?.Focus ?? Array.Empty<string>());
             nextBinary(binary, numColors);
 
         } while (binary.Count(n => n == (numColors - 1)) < gColor.nodes.Count);
 
-        rec.Done(new Groups([]), false, $"Checked all {tried} ways to give the nodes one of {numColors} colors. None has every node colored with no clash.");
+        rec.Done(new Groups([]), false, $"Checked {tried} candidate colorings with {numColors} colors. None has every node colored with no clash.");
         return "{}";
     }
 }
