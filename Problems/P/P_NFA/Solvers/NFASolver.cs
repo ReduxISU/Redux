@@ -149,7 +149,12 @@ class NFASolver : ISolver<NFA, ActiveStates> {
     // every accepting run (same detection condition as `solve`) plus every rejected "dead end"
     // (a branch where no further epsilon/symbol transition applies). Rejected leaves are only
     // discovered here; `solve` already visits them, it just never recorded them.
-    public List<NFAPathRun> GetPathRuns(NFA problem) {
+    public List<NFAPathRun> GetPathRuns(NFA problem) => GetPathRuns(problem, StepRecorder<ActiveStates>.Off);
+
+    // As above, recording a Try for every move it takes, the moves `Solve` records, so a recorder with a time limit
+    // stops it (with StepBudgetExceededException) just as it stops `Solve` (#764). The table needs every run, so
+    // NFATableVisualization passes a recorder that keeps no steps (cap 0) and only watches the clock.
+    public List<NFAPathRun> GetPathRuns(NFA problem, StepRecorder<ActiveStates> rec) {
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
 
@@ -176,6 +181,8 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                 path.Add(e.To);
                 transitions.Add(new NFAPathTransition { from = state, symbol = "ε", to = e.To });
                 expanded = true;
+                rec.Try(() => new ActiveStates([e.To], pos),
+                    () => $"Take an ε-move from {state} to {e.To}.", state, e.To);
                 DFS(e.To, pos, path, transitions, visitedPerPath);
                 transitions.RemoveAt(transitions.Count - 1);
                 path.RemoveAt(path.Count - 1);
@@ -192,6 +199,8 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                     path.Add(e.To);
                     transitions.Add(new NFAPathTransition { from = state, symbol = need.ToString(), to = e.To });
                     expanded = true;
+                    rec.Try(() => new ActiveStates([e.To], pos + 1),
+                        () => $"Read '{need}': move from {state} to {e.To}.", state, e.To);
                     DFS(e.To, pos + 1, path, transitions, visitedPerPath);
                     transitions.RemoveAt(transitions.Count - 1);
                     path.RemoveAt(path.Count - 1);
@@ -236,8 +245,11 @@ class NFASolver : ISolver<NFA, ActiveStates> {
     // since NFA has no single run). Each table lists every transition in that run, in full, so it
     // can be shown at once in a scrollable table. Stepping through the existing step slider pages
     // between runs.
-    public List<Object> GetTableSteps(NFA problem) {
-        var runs = GetPathRuns(problem);
+    public List<Object> GetTableSteps(NFA problem) => GetTableSteps(problem, StepRecorder<ActiveStates>.Off);
+
+    // As above, under rec's time limit (see GetPathRuns).
+    public List<Object> GetTableSteps(NFA problem, StepRecorder<ActiveStates> rec) {
+        var runs = GetPathRuns(problem, rec);
         var steps = new List<Object>();
 
         for (int i = 0; i < runs.Count; i++) {

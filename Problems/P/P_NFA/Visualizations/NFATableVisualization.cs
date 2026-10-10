@@ -36,25 +36,44 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
         return new API_empty();
     }
 
-    public List<API_JSON> StepsVisualization(NFA problem, List<Object> steps) {
-        var nfaSolver = new NFASolver();
-        var tableSteps = nfaSolver.GetTableSteps(problem);
-        return tableSteps.Select(s => (API_JSON)TranslateToTableJSON((NFATableStep)s)).ToList();
+    public List<API_JSON> StepsVisualization(NFA problem, List<Object> steps) => Tables(problem, null);
+
+    // The visualize endpoint's entry point. The tables come from re-enumerating every run (GetTableSteps), not from
+    // the steps, so that enumeration gets the endpoint's time limit: it can take as long as the solve (#764).
+    List<API_JSON> IVisualization.StepsVisualization(string problem, List<Object> steps, TimeSpan? timeLimit) {
+        if (steps.Count == 0)
+            return new List<API_JSON>();
+        return Tables(ParseGuard.CreateProblem<NFA>(problem), timeLimit);
     }
+
+    // One table per run; when the time limit runs out first, one empty table that says so instead.
+    private static List<API_JSON> Tables(NFA problem, TimeSpan? timeLimit) {
+        var rec = timeLimit is null ? StepRecorder<ActiveStates>.Off : new StepRecorder<ActiveStates>(cap: 0, timeLimit);
+        try {
+            var tableSteps = new NFASolver().GetTableSteps(problem, rec);
+            return tableSteps.Select(s => (API_JSON)TranslateToTableJSON((NFATableStep)s)).ToList();
+        } catch (StepBudgetExceededException ex) when (ex.Recorder == rec) {
+            return new List<API_JSON> { new API_TableJSON { title = StoppedTitle, columns = Columns() } };
+        }
+    }
+
+    internal const string StoppedTitle = "Stopped: the time limit ran out before every run was listed.";
+
+    private static List<TableColumn> Columns() => new List<TableColumn>
+    {
+        new TableColumn { key = "step", label = "Step" },
+        new TableColumn { key = "symbol", label = "Symbol" },
+        new TableColumn { key = "fromState", label = "From State" },
+        new TableColumn { key = "toState", label = "To State" },
+        new TableColumn { key = "accepting", label = "Accepting" }
+    };
 
     private static API_TableJSON TranslateToTableJSON(NFATableStep step) {
         // Unlike DFA/SPSP/SSSP, consecutive frames here are different runs rather than later
         // moments of one run, so the caption is what tells the reader which of them they are on.
         var result = new API_TableJSON {
             title = $"Run {step.pathIndex + 1} of {step.pathCount} — {(step.accepted ? "Accepted" : "Rejected")}",
-            columns = new List<TableColumn>
-            {
-                new TableColumn { key = "step", label = "Step" },
-                new TableColumn { key = "symbol", label = "Symbol" },
-                new TableColumn { key = "fromState", label = "From State" },
-                new TableColumn { key = "toState", label = "To State" },
-                new TableColumn { key = "accepting", label = "Accepting" }
-            }
+            columns = Columns()
         };
 
         for (int i = 0; i < step.rows.Count; i++) {
