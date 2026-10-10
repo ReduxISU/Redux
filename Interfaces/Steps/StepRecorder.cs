@@ -92,13 +92,17 @@ sealed class StepRecorder<TPartial> {
     }
 
     /// <summary>
-    /// Closes a run that was stopped by the time limit: a Done step with ok = false whose partial is the last kept
-    /// partial (default when nothing was kept) and whose caption says the solver had not finished.
+    /// Closes a run that was stopped by the time limit: a Done step with ok = false whose caption says the solver had
+    /// not finished. The solver has no answer, so for an answer shape (see <see cref="Shapes.EmptyAnswer"/>) the partial
+    /// is the empty answer: the last candidate it looked at was not an answer, and a picture must not draw it as one.
+    /// For <see cref="ActiveStates"/> (and any other shape) it is the last kept partial, default when nothing was kept:
+    /// the states the run is in are where it stopped, not a claimed answer.
     /// </summary>
     internal void DoneStopped() {
         if (!_enabled) return;
         int reported = _total;
-        TPartial last = _lastAcceptPastCap != null ? _lastAcceptPastCap.Partial
+        TPartial last = Shapes.EmptyAnswer(typeof(TPartial)) is TPartial empty ? empty
+            : _lastAcceptPastCap != null ? _lastAcceptPastCap.Partial
             : _steps.Count > 0 ? _steps[^1].Partial
             : default!;
         string seconds = (_timeLimit ?? TimeSpan.Zero).TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);

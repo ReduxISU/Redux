@@ -218,9 +218,37 @@ public class StepRecorder_Tests {
         Assert.False(done.Ok);
         // Under load the budget can run out on the very first step, so the count may be "1 step" with nothing hidden.
         Assert.Matches(@"^Stopped after 0\.02 s and [\d,]+ steps?; the solver had not finished\.( \([\d,]+ not shown\))?$", done.Caption);
-        // Its partial is the last kept partial.
-        Assert.Equal(steps[^2].Partial, done.Partial);
+        // The solver had no answer, so its partial is the empty set, not the last candidate it looked at.
+        Assert.Equal(Nodes(), done.Partial);
+        Assert.NotEqual(steps[^2].Partial, done.Partial);
         Assert.Equal(1, steps.Count(s => s.Event == StepEvent.Done));
+    }
+
+    [Fact]
+    public void Record_StoppedRun_OfEveryAnswerShape_EndsWithTheEmptyAnswer() {
+        Assert.Equal(new EdgeSet([]), StoppedDone(new EdgeSet(["a-b"])).Partial);
+        Assert.Equal(new Groups([]), StoppedDone(new Groups([new("a", 0)])).Partial);
+        Assert.Equal(new Tour([]), StoppedDone(new Tour(["a", "b"])).Partial);
+        Assert.Equal(new Assignment([]), StoppedDone(new Assignment([new("x1", "True")])).Partial);
+        Assert.Equal(new ChosenSets([]), StoppedDone(new ChosenSets(["1"])).Partial);
+    }
+
+    [Fact]
+    public void Record_StoppedRun_OfActiveStates_KeepsTheStatesTheRunIsIn() {
+        // Where an automaton run stopped is not a claimed answer, and the automaton pictures do not draw Done.
+        Assert.Equal(new ActiveStates(["q1"], 2), StoppedDone(new ActiveStates(["q1"], 2)).Partial);
+    }
+
+    // Runs a solver that records `partial` until the time limit stops it, and returns the stopped Done step.
+    private static SolverStep<T> StoppedDone<T>(T partial) {
+        var run = API.Interfaces.SolveRun.Record<T>(true, TimeSpan.FromMilliseconds(5), rec => {
+            while (true) rec.Reject(() => partial, () => "reject");
+        });
+        Assert.True(run.TimedOut);
+        var done = (SolverStep<T>)run.Steps[^1];
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        return done;
     }
 
     [Fact]
