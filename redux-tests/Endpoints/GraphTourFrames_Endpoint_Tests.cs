@@ -332,6 +332,27 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.True(frames[^1].GetProperty("ok").GetBoolean());
     }
 
+    // a and b are joined twice, 10 then 1 (#769). Minimum TSP uses the lightest, so the cheapest tour a-b-c-d-a costs 4: the
+    // payload draws one a-b edge weighing 1 and labelled "10,1", and the captions and the answer use the 1. Before #769
+    // the instance was refused ("more than one edge joins a and b").
+    [Fact]
+    public async Task Frames_MinimumTsp_ParallelEdges_AreOneEdge_WeighingTheLightest() {
+        const string instance = "({a,b,c,d},{({a,b},10),({a,b},1),({b,c},1),({c,d},1),({d,a},1),({a,c},5),({b,d},5)})";
+        var (status, body) = await Visualize($"visualization={MinTspVis}&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        var edges = root.GetProperty("payload").GetProperty("edges").EnumerateArray().ToDictionary(e => e.GetProperty("id").GetString()!, e => e);
+        Assert.Equal(6, edges.Count);
+        Assert.Equal(1, edges["a-b"].GetProperty("weight").GetInt32());
+        Assert.Equal("10,1", edges["a-b"].GetProperty("label").GetString());
+        Assert.Single(edges.Values, e => e.TryGetProperty("label", out _));
+        var frames = Frames(body);
+        Assert.All(frames, f => Assert.All(States(f, "edges").Keys, id => Assert.Contains(id, edges.Keys)));
+        Assert.StartsWith("Try a → b → c → d → a: cost 4, the first tour found", frames[0].GetProperty("caption").GetString());
+        Assert.Equal(["a", "b", "c", "d", "a"], Order(frames[^1]));
+        Assert.True(frames[^1].GetProperty("ok").GetBoolean());
+    }
+
     [Fact]
     public async Task Frames_MinimumTsp_PastTheCap_TheLastAcceptIsKeptAndDrawnAsSolution() {
         // K7 whose only cheapest tour, a-f-b-d-c-e-g-a (cost 7), is found long after the first 150 orderings.
