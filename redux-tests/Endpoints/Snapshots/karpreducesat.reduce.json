@@ -1,0 +1,170 @@
+{
+  "reductionName": "Karp\u0027s SAT Reduction",
+  "reductionDefinition": "Karp\u0027s reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.",
+  "source": "http://cs.bme.hu/thalg/3sat-to-3col.pdf.",
+  "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/ReduceTo/NPC_SAT/KarpReduceSAT.cs",
+  "contributors": [
+    "Daniel Igbokwe"
+  ],
+  "visualization": {
+    "visualizationName": "",
+    "visualizationDefinition": "This is a placeholder visualization class for problems with no visualization",
+    "visualizationType": "Unimplemented",
+    "source": " ",
+    "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+    "contributors": [
+      ""
+    ],
+    "solver": {
+      "solverName": "",
+      "solverDefinition": "This is a placeholder solver class for DummyVisualization",
+      "source": "",
+      "sourceFile": "Interfaces/DummyClasses/DummySolver.cs",
+      "contributors": [
+        ""
+      ],
+      "timerHasExpired": false,
+      "solverType": "Unclassified",
+      "complexity": "",
+      "complexityBucket": "Unclassified"
+    }
+  },
+  "gadgets": [],
+  "reductionFrom": {
+    "problemName": "Graph Coloring",
+    "formalDefinition": "GRAPHCOLORING = {\u003CG,k\u003E | G is a graph that has a k-coloring}",
+    "problemDefinition": "An assignment of labels (e.g., colors) to the vertices of a graph such that no two adjacent vertices are of the same label. This is called a vertex coloring.",
+    "inputDescription": "G, a graph, and k, the number of colors",
+    "outputDescription": "True or False, whether G has a valid k-coloring",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/GRAPHCOLORING_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "instance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "certificateFormat": "Format: {c1,...,cK} | color classes partition N, no edge in E has both endpoints in the same class Example: {{a},{b,d,f,h},{c,e,g,i}}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Daniel Igbokwe",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Graph Coloring Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Graph Coloring problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O((numColors\u002B1)^n * n^2 * m), n = |nodes|, m = |edges|, numColors = min(K, n)",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Graph Coloring Verifier",
+      "verifierDefinition": "This is a verifier for Graph Coloring.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Verifiers/GraphColoringVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Graph Coloring Visualization",
+      "visualizationDefinition": "This is a default visualization for Graph Coloring",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Visualizations/GraphColoringDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic",
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Graph Coloring Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Graph Coloring problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O((numColors\u002B1)^n * n^2 * m), n = |nodes|, m = |edges|, numColors = min(K, n)",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "SAT",
+    "formalDefinition": "SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula}",
+    "problemDefinition": "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in \u0027True\u0027",
+    "inputDescription": "\u03A6, a boolean formula",
+    "outputDescription": "True or False, whether \u03A6 is satisfiable",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SAT/SAT_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(!x3 | x4 | !x2 | x1 | x2) \u0026 (!x4 | !x1) \u0026 (x4 | x3 | !x1)",
+    "instance": "(a0|a1|a2)\u0026(!a0|!a1)\u0026(!a0|!a2)\u0026(!a1|!a2)\u0026(b0|b1|b2)\u0026(!b0|!b1)\u0026(!b0|!b2)\u0026(!b1|!b2)\u0026(c0|c1|c2)\u0026(!c0|!c1)\u0026(!c0|!c2)\u0026(!c1|!c2)\u0026(d0|d1|d2)\u0026(!d0|!d1)\u0026(!d0|!d2)\u0026(!d1|!d2)\u0026(e0|e1|e2)\u0026(!e0|!e1)\u0026(!e0|!e2)\u0026(!e1|!e2)\u0026(f0|f1|f2)\u0026(!f0|!f1)\u0026(!f0|!f2)\u0026(!f1|!f2)\u0026(g0|g1|g2)\u0026(!g0|!g1)\u0026(!g0|!g2)\u0026(!g1|!g2)\u0026(h0|h1|h2)\u0026(!h0|!h1)\u0026(!h0|!h2)\u0026(!h1|!h2)\u0026(i0|i1|i2)\u0026(!i0|!i1)\u0026(!i0|!i2)\u0026(!i1|!i2)\u0026(!a0|!b0)\u0026(!a1|!b1)\u0026(!a2|!b2)\u0026(!b0|!c0)\u0026(!b1|!c1)\u0026(!b2|!c2)\u0026(!a0|!c0)\u0026(!a1|!c1)\u0026(!a2|!c2)\u0026(!d0|!a0)\u0026(!d1|!a1)\u0026(!d2|!a2)\u0026(!d0|!e0)\u0026(!d1|!e1)\u0026(!d2|!e2)\u0026(!a0|!e0)\u0026(!a1|!e1)\u0026(!a2|!e2)\u0026(!a0|!f0)\u0026(!a1|!f1)\u0026(!a2|!f2)\u0026(!f0|!g0)\u0026(!f1|!g1)\u0026(!f2|!g2)\u0026(!g0|!a0)\u0026(!g1|!a1)\u0026(!g2|!a2)\u0026(!a0|!h0)\u0026(!a1|!h1)\u0026(!a2|!h2)\u0026(!h0|!i0)\u0026(!h1|!i1)\u0026(!h2|!i2)\u0026(!i0|!a0)\u0026(!i1|!a1)\u0026(!i2|!a2)",
+    "instanceFormat": "Boolean formula. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has 1\u002B literals of any size. Example: (x1 | !x2 | x3) \u0026 (!x1 | x2)",
+    "certificateFormat": "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
+    "complexityClass": "NPComplete",
+    "problemType": "Logic",
+    "contributors": [
+      "Daniel Igbokwe"
+    ],
+    "defaultSolver": {
+      "solverName": "SAT Brute Force",
+      "solverDefinition": "This is a simple brute force solver for SAT",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT/Solvers/SATBruteForceSolver.cs",
+      "contributors": [
+        "Daniel Igbokwe",
+        "Show Pratoomratana"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default SAT Verifier",
+      "verifierDefinition": "This is a verifier for SAT",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT/Verifiers/SATVerifier.cs",
+      "certificate": "(x1:True)",
+      "contributors": [
+        "Daniel Igbokwe",
+        "Show Pratoomratana"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "",
+      "visualizationDefinition": "This is a placeholder visualization class for problems with no visualization",
+      "visualizationType": "Unimplemented",
+      "source": " ",
+      "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+      "contributors": [
+        ""
+      ],
+      "solver": {
+        "solverName": "",
+        "solverDefinition": "This is a placeholder solver class for DummyVisualization",
+        "source": "",
+        "sourceFile": "Interfaces/DummyClasses/DummySolver.cs",
+        "contributors": [
+          ""
+        ],
+        "timerHasExpired": false,
+        "solverType": "Unclassified",
+        "complexity": "",
+        "complexityBucket": "Unclassified"
+      }
+    }
+  },
+  "cost": "Cubic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}
