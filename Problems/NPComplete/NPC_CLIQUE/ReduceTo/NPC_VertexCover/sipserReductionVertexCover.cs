@@ -70,6 +70,9 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
     }
 
     public sipserReductionVertexCover(string instance) : this(new CLIQUE(instance)) { }
+    // Builds from the instance with rec recording the construction as it goes (IRecordedReduction): the Reduction View
+    // and /buildSteps use it so that one build gives both the reduction and its steps.
+    public sipserReductionVertexCover(string instance, StepRecorder<BuildDelta> rec) : this(new CLIQUE(instance), rec) { }
     public sipserReductionVertexCover() : this(new CLIQUE()) { }
 
     /// <summary>

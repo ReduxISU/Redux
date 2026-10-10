@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 
 namespace API.Interfaces.Steps;
@@ -26,11 +25,13 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 /// </para>
 /// <para>
 /// <b>Build.</b> One frame per construction step (<see cref="BuildDelta"/>). The source pane highlights the source ids the step
-/// was built from. The target pane highlights the target nodes and edges the step added. Target elements not yet built are
+/// was built from. The target pane highlights the target nodes and edges the step added. Both panes are drawn at rest (nothing
+/// chosen, nothing judged), so no element is Solution or Rejected while the target is being built. Target elements not yet built are
 /// hidden by position, not by a state: <c>target.buildOrder</c> lists every target node and edge in the order the steps add them, and
 /// a build frame's <c>target.builtNodes</c> / <c>target.builtEdges</c> say how many of each are on screen (the first n). That is
 /// stateless, so a frame renders on its own when scrubbed to, and it costs one number per frame where a list of the built ids
-/// would repeat a quadratic edge list in every frame. Solve and map frames omit both: the target is complete. <c>target.skipped</c>
+/// would repeat a quadratic edge list in every frame. The steps announce the whole target (past the cap the rest are folded into
+/// one step), so the build ends showing all of it. Solve and map frames omit both: the target is complete. <c>target.skipped</c>
 /// lists the pairs the rule considered and left without an edge, as <c>{ id, a, b }</c>: they are not edges of the picture, so
 /// each gives its two ends (the id is the one the picture would give that edge, never something to split).
 /// </para>
@@ -41,7 +42,8 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 /// unreadable). A solver stopped by the time limit ends the phase with its stopped Done frame (<c>ok</c> false).
 /// </para>
 /// <para>
-/// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer; the target pane keeps
+/// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer as an incremental run (the
+/// part mapped so far stays Solution; only the element being read is highlighted, or Rejected when it is left out); the target pane keeps
 /// the solution and highlights the element being read. Each step's <c>targetFocus</c> is the target element read, its
 /// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. The last frame's <c>ok</c> is the backward
 /// map's own Done verdict: the source problem's verifier on the mapped-back answer. When the solver was stopped there is no
@@ -54,14 +56,17 @@ static class ReductionView {
     /// <summary>The state fields a frame of a picture carries that are not the frame's own envelope.</summary>
     private static readonly string[] Envelope = ["event", "caption", "focus", "ok"];
 
-    /// <param name="red">The reduction, built from the source instance. It must have build steps and a backward map.</param>
+    /// <param name="red">The reduction, built from the source instance. It must have a backward map.</param>
     /// <param name="sourceInstance">The source instance as the caller gave it.</param>
+    /// <param name="buildSteps">The construction steps recorded while <paramref name="red"/> was built (the endpoint builds once
+    /// and records on the way), ending in Done, past the cap folded as <see cref="ConstructionSteps.Limit"/> does. They must
+    /// announce every node and edge of the target: the view shows what they say and adds nothing.</param>
     /// <param name="solver">The solver to run on the target.</param>
     /// <param name="sourceVis">The source problem's picture.</param>
     /// <param name="targetVis">The target problem's picture.</param>
     /// <param name="mapBack">Runs <see cref="IReduction.MapBackRun"/> with steps (the endpoint wraps certificate parse failures).</param>
     /// <param name="solveTimeLimit">The time budget of the solve phase (see <see cref="ISolver.Run"/>); null means no limit.</param>
-    public static JsonObject Create(IReduction red, string sourceInstance, ISolver solver,
+    public static JsonObject Create(IReduction red, string sourceInstance, IReadOnlyList<SolverStep<BuildDelta>> buildSteps, ISolver solver,
         IFramesVisualization sourceVis, IFramesVisualization targetVis, Func<string, SolveRun> mapBack, TimeSpan? solveTimeLimit = null) {
         string targetInstance = red.reductionTo.instance;
         Type sourceShape = sourceVis.StepShape ?? throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture draws no typed steps.");
@@ -70,18 +75,16 @@ static class ReductionView {
         object emptyTarget = EmptyAnswer(targetShape, red.reductionTo.problemName, "no_target_picture");
 
         // The two pictures' static payloads, and a neutral pane (everything Background) for the side that is at rest.
-        var (sourceResponse, neutralSourceFrames) = Render(sourceVis, sourceInstance, [NewStep(sourceShape, emptySource, StepEvent.Try, [], "")], sourceShape);
-        var (targetResponse, neutralTargetFrames) = Render(targetVis, targetInstance, [NewStep(targetShape, emptyTarget, StepEvent.Try, [], "")], targetShape);
-        JsonObject neutralSource = neutralSourceFrames[0].Pane, neutralTarget = neutralTargetFrames[0].Pane;
-        JsonNode targetPayload = ToNode(targetResponse.Payload);
-        var ids = new TargetIds(targetPayload);
+        var (sourceResponse, neutralSourceFrames) = Render(sourceVis, sourceInstance, [AtRest(sourceShape, emptySource, [])], sourceShape);
+        var (targetResponse, _) = Render(targetVis, targetInstance, [AtRest(targetShape, emptyTarget, [])], targetShape);
+        JsonObject neutralSource = neutralSourceFrames[0].Pane;
 
         var frames = new JsonArray();
         var gadgets = red.gadgets;
 
         // ---- Build ----
-        ConstructionRun built = red.BuildRun(true)!;
-        var buildSteps = built.Steps.ToList();
+        // buildOrder is exactly what the steps add, in their order. Nothing is filled in from the picture, so steps that miss an
+        // element (or name it by an id the picture does not have) give a target that never completes, which the tests check.
         var nodeOrder = new List<string>();
         var edgeOrder = new List<string>();
         var nodeSeen = new HashSet<string>(StringComparer.Ordinal);
@@ -92,41 +95,30 @@ static class ReductionView {
         var sourceItems = new List<object>();
         foreach (var step in buildSteps) {
             foreach (string n in step.Partial.Nodes)
-                if (ids.Nodes.Contains(n) && nodeSeen.Add(n)) nodeOrder.Add(n);
+                if (nodeSeen.Add(n)) nodeOrder.Add(n);
             var added = new List<string>();
             foreach (var e in step.Partial.Edges)
-                if (ids.Edges.Contains(e.Id) && edgeSeen.Add(e.Id)) { edgeOrder.Add(e.Id); added.Add(e.Id); }
+                if (edgeSeen.Add(e.Id)) { edgeOrder.Add(e.Id); added.Add(e.Id); }
             counts.Add((nodeOrder.Count, edgeOrder.Count));
             string[] focus = step.Focus.Concat(added).Distinct(StringComparer.Ordinal).ToArray();
             targetFocuses.Add(focus);
-            targetItems.Add(NewStep(targetShape, emptyTarget, StepEvent.Try, focus, ""));
-            sourceItems.Add(NewStep(sourceShape, emptySource, StepEvent.Try, step.Partial.SourceFocus, ""));
+            targetItems.Add(AtRest(targetShape, emptyTarget, focus));
+            sourceItems.Add(AtRest(sourceShape, emptySource, step.Partial.SourceFocus));
         }
-        // The steps announce the whole target (BuildRun folds the steps past the cap into one), but the closing frame shows
-        // every node and edge of the picture whatever the steps said, so a reduction whose steps miss one still ends complete.
-        foreach (string n in ids.NodeList) if (nodeSeen.Add(n)) nodeOrder.Add(n);
-        foreach (string e in ids.EdgeList) if (edgeSeen.Add(e)) edgeOrder.Add(e);
 
         var buildTargetPanes = buildSteps.Count == 0 ? new List<Rendered>() : Render(targetVis, targetInstance, targetItems, targetShape).Frames;
         var buildSourcePanes = buildSteps.Count == 0 ? new List<Rendered>() : Render(sourceVis, sourceInstance, sourceItems, sourceShape).Frames;
         for (int i = 0; i < buildSteps.Count; i++) {
             var step = buildSteps[i];
-            bool last = i == buildSteps.Count - 1 && step.Event == StepEvent.Done;
             var target = buildTargetPanes[i].Pane;
-            target["builtNodes"] = last ? nodeOrder.Count : counts[i].Nodes;
-            target["builtEdges"] = last ? edgeOrder.Count : counts[i].Edges;
+            target["builtNodes"] = counts[i].Nodes;
+            target["builtEdges"] = counts[i].Edges;
             if (step.Partial.Skipped.Length > 0)
                 target["skipped"] = new JsonArray(step.Partial.Skipped.Select(s => (JsonNode)new JsonObject { ["id"] = s.Id, ["a"] = s.A, ["b"] = s.B }).ToArray());
             var frame = Frame(Build, step.Event, step.Caption, step.Ok, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
             if (step.Partial.Bound is int bound) frame["bound"] = bound;
             if (step.Partial.Gadgets.Length > 0) frame["gadgets"] = ToArray(step.Partial.Gadgets);
             frames.Add(frame);
-        }
-        if (buildSteps.Count == 0 || buildSteps[^1].Event != StepEvent.Done) {
-            var closing = neutralTarget.DeepClone().AsObject();
-            closing["builtNodes"] = nodeOrder.Count;
-            closing["builtEdges"] = edgeOrder.Count;
-            frames.Add(Frame(Build, StepEvent.Done, $"{red.reductionTo.problemName} is built.", true, [], [], neutralSource.DeepClone().AsObject(), closing));
         }
 
         // ---- Solve ----
@@ -162,8 +154,11 @@ static class ReductionView {
             throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture cannot draw the backward map's steps.");
         var mapSteps = mapped.Steps.Select(ReadStep).ToList();
         var sourceFocuses = mapSteps.Select(s => SourceIdsOf(gadgets, s.Focus)).ToList();
+        // The backward map builds A's answer one element at a time, so it is drawn as an incremental run: what it has mapped so
+        // far stays Solution in every step, and only the element being read is highlighted (Rejected when it is left out).
         var mapSourceFrames = Render(sourceVis, sourceInstance,
-            mapSteps.Select((s, i) => NewStep(sourceShape, s.Partial, s.Event, sourceFocuses[i], s.Caption, s.Ok)).ToList(), sourceShape, mapped.Answer).Frames;
+            mapSteps.Select((s, i) => NewStep(sourceShape, s.Partial, s.Event, sourceFocuses[i], s.Caption, s.Ok)).ToList(), sourceShape, mapped.Answer,
+            incremental: true).Frames;
         var mapTargetPanes = solvedPartial == null || mapSteps.Count == 0 ? null
             // Drawn as the solve's Done step (with its ok), so the pane is the solved picture: a Try would draw it as a
             // candidate still being tried (highlighted), not as the answer.
@@ -284,6 +279,12 @@ static class ReductionView {
             (string[])t.GetProperty("Focus")!.GetValue(step)!, (string)t.GetProperty("Caption")!.GetValue(step)!, (bool?)t.GetProperty("Ok")!.GetValue(step));
     }
 
+    /// <summary>
+    /// A pane at rest: nothing chosen, only <paramref name="focus"/> highlighted. Drawn as an Accept (a set still being built),
+    /// so a picture that judges whole candidates never fails the empty one (an empty cover would mark every edge Rejected).
+    /// </summary>
+    private static object AtRest(Type shape, object empty, string[] focus) => NewStep(shape, empty, StepEvent.Accept, focus, "");
+
     private static object NewStep(Type shape, object partial, StepEvent ev, string[] focus, string caption, bool? ok = null) {
         Type t = typeof(SolverStep<>).MakeGenericType(shape);
         object step = Activator.CreateInstance(t, partial, ev, focus, caption)!;
@@ -322,27 +323,5 @@ static class ReductionView {
                     if (!result.Contains(id)) result.Add(id);
         }
         return result.ToArray();
-    }
-
-    // ---- The target picture's ids ----
-
-    /// <summary>
-    /// The node and edge ids of a Graph payload. A construction step's edges carry the same ids (<see cref="BuildEdge"/>), so
-    /// they are looked up, never split.
-    /// </summary>
-    private sealed class TargetIds {
-        public List<string> NodeList { get; } = [];
-        public List<string> EdgeList { get; } = [];
-        public HashSet<string> Nodes { get; }
-        public HashSet<string> Edges { get; }
-
-        public TargetIds(JsonNode payload) {
-            foreach (var n in payload["nodes"]?.AsArray() ?? new JsonArray())
-                NodeList.Add(n!["id"]!.GetValue<string>());
-            foreach (var e in payload["edges"]?.AsArray() ?? new JsonArray())
-                EdgeList.Add(e!["id"]!.GetValue<string>());
-            Nodes = new HashSet<string>(NodeList, StringComparer.Ordinal);
-            Edges = new HashSet<string>(EdgeList, StringComparer.Ordinal);
-        }
     }
 }

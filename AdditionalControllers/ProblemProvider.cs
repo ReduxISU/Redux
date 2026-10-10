@@ -140,10 +140,15 @@ public class ProblemProvider : ControllerBase {
     // a parse exception, re-parse the instance with the source problem's own constructor: if that
     // fails the input was malformed (ReductionInputException -> 400); if it succeeds the failure is
     // inside the reduction itself and propagates unchanged.
-    static IReduction Reduction(string name, string instance) {
+    static IReduction Reduction(string name, string instance) => Reduction(name, instance, null);
+
+    // rec, when given, is passed to the constructor that records the construction (IRecordedReduction); the caller has
+    // checked the reduction has one.
+    static IReduction Reduction(string name, string instance, StepRecorder<BuildDelta>? rec) {
         Type type = Reductions[name.ToLower()];
         try {
-            return (IReduction)Activator.CreateInstance(type, instance)!;
+            object[] args = rec == null ? [instance] : [instance, rec];
+            return (IReduction)Activator.CreateInstance(type, args)!;
         } catch (Exception ex) when (ex is not OutOfMemoryException && !IsParseError(ex)) {
             IReduction? template = null;
             try { template = Activator.CreateInstance(type) as IReduction; } catch { /* no default instance to describe */ }
@@ -166,6 +171,24 @@ public class ProblemProvider : ControllerBase {
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, ex.Message, ex);
         }
+    }
+
+    /// <summary>
+    /// The reduction built from <paramref name="instance"/> and the construction steps recorded while it was built, so the
+    /// one build gives both: the steps describe the very target and gadgets the reduction holds. Steps are null when the
+    /// reduction records none. A recorded reduction without the recording constructor (see <see cref="IRecordedReduction{T, U}"/>)
+    /// falls back to <see cref="IReduction.BuildRun"/>, which builds a second time.
+    /// </summary>
+    internal static (IReduction Reduction, IReadOnlyList<SolverStep<BuildDelta>>? Steps) RecordedReduction(string name, string instance) {
+        Type type = Reductions[name.ToLower()];
+        if (type.GetConstructor([typeof(string), typeof(StepRecorder<BuildDelta>)]) == null) {
+            IReduction plain = Reduction(name, instance);
+            return (plain, plain.hasBuildSteps() ? plain.BuildRun(true)!.Steps : null);
+        }
+        // Every step is recorded (no cap) and the ones past the usual cap are folded into one, as BuildRun does.
+        var rec = new StepRecorder<BuildDelta>(cap: int.MaxValue);
+        IReduction red = Reduction(name, instance, rec);
+        return (red, ConstructionSteps.Limit(rec.Steps));
     }
 
     // The backward map reads B's answer, so malformed text is reported against B's certificate format
@@ -585,12 +608,11 @@ public class ProblemProvider : ControllerBase {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            IReduction red = Reduction(reduction, instance);
-            if (!red.hasBuildSteps())
+            var (_, steps) = RecordedReduction(reduction, instance);
+            if (steps == null)
                 return BadRequest(new { error = "no_build_steps", reduction });
-            ConstructionRun run = red.BuildRun(true)!;
             return Content(
-                JsonSerializer.Serialize(new { steps = run.Steps }, new JsonSerializerOptions() { WriteIndented = true }),
+                JsonSerializer.Serialize(new { steps }, new JsonSerializerOptions() { WriteIndented = true }),
                 "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
@@ -607,15 +629,15 @@ public class ProblemProvider : ControllerBase {
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
     /// <param name="solver" example = "CliqueBruteForceSolver">Optional. The TARGET problem's solver for the solve phase. Defaults to the target's default solver. Must solve the target problem</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
-    /// <returns>{ type: "Reduction", kind, reduction, source, target, gadgets, frames }</returns>
+    /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, source, target, gadgets, frames }</returns>
     [HttpPost("reductionView")]
     [ProducesResponseType(400)]
     public IActionResult reductionView(string reduction, [FromBody] string instance, string? solver = null) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            IReduction red = Reduction(reduction, instance);
-            if (!red.hasBuildSteps())
+            var (red, buildSteps) = RecordedReduction(reduction, instance);
+            if (buildSteps == null)
                 return BadRequest(new { error = "no_build_steps", reduction });
             if (!red.hasBackwardMap())
                 return BadRequest(new { error = "no_backward_map", reduction });
@@ -632,7 +654,7 @@ public class ProblemProvider : ControllerBase {
                     return BadRequest(new { error = "solver_mismatch", received = solver, problem = red.reductionTo.problemName });
                 chosen = Solver(solver);
             }
-            var view = ReductionView.Create(red, instance, chosen, sourceVis, targetVis, answer => MapSolutionsBack(red, answer, true), SolveTimeLimit);
+            var view = ReductionView.Create(red, instance, buildSteps, chosen, sourceVis, targetVis, answer => MapSolutionsBack(red, answer, true), SolveTimeLimit);
             return Content(view.ToJsonString(FramesResponse.JsonOptions), "application/json");
         } catch (ReductionViewException ex) {
             return BadRequest(new { error = ex.Error, reduction, detail = ex.Message });

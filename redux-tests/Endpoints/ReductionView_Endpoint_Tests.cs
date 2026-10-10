@@ -244,6 +244,103 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(edges.Count, beforeDone.GetProperty("builtEdges").GetInt32());
     }
 
+    // The pane states a frame lists, as (id, state), from every state map of the pane (nodes, edges, groups).
+    private static IEnumerable<(string Id, string State)> States(JsonElement pane) =>
+        pane.EnumerateObject()
+            .Where(p => p.Value.ValueKind == JsonValueKind.Object)
+            .SelectMany(p => p.Value.EnumerateObject())
+            .Where(e => e.Value.ValueKind == JsonValueKind.Object && e.Value.TryGetProperty("state", out _))
+            .Select(e => (e.Name, e.Value.GetProperty("state").GetString()!));
+
+    // While the target is being built nothing is chosen or judged: both panes only highlight what the step is about. Drawn as a
+    // whole candidate (a Try of the empty set), the Vertex Cover target marked every edge Rejected in every build frame.
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public async Task Build_PanesOnlyHighlight_NothingIsSolutionOrRejected(string reduction, string instance) {
+        var view = await View(reduction, instance);
+        foreach (var frame in Phase(view, "build")) {
+            Assert.All(States(frame.GetProperty("source")), s => Assert.Equal("ElementHighlight", s.State));
+            Assert.All(States(frame.GetProperty("target")), s => Assert.Equal("ElementHighlight", s.State));
+            Assert.Empty(frame.GetProperty("target").GetProperty("phantoms").EnumerateArray());
+        }
+    }
+
+    // A build frame never draws a target element that is not on screen yet: every id its target pane gives a state, and both
+    // ends of every skipped pair, are among the first builtNodes / builtEdges of buildOrder.
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public async Task Build_FramesOnlyNameTargetElementsAlreadyBuilt(string reduction, string instance) {
+        var view = await View(reduction, instance);
+        var order = view.GetProperty("target").GetProperty("buildOrder");
+        var nodeOrder = Strings(order.GetProperty("nodes"));
+        var edgeOrder = Strings(order.GetProperty("edges"));
+        foreach (var frame in Phase(view, "build")) {
+            var target = frame.GetProperty("target");
+            var builtNodes = nodeOrder.Take(target.GetProperty("builtNodes").GetInt32()).ToHashSet();
+            var builtEdges = edgeOrder.Take(target.GetProperty("builtEdges").GetInt32()).ToHashSet();
+            Assert.All(target.GetProperty("nodes").EnumerateObject(), n => Assert.Contains(n.Name, builtNodes));
+            Assert.All(target.GetProperty("edges").EnumerateObject(), e => Assert.Contains(e.Name, builtEdges));
+            if (target.TryGetProperty("skipped", out var skipped))
+                Assert.All(skipped.EnumerateArray(), s => {
+                    Assert.Contains(s.GetProperty("a").GetString()!, builtNodes);
+                    Assert.Contains(s.GetProperty("b").GetString()!, builtNodes);
+                });
+        }
+    }
+
+    // Past the step cap the rest of the construction is folded into one step: the view shows exactly what the steps add, so the
+    // frame before Done must already show the whole target (nothing is filled in from the picture at the end).
+    [Theory]
+    [InlineData(Sat, 20)]
+    public async Task Build_PastTheCap_TheFoldedStepCompletesTheTarget(string reduction, int clauses) {
+        string instance = string.Join(" & ", Enumerable.Range(0, clauses).Select(i => $"(x{i} | !x{i + 1} | x{i + 2})"));
+        var view = await View(reduction, instance, "carraghanpardalos");
+        var build = Phase(view, "build");
+        Assert.Equal(StepRecorder<BuildDelta>.DefaultCap + 2, build.Count);
+        Assert.StartsWith("The last ", build[^2].GetProperty("caption").GetString());
+        var payload = view.GetProperty("target").GetProperty("picture").GetProperty("payload");
+        var order = view.GetProperty("target").GetProperty("buildOrder");
+        Assert.Equal(payload.GetProperty("nodes").EnumerateArray().Select(n => n.GetProperty("id").GetString()!).Order(StringComparer.Ordinal),
+            Strings(order.GetProperty("nodes")).Order(StringComparer.Ordinal));
+        Assert.Equal(payload.GetProperty("edges").EnumerateArray().Select(e => e.GetProperty("id").GetString()!).Order(StringComparer.Ordinal),
+            Strings(order.GetProperty("edges")).Order(StringComparer.Ordinal));
+        foreach (var frame in new[] { build[^2], build[^1] }) {
+            Assert.Equal(order.GetProperty("nodes").GetArrayLength(), frame.GetProperty("target").GetProperty("builtNodes").GetInt32());
+            Assert.Equal(order.GetProperty("edges").GetArrayLength(), frame.GetProperty("target").GetProperty("builtEdges").GetInt32());
+        }
+    }
+
+    // ---- One build ----
+
+    // /reductionView and /buildSteps build the reduction once, with the construction recorded on the way, and use that one
+    // build for both the reduction and its steps. That needs the recording constructor on every reduction that records steps.
+    [Fact]
+    public void EveryRecordedReduction_HasTheRecordingConstructor() {
+        var recorded = ProblemProvider.Reductions.Values.Distinct()
+            .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRecordedReduction<,>))).ToList();
+        Assert.NotEmpty(recorded);
+        Assert.All(recorded, t => Assert.NotNull(t.GetConstructor([typeof(string), typeof(StepRecorder<BuildDelta>)])));
+    }
+
+    // The one recorded build is the same build as the plain one, and its steps are the ones BuildRun records on a copy.
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void RecordedReduction_BuildsOnce_TheSameTargetGadgetsAndSteps(string reduction, string instance) {
+        var rec = new StepRecorder<BuildDelta>(cap: int.MaxValue);
+        var once = (IReduction)Activator.CreateInstance(ProblemProvider.Reductions[reduction.ToLower()], instance, rec)!;
+        // The constructor that built the reduction is the one that recorded: there is no second build.
+        Assert.NotEmpty(rec.Steps);
+        Assert.Equal(StepEvent.Done, rec.Steps[^1].Event);
+
+        var (red, steps) = ProblemProvider.RecordedReduction(reduction, instance);
+        IReduction plain = Build(reduction, instance);
+        var expected = plain.BuildRun(true)!.Steps;
+        Assert.Equal(plain.reductionTo.instance, red.reductionTo.instance);
+        Assert.Equal(plain.reductionTo.instance, once.reductionTo.instance);
+        Assert.Equal(JsonSerializer.Serialize(plain.gadgets), JsonSerializer.Serialize(red.gadgets));
+        Assert.Equal(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(steps));
+    }
+
     [Fact]
     public async Task Build_SkippedPairs_AreListedWithTheirEnds() {
         var view = await View(Sat, "(x1) & (!x1)");
@@ -357,6 +454,83 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         }
     }
 
+    // The backward map builds the source answer one element at a time, like an incremental solver: what it has mapped so far
+    // stays Solution in every step, including a step that leaves an element out (Clique -> Vertex Cover: "d is in the cover, so
+    // it is left out of the clique"), and only the element being read is highlighted. Drawn as a whole candidate, that Reject
+    // step turned the clique built so far from Solution to ElementHighlight.
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public async Task Map_SourcePane_KeepsWhatIsMappedSolution_AndOnlyHighlightsTheElementRead(string reduction, string instance) {
+        var view = await View(reduction, instance);
+        var map = Phase(view, "map");
+        var mappedSoFar = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var frame in map) {
+            var focus = Strings(frame.GetProperty("sourceFocus")).ToHashSet();
+            var states = States(frame.GetProperty("source")).ToList();
+            // A highlight or a rejection is only ever the element being read.
+            Assert.All(states.Where(s => s.State is "ElementHighlight" or "Rejected" && !IsClause(s.Id)), s => Assert.Contains(s.Id, focus));
+            // What an earlier step mapped is still Solution now.
+            var solution = states.Where(s => s.State == "Solution").Select(s => s.Id).ToHashSet();
+            Assert.All(mappedSoFar.Where(id => !focus.Contains(id)), id => Assert.Contains(id, solution));
+            mappedSoFar.UnionWith(solution);
+        }
+        // A Reject step on a Graph source shows the element read as Rejected: it is left out.
+        foreach (var frame in map.Where(f => f.GetProperty("event").GetString() == "Reject" && Pictures[reduction].SourceType == "Graph"))
+            Assert.All(Strings(frame.GetProperty("sourceFocus")), id =>
+                Assert.Equal("Rejected", frame.GetProperty("source").GetProperty("nodes").GetProperty(id).GetProperty("state").GetString()));
+
+        // A clause of the Grouped Graph that every literal leaves false is Rejected by the assignment, not by the map.
+        static bool IsClause(string id) => System.Text.RegularExpressions.Regex.IsMatch(id, @"^c\d+$");
+    }
+
+    [Fact]
+    public async Task Map_RejectStep_IsInTheCases() {
+        // The theory above checks a Reject map step only if one of the cases has it; this one does.
+        var view = await View(Vc, "(({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)");
+        var reject = Assert.Single(Phase(view, "map"), f => f.GetProperty("event").GetString() == "Reject");
+        var nodes = reject.GetProperty("source").GetProperty("nodes");
+        Assert.Equal("Rejected", nodes.GetProperty("d").GetProperty("state").GetString());
+        foreach (string kept in new[] { "a", "b", "c" })
+            Assert.Equal("Solution", nodes.GetProperty(kept).GetProperty("state").GetString());
+        foreach (string edge in new[] { "a-b", "a-c", "b-c" })
+            Assert.Equal("Solution", reject.GetProperty("source").GetProperty("edges").GetProperty(edge).GetProperty("state").GetString());
+    }
+
+    // A literal the mapped-back assignment makes false is False on the 3SAT pane in every map frame; a true one is Solution (or
+    // highlighted while it is read); a literal of a variable not assigned yet is not drawn.
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public async Task Map_SatSource_FalseLiteralsAreFalse_TrueOnesSolution(string reduction, string instance) {
+        if (Pictures[reduction].SourceType != "GroupedGraph") return;
+        var view = await View(reduction, instance);
+        var literals = view.GetProperty("source").GetProperty("picture").GetProperty("payload").GetProperty("nodes").EnumerateArray()
+            .Select(n => (Id: n.GetProperty("id").GetString()!, Variable: n.GetProperty("variable").GetString()!, Positive: n.GetProperty("positive").GetBoolean()))
+            .ToList();
+        foreach (var frame in Phase(view, "map")) {
+            var source = frame.GetProperty("source");
+            var assignment = source.GetProperty("assignment");
+            var nodes = source.GetProperty("nodes");
+            var focus = Strings(frame.GetProperty("sourceFocus")).ToHashSet();
+            foreach (var (id, variable, positive) in literals) {
+                string? state = nodes.TryGetProperty(id, out var s) ? s.GetProperty("state").GetString() : null;
+                if (!assignment.TryGetProperty(variable, out var value)) { Assert.Null(state); continue; }
+                if (value.GetBoolean() != positive) Assert.Contains(state, new[] { "False", "Rejected" });
+                else Assert.Equal(focus.Contains(id) ? "ElementHighlight" : "Solution", state);
+            }
+        }
+    }
+
+    // Solution is only a real answer: a brute-force solver's tries (Try, Reject) never draw a node as Solution on the target pane.
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public async Task Solve_BruteForceTries_AreNeverSolution(string reduction, string instance) {
+        var view = await View(reduction, instance);
+        IReduction red = Build(reduction, instance);
+        Assert.False(red.reductionTo.defaultVisualization.solver.Run(red.reductionTo.instance, false).Incremental);
+        foreach (var frame in Phase(view, "solve").Where(f => f.GetProperty("event").GetString() is "Try" or "Reject"))
+            Assert.DoesNotContain(States(frame.GetProperty("target")), s => s.State == "Solution");
+    }
+
     // ---- The solver ----
 
     [Theory]
@@ -406,6 +580,39 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
             foreach (var id in step.Focus)
                 Assert.Equal(mark, nodes.GetProperty(id).GetProperty("state").GetString());
         }
+    }
+
+    // Every solver of the target problem, on every case: 200, and both verdicts are the verifiers' (some of these solvers
+    // answer covers larger than K, or no answer at all, so this covers the failing and the "{}" paths too).
+    public static TheoryData<string, string, string> EverySolverCases() {
+        var data = new TheoryData<string, string, string>();
+        foreach (var (reduction, instance) in Reduction_Output_Snapshot_Tests.Cases()) {
+            Type target = Build(reduction, instance).reductionTo.GetType();
+            foreach (var (key, type) in ProblemProvider.Solvers.OrderBy(p => p.Key, StringComparer.Ordinal))
+                if (type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>) && i.GetGenericArguments()[0] == target))
+                    data.Add(reduction, instance, key);
+        }
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(EverySolverCases))]
+    public async Task EverySolverOfTheTarget_GivesAView_WhoseVerdictsAreTheVerifiers(string reduction, string instance, string solver) {
+        var view = await View(reduction, instance, solver);
+        IReduction red = Build(reduction, instance);
+        // The answer is read off the view's own solved frame (its Solution nodes): some of these solvers choose at random (the
+        // 2-approximation picks an arbitrary edge), so a second run here could answer differently.
+        var solved = Phase(view, "solve")[^1].GetProperty("target").GetProperty("nodes").EnumerateObject()
+            .Where(n => n.Value.GetProperty("state").GetString() == "Solution").Select(n => n.Name);
+        string answer = "{" + string.Join(",", solved) + "}";
+        bool solvedOk = ReductionBack.IsNoAnswer(answer) ? red.targetAcceptsEmptyAnswer() : Verifies(red.reductionTo, red.reductionTo.instance, answer);
+        Assert.Equal(solvedOk, Phase(view, "solve")[^1].GetProperty("ok").GetBoolean());
+        var mapped = red.MapBackRun(answer, true)!;
+        var done = mapped.Steps[^1];
+        Assert.Equal((bool?)done.GetType().GetProperty("Ok")!.GetValue(done), Phase(view, "map")[^1].GetProperty("ok").GetBoolean());
+        // A mapped answer that is not "{}" is judged by the source verifier alone ("{}" is the reduction's call, checked above).
+        if (!ReductionBack.IsNoAnswer(mapped.Answer))
+            Assert.Equal(Verifies(red.reductionFrom, instance, mapped.Answer), Phase(view, "map")[^1].GetProperty("ok").GetBoolean());
     }
 
     // ---- 400s ----
@@ -525,6 +732,11 @@ public class ReductionView_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory>
         Assert.False(only.GetProperty("ok").GetBoolean());
         Assert.Equal("The solver had not finished, so there is no Clique answer to map back.", only.GetProperty("caption").GetString());
         Assert.Equal("map", frames[^1].GetProperty("phase").GetString());
+        // A stopped solve has no answer: neither its stopped frame nor the map frame draws anything as the answer.
+        foreach (var frame in new[] { solve[^1], only })
+            foreach (string pane in new[] { "source", "target" })
+                Assert.All(frame.GetProperty(pane).EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Object),
+                    p => Assert.Empty(p.Value.EnumerateObject()));
     }
 
     [Fact]
