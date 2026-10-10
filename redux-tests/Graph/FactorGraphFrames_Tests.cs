@@ -70,9 +70,64 @@ public class FactorGraphFrames_Tests {
         var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x2", false), ("x3", false)), StepEvent.Accept, [], "...");
         Assert.Equal(PictureState.False, Node(f, "v:x2"));
         Assert.Equal(PictureState.Rejected, Node(f, "c1"));       // !x1 false, x3 false
-        Assert.Equal(PictureState.False, Edge(f, "c1-0"));        // the edges say why
-        Assert.Equal(PictureState.False, Edge(f, "c1-1"));
+        Assert.Equal(PictureState.Rejected, Edge(f, "c1-0"));     // its edges too, as the clause graph marks its literals
+        Assert.Equal(PictureState.Rejected, Edge(f, "c1-1"));
         Assert.Equal(PictureState.Covered, Node(f, "c2"));        // !x3 is true
+        Assert.Equal(PictureState.False, Edge(f, "c2-1"));        // x3, false in a covered clause
+    }
+
+    [Theory]
+    [InlineData("Try", false)]
+    [InlineData("Reject", false)]
+    [InlineData("Accept", false)]
+    [InlineData("Done", false)]
+    [InlineData("Try", true)]
+    [InlineData("Reject", true)]
+    [InlineData("Backtrack", true)]
+    public void AnAllFalseClause_HasRejectedEdges_WhateverTheEvent_EvenWhenItsVariableIsTheFocus(string ev, bool incremental) {
+        // x1 = True, x3 = False: C2 = (!x1 | x3) has every literal false. The tried variable's highlight does not cover it.
+        var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x3", false)), Enum.Parse<StepEvent>(ev), ["v:x3"], "...", incremental: incremental);
+        Assert.Equal(PictureState.Rejected, Node(f, "c1"));
+        Assert.Equal(PictureState.Rejected, Edge(f, "c1-0"));
+        Assert.Equal(PictureState.Rejected, Edge(f, "c1-1"));
+        // The variables themselves keep their values' states: x3 is the focus, x1 is true.
+        Assert.Equal(PictureState.ElementHighlight, Node(f, "v:x3"));
+        Assert.NotEqual(PictureState.Rejected, Node(f, "v:x1"));
+    }
+
+    [Fact]
+    public void AClauseWithAnUnassignedLiteral_IsNotRejected_AndItsFalseEdgesStayFalse() {
+        // x2 = True, x3 = False: C3 = (x2 | x3 | !x3) is covered; C1 = (x1 | !x2) has !x2 false but x1 unassigned.
+        var f = FactorGraphFrames.Frame(Spec(), Values(("x2", true), ("x3", false)), StepEvent.Accept, [], "...");
+        Assert.Null(Node(f, "c0"));
+        Assert.Equal(PictureState.False, Edge(f, "c0-1"));
+        Assert.Null(Edge(f, "c0-0"));
+    }
+
+    // The factor graph's edge c{i}-{j} and the clause graph's literal c{i}-{j} are the same literal, and must be in the
+    // same state in every frame.
+    public static TheoryData<string, string, bool, string> ParityCases => new() {
+        { "x1=T,x2=F,x3=F", "Accept", false, "" },
+        { "x1=T,x2=F,x3=F", "Reject", false, "" },
+        { "x1=T,x2=F,x3=F", "Try", false, "" },
+        { "x1=T,x2=F,x3=F", "Done", false, "" },
+        { "x1=T,x3=F", "Reject", true, "v:x3,c1" },
+        { "x1=T,x3=F", "Try", true, "v:x3" },
+        { "x1=F,x2=T", "Backtrack", true, "v:x2" },
+        { "x1=F,x2=T,x3=F", "Accept", true, "c1-1" },
+        { "", "Try", true, "v:x1" },
+    };
+
+    [Theory]
+    [MemberData(nameof(ParityCases))]
+    public void EveryEdge_IsInTheStateOfTheClauseGraphsLiteral(string values, string ev, bool incremental, string focus) {
+        var assignment = Values(values.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Split('=')).Select(p => (p[0], p[1] == "T")).ToArray());
+        string[] ids = focus.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var factor = FactorGraphFrames.Frame(Spec(), assignment, Enum.Parse<StepEvent>(ev), ids, "...", incremental: incremental);
+        var clause = GroupedGraphFrames.Frame(Spec(), assignment, Enum.Parse<StepEvent>(ev), ids, "...", incremental: incremental);
+        foreach (var edge in FactorGraphFrames.Payload(Spec()).Edges)
+            Assert.Equal(clause.Nodes.TryGetValue(edge.Id, out var s) ? s.State : (PictureState?)null, Edge(factor, edge.Id));
     }
 
     [Fact]

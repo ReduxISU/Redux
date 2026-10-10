@@ -117,15 +117,15 @@ public class FactorGraph_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Frames_Sat_ATriedAssignment_HighlightsTrueEdges_KeepsFalseOnesFalse_AndRejectsTheFailedClause() {
-        // The SAT brute force's first candidate is all false; it fails C3 = (x1 | x2 | x3).
+    public async Task Frames_Sat_ATriedAssignment_HighlightsTrueEdges_KeepsFalseOnesFalse_AndRejectsTheFailedClauseWithItsEdges() {
+        // The SAT brute force's first candidate is all false; it fails C3 = (x1 | x2 | x3), whose edges are Rejected with it.
         var (_, body) = await Visualize($"visualization={SatVis}&format=frames", "(!x1 | x2) & (!x2 | x3) & (x1 | x2 | x3)");
         var first = Frames(body)[0];
         Assert.Equal("Reject", first.GetProperty("event").GetString());
         Assert.Equal(new Dictionary<string, string> {
             ["c0-0"] = "ElementHighlight", ["c0-1"] = "False",
             ["c1-0"] = "ElementHighlight", ["c1-1"] = "False",
-            ["c2-0"] = "False", ["c2-1"] = "False", ["c2-2"] = "False",
+            ["c2-0"] = "Rejected", ["c2-1"] = "Rejected", ["c2-2"] = "Rejected",
         }, States(first, "edges"));
         var nodes = States(first, "nodes");
         Assert.Equal("Rejected", nodes["c2"]);

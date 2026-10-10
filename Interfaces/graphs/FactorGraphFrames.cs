@@ -61,8 +61,9 @@ sealed record FactorGraphFrame(
 /// <b>States.</b> An edge whose literal is true is <c>Solution</c> in a step that keeps the assignment and
 /// <c>ElementHighlight</c> in a step that only tries a whole assignment (<see cref="GraphSubsetFrames.Picked"/>); a variable
 /// assigned true is the same. An edge whose literal is false, and a variable assigned false, are <c>False</c>; anything
-/// unassigned is <c>Background</c>. A clause with a true literal is <c>Covered</c>; one whose literals are all false is
-/// <c>Rejected</c> (its edges stay <c>False</c>, which says why). The variable being tried (a <c>v:</c> id in the focus) is
+/// unassigned is <c>Background</c>. A clause with a true literal is <c>Covered</c>; one whose literals are all assigned and
+/// all false is <c>Rejected</c>, and so are its edges, as the clause graph marks its literals (judged from the assignment
+/// alone, whatever the event; a clause with an unassigned literal is not Rejected). The variable being tried (a <c>v:</c> id in the focus) is
 /// <c>ElementHighlight</c>, and so are its edges except false ones, which stay <c>False</c> as in the clause graph. A clause in
 /// the focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject step. Precedence:
 /// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; False &gt; Background</c>.
@@ -141,7 +142,10 @@ static class FactorGraphFrames {
                 GraphSubsetFrames.Raise(nodes, clauseId, PictureState.Covered);
                 hits[clauseId] = trues;
             } else if (clause.Length > 0 && falses == clause.Length) {
+                // Every literal assigned and false: the clause and its edges are Rejected, as the clause graph marks the
+                // clause and its literals. Judged from the assignment alone, whatever the event.
                 GraphSubsetFrames.Raise(nodes, clauseId, PictureState.Rejected);
+                for (int j = 0; j < clause.Length; j++) GraphSubsetFrames.Raise(edges, GroupedGraphFrames.LiteralId(i, j), PictureState.Rejected);
             }
         }
 
