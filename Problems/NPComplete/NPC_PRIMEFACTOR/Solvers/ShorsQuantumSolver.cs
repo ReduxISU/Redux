@@ -31,7 +31,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
     // GCD post-processing described in solverDefinition runs in time polynomial in the number
     // n's bit-length -- the textbook O((log n)^3) bound -- versus the exponential-in-bit-length
     // cost of classical trial division (PrimeFactorSolver).
-    public string complexity { get; } = "O((log n)^3)";
+    public MathematicalFunction timeComplexity { get; } = new("(log n)^3", "");
 
     // --- Constructors ---
 

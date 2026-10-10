@@ -21,7 +21,7 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
     public SolverType solverType { get; } = SolverType.Quantum;
     // solverDefinition itself states this determines constant/balanced "with a single
     // invocation of a quantum simulator" -- one oracle query via phase kickback.
-    public string complexity { get; } = "O(1) oracle queries";
+    public MathematicalFunction timeComplexity { get; } = new("1", " oracle queries");
 
     // --- Constructors ---
 
