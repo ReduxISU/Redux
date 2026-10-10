@@ -216,7 +216,8 @@ public class StepRecorder_Tests {
         var done = steps[^1];
         Assert.Equal(StepEvent.Done, done.Event);
         Assert.False(done.Ok);
-        Assert.Matches(@"^Stopped after 0\.02 s and [\d,]+ steps; the solver had not finished\. \([\d,]+ not shown\)$", done.Caption);
+        // Under load the budget can run out on the very first step, so the count may be "1 step" with nothing hidden.
+        Assert.Matches(@"^Stopped after 0\.02 s and [\d,]+ steps?; the solver had not finished\.( \([\d,]+ not shown\))?$", done.Caption);
         // Its partial is the last kept partial.
         Assert.Equal(steps[^2].Partial, done.Partial);
         Assert.Equal(1, steps.Count(s => s.Event == StepEvent.Done));
