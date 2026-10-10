@@ -72,4 +72,33 @@ public class ReductionView_MapFailure_Tests : IClassFixture<AppFactory> {
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
             Entries.Add((logLevel, formatter(state, exception), exception));
     }
+
+    // ---- A map step about a source element no target element stands for ----
+
+    [Fact]
+    public void MapBack_AVariableNoCliqueNodeMentions_FocusesThatVariable() {
+        var red = (IReduction)Activator.CreateInstance(ProblemProvider.Reductions[Sat.ToLower()], Formula)!;
+        var steps = red.MapBackRun("{x1_0,x1_1}", true)!.Steps.Cast<SolverStep<Assignment>>().ToList();
+        var step = Assert.Single(steps, s => s.Caption.StartsWith("No clique node mentions x2"));
+        Assert.Equal(new[] { "v:x2" }, step.Focus);
+    }
+
+    [Fact]
+    public async Task View_AVariableNoCliqueNodeMentions_IsFocusedInTheSourcePicture() {
+        var content = new StringContent(JsonSerializer.Serialize(Formula), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync($"/ProblemProvider/reductionView?reduction={Sat}", content, TestContext.Current.CancellationToken);
+        string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.True(response.StatusCode == HttpStatusCode.OK, body);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        var frame = Assert.Single(frames, f => f.GetProperty("phase").GetString() == "map"
+            && f.GetProperty("caption").GetString()!.StartsWith("No clique node mentions x2"));
+
+        Assert.Equal(new[] { "v:x2" }, frame.GetProperty("sourceFocus").EnumerateArray().Select(e => e.GetString()));
+        // Nothing in the clique stands for x2, so nothing in the target pane is pointed at.
+        Assert.Empty(frame.GetProperty("targetFocus").EnumerateArray());
+        // x2 = False: its true occurrence (!x2, the second literal of clause 1) is highlighted, the false one (x2) stays False.
+        var nodes = frame.GetProperty("source").GetProperty("nodes");
+        Assert.Equal("ElementHighlight", nodes.GetProperty("c1-1").GetProperty("state").GetString());
+        Assert.Equal("False", nodes.GetProperty("c0-1").GetProperty("state").GetString());
+    }
 }

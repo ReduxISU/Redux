@@ -471,7 +471,9 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
         foreach (string variable in order) {
             if (values.ContainsKey(variable)) continue;
             values[variable] = "False";
-            rec.Accept(Snapshot, () => $"No clique node mentions {variable}, so it can be anything: {variable} = False.");
+            // No clique node stands for the variable, so the step focuses the 3SAT picture's own id for it (see MapBack).
+            rec.Accept(Snapshot, () => $"No clique node mentions {variable}, so it can be anything: {variable} = False.",
+                GroupedGraphFrames.VariableId(variable));
         }
 
         string answer = "(" + string.Join(",", order.Select(v => $"{v}:{values[v]}")) + ")";

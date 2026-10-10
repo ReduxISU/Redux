@@ -463,14 +463,19 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         var view = await View(reduction, instance);
         var map = Phase(view, "map");
         var mappedSoFar = new HashSet<string>(StringComparer.Ordinal);
+        // A Grouped Graph literal is also read when its variable is (a step about a variable no clique node mentions, #692).
+        var variableOf = Pictures[reduction].SourceType != "GroupedGraph" ? new Dictionary<string, string>()
+            : view.GetProperty("source").GetProperty("picture").GetProperty("payload").GetProperty("nodes").EnumerateArray()
+                .ToDictionary(n => n.GetProperty("id").GetString()!, n => n.GetProperty("variable").GetString()!);
         foreach (var frame in map) {
             var focus = Strings(frame.GetProperty("sourceFocus")).ToHashSet();
+            bool Read(string id) => focus.Contains(id) || (variableOf.TryGetValue(id, out var v) && focus.Contains(v));
             var states = States(frame.GetProperty("source")).ToList();
             // A highlight or a rejection is only ever the element being read.
-            Assert.All(states.Where(s => s.State is "ElementHighlight" or "Rejected" && !IsClause(s.Id)), s => Assert.Contains(s.Id, focus));
+            Assert.All(states.Where(s => s.State is "ElementHighlight" or "Rejected" && !IsClause(s.Id)), s => Assert.True(Read(s.Id), $"{s.Id} is {s.State} but not read"));
             // What an earlier step mapped is still Solution now.
             var solution = states.Where(s => s.State == "Solution").Select(s => s.Id).ToHashSet();
-            Assert.All(mappedSoFar.Where(id => !focus.Contains(id)), id => Assert.Contains(id, solution));
+            Assert.All(mappedSoFar.Where(id => !Read(id)), id => Assert.Contains(id, solution));
             mappedSoFar.UnionWith(solution);
         }
         // A Reject step on a Graph source shows the element read as Rejected: it is left out.
@@ -514,7 +519,8 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
                 string? state = nodes.TryGetProperty(id, out var s) ? s.GetProperty("state").GetString() : null;
                 if (!assignment.TryGetProperty(variable, out var value)) { Assert.Null(state); continue; }
                 if (value.GetBoolean() != positive) Assert.Contains(state, new[] { "False", "Rejected" });
-                else Assert.Equal(focus.Contains(id) ? "ElementHighlight" : "Solution", state);
+                // Read as itself, or as its variable (a step about a variable no clique node mentions, #692).
+                else Assert.Equal(focus.Contains(id) || focus.Contains(variable) ? "ElementHighlight" : "Solution", state);
             }
         }
     }

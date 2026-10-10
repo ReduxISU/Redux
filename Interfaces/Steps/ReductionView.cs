@@ -56,7 +56,9 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer as an incremental run (the
 /// part mapped so far stays Solution; only the element being read is highlighted, or Rejected when it is left out); the target pane keeps
 /// the solution and highlights the element being read. Each step's <c>targetFocus</c> is the target element read, its
-/// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. The last frame's <c>ok</c> is the backward
+/// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. A step about a source element no target
+/// element stands for (a variable no clique node mentions) focuses that source id itself (an id no gadget lists as a target id):
+/// it goes to <c>sourceFocus</c> as it is, not to <c>targetFocus</c>. The last frame's <c>ok</c> is the backward
 /// map's own Done verdict: the source problem's verifier on the mapped-back answer. When the solver was stopped there is no
 /// answer, so the phase is a single Done frame (<c>ok</c> false) saying there is nothing to map back. When the backward map
 /// cannot read the solver's answer, <see cref="Create"/> throws <see cref="SolverAnswerUnmappableException"/>.
@@ -172,7 +174,12 @@ static class ReductionView {
         if (mapped.StepShape != sourceShape)
             throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture cannot draw the backward map's steps.");
         var mapSteps = mapped.Steps.Select(ReadStep).ToList();
-        var sourceFocuses = mapSteps.Select(s => SourceIdsOf(gadgets, s.Focus)).ToList();
+        // A focus id that no gadget lists as a target id names a source element no target element stands for (see
+        // IReversibleReduction): it is drawn on the source side only.
+        var gadgetTargets = new HashSet<string>(gadgets.SelectMany(g => g.targetIds), StringComparer.Ordinal);
+        var mapTargetFocuses = mapSteps.Select(s => s.Focus.Where(gadgetTargets.Contains).ToArray()).ToList();
+        var sourceFocuses = mapSteps.Select((s, i) => SourceIdsOf(gadgets, mapTargetFocuses[i])
+            .Concat(s.Focus.Where(id => !gadgetTargets.Contains(id))).Distinct(StringComparer.Ordinal).ToArray()).ToList();
         // The backward map builds A's answer one element at a time, so it is drawn as an incremental run: what it has mapped so
         // far stays Solution in every step, and only the element being read is highlighted (Rejected when it is left out).
         var mapSourceFrames = Render(sourceVis, sourceInstance,
@@ -181,14 +188,14 @@ static class ReductionView {
         var mapTargetPanes = solvedPartial == null || mapSteps.Count == 0 ? null
             // Drawn as the solve's Done step (with its ok), so the pane is the solved picture: a Try would draw it as a
             // candidate still being tried (highlighted), not as the answer.
-            : Render(targetVis, targetInstance, mapSteps.Select(s => NewStep(targetShape, solvedPartial, StepEvent.Done, s.Focus, "", solveFrames[^1].Ok)).ToList(), targetShape).Frames;
+            : Render(targetVis, targetInstance, mapSteps.Select((s, i) => NewStep(targetShape, solvedPartial, StepEvent.Done, mapTargetFocuses[i], "", solveFrames[^1].Ok)).ToList(), targetShape).Frames;
         for (int i = 0; i < mapSteps.Count; i++) {
             var s = mapSteps[i];
             bool last = i == mapSteps.Count - 1;
             // The backward map's Done step already carries the source verifier's verdict (MapBackRun).
             bool? ok = last && s.Event != StepEvent.Done ? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : s.Ok;
             JsonObject target = mapTargetPanes != null ? mapTargetPanes[i].Pane : solvedPane.DeepClone().AsObject();
-            frames.Add(Frame(Map, s.Event, s.Caption, ok, sourceFocuses[i], s.Focus, mapSourceFrames[i].Pane, target));
+            frames.Add(Frame(Map, s.Event, s.Caption, ok, sourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
         }
 
         if (mapSteps.Count == 0 || mapSteps[^1].Event != StepEvent.Done)
