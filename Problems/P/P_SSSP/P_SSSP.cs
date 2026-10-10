@@ -100,7 +100,9 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
             parsedNodes,
             parsedEdges,
             resolvedSource,
-            graphParse.IsDirected,
+            // The directed weighted pattern also accepts an unordered pair ({1,2}) as an edge's ends, so the pattern that
+            // matched does not say whether the graph is directed; the edges do (#781).
+            graphParse.IsDirected && edgeCollection.ToList().All(EndsAreOrdered),
             graphParse.IsWeighted);
     }
 
@@ -177,6 +179,13 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         }
 
         return new ParsedEdge(GetFrom(rawEdge), GetTo(rawEdge), 1);
+    }
+
+    // Whether an edge's ends are written as an ordered pair ((1,2) or ((1,2),w)), as opposed to a set ({1,2} or ({1,2},w)).
+    private static bool EndsAreOrdered(UtilCollection rawEdge) {
+        bool isWeighted = rawEdge.IsOrdered() && rawEdge.Count() == 2
+            && LooksLikeCollection(rawEdge[0]) && !LooksLikeCollection(rawEdge[1]);
+        return isWeighted ? rawEdge[0].IsOrdered() : rawEdge.IsOrdered();
     }
 
     private static bool LooksLikeCollection(UtilCollection value) {

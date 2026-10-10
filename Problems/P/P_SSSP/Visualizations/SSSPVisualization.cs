@@ -60,7 +60,7 @@ class SSSPVisualization : IVisualization<SSSP, API_GraphJSON> {
             for (int i = 0; i < graph.links.Count; i++) {
                 var link = graph.links[i];
                 bool isForwardTreeEdge = treeEdges.Contains((link.source, link.target));
-                bool isReversedTreeEdge = !problem.isDirected && treeEdges.Contains((link.source, link.target));
+                bool isReversedTreeEdge = !problem.isDirected && treeEdges.Contains((link.target, link.source));
 
                 link.color = (isForwardTreeEdge || isReversedTreeEdge) ? "Solution" : "Background";
             }
@@ -101,7 +101,7 @@ class SSSPVisualization : IVisualization<SSSP, API_GraphJSON> {
             for (int i = 0; i < graph.links.Count; i++) {
                 var link = graph.links[i];
                 var forward = (link.source, link.target);
-                var reverse = (link.source, link.target);
+                var reverse = (link.target, link.source);
 
                 bool isCurrentEdge = currentEdge.HasValue && (forward == currentEdge.Value || (!problem.isDirected && reverse == currentEdge.Value));
                 bool isTreeEdge = treeEdges.Contains(forward) || (!problem.isDirected && treeEdges.Contains(reverse));
