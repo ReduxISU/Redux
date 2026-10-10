@@ -60,7 +60,15 @@ interface ISolver {
     /// <see cref="GetSteps(string)"/> and then <see cref="solve(string)"/> (two runs, untyped steps).
     /// Solvers implementing <see cref="ISolver{T, TPartial}"/> override it to run once with typed steps.
     /// </summary>
-    SolveRun Run(string instance, bool withSteps) {
+    /// <param name="instance">The instance to solve.</param>
+    /// <param name="withSteps">Whether to record steps.</param>
+    /// <param name="timeLimit">
+    /// Optional time budget for a run that records steps; null means no limit. A typed solver that runs past it is
+    /// stopped at its next recorded step and returns a run with <see cref="SolveRun.TimedOut"/> set. It has no effect
+    /// when <paramref name="withSteps"/> is false, and none on this legacy default: an uninstrumented solver never
+    /// calls a recorder, so it cannot be stopped this way (the general solve timeout is issue #523).
+    /// </param>
+    SolveRun Run(string instance, bool withSteps, TimeSpan? timeLimit = null) {
         var steps = withSteps ? GetSteps(instance).ToList() : new List<Object>();
         return new SolveRun(solve(instance), steps, null);
     }
@@ -71,6 +79,38 @@ interface ISolver {
 /// <param name="Steps">The steps, as objects. <see cref="SolverStep{TPartial}"/> for typed solvers, solver-specific objects for legacy ones.</param>
 /// <param name="StepShape">The <c>TPartial</c> of the typed steps, or null for legacy untyped steps.</param>
 sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepShape) {
+    /// <summary>
+    /// The <see cref="Answer"/> of a run stopped by its time limit. It is deliberately not a certificate, and not
+    /// "{}" (which means that no answer exists): the solver had not finished, so there is no answer to show or verify.
+    /// Callers check <see cref="TimedOut"/>, not this text.
+    /// </summary>
+    public const string TimedOutAnswer = "Stopped: the solver did not finish within the time limit.";
+
+    /// <summary>
+    /// True when the solver was stopped by the time limit given to <see cref="ISolver.Run"/>. Then
+    /// <see cref="Answer"/> is <see cref="TimedOutAnswer"/>, and <see cref="Steps"/> holds the steps kept so far
+    /// followed by a Done step with ok = false that says the solver had not finished.
+    /// </summary>
+    public bool TimedOut { get; init; }
+
+    /// <summary>
+    /// Runs a typed solve: with recording off when <paramref name="withSteps"/> is false (no clock checks), else with
+    /// a recorder that has <paramref name="timeLimit"/>. A run that exceeds the limit is returned as stopped (see
+    /// <see cref="TimedOut"/>) instead of throwing.
+    /// </summary>
+    internal static SolveRun Record<TPartial>(bool withSteps, TimeSpan? timeLimit, Func<StepRecorder<TPartial>, string> solve) {
+        if (!withSteps)
+            return new SolveRun(solve(StepRecorder<TPartial>.Off), new List<object>(), typeof(TPartial));
+        var rec = new StepRecorder<TPartial>(timeLimit: timeLimit);
+        try {
+            string answer = solve(rec);
+            return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
+        } catch (StepBudgetExceededException ex) when (ex.Recorder == rec) {
+            rec.DoneStopped();
+            return new SolveRun(TimedOutAnswer, rec.Steps.Cast<object>().ToList(), typeof(TPartial)) { TimedOut = true };
+        }
+    }
+
     /// <summary>
     /// The steps to hand a visualization that draws <paramref name="visualizationShape"/>. If the shapes differ
     /// (including one typed and one legacy) the steps cannot be drawn, so none are given: the response then
@@ -114,11 +154,9 @@ interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
 
     string ISolver<T>.solve(T problem) => Solve(problem, StepRecorder<TPartial>.Off);
 
-    SolveRun ISolver.Run(string instance, bool withSteps) {
+    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
         T parsed = ParseGuard.CreateProblem<T>(instance);
-        var rec = withSteps ? new StepRecorder<TPartial>() : StepRecorder<TPartial>.Off;
-        string answer = Solve(parsed, rec);
-        return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
+        return SolveRun.Record<TPartial>(withSteps, timeLimit, rec => Solve(parsed, rec));
     }
 
     List<Object> ISolver<T>.GetSteps(T problem) {

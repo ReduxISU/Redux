@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace API.Interfaces.Steps;
 
 /// <summary>
@@ -16,12 +18,16 @@ namespace API.Interfaces.Steps;
 /// Done arrives, and a stored lambda would read the solver's state as it is at Done, not as it was at the
 /// Accept); the lambdas of every other step past the cap are never evaluated.
 /// </para>
+/// <para>
+/// A recorder made with a time limit checks the clock on every recorded step, kept or not, and throws
+/// <see cref="StepBudgetExceededException"/> once the limit has passed. <see cref="Off"/> never checks the clock.
+/// </para>
 /// </summary>
 sealed class StepRecorder<TPartial> {
     public const int DefaultCap = 150;
 
     /// <summary>A shared recorder that is disabled: every method does nothing and no lambda is invoked.</summary>
-    public static readonly StepRecorder<TPartial> Off = new(enabled: false, cap: 0);
+    public static readonly StepRecorder<TPartial> Off = new(enabled: false, cap: 0, timeLimit: null);
 
     private readonly bool _enabled;
     private readonly int _cap;
@@ -30,12 +36,17 @@ sealed class StepRecorder<TPartial> {
     private int _shownDecisions;
     // The most recent Accept reported past the cap, built when it was reported; added just before Done.
     private SolverStep<TPartial>? _lastAcceptPastCap;
+    private readonly TimeSpan? _timeLimit;
+    // Environment.TickCount64 at which the time limit runs out; long.MaxValue when there is no limit.
+    private readonly long _deadline;
 
-    public StepRecorder(int cap = DefaultCap) : this(enabled: true, cap) { }
+    public StepRecorder(int cap = DefaultCap, TimeSpan? timeLimit = null) : this(enabled: true, cap, timeLimit) { }
 
-    private StepRecorder(bool enabled, int cap) {
+    private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit) {
         _enabled = enabled;
         _cap = cap;
+        _timeLimit = timeLimit;
+        _deadline = timeLimit is { } limit ? Environment.TickCount64 + (long)Math.Ceiling(limit.TotalMilliseconds) : long.MaxValue;
     }
 
     /// <summary>The kept steps, in order.</summary>
@@ -59,6 +70,9 @@ sealed class StepRecorder<TPartial> {
         } else if (kind == StepEvent.Accept) {
             _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus, caption());
         }
+        // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
+        if (Environment.TickCount64 >= _deadline)
+            throw new StepBudgetExceededException(this);
     }
 
     /// <summary>
@@ -75,5 +89,32 @@ sealed class StepRecorder<TPartial> {
         _total++;
         if (hidden > 0) caption += $" ({hidden} not shown)";
         _steps.Add(new SolverStep<TPartial>(answer, StepEvent.Done, Array.Empty<string>(), caption) { Ok = ok });
+    }
+
+    /// <summary>
+    /// Closes a run that was stopped by the time limit: a Done step with ok = false whose partial is the last kept
+    /// partial (default when nothing was kept) and whose caption says the solver had not finished.
+    /// </summary>
+    internal void DoneStopped() {
+        if (!_enabled) return;
+        int reported = _total;
+        TPartial last = _lastAcceptPastCap != null ? _lastAcceptPastCap.Partial
+            : _steps.Count > 0 ? _steps[^1].Partial
+            : default!;
+        string seconds = (_timeLimit ?? TimeSpan.Zero).TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
+        string steps = reported.ToString("N0", CultureInfo.InvariantCulture);
+        Done(last, false, $"Stopped after {seconds} s and {steps} {(reported == 1 ? "step" : "steps")}; the solver had not finished.");
+    }
+}
+
+/// <summary>
+/// Thrown by a <see cref="StepRecorder{TPartial}"/> made with a time limit when a step is recorded after the limit
+/// has passed. <see cref="SolveRun.Record{TPartial}"/> catches it and returns a stopped run. Solvers must not catch it.
+/// </summary>
+sealed class StepBudgetExceededException : Exception {
+    /// <summary>The recorder whose time limit ran out.</summary>
+    public object Recorder { get; }
+    public StepBudgetExceededException(object recorder) : base("The solver ran past the time limit for recording steps.") {
+        Recorder = recorder;
     }
 }

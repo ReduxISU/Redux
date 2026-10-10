@@ -175,6 +175,68 @@ public class StepRecorder_Tests {
     }
 
     [Fact]
+    public void TimeLimit_ThrowsOnTheNextStepAfterTheLimit_EvenPastTheCap() {
+        var rec = new StepRecorder<NodeSet>(cap: 1, timeLimit: TimeSpan.FromMilliseconds(30));
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        int lambdaCalls = 0;
+        Action runForever = () => {
+            while (true) rec.Reject(() => { lambdaCalls++; return Nodes("x"); }, () => "r");
+        };
+        Assert.Throws<StepBudgetExceededException>(runForever);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5));
+        Assert.Single(rec.Steps);
+        Assert.Equal(1, lambdaCalls);   // the clock is checked on skipped steps without running their lambdas
+        Assert.True(rec.Total > 1);
+    }
+
+    [Fact]
+    public void NoTimeLimit_NeverThrows() {
+        var rec = new StepRecorder<NodeSet>(cap: 1);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < 50) rec.Reject(() => Nodes("x"), () => "r");
+        rec.Done(Nodes("x"), false, "done");
+        Assert.Equal(StepEvent.Done, rec.Steps[^1].Event);
+    }
+
+    [Fact]
+    public void Record_StoppedRun_EndsWithAStoppedDone_AndIsMarkedTimedOut() {
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(20), rec => {
+            for (int i = 0; ; i++) {
+                int n = i;
+                if (n == 3) rec.Accept(() => Nodes("win"), () => "accept");
+                else rec.Reject(() => Nodes(n.ToString()), () => $"reject {n}");
+            }
+        });
+
+        Assert.True(run.TimedOut);
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, run.Answer);
+        Assert.NotEqual("{}", run.Answer);
+        var steps = run.Steps.Cast<SolverStep<NodeSet>>().ToList();
+        Assert.True(steps.Count <= StepRecorder<NodeSet>.DefaultCap + 2);
+        var done = steps[^1];
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.Matches(@"^Stopped after 0\.02 s and [\d,]+ steps; the solver had not finished\. \([\d,]+ not shown\)$", done.Caption);
+        // Its partial is the last kept partial.
+        Assert.Equal(steps[^2].Partial, done.Partial);
+        Assert.Equal(1, steps.Count(s => s.Event == StepEvent.Done));
+    }
+
+    [Fact]
+    public void Record_WithStepsOff_IgnoresTheTimeLimit() {
+        int calls = 0;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(false, TimeSpan.FromMilliseconds(1), rec => {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            while (sw.ElapsedMilliseconds < 40) { calls++; rec.Reject(() => Nodes("x"), () => "r"); }
+            return "{a}";
+        });
+        Assert.False(run.TimedOut);
+        Assert.Equal("{a}", run.Answer);
+        Assert.Empty(run.Steps);
+        Assert.True(calls > 0);
+    }
+
+    [Fact]
     public void Shapes_HaveValueEquality_IndependentOfOrder() {
         Assert.Equal(Nodes("b", "a", "a"), Nodes("a", "b"));
         Assert.NotEqual(Nodes("a"), Nodes("a", "b"));
