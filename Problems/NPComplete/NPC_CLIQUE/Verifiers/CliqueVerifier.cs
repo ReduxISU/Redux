@@ -56,8 +56,9 @@ class CliqueVerifier : IVerifier<CLIQUE> {
             throw new CertificateParseException(problem, certificate,
                 "certificate did not parse to a non-empty list of node names");
         }
-        //Check k value
-        if (nodeList.Count != problem.K) {
+        //Check k value. Repeated names count once: {1,1} is a set of one node, not two (#766).
+        // SPADE already drops repeats when it parses a set; Distinct keeps that true if the parser changes.
+        if (nodeList.Distinct().Count() != problem.K) {
             return false;
         }
         // Every certificate node must belong to the graph. The pairwise-adjacency
