@@ -77,5 +77,15 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
         items = parser["i"];
         W = int.Parse(parser["w"].ToString());
         V = int.Parse(parser["v"].ToString());
+
+        // A capacity and a weight are sizes, so neither can be negative (#793): the DP sizes its table by W and indexes it
+        // by W minus a weight. Zero is allowed, and values are not limited.
+        if (W < 0)
+            throw new ProblemParseException(problemName, HWVInput, $"the capacity W ({W}) must not be negative");
+        foreach (UtilCollection item in items) {
+            int weight = int.Parse(item[0].ToString());
+            if (weight < 0)
+                throw new ProblemParseException(problemName, HWVInput, $"the item {item} has weight {weight}; a weight must not be negative");
+        }
     }
 }
