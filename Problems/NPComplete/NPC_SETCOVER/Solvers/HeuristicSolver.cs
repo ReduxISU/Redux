@@ -109,7 +109,10 @@ class HeuristicSolver : ISolver<SETCOVER> {
         List<string> reversed = new List<string>(Y[row]);
         reversed.Reverse();
         foreach (var j in reversed) {
-            if (columns.Peek().Any()) X.Add(j, columns.Pop());
+            // Every column of the row was pushed, in order; an empty list stands for one that was already covered, so it
+            // stays out. Popping it too keeps the stack in step with the columns (#774).
+            List<string> column = columns.Pop();
+            if (column.Any()) X.Add(j, column);
         }
     }
 
