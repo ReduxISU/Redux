@@ -100,10 +100,12 @@ sealed record GroupedGraphFrame(
 /// way its clause is <c>Covered</c>. A literal that is false under the assignment is <c>False</c>; a literal whose variable
 /// is unassigned stays <c>Background</c> (nothing has been decided about it). A clause whose literals are all false is
 /// <c>Rejected</c>, and so are its literals. The variable being tried (a <c>v:</c> id in the step's focus) is
-/// <c>ElementHighlight</c> on every occurrence; a clause in the focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a
-/// <see cref="StepEvent.Reject"/> step (the clause that just failed). When several states apply to one element the order is
+/// <c>ElementHighlight</c> on every occurrence that is not false: a false occurrence stays <c>False</c>, so the tried value's
+/// false literals never look like its true ones (a literal id in the focus follows the same rule). A clause in the focus is
+/// <c>ElementHighlight</c>, or <c>Rejected</c> in a <see cref="StepEvent.Reject"/> step (the clause that just failed). When
+/// several states apply to one element the order is
 /// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; False &gt; Background</c>
-/// (<see cref="GraphSubsetFrames.Rank"/>). Whether a clause is falsified is judged from the assignment alone, never from
+/// (<see cref="GraphSubsetFrames.Rank"/>), except that the focus highlight never covers <c>False</c> on a literal. Whether a clause is falsified is judged from the assignment alone, never from
 /// the event, so no event is treated as "still in progress".
 /// </para>
 /// </summary>
@@ -221,13 +223,18 @@ static class GroupedGraphFrames {
             }
         }
 
-        // Focus is what the solver is looking at; a clause in a Reject step is the one that failed.
+        // Focus is what the solver is looking at; a clause in a Reject step is the one that failed. A literal that is false
+        // stays False when its variable is the one being looked at: it is false, whichever variable is being tried.
+        void HighlightLiteral(string literal) {
+            if (!nodes.TryGetValue(literal, out var state) || state != PictureState.False)
+                GraphSubsetFrames.Raise(nodes, literal, PictureState.ElementHighlight);
+        }
         var clauseMark = ev == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
         foreach (var id in focus) {
             if (literalsOfVariable.TryGetValue(id, out var occurrences))
-                foreach (var literal in occurrences) GraphSubsetFrames.Raise(nodes, literal, PictureState.ElementHighlight);
+                foreach (var literal in occurrences) HighlightLiteral(literal);
             else if (IsClauseId(spec, id)) GraphSubsetFrames.Raise(groups, id, clauseMark);
-            else if (IsLiteralId(spec, id)) GraphSubsetFrames.Raise(nodes, id, PictureState.ElementHighlight);
+            else if (IsLiteralId(spec, id)) HighlightLiteral(id);
         }
 
         return new GroupedGraphFrame(ev, caption, focus, GraphSubsetFrames.ToRefs(nodes), GraphSubsetFrames.ToRefs(groups), assignment) { Ok = ok };

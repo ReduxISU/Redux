@@ -328,7 +328,9 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(new Dictionary<string, bool> { ["v:x1"] = true }, Assignment(first));
         // (x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1): x1 occurs at c0-0, c1-0, c1-2 and c2-2.
         Assert.Equal(["c0-0", "c1-0", "c1-2", "c2-2"], States(first, "nodes").Keys.Order());
-        Assert.All(States(first, "nodes").Values, s => Assert.Equal("ElementHighlight", s));
+        // The true occurrences (x1) are highlighted; the false ones (!x1 at c1-0 and c2-2) stay False.
+        Assert.Equal(new Dictionary<string, string> { ["c0-0"] = "ElementHighlight", ["c1-0"] = "False", ["c1-2"] = "ElementHighlight", ["c2-2"] = "False" },
+            States(first, "nodes"));
         // Clauses c0 and c1 contain a true x1 already.
         Assert.Equal(new Dictionary<string, string> { ["c0"] = "Covered", ["c1"] = "Covered" }, States(first, "groups"));
         var last = frames[^1];

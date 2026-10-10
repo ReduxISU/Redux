@@ -272,9 +272,12 @@ public class GroupedGraphFrames_Tests {
     }
 
     [Fact]
-    public void Frame_FalseShowsUnderTheHighlightAndTheRejection() {
-        // x1 = True: !x1 at c0-0 is False; trying x1 highlights it instead.
-        Assert.Equal(PictureState.ElementHighlight, Node(Frame(Of(("x1", true)), StepEvent.Try, "v:x1"), "c0-0"));
+    public void Frame_FalseShowsOverTheHighlight_AndUnderTheRejection() {
+        // x1 = True: !x1 at c0-0 is False, and stays False while x1 is the variable being tried (it is false, not a true
+        // literal); the true occurrence x1 at c2-0 is the one highlighted.
+        var tried = Frame(Of(("x1", true)), StepEvent.Try, "v:x1");
+        Assert.Equal(PictureState.False, Node(tried, "c0-0"));
+        Assert.Equal(PictureState.ElementHighlight, Node(tried, "c2-0"));
         // In a falsified clause every literal is Rejected, not False.
         var f = Frame(Of(("x1", true), ("x2", true), ("x4", false)), StepEvent.Accept);
         Assert.All(new[] { "c1-0", "c1-1", "c1-2" }, id => Assert.Equal(PictureState.Rejected, Node(f, id)));
@@ -308,13 +311,29 @@ public class GroupedGraphFrames_Tests {
     }
 
     [Fact]
-    public void Frame_TheVariableBeingTriedIsElementHighlight_OnEveryOccurrence_EvenWhenItsLiteralIsTrue() {
-        var f = Frame(Of(("x1", true)), StepEvent.Try, "v:x1");
-        // x1 occurs in c0-0, c1-0 and c2-0; c2-0 is true (Solution), which the highlight shows over.
-        Assert.Equal(["c0-0", "c1-0", "c2-0"], f.Nodes.Keys);
-        Assert.All(f.Nodes.Values, s => Assert.Equal(PictureState.ElementHighlight, s.State));
-        Assert.Equal(PictureState.Covered, Group(f, "c2"));
-        Assert.Equal(["v:x1"], f.Focus);
+    public void Frame_TheVariableBeingTriedIsElementHighlight_OnEveryOccurrenceThatIsNotFalse() {
+        foreach (var ev in new[] { StepEvent.Try, StepEvent.Accept, StepEvent.Reject }) {
+            var f = Frame(Of(("x1", true)), ev, "v:x1");
+            // x1 occurs in c0-0, c1-0 and c2-0. c2-0 (x1) is true, and the highlight shows over its Solution; c0-0 and c1-0
+            // (!x1) are false, and stay False so the tried value's false literals never look like its true one.
+            Assert.Equal(["c0-0", "c1-0", "c2-0"], f.Nodes.Keys);
+            Assert.Equal(PictureState.ElementHighlight, Node(f, "c2-0"));
+            Assert.Equal(PictureState.False, Node(f, "c0-0"));
+            Assert.Equal(PictureState.False, Node(f, "c1-0"));
+            Assert.Equal(PictureState.Covered, Group(f, "c2"));
+            Assert.Equal(["v:x1"], f.Focus);
+        }
+        // A variable not assigned yet (the next one a Backtrack names) is highlighted on every occurrence.
+        var next = Frame(Of(("x1", true)), StepEvent.Backtrack, "v:x2");
+        Assert.Equal(PictureState.ElementHighlight, Node(next, "c0-1"));
+        Assert.Equal(PictureState.ElementHighlight, Node(next, "c1-1"));
+    }
+
+    [Fact]
+    public void Frame_AFalseLiteralInTheFocus_StaysFalse() {
+        // x1 = True makes !x1 at c1-0 false; naming that literal in the focus does not make it look tried-and-true.
+        Assert.Equal(PictureState.False, Node(Frame(Of(("x1", true)), StepEvent.Try, "c1-0"), "c1-0"));
+        Assert.Equal(PictureState.ElementHighlight, Node(Frame(Of(("x1", true)), StepEvent.Try, "c2-0"), "c2-0"));
     }
 
     [Fact]
