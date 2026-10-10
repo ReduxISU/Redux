@@ -21,7 +21,7 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "";
-    public string instanceFormat { get; } = "Weighted undirected graph: ({nodes},{({u,v},w),...}) — e.g. ({1,2,3},{({1,2},4),({2,3},2),({1,3},3)})";
+    public string instanceFormat { get; } = "Weighted undirected graph: ({nodes},{({u,v},w),...}) — e.g. ({1,2,3},{({1,2},4),({2,3},2),({1,3},3)}). Parallel edges: when two edges join the same nodes, their weights are added.";
     public string certificateFormat { get; } = "Set of vertices on the S side of the maximum cut: {node,...} — e.g. {1,3}";
 
     private List<string> _nodes = new();
