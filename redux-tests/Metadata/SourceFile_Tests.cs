@@ -46,8 +46,7 @@ public class SourceFile_Tests : IClassFixture<AppFactory> {
             try {
                 instance = Activator.CreateInstance(type);
             } catch (Exception) {
-                // Some classes can't be default-constructed (e.g. SipserReduceToSAT3, whose
-                // default ctor reduces a non-Sipser-shaped CLIQUE). Without an instance we
+                // A class that can't be default-constructed has no instance to read. Without one we
                 // can't read the value, but we can still rule out the inherited-property case.
                 if (type.GetProperty("sourceFile", System.Reflection.BindingFlags.Public
                         | System.Reflection.BindingFlags.Instance
