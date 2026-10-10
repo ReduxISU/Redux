@@ -24,7 +24,12 @@ sealed record GraphSubsetSpec(
 
 sealed record GraphNodeDto(
     [property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("label")] string Label);
+    [property: JsonPropertyName("label")] string Label) {
+    /// <summary>True for a Steiner terminal (drawn with a double outline). Omitted for every other node.</summary>
+    [JsonPropertyName("terminal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Terminal { get; init; }
+}
 
 sealed record GraphEdgeDto(
     [property: JsonPropertyName("id")] string Id,
@@ -71,6 +76,14 @@ sealed record GraphFrame(
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
+
+    /// <summary>
+    /// Node id to group index, for pictures that split the nodes in two (the cut shape: 0 is the S side, 1 is the
+    /// T side). Not a state: the frontend colors each group. Omitted by every other shape.
+    /// </summary>
+    [JsonPropertyName("groups")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<string, int>? Groups { get; init; }
 }
 
 /// <summary>
@@ -123,7 +136,7 @@ static class GraphSubsetFrames {
             CanonicalEdges(spec).Select(e => new GraphEdgeDto(e.Id, e.A, e.B)).ToList(),
             "subset", RuleName(spec.Rule)) { K = spec.K };
 
-    private static int Rank(PictureState s) => s switch {
+    internal static int Rank(PictureState s) => s switch {
         PictureState.Rejected => 5,
         PictureState.ElementHighlight => 4,
         PictureState.Solution => 3,
@@ -132,7 +145,7 @@ static class GraphSubsetFrames {
         _ => 0,
     };
 
-    private static void Raise(Dictionary<string, PictureState> map, string id, PictureState state) {
+    internal static void Raise(Dictionary<string, PictureState> map, string id, PictureState state) {
         if (!map.TryGetValue(id, out var current) || Rank(state) > Rank(current)) map[id] = state;
     }
 
@@ -199,7 +212,7 @@ static class GraphSubsetFrames {
         return new GraphFrame(ev, caption, focus, ToRefs(nodes), ToRefs(edgeStates), phantoms) { Ok = ok };
     }
 
-    private static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
+    internal static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
         var sorted = new SortedDictionary<string, StateRef>(StringComparer.Ordinal);
         foreach (var (id, state) in map)
             if (state != PictureState.Background) sorted[id] = new StateRef(state);

@@ -52,7 +52,7 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
     // for the rest, format=frames is the list reshaped.
     private static readonly string[] OwnFrames = {
         "cliquedefaultvisualization", "vertexcoverdefaultvisualization", "minimumvertexcoverdefaultvisualization",
-        "independentsetdefaultvisualization", "dominatingsetdefaultvisualization",
+        "independentsetdefaultvisualization", "dominatingsetdefaultvisualization", "minimumspanningtreevisualization",
     };
 
     public static TheoryData<string> SnapshotNames => new(SnapshotCases.Select(c => c.Vis));
