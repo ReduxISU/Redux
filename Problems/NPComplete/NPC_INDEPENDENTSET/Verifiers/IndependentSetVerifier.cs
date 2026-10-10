@@ -29,15 +29,22 @@ class IndependentSetVerifier : IVerifier<INDEPENDENTSET> {
 
     }
     private List<string> parseCertificate(string certificate) {
-
-        List<string> nodeList = GraphParser.parseNodeListWithStringFunctions(certificate);
-        return nodeList;
+        // "{}" is the empty set, not a set holding one blank node name.
+        if (certificate.Replace(" ", "") == "{}") {
+            return new List<string>();
+        }
+        return GraphParser.parseNodeListWithStringFunctions(certificate).Select(node => node.Trim()).ToList();
     }
 
     public bool verify(INDEPENDENTSET problem, string certificate) {
         List<string> nodeList = parseCertificate(certificate);
         //Check k value
         if (nodeList.Count != problem.K) {
+            return false;
+        }
+        // Every certificate node must belong to the graph: a name that is not in V has no edges, so the
+        // pairwise check below would otherwise accept it.
+        if (nodeList.Any(node => !problem.nodes.Contains(node))) {
             return false;
         }
         foreach (var i in nodeList) {
