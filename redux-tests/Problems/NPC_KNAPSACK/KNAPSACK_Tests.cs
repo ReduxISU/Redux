@@ -162,4 +162,20 @@ public class KNAPSACK_Tests {
         KnapsackVerifier verifier = new KnapsackVerifier();
         Assert.True(verifier.verify(problem, KnapsackVerifier.CertificateExample));
     }
+
+    // #793: a negative capacity or weight was accepted, and the DP then crashed sizing or indexing its table. The
+    // constructor refuses them, so the endpoints answer the usual 400.
+    [Theory]
+    [InlineData("({(10,60)},-2,0)", "W")]
+    [InlineData("({(-1,60),(3,5)},5,10)", "-1")]
+    public void NegativeCapacityOrWeight_IsRefused(string instance, string detail) {
+        var e = Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new KnapsackDP()).solve(instance));
+        Assert.Contains(detail, e.Message);
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new KnapsackBruteForce()).solve(instance));
+    }
+
+    [Fact]
+    public void ZeroCapacityAndWeight_AndNegativeValues_AreStillAllowed() {
+        Assert.Equal("{(0,5)}", new KnapsackBruteForce().solve(new KNAPSACK("({(0,5),(3,-2)},0,5)")));
+    }
 }
