@@ -145,4 +145,22 @@ public class SAT_Tests {
         Assert.NotEqual("No solution exists", certificate);
         Assert.True(verifier.verify(sat, certificate));
     }
+    // -------------------------------------------------------------------------
+    // Regression (#754): the solver must try the all-false assignment.
+    // It used to increment before testing, so it tried 1 .. 2^n-1 and never 0.
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("(!x1)")]
+    [InlineData("(!x1) & (!x2)")]
+    [InlineData("(!x1 | !x2) & (!x1) & (!x2)")]
+    public void SAT_Solver_Finds_All_False_Solution(string instance) {
+        SAT sat = new SAT(instance);
+        SATBruteForceSolver solver = new SATBruteForceSolver();
+        SATVerifier verifier = new SATVerifier();
+        string certificate = solver.solve(instance);
+        Assert.NotEqual("No solution exists", certificate);
+        Assert.DoesNotContain("True", certificate);
+        Assert.True(verifier.verify(sat, certificate));
+    }
 }
