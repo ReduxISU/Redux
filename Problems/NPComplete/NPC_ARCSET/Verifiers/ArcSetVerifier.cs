@@ -85,6 +85,11 @@ class ArcSetVerifier : IVerifier<ARCSET> {
         if (cert.Count() > problem.K) {
             return false;
         }
+        // Only the graph's own edges can be removed (#784).
+        var edges = graph.Edges.ToList().ToHashSet();
+        if (!cert.ToList().All(edges.Contains)) {
+            return false;
+        }
         graph = graph.removeEdges(cert);
 
         return isACyclical(graph);

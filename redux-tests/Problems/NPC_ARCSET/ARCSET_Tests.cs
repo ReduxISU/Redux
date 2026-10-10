@@ -122,4 +122,20 @@ public class ARCSET_Tests {
         Assert.Equal(new UtilCollection(expectedArcsetInstance), new UtilCollection(arcInstance));
     }
 
+    // #784: a certificate is a set of the graph's edges; one that names anything else is not one, even on a graph that is
+    // already acyclic.
+    [Theory]
+    [InlineData("{(7,8)}")]
+    [InlineData("{(2,1)}")]
+    [InlineData("{(1,2),(9,9)}")]
+    public void ARCSET_verify_rejects_edges_outside_the_graph(string certificate) {
+        Assert.False(new ArcSetVerifier().verify(new ARCSET("(({1,2,3},{(1,2),(2,3)}),2)"), certificate));
+    }
+
+    [Fact]
+    public void ARCSET_verify_still_accepts_the_graphs_own_edges() {
+        var problem = new ARCSET("(({1,2,3},{(1,2),(2,3)}),2)");
+        Assert.True(new ArcSetVerifier().verify(problem, "{(1,2)}"));
+        Assert.True(new ArcSetVerifier().verify(problem, "{}"));
+    }
 }
