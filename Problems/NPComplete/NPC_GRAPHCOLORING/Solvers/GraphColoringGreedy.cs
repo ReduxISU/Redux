@@ -1,12 +1,13 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Linq;
 using System.Collections.Generic;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
-class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
+class GraphColoringGreedy : ISolver<GRAPHCOLORING, Groups> {
 
     public string solverName { get; } = "Graph Coloring Greedy";
     public string solverDefinition { get; } = "A greedy algorithm that iterates through each vertex and assigns the smallest color not used by any of its neighbors.";
@@ -37,13 +38,21 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
         return "{" + string.Join(",", colorGroups) + "}";
     }
 
-    public string solve(GRAPHCOLORING gColor) {
+    public string solve(GRAPHCOLORING gColor) => Solve(gColor, StepRecorder<Groups>.Off);
+
+    // Steps: one per node, in the order the greedy colors them. A node that needs a color K or more is a Reject (the
+    // greedy goes on, as it always does, and gives up at the end). Recorder state lives only in this call.
+    public string Solve(GRAPHCOLORING gColor, StepRecorder<Groups> rec) {
         List<string> nodes = gColor.nodes;
         List<KeyValuePair<string, string>> edges = gColor.edges;
 
         // Guard, empty graph
-        if (nodes == null || nodes.Count == 0)
+        if (nodes == null || nodes.Count == 0) {
+            bool ok = false;
+            try { ok = gColor.defaultVerifier.verify(gColor, "{}"); } catch { }
+            rec.Done(new Groups([]), ok, "The graph has no nodes, so there is nothing to color.");
             return "{}";
+        }
 
         // Build adjacency list
         Dictionary<string, List<string>> adjacency = new Dictionary<string, List<string>>();
@@ -68,14 +77,30 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
                 color++;
 
             colorAssignment[node] = color;
+
+            // The neighbours that already have a color, and the colors they use (read inside the recorder lambdas only).
+            string Because() {
+                var colored = adjacency[node].Where(n => n != node && colorAssignment.ContainsKey(n)).Distinct().Order(StringComparer.Ordinal).ToList();
+                return colored.Count == 0
+                    ? "no neighbour is colored yet"
+                    : $"{(colored.Count == 1 ? "neighbour" : "neighbours")} {GraphGroupFrames.And(colored)} already {(colored.Count == 1 ? "uses" : "use")} {(usedColors.Count == 1 ? "color" : "colors")} {GraphGroupFrames.And(usedColors.Order().Select(c => c.ToString()).ToList())}";
+            }
+            if (color >= gColor.K)
+                rec.Reject(() => new Groups(colorAssignment),
+                    () => $"Node {node} needs color {color}, but K = {gColor.K} allows only colors 0 to {gColor.K - 1}: {Because()}.", node);
+            else
+                rec.Accept(() => new Groups(colorAssignment), () => $"Color node {node} with color {color}: {Because()}.", node);
         }
 
         int numColors = colorAssignment.Values.Max() + 1;
 
         // Guard, greedy used more colors than K allows
-        if (numColors > gColor.K)
+        if (numColors > gColor.K) {
+            rec.Done(new Groups([]), false, $"Greedy used {numColors} colors, more than K = {gColor.K}. Greedy doesn't always find the fewest colors.");
             return "{}";
+        }
 
+        rec.Done(new Groups(colorAssignment), true, $"Every node is colored with {numColors} {(numColors == 1 ? "color" : "colors")}, within K = {gColor.K}.");
         return BuildCertificate(colorAssignment, nodes, numColors);
     }
 }

@@ -38,7 +38,7 @@ public class SolverReplay_Tests {
     }
 
     // What the final Partial must equal, derived independently from the answer string.
-    private static object ExpectedFinalPartial(object lastPartial, string answer) {
+    private static object ExpectedFinalPartial(object lastPartial, string answer, string solverName) {
         if (lastPartial is ActiveStates last) {
             // The end states of the accepting run(s): the last state of each path line.
             var ends = answer.Split('\n')
@@ -54,14 +54,22 @@ public class SolverReplay_Tests {
             // Edge-set answers list edges, plain ({{a,b},...}) or weighted ({({a,b},w),...}); the partial holds their ids.
             return API.Interfaces.Graphs.GraphEdgeFrames.ParseEdges(answer);
         }
+        if (lastPartial is Groups && IsGroupsAnswer(solverName)) {
+            // Graph Coloring and Clique Cover answer with their classes ({{a,d},{b}}): the n-th class is group n.
+            return API.Interfaces.Graphs.GraphGroupFrames.ParseClasses(answer);
+        }
         if (lastPartial is Groups) {
-            // A split is not recoverable from the answer string (a list of cut edges names no side), so it is checked
+            // A cut is not recoverable from the answer string (a list of cut edges names no side), so it is checked
             // against the answer, per solver, in EdgeSetSolvers_Tests.TheDoneStep_ShowsTheAnswerTheSolverGave.
             return lastPartial;
         }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
+
+    // The solvers whose answer lists the groups themselves (the groups shape), as opposed to the cut solvers, whose answer
+    // lists the crossing edges.
+    private static bool IsGroupsAnswer(string solverName) => solverName.StartsWith("graphcoloring") || solverName.StartsWith("cliquecover");
 
     [Fact]
     public void AtLeastDfaAndNfaAreDiscovered() {
@@ -98,7 +106,7 @@ public class SolverReplay_Tests {
         Assert.Equal(StepEvent.Done, (StepEvent)last.Event);
         Assert.Equal(1, withSteps.Steps.Count(s => ((dynamic)s).Event == StepEvent.Done));
         object finalPartial = last.Partial;
-        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer), finalPartial);
+        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer, name), finalPartial);
 
         // (c) Done.Ok agrees with the problem's own verifier on the returned answer.
         bool? ok = last.Ok;
@@ -106,7 +114,7 @@ public class SolverReplay_Tests {
         // "{}" is how the node-set solvers say "no answer"; the verifiers reject it or refuse to parse it, so it
         // counts as not verified without asking them (a vertex cover of size 3 may simply not exist, as with
         // the 2-approximation on the default Vertex Cover instance).
-        bool noAnswer = finalPartial is NodeSet { Nodes.Length: 0 };
+        bool noAnswer = finalPartial is NodeSet { Nodes.Length: 0 } or Groups { Of.Count: 0 };
         bool verified = !noAnswer && problem.defaultVerifier.verify(instance, CertificateFrom(withSteps.Answer));
         Assert.Equal(verified, ok);
     }

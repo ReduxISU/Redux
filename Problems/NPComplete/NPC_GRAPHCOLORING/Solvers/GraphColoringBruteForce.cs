@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
-class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
+class GraphColoringBruteForce : ISolver<GRAPHCOLORING, Groups> {
 
     // --- Fields ---
     public string solverName { get; } = "Graph Coloring Brute Force";
@@ -66,7 +67,12 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
     }
 
 
-    public string solve(GRAPHCOLORING gColor) {
+    public string solve(GRAPHCOLORING gColor) => Solve(gColor, StepRecorder<Groups>.Off);
+
+    // Steps: one per candidate coloring tried, in the order the solver tries them. A node whose digit is numColors (the
+    // odometer's extra value) has no color in that candidate, so it is left out of the partial answer. Recorder state
+    // lives only in this call.
+    public string Solve(GRAPHCOLORING gColor, StepRecorder<Groups> rec) {
 
         int numColors = gColor.K;
         if (gColor.K > gColor.nodes.Count) numColors = gColor.nodes.Count();
@@ -75,6 +81,14 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
         List<int> binary = new List<int>();
         foreach (var i in gColor.nodes) {
             binary.Add(0);
+        }
+
+        int tried = 0;
+        Dictionary<string, int> Candidate() {
+            var colors = new Dictionary<string, int>();
+            for (int i = 0; i < binary.Count; i++)
+                if (binary[i] < numColors) colors[gColor.nodes[i]] = binary[i];
+            return colors;
         }
 
         // Use a do-while so the initial all-zero candidate is always evaluated at least
@@ -86,13 +100,20 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
         // numColors - 1 >= 1 yet), so this restructuring does not change behavior there.
         do {
             string certificate = BinaryToCertificate(binary, gColor.nodes, numColors);
+            tried++;
             if (gColor.defaultVerifier.verify(gColor, certificate)) {
+                rec.Accept(() => new Groups(Candidate()), () => $"Try {GraphGroupFrames.Classes(Candidate(), numColors)}. No two neighbours share a color.", Array.Empty<string>());
+                rec.Done(new Groups(Candidate()), true, $"{GraphGroupFrames.Classes(Candidate(), numColors)} is a coloring with at most {numColors} colors, found after {tried} tries.");
                 return certificate;
             }
+            rec.Reject(() => new Groups(Candidate()),
+                () => $"Try {GraphGroupFrames.Classes(Candidate(), numColors)}: {GraphGroupFrames.Why(GroupRule.Coloring, gColor.nodes, gColor.edges, Candidate())?.Reason}.",
+                () => GraphGroupFrames.Why(GroupRule.Coloring, gColor.nodes, gColor.edges, Candidate())?.Focus ?? Array.Empty<string>());
             nextBinary(binary, numColors);
 
         } while (binary.Count(n => n == (numColors - 1)) < gColor.nodes.Count);
 
+        rec.Done(new Groups([]), false, $"Checked all {tried} ways to give the nodes one of {numColors} colors. None has every node colored with no clash.");
         return "{}";
     }
 }
