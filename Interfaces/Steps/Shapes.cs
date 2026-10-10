@@ -189,6 +189,41 @@ sealed class Components : IEquatable<Components> {
         HashCode.Combine(ShapeUtil.HashOf(Visited), ShapeUtil.HashOf(Finished), ShapeUtil.HashOf(Of.Select(p => $"{p.Key}={p.Value}")));
 }
 
+/// <summary>
+/// One leg of an augmenting path: the edge (its picture id), whether the path runs along it (true) or against it, taking
+/// back flow sent earlier (false), and how many units the leg moved.
+/// </summary>
+sealed record FlowArc(
+    [property: JsonPropertyName("edge")] string Edge,
+    [property: JsonPropertyName("forward")] bool Forward,
+    [property: JsonPropertyName("units")] int Units);
+
+/// <summary>
+/// A flow so far (Ford-Fulkerson and its kin): the units on each edge that carries any (edge id to units), the augmenting
+/// path just used (empty when none), the flow's value, and, once no path is left, the nodes the source can still reach
+/// in the residual graph (the S side of the minimum cut; empty until then). Edge ids are the picture's
+/// (<c>FlowFrames.ArcId</c>), node names as the instance writes them.
+/// </summary>
+sealed class NetworkFlow : IEquatable<NetworkFlow> {
+    [JsonPropertyName("flow")] public IReadOnlyDictionary<string, int> Flow { get; }
+    [JsonPropertyName("path")] public FlowArc[] Path { get; }
+    [JsonPropertyName("value")] public int Value { get; }
+    [JsonPropertyName("side")] public string[] Side { get; }
+    public NetworkFlow(IEnumerable<KeyValuePair<string, int>> flow, IEnumerable<FlowArc> path, int value, IEnumerable<string> side) {
+        Flow = flow.Where(p => p.Value != 0).OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value);
+        Path = path.ToArray();
+        Value = value;
+        Side = ShapeUtil.SortedSet(side);
+    }
+    public bool Equals(NetworkFlow? other) =>
+        other != null && Value == other.Value && Path.SequenceEqual(other.Path) && Side.SequenceEqual(other.Side, StringComparer.Ordinal)
+            && Flow.Count == other.Flow.Count && Flow.All(p => other.Flow.TryGetValue(p.Key, out var u) && u == p.Value);
+    public override bool Equals(object? obj) => Equals(obj as NetworkFlow);
+    public override int GetHashCode() =>
+        HashCode.Combine(Value, ShapeUtil.HashOf(Side), ShapeUtil.HashOf(Path.Select(a => $"{a.Edge}:{a.Forward}:{a.Units}")),
+            ShapeUtil.HashOf(Flow.Select(p => $"{p.Key}={p.Value}")));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -205,5 +240,6 @@ static class Shapes {
         : shape == typeof(ChosenSets) ? new ChosenSets([])
         : shape == typeof(Distances) ? new Distances([], [], [])
         : shape == typeof(Components) ? new Components([], [], [])
+        : shape == typeof(NetworkFlow) ? new NetworkFlow([], [], 0, [])
         : null;
 }

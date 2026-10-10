@@ -70,4 +70,11 @@ public enum VisualizationType {
     /// <c>type</c> of the <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type.
     /// </summary>
     LayeredGraph,
+    /// <summary>
+    /// The Flow Network picture (Minimum S-T Cut): the source on the left, the sink on the right, every edge with its flow
+    /// and capacity, one frame per augmenting path and a last frame with the S side, the T side and the cut; a static payload
+    /// plus one frame of named states per solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the
+    /// <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy <see cref="GraphD3"/>.
+    /// </summary>
+    FlowNetwork,
 }

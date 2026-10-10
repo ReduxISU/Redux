@@ -66,10 +66,12 @@ public class IncrementalSolvers_Tests {
         ["kosarajusolver"] = true,
         ["ssspsolver"] = true,
         ["spspsolver"] = true,
+        // Flow Network pictures
+        ["minstcutsolver"] = true,
     };
 
-    // The answer shapes a Graph, Grouped Graph, Bipartite or Layered Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances)];
+    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph or Flow Network picture draws.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

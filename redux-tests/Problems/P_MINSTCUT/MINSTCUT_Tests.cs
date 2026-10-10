@@ -45,6 +45,42 @@ public class MINSTCUT_Tests {
         Assert.Throws<InvalidOperationException>(() => new MINSTCUT(instance));
     }
 
+    // An S-T cut needs the source in S and the sink outside it, so the two must differ. Before #785 this instance was
+    // accepted and Edmonds-Karp found the empty path from 1 to 1 forever.
+    [Fact]
+    public void MINSTCUT_Rejects_Source_Equal_To_Sink() {
+        var error = Assert.Throws<InvalidOperationException>(() => new MINSTCUT("({1,2},{((1,2),3)},1,1)"));
+        Assert.Equal("The source and the sink must be different nodes; both are '1'.", error.Message);
+    }
+
+    // Before #786 the edge was accepted and the solver crashed looking up node 4.
+    [Fact]
+    public void MINSTCUT_Rejects_Edge_Outside_Node_Set() {
+        var error = Assert.Throws<InvalidOperationException>(() => new MINSTCUT("({1,2,3},{((1,4),5)},1,3)"));
+        Assert.Equal("Edge (1,4) uses node '4', which is not in the node set.", error.Message);
+    }
+
+    // Before #787 a negative capacity was accepted: the solver answered {1} (capacity 1) while {1,2} has capacity -2,
+    // and the verifier agreed with the solver.
+    [Theory]
+    [InlineData("({1,2,3},{((1,3),1),((2,1),-3),((2,3),-3)},1,3)", "Edge (2,1) has capacity -3; capacities must not be negative.")]
+    [InlineData("({1,2},{((1,2),-1)},1,2)", "Edge (1,2) has capacity -1; capacities must not be negative.")]
+    public void MINSTCUT_Rejects_Negative_Capacity(string instance, string message) {
+        var error = Assert.Throws<InvalidOperationException>(() => new MINSTCUT(instance));
+        Assert.Equal(message, error.Message);
+    }
+
+    [Theory]
+    // A zero capacity, a loop and a pair of opposite edges are all still fine.
+    [InlineData("({1,2},{((1,2),0)},1,2)")]
+    [InlineData("({1,2},{((1,1),4),((1,2),1)},1,2)")]
+    [InlineData("({a,b},{((a,b),2),((b,a),7)},a,b)")]
+    public void MINSTCUT_Accepts_Edge_Cases_That_Have_A_Cut(string instance) {
+        MINSTCUT problem = new MINSTCUT(instance);
+        string solution = new MinSTCutSolver().solve(problem);
+        Assert.True(new MinSTCutVerifier().verify(problem, solution));
+    }
+
     // ----- Solver ----- //
 
     [Theory]
