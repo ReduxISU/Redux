@@ -37,6 +37,21 @@ public class TSP_Tests {
         Assert.True(verifier.verify(tsp, TSPVerifier.CertificateExample));
     }
 
+    [Fact]
+    public void TSP_Text_Describes_The_Decision_Version() {
+        // TSP here asks whether a tour costs at most K (the verifier's sum <= K), not for the shortest tour;
+        // the shortest tour is Minimum Traveling Salesperson (#765).
+        TSP tsp = new TSP();
+        Assert.Contains("tour", tsp.formalDefinition);
+        Assert.Contains("at most K", tsp.formalDefinition);
+        Assert.Contains("at most K", tsp.problemDefinition);
+        Assert.Contains("at most K", tsp.outputDescription);
+        foreach (string text in new[] { tsp.formalDefinition, tsp.problemDefinition, tsp.inputDescription, tsp.outputDescription }) {
+            Assert.DoesNotContain("less than", text);
+            Assert.DoesNotContain("shortest", text);
+        }
+    }
+
     //TSP Greedy solver tests
 
     [Fact]

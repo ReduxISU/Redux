@@ -8,7 +8,7 @@ class TSPBruteForce : ISolver<TSP> {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Brute Force";
-    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Traveling Salesperson problem";
+    public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Traveling Salesperson problem. It tries every ordering of the cities and returns the first tour that costs at most K, which is not necessarily the cheapest tour.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
