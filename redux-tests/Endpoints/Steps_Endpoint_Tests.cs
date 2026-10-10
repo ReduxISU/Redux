@@ -82,6 +82,7 @@ public class Steps_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Visualize("visualization=dfavisualization&format=frames",
             "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),b)");
         Assert.Equal(HttpStatusCode.OK, status);
-        Assert.Equal(3, JsonDocument.Parse(body).RootElement.GetProperty("frames").GetArrayLength());
+        // The Automaton picture (#666) draws every step: start in 1, read b to 3, reject 3 (not an accept state), Done.
+        Assert.Equal(4, JsonDocument.Parse(body).RootElement.GetProperty("frames").GetArrayLength());
     }
 }

@@ -6,10 +6,11 @@ using API.Interfaces.JSON_Objects.Graphs;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Problems.P.P_DFA.Solvers;
+using API.Interfaces.Graphs;
 
 namespace API.Problems.P.P_DFA.Visualizations;
 
-class DFAVisualization : IVisualization<DFA, API_GraphJSON> {
+class DFAVisualization : IVisualization<DFA, API_GraphJSON>, IAutomatonVisualization<DFA> {
     public string visualizationName { get; } = "Deterministic Finite Automata Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Deterministic Finite Automata";
     public string source { get; } = "";
@@ -20,6 +21,17 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON> {
 
     // Implemented explicitly so it is not a public member (and so not part of /info).
     Type? IVisualization.StepShape => typeof(ActiveStates);
+
+    // The Automaton picture (format=frames only; /info keeps GraphLaTeX). The list format below already drew the typed
+    // steps before the picture existed, so it keeps getting them.
+    AutomatonSpec IAutomatonVisualization<DFA>.Describe(DFA problem) => Spec(problem);
+    bool IFramesVisualization.ListReadsTypedSteps() => true;
+
+    /// <summary>The DFA as the Automaton picture describes it.</summary>
+    internal static AutomatonSpec Spec(DFA problem) => new(AutomatonKind.Dfa,
+        problem.nodes, problem.alphabet.Select(c => c.ToString()).ToList(),
+        problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
+        problem.startState, problem.acceptStates, problem.inputString);
 
     // --- Methods Including Constructors ---
     public DFAVisualization() { }

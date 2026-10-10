@@ -31,7 +31,8 @@ class NFASolver : ISolver<NFA, ActiveStates> {
 
     // Steps: Try for each move taken (an input symbol or an epsilon move), Accept when a run uses up the
     // input in an accept state, Reject at a dead end, Backtrack when the search backs out of a move, and
-    // Done with the end states of all accepting runs. Recorder state lives only in this call.
+    // Done with the end states of all accepting runs. Focus names ids of the Automaton picture (AutomatonFrames): the
+    // arrow of a move (taken or backed out of), the state of an Accept or a Reject. Recorder state lives only in this call.
     public string Solve(NFA problem, StepRecorder<ActiveStates> rec) {
         // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
@@ -41,7 +42,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
         foreach (char c in input) {
             if (!problem.alphabet.Contains(c)) {
                 rec.Reject(() => new ActiveStates([problem.startState], 0),
-                    () => $"'{c}' is not in the alphabet, so the NFA cannot read it.", problem.startState);
+                    () => $"'{c}' is not in the alphabet, so the NFA cannot read it.", () => [AutomatonFrames.StateId(problem.startState)]);
                 rec.Done(new ActiveStates([], 0), false, $"Rejected: '{c}' is not in the alphabet.");
                 return $"No Solution: Input contains character '{c}' not in NFA alphabet";
             }
@@ -58,7 +59,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
             if (acceptingHere) {
                 acceptPaths.Add(new List<string>(path));
                 rec.Accept(() => new ActiveStates([state], pos),
-                    () => $"The input is used up in {state}, an accept state: this run accepts.", state);
+                    () => $"The input is used up in {state}, an accept state: this run accepts.", () => [AutomatonFrames.StateId(state)]);
                 // Do not return: still allow further epsilon transitions that may produce other accept runs
             }
 
@@ -70,10 +71,10 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                 path.Add(e.To);
                 moved = true;
                 rec.Try(() => new ActiveStates([e.To], pos),
-                    () => $"Take an ε-move from {state} to {e.To}.", state, e.To);
+                    () => $"Take an ε-move from {state} to {e.To}.", () => [AutomatonFrames.TransitionId(state, e.To)]);
                 DFS(e.To, pos, path, visitedPerPath);
                 rec.Backtrack(() => new ActiveStates([state], pos),
-                    () => $"Back out of {e.To} to {state} to try another move.", e.To, state);
+                    () => $"Back out of {e.To} to {state} to try another move.", () => [AutomatonFrames.TransitionId(state, e.To)]);
                 path.RemoveAt(path.Count - 1);
                 visitedPerPath.Remove(key);
             }
@@ -88,10 +89,10 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                     path.Add(e.To);
                     moved = true;
                     rec.Try(() => new ActiveStates([e.To], pos + 1),
-                        () => $"Read '{need}': move from {state} to {e.To}.", state, e.To);
+                        () => $"Read '{need}': move from {state} to {e.To}.", () => [AutomatonFrames.TransitionId(state, e.To)]);
                     DFS(e.To, pos + 1, path, visitedPerPath);
                     rec.Backtrack(() => new ActiveStates([state], pos),
-                        () => $"Back out of {e.To} to {state} to try another move.", e.To, state);
+                        () => $"Back out of {e.To} to {state} to try another move.", () => [AutomatonFrames.TransitionId(state, e.To)]);
                     path.RemoveAt(path.Count - 1);
                     visitedPerPath.Remove(key);
                 }
@@ -102,7 +103,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                     () => pos < input.Length
                         ? $"{state} has no move on '{input[pos]}': this run is a dead end."
                         : $"The input is used up in {state}, which is not an accept state: this run is a dead end.",
-                    state);
+                    () => [AutomatonFrames.StateId(state)]);
             }
         }
 
@@ -110,7 +111,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
         var startPath = new List<string> { problem.startState };
         var startVisited = new HashSet<(string, int)> { (problem.startState, 0) };
         rec.Try(() => new ActiveStates([problem.startState], 0),
-            () => $"Start in {problem.startState}.", problem.startState);
+            () => $"Start in {problem.startState}.", () => [AutomatonFrames.StateId(problem.startState)]);
         DFS(problem.startState, 0, startPath, startVisited);
 
         // Build output
@@ -182,7 +183,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                 transitions.Add(new NFAPathTransition { from = state, symbol = "ε", to = e.To });
                 expanded = true;
                 rec.Try(() => new ActiveStates([e.To], pos),
-                    () => $"Take an ε-move from {state} to {e.To}.", state, e.To);
+                    () => $"Take an ε-move from {state} to {e.To}.", () => [AutomatonFrames.TransitionId(state, e.To)]);
                 DFS(e.To, pos, path, transitions, visitedPerPath);
                 transitions.RemoveAt(transitions.Count - 1);
                 path.RemoveAt(path.Count - 1);
@@ -200,7 +201,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                     transitions.Add(new NFAPathTransition { from = state, symbol = need.ToString(), to = e.To });
                     expanded = true;
                     rec.Try(() => new ActiveStates([e.To], pos + 1),
-                        () => $"Read '{need}': move from {state} to {e.To}.", state, e.To);
+                        () => $"Read '{need}': move from {state} to {e.To}.", () => [AutomatonFrames.TransitionId(state, e.To)]);
                     DFS(e.To, pos + 1, path, transitions, visitedPerPath);
                     transitions.RemoveAt(transitions.Count - 1);
                     path.RemoveAt(path.Count - 1);

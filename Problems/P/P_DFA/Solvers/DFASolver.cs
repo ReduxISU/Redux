@@ -29,9 +29,11 @@ class DFASolver : ISolver<DFA, ActiveStates> {
 
     public string solve(DFA problem) => Solve(problem, StepRecorder<ActiveStates>.Off);
 
-    // Steps: one Try for the start state, then one Try per input symbol consumed (the transition taken).
-    // The run dies with a Reject; Done always closes the run with the states it stopped in.
-    // Recorder state lives only in this call, so the solver object stays stateless.
+    // Steps, for the Automaton picture (ids from AutomatonFrames): a Try for the start state (focus: the state), then a
+    // Try per symbol read (partial: the state reached; focus: the arrow taken). A missing move is a Reject whose partial
+    // has no state: the machine falls into the Garbage state (focus: its id). A symbol outside the alphabet, or input used
+    // up in a state that does not accept, is a Reject on that state. Done closes the run with the state it ended in (none
+    // for Garbage) and whether the DFA accepts. Recorder state lives only in this call, so the solver object stays stateless.
     public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
         // Input String (the empty input is written "ε", and reads no symbol) //
         string inputString = problem.inputString == "ε" ? "" : problem.inputString;
@@ -42,12 +44,12 @@ class DFASolver : ISolver<DFA, ActiveStates> {
         int consumed = 0;
 
         rec.Try(() => new ActiveStates([problem.startState], 0),
-            () => $"Start in {problem.startState}.", problem.startState);
+            () => $"Start in {problem.startState}.", () => [AutomatonFrames.StateId(problem.startState)]);
 
-        string Finish(string answer, bool ok, string caption) {
+        string Finish(string answer, bool ok, string caption, bool inGarbage = false) {
             string end = currentNode;
             int at = consumed;
-            rec.Done(new ActiveStates([end], at), ok, caption);
+            rec.Done(new ActiveStates(inGarbage ? [] : [end], at), ok, caption);
             return answer;
         }
 
@@ -55,7 +57,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
             // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character)) {
                 rec.Reject(() => new ActiveStates([currentNode], consumed),
-                    () => $"'{character}' is not in the alphabet, so the DFA cannot read it.", currentNode);
+                    () => $"'{character}' is not in the alphabet, so the DFA cannot read it.", () => [AutomatonFrames.StateId(currentNode)]);
                 return Finish($"No Solution: Input contains character '{character}' not in DFA alphabet", false,
                     $"Rejected: '{character}' is not in the alphabet.");
             }
@@ -69,17 +71,18 @@ class DFASolver : ISolver<DFA, ActiveStates> {
                     consumed++;
                     foundEdge = true;
                     rec.Try(() => new ActiveStates([edge.To], consumed),
-                        () => $"Read '{character}': move from {edge.From} to {edge.To}.", edge.From, edge.To);
+                        () => $"Read '{character}': move from {edge.From} to {edge.To}.", () => [AutomatonFrames.TransitionId(edge.From, edge.To)]);
                     break;
                 }
             }
 
-            // If No Edge, DFA Stops //
+            // If No Edge, DFA Stops: It Falls Into the Garbage State //
             if (!foundEdge) {
-                rec.Reject(() => new ActiveStates([currentNode], consumed),
-                    () => $"No move from {currentNode} on '{character}', so the run stops.", currentNode);
+                rec.Reject(() => new ActiveStates([], consumed),
+                    () => $"{currentNode} has no move on '{character}', so the DFA falls into the Garbage state and stays there.",
+                    () => [AutomatonFrames.GarbageId]);
                 return Finish("No Solution Exists: DFA cannot transition with this character", false,
-                    $"Rejected: {currentNode} has no move on '{character}'.");
+                    $"Rejected: {currentNode} has no move on '{character}', so the run ends in the Garbage state.", inGarbage: true);
             }
         }
 
@@ -89,7 +92,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
                 $"The input is used up in {currentNode}, an accept state, so the DFA accepts.");
         } else {
             rec.Reject(() => new ActiveStates([currentNode], consumed),
-                () => $"The input is used up in {currentNode}, which is not an accept state.", currentNode);
+                () => $"The input is used up in {currentNode}, which is not an accept state.", () => [AutomatonFrames.StateId(currentNode)]);
             return Finish("No Solution Exists: The DFA ended in a non-accepting state", false,
                 $"Rejected: the run ended in {currentNode}, which is not an accept state.");
         }
