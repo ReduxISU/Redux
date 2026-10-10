@@ -40,6 +40,13 @@
       ],
       "reductionToIds": [
         "1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1"
+      ],
+      "targetIds": [
+        "1"
       ]
     },
     {
@@ -49,6 +56,13 @@
         "2"
       ],
       "reductionToIds": [
+        "2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2"
+      ],
+      "targetIds": [
         "2"
       ]
     },
@@ -59,6 +73,13 @@
         "3"
       ],
       "reductionToIds": [
+        "3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3"
+      ],
+      "targetIds": [
         "3"
       ]
     },
@@ -69,6 +90,13 @@
         "4"
       ],
       "reductionToIds": [
+        "4"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "4"
+      ],
+      "targetIds": [
         "4"
       ]
     },
@@ -79,6 +107,13 @@
         "5"
       ],
       "reductionToIds": [
+        "5"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "5"
+      ],
+      "targetIds": [
         "5"
       ]
     },
@@ -89,6 +124,13 @@
         "6"
       ],
       "reductionToIds": [
+        "6"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "6"
+      ],
+      "targetIds": [
         "6"
       ]
     }
