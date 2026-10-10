@@ -46,6 +46,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphD3` | [`API_GraphJSON`](../../Interfaces/JSON_Objects/Graphs/API_GraphJSON.cs) | [StandardGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardGraphSvgReact.js) | Independent Set, Max Cut, Vertex Cover |
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
+| `FlowNetwork` | not a list item: a `payload` plus `frames` of named states ([`FlowFrames`](../../Interfaces/graphs/FlowFrames.cs)) | none yet | Minimum S-T Cut. Reported only as the `type` of `visualize?format=frames`; its visualization still reports `GraphD3` in /info and in the default list format. See "The Flow Network picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -58,6 +59,48 @@ Two things that trip people up:
 
 - Every payload class carries a `kind` field (`"graph"`, `"sat"`, `"set"`, `"table"`, `"empty"`, ...). It tells a reader what the JSON is without guessing. You do not set it. The class does.
 - `Unimplemented` means "no renderer exists". The GUI shows an honest "not renderable" message instead of a broken picture. A few old classes use it, and a test (section 6) stops **new** classes from joining them.
+
+### The Flow Network picture (`format=frames`)
+
+Minimum S-T Cut serves the shared `FlowNetwork` picture: the source on the left, the sink on the right, every edge labelled with its flow and capacity, one frame per augmenting path, and a last frame that splits the nodes into the S and T sides. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the network.
+
+The problem hands over `FlowSpec(nodes, edges, source, sink)`. `edges` are `FlowEdgeInput(from, to, capacity)` as the instance lists them, parallel edges included.
+
+The payload (sent once) is `{ kind: "flowNetwork", layout: "sourceToSink", rule: "minimumSTCut", source, sink, nodes, edges, layers }`:
+
+- A node is `{ id, label, layer, row }`. `layers` lists each column's node ids in row order, so `layers[layer][row]` is the node. The source is alone in the first column and the sink alone in the last. Every other node sits in the column of its hop distance from the source; nodes the source cannot reach share the column before the sink. This is the layout of `mockups/flow.js`.
+- An edge is `{ id, a, b, capacity, label? }`. Edges listed more than once from `a` to `b` are one arrow whose `capacity` is their sum, because the solver adds them. `label` is there only for such edges and lists every listed capacity in the order listed (`"2,5"`): draw `label` if present, else `capacity` (#769). An edge written twice with the same capacity is one edge, since the instance's edges are a set. `a→b` and `b→a` are two edges.
+
+Each frame is `{ event, caption, focus, nodes, edges, flow, value, path, groups?, cut?, ok? }`. `nodes` and `edges` map an id to `{ state }` (absent means `Background`). The annotations:
+
+| Field | In | Meaning |
+| --- | --- | --- |
+| `flow` | every frame | Every edge id to the units it carries. The residual room is derived from it: `capacity − flow` forward, `flow` backward (the backward arcs to draw) |
+| `value` | every frame | The flow's value so far |
+| `path` | every frame | The augmenting path this step used, as legs `{ edge, forward, units }`; `forward: false` means the path ran against the edge, taking back flow sent earlier. Empty when the step used no path |
+| `groups` | the Done frame | Every node id to `0` (S side, what the source can still reach) or `1` (T side) |
+| `cut` | the Done frame | The ids of the edges from S to T. Their capacities add up to `value` |
+
+Ids are built like the Layered Graph's: a node is its name with a `\` before every `\`, `-` and `>` (`1`, `a\-b`), and the edge from `x` to `y` is `{id of x}>{id of y}` (`1>2`). Build them with `FlowFrames.NodeId` and `ArcId`, never by hand. An id is a label, never something to split: every edge gives its ends as `a` and `b`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`, with `Untraveled` only where nothing else applies):
+
+- While flow is pushed, a full edge (flow equals capacity, which is above 0) is `Covered`. How much an edge carries is the `flow` annotation, not a state.
+- The focus is the path just used, nodes and edges, and is `ElementHighlight`.
+- In the Done frame the cut edges are `Solution` and the edges from T back into S are `Untraveled`. `groups` colors the two sides, so nodes have no state of their own.
+- A run stopped by the time limit ends with a `Done` frame, `ok: false`, every element `Background`, every edge's flow 0, an empty path and no `groups` or `cut`. Its answer string is never read.
+
+The solver and its steps (`NetworkFlow`: units keyed by edge id, the legs, the value, and in Done the S side by node name):
+
+- `MinSTCutSolver` (Edmonds-Karp, incremental): a `Try` with no flow, then an `Accept` per augmenting path ("Path 1: push 3 along 1 → 2 → 4. 2 → 4 is now full. Flow is now 3."; a backward leg is written `⇠` and named in the caption), then a `Done` with the S side.
+- The solver's residual graph merges parallel edges and both directions of a pair, so it only knows each pair's net flow. The steps draw that net flow on the edge it runs along. That is always a valid flow, and the algorithm itself is unchanged.
+
+To add a flow problem or another max-flow solver:
+
+1. Implement `IFlowVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(NetworkFlow)`.
+2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets tests build the same description.
+3. Record a `NetworkFlow` per augmenting path, with its legs, and the S side in `Done`. Ford-Fulkerson with a depth-first search fits the same steps.
+4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solver answers before touching code (`Endpoints/Snapshots/flow_*.tsv`, `FlowFrames_Endpoint_Tests`, `FlowSolvers_Tests`, `FlowFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 
