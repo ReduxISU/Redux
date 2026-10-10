@@ -206,18 +206,27 @@ static class GraphEdgeFrames {
 
     // ---- The whole response ----
 
+    private static void CheckEdgeIds(GraphEdgeSpec spec) =>
+        GraphSubsetFrames.CheckEdgeIds(spec.Edges.Select(e => (e.A, e.B)), GraphSubsetFrames.EdgeId);
+
     /// <summary>
     /// The whole response for an edges answer: the payload, a frame per kept step, then a solved frame built from the
-    /// answer unless the last step already is the Done step.
+    /// answer unless the last step already is the Done step. A run stopped by its time limit ends with
+    /// <see cref="GraphSubsetFrames.StoppedFrame"/> instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse BuildEdges(GraphEdgeSpec spec, SolveRun run, Func<string, EdgeSet> parseAnswer, Func<string, bool> verifyAnswer) {
+        CheckEdgeIds(spec);
         var frames = new List<object>();
         SolverStep<EdgeSet>? last = null;
         foreach (var step in run.StepsFor(typeof(EdgeSet)).OfType<SolverStep<EdgeSet>>()) {
-            frames.Add(EdgeFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+                ? GraphSubsetFrames.StoppedFrame(step.Caption)
+                : EdgeFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (run.TimedOut) {
+            if (last is not { Event: StepEvent.Done }) frames.Add(GraphSubsetFrames.StoppedFrame(GraphSubsetFrames.StoppedCaption));
+        } else if (last is not { Event: StepEvent.Done }) {
             EdgeSet answer = parseAnswer(run.Answer);
             frames.Add(EdgeFrame(spec, answer, StepEvent.Done, [],
                 answer.Edges.Length == 0 ? "No answer was found." : $"The answer is {GraphSubsetFrames.Braces(answer.Edges)}.",
@@ -226,15 +235,24 @@ static class GraphEdgeFrames {
         return new FramesResponse(nameof(VisualizationType.Graph), Payload(spec), frames);
     }
 
+    // A stopped cut run's last frame: blank, with the empty split every cut frame carries.
+    private static GraphFrame StoppedCutFrame(string caption) =>
+        GraphSubsetFrames.StoppedFrame(caption) with { Groups = new SortedDictionary<string, int>(StringComparer.Ordinal) };
+
     /// <summary>The same for a cut answer.</summary>
     public static FramesResponse BuildCut(GraphEdgeSpec spec, SolveRun run, Func<string, Groups> parseAnswer, Func<string, bool> verifyAnswer) {
+        CheckEdgeIds(spec);
         var frames = new List<object>();
         SolverStep<Groups>? last = null;
         foreach (var step in run.StepsFor(typeof(Groups)).OfType<SolverStep<Groups>>()) {
-            frames.Add(CutFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+                ? StoppedCutFrame(step.Caption)
+                : CutFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (run.TimedOut) {
+            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedCutFrame(GraphSubsetFrames.StoppedCaption));
+        } else if (last is not { Event: StepEvent.Done }) {
             Groups answer = parseAnswer(run.Answer);
             string caption = answer.Of.Count == 0
                 ? "No answer was found."
@@ -259,12 +277,12 @@ interface IGraphEdgesVisualization<TProblem> : IFramesVisualization where TProbl
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return GraphEdgeFrames.BuildEdges(Describe(problem), run,
+        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphEdgeFrames.BuildEdges(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }));
     }
 }
 
@@ -286,10 +304,10 @@ interface IGraphCutVisualization<TProblem> : IFramesVisualization where TProblem
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return GraphEdgeFrames.BuildCut(Describe(problem), run,
+        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphEdgeFrames.BuildCut(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }));
     }
 }
