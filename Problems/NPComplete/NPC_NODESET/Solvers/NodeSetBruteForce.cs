@@ -1,6 +1,7 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using System.Numerics;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Solvers;
 
@@ -25,9 +26,10 @@ class NodeSetBruteForce : ISolver<NODESET> {
     public NodeSetBruteForce() {
 
     }
-    private long factorial(long x) {
-        long y = 1;
-        for (long i = 1; i <= x; i++) {
+    // BigInteger, not long: 21! no longer fits in a long, and an overflowed count skipped every combination (#783).
+    private BigInteger factorial(BigInteger x) {
+        BigInteger y = 1;
+        for (BigInteger i = 1; i <= x; i++) {
             y *= i;
         }
         return y;
@@ -61,8 +63,8 @@ class NodeSetBruteForce : ISolver<NODESET> {
             for (int j = 0; j <= i; j++) {
                 combination.Add(j);
             }
-            long reps = factorial(nodeSet.nodes.Count) / (factorial(i + 1) * factorial(nodeSet.nodes.Count - i - 1));
-            for (int k = 0; k < reps; k++) {
+            BigInteger reps = factorial(nodeSet.nodes.Count) / (factorial(i + 1) * factorial(nodeSet.nodes.Count - i - 1));
+            for (BigInteger k = 0; k < reps; k++) {
                 string certificate = indexListToCertificate(combination, nodeSet.nodes);
                 if (nodeSet.defaultVerifier.verify(nodeSet, certificate)) {
                     return certificate;
