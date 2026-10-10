@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_WEIGHTEDCUT.Solvers;
 using API.Problems.NPComplete.NPC_WEIGHTEDCUT.Verifiers;
 using API.Problems.NPComplete.NPC_WEIGHTEDCUT.Visualizations;
@@ -29,7 +30,7 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     public static string _defaultInstance { get; } = "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance} Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total.";
     public string certificateFormat { get; } =
         $"Format: {WeightedCutVerifier.CertificateGrammar} Example: {WeightedCutVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
@@ -66,6 +67,12 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
         }
     }
 
+    /// <summary>
+    /// The edges as listed in the instance, before parallel edges are merged into <see cref="edges"/>. Kept for
+    /// pictures that show every listed weight; internal, so it is not part of the problem's JSON.
+    /// </summary>
+    internal List<(string source, string destination, int weight)> listedEdges { get; private set; } = new();
+
     public int K {
         get {
             return _K;
@@ -85,10 +92,12 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
         StringParser weightedCut = new(InstanceGrammar);
         weightedCut.parse(GInput);
         nodes = weightedCut["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = weightedCut["E"].ToList().Select(edge => {
+        listedEdges = weightedCut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();
+        // Every parallel edge crosses a cut that separates its ends, so their weights add (#769).
+        edges = ParallelEdges.Summed(listedEdges);
         _K = int.Parse(weightedCut["K"].ToString());
 
         graph = new UtilCollectionGraph(weightedCut["N"], weightedCut["E"]);

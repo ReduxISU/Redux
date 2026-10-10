@@ -68,4 +68,31 @@ public class WEIGHTEDCUT_Tests {
         Assert.NotEqual("{}", certificate);
         Assert.True(cut.defaultVerifier.verify(cut, certificate));
     }
+
+    // ----- Parallel edges (#769): a cut adds the weights of parallel edges ----- //
+
+    // Two edges join 1 and 2, weighing 5 and 2, so the only cut weighs 7. Before #769 the solver used the last edge listed
+    // (2): it answered {} for K = 7, though the verifier accepted {({1,2},5),({1,2},2)}, and it answered {({1,2},2)} for K = 2.
+    [Fact]
+    public void WEIGHTEDCUT_Parallel_Edges_Are_Added() {
+        WEIGHTEDCUT problem = new WEIGHTEDCUT("(({1,2},{({1,2},5),({1,2},2)}),7)");
+        Assert.Single(problem.edges);
+        Assert.Equal(("1", "2", 7), problem.edges[0]);
+        Assert.Equal(2, problem.listedEdges.Count);
+    }
+
+    [Fact]
+    public void WEIGHTEDCUT_Parallel_Edges_Solver_Finds_The_Summed_Cut() {
+        WEIGHTEDCUT problem = new WEIGHTEDCUT("(({1,2},{({1,2},5),({1,2},2)}),7)");
+        string answer = new WeightedCutBruteForce().solve(problem);
+        Assert.Equal("{({1,2},7)}", answer);
+        Assert.True(problem.defaultVerifier.verify(problem, answer));
+    }
+
+    [Fact]
+    public void WEIGHTEDCUT_Parallel_Edges_One_Edge_Alone_Is_Not_A_Cut() {
+        WEIGHTEDCUT problem = new WEIGHTEDCUT("(({1,2},{({1,2},5),({1,2},2)}),2)");
+        Assert.Equal("{}", new WeightedCutBruteForce().solve(problem));
+        Assert.False(problem.defaultVerifier.verify(problem, "{({1,2},2)}"));
+    }
 }
