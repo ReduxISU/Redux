@@ -87,6 +87,7 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
         CLIQUE CLIQUEInstance = _reductionFrom;
+        RequireKWithinNodeCount(CLIQUEInstance);
         VERTEXCOVER reducedVERTEXCOVER = new VERTEXCOVER();
 
         // Assign clique nodes to vertexcover nodes.
@@ -170,6 +171,17 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
     }
 
+    // The Vertex Cover budget is K' = N - K, which is only right for 0 <= K <= N. A K above N would give a
+    // negative budget, and a negative K a budget above N (every graph has such a cover, though no clique has a
+    // negative size). Either is refused as input this reduction cannot take (a 400 from the endpoints) rather
+    // than built into a Vertex Cover instance that does not mean the same thing.
+    private void RequireKWithinNodeCount(CLIQUE clique) {
+        int n = clique.nodes.Count;
+        if (clique.K < 0 || clique.K > n)
+            throw new ReductionInputException(this, clique.instance, clique.instanceFormat,
+                $"K must be between 0 and the number of nodes ({n}) for this reduction, but it is {clique.K}: the vertex cover size N - K would be {n - clique.K}.");
+    }
+
     public string mapSolutions(string problemFromSolution) {
         //Parse problemFromSolution into a list of nodes
         List<string> solutionList = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
@@ -191,12 +203,8 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
     public NodeSet EmptyAnswer() => new NodeSet([]);
 
-    // "{}" as B's answer: the empty cover is real when B's graph has no edges (K = N in A, so B's
-    // budget is 0). VCVerifier refuses empty text, so the rule is spelled out here.
-    public bool TargetAcceptsEmpty() => reductionTo.edges.Count == 0 && reductionTo.K >= 0;
-
-    // "{}" as A's answer: the empty clique is real only when K = 0. CliqueVerifier refuses empty text.
-    public bool SourceAcceptsEmpty() => reductionFrom.K == 0;
+    // "{}" on either side keeps the default (the verifiers, which read it as the empty set): the empty cover is
+    // real when B's graph has no edges (K = N in A, so B's budget is 0), the empty clique only when A's K = 0.
 
     // Backward map: the clique is the nodes the cover leaves out (an independent set in the complement
     // graph is a clique in the original). A cover smaller than N-K leaves out more than K nodes; any K

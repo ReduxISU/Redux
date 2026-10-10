@@ -4,7 +4,9 @@ using System.Text;
 using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.Steps;
+using API.Interfaces.JSON_Objects.Tables;
 using API.Problems.P.P_NFA.Solvers;
+using API.Problems.P.P_NFA.Visualizations;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -62,6 +64,33 @@ public class StepTimeLimit_Tests {
         Assert.StartsWith("Rejected: no run accepts the input.", done.Caption);
     }
 
+    // #764: the NFA table re-enumerates every run (GetTableSteps) instead of drawing the recorded steps, so it used to
+    // ignore the time limit even when the solve had been stopped, and hung the request.
+    [Fact]
+    public void NfaTable_SlowEnumeration_WithA50msBudget_StopsQuickly_AndSaysSo() {
+        IVisualization vis = new NFATableVisualization();
+        var steps = new List<object> { "any recorded step" };
+        var sw = Stopwatch.StartNew();
+        var tables = vis.StepsVisualization(SlowNfa, steps, TimeSpan.FromMilliseconds(50));
+        sw.Stop();
+
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+        var table = Assert.IsType<API_TableJSON>(Assert.Single(tables));
+        Assert.Equal(NFATableVisualization.StoppedTitle, table.title);
+        Assert.Empty(table.rows);
+        Assert.Equal(5, table.columns.Count);
+    }
+
+    [Fact]
+    public void NfaTable_WithinTheBudget_ListsEveryRun() {
+        IVisualization vis = new NFATableVisualization();
+        var steps = new List<object> { "any recorded step" };
+        var timed = vis.StepsVisualization(SmallNfa, steps, TimeSpan.FromSeconds(60)).Cast<API_TableJSON>().ToList();
+        var untimed = new NFATableVisualization().StepsVisualization(new API.Problems.P.P_NFA.NFA(SmallNfa), steps).Cast<API_TableJSON>().ToList();
+        Assert.Equal(1 << 12, timed.Count);
+        Assert.Equal(untimed.Select(t => t.title), timed.Select(t => t.title));
+    }
+
     [Fact]
     public void StoppedDoneStep_SerializesWithTheUsualFieldsOnly() {
         var run = ((ISolver)new NFASolver()).Run(SlowNfa, withSteps: true, TimeSpan.FromMilliseconds(20));
@@ -117,6 +146,28 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
         // [initial, unsolved]: the unsolved picture stands in for the solved one.
         Assert.Equal(2, list.Count);
         Assert.Equal(list[0], list[1]);
+    }
+
+    // #764: the stopped solve no longer leaves the table to re-enumerate 2^40 runs with no limit. The test server runs
+    // the controller on the calling thread, so the request runs on its own task and the test stops waiting after 30 s:
+    // a hang fails the test instead of stalling the run.
+    [Theory]
+    [InlineData("frames")]
+    [InlineData("list")]
+    public async Task NfaTable_StoppedSolve_Returns200_WithTheStoppedTable(string format) {
+        var ct = TestContext.Current.CancellationToken;
+        var sw = Stopwatch.StartNew();
+        var content = new StringContent(JsonSerializer.Serialize(StepTimeLimit_Tests.SlowNfa), Encoding.UTF8, "application/json");
+        var response = await Task.Run(() => _client.PostAsync($"/ProblemProvider/visualize?visualization=nfatablevisualization&format={format}", content, ct), ct)
+            .WaitAsync(TimeSpan.FromSeconds(30), ct);
+        var body = await response.Content.ReadAsStringAsync(ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(10), $"took {sw.Elapsed}");
+        var root = JsonDocument.Parse(body).RootElement;
+        var tables = (format == "frames" ? root.GetProperty("frames") : root).EnumerateArray().ToList();
+        var table = Assert.Single(tables);
+        Assert.Equal(NFATableVisualization.StoppedTitle, table.GetProperty("title").GetString());
+        Assert.Equal(0, table.GetProperty("rows").GetArrayLength());
     }
 
     [Fact]

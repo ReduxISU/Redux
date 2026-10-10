@@ -203,6 +203,14 @@ public class MapSolutionBack_Tests : IClassFixture<AppFactory> {
         Assert.Equal("\"{a,b,c}\"", body);
     }
 
+    // #760: a Clique K above the node count is input the reduction cannot take, so there is nothing to map back.
+    [Fact]
+    public async Task Endpoint_CliqueKAboveTheNodeCount_Is400() {
+        var (status, body) = await Post("reduction=sipserReductionVertexCover&solution=" + Uri.EscapeDataString("{}"), "(({a,b,c},{{a,b}}),4)");
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        Assert.Contains("reduction_input_parse_error", body);
+    }
+
     // Finding 2: Done.ok is A's verifier on the mapped answer, and the caption does not claim success otherwise.
     [Fact]
     public void ThreeSat_InvalidClique_DoneIsNotOk() {

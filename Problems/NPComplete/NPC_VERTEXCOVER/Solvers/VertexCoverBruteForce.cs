@@ -61,15 +61,8 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
     ///  Subset of nodes that cover whole graph. 
     /// </returns>
     public string solve(VERTEXCOVER G) {
-        // K=0: the only size-0 candidate is the empty node set. VCVerifier treats "{}"
-        // as a malformed certificate rather than a legitimate empty node list (see
-        // VCVerifier.verify), so the empty set can't be checked the same way every other
-        // candidate below is checked. Decide it directly instead: the empty set covers G
-        // iff G has no edges. Either way "{}" is the right string to return here, since
-        // "{}" already doubles as this method's "no solution found" sentinel below.
-        if (G.K == 0) {
-            return "{}";
-        }
+        // K=0: the only size-0 candidate is the empty node set, "{}", which the loop below checks like any
+        // other: the verifier accepts it when G has no edges.
         List<int> combination = new List<int>();
         for (int i = 0; i < G.K; i++) {
             combination.Add(i);
