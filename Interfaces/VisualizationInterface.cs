@@ -18,6 +18,14 @@ interface IVisualization {
     List<API_JSON> StepsVisualization(string problem, List<Object> steps);
 
     /// <summary>
+    /// <see cref="StepsVisualization(string, List{object})"/> with a time limit (null: none). A visualization that does
+    /// slow work of its own while drawing (rather than only drawing the solver's recorded steps) must stop once the limit
+    /// has passed; the visualize endpoint passes what is left of its solve time limit. Default: the untimed overload.
+    /// A method, not a property, so it never appears in a visualization's JSON.
+    /// </summary>
+    List<API_JSON> StepsVisualization(string problem, List<Object> steps, TimeSpan? timeLimit) => StepsVisualization(problem, steps);
+
+    /// <summary>
     /// The answer shape (<c>TPartial</c> of <see cref="API.Interfaces.Steps.SolverStep{TPartial}"/>) this
     /// visualization draws steps for; null means it draws legacy untyped steps. Implement explicitly
     /// (<c>Type? IVisualization.StepShape =&gt; ...</c>) so it does not appear as a public member in /info.
