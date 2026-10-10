@@ -108,6 +108,8 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
     // clauses (the edges between them, and the contradictory pairs left without one), then K. They are
     // collected from the very decisions below, so what is recorded is what is built.
     private CLIQUE Build(StepRecorder<BuildDelta> rec) {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         UtilCollection nodes = new("{}");
         UtilCollection edges = new("{}");
         bool recording = rec.Enabled;
@@ -168,8 +170,8 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
         if (recording) {
             foreach (var ((c1, c2), bucket) in byPair!) {
                 string[] focus = clauseNodes![c1].Concat(clauseNodes[c2]).ToArray();
-                string[] added = bucket.Edges.Select(e => BuildCaptions.Edge(e.A, e.B)).ToArray();
-                string[] skipped = bucket.Skipped.Select(e => BuildCaptions.Edge(e.A, e.B)).ToArray();
+                BuildEdge[] added = BuildEdge.Sorted(bucket.Edges.Select(e => new BuildEdge(e.A, e.B)));
+                BuildEdge[] skipped = BuildEdge.Sorted(bucket.Skipped.Select(e => new BuildEdge(e.A, e.B)));
                 var contradictions = bucket.Skipped;
                 Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { "c" + c1, "c" + c2 }, Edges = added, Skipped = skipped };
                 Func<string> caption = () => $"Join clauses C{c1 + 1} and C{c2 + 1}: {BuildCaptions.Count(added.Length, "edge")}."

@@ -95,28 +95,53 @@ sealed class ActiveStates : IEquatable<ActiveStates> {
 /// <summary>
 /// What one construction step added to the target while a reduction builds it. Unlike the answer shapes
 /// above this is a DELTA, not the whole target so far: a target can have quadratically many edges, and
-/// repeating them in every step would bloat the response. Replaying the steps (adding each step's
-/// <see cref="Nodes"/> and <see cref="Edges"/> to what came before) reproduces the target exactly.
-/// Used as <c>SolverStep&lt;BuildDelta&gt;</c>: the step's <c>Focus</c> holds the TARGET ids being looked at,
+/// repeating them in every step would bloat the response. Replaying the steps in order (adding each step's
+/// <see cref="Nodes"/> and <see cref="Edges"/> to what came before) reproduces the target exactly, and an
+/// edge's two ends are always added by its own step or an earlier one.
+/// Used as <c>SolverStep&lt;BuildDelta&gt;</c>: the step's <c>Focus</c> holds the TARGET node ids being looked at,
 /// <see cref="SourceFocus"/> the SOURCE ids they came from. Sides are told apart by field, so ids carry no
-/// "s:"/"t:" prefix. Source ids are the stable ids of the Gadget payload (graph node names, edges "a-b";
-/// formulas "c{i}", "c{i}-{j}", "v:{name}"); target ids follow the same convention for the target problem.
+/// "s:"/"t:" prefix. Source ids are the stable ids of the Gadget payload (graph node names; formulas "c{i}",
+/// "c{i}-{j}", "v:{name}"). Target nodes are named as the target's picture names them; target edges are
+/// <see cref="BuildEdge"/>s, which carry their two ends, so no client ever splits an id.
 /// </summary>
 sealed record BuildDelta {
     /// <summary>Source ids this step was built from.</summary>
     [JsonPropertyName("sourceFocus")] public string[] SourceFocus { get; init; } = Array.Empty<string>();
     /// <summary>Target node ids added by this step.</summary>
     [JsonPropertyName("nodes")] public string[] Nodes { get; init; } = Array.Empty<string>();
-    /// <summary>Target edge ids ("a-b") added by this step.</summary>
-    [JsonPropertyName("edges")] public string[] Edges { get; init; } = Array.Empty<string>();
-    /// <summary>Target edge ids the rule considered and left out (shown as "no edge here").</summary>
-    [JsonPropertyName("skipped")] public string[] Skipped { get; init; } = Array.Empty<string>();
+    /// <summary>Target edges added by this step, sorted by id.</summary>
+    [JsonPropertyName("edges")] public BuildEdge[] Edges { get; init; } = Array.Empty<BuildEdge>();
+    /// <summary>Pairs of target nodes the rule considered and left without an edge (shown as "no edge here"), sorted by id.</summary>
+    [JsonPropertyName("skipped")] public BuildEdge[] Skipped { get; init; } = Array.Empty<BuildEdge>();
     /// <summary>Indices into the reduction's gadget list of the gadgets this step builds.</summary>
     [JsonPropertyName("gadgets")] public int[] Gadgets { get; init; } = Array.Empty<int>();
     /// <summary>The target problem's bound (K) once the reduction has fixed it; omitted from JSON before that.</summary>
     [JsonPropertyName("bound")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Bound { get; init; }
+}
+
+/// <summary>
+/// An undirected edge of a construction step: <see cref="Id"/> is the id the target's Graph picture gives the same edge
+/// (<c>"a-b"</c> with a &lt; b by ordinal comparison, separators in a name escaped), and <see cref="A"/> / <see cref="B"/>
+/// are its two ends, in that order. The id is a label, never something to split.
+/// </summary>
+sealed record BuildEdge {
+    /// <summary>The edge's id in the target's picture.</summary>
+    [JsonPropertyName("id")] public string Id { get; }
+    /// <summary>The end that comes first by ordinal comparison.</summary>
+    [JsonPropertyName("a")] public string A { get; }
+    /// <summary>The other end.</summary>
+    [JsonPropertyName("b")] public string B { get; }
+
+    /// <summary>The edge between <paramref name="u"/> and <paramref name="v"/>, in either order.</summary>
+    public BuildEdge(string u, string v) {
+        (A, B) = string.CompareOrdinal(u, v) <= 0 ? (u, v) : (v, u);
+        Id = API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(A, B);
+    }
+
+    /// <summary>Edges sorted by id, so a step lists them the same way every time.</summary>
+    public static BuildEdge[] Sorted(IEnumerable<BuildEdge> edges) => edges.OrderBy(e => e.Id, StringComparer.Ordinal).ToArray();
 }
 
 /// <summary>Empty answers of each shape.</summary>

@@ -84,6 +84,8 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
     // Construction steps (see IRecordedReduction): the nodes copied, one step per node for the complement
     // edges it gets, then K' = N - K. The edge steps group the edges the code below settled on by their first node.
     private VERTEXCOVER Build(StepRecorder<BuildDelta> rec) {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         CLIQUE CLIQUEInstance = _reductionFrom;
         VERTEXCOVER reducedVERTEXCOVER = new VERTEXCOVER();
 
@@ -118,7 +120,6 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
             }
         }
 
-        int firstGadget = gadgets.Count;
         foreach (UtilCollection node in CLIQUEInstance.graph.Nodes) {
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
@@ -141,19 +142,24 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
         if (rec.Enabled) {
             string[] all = CLIQUEInstance.nodes.ToArray();
-            int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
+            int[] gadgetIdx = Enumerable.Range(0, gadgets.Count).ToArray();
             rec.Accept(
                 () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
-                () => $"Copy every node of the clique graph ({BuildCaptions.Names(all)}) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing.",
+                () => all.Length > 0
+                    ? $"Copy every node of the clique graph ({BuildCaptions.Names(all)}) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing."
+                    : "The clique graph has no nodes, so the new graph has none either.",
                 all);
-            foreach (string node in all) {
-                string u = node;
+            for (int n = 0; n < all.Length; n++) {
+                string u = all[n];
+                bool lastNode = n == all.Length - 1;
                 string[] later = edges.Where(e => e.Key == u).Select(e => e.Value).ToArray();
-                string[] added = later.Select(v => BuildCaptions.Edge(u, v)).ToArray();
+                BuildEdge[] added = BuildEdge.Sorted(later.Select(v => new BuildEdge(u, v)));
                 Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added };
                 Func<string> caption = () => later.Length > 0
                     ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the clique graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
-                    : $"Node {u} is already joined to every later node in the clique graph, so it gets no new edges.";
+                    : lastNode
+                        ? $"Node {u} is the last node: the steps above already gave it its edges in the complement."
+                        : $"Node {u} is already joined to every later node in the clique graph, so it gets no new edges.";
                 string[] focus = new[] { u }.Concat(later).ToArray();
                 if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
             }

@@ -31,7 +31,8 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 /// a build frame's <c>target.builtNodes</c> / <c>target.builtEdges</c> say how many of each are on screen (the first n). That is
 /// stateless, so a frame renders on its own when scrubbed to, and it costs one number per frame where a list of the built ids
 /// would repeat a quadratic edge list in every frame. Solve and map frames omit both: the target is complete. <c>target.skipped</c>
-/// lists edge ids the rule considered and left out.
+/// lists the pairs the rule considered and left without an edge, as <c>{ id, a, b }</c>: they are not edges of the picture, so
+/// each gives its two ends (the id is the one the picture would give that edge, never something to split).
 /// </para>
 /// <para>
 /// <b>Solve.</b> The chosen solver runs on the target; each of its steps is drawn by the target's picture and the source pane
@@ -93,16 +94,16 @@ static class ReductionView {
             foreach (string n in step.Partial.Nodes)
                 if (ids.Nodes.Contains(n) && nodeSeen.Add(n)) nodeOrder.Add(n);
             var added = new List<string>();
-            foreach (string e in step.Partial.Edges)
-                if (ids.Canonical(e) is string id && ids.Edges.Contains(id) && edgeSeen.Add(id)) { edgeOrder.Add(id); added.Add(id); }
+            foreach (var e in step.Partial.Edges)
+                if (ids.Edges.Contains(e.Id) && edgeSeen.Add(e.Id)) { edgeOrder.Add(e.Id); added.Add(e.Id); }
             counts.Add((nodeOrder.Count, edgeOrder.Count));
             string[] focus = step.Focus.Concat(added).Distinct(StringComparer.Ordinal).ToArray();
             targetFocuses.Add(focus);
             targetItems.Add(NewStep(targetShape, emptyTarget, StepEvent.Try, focus, ""));
             sourceItems.Add(NewStep(sourceShape, emptySource, StepEvent.Try, step.Partial.SourceFocus, ""));
         }
-        // The recorder keeps a bounded number of steps, so the steps may not announce everything; the closing frame always
-        // shows the whole target.
+        // The steps announce the whole target (BuildRun folds the steps past the cap into one), but the closing frame shows
+        // every node and edge of the picture whatever the steps said, so a reduction whose steps miss one still ends complete.
         foreach (string n in ids.NodeList) if (nodeSeen.Add(n)) nodeOrder.Add(n);
         foreach (string e in ids.EdgeList) if (edgeSeen.Add(e)) edgeOrder.Add(e);
 
@@ -115,7 +116,7 @@ static class ReductionView {
             target["builtNodes"] = last ? nodeOrder.Count : counts[i].Nodes;
             target["builtEdges"] = last ? edgeOrder.Count : counts[i].Edges;
             if (step.Partial.Skipped.Length > 0)
-                target["skipped"] = ToArray(step.Partial.Skipped.Select(s => ids.Canonical(s) ?? s));
+                target["skipped"] = new JsonArray(step.Partial.Skipped.Select(s => (JsonNode)new JsonObject { ["id"] = s.Id, ["a"] = s.A, ["b"] = s.B }).ToArray());
             var frame = Frame(Build, step.Event, step.Caption, step.Ok, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
             if (step.Partial.Bound is int bound) frame["bound"] = bound;
             if (step.Partial.Gadgets.Length > 0) frame["gadgets"] = ToArray(step.Partial.Gadgets);
@@ -326,36 +327,22 @@ static class ReductionView {
     // ---- The target picture's ids ----
 
     /// <summary>
-    /// The node and edge ids of a Graph payload, and a way to turn a step's edge ("a-b", either order) into the payload's id.
-    /// Node names may contain '-', so an edge is split only where both halves are nodes.
+    /// The node and edge ids of a Graph payload. A construction step's edges carry the same ids (<see cref="BuildEdge"/>), so
+    /// they are looked up, never split.
     /// </summary>
     private sealed class TargetIds {
         public List<string> NodeList { get; } = [];
         public List<string> EdgeList { get; } = [];
         public HashSet<string> Nodes { get; }
         public HashSet<string> Edges { get; }
-        private readonly Dictionary<string, string> _raw = new(StringComparer.Ordinal);
 
         public TargetIds(JsonNode payload) {
             foreach (var n in payload["nodes"]?.AsArray() ?? new JsonArray())
                 NodeList.Add(n!["id"]!.GetValue<string>());
-            foreach (var e in payload["edges"]?.AsArray() ?? new JsonArray()) {
-                string id = e!["id"]!.GetValue<string>(), a = e["a"]!.GetValue<string>(), b = e["b"]!.GetValue<string>();
-                EdgeList.Add(id);
-                _raw[a + "-" + b] = id;
-                _raw[b + "-" + a] = id;
-            }
+            foreach (var e in payload["edges"]?.AsArray() ?? new JsonArray())
+                EdgeList.Add(e!["id"]!.GetValue<string>());
             Nodes = new HashSet<string>(NodeList, StringComparer.Ordinal);
             Edges = new HashSet<string>(EdgeList, StringComparer.Ordinal);
-        }
-
-        /// <summary>The picture's id for an edge written "a-b", or the canonical id of two known nodes even if the picture has no such edge, or null.</summary>
-        public string? Canonical(string edge) {
-            if (_raw.TryGetValue(edge, out string? id)) return id;
-            for (int i = 1; i < edge.Length - 1; i++)
-                if (edge[i] == '-' && Nodes.Contains(edge[..i]) && Nodes.Contains(edge[(i + 1)..]))
-                    return GraphSubsetFrames.EdgeId(edge[..i], edge[(i + 1)..]);
-            return null;
         }
     }
 }

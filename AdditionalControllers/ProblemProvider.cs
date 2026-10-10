@@ -571,7 +571,9 @@ public class ProblemProvider : ControllerBase {
     /// The steps a reduction took to build its target, one per gadget it builds ("clause C2 becomes nodes
     /// x1_1, !x2_1, x3_1"), in both problems' words. The body is the SOURCE instance. Each step is a
     /// <c>SolverStep</c> whose partial is a delta (what the step added, in target ids; see BuildDelta) and
-    /// whose focus is the target ids being looked at; the partial's <c>sourceFocus</c> names the source ids.
+    /// whose focus is the target nodes being looked at; the partial's <c>sourceFocus</c> names the source ids. Edges carry
+    /// their two ends. Past 150 steps the rest are combined into one step (its caption says so) before the closing Done
+    /// step, so replaying every step always gives the whole target that <c>/reduce</c> returns.
     /// Not every reduction records them yet: those answer 400 with <c>no_build_steps</c>.
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>

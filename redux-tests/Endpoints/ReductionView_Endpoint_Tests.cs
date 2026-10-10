@@ -213,6 +213,49 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Theory]
     [MemberData(nameof(Cases))]
+    public async Task Build_StepsRevealTheWholeTargetBeforeDone_AndSkippedPairsGiveTheirEnds(string reduction, string instance) {
+        var view = await View(reduction, instance);
+        var payload = view.GetProperty("target").GetProperty("picture").GetProperty("payload");
+        var nodes = payload.GetProperty("nodes").EnumerateArray().Select(n => n.GetProperty("id").GetString()!).ToHashSet();
+        var edges = payload.GetProperty("edges").EnumerateArray().Select(e => e.GetProperty("id").GetString()!).ToHashSet();
+        var steps = Build(reduction, instance).BuildRun(true)!.Steps;
+        var build = Phase(view, "build");
+        int shownEdges = 0;
+        for (int i = 0; i < steps.Count; i++) {
+            var target = build[i].GetProperty("target");
+            // Every edge a step adds is a picture edge under the same id, so each frame reveals exactly that many more.
+            Assert.All(steps[i].Partial.Edges, e => Assert.Contains(e.Id, edges));
+            int e = target.GetProperty("builtEdges").GetInt32();
+            Assert.Equal(steps[i].Partial.Edges.Length, e - shownEdges);
+            shownEdges = e;
+            if (target.TryGetProperty("skipped", out var skipped)) {
+                Assert.All(skipped.EnumerateArray(), s => {
+                    string id = s.GetProperty("id").GetString()!, a = s.GetProperty("a").GetString()!, b = s.GetProperty("b").GetString()!;
+                    Assert.Contains(a, nodes);
+                    Assert.Contains(b, nodes);
+                    Assert.Equal(API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(a, b), id);
+                    Assert.DoesNotContain(id, edges);
+                });
+            }
+        }
+        // The steps themselves announce the whole target: the frame before Done already shows all of it.
+        var beforeDone = build[^2].GetProperty("target");
+        Assert.Equal(nodes.Count, beforeDone.GetProperty("builtNodes").GetInt32());
+        Assert.Equal(edges.Count, beforeDone.GetProperty("builtEdges").GetInt32());
+    }
+
+    [Fact]
+    public async Task Build_SkippedPairs_AreListedWithTheirEnds() {
+        var view = await View(Sat, "(x1) & (!x1)");
+        var skipped = Phase(view, "build").Select(f => f.GetProperty("target")).Where(t => t.TryGetProperty("skipped", out _)).ToList();
+        var pair = Assert.Single(Assert.Single(skipped).GetProperty("skipped").EnumerateArray());
+        Assert.Equal("!x1_1-x1_0", pair.GetProperty("id").GetString());
+        Assert.Equal("!x1_1", pair.GetProperty("a").GetString());
+        Assert.Equal("x1_0", pair.GetProperty("b").GetString());
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
     public async Task Build_ReplaysTheRecordedStepsOfTheReduction(string reduction, string instance) {
         var view = await View(reduction, instance);
         var steps = Build(reduction, instance).BuildRun(true)!.Steps;

@@ -14,8 +14,6 @@ namespace API.Interfaces.Steps;
 /// <see cref="Hidden"/>. Past the cap the most recent <see cref="StepEvent.Accept"/> is also kept, and is placed
 /// just before <see cref="Done"/>, so a brute-force run that spends the cap on failed tries still shows the step
 /// that found the answer. <see cref="Done"/> is always kept, so a run holds at most <c>cap + 2</c> steps.
-/// A recording whose steps are deltas replayed in order (a reduction's construction steps) turns this off with
-/// <c>keepLastAccept: false</c>: a late delta placed after the first <c>cap</c> would draw a state that never existed.
 /// Past the cap the lambdas of an Accept are evaluated (the recorder cannot know it is the last Accept until
 /// Done arrives, and a stored lambda would read the solver's state as it is at Done, not as it was at the
 /// Accept); the lambdas of every other step past the cap are never evaluated.
@@ -33,7 +31,6 @@ sealed class StepRecorder<TPartial> {
 
     private readonly bool _enabled;
     private readonly int _cap;
-    private readonly bool _keepLastAccept;
     private readonly List<SolverStep<TPartial>> _steps = new();
     private int _total;
     private int _shownDecisions;
@@ -43,9 +40,7 @@ sealed class StepRecorder<TPartial> {
     // Environment.TickCount64 at which the time limit runs out; long.MaxValue when there is no limit.
     private readonly long _deadline;
 
-    public StepRecorder(int cap = DefaultCap, TimeSpan? timeLimit = null, bool keepLastAccept = true) : this(enabled: true, cap, timeLimit) {
-        _keepLastAccept = keepLastAccept;
-    }
+    public StepRecorder(int cap = DefaultCap, TimeSpan? timeLimit = null) : this(enabled: true, cap, timeLimit) { }
 
     private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit) {
         _enabled = enabled;
@@ -89,7 +84,7 @@ sealed class StepRecorder<TPartial> {
         if (_shownDecisions < _cap) {
             _shownDecisions++;
             _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()));
-        } else if (kind == StepEvent.Accept && _keepLastAccept) {
+        } else if (kind == StepEvent.Accept) {
             _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption());
         }
         // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
