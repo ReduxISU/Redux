@@ -158,8 +158,17 @@ public class EdgeSetSolvers_Tests {
     }
 
     [Fact]
-    public void SteinerBruteForce_HonoursTheStepCap() {
+    public void SteinerBruteForce_HonoursTheStepCap_AndKeepsTheWinningAccept() {
         var run = ((ISolver)new API.Problems.NPComplete.NPC_STEINERTREE.Solvers.SteinerTreeBruteForce()).Run(new STEINERTREE().defaultInstance, true);
-        Assert.True(run.Steps.Count <= StepRecorder<EdgeSet>.DefaultCap + 1);
+        var steps = run.Steps.Cast<SolverStep<EdgeSet>>().ToList();
+        // The default instance is found past the cap: the first 150 tries, the winning Accept, then Done.
+        Assert.Equal(StepRecorder<EdgeSet>.DefaultCap + 2, steps.Count);
+        Assert.Equal(StepEvent.Accept, steps[^2].Event);
+        Assert.Equal(StepEvent.Done, steps[^1].Event);
+        Assert.True(steps[^1].Ok);
+        Assert.Equal(steps[^1].Partial, steps[^2].Partial);
+        Assert.Matches(@"found after (\d+) tries\. \(\d+ not shown\)$", steps[^1].Caption);
+        int tried = int.Parse(Regex.Match(steps[^1].Caption, @"after (\d+) tries").Groups[1].Value);
+        Assert.EndsWith($"({tried - StepRecorder<EdgeSet>.DefaultCap - 1} not shown)", steps[^1].Caption);
     }
 }

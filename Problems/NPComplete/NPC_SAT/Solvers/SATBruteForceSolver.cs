@@ -111,11 +111,8 @@ public class SATBruteForceSolver : ISolver {
 
     // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
     // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
-    SolveRun ISolver.Run(string instance, bool withSteps) {
-        var rec = withSteps ? new StepRecorder<Assignment>() : StepRecorder<Assignment>.Off;
-        string answer = Solve(instance, rec);
-        return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(Assignment));
-    }
+    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) =>
+        SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(instance, rec));
 
     // Steps: one per candidate assignment, in the order the counter tries them. A candidate is a Reject naming the first
     // clause with no true literal (the solver stops checking there), or the Accept that ends the search. The recorder's cap
