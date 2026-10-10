@@ -51,7 +51,8 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
             if (hittingSet.defaultVerifier.verify(hittingSet, strCertificate)) return strCertificate;
         }
 
-        return "";
+        // No hitting set exists. "{}", as the other set solvers answer; the verifier rejects it whenever S is not empty (#776).
+        return "{}";
 
     }
 
