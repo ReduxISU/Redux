@@ -8,7 +8,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_VertexCover;
 
-class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, NodeSet> {
+class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, NodeSet>, IRecordedReduction<CLIQUE, VERTEXCOVER> {
 
 
     // --- Fields ---
@@ -55,11 +55,18 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
     }
 
     // --- Methods Including Constructors ---
-    public sipserReductionVertexCover(CLIQUE from) {
+    public sipserReductionVertexCover(CLIQUE from) : this(from, StepRecorder<BuildDelta>.Off) { }
+
+    // The one place the target is built; rec is Off except when Rebuild asks for the construction steps.
+    private sipserReductionVertexCover(CLIQUE from, StepRecorder<BuildDelta> rec) {
         gadgets = new();
         _reductionFrom = from;
-        _reductionTo = reduce();
+        _reductionTo = Build(rec);
+    }
 
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new sipserReductionVertexCover(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
     }
 
     public sipserReductionVertexCover(string instance) : this(new CLIQUE(instance)) { }
@@ -72,7 +79,11 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
     /// <remarks>
     /// authored by Janita Aamir. Contributed to by Alex Diviney.
     /// </remarks>
-    public VERTEXCOVER reduce() {
+    public VERTEXCOVER reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // Construction steps (see IRecordedReduction): the nodes copied, one step per node for the complement
+    // edges it gets, then K' = N - K. The edge steps group the edges the code below settled on by their first node.
+    private VERTEXCOVER Build(StepRecorder<BuildDelta> rec) {
         CLIQUE CLIQUEInstance = _reductionFrom;
         VERTEXCOVER reducedVERTEXCOVER = new VERTEXCOVER();
 
@@ -107,6 +118,7 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
             }
         }
 
+        int firstGadget = gadgets.Count;
         foreach (UtilCollection node in CLIQUEInstance.graph.Nodes) {
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
@@ -126,6 +138,28 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
         reducedVERTEXCOVER = new VERTEXCOVER(G);
         reductionTo = reducedVERTEXCOVER;
+
+        if (rec.Enabled) {
+            string[] all = CLIQUEInstance.nodes.ToArray();
+            int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
+            rec.Accept(
+                () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
+                () => $"Copy every node of the clique graph ({BuildCaptions.Names(all)}) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing.",
+                all);
+            foreach (string node in all) {
+                string u = node;
+                string[] later = edges.Where(e => e.Key == u).Select(e => e.Value).ToArray();
+                string[] added = later.Select(v => BuildCaptions.Edge(u, v)).ToArray();
+                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added };
+                Func<string> caption = () => later.Length > 0
+                    ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the clique graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
+                    : $"Node {u} is already joined to every later node in the clique graph, so it gets no new edges.";
+                string[] focus = new[] { u }.Concat(later).ToArray();
+                if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
+            }
+            rec.Done(new BuildDelta { Bound = vertexKInt }, true,
+                $"K' = N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {vertexKInt}. The clique graph has a clique of size {CLIQUEInstance.K} exactly when the complement has a vertex cover of size {vertexKInt}.");
+        }
         return reducedVERTEXCOVER;
 
     }

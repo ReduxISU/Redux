@@ -91,3 +91,30 @@ sealed class ActiveStates : IEquatable<ActiveStates> {
     public override bool Equals(object? obj) => Equals(obj as ActiveStates);
     public override int GetHashCode() => HashCode.Combine(ShapeUtil.HashOf(States), Position);
 }
+
+/// <summary>
+/// What one construction step added to the target while a reduction builds it. Unlike the answer shapes
+/// above this is a DELTA, not the whole target so far: a target can have quadratically many edges, and
+/// repeating them in every step would bloat the response. Replaying the steps (adding each step's
+/// <see cref="Nodes"/> and <see cref="Edges"/> to what came before) reproduces the target exactly.
+/// Used as <c>SolverStep&lt;BuildDelta&gt;</c>: the step's <c>Focus</c> holds the TARGET ids being looked at,
+/// <see cref="SourceFocus"/> the SOURCE ids they came from. Sides are told apart by field, so ids carry no
+/// "s:"/"t:" prefix. Source ids are the stable ids of the Gadget payload (graph node names, edges "a-b";
+/// formulas "c{i}", "c{i}-{j}", "v:{name}"); target ids follow the same convention for the target problem.
+/// </summary>
+sealed record BuildDelta {
+    /// <summary>Source ids this step was built from.</summary>
+    [JsonPropertyName("sourceFocus")] public string[] SourceFocus { get; init; } = Array.Empty<string>();
+    /// <summary>Target node ids added by this step.</summary>
+    [JsonPropertyName("nodes")] public string[] Nodes { get; init; } = Array.Empty<string>();
+    /// <summary>Target edge ids ("a-b") added by this step.</summary>
+    [JsonPropertyName("edges")] public string[] Edges { get; init; } = Array.Empty<string>();
+    /// <summary>Target edge ids the rule considered and left out (shown as "no edge here").</summary>
+    [JsonPropertyName("skipped")] public string[] Skipped { get; init; } = Array.Empty<string>();
+    /// <summary>Indices into the reduction's gadget list of the gadgets this step builds.</summary>
+    [JsonPropertyName("gadgets")] public int[] Gadgets { get; init; } = Array.Empty<int>();
+    /// <summary>The target problem's bound (K) once the reduction has fixed it; omitted from JSON before that.</summary>
+    [JsonPropertyName("bound")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Bound { get; init; }
+}

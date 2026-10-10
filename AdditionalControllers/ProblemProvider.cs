@@ -533,6 +533,34 @@ public class ProblemProvider : ControllerBase {
         }
     }
 
+    /// <summary>
+    /// The steps a reduction took to build its target, one per gadget it builds ("clause C2 becomes nodes
+    /// x1_1, !x2_1, x3_1"), in both problems' words. The body is the SOURCE instance. Each step is a
+    /// <c>SolverStep</c> whose partial is a delta (what the step added, in target ids; see BuildDelta) and
+    /// whose focus is the target ids being looked at; the partial's <c>sourceFocus</c> names the source ids.
+    /// Not every reduction records them yet: those answer 400 with <c>no_build_steps</c>.
+    /// </summary>
+    /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
+    /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
+    /// <returns>{ steps }</returns>
+    [HttpPost("buildSteps")]
+    [ProducesResponseType(400)]
+    public IActionResult buildSteps(string reduction, [FromBody] string instance) {
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
+        try {
+            IReduction red = Reduction(reduction, instance);
+            if (!red.hasBuildSteps())
+                return BadRequest(new { error = "no_build_steps", reduction });
+            ConstructionRun run = red.BuildRun(true)!;
+            return Content(
+                JsonSerializer.Serialize(new { steps = run.Steps }, new JsonSerializerOptions() { WriteIndented = true }),
+                "application/json");
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
+    }
+
     private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail, string? problem = null) {
         return new {
             error,

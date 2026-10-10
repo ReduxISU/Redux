@@ -1,0 +1,6116 @@
+### reduce SipserReduceToCliqueStandard (x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)
+{
+  "reductionName": "Sipser\u0027s Clique Reduction",
+  "reductionDefinition": "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs",
+  "contributors": [
+    "Kaden Marchetti",
+    "Alex Diviney",
+    "Caleb Eardley",
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1"
+      ],
+      "reductionToIds": [
+        "!x2_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-1"
+      ],
+      "targetIds": [
+        "!x2_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-2"
+      ],
+      "reductionToIds": [
+        "x3_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-2"
+      ],
+      "targetIds": [
+        "x3_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-0"
+      ],
+      "reductionToIds": [
+        "!x1_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "!x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-1"
+      ],
+      "reductionToIds": [
+        "x3_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-1"
+      ],
+      "targetIds": [
+        "x3_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-2"
+      ],
+      "reductionToIds": [
+        "x1_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-2"
+      ],
+      "targetIds": [
+        "x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-0"
+      ],
+      "reductionToIds": [
+        "x2_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-0"
+      ],
+      "targetIds": [
+        "x2_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-1"
+      ],
+      "reductionToIds": [
+        "!x3_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
+        "!x3_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-2"
+      ],
+      "reductionToIds": [
+        "!x1_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-2"
+      ],
+      "targetIds": [
+        "!x1_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c2"
+      ],
+      "targetIds": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "3SAT",
+    "formalDefinition": "3SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula in 3CNF}",
+    "problemDefinition": "3SAT is the Boolean satisfiability problem restricted to formulas in conjunctive normal form with at most three literals per clause. It asks whether there is an assignment of True/False values to the variables of \u03A6 that makes the whole formula True.",
+    "inputDescription": "\u03A6, a boolean formula",
+    "outputDescription": "True or False, whether \u03A6 is satisfiable",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
+    "complexityClass": "NPComplete",
+    "problemType": "Logic",
+    "contributors": [
+      "Kaden Marchetti"
+    ],
+    "defaultSolver": {
+      "solverName": "3SAT Backtracking",
+      "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+      "contributors": [
+        "David Lindeman",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "Backtracking",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default 3SAT Verifier",
+      "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "3SAT Visualization",
+      "visualizationDefinition": "This is a default visualization for 3SAT",
+      "visualizationType": "BooleanSatisfiability",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti"
+      ],
+      "solver": {
+        "solverName": "3SAT Backtracking",
+        "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+        "contributors": [
+          "David Lindeman",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({x1_0,!x2_0,x3_0,!x1_1,x3_1,x1_1,x2_2,!x3_2,!x1_2},{{x1_0,x3_1},{x1_0,x1_1},{x1_0,x2_2},{x1_0,!x3_2},{!x2_0,!x1_1},{!x2_0,x3_1},{!x2_0,x1_1},{!x2_0,!x3_2},{!x2_0,!x1_2},{x3_0,!x1_1},{x3_0,x3_1},{x3_0,x1_1},{x3_0,x2_2},{x3_0,!x1_2},{!x1_1,!x2_0},{!x1_1,x3_0},{!x1_1,x2_2},{!x1_1,!x3_2},{!x1_1,!x1_2},{x3_1,x1_0},{x3_1,!x2_0},{x3_1,x3_0},{x3_1,x2_2},{x3_1,!x1_2},{x1_1,x1_0},{x1_1,!x2_0},{x1_1,x3_0},{x1_1,x2_2},{x1_1,!x3_2},{x2_2,x1_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,x3_1},{x2_2,x1_1},{!x3_2,x1_0},{!x3_2,!x2_0},{!x3_2,!x1_1},{!x3_2,x1_1},{!x1_2,!x2_0},{!x1_2,x3_0},{!x1_2,!x1_1},{!x1_2,x3_1}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}
+### gadgets SipserReduceToCliqueStandard (x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-0"
+    ],
+    "reductionToIds": [
+      "x1_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-0"
+    ],
+    "targetIds": [
+      "x1_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-1"
+    ],
+    "reductionToIds": [
+      "!x2_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-1"
+    ],
+    "targetIds": [
+      "!x2_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-2"
+    ],
+    "reductionToIds": [
+      "x3_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-2"
+    ],
+    "targetIds": [
+      "x3_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "0"
+    ],
+    "reductionToIds": [
+      "x1_0",
+      "!x2_0",
+      "x3_0"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c0"
+    ],
+    "targetIds": [
+      "x1_0",
+      "!x2_0",
+      "x3_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-0"
+    ],
+    "reductionToIds": [
+      "!x1_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-0"
+    ],
+    "targetIds": [
+      "!x1_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-1"
+    ],
+    "reductionToIds": [
+      "x3_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-1"
+    ],
+    "targetIds": [
+      "x3_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-2"
+    ],
+    "reductionToIds": [
+      "x1_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-2"
+    ],
+    "targetIds": [
+      "x1_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "1"
+    ],
+    "reductionToIds": [
+      "!x1_1",
+      "x3_1",
+      "x1_1"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c1"
+    ],
+    "targetIds": [
+      "!x1_1",
+      "x3_1",
+      "x1_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-0"
+    ],
+    "reductionToIds": [
+      "x2_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-0"
+    ],
+    "targetIds": [
+      "x2_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-1"
+    ],
+    "reductionToIds": [
+      "!x3_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-1"
+    ],
+    "targetIds": [
+      "!x3_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-2"
+    ],
+    "reductionToIds": [
+      "!x1_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-2"
+    ],
+    "targetIds": [
+      "!x1_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "2"
+    ],
+    "reductionToIds": [
+      "x2_2",
+      "!x3_2",
+      "!x1_2"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c2"
+    ],
+    "targetIds": [
+      "x2_2",
+      "!x3_2",
+      "!x1_2"
+    ]
+  }
+]
+### reduce SipserReduceToCliqueStandard (x1 | x2 | x3) & (!x1 | !x2 | x3) & (x1 | !x3 | x2)
+{
+  "reductionName": "Sipser\u0027s Clique Reduction",
+  "reductionDefinition": "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs",
+  "contributors": [
+    "Kaden Marchetti",
+    "Alex Diviney",
+    "Caleb Eardley",
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1"
+      ],
+      "reductionToIds": [
+        "x2_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-1"
+      ],
+      "targetIds": [
+        "x2_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-2"
+      ],
+      "reductionToIds": [
+        "x3_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-2"
+      ],
+      "targetIds": [
+        "x3_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "x1_0",
+        "x2_0",
+        "x3_0"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "x1_0",
+        "x2_0",
+        "x3_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-0"
+      ],
+      "reductionToIds": [
+        "!x1_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "!x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-1"
+      ],
+      "reductionToIds": [
+        "!x2_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-1"
+      ],
+      "targetIds": [
+        "!x2_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-2"
+      ],
+      "reductionToIds": [
+        "x3_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-2"
+      ],
+      "targetIds": [
+        "x3_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "!x1_1",
+        "!x2_1",
+        "x3_1"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "!x1_1",
+        "!x2_1",
+        "x3_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-0"
+      ],
+      "reductionToIds": [
+        "x1_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-0"
+      ],
+      "targetIds": [
+        "x1_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-1"
+      ],
+      "reductionToIds": [
+        "!x3_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
+        "!x3_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-2"
+      ],
+      "reductionToIds": [
+        "x2_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-2"
+      ],
+      "targetIds": [
+        "x2_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "x1_2",
+        "!x3_2",
+        "x2_2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c2"
+      ],
+      "targetIds": [
+        "x1_2",
+        "!x3_2",
+        "x2_2"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "3SAT",
+    "formalDefinition": "3SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula in 3CNF}",
+    "problemDefinition": "3SAT is the Boolean satisfiability problem restricted to formulas in conjunctive normal form with at most three literals per clause. It asks whether there is an assignment of True/False values to the variables of \u03A6 that makes the whole formula True.",
+    "inputDescription": "\u03A6, a boolean formula",
+    "outputDescription": "True or False, whether \u03A6 is satisfiable",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instance": "(x1 | x2 | x3) \u0026 (!x1 | !x2 | x3) \u0026 (x1 | !x3 | x2)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
+    "complexityClass": "NPComplete",
+    "problemType": "Logic",
+    "contributors": [
+      "Kaden Marchetti"
+    ],
+    "defaultSolver": {
+      "solverName": "3SAT Backtracking",
+      "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+      "contributors": [
+        "David Lindeman",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "Backtracking",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default 3SAT Verifier",
+      "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "3SAT Visualization",
+      "visualizationDefinition": "This is a default visualization for 3SAT",
+      "visualizationType": "BooleanSatisfiability",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti"
+      ],
+      "solver": {
+        "solverName": "3SAT Backtracking",
+        "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+        "contributors": [
+          "David Lindeman",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({x1_0,x2_0,x3_0,!x1_1,!x2_1,x3_1,x1_2,!x3_2,x2_2},{{x1_0,!x2_1},{x1_0,x3_1},{x1_0,x1_2},{x1_0,!x3_2},{x1_0,x2_2},{x2_0,!x1_1},{x2_0,x3_1},{x2_0,x1_2},{x2_0,!x3_2},{x2_0,x2_2},{x3_0,!x1_1},{x3_0,!x2_1},{x3_0,x3_1},{x3_0,x1_2},{x3_0,x2_2},{!x1_1,x2_0},{!x1_1,x3_0},{!x1_1,!x3_2},{!x1_1,x2_2},{!x2_1,x1_0},{!x2_1,x3_0},{!x2_1,x1_2},{!x2_1,!x3_2},{x3_1,x1_0},{x3_1,x2_0},{x3_1,x3_0},{x3_1,x1_2},{x3_1,x2_2},{x1_2,x1_0},{x1_2,x2_0},{x1_2,x3_0},{x1_2,!x2_1},{x1_2,x3_1},{!x3_2,x1_0},{!x3_2,x2_0},{!x3_2,!x1_1},{!x3_2,!x2_1},{x2_2,x1_0},{x2_2,x2_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,x3_1}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}
+### gadgets SipserReduceToCliqueStandard (x1 | x2 | x3) & (!x1 | !x2 | x3) & (x1 | !x3 | x2)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-0"
+    ],
+    "reductionToIds": [
+      "x1_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-0"
+    ],
+    "targetIds": [
+      "x1_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-1"
+    ],
+    "reductionToIds": [
+      "x2_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-1"
+    ],
+    "targetIds": [
+      "x2_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-2"
+    ],
+    "reductionToIds": [
+      "x3_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-2"
+    ],
+    "targetIds": [
+      "x3_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "0"
+    ],
+    "reductionToIds": [
+      "x1_0",
+      "x2_0",
+      "x3_0"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c0"
+    ],
+    "targetIds": [
+      "x1_0",
+      "x2_0",
+      "x3_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-0"
+    ],
+    "reductionToIds": [
+      "!x1_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-0"
+    ],
+    "targetIds": [
+      "!x1_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-1"
+    ],
+    "reductionToIds": [
+      "!x2_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-1"
+    ],
+    "targetIds": [
+      "!x2_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-2"
+    ],
+    "reductionToIds": [
+      "x3_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-2"
+    ],
+    "targetIds": [
+      "x3_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "1"
+    ],
+    "reductionToIds": [
+      "!x1_1",
+      "!x2_1",
+      "x3_1"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c1"
+    ],
+    "targetIds": [
+      "!x1_1",
+      "!x2_1",
+      "x3_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-0"
+    ],
+    "reductionToIds": [
+      "x1_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-0"
+    ],
+    "targetIds": [
+      "x1_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-1"
+    ],
+    "reductionToIds": [
+      "!x3_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-1"
+    ],
+    "targetIds": [
+      "!x3_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-2"
+    ],
+    "reductionToIds": [
+      "x2_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-2"
+    ],
+    "targetIds": [
+      "x2_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "2"
+    ],
+    "reductionToIds": [
+      "x1_2",
+      "!x3_2",
+      "x2_2"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c2"
+    ],
+    "targetIds": [
+      "x1_2",
+      "!x3_2",
+      "x2_2"
+    ]
+  }
+]
+### reduce SipserReduceToCliqueStandard (x1 | x2) & (!x1 | x3) & (!x2 | !x3 | y)
+{
+  "reductionName": "Sipser\u0027s Clique Reduction",
+  "reductionDefinition": "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs",
+  "contributors": [
+    "Kaden Marchetti",
+    "Alex Diviney",
+    "Caleb Eardley",
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1"
+      ],
+      "reductionToIds": [
+        "x2_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-1"
+      ],
+      "targetIds": [
+        "x2_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "x1_0",
+        "x2_0"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "x1_0",
+        "x2_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-0"
+      ],
+      "reductionToIds": [
+        "!x1_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "!x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-1"
+      ],
+      "reductionToIds": [
+        "x3_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-1"
+      ],
+      "targetIds": [
+        "x3_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "!x1_1",
+        "x3_1"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "!x1_1",
+        "x3_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-0"
+      ],
+      "reductionToIds": [
+        "!x2_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-0"
+      ],
+      "targetIds": [
+        "!x2_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-1"
+      ],
+      "reductionToIds": [
+        "!x3_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
+        "!x3_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-2"
+      ],
+      "reductionToIds": [
+        "y_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-2"
+      ],
+      "targetIds": [
+        "y_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "!x2_2",
+        "!x3_2",
+        "y_2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c2"
+      ],
+      "targetIds": [
+        "!x2_2",
+        "!x3_2",
+        "y_2"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "3SAT",
+    "formalDefinition": "3SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula in 3CNF}",
+    "problemDefinition": "3SAT is the Boolean satisfiability problem restricted to formulas in conjunctive normal form with at most three literals per clause. It asks whether there is an assignment of True/False values to the variables of \u03A6 that makes the whole formula True.",
+    "inputDescription": "\u03A6, a boolean formula",
+    "outputDescription": "True or False, whether \u03A6 is satisfiable",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instance": "(x1 | x2) \u0026 (!x1 | x3) \u0026 (!x2 | !x3 | y)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
+    "complexityClass": "NPComplete",
+    "problemType": "Logic",
+    "contributors": [
+      "Kaden Marchetti"
+    ],
+    "defaultSolver": {
+      "solverName": "3SAT Backtracking",
+      "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+      "contributors": [
+        "David Lindeman",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "Backtracking",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default 3SAT Verifier",
+      "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "3SAT Visualization",
+      "visualizationDefinition": "This is a default visualization for 3SAT",
+      "visualizationType": "BooleanSatisfiability",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti"
+      ],
+      "solver": {
+        "solverName": "3SAT Backtracking",
+        "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+        "contributors": [
+          "David Lindeman",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({x1_0,x2_0,!x1_1,x3_1,!x2_2,!x3_2,y_2},{{x1_0,x3_1},{x1_0,!x2_2},{x1_0,!x3_2},{x1_0,y_2},{x2_0,!x1_1},{x2_0,x3_1},{x2_0,!x3_2},{x2_0,y_2},{!x1_1,x2_0},{!x1_1,!x2_2},{!x1_1,!x3_2},{!x1_1,y_2},{x3_1,x1_0},{x3_1,x2_0},{x3_1,!x2_2},{x3_1,y_2},{!x2_2,x1_0},{!x2_2,!x1_1},{!x2_2,x3_1},{!x3_2,x1_0},{!x3_2,x2_0},{!x3_2,!x1_1},{y_2,x1_0},{y_2,x2_0},{y_2,!x1_1},{y_2,x3_1}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}
+### gadgets SipserReduceToCliqueStandard (x1 | x2) & (!x1 | x3) & (!x2 | !x3 | y)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-0"
+    ],
+    "reductionToIds": [
+      "x1_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-0"
+    ],
+    "targetIds": [
+      "x1_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-1"
+    ],
+    "reductionToIds": [
+      "x2_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-1"
+    ],
+    "targetIds": [
+      "x2_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "0"
+    ],
+    "reductionToIds": [
+      "x1_0",
+      "x2_0"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c0"
+    ],
+    "targetIds": [
+      "x1_0",
+      "x2_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-0"
+    ],
+    "reductionToIds": [
+      "!x1_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-0"
+    ],
+    "targetIds": [
+      "!x1_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-1"
+    ],
+    "reductionToIds": [
+      "x3_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-1"
+    ],
+    "targetIds": [
+      "x3_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "1"
+    ],
+    "reductionToIds": [
+      "!x1_1",
+      "x3_1"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c1"
+    ],
+    "targetIds": [
+      "!x1_1",
+      "x3_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-0"
+    ],
+    "reductionToIds": [
+      "!x2_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-0"
+    ],
+    "targetIds": [
+      "!x2_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-1"
+    ],
+    "reductionToIds": [
+      "!x3_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-1"
+    ],
+    "targetIds": [
+      "!x3_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-2"
+    ],
+    "reductionToIds": [
+      "y_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-2"
+    ],
+    "targetIds": [
+      "y_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "2"
+    ],
+    "reductionToIds": [
+      "!x2_2",
+      "!x3_2",
+      "y_2"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c2"
+    ],
+    "targetIds": [
+      "!x2_2",
+      "!x3_2",
+      "y_2"
+    ]
+  }
+]
+### reduce SipserReduceToCliqueStandard (x1) & (!x1)
+{
+  "reductionName": "Sipser\u0027s Clique Reduction",
+  "reductionDefinition": "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs",
+  "contributors": [
+    "Kaden Marchetti",
+    "Alex Diviney",
+    "Caleb Eardley",
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-0"
+      ],
+      "reductionToIds": [
+        "!x1_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "!x1_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "!x1_1"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "!x1_1"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "3SAT",
+    "formalDefinition": "3SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula in 3CNF}",
+    "problemDefinition": "3SAT is the Boolean satisfiability problem restricted to formulas in conjunctive normal form with at most three literals per clause. It asks whether there is an assignment of True/False values to the variables of \u03A6 that makes the whole formula True.",
+    "inputDescription": "\u03A6, a boolean formula",
+    "outputDescription": "True or False, whether \u03A6 is satisfiable",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instance": "(x1) \u0026 (!x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
+    "complexityClass": "NPComplete",
+    "problemType": "Logic",
+    "contributors": [
+      "Kaden Marchetti"
+    ],
+    "defaultSolver": {
+      "solverName": "3SAT Backtracking",
+      "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+      "contributors": [
+        "David Lindeman",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "Backtracking",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default 3SAT Verifier",
+      "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "3SAT Visualization",
+      "visualizationDefinition": "This is a default visualization for 3SAT",
+      "visualizationType": "BooleanSatisfiability",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti"
+      ],
+      "solver": {
+        "solverName": "3SAT Backtracking",
+        "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+        "contributors": [
+          "David Lindeman",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({x1_0,!x1_1},{}),2)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}
+### gadgets SipserReduceToCliqueStandard (x1) & (!x1)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-0"
+    ],
+    "reductionToIds": [
+      "x1_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-0"
+    ],
+    "targetIds": [
+      "x1_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "0"
+    ],
+    "reductionToIds": [
+      "x1_0"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c0"
+    ],
+    "targetIds": [
+      "x1_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-0"
+    ],
+    "reductionToIds": [
+      "!x1_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-0"
+    ],
+    "targetIds": [
+      "!x1_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "1"
+    ],
+    "reductionToIds": [
+      "!x1_1"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c1"
+    ],
+    "targetIds": [
+      "!x1_1"
+    ]
+  }
+]
+### reduce SipserReduceToCliqueStandard (x1 | x1 | !x2) & (x2 | x3 | x4) & (!x4 | !x1 | x2) & (x3)
+{
+  "reductionName": "Sipser\u0027s Clique Reduction",
+  "reductionDefinition": "Sipsers reduction converts clauses from 3SAT into clusters of nodes in a graph for which CLIQUES exist",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs",
+  "contributors": [
+    "Kaden Marchetti",
+    "Alex Diviney",
+    "Caleb Eardley",
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1"
+      ],
+      "reductionToIds": [
+        "x1_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-1"
+      ],
+      "targetIds": [
+        "x1_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-2"
+      ],
+      "reductionToIds": [
+        "!x2_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-2"
+      ],
+      "targetIds": [
+        "!x2_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "x1_0",
+        "x1_0",
+        "!x2_0"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "x1_0",
+        "x1_0",
+        "!x2_0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-0"
+      ],
+      "reductionToIds": [
+        "x2_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "x2_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-1"
+      ],
+      "reductionToIds": [
+        "x3_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-1"
+      ],
+      "targetIds": [
+        "x3_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-2"
+      ],
+      "reductionToIds": [
+        "x4_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-2"
+      ],
+      "targetIds": [
+        "x4_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "x2_1",
+        "x3_1",
+        "x4_1"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "x2_1",
+        "x3_1",
+        "x4_1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-0"
+      ],
+      "reductionToIds": [
+        "!x4_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-0"
+      ],
+      "targetIds": [
+        "!x4_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-1"
+      ],
+      "reductionToIds": [
+        "!x1_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
+        "!x1_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-2"
+      ],
+      "reductionToIds": [
+        "x2_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-2"
+      ],
+      "targetIds": [
+        "x2_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "!x4_2",
+        "!x1_2",
+        "x2_2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c2"
+      ],
+      "targetIds": [
+        "!x4_2",
+        "!x1_2",
+        "x2_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3-0"
+      ],
+      "reductionToIds": [
+        "x3_3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c3-0"
+      ],
+      "targetIds": [
+        "x3_3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "3"
+      ],
+      "reductionToIds": [
+        "x3_3"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c3"
+      ],
+      "targetIds": [
+        "x3_3"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "3SAT",
+    "formalDefinition": "3SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula in 3CNF}",
+    "problemDefinition": "3SAT is the Boolean satisfiability problem restricted to formulas in conjunctive normal form with at most three literals per clause. It asks whether there is an assignment of True/False values to the variables of \u03A6 that makes the whole formula True.",
+    "inputDescription": "\u03A6, a boolean formula",
+    "outputDescription": "True or False, whether \u03A6 is satisfiable",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "instance": "(x1 | x1 | !x2) \u0026 (x2 | x3 | x4) \u0026 (!x4 | !x1 | x2) \u0026 (x3)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
+    "complexityClass": "NPComplete",
+    "problemType": "Logic",
+    "contributors": [
+      "Kaden Marchetti"
+    ],
+    "defaultSolver": {
+      "solverName": "3SAT Backtracking",
+      "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+      "contributors": [
+        "David Lindeman",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "Backtracking",
+      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default 3SAT Verifier",
+      "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "3SAT Visualization",
+      "visualizationDefinition": "This is a default visualization for 3SAT",
+      "visualizationType": "BooleanSatisfiability",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti"
+      ],
+      "solver": {
+        "solverName": "3SAT Backtracking",
+        "solverDefinition": "This is a O(2^n) solution algorithm for the 3SAT problem which implements a back tracking algorithm to find an exact assignment boolean assignment of variables to satisfy the problem instance.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs",
+        "contributors": [
+          "David Lindeman",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({x1_0,!x2_0,x2_1,x3_1,x4_1,!x4_2,!x1_2,x2_2,x3_3},{{x1_0,x2_1},{x1_0,x3_1},{x1_0,x4_1},{x1_0,!x4_2},{x1_0,x2_2},{x1_0,x3_3},{!x2_0,x3_1},{!x2_0,x4_1},{!x2_0,!x4_2},{!x2_0,!x1_2},{!x2_0,x3_3},{x2_1,x1_0},{x2_1,!x4_2},{x2_1,!x1_2},{x2_1,x2_2},{x2_1,x3_3},{x3_1,x1_0},{x3_1,!x2_0},{x3_1,!x4_2},{x3_1,!x1_2},{x3_1,x2_2},{x3_1,x3_3},{x4_1,x1_0},{x4_1,!x2_0},{x4_1,!x1_2},{x4_1,x2_2},{x4_1,x3_3},{!x4_2,x1_0},{!x4_2,!x2_0},{!x4_2,x2_1},{!x4_2,x3_1},{!x4_2,x3_3},{!x1_2,!x2_0},{!x1_2,x2_1},{!x1_2,x3_1},{!x1_2,x4_1},{!x1_2,x3_3},{x2_2,x1_0},{x2_2,x2_1},{x2_2,x3_1},{x2_2,x4_1},{x2_2,x3_3},{x3_3,x1_0},{x3_3,!x2_0},{x3_3,x2_1},{x3_3,x3_1},{x3_3,x4_1},{x3_3,!x4_2},{x3_3,!x1_2},{x3_3,x2_2}}),4)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}
+### gadgets SipserReduceToCliqueStandard (x1 | x1 | !x2) & (x2 | x3 | x4) & (!x4 | !x1 | x2) & (x3)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-0"
+    ],
+    "reductionToIds": [
+      "x1_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-0"
+    ],
+    "targetIds": [
+      "x1_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-1"
+    ],
+    "reductionToIds": [
+      "x1_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-1"
+    ],
+    "targetIds": [
+      "x1_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "0-2"
+    ],
+    "reductionToIds": [
+      "!x2_0"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c0-2"
+    ],
+    "targetIds": [
+      "!x2_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "0"
+    ],
+    "reductionToIds": [
+      "x1_0",
+      "x1_0",
+      "!x2_0"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c0"
+    ],
+    "targetIds": [
+      "x1_0",
+      "x1_0",
+      "!x2_0"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-0"
+    ],
+    "reductionToIds": [
+      "x2_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-0"
+    ],
+    "targetIds": [
+      "x2_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-1"
+    ],
+    "reductionToIds": [
+      "x3_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-1"
+    ],
+    "targetIds": [
+      "x3_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1-2"
+    ],
+    "reductionToIds": [
+      "x4_1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c1-2"
+    ],
+    "targetIds": [
+      "x4_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "1"
+    ],
+    "reductionToIds": [
+      "x2_1",
+      "x3_1",
+      "x4_1"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c1"
+    ],
+    "targetIds": [
+      "x2_1",
+      "x3_1",
+      "x4_1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-0"
+    ],
+    "reductionToIds": [
+      "!x4_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-0"
+    ],
+    "targetIds": [
+      "!x4_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-1"
+    ],
+    "reductionToIds": [
+      "!x1_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-1"
+    ],
+    "targetIds": [
+      "!x1_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2-2"
+    ],
+    "reductionToIds": [
+      "x2_2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c2-2"
+    ],
+    "targetIds": [
+      "x2_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "2"
+    ],
+    "reductionToIds": [
+      "!x4_2",
+      "!x1_2",
+      "x2_2"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c2"
+    ],
+    "targetIds": [
+      "!x4_2",
+      "!x1_2",
+      "x2_2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "3-0"
+    ],
+    "reductionToIds": [
+      "x3_3"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c3-0"
+    ],
+    "targetIds": [
+      "x3_3"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ClauseHighlight",
+    "reductionFromIds": [
+      "3"
+    ],
+    "reductionToIds": [
+      "x3_3"
+    ],
+    "gadgetKind": "group",
+    "sourceIds": [
+      "c3"
+    ],
+    "targetIds": [
+      "x3_3"
+    ]
+  }
+]
+### reduce sipserReductionVertexCover (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)
+{
+  "reductionName": "Sipser\u0027s Vertex Cover Reduction",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
+  "contributors": [
+    "Janita Aamir",
+    "Alex Diviney",
+    "Caleb Eardley"
+  ],
+  "visualization": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Vertex Cover",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "solver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1"
+      ],
+      "targetIds": [
+        "1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2"
+      ],
+      "targetIds": [
+        "2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3"
+      ],
+      "reductionToIds": [
+        "3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3"
+      ],
+      "targetIds": [
+        "3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "4"
+      ],
+      "reductionToIds": [
+        "4"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "4"
+      ],
+      "targetIds": [
+        "4"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "5"
+      ],
+      "reductionToIds": [
+        "5"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "5"
+      ],
+      "targetIds": [
+        "5"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "6"
+      ],
+      "reductionToIds": [
+        "6"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "6"
+      ],
+      "targetIds": [
+        "6"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({1,2,3,4,5,6},{{1,3},{1,5},{2,6},{5,6}}),2)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets sipserReductionVertexCover (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1"
+    ],
+    "reductionToIds": [
+      "1"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "1"
+    ],
+    "targetIds": [
+      "1"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2"
+    ],
+    "reductionToIds": [
+      "2"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "2"
+    ],
+    "targetIds": [
+      "2"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "3"
+    ],
+    "reductionToIds": [
+      "3"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "3"
+    ],
+    "targetIds": [
+      "3"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "4"
+    ],
+    "reductionToIds": [
+      "4"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "4"
+    ],
+    "targetIds": [
+      "4"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "5"
+    ],
+    "reductionToIds": [
+      "5"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "5"
+    ],
+    "targetIds": [
+      "5"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "6"
+    ],
+    "reductionToIds": [
+      "6"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "6"
+    ],
+    "targetIds": [
+      "6"
+    ]
+  }
+]
+### reduce sipserReductionVertexCover (({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)
+{
+  "reductionName": "Sipser\u0027s Vertex Cover Reduction",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
+  "contributors": [
+    "Janita Aamir",
+    "Alex Diviney",
+    "Caleb Eardley"
+  ],
+  "visualization": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Vertex Cover",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "solver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({a,b,c,d},{{a,d},{b,d}}),1)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets sipserReductionVertexCover (({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d"
+    ]
+  }
+]
+### reduce sipserReductionVertexCover (({a,b,c,d},{{b,a},{c,b},{c,d}}),2)
+{
+  "reductionName": "Sipser\u0027s Vertex Cover Reduction",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
+  "contributors": [
+    "Janita Aamir",
+    "Alex Diviney",
+    "Caleb Eardley"
+  ],
+  "visualization": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Vertex Cover",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "solver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c,d},{{b,a},{c,b},{c,d}}),2)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({a,b,c,d},{{a,c},{a,d},{b,d}}),2)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets sipserReductionVertexCover (({a,b,c,d},{{b,a},{c,b},{c,d}}),2)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d"
+    ]
+  }
+]
+### reduce sipserReductionVertexCover (({a,b,c},{{a,b},{b,c},{a,c}}),3)
+{
+  "reductionName": "Sipser\u0027s Vertex Cover Reduction",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
+  "contributors": [
+    "Janita Aamir",
+    "Alex Diviney",
+    "Caleb Eardley"
+  ],
+  "visualization": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Vertex Cover",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "solver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c},{{a,b},{b,c},{a,c}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({a,b,c},{}),0)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets sipserReductionVertexCover (({a,b,c},{{a,b},{b,c},{a,c}}),3)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  }
+]
+### reduce sipserReductionVertexCover (({a,b,c,d,e},{}),1)
+{
+  "reductionName": "Sipser\u0027s Vertex Cover Reduction",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
+  "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
+  "contributors": [
+    "Janita Aamir",
+    "Alex Diviney",
+    "Caleb Eardley"
+  ],
+  "visualization": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Vertex Cover",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "solver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c,d,e},{}),1)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,d},{c,e},{d,e}}),4)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets sipserReductionVertexCover (({a,b,c,d,e},{}),1)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "e"
+    ],
+    "reductionToIds": [
+      "e"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "e"
+    ],
+    "targetIds": [
+      "e"
+    ]
+  }
+]
+### reduce reduceToCLIQUE (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)
+{
+  "reductionName": "Clique Reduction",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "source": "",
+  "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
+  "contributors": [
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "f"
+      ],
+      "reductionToIds": [
+        "f"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "f"
+      ],
+      "targetIds": [
+        "f"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "g"
+      ],
+      "reductionToIds": [
+        "g"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "g"
+      ],
+      "targetIds": [
+        "g"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Independent Set",
+    "formalDefinition": "In a graph G = (V, E), an independent set is a subset X of vertices no two of which are adjacent",
+    "problemDefinition": "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set",
+    "inputDescription": "G, a graph, and K, the size of the independent set",
+    "outputDescription": "True or False, whether G has an independent set of size K",
+    "source": "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ",
+    "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/INDEPENDENTSET_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "instance": "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "certificateFormat": "Format: independent set of exactly K node names | no two joined by an edge in E Example: {c,d,g}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "defaultSolver": {
+      "solverName": "Independent Set Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Independent Set Verifier",
+      "verifierDefinition": "This is a verifier for Independent Set",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Verifiers/IndependentSetVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Russell Phillips"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Independent Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Independent Set",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Visualizations/IndependentSetDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Independent Set Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+        "contributors": [
+          "Russell Phillips"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c,d,e,f,g},{{a,f},{b,d},{b,e},{b,f},{c,d},{c,e},{c,f},{c,g},{d,g},{e,g},{f,g}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets reduceToCLIQUE (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "e"
+    ],
+    "reductionToIds": [
+      "e"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "e"
+    ],
+    "targetIds": [
+      "e"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "f"
+    ],
+    "reductionToIds": [
+      "f"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "f"
+    ],
+    "targetIds": [
+      "f"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "g"
+    ],
+    "reductionToIds": [
+      "g"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "g"
+    ],
+    "targetIds": [
+      "g"
+    ]
+  }
+]
+### reduce reduceToCLIQUE (({a,b,c,d},{{a,b},{b,c},{c,d}}),2)
+{
+  "reductionName": "Clique Reduction",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "source": "",
+  "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
+  "contributors": [
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Independent Set",
+    "formalDefinition": "In a graph G = (V, E), an independent set is a subset X of vertices no two of which are adjacent",
+    "problemDefinition": "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set",
+    "inputDescription": "G, a graph, and K, the size of the independent set",
+    "outputDescription": "True or False, whether G has an independent set of size K",
+    "source": "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ",
+    "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/INDEPENDENTSET_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "instance": "(({a,b,c,d},{{a,b},{b,c},{c,d}}),2)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "certificateFormat": "Format: independent set of exactly K node names | no two joined by an edge in E Example: {c,d,g}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "defaultSolver": {
+      "solverName": "Independent Set Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Independent Set Verifier",
+      "verifierDefinition": "This is a verifier for Independent Set",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Verifiers/IndependentSetVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Russell Phillips"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Independent Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Independent Set",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Visualizations/IndependentSetDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Independent Set Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+        "contributors": [
+          "Russell Phillips"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c,d},{{a,c},{a,d},{b,d}}),2)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets reduceToCLIQUE (({a,b,c,d},{{a,b},{b,c},{c,d}}),2)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d"
+    ]
+  }
+]
+### reduce reduceToCLIQUE (({a,b,c,d},{{b,a},{d,c}}),1)
+{
+  "reductionName": "Clique Reduction",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "source": "",
+  "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
+  "contributors": [
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Independent Set",
+    "formalDefinition": "In a graph G = (V, E), an independent set is a subset X of vertices no two of which are adjacent",
+    "problemDefinition": "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set",
+    "inputDescription": "G, a graph, and K, the size of the independent set",
+    "outputDescription": "True or False, whether G has an independent set of size K",
+    "source": "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ",
+    "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/INDEPENDENTSET_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "instance": "(({a,b,c,d},{{b,a},{d,c}}),1)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "certificateFormat": "Format: independent set of exactly K node names | no two joined by an edge in E Example: {c,d,g}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "defaultSolver": {
+      "solverName": "Independent Set Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Independent Set Verifier",
+      "verifierDefinition": "This is a verifier for Independent Set",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Verifiers/IndependentSetVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Russell Phillips"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Independent Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Independent Set",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Visualizations/IndependentSetDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Independent Set Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+        "contributors": [
+          "Russell Phillips"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c,d},{{a,c},{a,d},{b,c},{b,d}}),1)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets reduceToCLIQUE (({a,b,c,d},{{b,a},{d,c}}),1)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d"
+    ]
+  }
+]
+### reduce reduceToCLIQUE (({a,b,c},{{a,b},{b,c},{a,c}}),2)
+{
+  "reductionName": "Clique Reduction",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "source": "",
+  "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
+  "contributors": [
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Independent Set",
+    "formalDefinition": "In a graph G = (V, E), an independent set is a subset X of vertices no two of which are adjacent",
+    "problemDefinition": "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set",
+    "inputDescription": "G, a graph, and K, the size of the independent set",
+    "outputDescription": "True or False, whether G has an independent set of size K",
+    "source": "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ",
+    "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/INDEPENDENTSET_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "instance": "(({a,b,c},{{a,b},{b,c},{a,c}}),2)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "certificateFormat": "Format: independent set of exactly K node names | no two joined by an edge in E Example: {c,d,g}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "defaultSolver": {
+      "solverName": "Independent Set Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Independent Set Verifier",
+      "verifierDefinition": "This is a verifier for Independent Set",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Verifiers/IndependentSetVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Russell Phillips"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Independent Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Independent Set",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Visualizations/IndependentSetDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Independent Set Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+        "contributors": [
+          "Russell Phillips"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c},{}),2)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets reduceToCLIQUE (({a,b,c},{{a,b},{b,c},{a,c}}),2)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  }
+]
+### reduce reduceToCLIQUE (({a,b,c,d,e},{}),3)
+{
+  "reductionName": "Clique Reduction",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "source": "",
+  "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
+  "contributors": [
+    "Russell Phillips"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Independent Set",
+    "formalDefinition": "In a graph G = (V, E), an independent set is a subset X of vertices no two of which are adjacent",
+    "problemDefinition": "An Independent Set is a set of nodes in a graph G, where no node is connected to another node in the set",
+    "inputDescription": "G, a graph, and K, the size of the independent set",
+    "outputDescription": "True or False, whether G has an independent set of size K",
+    "source": "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ",
+    "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/INDEPENDENTSET_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "instance": "(({a,b,c,d,e},{}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)",
+    "certificateFormat": "Format: independent set of exactly K node names | no two joined by an edge in E Example: {c,d,g}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "defaultSolver": {
+      "solverName": "Independent Set Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Independent Set Verifier",
+      "verifierDefinition": "This is a verifier for Independent Set",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Verifiers/IndependentSetVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Russell Phillips"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Independent Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Independent Set",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Visualizations/IndependentSetDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Independent Set Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Independent Set problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Solvers/IndependentSetBruteForce.cs",
+        "contributors": [
+          "Russell Phillips"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique",
+    "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",
+    "problemDefinition": "A clique is the problem of uncovering a subset of vertices in an undirected graph G = (V, E) such that every two distinct vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the size of clique to find",
+    "outputDescription": "True or False, whether G contains a clique of size k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "instance": "(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,d},{c,e},{d,e}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Kaden Marchetti",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Verifier",
+      "verifierDefinition": "This is a verifier for Clique",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley",
+        "Kaden Marchetti"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+      "contributors": [
+        "Kaden Marchetti",
+        "Alex Diviney",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Clique Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Solvers/CliqueBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Kaden Marchetti"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}
+### gadgets reduceToCLIQUE (({a,b,c,d,e},{}),3)
+[
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d"
+    ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "e"
+    ],
+    "reductionToIds": [
+      "e"
+    ],
+    "gadgetKind": "element",
+    "sourceIds": [
+      "e"
+    ],
+    "targetIds": [
+      "e"
+    ]
+  }
+]

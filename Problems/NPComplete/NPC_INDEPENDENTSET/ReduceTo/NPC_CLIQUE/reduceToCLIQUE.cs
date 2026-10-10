@@ -11,7 +11,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.ReduceTo.NPC_CLIQUE;
 
-class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
+class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IRecordedReduction<INDEPENDENTSET, CLIQUE> {
 
 
     // --- Fields ---
@@ -59,11 +59,18 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
     }
 
     // --- Methods Including Constructors ---
-    public reduceToCLIQUE(INDEPENDENTSET from) {
+    public reduceToCLIQUE(INDEPENDENTSET from) : this(from, StepRecorder<BuildDelta>.Off) { }
+
+    // The one place the target is built; rec is Off except when Rebuild asks for the construction steps.
+    private reduceToCLIQUE(INDEPENDENTSET from, StepRecorder<BuildDelta> rec) {
         gadgets = new();
         _reductionFrom = from;
-        _reductionTo = reduce();
+        _reductionTo = Build(rec);
+    }
 
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new reduceToCLIQUE(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
     }
 
     public reduceToCLIQUE(string from) : this(new INDEPENDENTSET(from)) {
@@ -78,14 +85,21 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
     /// <remarks>
     /// authored by Janita Aamir. Contributed to by Alex Diviney.
     /// </remarks>
-    public CLIQUE reduce() {
+    public CLIQUE reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // Construction steps (see IRecordedReduction): the nodes copied, one step per node for the complement
+    // edges it gets, then K unchanged. The per-node edges are collected inside the loop that builds them.
+    private CLIQUE Build(StepRecorder<BuildDelta> rec) {
         INDEPENDENTSET INDPENDENTSETInstance = _reductionFrom;
         CLIQUE reducedCLIQUE = new CLIQUE();
         reducedCLIQUE.nodes = INDPENDENTSETInstance.nodes;
 
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
+        bool recording = rec.Enabled;
+        List<(string Node, string[] Later)>? perNode = recording ? new() : null;
         foreach (var i in INDPENDENTSETInstance.nodes) {
+            int before = edges.Count;
             foreach (var j in INDPENDENTSETInstance.nodes) {
                 KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(i, j);
                 KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(j, i);
@@ -93,6 +107,7 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
                     edges.Add(pairCheck1);
                 }
             }
+            if (recording) perNode!.Add((i, edges.Skip(before).Select(e => e.Value).ToArray()));
         }
 
         //set up gadgets
@@ -117,6 +132,28 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
 
         reducedCLIQUE = new CLIQUE(G);
         reductionTo = reducedCLIQUE;
+
+        if (recording) {
+            string[] all = INDPENDENTSETInstance.nodes.ToArray();
+            int[] gadgetIdx = Enumerable.Range(0, gadgets.Count).ToArray();
+            rec.Accept(
+                () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
+                () => $"Copy every node of the graph ({BuildCaptions.Names(all)}) into the clique graph, with the same names. Its edges will be the pairs the graph is missing.",
+                all);
+            foreach (var (node, later) in perNode!) {
+                string u = node;
+                string[] added = later.Select(v => BuildCaptions.Edge(u, v)).ToArray();
+                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added };
+                Func<string> caption = () => later.Length > 0
+                    ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the original graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
+                    : $"Node {u} is already joined to every later node in the original graph, so it gets no new edges.";
+                string[] focus = new[] { u }.Concat(later).ToArray();
+                if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
+            }
+            int k = INDPENDENTSETInstance.K;
+            rec.Done(new BuildDelta { Bound = k }, true,
+                $"K stays {k}. {k} nodes with no edge between them in the original graph are {k} nodes joined to each other in the complement.");
+        }
         return reducedCLIQUE;
 
     }
