@@ -68,10 +68,10 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
         mstParser.parse(instanceString);
 
         nodes = mstParser["N"].ToList().Select(node => node.ToString()).ToList();
-        listedEdges = mstParser["E"].ToList().Select(edge => {
+        listedEdges = ParallelEdges.Distinct(mstParser["E"].ToList().Select(edge => {
             List<UtilCollection> endpoints = edge[0].ToList();
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));
-        }).ToList();
+        }));
         // A tree takes the lightest edge between two nodes, so parallel edges merge into the lightest (#769). The solvers
         // read the same merged edges (KruskalSolver.ExtractEdges).
         edges = ParallelEdges.Lightest(listedEdges);

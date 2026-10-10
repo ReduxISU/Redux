@@ -35,4 +35,27 @@ public class ParallelEdges_Tests {
         Assert.Equal(edges, ParallelEdges.Lightest(edges));
         Assert.Equal(edges, ParallelEdges.Summed(edges));
     }
+
+    // An edge written twice with the same weight is one edge, even with its ends the other way round: E is a set.
+    [Fact]
+    public void A_Reversed_Copy_With_The_Same_Weight_Is_A_Duplicate() {
+        var edges = new List<(string, string, int)> { ("1", "2", 5), ("2", "1", 5), ("2", "3", 4) };
+        Assert.Equal(new List<(string, string, int)> { ("1", "2", 5), ("2", "3", 4) }, ParallelEdges.Distinct(edges));
+        Assert.Equal(new List<(string, string, int)> { ("1", "2", 5), ("2", "3", 4) }, ParallelEdges.Summed(edges));
+    }
+
+    [Fact]
+    public void A_Duplicate_Is_Dropped_Before_Parallel_Edges_Are_Added() {
+        // 2 and 5 are parallel edges; the reversed 2 is a copy of the first, so the pair weighs 7, not 9.
+        var edges = new List<(string, string, int)> { ("1", "2", 2), ("1", "2", 5), ("2", "1", 2) };
+        Assert.Equal(new List<(string, string, int)> { ("1", "2", 2), ("1", "2", 5) }, ParallelEdges.Distinct(edges));
+        Assert.Equal(new List<(string, string, int)> { ("1", "2", 7) }, ParallelEdges.Summed(edges));
+    }
+
+    [Fact]
+    public void Directed_Edges_The_Other_Way_Round_Are_Not_Duplicates() {
+        var edges = new List<(string, string, int)> { ("1", "2", 5), ("2", "1", 5) };
+        Assert.Equal(edges, ParallelEdges.Distinct(edges, directed: true));
+        Assert.Equal(edges, ParallelEdges.Summed(edges, directed: true));
+    }
 }
