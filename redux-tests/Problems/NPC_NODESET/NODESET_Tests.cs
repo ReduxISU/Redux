@@ -63,4 +63,26 @@ public class NODESET_Tests {
         string solvedString = solver.solve(nodeset);
         Assert.Equal("{}", solvedString);
     }
+
+    // #783: the number of combinations of each size came from a long factorial, which overflows at 21!.
+    [Theory]
+    [InlineData(20)]
+    [InlineData(21)]
+    [InlineData(25)]
+    public void NODESET_solver_finds_the_answer_on_21_or_more_nodes(int n) {
+        string nodes = string.Join(",", Enumerable.Range(1, n));
+        NODESET nodeset = new NODESET($"(({{{nodes}}},{{(1,2),(2,1)}}),1)");
+        Assert.Equal("{1}", nodeset.defaultSolver.solve(nodeset));
+    }
+
+    // #784: a certificate is a set of the graph's nodes; one that names anything else is not one, even on a graph that is
+    // already acyclic.
+    [Theory]
+    [InlineData("{9}", false)]
+    [InlineData("{1,9}", false)]
+    [InlineData("{1}", true)]
+    [InlineData("{}", true)]
+    public void NODESET_verify_rejects_nodes_outside_the_graph(string certificate, bool expected) {
+        Assert.Equal(expected, new NodeSetVerifier().verify(new NODESET("(({1,2,3},{(1,2),(2,3)}),2)"), certificate));
+    }
 }
