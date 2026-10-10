@@ -9,12 +9,12 @@ namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Verifiers;
 
 class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
 
-    public const string CertificateGrammar = "{S | S subset E, S is exactly the set of edges crossing some partition of N into two sets, sum of edge weights in S = K}";
+    public const string CertificateGrammar = "{S | S subset E, S is exactly the set of edges crossing some partition of N into two non-empty sets, sum of edge weights in S = K}";
     public const string CertificateExample = "{({2,1},5)}";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Weighted Cut Verifier";
-    public string verifierDefinition { get; } = "Checks that the certificate edges all exist in G with the stated weights, are distinct, are exactly the edges crossing some partition of the vertices into two sets, and have total weight exactly K.";
+    public string verifierDefinition { get; } = "Checks that the certificate edges all exist in G with the stated weights, are distinct, are exactly the edges crossing some partition of the vertices into two non-empty sets, and have total weight exactly K.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
@@ -33,10 +33,8 @@ class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
     public WeightedCutVerifier() { }
 
     public bool verify(WEIGHTEDCUT problem, string certificate) {
-        if (certificate == "{}") {
-            return false;
-        }
-
+        // "{}" is the cut of a split with no edge crossing it, which exists only when the graph falls into
+        // separate pieces; IsExactCut below decides that (#770).
         List<(string, string)> certEdges = new List<(string, string)>();
         long total = 0;
         try {

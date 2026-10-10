@@ -69,6 +69,17 @@ public class CUT_Tests {
         Assert.False(new CutVerifier().verify(square, "{{a,b}}"));
     }
 
+    [Theory] // a cut splits the nodes into two non-empty sides, so {} is a cut only of a graph in separate pieces (#770)
+    [InlineData("(({a,b,c},{{a,b},{b,c}}),0)", false)]         // connected path: every split cuts an edge
+    [InlineData("(({x,y,z},{{x,y},{y,z},{z,x}}),0)", false)]   // connected triangle
+    [InlineData("(({a},{}),0)", false)]                        // one node can't be split at all
+    [InlineData("(({a,b,c,d},{{a,b},{c,d}}),0)", true)]        // two pieces: {a,b} against {c,d}
+    [InlineData("(({a,b,c},{{a,b}}),0)", true)]                // an isolated node is a piece of its own
+    [InlineData("(({a,b,c,d},{{a,b},{c,d}}),1)", false)]       // {} still has size 0, not K
+    public void CUT_verifier_empty_certificate_needs_a_split_with_no_crossing_edge(string instance, bool expected) {
+        Assert.Equal(expected, new CutVerifier().verify(new CUT(instance), "{}"));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("garbage")]
