@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_TSP.Solvers;
 using API.Problems.NPComplete.NPC_TSP.Verifiers;
 using API.Problems.NPComplete.NPC_TSP.Visualizations;
@@ -23,7 +24,7 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}";
     private static string _defaultInstance { get; } = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance} Parallel edges: when two edges join the same cities, the lightest one is used.";
     public string certificateFormat { get; } =
         $"Format: {TSPVerifier.CertificateGrammar} Example: {TSPVerifier.CertificateExample}";
 
@@ -61,6 +62,12 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
         }
     }
 
+    /// <summary>
+    /// The edges as listed in the instance, before parallel edges are merged into <see cref="edges"/>. Kept for
+    /// pictures that show every listed weight; internal, so it is not part of the problem's JSON.
+    /// </summary>
+    internal List<(string source, string target, int weight)> listedEdges { get; private set; } = new();
+
     public int K {
         get {
             return _K;
@@ -81,10 +88,12 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
         StringParser tsp = new(InstanceGrammar);
         tsp.parse(GInput);
         nodes = tsp["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = tsp["E"].ToList().Select(edge => {
+        listedEdges = tsp["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();
+        // A tour takes the cheapest way between two cities, so parallel edges merge into the lightest (#769).
+        edges = ParallelEdges.Lightest(listedEdges);
         _K = int.Parse(tsp["K"].ToString());
 
         graph = new UtilCollectionGraph(tsp["N"], tsp["E"]);

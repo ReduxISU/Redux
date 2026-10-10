@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 using API.Problems.NPComplete.NPC_MAXCUT.Verifiers;
 using API.Problems.NPComplete.NPC_MAXCUT.Visualizations;
@@ -21,7 +22,7 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "";
-    public string instanceFormat { get; } = "Weighted undirected graph: ({nodes},{({u,v},w),...}) — e.g. ({1,2,3},{({1,2},4),({2,3},2),({1,3},3)})";
+    public string instanceFormat { get; } = "Weighted undirected graph: ({nodes},{({u,v},w),...}) — e.g. ({1,2,3},{({1,2},4),({2,3},2),({1,3},3)}). Parallel edges: when two edges join the same nodes, their weights are added.";
     public string certificateFormat { get; } = "Set of vertices on the S side of the maximum cut: {node,...} — e.g. {1,3}";
 
     private List<string> _nodes = new();
@@ -39,6 +40,12 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
     public List<string> nodes { get => _nodes; set => _nodes = value; }
     public List<(string source, string destination, int weight)> edges { get => _edges; set => _edges = value; }
 
+    /// <summary>
+    /// The edges as listed in the instance, before parallel edges are merged into <see cref="edges"/>. Kept for
+    /// pictures that show every listed weight; internal, so it is not part of the problem's JSON.
+    /// </summary>
+    internal List<(string source, string destination, int weight)> listedEdges { get; private set; } = new();
+
     public MAXCUT() : this(_defaultInstance) { }
 
     public MAXCUT(string instanceString) {
@@ -46,10 +53,12 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
         StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
         maxCut.parse(instance);
         nodes = maxCut["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = maxCut["E"].ToList().Select(edge => {
+        listedEdges = maxCut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();
+        // Every parallel edge crosses a cut that separates its ends, so their weights add (#769).
+        edges = ParallelEdges.Summed(listedEdges);
         graph = new UtilCollectionGraph(maxCut["N"], maxCut["E"]);
     }
 }
