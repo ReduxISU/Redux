@@ -378,4 +378,36 @@ public class SPSP_Tests {
 
         Assert.All(graph.links, link => Assert.Equal("Solution", link.color));
     }
+
+    // #790: {} is the solver's "no path" answer, not a path. The verifier accepted it whenever the target was unreachable.
+    [Theory]
+    [InlineData("(({1,2,3},{((2,3),1)}),1,3)")]
+    [InlineData("(({1,2,3},((1,2))),1,3)")]
+    [InlineData("({1,2,3},{(2,1),(3,2)},1,3)")]
+    public void SPSP_Unreachable_Target_Solver_Answers_Empty_And_Verifier_Rejects_It(string instance) {
+        SPSP problem = new SPSP(instance);
+        string answer = new SPSPSolver().solve(problem);
+        Assert.Equal("{}", answer);
+        Assert.False(new SPSPVerifier().verify(problem, answer));
+        Assert.False(new SPSPVerifier().verify(problem, ""));
+        Assert.False(new SPSPVerifier().verify(problem, " { } "));
+    }
+
+    [Fact]
+    public void SPSP_Verifier_Rejects_Empty_On_A_Graph_With_No_Nodes() {
+        SPSP problem = new SPSP("({},{})");
+        Assert.Equal("{}", new SPSPSolver().solve(problem));
+        Assert.False(new SPSPVerifier().verify(problem, "{}"));
+    }
+
+    [Theory]
+    [InlineData("(({1,2,3},{((1,2),1),((2,3),1)}),1,1)", "{1}")]
+    [InlineData("(({1,2,3},{((2,3),1)}),1,1)", "{1}")]
+    [InlineData("({1},{},1,1)", "{1}")]
+    public void SPSP_Source_Equals_Target_The_One_Node_Path_Is_Valid(string instance, string path) {
+        SPSP problem = new SPSP(instance);
+        Assert.Equal(path, new SPSPSolver().solve(problem));
+        Assert.True(new SPSPVerifier().verify(problem, path));
+        Assert.False(new SPSPVerifier().verify(problem, "{}"));
+    }
 }

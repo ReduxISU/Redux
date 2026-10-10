@@ -279,6 +279,21 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.All(first.GetProperty("edges").EnumerateObject(), e => Assert.Equal("Rejected", e.Value.GetProperty("state").GetString()));
     }
 
+    // #790: {} is SPSP's "no path" answer and the verifier now says so too. The picture of an unreachable target ends on a
+    // Done that is not ok, with the target Rejected, and the verifier agrees with that ok.
+    [Fact]
+    public async Task Frames_SpspUnreachableTarget_EndsNotOk_WithTheTargetRejected() {
+        const string instance = "(({1,2,3},{((2,3),1)}),1,3)";
+        var (status, body) = await Visualize("visualization=spspvisualization&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var done = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().Last();
+        Assert.Equal("Done", done.GetProperty("event").GetString());
+        Assert.False(done.GetProperty("ok").GetBoolean());
+        Assert.Equal("Rejected", done.GetProperty("nodes").GetProperty("3").GetProperty("state").GetString());
+        var problem = new API.Problems.P.P_SPSP.SPSP(instance);
+        Assert.False(problem.defaultVerifier.verify(problem, problem.defaultSolver.solve(problem)));
+    }
+
     [Fact]
     public async Task Frames_SccHasAPicture() {
         var (status, body) = await Visualize("visualization=sccvisualization&format=frames", "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})");

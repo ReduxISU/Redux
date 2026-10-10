@@ -8,7 +8,7 @@ using SPADE;
 namespace API.Problems.P.P_SPSP.Verifiers;
 
 class SPSPVerifier : IVerifier<SPSP> {
-    public const string CertificateGrammar = "{q0,...,qn} | qi are node names, q0 = s, qn = t, each (qi,qi+1) in E; {} if unreachable";
+    public const string CertificateGrammar = "{q0,...,qn} | qi are node names, q0 = s, qn = t, each (qi,qi+1) in E; {} (no path) is never a valid certificate";
     public const string CertificateExample = "{1,3,5}";
 
     public string verifierName { get; } = "Default Single Pair Shortest Path Problem Verifier";
@@ -32,10 +32,13 @@ class SPSPVerifier : IVerifier<SPSP> {
     public bool verify(SPSP problem, string solution) {
         _certificate = solution ?? ""; // Reset certificate before verification
 
+        // {} is the solver's "no path" answer, not a path: there is nothing to check, so it is never correct (#790).
+        if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
+            return false;
+
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).ToList();
         if (nodes.Count == 0)
-            // If there are no nodes, the only valid solution is an empty path
-            return solution == "{}" || string.IsNullOrWhiteSpace(solution);
+            return false; // No nodes: no source, no target, no path
 
         string sourceNode = problem.sourceNode;
         string targetNode = problem.targetNode;
@@ -44,10 +47,6 @@ class SPSPVerifier : IVerifier<SPSP> {
 
         // Compute true shortest distance using Dijkstra's algorithm
         int? shortest = ShortestDistance(adjacency, nodes, sourceNode, targetNode);
-
-        // Allow {} as a certificate meaning "no path"
-        if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
-            return shortest is null; // Valid if and only if target is unreachable
 
         List<string> path;
         try {
@@ -65,7 +64,7 @@ class SPSPVerifier : IVerifier<SPSP> {
         }
 
         if (path.Count == 0)
-            return shortest is null; // Empty path is only valid if target is unreachable
+            return false; // An empty path is not a path (#790)
 
         if (path[0] != sourceNode || path[^1] != targetNode)
             return false; // Path must start at source and end at target
