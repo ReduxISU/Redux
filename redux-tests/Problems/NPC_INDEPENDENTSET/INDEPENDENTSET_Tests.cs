@@ -45,6 +45,16 @@ public class INDPENDENTSET_Tests {
 
     }
 
+    [Theory] // repeated names count once, so a repeat cannot make an independent set bigger (#766)
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),3)", "{1,1,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),2)", "{1,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),3)", "{1,3,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),2)", "{1,3,1}", true)]
+    public void INDEPENDENTSET_verifier_counts_repeated_nodes_once(string instance, string certificate, bool expected) {
+        INDEPENDENTSET independentset = new INDEPENDENTSET(instance);
+        Assert.Equal(expected, new IndependentSetVerifier().verify(independentset, certificate));
+    }
+
 
     [Theory] //tests solver
     [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1,3}")]

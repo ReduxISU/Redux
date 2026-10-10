@@ -36,8 +36,8 @@ class IndependentSetVerifier : IVerifier<INDEPENDENTSET> {
 
     public bool verify(INDEPENDENTSET problem, string certificate) {
         List<string> nodeList = parseCertificate(certificate);
-        //Check k value
-        if (nodeList.Count != problem.K) {
+        //Check k value. Repeated names count once: {1,1} is a set of one node, not two (#766).
+        if (nodeList.Distinct().Count() != problem.K) {
             return false;
         }
         foreach (var i in nodeList) {
