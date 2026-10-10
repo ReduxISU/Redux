@@ -247,17 +247,39 @@ static class GraphSubsetFrames {
     }
 
     /// <summary>
+    /// The frame that closes a run stopped by its time limit (<see cref="SolveRun.TimedOut"/>): a Done frame with
+    /// ok = false in which every element is Background. The solver had not finished, so nothing in the graph is an
+    /// answer, and nothing is judged either (an empty set is not a failed candidate). The other shapes add their own
+    /// empty annotation (<c>groups</c>, <c>order</c>) so the frame has the fields their other frames have.
+    /// </summary>
+    public static GraphFrame StoppedFrame(string caption) =>
+        new(StepEvent.Done, caption, [], new SortedDictionary<string, StateRef>(StringComparer.Ordinal),
+            new SortedDictionary<string, StateRef>(StringComparer.Ordinal), []) { Ok = false };
+
+    /// <summary>
+    /// The caption of a stopped run's frame when the run's own stopped Done step cannot be drawn (its steps are of
+    /// another shape).
+    /// </summary>
+    public const string StoppedCaption = "The solver had not finished within the time limit, so there is no answer to show.";
+
+    /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer
-    /// unless the last step already is the Done step.
+    /// unless the last step already is the Done step. A run stopped by its time limit has no answer: its Done step
+    /// (or, when its steps cannot be drawn, an added Done frame) is drawn as <see cref="StoppedFrame"/>, and its
+    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read as nodes.
     /// </summary>
     public static FramesResponse Build(GraphSubsetSpec spec, SolveRun run, Func<string, NodeSet> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<NodeSet>? last = null;
         foreach (var step in run.StepsFor(typeof(NodeSet)).OfType<SolverStep<NodeSet>>()) {
-            frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+                ? StoppedFrame(step.Caption)
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (run.TimedOut) {
+            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(StoppedCaption));
+        } else if (last is not { Event: StepEvent.Done }) {
             NodeSet answer = parseAnswer(run.Answer);
             frames.Add(Frame(spec, answer, StepEvent.Done, [],
                 answer.Nodes.Length == 0 ? "No answer was found." : $"The answer is {Format(answer)}.",

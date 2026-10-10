@@ -243,6 +243,72 @@ public class GraphSubsetFrames_Tests {
         Assert.False(frame.Ok);
     }
 
+    // ---- runs stopped by the time limit ----
+
+    [Fact]
+    public void Build_StoppedRun_EndsWithABlankNotOkDone_EvenIfItsDoneStepCarriesACandidate() {
+        // A Done step that (as before the recorder fix) carries the last rejected candidate: the picture must not draw it.
+        object[] steps = [
+            new SolverStep<NodeSet>(Set("a", "b"), StepEvent.Reject, ["a", "b"], "Try {a,b}: edge {c,d} isn't covered."),
+            new SolverStep<NodeSet>(Set("a", "b"), StepEvent.Done, [], "Stopped after 0.05 s and 9 steps; the solver had not finished.") { Ok = false },
+        ];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(NodeSet)) { TimedOut = true };
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.VertexCover, 2), run,
+            _ => throw new InvalidOperationException("a stopped run's answer must not be read"), _ => throw new InvalidOperationException("nor verified"));
+        Assert.Equal(2, response.Frames.Count);
+        var done = Assert.IsType<GraphFrame>(response.Frames[^1]);
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.Equal("Stopped after 0.05 s and 9 steps; the solver had not finished.", done.Caption);
+        Assert.Empty(done.Nodes);   // in particular, no node is Solution
+        Assert.Empty(done.Edges);   // and no edge is Solution or Rejected (an empty cover is not a failed candidate)
+        Assert.Empty(done.Phantoms);
+    }
+
+    [Fact]
+    public void Build_StoppedRun_FromTheRecorder_HasNoSolutionInItsDoneFrame() {
+        var run = SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(5), rec => {
+            while (true) rec.Reject(() => Set("a", "c"), () => "Try {a,c}.", "a", "c");
+        });
+        Assert.True(run.TimedOut);
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.Clique, 2), run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified"));
+        var done = Assert.IsType<GraphFrame>(response.Frames[^1]);
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.StartsWith("Stopped after ", done.Caption);
+        Assert.DoesNotContain(done.Nodes.Values, s => s.State == PictureState.Solution);
+        Assert.DoesNotContain(done.Edges.Values, s => s.State == PictureState.Solution);
+        Assert.Single(response.Frames, f => ((GraphFrame)f).Event == StepEvent.Done);
+    }
+
+    [Fact]
+    public void Build_StoppedRun_WithStepsOfAnotherShape_NeverReadsTheStoppedAnswerAsNodes() {
+        object[] steps = [new SolverStep<ActiveStates>(new ActiveStates(["1"]), StepEvent.Done, [], "Stopped.") { Ok = false }];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(ActiveStates)) { TimedOut = true };
+        bool read = false;
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.Clique), run, ans => { read = true; return Set(ans); }, _ => true);
+        Assert.False(read);
+        var done = Assert.IsType<GraphFrame>(Assert.Single(response.Frames));
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, done.Caption);
+        Assert.Empty(done.Nodes);
+        Assert.Empty(done.Edges);
+    }
+
+    [Fact]
+    public void Build_StoppedRun_WithNoSteps_EndsWithTheStoppedFrame() {
+        var run = new SolveRun(SolveRun.TimedOutAnswer, [], null) { TimedOut = true };
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.VertexCover), run, _ => Set("a", "b", "c", "d"), _ => true);
+        var done = Assert.IsType<GraphFrame>(Assert.Single(response.Frames));
+        Assert.False(done.Ok);
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, done.Caption);
+        Assert.Empty(done.Nodes);
+        Assert.Equal("{\"event\":\"Done\",\"caption\":\"" + GraphSubsetFrames.StoppedCaption + "\",\"focus\":[],\"nodes\":{},\"edges\":{},\"phantoms\":[],\"ok\":false}",
+            JsonSerializer.Serialize(done));
+    }
+
     // ---- reasons used in solver captions ----
 
     [Fact]
