@@ -243,6 +243,18 @@ public class GraphSubsetFrames_Tests {
         Assert.False(frame.Ok);
     }
 
+    // ---- edge ids ----
+
+    [Fact]
+    public void CheckEdgeIds_RefusesTwoEdgesWithOneId_ButNotOneEdgeGivenTwice() {
+        var ex = Assert.Throws<AmbiguousEdgeIdException>(() =>
+            GraphSubsetFrames.CheckEdgeIds([("a", "b-c"), ("a-b", "c")], GraphSubsetFrames.EdgeId));
+        Assert.Contains("\"a-b-c\"", ex.Message);
+        GraphSubsetFrames.CheckEdgeIds([("a-b", "c"), ("c", "a-b"), ("x", "x")], GraphSubsetFrames.EdgeId);
+        var spec = new GraphSubsetSpec(["a", "b-c", "a-b", "c"], [new("a", "b-c"), new("a-b", "c")], 2, SubsetRule.Clique);
+        Assert.Throws<AmbiguousEdgeIdException>(() => GraphSubsetFrames.Build(spec, new SolveRun("{}", [], null), _ => Set(), _ => false));
+    }
+
     // ---- runs stopped by the time limit ----
 
     [Fact]
