@@ -102,7 +102,7 @@ static class GraphTourFrames {
 
         // A path only being tried (Try, Reject) is highlighted, nodes and hops alike; otherwise its hops are Solution and its
         // nodes Covered, or Solution once the run is over and correct.
-        var picked = GraphSubsetFrames.Picked(ev);
+        var picked = GraphSubsetFrames.Picked(ev, incremental: false);
         var onPath = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight
             : ev == StepEvent.Done && ok == true ? PictureState.Solution : PictureState.Covered;
         foreach (var n in order) GraphSubsetFrames.Raise(nodes, n, onPath);
