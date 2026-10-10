@@ -222,4 +222,44 @@ public class TSP_Tests {
         Assert.Equal(24, combos.Count);
         Assert.Equal(24, combos.Select(c => string.Join(",", c)).Distinct().Count());
     }
+
+    // -------------------------------------------------------------------------
+    // Parallel edges (#769): the lightest edge between two cities is the one a tour uses
+    // -------------------------------------------------------------------------
+
+    // Two edges join 1 and 2 (5 listed first, then 1). With the lightest, 1-2-3-1 costs 3 = K. Before #769 the verifier and
+    // Greedy took the first listed edge (5) and Branch and Bound the last, so every solver answered {} and the verifier
+    // rejected the tour.
+    private const string ParallelInstance = "(({1,2,3},{({1,2},5),({1,2},1),({2,3},1),({1,3},1)}),3)";
+
+    [Fact]
+    public void TSP_Parallel_Edges_Merge_Into_The_Lightest() {
+        TSP tsp = new TSP(ParallelInstance);
+        Assert.Equal(3, tsp.edges.Count);
+        Assert.Contains(("1", "2", 1), tsp.edges);
+        Assert.Equal(4, tsp.listedEdges.Count);
+    }
+
+    [Fact]
+    public void TSP_Parallel_Edges_Verifier_Uses_The_Lightest() {
+        TSP tsp = new TSP(ParallelInstance);
+        Assert.True(tsp.defaultVerifier.verify(tsp, "{1,2,3,1}"));
+    }
+
+    [Fact]
+    public void TSP_Parallel_Edges_Every_Solver_Finds_The_Tour() {
+        TSP tsp = new TSP(ParallelInstance);
+        foreach (string answer in new[] { new TSPBruteForce().solve(tsp), new TSPGreedy().solve(tsp), new TSPBranchAndBound().solve(tsp) }) {
+            Assert.NotEqual("{}", answer);
+            Assert.True(tsp.defaultVerifier.verify(tsp, answer), answer);
+        }
+    }
+
+    [Fact]
+    public void TSP_Parallel_Edges_Order_Does_Not_Matter() {
+        // The same graph with the parallel edges listed the other way round gives the same answer.
+        TSP first = new TSP(ParallelInstance);
+        TSP second = new TSP("(({1,2,3},{({1,2},1),({1,2},5),({2,3},1),({1,3},1)}),3)");
+        Assert.Equal(new TSPBruteForce().solve(first), new TSPBruteForce().solve(second));
+    }
 }

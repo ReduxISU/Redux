@@ -35,9 +35,22 @@ sealed record GraphEdgeDto(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("a")] string A,
     [property: JsonPropertyName("b")] string B) {
+    /// <summary>
+    /// The weight that counts for the edge: for parallel edges (two or more joining the same pair of nodes, in the same
+    /// direction if directed) their sum in a cut problem and the lightest in every other one (#769). Omitted when unweighted.
+    /// </summary>
     [JsonPropertyName("weight")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Weight { get; init; }
+
+    /// <summary>
+    /// What to write on a drawn edge that stands for parallel edges: every listed weight, in the order the instance lists
+    /// them, comma-separated (<c>"2,5"</c>), the way an automaton writes <c>"a,b"</c> on one transition. Omitted for an edge
+    /// listed once; draw <c>label</c> if present, else <c>weight</c>.
+    /// </summary>
+    [JsonPropertyName("label")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Label { get; init; }
 }
 
 /// <summary>The static part of a Graph picture, sent once per response.</summary>
