@@ -170,4 +170,22 @@ public class GroupSolvers_Tests {
         Assert.Contains("not shown", ((SolverStep<Groups>)run.Steps[^1]).Caption);
         Assert.Equal("{}", run.Answer);
     }
+
+    [Theory]
+    [InlineData("(({},{}),2)")]
+    [InlineData("(({},{}),0)")]
+    [InlineData("(({1,2,3},{{1,2}}),4)")]
+    public void CliqueCover_GivingUp_DoneOkIsWhatTheVerifierSaysOfItsAnswer(string instance) {
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers.CliqueCoverBruteForce()).Run(instance, true);
+        Assert.Equal("{}", run.Answer);
+        var problem = (IProblem)new API.Problems.NPComplete.NPC_CLIQUECOVER.CLIQUECOVER();
+        Assert.Equal(problem.defaultVerifier.verify(instance, run.Answer), run.Steps.Cast<SolverStep<Groups>>().Last().Ok);
+    }
+
+    [Fact]
+    public void Greedy_WithKOf1_SaysOnlyColor0IsAllowed() {
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringGreedy()).Run("(({1,2},{{1,2}}),1)", true);
+        var reject = run.Steps.Cast<SolverStep<Groups>>().Single(s => s.Event == StepEvent.Reject);
+        Assert.Equal("Node 2 needs color 1, but K = 1 allows only color 0: neighbour 1 already uses color 0.", reject.Caption);
+    }
 }

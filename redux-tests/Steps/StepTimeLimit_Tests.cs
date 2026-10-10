@@ -139,6 +139,13 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
         Assert.StartsWith("Stopped after 0.05 s and ", done.GetProperty("caption").GetString());
         Assert.Contains("the solver had not finished.", done.GetProperty("caption").GetString());
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
+        // The solver had not finished: no node or edge is drawn as part of an answer (nor judged).
+        Assert.Empty(done.GetProperty("nodes").EnumerateObject());
+        Assert.Empty(done.GetProperty("edges").EnumerateObject());
+        // Every candidate before it was only tried (and rejected): none of them is drawn as an answer either.
+        Assert.All(frames, f => Assert.DoesNotContain(
+            f.GetProperty("nodes").EnumerateObject().Concat(f.GetProperty("edges").EnumerateObject()),
+            p => p.Value.GetProperty("state").GetString() == "Solution"));
         // The frame has exactly the fields every other frame has.
         Assert.Equal(frames[0].EnumerateObject().Select(p => p.Name).Append("ok"), done.EnumerateObject().Select(p => p.Name));
     }

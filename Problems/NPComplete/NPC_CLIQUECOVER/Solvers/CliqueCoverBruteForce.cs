@@ -74,8 +74,14 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER, Groups> {
     // in this call.
     public string Solve(CLIQUECOVER clique, StepRecorder<Groups> rec) {
 
+        // When this solver gives up, "{}" is its answer: the Done step says what the verifier says of it (an empty graph is
+        // covered by no cliques at all).
+        bool EmptyAnswerOk() {
+            try { return clique.defaultVerifier.verify(clique, "{}"); } catch { return false; }
+        }
+
         if (clique.K > clique.nodes.Count) {
-            rec.Done(new Groups([]), false, $"K = {clique.K} is more than the {clique.nodes.Count} nodes, and this solver only tries up to one group per node.");
+            rec.Done(new Groups([]), EmptyAnswerOk(), $"K = {clique.K} is more than the {clique.nodes.Count} nodes, and this solver only tries up to one group per node.");
             return "{}";
         }
 
@@ -101,15 +107,15 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER, Groups> {
                 return certificate;
             }
             rec.Reject(() => new Groups(Candidate()),
-                () => $"Try {GraphGroupFrames.Classes(Candidate(), clique.K)}: {GraphGroupFrames.Why(GroupRule.CliqueCover, clique.nodes, clique.edges, Candidate())?.Reason}.",
+                () => $"Try {GraphGroupFrames.Classes(Candidate(), clique.K)}: {GraphGroupFrames.Why(GroupRule.CliqueCover, clique.nodes, clique.edges, Candidate())?.Reason ?? "the verifier rejects it"}.",
                 () => GraphGroupFrames.Why(GroupRule.CliqueCover, clique.nodes, clique.edges, Candidate())?.Focus ?? Array.Empty<string>());
             nextBinary(binary, clique.K);
 
         }
 
-        rec.Done(new Groups([]), false, tried == 0
+        rec.Done(new Groups([]), EmptyAnswerOk(), tried == 0
             ? "No grouping was checked."
-            : $"Checked all {tried} ways to split the nodes into at most {clique.K} groups. None is a cover by cliques.");
+            : $"Checked {tried} candidate groupings into at most {clique.K} groups. None is a cover by cliques.");
         return "{}";
     }
 }

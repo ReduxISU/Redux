@@ -105,7 +105,7 @@ public class GraphEdgeFrames_Tests {
     public void Edges_AnEdgeThatWouldCloseACycle_IsRejectedInARejectStep() {
         var f = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SpanningTree), Set("a-b", "b-c"), StepEvent.Reject, ["a-c"], "x");
         Assert.Equal(PictureState.Rejected, EdgeState(f, "a-c"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-b"));   // Solution is only for Accept and Done
     }
 
     [Fact]
@@ -202,5 +202,92 @@ public class GraphEdgeFrames_Tests {
         var (count, weight) = GraphEdgeFrames.Crossing(edges, new HashSet<string> { "a" });
         Assert.Equal(1, count);
         Assert.Equal(4d, weight);   // the lightest of the parallel a-b edges is the one drawn
+    }
+
+    // ---- runs stopped by the time limit ----
+
+    [Fact]
+    public void BuildEdges_StoppedRun_EndsWithABlankNotOkDone_AndNeverReadsTheAnswer() {
+        object[] steps = [
+            new SolverStep<EdgeSet>(Set("a-b", "c-d"), StepEvent.Reject, [], "Try edges a-b, c-d: the edges form more than one piece."),
+            new SolverStep<EdgeSet>(Set("a-b", "c-d"), StepEvent.Done, [], "Stopped after 0.05 s and 2 steps; the solver had not finished.") { Ok = false },
+        ];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(EdgeSet)) { TimedOut = true };
+        var response = GraphEdgeFrames.BuildEdges(Spec(EdgeRule.SteinerTree, 2, "a", "d"), run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified"));
+        var done = Assert.IsType<GraphFrame>(response.Frames[^1]);
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.StartsWith("Stopped after", done.Caption);
+        Assert.DoesNotContain(done.Edges.Values, s => s.State == PictureState.Solution);
+        Assert.Empty(done.Nodes);
+
+        // Steps that cannot be drawn: the stopped frame is added, and the answer string is not read as edges.
+        var other = new SolveRun(SolveRun.TimedOutAnswer, [], null) { TimedOut = true };
+        var only = Assert.IsType<GraphFrame>(Assert.Single(GraphEdgeFrames.BuildEdges(Spec(EdgeRule.SpanningTree), other,
+            _ => throw new InvalidOperationException("not read"), _ => true).Frames));
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
+        Assert.False(only.Ok);
+        Assert.Empty(only.Edges);
+    }
+
+    [Fact]
+    public void BuildCut_StoppedRun_EndsWithABlankNotOkDone_WithAnEmptySplit() {
+        object[] steps = [
+            new SolverStep<Groups>(Split("a", "b"), StepEvent.Reject, [], "Put {a,b} against {c,d,e}: 2 edges cross, not 3."),
+            new SolverStep<Groups>(Split("a", "b"), StepEvent.Done, [], "Stopped after 0.05 s and 2 steps; the solver had not finished.") { Ok = false },
+        ];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(Groups)) { TimedOut = true };
+        var response = GraphEdgeFrames.BuildCut(Spec(EdgeRule.Cut, 3), run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified"));
+        var done = Assert.IsType<GraphFrame>(response.Frames[^1]);
+        Assert.False(done.Ok);
+        Assert.Empty(done.Edges);   // the last rejected split's crossing edges are not drawn as the cut
+        Assert.NotNull(done.Groups);
+        Assert.Empty(done.Groups);
+        Assert.Equal(JsonSerializer.Serialize(response.Frames[0]).Contains("\"groups\""), JsonSerializer.Serialize(done).Contains("\"groups\":{}"));
+
+        var none = new SolveRun(SolveRun.TimedOutAnswer, [], null) { TimedOut = true };
+        var only = Assert.IsType<GraphFrame>(Assert.Single(GraphEdgeFrames.BuildCut(Spec(EdgeRule.Cut, 3), none,
+            _ => throw new InvalidOperationException("not read"), _ => true).Frames));
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
+        Assert.Empty(only.Groups!);
+    }
+
+    // ---- candidates being tried are highlighted, not drawn as the answer; edge ids ----
+
+    [Fact]
+    public void Edges_ACandidateBeingTried_IsElementHighlight_NeverSolution() {
+        foreach (var ev in new[] { StepEvent.Try, StepEvent.Reject }) {
+            var f = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SteinerTree, 2, "a", "d"), Set("a-c", "c-d"), ev, [], "x");
+            Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-c"));
+            Assert.Equal(PictureState.ElementHighlight, State(f, "c"));
+            Assert.DoesNotContain(f.Edges.Values.Concat(f.Nodes.Values), s => s.State == PictureState.Solution);
+        }
+        var done = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SteinerTree, 2, "a", "d"), Set("a-c", "c-d"), StepEvent.Done, [], "x", true);
+        Assert.Equal(PictureState.Solution, EdgeState(done, "a-c"));
+        Assert.Equal(PictureState.Covered, State(done, "c"));
+    }
+
+    [Fact]
+    public void Cut_ASplitBeingTried_HighlightsItsCrossingEdges_NeverSolution() {
+        foreach (var ev in new[] { StepEvent.Try, StepEvent.Reject }) {
+            var f = GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), Split("a"), ev, [], "x");
+            Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-b"));
+            Assert.DoesNotContain(f.Edges.Values, s => s.State == PictureState.Solution);
+        }
+        Assert.Equal(PictureState.Solution, EdgeState(GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), Split("a"), StepEvent.Accept, [], "x"), "a-b"));
+    }
+
+    [Fact]
+    public void Payload_NodeNamesWithSeparators_GetUniqueIds_AndAnAnswerMarksTheRightEdge() {
+        // Unescaped, both edges would be "n-1-n-2".
+        var spec = new GraphEdgeSpec(["n-1", "n-2", "n", "1-n-2"], [new("n-1", "n-2", 3), new("n", "1-n-2", 5)], EdgeRule.SpanningTree);
+        var p = GraphEdgeFrames.Payload(spec);
+        Assert.Equal([@"n\-1-n\-2", @"1\-n\-2-n"], p.Edges.Select(e => e.Id));
+        Assert.Equal([3d, 5d], p.Edges.Select(e => e.Weight));   // not merged as parallel edges
+        var answer = GraphEdgeFrames.ParseEdges("{({n,1-n-2},5)}");
+        var f = GraphEdgeFrames.EdgeFrame(spec, answer, StepEvent.Done, [], "x", true);
+        Assert.Equal([@"1\-n\-2-n"], f.Edges.Keys);
     }
 }

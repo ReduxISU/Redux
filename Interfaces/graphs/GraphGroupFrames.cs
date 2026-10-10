@@ -30,7 +30,8 @@ sealed record GroupFailure(string Reason, string[] Focus);
 /// </para>
 /// <list type="bullet">
 /// <item><b>Coloring</b>: an edge whose two ends share a group is <c>Rejected</c> (a clash). Other edges are plain.</item>
-/// <item><b>Clique cover</b>: an edge inside a group is <c>Solution</c> (the clique is drawn solid); a missing edge
+/// <item><b>Clique cover</b>: an edge inside a group is <c>Solution</c> (the clique is drawn solid), or
+/// <c>ElementHighlight</c> in a step that only tries the grouping (Try, Reject: see <see cref="GraphSubsetFrames.Picked"/>); a missing edge
 /// between two nodes of one group is a <c>Rejected</c> phantom, as in the Clique rule of <see cref="GraphSubsetFrames"/>.</item>
 /// <item>Either rule: a node whose group index is K or more (more colors, or more cliques, than allowed) is <c>Rejected</c>.</item>
 /// <item>What the solver is looking at (the node being colored) is <c>ElementHighlight</c>; in a
@@ -95,7 +96,7 @@ static class GraphGroupFrames {
                     for (int i = 0; i < members.Count; i++)
                         for (int j = i + 1; j < members.Count; j++) {
                             string id = GraphSubsetFrames.EdgeId(members[i], members[j]);
-                            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, PictureState.Solution);
+                            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, GraphSubsetFrames.Picked(ev));
                             else phantoms.Add(new GraphPhantom(members[i], members[j], PictureState.Rejected));
                         }
                 }
@@ -176,18 +177,27 @@ static class GraphGroupFrames {
 
     // ---- The whole response ----
 
+    // A stopped run's last frame: blank, with the empty grouping every groups frame carries.
+    private static GraphFrame StoppedFrame(string caption) =>
+        GraphSubsetFrames.StoppedFrame(caption) with { Groups = new SortedDictionary<string, int>(StringComparer.Ordinal) };
+
     /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
-    /// step already is the Done step.
+    /// step already is the Done step. A run stopped by its time limit ends with a blank Done frame (see
+    /// <see cref="GraphSubsetFrames.StoppedFrame"/>) with empty <c>groups</c> instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GraphGroupSpec spec, SolveRun run, Func<string, Groups> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<Groups>? last = null;
         foreach (var step in run.StepsFor(typeof(Groups)).OfType<SolverStep<Groups>>()) {
-            frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+                ? StoppedFrame(step.Caption)
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (run.TimedOut) {
+            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(GraphSubsetFrames.StoppedCaption));
+        } else if (last is not { Event: StepEvent.Done }) {
             Groups answer = parseAnswer(run.Answer);
             frames.Add(Frame(spec, answer, StepEvent.Done, [],
                 answer.Of.Count == 0 ? "No answer was found." : $"The answer is {Classes(answer.Of)}.",

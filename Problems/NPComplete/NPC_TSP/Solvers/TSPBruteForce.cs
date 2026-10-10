@@ -92,6 +92,13 @@ class TSPBruteForce : ISolver<TSP, Tour> {
     // tiny instances, so only the first ones are kept and the Done step says how many are not shown. Recorder state lives
     // only in this call.
     public string Solve(TSP tsp, StepRecorder<Tour> rec) {
+        if (tsp.nodes.Count == 0) {
+            // There is one empty "permutation", whose certificate is "{}"; the answer is "{}" either way, as it always was.
+            bool ok = false;
+            try { ok = tsp.defaultVerifier.verify(tsp, "{}"); } catch { }
+            rec.Done(new Tour([]), ok, "There are no cities to tour.");
+            return "{}";
+        }
         List<List<int>> combinations = GenerateCombinations(tsp.nodes.Count);
         int tried = 0;
 
@@ -120,9 +127,7 @@ class TSPBruteForce : ISolver<TSP, Tour> {
                 });
         }
 
-        rec.Done(new Tour([]), false, tried == 0
-            ? "There are no cities to tour."
-            : $"Tried all {tried} permutations of the cities. None is a tour within K = {tsp.K}.");
+        rec.Done(new Tour([]), false, $"Tried all {tried} permutations of the cities. None is a tour within K = {tsp.K}.");
         return "{}";
     }
 }

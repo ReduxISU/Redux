@@ -304,4 +304,16 @@ public class GraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(2, JsonDocument.Parse(body).RootElement.GetArrayLength());
     }
+
+    [Fact]
+    public async Task Frames_NodeNamesWithSeparators_GetUniqueEdgeIds_AndTheEdgesNameTheirEnds() {
+        // Unescaped, {n-1,n-2} and {n,1-n-2} would both be the edge "n-1-n-2".
+        const string instance = "(({n-1,n-2,n,1-n-2},{{n-1,n-2},{n,1-n-2}}),2)";
+        var (status, body) = await Visualize("visualization=cliquedefaultvisualization&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var edges = JsonDocument.Parse(body).RootElement.GetProperty("payload").GetProperty("edges").EnumerateArray().ToList();
+        Assert.Equal(2, edges.Count);
+        Assert.Equal([@"n\-1-n\-2", @"1\-n\-2-n"], edges.Select(e => e.GetProperty("id").GetString()));
+        Assert.Equal([("n-1", "n-2"), ("1-n-2", "n")], edges.Select(e => (e.GetProperty("a").GetString(), e.GetProperty("b").GetString())));
+    }
 }

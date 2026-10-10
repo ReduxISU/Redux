@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using API.Interfaces.Steps;
 using Xunit;
 
 namespace redux_tests;
@@ -288,12 +289,13 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(groups["6"], groups["8"]);
     }
 
+    // The first row has a cover ({1,2},{3}), but K is more than the nodes and this solver then gives up; the others have none.
     [Theory]
     [InlineData(CoverVis, "cliquecoverbruteforce", "(({1,2,3},{{1,2}}),4)")]
     [InlineData(CoverVis, "cliquecoverbruteforce", "(({1,2,3,4},{{1,2},{3,4}}),1)")]
     [InlineData(ColoringVis, "graphcoloringbruteforce", "(({1,2,3},{{1,2},{1,3},{2,3}}),2)")]
     [InlineData(ColoringVis, "graphcoloringgreedy", "(({1,2,3},{{1,2},{1,3},{2,3}}),2)")]
-    public async Task Frames_WhenThereIsNoAnswer_EndsNotOkWithNoGroups(string vis, string solver, string instance) {
+    public async Task Frames_WhenTheSolverGivesUp_EndsNotOkWithNoGroups(string vis, string solver, string instance) {
         var (status, body) = await Visualize($"visualization={vis}&format=frames&solver={solver}", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         var last = Frames(body).Last();
@@ -328,7 +330,7 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Visualize($"visualization={ColoringVis}&format=frames&solver=graphcoloringbruteforce", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         var frames = Frames(body);
-        Assert.True(frames.Count <= 151, $"{frames.Count} frames");
+        Assert.Equal(StepRecorder<Groups>.DefaultCap + 1, frames.Count);   // the cap, then Done (every candidate fails, so no Accept is kept)
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
         Assert.Contains("not shown", frames[^1].GetProperty("caption").GetString());
     }

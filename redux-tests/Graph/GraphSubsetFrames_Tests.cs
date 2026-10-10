@@ -76,7 +76,9 @@ public class GraphSubsetFrames_Tests {
             // a-d and b-d are not edges.
             Assert.Equal([("a", "d"), ("b", "d")], f.Phantoms.Select(p => (p.A, p.B)));
             Assert.All(f.Phantoms, p => Assert.Equal(PictureState.Rejected, p.State));
-            Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+            // A candidate only being tried is highlighted; a taken set and the answer are Solution.
+            var picked = ev is StepEvent.Try or StepEvent.Reject ? PictureState.ElementHighlight : PictureState.Solution;
+            Assert.Equal(picked, EdgeState(f, "a-b"));
         }
     }
 
@@ -132,8 +134,9 @@ public class GraphSubsetFrames_Tests {
         foreach (var ev in new[] { StepEvent.Try, StepEvent.Accept, StepEvent.Done }) {
             var f = GraphSubsetFrames.Frame(Spec(SubsetRule.IndependentSet), Set("a", "b"), ev, [], "x");
             Assert.Equal(PictureState.Rejected, EdgeState(f, "a-b"));
-            Assert.Equal(PictureState.Solution, State(f, "a"));   // chosen beats Blocked
-            Assert.Equal(PictureState.Solution, State(f, "b"));
+            var picked = ev == StepEvent.Try ? PictureState.ElementHighlight : PictureState.Solution;
+            Assert.Equal(picked, State(f, "a"));   // chosen beats Blocked
+            Assert.Equal(picked, State(f, "b"));
             Assert.Equal(PictureState.Blocked, State(f, "c"));
         }
     }
@@ -241,6 +244,116 @@ public class GraphSubsetFrames_Tests {
         var frame = (GraphFrame)Assert.Single(response.Frames);
         Assert.Equal("No answer was found.", frame.Caption);
         Assert.False(frame.Ok);
+    }
+
+    // ---- edge ids ----
+
+    [Fact]
+    public void EdgeIds_StayPlainForOrdinaryNames_AndAreUniqueWhenNamesContainSeparators() {
+        Assert.Equal("a-b", GraphSubsetFrames.EdgeId("b", "a"));
+        // Without escaping, both of these pairs would be "n-1-n-2".
+        Assert.Equal(@"n\-1-n\-2", GraphSubsetFrames.EdgeId("n-1", "n-2"));
+        Assert.Equal(@"1\-n\-2-n", GraphSubsetFrames.EdgeId("n", "1-n-2"));
+        Assert.Equal(@"a\>b-a\\b", GraphSubsetFrames.EdgeId(@"a\b", "a>b"));   // "a>b" < "a\b"; a backslash is doubled
+
+        var spec = new GraphSubsetSpec(["n-1", "n-2", "n", "1-n-2", "a", "b-c", "a-b", "c"],
+            [new("n-1", "n-2"), new("n", "1-n-2"), new("a", "b-c"), new("a-b", "c"), new("n-2", "n-1")], 2, SubsetRule.Clique);
+        var p = GraphSubsetFrames.Payload(spec);
+        // Four distinct edges (the reversed n-2,n-1 is the first one again), each with its own id and its two ends given
+        // explicitly, so a renderer never splits an id.
+        Assert.Equal(4, p.Edges.Count);
+        Assert.Equal(4, p.Edges.Select(e => e.Id).Distinct().Count());
+        Assert.Equal([("n-1", "n-2"), ("1-n-2", "n"), ("a", "b-c"), ("a-b", "c")], p.Edges.Select(e => (e.A, e.B)));
+        Assert.All(p.Edges, e => Assert.Equal(GraphSubsetFrames.EdgeId(e.A, e.B), e.Id));
+
+        // A frame marks exactly the edge its set joins, not the other one that would have shared its id.
+        var f = GraphSubsetFrames.Frame(spec, Set("n", "1-n-2"), StepEvent.Accept, [], "x");
+        Assert.Equal([GraphSubsetFrames.EdgeId("n", "1-n-2")], f.Edges.Keys);
+    }
+
+    // ---- candidates being tried are highlighted, not drawn as the answer ----
+
+    [Theory]
+    [InlineData("Try")]
+    [InlineData("Reject")]
+    public void Frame_ACandidateBeingTried_IsElementHighlight_NeverSolution(string ev) {
+        // {a,b,c} is a clique: on Accept and Done it is drawn as the answer, but a Try or Reject only looks at it.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b", "c"), Enum.Parse<StepEvent>(ev), [], "x");
+        Assert.DoesNotContain(f.Nodes.Values, s => s.State == PictureState.Solution);
+        Assert.DoesNotContain(f.Edges.Values, s => s.State == PictureState.Solution);
+        Assert.Equal(PictureState.ElementHighlight, State(f, "a"));
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-b"));
+        foreach (var answer in new[] { StepEvent.Accept, StepEvent.Done }) {
+            var g = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b", "c"), answer, [], "x", answer == StepEvent.Done ? true : null);
+            Assert.Equal(PictureState.Solution, State(g, "a"));
+            Assert.Equal(PictureState.Solution, EdgeState(g, "a-b"));
+        }
+    }
+
+    // ---- runs stopped by the time limit ----
+
+    [Fact]
+    public void Build_StoppedRun_EndsWithABlankNotOkDone_EvenIfItsDoneStepCarriesACandidate() {
+        // A Done step that (as before the recorder fix) carries the last rejected candidate: the picture must not draw it.
+        object[] steps = [
+            new SolverStep<NodeSet>(Set("a", "b"), StepEvent.Reject, ["a", "b"], "Try {a,b}: edge {c,d} isn't covered."),
+            new SolverStep<NodeSet>(Set("a", "b"), StepEvent.Done, [], "Stopped after 0.05 s and 9 steps; the solver had not finished.") { Ok = false },
+        ];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(NodeSet)) { TimedOut = true };
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.VertexCover, 2), run,
+            _ => throw new InvalidOperationException("a stopped run's answer must not be read"), _ => throw new InvalidOperationException("nor verified"));
+        Assert.Equal(2, response.Frames.Count);
+        var done = Assert.IsType<GraphFrame>(response.Frames[^1]);
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.Equal("Stopped after 0.05 s and 9 steps; the solver had not finished.", done.Caption);
+        Assert.Empty(done.Nodes);   // in particular, no node is Solution
+        Assert.Empty(done.Edges);   // and no edge is Solution or Rejected (an empty cover is not a failed candidate)
+        Assert.Empty(done.Phantoms);
+    }
+
+    [Fact]
+    public void Build_StoppedRun_FromTheRecorder_HasNoSolutionInItsDoneFrame() {
+        var run = SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(5), rec => {
+            while (true) rec.Reject(() => Set("a", "c"), () => "Try {a,c}.", "a", "c");
+        });
+        Assert.True(run.TimedOut);
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.Clique, 2), run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified"));
+        var done = Assert.IsType<GraphFrame>(response.Frames[^1]);
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.StartsWith("Stopped after ", done.Caption);
+        Assert.DoesNotContain(done.Nodes.Values, s => s.State == PictureState.Solution);
+        Assert.DoesNotContain(done.Edges.Values, s => s.State == PictureState.Solution);
+        Assert.Single(response.Frames, f => ((GraphFrame)f).Event == StepEvent.Done);
+    }
+
+    [Fact]
+    public void Build_StoppedRun_WithStepsOfAnotherShape_NeverReadsTheStoppedAnswerAsNodes() {
+        object[] steps = [new SolverStep<ActiveStates>(new ActiveStates(["1"]), StepEvent.Done, [], "Stopped.") { Ok = false }];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(ActiveStates)) { TimedOut = true };
+        bool read = false;
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.Clique), run, ans => { read = true; return Set(ans); }, _ => true);
+        Assert.False(read);
+        var done = Assert.IsType<GraphFrame>(Assert.Single(response.Frames));
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, done.Caption);
+        Assert.Empty(done.Nodes);
+        Assert.Empty(done.Edges);
+    }
+
+    [Fact]
+    public void Build_StoppedRun_WithNoSteps_EndsWithTheStoppedFrame() {
+        var run = new SolveRun(SolveRun.TimedOutAnswer, [], null) { TimedOut = true };
+        var response = GraphSubsetFrames.Build(Spec(SubsetRule.VertexCover), run, _ => Set("a", "b", "c", "d"), _ => true);
+        var done = Assert.IsType<GraphFrame>(Assert.Single(response.Frames));
+        Assert.False(done.Ok);
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, done.Caption);
+        Assert.Empty(done.Nodes);
+        Assert.Equal("{\"event\":\"Done\",\"caption\":\"" + GraphSubsetFrames.StoppedCaption + "\",\"focus\":[],\"nodes\":{},\"edges\":{},\"phantoms\":[],\"ok\":false}",
+            JsonSerializer.Serialize(done));
     }
 
     // ---- reasons used in solver captions ----

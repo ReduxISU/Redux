@@ -291,17 +291,31 @@ static class GroupedGraphFrames {
     // ---- The whole response ----
 
     /// <summary>
+    /// The frame that closes a run stopped by its time limit: a Done frame with ok = false, no assignment, and every node
+    /// and clause Background. The solver had not finished, so no literal is true and no clause is judged (an empty
+    /// assignment is not a failed one). See <see cref="GraphSubsetFrames.StoppedFrame"/>.
+    /// </summary>
+    public static GroupedGraphFrame StoppedFrame(string caption) =>
+        new(StepEvent.Done, caption, [], new SortedDictionary<string, StateRef>(StringComparer.Ordinal),
+            new SortedDictionary<string, StateRef>(StringComparer.Ordinal), new SortedDictionary<string, bool>(StringComparer.Ordinal)) { Ok = false };
+
+    /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
-    /// step already is the Done step.
+    /// step already is the Done step. A run stopped by its time limit ends with <see cref="StoppedFrame"/> instead, and its
+    /// answer string is never read.
     /// </summary>
     public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
         foreach (var step in run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>()) {
-            frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+                ? StoppedFrame(step.Caption)
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (run.TimedOut) {
+            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(GraphSubsetFrames.StoppedCaption));
+        } else if (last is not { Event: StepEvent.Done }) {
             Assignment answer = parseAnswer(run.Answer);
             frames.Add(Frame(spec, answer, StepEvent.Done, [],
                 answer.Values.Count == 0 ? "No answer was found." : $"The answer is {Assigned(answer.Values.Select(p => new KeyValuePair<string, bool>(p.Key, p.Value == "True")))}.",
