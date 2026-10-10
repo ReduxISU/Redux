@@ -134,7 +134,8 @@ static class ReductionView {
         // A stopped run has no answer to draw: if its steps cannot be drawn either (another shape), keep just its stopped Done step.
         if (solved.TimedOut && solveSteps.Count == 0)
             solveSteps = [NewStep(targetShape, emptyTarget, StepEvent.Done, [], ReadStep(solved.Steps[^1]).Caption, false)];
-        var solveFrames = Render(targetVis, targetInstance, solveSteps, targetShape, solved.Answer, exact: false).Frames;
+        // A stopped run stays stopped when it is drawn, so the picture closes it with its blank stopped Done frame.
+        var solveFrames = Render(targetVis, targetInstance, solveSteps, targetShape, solved.Answer, exact: false, timedOut: solved.TimedOut).Frames;
         for (int i = 0; i < solveFrames.Count; i++) {
             var f = solveFrames[i];
             bool last = i == solveFrames.Count - 1;
@@ -163,7 +164,9 @@ static class ReductionView {
         var mapSourceFrames = Render(sourceVis, sourceInstance,
             mapSteps.Select((s, i) => NewStep(sourceShape, s.Partial, s.Event, sourceFocuses[i], s.Caption, s.Ok)).ToList(), sourceShape, mapped.Answer).Frames;
         var mapTargetPanes = solvedPartial == null || mapSteps.Count == 0 ? null
-            : Render(targetVis, targetInstance, mapSteps.Select(s => NewStep(targetShape, solvedPartial, StepEvent.Try, s.Focus, "")).ToList(), targetShape).Frames;
+            // Drawn as the solve's Done step (with its ok), so the pane is the solved picture: a Try would draw it as a
+            // candidate still being tried (highlighted), not as the answer.
+            : Render(targetVis, targetInstance, mapSteps.Select(s => NewStep(targetShape, solvedPartial, StepEvent.Done, s.Focus, "", solveFrames[^1].Ok)).ToList(), targetShape).Frames;
         for (int i = 0; i < mapSteps.Count; i++) {
             var s = mapSteps[i];
             bool last = i == mapSteps.Count - 1;
@@ -217,8 +220,8 @@ static class ReductionView {
     /// kept otherwise (the solve phase wants it).
     /// </summary>
     private static (FramesResponse Response, List<Rendered> Frames) Render(
-        IFramesVisualization vis, string instance, IReadOnlyList<object> steps, Type shape, string answer = "{}", bool exact = true) {
-        var response = vis.BuildFrames(instance, new SolveRun(answer, steps.ToList(), shape));
+        IFramesVisualization vis, string instance, IReadOnlyList<object> steps, Type shape, string answer = "{}", bool exact = true, bool timedOut = false) {
+        var response = vis.BuildFrames(instance, new SolveRun(answer, steps.ToList(), shape) { TimedOut = timedOut });
         var frames = new List<Rendered>();
         foreach (object frame in response.Frames) {
             var node = (JsonObject)JsonSerializer.SerializeToNode(frame, frame.GetType(), FramesResponse.JsonOptions)!;
@@ -287,15 +290,8 @@ static class ReductionView {
     }
 
     /// <summary>An empty answer in a picture's own shape, so a pane can be drawn at rest (only the focus highlighted).</summary>
-    private static object EmptyAnswer(Type shape, string problem, string error) {
-        if (shape == typeof(NodeSet)) return new NodeSet([]);
-        if (shape == typeof(EdgeSet)) return new EdgeSet([]);
-        if (shape == typeof(Groups)) return new Groups([]);
-        if (shape == typeof(Assignment)) return new Assignment([]);
-        if (shape == typeof(ChosenSets)) return new ChosenSets([]);
-        if (shape == typeof(Tour)) return new Tour([]);
-        throw new ReductionViewException(error, $"{problem}'s picture draws {shape.Name} answers, which the Reduction View cannot show at rest yet.");
-    }
+    private static object EmptyAnswer(Type shape, string problem, string error) =>
+        Shapes.EmptyAnswer(shape) ?? throw new ReductionViewException(error, $"{problem}'s picture draws {shape.Name} answers, which the Reduction View cannot show at rest yet.");
 
     /// <summary>
     /// Whether the solver's answer is correct for the target. "{}" is the no-answer convention, but for a set-valued target it is

@@ -460,4 +460,24 @@ public class ReductionView_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory>
         Assert.Equal("The solver had not finished, so there is no Clique answer to map back.", only.GetProperty("caption").GetString());
         Assert.Equal("map", frames[^1].GetProperty("phase").GetString());
     }
+
+    [Fact]
+    public async Task StoppedSolve_OnAVertexCoverTarget_DrawsTheStoppedFrameBlank_NotAnEmptyCoverWithEveryEdgeRejected() {
+        // Clique on 30 nodes with one edge and K = 15 becomes Vertex Cover on the complement (nearly K30) with K = 15: the brute
+        // force tries C(30,15) sets and cannot finish in 50 ms. Drawn as an ordinary Done, the stopped step's empty cover would
+        // mark every edge Rejected; it must be blank instead.
+        string instance = StepTimeLimit_Endpoint_Tests.SlowClique;
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/reductionView?reduction=sipserReductionVertexCover&solver=vertexcoverbruteforce",
+            content, TestContext.Current.CancellationToken);
+        string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.True(response.StatusCode == HttpStatusCode.OK, body);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        var last = frames.Where(f => f.GetProperty("phase").GetString() == "solve").Last();
+        Assert.False(last.GetProperty("ok").GetBoolean());
+        Assert.StartsWith("Stopped after 0.05 s and ", last.GetProperty("caption").GetString());
+        var target = last.GetProperty("target");
+        Assert.Empty(target.GetProperty("nodes").EnumerateObject());
+        Assert.Empty(target.GetProperty("edges").EnumerateObject());
+    }
 }
