@@ -35,13 +35,16 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 /// </para>
 /// <para>
 /// <b>Solve.</b> The chosen solver runs on the target; each of its steps is drawn by the target's picture and the source pane
-/// stays neutral. The last frame's <c>ok</c> is the target problem's own verifier on the solver's answer.
+/// stays neutral. The last frame's <c>ok</c> is the target problem's own verifier on the solver's answer, except that "{}" is
+/// judged by <see cref="IReduction.targetAcceptsEmptyAnswer"/> (the empty set can be a real answer, which some verifiers refuse as
+/// unreadable). A solver stopped by the time limit ends the phase with its stopped Done frame (<c>ok</c> false).
 /// </para>
 /// <para>
 /// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer; the target pane keeps
 /// the solution and highlights the element being read. Each step's <c>targetFocus</c> is the target element read, its
 /// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. The last frame's <c>ok</c> is the backward
-/// map's own Done verdict: the source problem's verifier on the mapped-back answer.
+/// map's own Done verdict: the source problem's verifier on the mapped-back answer. When the solver was stopped there is no
+/// answer, so the phase is a single Done frame (<c>ok</c> false) saying there is nothing to map back.
 /// </para>
 /// </summary>
 static class ReductionView {
@@ -56,8 +59,9 @@ static class ReductionView {
     /// <param name="sourceVis">The source problem's picture.</param>
     /// <param name="targetVis">The target problem's picture.</param>
     /// <param name="mapBack">Runs <see cref="IReduction.MapBackRun"/> with steps (the endpoint wraps certificate parse failures).</param>
+    /// <param name="solveTimeLimit">The time budget of the solve phase (see <see cref="ISolver.Run"/>); null means no limit.</param>
     public static JsonObject Create(IReduction red, string sourceInstance, ISolver solver,
-        IFramesVisualization sourceVis, IFramesVisualization targetVis, Func<string, SolveRun> mapBack) {
+        IFramesVisualization sourceVis, IFramesVisualization targetVis, Func<string, SolveRun> mapBack, TimeSpan? solveTimeLimit = null) {
         string targetInstance = red.reductionTo.instance;
         Type sourceShape = sourceVis.StepShape ?? throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture draws no typed steps.");
         Type targetShape = targetVis.StepShape ?? throw new ReductionViewException("no_target_picture", $"{red.reductionTo.problemName}'s picture draws no typed steps.");
@@ -125,13 +129,17 @@ static class ReductionView {
         }
 
         // ---- Solve ----
-        SolveRun solved = solver.Run(targetInstance, withSteps: true);
-        var solveFrames = Render(targetVis, targetInstance, solved.StepsFor(targetShape), targetShape, solved.Answer, exact: false).Frames;
+        SolveRun solved = solver.Run(targetInstance, withSteps: true, solveTimeLimit);
+        var solveSteps = solved.StepsFor(targetShape);
+        // A stopped run has no answer to draw: if its steps cannot be drawn either (another shape), keep just its stopped Done step.
+        if (solved.TimedOut && solveSteps.Count == 0)
+            solveSteps = [NewStep(targetShape, emptyTarget, StepEvent.Done, [], ReadStep(solved.Steps[^1]).Caption, false)];
+        var solveFrames = Render(targetVis, targetInstance, solveSteps, targetShape, solved.Answer, exact: false).Frames;
         for (int i = 0; i < solveFrames.Count; i++) {
             var f = solveFrames[i];
             bool last = i == solveFrames.Count - 1;
-            // The solved picture is judged by the problem's own verifier, whatever the solver reported.
-            bool? ok = last ? Verify(red.reductionTo, targetInstance, solved.Answer) : f.Ok;
+            // The solved picture is judged by the problem's own verifier, whatever the solver reported; a stopped solve has no answer.
+            bool? ok = last ? !solved.TimedOut && SolvedOk(red, targetInstance, solved.Answer) : f.Ok;
             frames.Add(Frame(Solve, f.Event, f.Caption, ok, [], f.Focus, neutralSource.DeepClone().AsObject(), f.Pane));
         }
         // What the target pane shows while the answer is mapped back: the solved picture. The solver's Done step holds the
@@ -142,6 +150,11 @@ static class ReductionView {
         JsonObject solvedPane = solveFrames[^1].Pane;
 
         // ---- Map ----
+        if (solved.TimedOut) {
+            frames.Add(Frame(Map, StepEvent.Done, $"The solver had not finished, so there is no {red.reductionTo.problemName} answer to map back.",
+                false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
+            return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
+        }
         SolveRun mapped = mapBack(solved.Answer);
         if (mapped.StepShape != sourceShape)
             throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture cannot draw the backward map's steps.");
@@ -165,7 +178,13 @@ static class ReductionView {
             frames.Add(Frame(Map, StepEvent.Done, $"{red.reductionFrom.problemName} has the answer {mapped.Answer}.",
                 Verify(red.reductionFrom, sourceInstance, mapped.Answer), [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
 
-        return new JsonObject {
+        return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
+    }
+
+    private static JsonObject Result(IReduction red, string sourceInstance, string targetInstance, ISolver solver,
+        FramesResponse sourceResponse, FramesResponse targetResponse, List<string> nodeOrder, List<string> edgeOrder,
+        IReadOnlyList<Gadget> gadgets, JsonArray frames) =>
+        new JsonObject {
             ["type"] = nameof(VisualizationType.Reduction),
             ["kind"] = "reduction",
             ["reduction"] = red.GetType().Name,
@@ -185,7 +204,6 @@ static class ReductionView {
             ["gadgets"] = new JsonArray(gadgets.Select(GadgetJson).ToArray()),
             ["frames"] = frames,
         };
-    }
 
     // ---- Panes ----
 
@@ -278,6 +296,13 @@ static class ReductionView {
         if (shape == typeof(Tour)) return new Tour([]);
         throw new ReductionViewException(error, $"{problem}'s picture draws {shape.Name} answers, which the Reduction View cannot show at rest yet.");
     }
+
+    /// <summary>
+    /// Whether the solver's answer is correct for the target. "{}" is the no-answer convention, but for a set-valued target it is
+    /// also the empty set, which can be a real answer that the verifier refuses as unreadable; the reduction says which it is.
+    /// </summary>
+    private static bool SolvedOk(IReduction red, string targetInstance, string answer) =>
+        ReductionBack.IsNoAnswer(answer) ? red.targetAcceptsEmptyAnswer() : Verify(red.reductionTo, targetInstance, answer);
 
     private static bool Verify(IProblem problem, string instance, string answer) {
         // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.

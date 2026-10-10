@@ -258,15 +258,22 @@ public class GraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Frames_StepsAreCappedAndSayHowManyAreHidden() {
-        // 12 nodes, K = 6, no edges: every size-6 set is a candidate (924 of them), far more than the cap of 150.
+    public async Task Frames_StepsAreCapped_KeepTheWinningAccept_AndSayHowManyAreHidden() {
+        // 12 nodes, K = 6, one edge {a,b}: the brute force tries the C(10,4) = 210 sets holding both a and b
+        // first, all rejected, and finds {a,c,d,e,f,g} at try 211, past the cap of 150.
         const string instance = "(({a,b,c,d,e,f,g,h,i,j,k,l},{{a,b}}),6)";
         var (status, body) = await Visualize("visualization=independentsetdefaultvisualization&format=frames&solver=independentsetbruteforce", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count <= 151, $"{frames.Count} frames");
+        // The first 150 steps, the winning Accept, then Done.
+        Assert.Equal(152, frames.Count);
+        Assert.All(frames.Take(150), f => Assert.Equal("Reject", f.GetProperty("event").GetString()));
+        Assert.Equal("Accept", frames[150].GetProperty("event").GetString());
+        Assert.Equal("Try {a,c,d,e,f,g}. No two are joined.", frames[150].GetProperty("caption").GetString());
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
-        Assert.Contains("not shown", frames[^1].GetProperty("caption").GetString());
+        Assert.True(frames[^1].GetProperty("ok").GetBoolean());
+        // 211 decisions reported, 151 kept (150 + the Accept): 60 not shown.
+        Assert.EndsWith("found after 211 tries. (60 not shown)", frames[^1].GetProperty("caption").GetString());
     }
 
     // ---- The list format is what old frontends read: it must not change. ----
