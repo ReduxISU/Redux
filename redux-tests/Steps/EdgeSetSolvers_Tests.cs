@@ -198,14 +198,27 @@ public class EdgeSetSolvers_Tests {
     }
 
     [Fact]
-    public void CutBruteForce_GivingUp_SaysWhichSidesItTried_NotThatNoCutExists() {
-        // Two triangles joined by 3-4: S = {1,2,3} cuts exactly one edge, but the solver only tries S sides of at most K = 1
-        // node, so it gives up. Its caption must say what it searched, not that no such cut exists.
+    public void CutBruteForce_TriesSidesLargerThanK() {
+        // Two triangles joined by 3-4: S = {1,2,3} cuts exactly one edge. The solver used to try S sides of at most K = 1
+        // node and give up (#751). Now it tries the 6 sides of one node and the 15 of two (none cuts one edge), then
+        // {1,2,3}, the first side of three.
         const string instance = "(({1,2,3,4,5,6},{{1,2},{2,3},{1,3},{4,5},{5,6},{4,6},{3,4}}),1)";
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CUT.Solvers.CutBruteForce()).Run(instance, true);
+        Assert.Equal("{{3,4}}", run.Answer);
+        var done = run.Steps.Cast<SolverStep<Groups>>().Last();
+        Assert.True(done.Ok);
+        Assert.Equal("{1,2,3} against {4,5,6} cuts 1 edges, found after 22 tries.", done.Caption);
+    }
+
+    [Fact]
+    public void CutBruteForce_GivingUp_SaysEverySplitWasTried() {
+        // K4 with K = 1: each one-node side cuts 3 edges and each two-node side cuts 4. Sides of 1 to n/2 = 2 nodes cover
+        // every split, so the 4 + 6 = 10 tries are the whole search and no cut of one edge exists.
+        const string instance = "(({1,2,3,4},{{1,2},{1,3},{1,4},{2,3},{2,4},{3,4}}),1)";
         var run = ((ISolver)new API.Problems.NPComplete.NPC_CUT.Solvers.CutBruteForce()).Run(instance, true);
         Assert.Equal("{}", run.Answer);
         var done = run.Steps.Cast<SolverStep<Groups>>().Last();
         Assert.False(done.Ok);
-        Assert.Equal("Checked 6 S sides of at most 1 nodes (this solver tries no larger ones). None cuts exactly 1 edges.", done.Caption);
+        Assert.Equal("Checked 10 S sides of 1 to 2 nodes, which covers every split of the nodes into two sides. None cuts exactly 1 edge.", done.Caption);
     }
 }
