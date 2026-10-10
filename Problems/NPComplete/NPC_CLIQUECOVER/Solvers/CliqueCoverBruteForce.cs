@@ -86,7 +86,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER, Groups> {
         if (numGroups <= 0) { // no group to put a node in: only a graph with no nodes is covered, by "{}"
             rec.Done(new Groups([]), EmptyAnswerOk(), clique.nodes.Count == 0
                 ? "The graph has no nodes, so no cliques are needed to cover it."
-                : $"K = {clique.K} allows no groups, so the {clique.nodes.Count} nodes can't be covered.");
+                : $"K = {clique.K} allows no groups, so the {clique.nodes.Count} {(clique.nodes.Count == 1 ? "node" : "nodes")} can't be covered.");
             return "{}";
         }
 

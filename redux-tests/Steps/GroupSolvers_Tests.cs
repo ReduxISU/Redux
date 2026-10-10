@@ -208,6 +208,20 @@ public class GroupSolvers_Tests {
         Assert.Equal(problem.defaultVerifier.verify(instance, run.Answer), run.Steps.Cast<SolverStep<Groups>>().Last().Ok);
     }
 
+    [Theory]
+    [InlineData("(({1,2},{{1,2}}),0)", false, "K = 0 allows no colors, so the 2 nodes can't be colored.")]
+    [InlineData("(({1},{}),-1)", false, "K = -1 allows no colors, so the 1 node can't be colored.")]
+    [InlineData("(({},{}),2)", true, "The graph has no nodes, so there is nothing to color.")]
+    public void ColoringBruteForce_WithNoColorsToGive_AnswersAtOnce(string instance, bool ok, string caption) {
+        // K <= 0 used to hang (#758); with no nodes there is nothing to color.
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringBruteForce()).Run(instance, true);
+        Assert.Equal("{}", run.Answer);
+        var step = Assert.IsType<SolverStep<Groups>>(Assert.Single(run.Steps));
+        Assert.Equal(StepEvent.Done, step.Event);
+        Assert.Equal(ok, step.Ok);
+        Assert.Equal(caption, step.Caption);
+    }
+
     [Fact]
     public void Greedy_WithKOf1_SaysOnlyColor0IsAllowed() {
         var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringGreedy()).Run("(({1,2},{{1,2}}),1)", true);
