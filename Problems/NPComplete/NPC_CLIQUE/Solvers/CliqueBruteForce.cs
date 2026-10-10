@@ -59,14 +59,8 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
 
     // Steps: one per candidate set tried, in the order the solver tries them. Recorder state lives only in this call.
     public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
-        // K==0 asks for the empty clique, which is trivially correct. The
-        // verifier legitimately rejects "{}" as a malformed/empty certificate
-        // for the general case, so that round-trip is skipped here rather than
-        // weakening the verifier's guard.
-        if (clique.K == 0) {
-            rec.Done(new NodeSet([]), true, "A clique of size 0 is the empty set.");
-            return "{}";
-        }
+        // K==0 asks for the empty clique: the loop below tries the one size-0 candidate, "{}", and the
+        // verifier accepts it.
         List<int> combination = new List<int>();
         for (int i = 0; i < clique.K; i++) {
             combination.Add(i);
@@ -94,12 +88,6 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
 
     public List<string> getSteps(CLIQUE clique) {
         List<string> steps = new List<string>();
-        // K==0: same trivial empty-clique case as solve(). The loop below would
-        // hand "{}" to the verifier on its first (only) iteration and it would
-        // throw, so short-circuit here instead.
-        if (clique.K == 0) {
-            return steps;
-        }
         List<int> combination = new List<int>();
         for (int i = 0; i < clique.K; i++) {
             combination.Add(i);

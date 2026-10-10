@@ -77,11 +77,25 @@ public class VERTEXCOVER_Tests {
     [Theory]
     [InlineData("")]        // empty
     [InlineData("   ")]     // whitespace only
-    [InlineData("{}")]      // parses to a single empty token
+    [InlineData("{a,,b}")]  // a blank node name
     public void VERTEXCOVER_Verifier_Throws_On_Malformed_Certificate(string certificate) {
         VERTEXCOVER testVert = new VERTEXCOVER();
         VCVerifier verifier = testVert.defaultVerifier;
         Assert.Throws<CertificateParseException>(() => verifier.verify(testVert, certificate));
+    }
+
+    // #762: "{}" is the empty set, a well-formed answer, not a parse error. It covers a graph with no edges,
+    // within any K >= 0.
+    [Theory]
+    [InlineData("(({a,b},{}),0)", "{}", true)]
+    [InlineData("(({a,b},{}),2)", "{}", true)]
+    [InlineData("(({a,b},{}),0)", "{ }", true)]
+    [InlineData("(({a,b},{}),-1)", "{}", false)]
+    [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)", "{}", false)]
+    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),0)", "{}", false)]
+    public void VERTEXCOVER_Verifier_Reads_EmptySet(string instance, string certificate, bool expected) {
+        VERTEXCOVER problem = new VERTEXCOVER(instance);
+        Assert.Equal(expected, problem.defaultVerifier.verify(problem, certificate));
     }
 
     [Theory] //tests with default graph string Certificates of this test represent junk or empty data.
@@ -214,7 +228,7 @@ public class VERTEXCOVER_Tests {
     /// building an empty-index certificate.
     ///</summary>
     [Fact]
-    public void VertexCoverBruteForce_KZero_ThrowsInsteadOfReturningEmptyCertificate() {
+    public void VertexCoverBruteForce_KZero_ReturnsEmptyCertificate() {
         VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{}),0)");
         VertexCoverBruteForce solver = new VertexCoverBruteForce();
 
