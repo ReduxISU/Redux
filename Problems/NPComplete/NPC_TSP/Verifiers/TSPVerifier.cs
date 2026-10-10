@@ -40,6 +40,15 @@ class TSPVerifier : IVerifier<TSP> {
             ? order.Count - 1
             : order.Count;
 
+        // A tour visits every city exactly once: without the repeated start, the listed cities are the graph's
+        // nodes, each of them once.
+        List<string> cities = order.Take(nodeCount).ToList();
+        if (cities.Count != problem.nodes.Count
+            || cities.Distinct().Count() != cities.Count
+            || cities.Any(city => !problem.nodes.Contains(city))) {
+            return false;
+        }
+
         for (int i = 0; i < nodeCount; i++) {
             string from = order[i];
             string to = order[(i + 1) % nodeCount];

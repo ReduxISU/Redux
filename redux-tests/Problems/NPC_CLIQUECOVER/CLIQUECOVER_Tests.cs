@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CLIQUECOVER;
 using API.Problems.NPComplete.NPC_CLIQUECOVER.Verifiers;
@@ -177,5 +177,34 @@ public class CLIQUECOVER_tests {
         var problem = new CLIQUECOVER();
         var verifier = new CliqueCoverVerifier();
         Assert.True(verifier.verify(problem, CliqueCoverVerifier.CertificateExample));
+    }
+
+    // -------------------------------------------------------------------------
+    // #752: K = 1, K > n and K <= 0
+    // -------------------------------------------------------------------------
+
+    // K = 1: the old while loop's exit test held before the first candidate, so even a complete graph got "{}".
+    // K > n: an early guard answered "{}", though every node alone is a clique, so a cover always exists.
+    [Theory]
+    [InlineData("(({1,2,3,4},{{1,2},{1,3},{4,1},{3,2},{4,2},{3,4}}),1)", "{{1,2,3,4}}")]
+    [InlineData("(({1,2,3},{{2,1},{1,3},{2,3}}),4)", "{{1,2,3},{},{}}")]
+    [InlineData("(({1,2,3},{{2,1}}),5)", "{{3},{1,2},{}}")]
+    public void CLIQUECOVER_Solver_Finds_Cover_When_K_Is_One_Or_More_Than_Nodes(string instance, string expected) {
+        var problem = new CLIQUECOVER(instance);
+        string certificate = problem.defaultSolver.solve(problem);
+        Assert.Equal(expected, certificate);
+        Assert.True(problem.defaultVerifier.verify(problem, certificate));
+    }
+
+    // K <= 0: nextBinary never carried, so the solver never returned. With no groups only an empty graph is covered.
+    [Theory]
+    [InlineData("(({1,2,3},{{2,1},{1,3},{2,3}}),0)")]
+    [InlineData("(({1,2},{}),-1)")]
+    public async Task CLIQUECOVER_Solver_Answers_At_Once_When_K_Is_Not_Positive(string instance) {
+        var problem = new CLIQUECOVER(instance);
+        string certificate = await Task.Run(() => problem.defaultSolver.solve(problem), TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        Assert.Equal("{}", certificate);
+        Assert.False(problem.defaultVerifier.verify(problem, certificate));
     }
 }
