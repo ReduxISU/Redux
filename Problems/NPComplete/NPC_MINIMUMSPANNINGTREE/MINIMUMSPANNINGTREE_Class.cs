@@ -23,7 +23,7 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
     public const string InstanceGrammar = "{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}";
     public static string _defaultInstance { get; } = "({1,2,3,4},{({1,2},1),({2,3},2),({3,4},1),({1,4},2),({1,3},3)})";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance} Parallel edges: when two edges join the same nodes, the lightest one is used.";
     public string certificateFormat { get; } =
         $"Format: {MinimumSpanningTreeVerifier.CertificateGrammar} Example: {MinimumSpanningTreeVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
