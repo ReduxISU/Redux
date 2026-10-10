@@ -4,7 +4,7 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
-class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet> {
+class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "Forced-Vertex Branch-and-Reduce Dominating Set Solver";
     public string solverDefinition { get; } =

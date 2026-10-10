@@ -105,7 +105,7 @@ static class GraphEdgeFrames {
 
         // A candidate only being tried (Try, Reject) is highlighted, edges and the nodes they touch alike; a set the solver
         // has taken, and the answer, are Solution edges joining Covered nodes.
-        var picked = GraphSubsetFrames.Picked(ev);
+        var picked = GraphSubsetFrames.Picked(ev, incremental: false);
         var touched = picked == PictureState.Solution ? PictureState.Covered : PictureState.ElementHighlight;
         foreach (var id in partial.Edges) {
             if (!byId.TryGetValue(id, out var e)) continue;
@@ -130,7 +130,7 @@ static class GraphEdgeFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         foreach (var e in edges)
             if (groups.TryGetValue(e.A, out int ga) && groups.TryGetValue(e.B, out int gb) && ga != gb)
-                GraphSubsetFrames.Raise(edgeStates, e.Id, GraphSubsetFrames.Picked(ev));
+                GraphSubsetFrames.Raise(edgeStates, e.Id, GraphSubsetFrames.Picked(ev, incremental: false));
         // A rejected split is not an element that failed (nothing in it is wrong, it is just the wrong size), so its focus is
         // only highlighted; the event tells the frontend it was rejected.
         MarkFocus(focus, StepEvent.Try, nodeIds, new HashSet<string>(edges.Select(e => e.Id), StringComparer.Ordinal), nodes, edgeStates);
