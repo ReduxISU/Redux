@@ -119,6 +119,39 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
         Assert.Equal(list[0], list[1]);
     }
 
+    // Clique brute force on 30 nodes with one edge and K = 15: C(30,15) candidates, none a clique.
+    internal static readonly string SlowClique =
+        "(({" + string.Join(",", Enumerable.Range(1, 30).Select(i => $"n{i}")) + "},{{n1,n2}}),15)";
+
+    [Fact]
+    public async Task Frames_StoppedGraphSolve_EndsWithTheStoppedDoneFrame() {
+        var (status, body, took) = await Post("/ProblemProvider/visualize?visualization=cliquedefaultvisualization&format=frames&solver=cliquebruteforce", SlowClique);
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.True(took < TimeSpan.FromSeconds(10), $"took {took}");
+        var root = JsonDocument.Parse(body).RootElement;
+        Assert.Equal(new[] { "type", "payload", "frames" }, root.EnumerateObject().Select(p => p.Name));
+        Assert.Equal("Graph", root.GetProperty("type").GetString());
+        var frames = root.GetProperty("frames").EnumerateArray().ToList();
+        Assert.True(frames.Count <= 152, $"{frames.Count} frames");
+        var done = frames[^1];
+        Assert.Equal("Done", done.GetProperty("event").GetString());
+        Assert.False(done.GetProperty("ok").GetBoolean());
+        Assert.StartsWith("Stopped after 0.05 s and ", done.GetProperty("caption").GetString());
+        Assert.Contains("the solver had not finished.", done.GetProperty("caption").GetString());
+        Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
+        // The frame has exactly the fields every other frame has.
+        Assert.Equal(frames[0].EnumerateObject().Select(p => p.Name).Append("ok"), done.EnumerateObject().Select(p => p.Name));
+    }
+
+    [Fact]
+    public async Task List_StoppedGraphSolve_Returns200_WithTheUnsolvedPictureLast() {
+        var (status, body, took) = await Post("/ProblemProvider/visualize?visualization=cliquedefaultvisualization&solver=cliquebruteforce", SlowClique);
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.True(took < TimeSpan.FromSeconds(10), $"took {took}");
+        var list = JsonDocument.Parse(body).RootElement.EnumerateArray().Select(e => e.GetRawText()).ToList();
+        Assert.Equal(list[0], list[^1]);
+    }
+
     [Fact]
     public async Task Solve_IsNotLimited() {
         // The plain solve endpoint records no steps, so the picture budget does not apply to it.
