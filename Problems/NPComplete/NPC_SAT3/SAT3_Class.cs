@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 using API.Problems.NPComplete.NPC_SAT3.Verifiers;
 
@@ -17,7 +18,8 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public string defaultInstance { get; } = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+    public static string _defaultInstance { get; } = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+    public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = "Boolean formula in 3-CNF. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)";
     public string certificateFormat { get; } = "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public Sat3BacktrackingSolver defaultSolver { get; } = new Sat3BacktrackingSolver();
@@ -53,83 +55,48 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     }
 
 
+    // The parsed instance. Internal so it stays out of the serialized problem JSON.
+    // Note: clauses/literals still have public setters for older callers; code that assigns
+    // them directly (KarpSATToSAT3, SAT3PQObject) does not update this.
+    internal CnfFormula formula { get; private set; }
+
+
     // --- Methods Including Constructors ---
-    public SAT3() {
-        instance = defaultInstance;
-        clauses = getClauses(instance);
-        literals = getLiterals(instance);
+    public SAT3() : this(_defaultInstance) {
     }
     public SAT3(string phiInput) {
-
-        validateInstance(phiInput);
-
+        formula = parseInstance(phiInput);
         instance = phiInput;
-        clauses = getClauses(instance);
-        literals = getLiterals(instance);
+        clauses = formula.ClauseStrings();
+        literals = formula.LiteralStrings();
     }
 
-    private static void validateInstance(string phiInput) {
+    private static CnfFormula parseInstance(string phiInput) {
         if (string.IsNullOrWhiteSpace(phiInput)) {
             throw new ProblemParseException("3SAT", phiInput, "instance is empty");
         }
 
-        string stripped = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-        string[] rawClauses = stripped.Split('&');
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('|');
-            if (rawLiterals.Length < 1 || rawLiterals.Length > 3) {
+        CnfFormula parsed;
+        try {
+            parsed = CnfParser.Parse(phiInput);
+        } catch (CnfParseException e) {
+            throw new ProblemParseException("3SAT", phiInput, e.Message, e);
+        }
+
+        foreach (CnfClause clause in parsed.Clauses) {
+            if (clause.Literals.Count > 3) {
                 throw new ProblemParseException("3SAT", phiInput,
-                    $"clause '{clause}' has {rawLiterals.Length} literals; 3-CNF allows 1-3");
-            }
-            foreach (string literal in rawLiterals) {
-                string name = literal.StartsWith("!") ? literal.Substring(1) : literal;
-                if (string.IsNullOrEmpty(name) || !char.IsLetter(name[0])) {
-                    throw new ProblemParseException("3SAT", phiInput,
-                        $"literal '{literal}' is not a valid identifier (optionally prefixed with '!')");
-                }
+                    $"clause '{clause}' at column {clause.Position + 1} has {clause.Literals.Count} literals; 3-CNF allows 1-3");
             }
         }
+        return parsed;
     }
 
     public List<List<string>> getClauses(string phiInput) {
-
-        List<List<string>> clauses = new List<List<string>>();
-
-        // Strip extra characters
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('&');
-
-        foreach (string clause in rawClauses) {
-            List<string> clauseToAdd = new List<string>();
-            string[] literals = clause.Split('|');
-
-            foreach (string literal in literals) {
-                clauseToAdd.Add(literal);
-            }
-            clauses.Add(clauseToAdd);
-        }
-
-        return clauses;
-
+        return parseInstance(phiInput).ClauseStrings();
     }
 
     public List<string> getLiterals(string phiInput) {
-
-        List<string> literals = new List<string>();
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('&');
-
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('|');
-
-            foreach (string literal in rawLiterals) {
-                literals.Add(literal);
-            }
-        }
-        return literals;
+        return parseInstance(phiInput).LiteralStrings();
     }
 }

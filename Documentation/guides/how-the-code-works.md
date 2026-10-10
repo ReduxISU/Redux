@@ -29,7 +29,7 @@ Each of those five things is one C# class that implements one interface. You add
 | [AdditionalControllers/](../../AdditionalControllers/) | The API itself: [ProblemProvider.cs](../../AdditionalControllers/ProblemProvider.cs) (solve, verify, reduce, visualize) and [Navigation/](../../AdditionalControllers/Navigation/) (listing what exists). |
 | [ProblemTemplate/](../../ProblemTemplate/) | The code that generates starter files, plus the template text files in [Templates/](../../ProblemTemplate/Templates/). |
 | [redux-tests/](../../redux-tests/) | All the tests. |
-| [Tools/](../../Tools/) | Helpers that are not about one problem: [Boolean_Parser.cs](../../Tools/Boolean_Parser.cs), the quantum server client ([QUANTUM_API_README.md](../../Tools/QUANTUM_API_README.md) explains it), and `ContributorStatsSync`, a separate small program that GitHub runs to refresh contributor info. |
+| [Tools/](../../Tools/) | Helpers that are not about one problem: the quantum server client ([QUANTUM_API_README.md](../../Tools/QUANTUM_API_README.md) explains it), and `ContributorStatsSync`, a separate small program that GitHub runs to refresh contributor info. |
 | [wwwroot/](../../wwwroot/) | Static files the API serves as-is: the Swagger page's stylesheet and `contributorInfo.json`. |
 | [Documentation/](../../Documentation/) | These guides, [production.md](../production.md) (server operations), and `visualization-types.json` (a list that code and CI read, so do not move or rename it). |
 
@@ -128,7 +128,7 @@ A real example, from [ARCSET_Class.cs](../../Problems/NPComplete/NPC_ARCSET/ARCS
   K = int.Parse(arcset["K"].ToString());
   ```
 
-For the full grammar words (`set`, `cross`, `subset`, `int`, and more), read the [SPADE documentation](https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md). SPADE does not cover every input shape, so if your problem's text does not fit, write a small hand parser instead (for example [Tools/Boolean_Parser.cs](../../Tools/Boolean_Parser.cs) for boolean formulas).
+For the full grammar words (`set`, `cross`, `subset`, `int`, and more), read the [SPADE documentation](https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md). SPADE does not cover every input shape, so if your problem's text does not fit, write a small hand parser instead (for example [Interfaces/Logic/CnfParser.cs](../../Interfaces/Logic/CnfParser.cs) for CNF boolean formulas).
 
 Two things to know:
 
