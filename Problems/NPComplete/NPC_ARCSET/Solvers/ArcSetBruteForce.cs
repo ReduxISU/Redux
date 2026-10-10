@@ -38,6 +38,9 @@ class ArcSetBruteForce : ISolver<ARCSET> {
     public string solve(ARCSET arc) {
         UtilCollectionGraph graph = arc.graph;
 
+        // Removing nothing comes first: an acyclic graph needs no edge removed (#789).
+        if (arc.defaultVerifier.verify(arc, "{}")) return "{}";
+
         foreach (UtilCollection potentialSolution in graph.Edges.ChooseUpTo(arc.K)) {
             string certificate = potentialSolution.ToString();
             if (arc.defaultVerifier.verify(arc, certificate)) return certificate;

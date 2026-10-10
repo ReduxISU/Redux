@@ -56,6 +56,8 @@ class NodeSetBruteForce : ISolver<NODESET> {
         return combination;
     }
     public string solve(NODESET nodeSet) {
+        // Removing nothing comes first: an acyclic graph needs no node removed (#789).
+        if (nodeSet.defaultVerifier.verify(nodeSet, "{}")) return "{}";
         for (int i = 0; i < nodeSet.K; i++) {
             List<int> combination = new List<int>();
             for (int j = 0; j <= i; j++) {
