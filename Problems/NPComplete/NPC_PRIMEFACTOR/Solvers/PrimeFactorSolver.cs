@@ -24,7 +24,7 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
     // solve()'s trial-division loop runs while i * i <= numberToFactor, i.e. O(sqrt(n)) iterations
     // in the *value* of n -- but n's bit-length b is the real input size, and n = 2^b, so this is
     // O(2^(b/2)): exponential in input size, matching the Exponential bucket above.
-    public MathematicalFunction complexity { get; } = new("sqrt(n)", " in the value of n (exponential in n's bit-length)");
+    public MathematicalFunction timeComplexity { get; } = new("sqrt(n)", " in the value of n (exponential in n's bit-length)");
     // --- Methods Including Constructors ---
     public PrimeFactorSolver() { }
 

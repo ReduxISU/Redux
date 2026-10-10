@@ -23,7 +23,7 @@ class SATGroverSolver : ISolver<SAT> {
     // Grover search over the 2^v possible assignments to the formula's v boolean variables
     // takes O(sqrt(2^v)) oracle queries; this solver ships the whole formula to the quantum
     // endpoint in a single call that runs that search.
-    public MathematicalFunction complexity { get; } = new("sqrt(2^v)", " oracle queries, where v is the number of boolean variables in the formula");
+    public MathematicalFunction timeComplexity { get; } = new("sqrt(2^v)", " oracle queries, where v is the number of boolean variables in the formula");
 
     // --- Constructors ---
 

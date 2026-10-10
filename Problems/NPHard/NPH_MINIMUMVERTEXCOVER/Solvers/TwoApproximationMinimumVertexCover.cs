@@ -19,7 +19,7 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction complexity { get; } = new("E", ", E = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("E", ", E = |edges|");
 
     // --- Methods Including Constructors ---
     public TwoApproximationMinimumVertexCover() {

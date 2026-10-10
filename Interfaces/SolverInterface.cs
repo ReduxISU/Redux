@@ -28,12 +28,12 @@ interface ISolver {
     /// differs from that type's naming choice. Defaults to <c>null</c> (undeclared);
     /// only populate with a confidently-known Big-O function, never a guess.
     /// </summary>
-    MathematicalFunction? complexity { get => null; }
+    MathematicalFunction? timeComplexity { get => null; }
 
     /// <summary>
     /// Worst-case SPACE growth, as an evaluable Big-O function of instance-size
     /// variables — same shape and same "declare only when confidently known" rule as
-    /// <see cref="complexity"/>, just for auxiliary memory instead of running time.
+    /// <see cref="timeComplexity"/>, just for auxiliary memory instead of running time.
     /// Defaults to <c>null</c> (undeclared).
     /// </summary>
     MathematicalFunction? spaceComplexity { get => null; }

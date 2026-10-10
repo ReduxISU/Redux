@@ -26,7 +26,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Builds proper adjacency and reverse-adjacency dictionaries (O(V + E)) and runs two DFS
     // passes over them, each O(V + E) — the standard bound, no linear edge-list rescans.
-    public MathematicalFunction complexity { get; } = new("V + E", "");
+    public MathematicalFunction timeComplexity { get; } = new("V + E", "");
 
     public string solve(STRONGLYCONNECTEDCOMPONENTS problem) {
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();

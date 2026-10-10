@@ -16,7 +16,7 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates all 2^n 0/1 assignments (n = number of variables,
     // i.e. columns of C); each is verified via a full C*x matrix-vector product, O(m*n).
-    public MathematicalFunction complexity { get; } = new("2^n * m * n", ", n = number of variables, m = number of constraints");
+    public MathematicalFunction timeComplexity { get; } = new("2^n * m * n", ", n = number of variables, m = number of constraints");
 
     // --- Methods Including Constructors ---
     public IntegerProgrammingBruteForce() {

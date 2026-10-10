@@ -20,7 +20,7 @@ class NodeSetBruteForce : ISolver<NODESET> {
     // still be Theta(n), so the sum of C(n,i) terms is Theta(2^n) in the worst case); each
     // candidate costs O(K*m) to build the removed-edge set (toEdges) plus O(n^2 * m) to
     // check acyclicity via the reachability fixpoint in isACyclical.
-    public MathematicalFunction complexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
 
     public NodeSetBruteForce() {
 

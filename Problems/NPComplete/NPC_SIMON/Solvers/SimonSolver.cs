@@ -18,7 +18,7 @@ class SimonSolver : ISolver<SIMON> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // solve() calls problem.Func(s) once for every s in [0, 2^n), building fmap over the
     // full function table before it can recover the secret string.
-    public MathematicalFunction complexity { get; } = new("2^n", " queries");
+    public MathematicalFunction timeComplexity { get; } = new("2^n", " queries");
 
     // --- Methods Including Constructors ---
     public SimonSolver() { }

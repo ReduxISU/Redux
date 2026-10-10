@@ -23,7 +23,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
     // bucket -- same reasoning as CliqueCoverBruteForce's (K+1)^n case, this combinatorial growth
     // isn't cleanly "exponential" or "factorial" in a single variable either. Each combination costs
     // O(n^2) to verify (GenericVerifierDM3's parse plus per-coordinate List.Contains membership scans).
-    public MathematicalFunction complexity { get; } = new("C(m, n) * n^2", ", m = |M| (candidate triples), n = |X| = |Y| = |Z|");
+    public MathematicalFunction timeComplexity { get; } = new("C(m, n) * n^2", ", m = |M| (candidate triples), n = |X| = |Y| = |Z|");
 
     // --- Methods Including Constructors ---
     public ThreeDimensionalMatchingBruteForce() {

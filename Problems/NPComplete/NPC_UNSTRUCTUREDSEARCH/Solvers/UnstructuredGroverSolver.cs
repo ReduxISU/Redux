@@ -18,7 +18,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
     // Grover's algorithm finds a marked item among N = 2^n candidates in O(sqrt(N)) oracle
     // queries; this solver reduces to a SAT instance and makes one call to the quantum
     // endpoint that runs that Grover search.
-    public MathematicalFunction complexity { get; } = new("sqrt(2^n)", " oracle queries");
+    public MathematicalFunction timeComplexity { get; } = new("sqrt(2^n)", " oracle queries");
 
     // --- Methods Including Constructors ---
     public UnstructuredGroverSolver() {

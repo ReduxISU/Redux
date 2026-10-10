@@ -49,7 +49,7 @@ internal static class SolverTypeCatalog {
                 // The "O(...)" framing belongs here, not on MathematicalFunction itself —
                 // this dictionary is specifically a Big-O display, not the function's own string form.
                 if (Activator.CreateInstance(type) is ISolver instance)
-                    result[type.Name] = instance.complexity is { } c ? $"O({c.Function}){c.Description}" : "";
+                    result[type.Name] = instance.timeComplexity is { } c ? $"O({c.Function}){c.Description}" : "";
             } catch {
                 // Skip a solver that can't be default-constructed instead of failing the whole
                 // catalog. It falls back to "" (empty) at the call site.

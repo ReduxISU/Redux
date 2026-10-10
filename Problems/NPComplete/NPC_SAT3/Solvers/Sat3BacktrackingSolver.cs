@@ -21,7 +21,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
     // Declared, not derived. Priority-queue-guided backtracking: each state branches into
     // up to 2 children (true/false for the next variable), and building each child
     // re-scans all clauses -- worst case is still a full 2^n binary tree of assignments.
-    public MathematicalFunction complexity { get; } = new("2^n * |phi|", ", n = number of variables, |phi| = formula size");
+    public MathematicalFunction timeComplexity { get; } = new("2^n * |phi|", ", n = number of variables, |phi| = formula size");
 
     // --- Methods Including Constructors ---
     public Sat3BacktrackingSolver() {

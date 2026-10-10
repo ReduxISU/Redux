@@ -19,7 +19,7 @@ class TSPBruteForce : ISolver<TSP> {
     // Declared, not derived. Enumerates all n! permutations; each is checked via defaultVerifier,
     // whose verify() does two O(m) edge-list scans per node visited in the tour (n per
     // permutation), so per-permutation cost is O(n * m).
-    public MathematicalFunction complexity { get; } = new("n! * n * m", ", n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("n! * n * m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public TSPBruteForce() {

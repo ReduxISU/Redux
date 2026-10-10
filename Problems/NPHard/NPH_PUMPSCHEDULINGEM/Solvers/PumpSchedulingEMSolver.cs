@@ -28,7 +28,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
     // optional cost-minimization pre-solve and the emergency-resilience solve each run the
     // same H x B x nMasks x nMasks DP transition (nMasks = 2^n pump-on/off states), so the
     // two sequential passes don't change the asymptotic bound.
-    public MathematicalFunction complexity { get; } = new("H * B * n * 4^n", ", H = 24 hours, B = tank buckets, n = number of pumps");
+    public MathematicalFunction timeComplexity { get; } = new("H * B * n * 4^n", ", H = 24 hours, B = tank buckets, n = number of pumps");
 
     public List<object> GetSteps(PUMPSCHEDULINGEM _) => [true];
 

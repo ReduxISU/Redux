@@ -22,7 +22,7 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
     // nodes). BuildCertificate adds a factor beyond that textbook bound though: for each of up to
     // numColors (<= n) color groups it does a fresh O(n) nodes.Where(...) scan, i.e. O(n^2) worst case
     // when many colors are used -- so the actual bound is O(n^2 + m), not the source text's O(V + E).
-    public MathematicalFunction complexity { get; } = new("n^2 + m", ", n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("n^2 + m", ", n = |nodes|, m = |edges|");
 
     // Constructor 
     public GraphColoringGreedy() { }
