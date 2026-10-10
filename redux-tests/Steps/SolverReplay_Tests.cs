@@ -50,6 +50,10 @@ public class SolverReplay_Tests {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
         }
+        if (lastPartial is NetworkFlow flow) {
+            // Minimum S-T Cut answers its S side ("{1,2}"); the flow itself is checked in FlowSolvers_Tests.
+            return new NetworkFlow(flow.Flow, flow.Path, flow.Value, answer.Trim('{', '}').Split(',').Where(x => x.Length > 0));
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
