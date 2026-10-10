@@ -77,6 +77,8 @@ class LawlerKarp : IReduction<VERTEXCOVER, ARCSET> {
     /// An Arcset Object
     /// </returns>
     public ARCSET reduce() {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         VERTEXCOVER vertexcover = new VERTEXCOVER(_reductionFrom.instance);
         List<Node> newNodes = new List<Node>();
         foreach (UtilCollection n in vertexcover.graph.Nodes) {

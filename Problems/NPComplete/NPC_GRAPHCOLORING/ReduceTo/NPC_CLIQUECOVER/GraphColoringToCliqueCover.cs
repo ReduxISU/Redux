@@ -63,6 +63,8 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
     public GraphColoringToCliqueCover(string instance) : this(new GRAPHCOLORING(instance)) { }
     public GraphColoringToCliqueCover() : this(new GRAPHCOLORING()) { }
     public CLIQUECOVER reduce() {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         CLIQUECOVER reducedCLIQUECOVER = new CLIQUECOVER();
 
         string instance = "(({";

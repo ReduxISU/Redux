@@ -65,6 +65,8 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
     public KarpSATToSAT3(string instance) : this(new SAT(instance)) { }
     public KarpSATToSAT3() : this(new SAT()) { }
     public SAT3 reduce() {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         SAT SATInstance = _reductionFrom;
         SAT3 reducedSAT3 = new SAT3();
 
