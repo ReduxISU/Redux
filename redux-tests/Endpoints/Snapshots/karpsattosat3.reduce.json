@@ -41,6 +41,15 @@
         "0",
         "3",
         "4"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "c0",
+        "c3",
+        "c4"
       ]
     },
     {
@@ -51,6 +60,13 @@
       ],
       "reductionToIds": [
         "0-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "c0-0"
       ]
     },
     {
@@ -61,6 +77,13 @@
       ],
       "reductionToIds": [
         "0-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-1"
+      ],
+      "targetIds": [
+        "c0-1"
       ]
     },
     {
@@ -71,6 +94,13 @@
       ],
       "reductionToIds": [
         "4-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-2"
+      ],
+      "targetIds": [
+        "c4-0"
       ]
     },
     {
@@ -81,6 +111,13 @@
       ],
       "reductionToIds": [
         "3-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-3"
+      ],
+      "targetIds": [
+        "c3-0"
       ]
     },
     {
@@ -91,6 +128,13 @@
       ],
       "reductionToIds": [
         "3-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-4"
+      ],
+      "targetIds": [
+        "c3-1"
       ]
     },
     {
@@ -101,6 +145,13 @@
       ],
       "reductionToIds": [
         "1"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "c1"
       ]
     },
     {
@@ -111,6 +162,13 @@
       ],
       "reductionToIds": [
         "1-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "c1-0"
       ]
     },
     {
@@ -121,6 +179,13 @@
       ],
       "reductionToIds": [
         "1-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-1"
+      ],
+      "targetIds": [
+        "c1-1"
       ]
     },
     {
@@ -131,6 +196,13 @@
       ],
       "reductionToIds": [
         "2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c2"
+      ],
+      "targetIds": [
+        "c2"
       ]
     },
     {
@@ -141,6 +213,13 @@
       ],
       "reductionToIds": [
         "2-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-0"
+      ],
+      "targetIds": [
+        "c2-0"
       ]
     },
     {
@@ -151,6 +230,13 @@
       ],
       "reductionToIds": [
         "2-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
+        "c2-1"
       ]
     },
     {
@@ -161,6 +247,13 @@
       ],
       "reductionToIds": [
         "2-2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-2"
+      ],
+      "targetIds": [
+        "c2-2"
       ]
     },
     {
@@ -171,6 +264,13 @@
       ],
       "reductionToIds": [
         "1-2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "c1-2"
       ]
     }
   ],

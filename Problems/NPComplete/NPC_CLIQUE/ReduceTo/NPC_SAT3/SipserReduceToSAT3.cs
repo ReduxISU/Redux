@@ -8,7 +8,7 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 
 // Not a general reduction: reduce() only produces a meaningful SAT3 formula for CLIQUE
 // instances already Sipser-formatted by SipserReduceToCliqueStandard (nodes named
-// '<literal>_<clauseIdx>') -- see ParseSipserNode below and reductionDefinition. An
+// '<literal>_<clauseIdx>') -- see SipserNodes.Parse and reductionDefinition. An
 // arbitrary CLIQUE instance (e.g. CLIQUE.defaultInstance, plain node names) has no such
 // structure to invert -- and its own parameterless constructor immediately hits this,
 // since `new CLIQUE()` isn't Sipser-formatted either, so this can't safely be
@@ -83,7 +83,7 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         // preserving within-clause literal order.
         var clauseMap = new SortedDictionary<int, List<string>>();
         foreach (string node in _reductionFrom.nodes) {
-            (string literal, int idx) = ParseSipserNode(node);
+            (string literal, int idx) = SipserNodes.Parse(node);
             if (!clauseMap.ContainsKey(idx))
                 clauseMap[idx] = new List<string>();
             clauseMap[idx].Add(literal);
@@ -103,9 +103,7 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
             foreach (string raw in problemFromSolution.Trim('{', '}', '(', ')', ' ').Split(',')) {
                 string node = raw.Trim();
                 if (node.Length == 0) continue;
-                (string literal, int _) = ParseSipserNode(node);
-                bool positive = !literal.StartsWith("!");
-                string varName = positive ? literal : literal.Substring(1);
+                (string varName, bool positive) = SipserNodes.Assignment(node);
                 if (!assigned.ContainsKey(varName)) {
                     assigned[varName] = positive;
                     order.Add(varName);
@@ -119,16 +117,5 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
                 " | Additionally, this reduction requires Sipser-formatted node names of the form '<literal>_<clauseIdx>'.",
                 ex.Message);
         }
-    }
-
-    private static (string literal, int clauseIdx) ParseSipserNode(string node) {
-        int u = node.LastIndexOf('_');
-        if (u < 0)
-            throw new ArgumentException(
-                $"Node '{node}' is not Sipser-formatted: expected '<literal>_<clauseIdx>'");
-        if (!int.TryParse(node.Substring(u + 1), out int idx))
-            throw new ArgumentException(
-                $"Node '{node}' is not Sipser-formatted: clause index '{node.Substring(u + 1)}' is not an integer");
-        return (node.Substring(0, u), idx);
     }
 }

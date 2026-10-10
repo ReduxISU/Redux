@@ -104,7 +104,7 @@ Every reduction implements the members in [Interfaces/ReductionInterface.cs](../
 | `reductionTo` | The TO problem instance you produced. | a `PARTITION` |
 | `reduce()` | **The actual algorithm.** Reads `reductionFrom`, builds and returns the TO instance. | see Step 3 |
 | `mapSolutions(string)` | Takes a solution to the FROM problem and returns the matching solution to the TO problem. | see Step 4 |
-| `gadgets` | Pieces the GUI draws to show how parts of A become parts of B. Optional: the interface supplies an empty list if you do nothing. | not used here |
+| `gadgets` | Pieces the GUI draws to show how parts of A become parts of B. Optional: the interface supplies an empty list if you do nothing. Build each with `new Gadget(GadgetKind.Element, sourceIds, targetIds)`; `GadgetKind` is the one shared list (`Element`, `Group`, `EdgeRule`, `Palette`, `OrGadget`, `Bound`). Use the same ids as that problem's picture: graph problems use node names; SAT formulas use `c{i}` for clause i, `c{i}-{j}` for its j-th literal, `v:{name}` for a variable. Pass `legacyFromIds`/`legacyToIds` only if the old GUI ids differ (SAT uses `i` and `i-j`). | not used here |
 
 The four **declared metadata** members (`cost`, `reductionType`, `complexityBucket`, and `complexity`) are the ones people forget. Their rules are in [ReductionCost.cs](../../Interfaces/ReductionCost.cs), [ReductionType.cs](../../Interfaces/ReductionType.cs), and [ReductionComplexityBucket.cs](../../Interfaces/ReductionComplexityBucket.cs). The doc comments there explain every choice. Short version:
 
@@ -146,6 +146,19 @@ Two rules for the output:
 `mapSolutions(string problemFromSolution)` receives a solution to the **FROM** problem (as a string, in the FROM problem's certificate format) and must return the matching solution to the **TO** problem, in the TO problem's certificate format. It must handle bad input without crashing the server. The API wraps errors in a friendly 400 response, so throwing a normal exception on bad input is acceptable. Never let it cause a 500.
 
 Be honest about what your method does. The worked example's `mapSolutions` is a simple stand-in (it returns the first number of the Partition list), and a few reductions in the repo return an empty string. These are known to be weak. Do not copy them. A good `mapSolutions` really converts the answer. The PR checklist in section 7 below expects a working solution mapping. If you truly cannot map a solution, say so in your PR description.
+
+### Step 5 (optional). Record construction steps
+
+A reduction can also tell the story of how it built the target, one step per gadget, in both problems' words ("Clause C2 (x1 | !x2 | x3) becomes nodes x1_1, !x2_1, x3_1"). The Reduction View plays these as its Build phase. Three reductions do it so far; copy one of them (`SipserReduceToCliqueStandard` is the fullest).
+
+1. Implement `IRecordedReduction<FROM, TO>` next to your other interfaces.
+2. Move the body of `reduce()` into a private `Build(StepRecorder<BuildDelta> rec)` and make `reduce()` call `Build(StepRecorder<BuildDelta>.Off)`. Do the same for the constructor: a private one takes the recorder, the public ones pass `Off`. Implement `Rebuild(rec)` by constructing a fresh copy with the recorder and returning `new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps)`. The steps must come from the real build code. Do not write a second, parallel version of the construction to narrate it.
+3. Inside `Build`, call `rec.Accept(...)` for each piece you build and `rec.Reject(...)` for a piece the rule leaves out. End with `rec.Done(new BuildDelta { Bound = K }, true, caption)` (it is always kept, even past the 150-step cap, so the bound is never lost). Pass lambdas for the delta and the caption. Anything you must prepare in order to record (a list of ids, a bucket per pair) goes behind `if (rec.Enabled)`, so that recording off costs nothing.
+4. A step's delta (`BuildDelta`) holds only what that step **added**: the target `Nodes` and `Edges` ("a-b"), the `Skipped` edges, the indices of the `Gadgets` it builds, and the `SourceFocus` ids it came from. Its `Focus` holds the target ids being looked at. Replaying the deltas in order must give exactly the target. Source ids use the gadget convention (graph nodes by name; formulas `c{i}`, `c{i}-{j}`, `v:{name}`).
+5. Every gadget in `gadgets` must be named by some step, and each step needs a caption that says what happened in plain words. Keep steps to one per gadget or per pair or node, not per edge, so default instances stay under the cap.
+6. Test it the way `redux-tests/Reductions/BuildSteps_Tests.cs` does: the target built with recording equals the normal target, replaying the steps reproduces it, every gadget is named, and the ids are real. Add your reduction to the `/reduce` and `/gadgets` snapshot first, before touching the code.
+
+The endpoint is `POST /ProblemProvider/buildSteps?reduction=...` with the source instance as the body. A reduction without steps answers 400 `{"error":"no_build_steps"}`.
 
 ## 5. Write tests
 

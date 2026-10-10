@@ -2,12 +2,13 @@ using System.Text.Json.Serialization;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_VERTEXCOVER;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_VertexCover;
 
-class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
+class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, NodeSet>, IRecordedReduction<CLIQUE, VERTEXCOVER> {
 
 
     // --- Fields ---
@@ -54,11 +55,18 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
     }
 
     // --- Methods Including Constructors ---
-    public sipserReductionVertexCover(CLIQUE from) {
+    public sipserReductionVertexCover(CLIQUE from) : this(from, StepRecorder<BuildDelta>.Off) { }
+
+    // The one place the target is built; rec is Off except when Rebuild asks for the construction steps.
+    private sipserReductionVertexCover(CLIQUE from, StepRecorder<BuildDelta> rec) {
         gadgets = new();
         _reductionFrom = from;
-        _reductionTo = reduce();
+        _reductionTo = Build(rec);
+    }
 
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new sipserReductionVertexCover(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
     }
 
     public sipserReductionVertexCover(string instance) : this(new CLIQUE(instance)) { }
@@ -71,7 +79,11 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
     /// <remarks>
     /// authored by Janita Aamir. Contributed to by Alex Diviney.
     /// </remarks>
-    public VERTEXCOVER reduce() {
+    public VERTEXCOVER reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // Construction steps (see IRecordedReduction): the nodes copied, one step per node for the complement
+    // edges it gets, then K' = N - K. The edge steps group the edges the code below settled on by their first node.
+    private VERTEXCOVER Build(StepRecorder<BuildDelta> rec) {
         CLIQUE CLIQUEInstance = _reductionFrom;
         VERTEXCOVER reducedVERTEXCOVER = new VERTEXCOVER();
 
@@ -106,8 +118,9 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
             }
         }
 
+        int firstGadget = gadgets.Count;
         foreach (UtilCollection node in CLIQUEInstance.graph.Nodes) {
-            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
         // --- Generate G string for new CLIQUE ---
         string nodesString = "";
@@ -125,6 +138,28 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
 
         reducedVERTEXCOVER = new VERTEXCOVER(G);
         reductionTo = reducedVERTEXCOVER;
+
+        if (rec.Enabled) {
+            string[] all = CLIQUEInstance.nodes.ToArray();
+            int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
+            rec.Accept(
+                () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
+                () => $"Copy every node of the clique graph ({BuildCaptions.Names(all)}) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing.",
+                all);
+            foreach (string node in all) {
+                string u = node;
+                string[] later = edges.Where(e => e.Key == u).Select(e => e.Value).ToArray();
+                string[] added = later.Select(v => BuildCaptions.Edge(u, v)).ToArray();
+                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added };
+                Func<string> caption = () => later.Length > 0
+                    ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the clique graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
+                    : $"Node {u} is already joined to every later node in the clique graph, so it gets no new edges.";
+                string[] focus = new[] { u }.Concat(later).ToArray();
+                if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
+            }
+            rec.Done(new BuildDelta { Bound = vertexKInt }, true,
+                $"K' = N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {vertexKInt}. The clique graph has a clique of size {CLIQUEInstance.K} exactly when the complement has a vertex cover of size {vertexKInt}.");
+        }
         return reducedVERTEXCOVER;
 
     }
@@ -146,5 +181,33 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
         }
         return '{' + problemToSolution.TrimEnd(',') + '}';
 
+    }
+
+    public NodeSet EmptyAnswer() => new NodeSet([]);
+
+    // Backward map: the clique is the nodes the cover leaves out (an independent set in the complement
+    // graph is a clique in the original). A cover smaller than N-K leaves out more than K nodes; any K
+    // of them are still a clique, so the first K (in the graph's node order) are kept.
+    public string MapSolutionBack(string problemToSolution, StepRecorder<NodeSet> rec) {
+        var cover = new HashSet<string>(ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes));
+        int k = reductionFrom.K;
+
+        var clique = new List<string>();
+        foreach (string node in reductionFrom.nodes) {
+            if (cover.Contains(node)) {
+                rec.Reject(() => new NodeSet(clique), () => $"Node {node} is in the vertex cover, so it is left out of the clique.", node);
+            } else if (clique.Count < k) {
+                clique.Add(node);
+                rec.Accept(() => new NodeSet(clique), () => $"Node {node} is not in the vertex cover, so it is in the clique.", node);
+            } else {
+                rec.Reject(() => new NodeSet(clique), () => $"Node {node} is not in the cover, but the clique already has {k} nodes, so it is left out.", node);
+            }
+        }
+
+        bool ok = clique.Count == k;
+        rec.Done(new NodeSet(clique), ok, ok
+            ? $"The {k} nodes outside the cover form a clique of size {k}."
+            : $"Only {clique.Count} nodes are outside the cover, fewer than the {k} the clique needs.");
+        return ReductionBack.FormatNodeSet(clique);
     }
 }

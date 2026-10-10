@@ -6,12 +6,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 using SPADE;
 using API.Interfaces.Graphs;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
 
-class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
+class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignment>, IRecordedReduction<SAT3, CLIQUE> {
 
     // --- Fields ---
     public string reductionName { get; } = "Sipser's Clique Reduction";
@@ -56,11 +58,18 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
     }
 
     // --- Methods Including Constructors ---
-    public SipserReduceToCliqueStandard(SAT3 from) {
+    public SipserReduceToCliqueStandard(SAT3 from) : this(from, StepRecorder<BuildDelta>.Off) { }
+
+    // The one place the target is built; rec is Off except when Rebuild asks for the construction steps.
+    private SipserReduceToCliqueStandard(SAT3 from, StepRecorder<BuildDelta> rec) {
         gadgets = new();
         _reductionFrom = from;
-        _reductionTo = reduce();
+        _reductionTo = Build(rec);
+    }
 
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new SipserReduceToCliqueStandard(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
     }
     public SipserReduceToCliqueStandard(string instance) : this(new SAT3(instance)) { }
     public SipserReduceToCliqueStandard() : this(new SAT3()) { }
@@ -93,27 +102,61 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
         return node1.ToString()[0] == '!' ^ node2.ToString()[0] == '!';
     }
 
-    public CLIQUE reduce() {
+    public CLIQUE reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // Construction steps (see IRecordedReduction): one per clause (its literal nodes), one per pair of
+    // clauses (the edges between them, and the contradictory pairs left without one), then K. They are
+    // collected from the very decisions below, so what is recorded is what is built.
+    private CLIQUE Build(StepRecorder<BuildDelta> rec) {
         UtilCollection nodes = new("{}");
         UtilCollection edges = new("{}");
+        bool recording = rec.Enabled;
+        List<string[]>? clauseNodes = recording ? new() : null;
         for (int i = 0; i < reductionFrom.clauses.Count; i++) {
             List<string> nodesInClause = new();
+            int firstGadget = gadgets.Count;
             for (int j = 0; j < reductionFrom.clauses[i].Count; j++) {
                 string literal = reductionFrom.clauses[i][j];
                 string nodeName = literal + "_" + i;
                 nodes.Add(new UtilCollection(nodeName));
 
-                gadgets.Add(new Gadget("ElementHighlight", new List<string>() { i + "-" + j }, new List<string> { nodeName }));
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { "c" + i + "-" + j }, new List<string> { nodeName },
+                    legacyFromIds: new List<string>() { i + "-" + j }));
                 nodesInClause.Add(nodeName);
             }
-            gadgets.Add(new Gadget("ClauseHighlight", new List<string>() { i.ToString() }, nodesInClause));
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string>() { "c" + i }, nodesInClause,
+                legacyFromIds: new List<string>() { i.ToString() }));
+
+            if (recording) {
+                int clause = i;
+                string[] clauseNames = nodesInClause.Distinct().ToArray();
+                clauseNodes!.Add(clauseNames);
+                string[] sourceIds = new[] { "c" + clause }
+                    .Concat(Enumerable.Range(0, reductionFrom.clauses[clause].Count).Select(j => "c" + clause + "-" + j)).ToArray();
+                int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
+                rec.Accept(
+                    () => new BuildDelta { SourceFocus = sourceIds, Nodes = clauseNames, Gadgets = gadgetIdx },
+                    () => $"Clause C{clause + 1} ({string.Join(" | ", reductionFrom.clauses[clause])}) becomes nodes {BuildCaptions.Names(clauseNames)}, with no edges between them.",
+                    clauseNames);
+            }
         }
 
+        // The edges and the contradictory pairs, bucketed by the pair of clauses they join (only when recording).
+        SortedDictionary<(int, int), (List<(string A, string B)> Edges, List<(string A, string B)> Skipped)>? byPair = recording ? new() : null;
         foreach (UtilCollection node1 in nodes)
             foreach (UtilCollection node2 in nodes) {
                 if (node1.Equals(node2)) continue;
                 if (fromSameClause(node1, node2)) continue; //no edges between nodes of the same clause
-                if (isInverse(node1, node2)) continue; //no edges between literals that are always opposite of eachother
+                bool inverse = isInverse(node1, node2);
+                if (recording) {
+                    int c1 = clauseOf(node1.ToString()), c2 = clauseOf(node2.ToString());
+                    // Every pair of nodes is visited twice; keep the visit that matches the edge's direction in the target.
+                    if (c1 < c2) {
+                        if (!byPair!.TryGetValue((c1, c2), out var bucket)) byPair[(c1, c2)] = bucket = (new(), new());
+                        (inverse ? bucket.Skipped : bucket.Edges).Add((node1.ToString(), node2.ToString()));
+                    }
+                }
+                if (inverse) continue; //no edges between literals that are always opposite of eachother
 
                 UtilCollection edge = new("{}");
                 edge.Add(node1);
@@ -122,9 +165,27 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
             }
         reductionTo = new CLIQUE($"(({nodes},{edges}),{reductionFrom.clauses.Count})");
 
+        if (recording) {
+            foreach (var ((c1, c2), bucket) in byPair!) {
+                string[] focus = clauseNodes![c1].Concat(clauseNodes[c2]).ToArray();
+                string[] added = bucket.Edges.Select(e => BuildCaptions.Edge(e.A, e.B)).ToArray();
+                string[] skipped = bucket.Skipped.Select(e => BuildCaptions.Edge(e.A, e.B)).ToArray();
+                var contradictions = bucket.Skipped;
+                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { "c" + c1, "c" + c2 }, Edges = added, Skipped = skipped };
+                Func<string> caption = () => $"Join clauses C{c1 + 1} and C{c2 + 1}: {BuildCaptions.Count(added.Length, "edge")}."
+                    + string.Concat(contradictions.Select(e => $" {e.A} and {e.B} contradict each other, so no edge."));
+                if (added.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
+            }
+            int k = reductionFrom.clauses.Count;
+            rec.Done(new BuildDelta { Bound = k }, true,
+                $"K = {k}, one node per clause: a clique of {k} nodes has to take one node from every clause.");
+        }
         return reductionTo;
-
     }
+
+    // Node names are '<literal>_<clauseIdx>' and the clause number is always the very last part.
+    private static int clauseOf(string nodeName) => int.Parse(nodeName[(nodeName.LastIndexOf('_') + 1)..]);
+
     public SipserClique reduce2() {
         SAT3 SAT3Instance = _reductionFrom;
 
@@ -366,6 +427,51 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
         foreach (string node in potentialNodes)
             mappedSol += node + ",";
         return mappedSol.TrimEnd(',') + "}";
+    }
+
+    public Assignment EmptyAnswer() => new Assignment([]);
+
+    // Backward map: the clique picks one literal node per clause, and making those literals true
+    // satisfies every clause. Nodes are named '<literal>_<clauseIdx>' (see SipserNodes). A variable the
+    // clique never mentions is free, so it is set to False (any value works; False is just the default).
+    // If the clique contains both x and !x (not a real clique: those nodes share no edge) the first
+    // one wins and the later node is rejected, and the Done step says the answer is not reliable.
+    public string MapSolutionBack(string problemToSolution, StepRecorder<Assignment> rec) {
+        List<string> cliqueNodes = ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes);
+
+        var values = new Dictionary<string, string>();
+        bool consistent = true;
+        Assignment Snapshot() => new Assignment(values);
+
+        foreach (string node in cliqueNodes) {
+            (string variable, bool value) = SipserNodes.Assignment(node);
+            string word = value ? "True" : "False";
+            if (!values.TryGetValue(variable, out string? already)) {
+                values[variable] = word;
+                rec.Accept(Snapshot, () => $"Node {node} is in the clique, so {variable} = {word}.", node);
+            } else if (already != word) {
+                consistent = false;
+                rec.Reject(Snapshot, () => $"Node {node} would make {variable} = {word}, but {variable} is already {already}, so it is ignored.", node);
+            }
+        }
+
+        // Variables in the order the formula first mentions them.
+        var order = new List<string>();
+        foreach (string literal in reductionFrom.literals) {
+            string variable = literal.StartsWith("!") ? literal.Substring(1) : literal;
+            if (!order.Contains(variable)) order.Add(variable);
+        }
+        foreach (string variable in order) {
+            if (values.ContainsKey(variable)) continue;
+            values[variable] = "False";
+            rec.Accept(Snapshot, () => $"No clique node mentions {variable}, so it can be anything: {variable} = False.");
+        }
+
+        string answer = "(" + string.Join(",", order.Select(v => $"{v}:{values[v]}")) + ")";
+        rec.Done(Snapshot(), consistent, consistent
+            ? "Every variable has a value, and each clause has a true literal from the clique."
+            : "The clique has both a literal and its opposite, so it is not a real clique and this assignment may not satisfy the formula.");
+        return answer;
     }
 
 }
