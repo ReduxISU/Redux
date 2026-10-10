@@ -39,6 +39,8 @@ sealed record GraphTourSpec(
 /// <item>every node on the path is <c>Covered</c>; once the run is over and correct (a <see cref="StepEvent.Done"/> frame
 /// with ok true) they are <c>Solution</c>, like the green nodes of the solved mockups;</item>
 /// <item>each hop of the path that is an edge of the graph (in the hop's direction, for a directed graph) is <c>Solution</c>;</item>
+/// <item>in a step that only tries a path (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/>) its nodes and hops are
+/// <c>ElementHighlight</c> instead (see <see cref="GraphSubsetFrames.Picked"/>);</item>
 /// <item>a hop that is not an edge (a dead end the solver tried, or a closing edge the graph does not have) is a
 /// <c>Rejected</c> phantom between its two nodes, drawn as a dashed line;</item>
 /// <item>what the solver is looking at (the focus) is <c>ElementHighlight</c>; in a <see cref="StepEvent.Reject"/> step it
@@ -61,8 +63,13 @@ static class GraphTourFrames {
         _ => throw new ArgumentOutOfRangeException(nameof(rule)),
     };
 
-    /// <summary>The id of an edge from <paramref name="from"/> to <paramref name="to"/>: <c>"a&gt;b"</c> if directed, else <c>"a-b"</c> with a before b.</summary>
-    public static string EdgeId(bool directed, string from, string to) => directed ? $"{from}>{to}" : GraphSubsetFrames.EdgeId(from, to);
+    /// <summary>
+    /// The id of an edge from <paramref name="from"/> to <paramref name="to"/>: <c>"a&gt;b"</c> if directed, else <c>"a-b"</c>
+    /// with a before b. Names are escaped (<see cref="GraphSubsetFrames.EscapeName"/>), so ids are unique even when names
+    /// contain <c>-</c> or <c>&gt;</c>.
+    /// </summary>
+    public static string EdgeId(bool directed, string from, string to) =>
+        directed ? $"{GraphSubsetFrames.EscapeName(from)}>{GraphSubsetFrames.EscapeName(to)}" : GraphSubsetFrames.EdgeId(from, to);
 
     private static List<(string A, string B, string Id, double? Weight)> CanonicalEdges(GraphTourSpec spec) {
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -93,7 +100,11 @@ static class GraphTourFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var phantoms = new List<GraphPhantom>();
 
-        var onPath = ev == StepEvent.Done && ok == true ? PictureState.Solution : PictureState.Covered;
+        // A path only being tried (Try, Reject) is highlighted, nodes and hops alike; otherwise its hops are Solution and its
+        // nodes Covered, or Solution once the run is over and correct.
+        var picked = GraphSubsetFrames.Picked(ev);
+        var onPath = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight
+            : ev == StepEvent.Done && ok == true ? PictureState.Solution : PictureState.Covered;
         foreach (var n in order) GraphSubsetFrames.Raise(nodes, n, onPath);
 
         var drawn = new HashSet<string>(StringComparer.Ordinal);
@@ -101,7 +112,7 @@ static class GraphTourFrames {
             string from = order[i], to = order[i + 1];
             if (from == to) continue;
             string id = EdgeId(spec.Directed, from, to);
-            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, PictureState.Solution);
+            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, picked);
             else if (drawn.Add(id)) phantoms.Add(new GraphPhantom(from, to, PictureState.Rejected));
         }
 
@@ -144,7 +155,6 @@ static class GraphTourFrames {
     /// <see cref="GraphSubsetFrames.StoppedFrame"/>) with an empty <c>order</c> instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GraphTourSpec spec, SolveRun run, Func<string, Tour> parseAnswer, Func<string, bool> verifyAnswer) {
-        GraphSubsetFrames.CheckEdgeIds(spec.Edges.Select(e => (e.From, e.To)), (a, b) => EdgeId(spec.Directed, a, b));
         var frames = new List<object>();
         SolverStep<Tour>? last = null;
         foreach (var step in run.StepsFor(typeof(Tour)).OfType<SolverStep<Tour>>()) {
@@ -182,11 +192,11 @@ interface IGraphTourVisualization<TProblem> : IFramesVisualization where TProble
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphTourFrames.Build(Describe(problem), run,
+        return GraphTourFrames.Build(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            }));
+            });
     }
 }
