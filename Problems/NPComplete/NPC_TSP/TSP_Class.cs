@@ -98,10 +98,13 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
         graph = new UtilCollectionGraph(tsp["N"], tsp["E"]);
     }
 
-    /// <summary>The edges of a parsed <see cref="WeightedGraphGrammar"/> E, as (one end, other end, weight), in the order listed.</summary>
+    /// <summary>
+    /// The edges of a parsed <see cref="WeightedGraphGrammar"/> E, as (one end, other end, weight), in the order listed. An
+    /// edge written twice, even the other way round, is listed once (<see cref="ParallelEdges.Distinct"/>).
+    /// </summary>
     public static List<(string source, string target, int weight)> ReadWeightedEdges(UtilCollection E) =>
-        E.ToList().Select(edge => {
+        ParallelEdges.Distinct(E.ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
-        }).ToList();
+        }));
 }
