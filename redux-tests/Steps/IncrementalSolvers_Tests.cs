@@ -46,10 +46,14 @@ public class IncrementalSolvers_Tests {
         ["tspbruteforce"] = false,
         ["tspbranchandbound"] = true,
         ["tspgreedy"] = true,
+        // Assignment (the clause picture). The SAT brute force records Assignment steps through its own Run, without the
+        // typed solver interface.
+        ["satbruteforcesolver"] = false,
+        ["sat3backtrackingsolver"] = true,
     };
 
     // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour)];
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
@@ -68,7 +72,8 @@ public class IncrementalSolvers_Tests {
         var type = ProblemProvider.Solvers[solverName];
         Assert.Equal(incremental, typeof(IIncrementalSolver).IsAssignableFrom(type));
         var solver = (ISolver)Activator.CreateInstance(type)!;
-        var problemType = type.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0];
+        var problemType = type.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>))?.GetGenericArguments()[0]
+            ?? typeof(API.Problems.NPComplete.NPC_SAT.SAT);   // the SAT brute force is the one untyped solver listed
         string instance = ((IProblem)Activator.CreateInstance(problemType)!).defaultInstance;
         Assert.Equal(incremental, solver.Run(instance, withSteps: true).Incremental);
         Assert.Equal(incremental, solver.Run(instance, withSteps: false).Incremental);
@@ -193,6 +198,36 @@ public class IncrementalSolvers_Tests {
             foreach (var node in order.Except(step.Focus)) Assert.Equal(PictureState.Covered, frame.Nodes[node].State);
             var mark = step.Event == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
             foreach (var id in step.Focus) Assert.Equal(mark, (frame.Nodes.TryGetValue(id, out var n) ? n : frame.Edges[id]).State);
+        }
+    }
+
+    // ---- The clause picture, from a real run ----
+
+    [Fact]
+    public void Sat3Backtracking_TheDecidedVariablesStaySolution_AndOnlyTheTriedOneIsHighlighted() {
+        // Unsatisfiable, so the search tries and rejects values with earlier variables decided.
+        const string instance = "(x1 | x2) & (!x1 | x2) & (x1 | !x2) & (!x1 | !x2)";
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_SAT3.Solvers.Sat3BacktrackingSolver()).Run(instance, withSteps: true);
+        Assert.True(run.Incremental);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["sat3defaultvisualization"])!;
+        var response = vis.BuildFrames(instance, run);
+        var payload = (GroupedGraphPayload)response.Payload;
+        var frames = response.Frames.Cast<GroupedGraphFrame>().ToList();
+        var steps = run.Steps.Cast<SolverStep<Assignment>>().ToList();
+        var checkedSteps = steps.Select((s, i) => (Step: s, Frame: frames[i]))
+            .Where(p => p.Step.Event is StepEvent.Try or StepEvent.Reject && p.Step.Partial.Values.Count > 1).ToList();
+        Assert.Contains(checkedSteps, p => p.Step.Event == StepEvent.Reject);
+        foreach (var (step, frame) in checkedSteps) {
+            string tried = step.Focus.Single(f => f.StartsWith("v:"));
+            foreach (var node in payload.Nodes) {
+                if (!frame.Assignment.TryGetValue(node.Variable, out bool value)) continue;
+                bool isTrue = value == node.Positive;
+                frame.Nodes.TryGetValue(node.Id, out var state);
+                if (state?.State == PictureState.Rejected) continue;   // a literal of the clause that failed
+                if (!isTrue) Assert.Equal(PictureState.False, state?.State);
+                else if (node.Variable == tried) Assert.Equal(PictureState.ElementHighlight, state?.State);
+                else Assert.Equal(PictureState.Solution, state?.State);
+            }
         }
     }
 }

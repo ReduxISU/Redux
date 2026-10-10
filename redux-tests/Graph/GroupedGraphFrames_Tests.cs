@@ -330,6 +330,31 @@ public class GroupedGraphFrames_Tests {
     }
 
     [Fact]
+    public void Frame_Incremental_TheDecidedVariablesStaySolution_AndOnlyTheTriedVariableIsMarked() {
+        // A backtracking search has decided x2 = True and tries x1 = True: x2's true literals are the answer so far.
+        foreach (var ev in new[] { StepEvent.Try, StepEvent.Reject }) {
+            var f = GroupedGraphFrames.Frame(Spec, Of(("x2", true), ("x1", true)), ev, ["v:x1"], "x", incremental: true);
+            Assert.Equal(PictureState.Solution, Node(f, "c0-1"));            // x2 in c0
+            Assert.Equal(PictureState.ElementHighlight, Node(f, "c2-0"));    // x1 in c2, the value being tried
+            Assert.Equal(PictureState.False, Node(f, "c0-0"));               // !x1 in c0: false, and stays False
+        }
+        // In a Reject the clause the tried value falsifies is Rejected, literals and all: (!x1 | !x2 | x4) with x4 = False.
+        var rejected = GroupedGraphFrames.Frame(Spec, Of(("x2", true), ("x4", false), ("x1", true)), StepEvent.Reject, ["v:x1", "c1"], "x", incremental: true);
+        Assert.Equal(PictureState.Rejected, Group(rejected, "c1"));
+        Assert.All(new[] { "c1-0", "c1-1", "c1-2" }, id => Assert.Equal(PictureState.Rejected, Node(rejected, id)));
+        Assert.Equal(PictureState.Solution, Node(rejected, "c0-1"));
+    }
+
+    [Fact]
+    public void Build_ReadsIncrementalFromTheRun() {
+        var steps = new List<object> { new SolverStep<Assignment>(Of(("x2", true), ("x1", true)), StepEvent.Try, ["v:x1"], "x") };
+        GroupedGraphFrame First(bool incremental) => (GroupedGraphFrame)GroupedGraphFrames.Build(Spec,
+            new SolveRun("No Solution", steps, typeof(Assignment)) { Incremental = incremental }, GroupedGraphFrames.ParseAssignment, _ => false).Frames[0];
+        Assert.Equal(PictureState.Solution, Node(First(true), "c0-1"));
+        Assert.Equal(PictureState.ElementHighlight, Node(First(false), "c0-1"));
+    }
+
+    [Fact]
     public void Frame_AFalseLiteralInTheFocus_StaysFalse() {
         // x1 = True makes !x1 at c1-0 false; naming that literal in the focus does not make it look tried-and-true.
         Assert.Equal(PictureState.False, Node(Frame(Of(("x1", true)), StepEvent.Try, "c1-0"), "c1-0"));

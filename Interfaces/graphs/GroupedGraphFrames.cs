@@ -96,8 +96,11 @@ sealed record GroupedGraphFrame(
 /// </para>
 /// <para>
 /// <b>States.</b> A true literal is <c>Solution</c> in a step that keeps the assignment (Accept, Backtrack, Done) and
-/// <c>ElementHighlight</c> in a step that only tries it (Try, Reject: see <see cref="GraphSubsetFrames.Picked"/>); either
-/// way its clause is <c>Covered</c>. A literal that is false under the assignment is <c>False</c>; a literal whose variable
+/// <c>ElementHighlight</c> in a step that only tries a whole assignment (Try, Reject of a run that is not
+/// <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); either way its clause is <c>Covered</c>.
+/// In an incremental run (the 3SAT backtracking) the assignment is the variables decided so far, so their true literals
+/// stay <c>Solution</c> in every step, and only the variable being tried (the focus) is highlighted; when that value fails,
+/// the clause it leaves with no true literal is what is <c>Rejected</c>. A literal that is false under the assignment is <c>False</c>; a literal whose variable
 /// is unassigned stays <c>Background</c> (nothing has been decided about it). A clause whose literals are all false is
 /// <c>Rejected</c>, and so are its literals. The variable being tried (a <c>v:</c> id in the step's focus) is
 /// <c>ElementHighlight</c> on every occurrence that is not false: a false occurrence stays <c>False</c>, so the tried value's
@@ -181,8 +184,11 @@ static class GroupedGraphFrames {
         _ => null,
     };
 
-    /// <summary>The frame for an assignment at one step.</summary>
-    public static GroupedGraphFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null) {
+    /// <summary>
+    /// The frame for an assignment at one step. <c>incremental</c> says whether the step comes from an incremental run
+    /// (<see cref="SolveRun.Incremental"/>).
+    /// </summary>
+    public static GroupedGraphFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
         // Variable index (1-based) to its value, for the variables this formula has.
         var values = new Dictionary<int, bool>();
         var assignment = new SortedDictionary<string, bool>(StringComparer.Ordinal);
@@ -192,8 +198,9 @@ static class GroupedGraphFrames {
                 assignment[VariableId(spec.Variables[v - 1])] = value;
             }
 
-        // A true literal of a candidate that is only being tried is highlighted, not drawn as the answer.
-        var picked = GraphSubsetFrames.Picked(ev, incremental: false);
+        // A true literal of a whole candidate that is only being tried is highlighted, not drawn as the answer; in an
+        // incremental run the variables decided so far are the answer so far.
+        var picked = GraphSubsetFrames.Picked(ev, incremental);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var groups = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var literalsOfVariable = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -388,7 +395,7 @@ static class GroupedGraphFrames {
         foreach (var step in run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>()) {
             frames.Add(stopped && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
             last = step;
         }
         if (stopped) {
