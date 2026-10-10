@@ -621,6 +621,16 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         return JsonDocument.Parse(body).RootElement;
     }
 
+    // #760: a Clique K outside 0..N is input Clique -> Vertex Cover cannot take (K' = N - K would be negative or above N).
+    [Theory]
+    [InlineData("(({a,b,c},{{a,b}}),4)")]
+    [InlineData("(({a,b,c},{{a,b}}),-1)")]
+    public async Task CliqueKOutsideZeroToN_Is400ReductionInput(string instance) {
+        var error = await Error(Vc, instance);
+        Assert.Equal("reduction_input_parse_error", error.GetProperty("error").GetString());
+        Assert.Contains("K must be between 0 and the number of nodes (3)", error.GetProperty("detail").GetString());
+    }
+
     [Fact]
     public async Task UnknownReduction_Is400() {
         var error = await Error("nosuchreduction", "x");
