@@ -1,11 +1,13 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 using API.Problems.NPComplete.NPC_SAT3;
 
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-class Sat3BacktrackingSolver : ISolver<SAT3> {
+class Sat3BacktrackingSolver : ISolver<SAT3, Assignment> {
 
     // --- Fields ---
     public string solverName { get; } = "3SAT Backtracking";
@@ -29,10 +31,16 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
 
 
 
-    public string solve(SAT3 sat3) {
-        Dictionary<string, bool>? solution = findSolution(sat3);
+    public string solve(SAT3 sat3) => Solve(sat3, StepRecorder<Assignment>.Off);
+
+    // Steps: for each value of the variable being decided, a Try, then an Accept (no clause is falsified: the branch is
+    // queued) or a Reject (a clause has no true literal left). The search takes the most promising queued branch next; when
+    // that is not a branch it just made, a Backtrack says where it went back to. Recorder state lives only in this call.
+    public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
+        Dictionary<string, bool>? solution = findSolution(sat3, rec);
 
         if (solution == null) {
+            rec.Done(new Assignment([]), false, "Every branch was rejected, so there is no solution.");
             return "No Solution";
         }
 
@@ -51,11 +59,17 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         }
         solutionString = solutionString.TrimEnd(',');
         solutionString += ")";
+        rec.Done(ToAssignment(solution), true, $"Every clause has a true literal under {GroupedGraphFrames.Assigned(solution)}.");
         return solutionString;
     }
 
+    private static Assignment ToAssignment(Dictionary<string, bool> values) =>
+        new(values.Select(p => new KeyValuePair<string, string>(p.Key, p.Value.ToString())));
+
     // Return type varies
-    public Dictionary<string, bool>? findSolution(SAT3 sat3) {
+    public Dictionary<string, bool>? findSolution(SAT3 sat3) => findSolution(sat3, StepRecorder<Assignment>.Off);
+
+    public Dictionary<string, bool>? findSolution(SAT3 sat3, StepRecorder<Assignment> rec) {
         ////O(n!)
         // while(!solutionFound && !satQueue.isEmpty()):
         // 	var = varQueue.pop() //O(1)
@@ -96,30 +110,73 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
         satPQ.Enqueue(curSat, curSat.getPQWeight());
 
         //O(n!)
+        bool firstState = true;
+        var justQueued = new List<SAT3PQObject>();   // the children of the last state that were queued (read only to word a Backtrack)
         while (!solutionFound && satPQ.Count > 0) {
             curSat = satPQ.Dequeue();
             // Console.WriteLine("curSat's nextVar is : " + curSat.nextVar);
-            List<SAT3PQObject> childSATs = curSat.createSATChildren(curSat.depth, totalNumberOfVariables); //ADD VARIABLE TO INPUT
-            foreach (SAT3PQObject childSAT in childSATs) {
+            // The search took a branch it did not make a moment ago: say where it went back to.
+            if (!firstState && !justQueued.Contains(curSat)) {
+                SAT3PQObject backTo = curSat;
+                bool deadEnd = justQueued.Count == 0;
+                rec.Backtrack(() => ToAssignment(backTo.varStates),
+                    () => (deadEnd ? "Neither value of the last variable works. " : "")
+                        + $"Go back to {GroupedGraphFrames.Assigned(backTo.varStates)}, the most promising branch still open: {backTo.nextVar} is next.",
+                    () => [GroupedGraphFrames.VariableId(backTo.nextVar)]);
+            }
+            firstState = false;
+            justQueued.Clear();
+            var (trueChild, falseChild) = curSat.createSATChildPair(curSat.depth, totalNumberOfVariables); //ADD VARIABLE TO INPUT
+            SAT3PQObject decided = curSat;
+            foreach (var (value, childSAT) in new[] { (true, trueChild), (false, falseChild) }) {
+                // Try the value, then say what became of it. The partial answer is the assignment with this value added.
+                bool tried = value;
+                Assignment Partial() => ToAssignment(new Dictionary<string, bool>(decided.varStates) { [decided.nextVar] = tried });
+                string[] focus = [GroupedGraphFrames.VariableId(decided.nextVar)];
+                rec.Try(Partial,
+                    () => decided.varStates.Count == 0
+                        ? $"Try {decided.nextVar} = {tried}."
+                        : $"Try {decided.nextVar} = {tried} after {GroupedGraphFrames.Assigned(decided.varStates)}.",
+                    focus);
+
                 //Invalid statements are evaluated upon creation and returned as null
                 if (childSAT != null) {
                     eval = evaluateBooleanExpression(childSAT.SATState.clauses);
                     if (eval == 0) {
                         //undecided
                         satPQ.Enqueue(childSAT, childSAT.getPQWeight());
+                        justQueued.Add(childSAT);
+                        rec.Accept(Partial, () => $"Keep {decided.nextVar} = {tried}: no clause has every literal false yet, so this branch is queued.", focus);
                     } else if (eval == 1) {
                         //satisfiable
                         //WRITE ASSIGNMENTS OF VARIABLES
                         solutionFound = true;
                         solution = childSAT.varStates;
+                        rec.Accept(Partial, () => $"Keep {decided.nextVar} = {tried}: every clause now has a true literal.", focus);
                         break; //SOLUTION FOUND EXIT FOR EACH
                     }
+                } else {
+                    //else unsolvable therefore dont add
+                    rec.Reject(Partial,
+                        () => {
+                            int clause = FalsifiedClause(sat3, decided, tried);
+                            return clause < 0
+                                ? $"{decided.nextVar} = {tried} fails: a clause is left with no true literal."
+                                : $"{decided.nextVar} = {tried} fails: clause C{clause + 1} {GroupedGraphFrames.ClauseText(sat3.clauses[clause])} has no true literal left.";
+                        },
+                        () => {
+                            int clause = FalsifiedClause(sat3, decided, tried);
+                            return clause < 0 ? focus : [focus[0], GroupedGraphFrames.ClauseId(clause)];
+                        });
                 }
-                //else unsolvable therefore dont add
             }
         }
         return solution;
     }
+
+    // The first clause with every literal false once the state's variable takes the value (for the Reject steps; only called when recording).
+    private static int FalsifiedClause(SAT3 sat3, SAT3PQObject state, bool value) =>
+        GroupedGraphFrames.FirstFalsifiedClause(sat3.clauses, new Dictionary<string, bool>(state.varStates) { [state.nextVar] = value });
 
     //Takes in a new SATState with boolean values written to the states and evaluates them
     //Invalid expressions are filtered at the creation of the expressions and do not make it to this point of the process
