@@ -31,6 +31,12 @@ sealed class StepRecorder<TPartial> {
         _cap = cap;
     }
 
+    /// <summary>
+    /// False for <see cref="Off"/>. Callers that must prepare something to record (a list of ids, a
+    /// per-pair bucket) check this first, so that turning recording off costs nothing at all.
+    /// </summary>
+    public bool Enabled => _enabled;
+
     /// <summary>The kept steps, in order.</summary>
     public IReadOnlyList<SolverStep<TPartial>> Steps => _steps;
     /// <summary>Every step the solver reported, kept or not (including Done).</summary>
