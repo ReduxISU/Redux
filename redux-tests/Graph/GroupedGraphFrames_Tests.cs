@@ -301,4 +301,31 @@ public class GroupedGraphFrames_Tests {
         var r = GroupedGraphFrames.Build(Spec, new SolveRun("(x1:True)", steps, typeof(NodeSet)), GroupedGraphFrames.ParseAssignment, _ => true);
         Assert.Equal("The answer is x1 = True.", ((GroupedGraphFrame)Assert.Single(r.Frames)).Caption);
     }
+
+    // ---- runs stopped by the time limit ----
+
+    [Fact]
+    public void Build_StoppedRun_EndsWithABlankNotOkDone_AndNeverReadsTheAnswer() {
+        object[] steps = [
+            new SolverStep<Assignment>(Of(("x1", true), ("x2", true), ("x3", false), ("x4", true)), StepEvent.Reject, [], "Try x1 = T, x2 = T, x3 = F, x4 = T."),
+            new SolverStep<Assignment>(Of(("x1", true), ("x2", true), ("x3", false), ("x4", true)), StepEvent.Done, [], "Stopped after 0.05 s and 2 steps; the solver had not finished.") { Ok = false },
+        ];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(Assignment)) { TimedOut = true };
+        var response = GroupedGraphFrames.Build(Spec, run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified"));
+        var done = Assert.IsType<GroupedGraphFrame>(response.Frames[^1]);
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.StartsWith("Stopped after", done.Caption);
+        Assert.Empty(done.Nodes);        // no literal is drawn true (Solution)
+        Assert.Empty(done.Groups);
+        Assert.Empty(done.Assignment);
+        Assert.Contains("\"assignment\":{}", JsonSerializer.Serialize(done));   // every frame carries an assignment
+
+        var none = new SolveRun(SolveRun.TimedOutAnswer, [], null) { TimedOut = true };
+        var only = Assert.IsType<GroupedGraphFrame>(Assert.Single(GroupedGraphFrames.Build(Spec, none,
+            _ => throw new InvalidOperationException("not read"), _ => true).Frames));
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
+        Assert.False(only.Ok);
+    }
 }
