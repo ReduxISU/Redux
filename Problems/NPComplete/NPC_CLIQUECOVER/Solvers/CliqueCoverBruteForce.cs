@@ -22,7 +22,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
     // carrying, so the loop runs until every node reaches label K-1, a state reached after
     // Theta((K+1)^n) steps. Each candidate costs O(n^2 * m) to verify (CliqueCoverVerifier's
     // worst case is one group holding all n nodes: O(n^2) pairs x O(m) edge lookup each).
-    // With K allowed up to n (see the K > nodes.Count guard in solve()), worst case is
+    // With the group count capped at n (min(K, n) in solve()), worst case is
     // Theta((n+1)^n) -- asymptotically worse than n! (n^n / n! -> e^n), i.e. worse than the
     // existing SolverComplexityBucket.Factorial tier; Exponential is kept only because no
     // stronger bucket value exists.
@@ -68,7 +68,10 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
 
     public string solve(CLIQUECOVER clique) {
 
-        if (clique.K > clique.nodes.Count) {
+        // A cover never needs more cliques than there are nodes (each node alone is a clique), so more than n groups
+        // would only add empty ones.
+        int numGroups = Math.Min(clique.K, clique.nodes.Count);
+        if (numGroups <= 0) { // no group to put a node in: only a graph with no nodes is covered, by "{}"
             return "{}";
         }
 
@@ -77,14 +80,16 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
             binary.Add(0);
         }
 
-        while (binary.Count(n => n == (clique.K - 1)) < clique.nodes.Count) {
-            string certificate = BinaryToCertificate(binary, clique.nodes, clique.K);
+        // A do-while, so the all-zero candidate is checked even when numGroups is 1 (every digit already equals
+        // numGroups - 1), as in GraphColoringBruteForce.
+        do {
+            string certificate = BinaryToCertificate(binary, clique.nodes, numGroups);
             if (clique.defaultVerifier.verify(clique, certificate)) {
                 return certificate;
             }
-            nextBinary(binary, clique.K);
+            nextBinary(binary, numGroups);
 
-        }
+        } while (binary.Count(n => n == (numGroups - 1)) < clique.nodes.Count);
 
         return "{}";
     }
