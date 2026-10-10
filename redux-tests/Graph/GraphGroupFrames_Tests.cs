@@ -219,7 +219,7 @@ public class GraphGroupFrames_Tests {
         Assert.Equal("No answer was found.", frame.Caption);
     }
 
-    // ---- runs stopped by the time limit, and edge ids ----
+    // ---- runs stopped by the time limit ----
 
     [Fact]
     public void Build_StoppedRun_EndsWithABlankNotOkDone_WithEmptyGroups() {
@@ -246,9 +246,23 @@ public class GraphGroupFrames_Tests {
         Assert.False(only.Ok);
     }
 
+    // ---- candidates being tried are highlighted, not drawn as the answer; edge ids ----
+
+    [Theory]
+    [InlineData("Try")]
+    [InlineData("Reject")]
+    public void CliqueCover_AGroupingBeingTried_HighlightsItsCliques_NeverSolution(string ev) {
+        var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0), ("d", 1), ("e", 2)), Enum.Parse<StepEvent>(ev), [], "x");
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-b"));
+        Assert.DoesNotContain(f.Edges.Values.Concat(f.Nodes.Values), s => s.State == PictureState.Solution);
+    }
+
     [Fact]
-    public void Build_RefusesNodeNamesThatMakeTwoEdgesShareAnId() {
-        var spec = new GraphGroupSpec(["a", "b-c", "a-b", "c"], [new("a", "b-c"), new("a-b", "c")], 2, GroupRule.Coloring);
-        Assert.Throws<AmbiguousEdgeIdException>(() => GraphGroupFrames.Build(spec, new SolveRun("{}", [], null), _ => new Groups([]), _ => false));
+    public void Payload_NodeNamesWithSeparators_GetUniqueIds() {
+        var spec = new GraphGroupSpec(["n-1", "n-2", "n", "1-n-2"], [new("n-1", "n-2"), new("n", "1-n-2")], 2, GroupRule.Coloring);
+        Assert.Equal([@"n\-1-n\-2", @"1\-n\-2-n"], GraphGroupFrames.Payload(spec).Edges.Select(e => e.Id));
+        // A clash marks the edge whose ends share a color, not the other one that would have shared its id.
+        var f = GraphGroupFrames.Frame(spec, Of(("n", 0), ("1-n-2", 0), ("n-1", 0), ("n-2", 1)), StepEvent.Done, [], "x", false);
+        Assert.Equal([@"1\-n\-2-n"], f.Edges.Keys);
     }
 }

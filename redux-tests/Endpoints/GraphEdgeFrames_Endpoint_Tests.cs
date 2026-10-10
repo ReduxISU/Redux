@@ -207,7 +207,7 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
         var reject = frames.Single(f => f.GetProperty("event").GetString() == "Reject");
         Assert.Equal("Rejected", reject.GetProperty("edges").GetProperty("1-3").GetProperty("state").GetString());
-        Assert.Equal("Solution", reject.GetProperty("edges").GetProperty("1-2").GetProperty("state").GetString());
+        Assert.Equal("ElementHighlight", reject.GetProperty("edges").GetProperty("1-2").GetProperty("state").GetString());
         Assert.False(frames[^1].GetProperty("edges").TryGetProperty("1-3", out _), "1-3 is Background in the answer");
     }
 
