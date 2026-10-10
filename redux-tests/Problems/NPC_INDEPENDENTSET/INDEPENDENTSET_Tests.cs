@@ -45,6 +45,20 @@ public class INDPENDENTSET_Tests {
 
     }
 
+    // #761: a node that is not in V has no edges, so the pairwise check alone accepted it.
+    [Theory]
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1,99}", false)]
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{98,99}", false)]
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),1)", "{99}", false)]
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1, 3}", true)]
+    // "{}" is the empty set: an independent set of size 0, and of no other size.
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),0)", "{}", true)]
+    [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),1)", "{}", false)]
+    public void INDEPENDENTSET_verifier_rejects_nodes_not_in_the_graph(string instance, string certificate, bool expected) {
+        INDEPENDENTSET independentset = new INDEPENDENTSET(instance);
+        Assert.Equal(expected, new IndependentSetVerifier().verify(independentset, certificate));
+    }
+
 
     [Theory] //tests solver
     [InlineData("(({1,2,3,4},{{4,1},{1,2},{4,3},{3,2},{2,4}}),2)", "{1,3}")]
