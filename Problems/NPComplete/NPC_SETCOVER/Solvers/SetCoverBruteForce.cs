@@ -61,12 +61,15 @@ class SetCoverBruteForce : ISolver<SETCOVER> {
         return combination;
     }
     public string solve(SETCOVER setCover) {
-        for (int j = 0; j < setCover.K; j++) {
+        // Every combination of 1, 2, ..., K sets (never more sets than S has), smallest first (#772).
+        int m = setCover.subsets.Count;
+        int maxSize = Math.Min(setCover.K, m);
+        for (int size = 1; size <= maxSize; size++) {
             List<int> combination = new List<int>();
-            for (int i = 0; i <= j; i++) {
+            for (int i = 0; i < size; i++) {
                 combination.Add(i);
             }
-            BigInteger reps = factorial(setCover.subsets.Count) / (factorial(j) * factorial(setCover.subsets.Count - j));
+            BigInteger reps = factorial(m) / (factorial(size) * factorial(m - size));
             for (BigInteger i = 0; i < reps; i++) {
                 string certificate = indexListToCertificate(combination, setCover.subsets);
                 if (setCover.defaultVerifier.verify(setCover, certificate)) {

@@ -217,4 +217,22 @@ public class SETCOVER_Tests {
         Assert.True(new SetCoverVerifier().verify(problem, certificate), $"got: {certificate}");
         Assert.Equal(2, CountTopLevelSubsets(certificate));
     }
+    // -------------------------------------------------------------------------
+    // Solver: SetCoverBruteForce (#772)
+    // -------------------------------------------------------------------------
+
+    // It tried C(m, j) combinations of j + 1 sets, so it missed covers (for one set it only tried S1), and it threw
+    // ArgumentOutOfRangeException once K was larger than the number of sets.
+    [Theory]
+    [InlineData("({1,2},{{1},{1,2}},1)", true)]
+    [InlineData("({1,2,3,4},{{1},{2},{3},{4},{1,2,3}},2)", true)]
+    [InlineData("({1,2,3},{{1}},3)", false)]
+    [InlineData("({1},{},1)", false)]
+    [InlineData("({1,2,3},{{1,2},{3}},5)", true)]
+    public void SetCoverBruteForce_Tries_Every_Combination_Of_Up_To_K_Sets(string instance, bool coverExists) {
+        SETCOVER problem = new SETCOVER(instance);
+        string certificate = new SetCoverBruteForce().solve(problem);
+        Assert.Equal(coverExists, new SetCoverVerifier().verify(problem, certificate));
+        if (!coverExists) Assert.Equal("{}", certificate);
+    }
 }
