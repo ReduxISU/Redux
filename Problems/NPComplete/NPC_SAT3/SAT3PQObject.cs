@@ -79,12 +79,18 @@ class SAT3PQObject {
     public List<SAT3PQObject> createSATChildren(int depth, int totalNumberOfVariables) {
         // string var = this.varPQ.Dequeue();
         List<SAT3PQObject> outList = new List<SAT3PQObject>();
+        var (trueChild, falseChild) = createSATChildPair(depth, totalNumberOfVariables);
         // createNewSatState returns null for an unviable state — skip those.
-        SAT3PQObject? trueChild = createNewSatState(true, depth, totalNumberOfVariables);
         if (trueChild != null) outList.Add(trueChild);
-        SAT3PQObject? falseChild = createNewSatState(false, depth, totalNumberOfVariables);
         if (falseChild != null) outList.Add(falseChild);
         return outList;
+    }
+
+    //The same two children, but a null says which value was unviable (the solver's steps name it)
+    public (SAT3PQObject? True, SAT3PQObject? False) createSATChildPair(int depth, int totalNumberOfVariables) {
+        SAT3PQObject? trueChild = createNewSatState(true, depth, totalNumberOfVariables);
+        SAT3PQObject? falseChild = createNewSatState(false, depth, totalNumberOfVariables);
+        return (trueChild, falseChild);
     }
 
     //Takes in a variable and a boolean value and returns the new SATState

@@ -35,4 +35,11 @@ public enum VisualizationType {
     /// type (<see cref="GraphD3"/>, <see cref="GraphLaTeX"/>) in /info so old frontends are unaffected.
     /// </summary>
     Graph,
+    /// <summary>
+    /// The Grouped Graph picture (the clause graph of SAT and 3SAT): literals grouped into one cluster per clause, a static
+    /// payload plus one frame of named states per solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c>
+    /// of the <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy
+    /// <see cref="BooleanSatisfiability"/>.
+    /// </summary>
+    GroupedGraph,
 }

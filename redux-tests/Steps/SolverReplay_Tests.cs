@@ -67,6 +67,10 @@ public class SolverReplay_Tests {
             // Tour answers are "{a,b,c,a}": the order written, the closing repeat of the first node included. "{}" is no answer.
             return API.Interfaces.Graphs.GraphTourFrames.ParseTour(answer);
         }
+        if (lastPartial is Assignment) {
+            // SAT answers are "(x1:True,x2:False)"; "No Solution" is no answer. Order does not matter (Assignment sorts).
+            return API.Interfaces.Graphs.GroupedGraphFrames.ParseAssignment(answer);
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
@@ -118,7 +122,7 @@ public class SolverReplay_Tests {
         // "{}" is how the node-set solvers say "no answer"; the verifiers reject it or refuse to parse it, so it
         // counts as not verified without asking them (a vertex cover of size 3 may simply not exist, as with
         // the 2-approximation on the default Vertex Cover instance).
-        bool noAnswer = finalPartial is NodeSet { Nodes.Length: 0 } or Groups { Of.Count: 0 } or Tour { Order.Length: 0 };
+        bool noAnswer = finalPartial is NodeSet { Nodes.Length: 0 } or Groups { Of.Count: 0 } or Tour { Order.Length: 0 } or Assignment { Values.Count: 0 };
         bool verified = !noAnswer && problem.defaultVerifier.verify(instance, CertificateFrom(withSteps.Answer));
         Assert.Equal(verified, ok);
     }

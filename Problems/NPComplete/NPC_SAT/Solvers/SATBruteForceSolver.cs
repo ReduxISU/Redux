@@ -1,4 +1,6 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_SAT;
 
 using API.Tools.Boolean_Parser;
@@ -105,7 +107,20 @@ public class SATBruteForceSolver : ISolver {
         return false;
     }
 
-    public string solve(string SATInstance) {
+    public string solve(string SATInstance) => Solve(SATInstance, StepRecorder<Assignment>.Off);
+
+    // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
+    // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
+    SolveRun ISolver.Run(string instance, bool withSteps) {
+        var rec = withSteps ? new StepRecorder<Assignment>() : StepRecorder<Assignment>.Off;
+        string answer = Solve(instance, rec);
+        return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(Assignment));
+    }
+
+    // Steps: one per candidate assignment, in the order the counter tries them. A candidate is a Reject naming the first
+    // clause with no true literal (the solver stops checking there), or the Accept that ends the search. The recorder's cap
+    // hides the rest of a long run. Recorder state lives only in this call.
+    internal string Solve(string SATInstance, StepRecorder<Assignment> rec) {
         //string SATInstance = "(!x1 | !x2 | !x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
         Boolean_Parser parser = new Boolean_Parser(SATInstance);
         List<string> literals = parser.getLiterals();
@@ -135,6 +150,12 @@ public class SATBruteForceSolver : ISolver {
                 bool currentEvaluation = evaluate(literalDict, currentClause);
 
                 if (currentEvaluation == false) {
+                    // Every clause before this one was true, so trueClauses is this clause's index.
+                    int failed = trueClauses;
+                    var failedClause = currentClause;
+                    rec.Reject(() => ToAssignment(literalDict),
+                        () => $"Try {GroupedGraphFrames.Assigned(literalDict)}: clause C{failed + 1} {GroupedGraphFrames.ClauseText(failedClause)} has no true literal.",
+                        () => [GroupedGraphFrames.ClauseId(failed)]);
                     break;// A clause is false, so the whole SAT is false.
                 }
 
@@ -147,12 +168,20 @@ public class SATBruteForceSolver : ISolver {
                     solutionString += ")";
                     // Just getting rid of the extra comma at the end.
                     solutionString = solutionString.Remove(solutionString.Length - 2, 1);
+                    rec.Accept(() => ToAssignment(literalDict),
+                        () => $"Try {GroupedGraphFrames.Assigned(literalDict)}: every clause has a true literal.",
+                        () => []);
+                    rec.Done(ToAssignment(literalDict), true, $"The formula is satisfied by {GroupedGraphFrames.Assigned(literalDict)}.");
                     return solutionString;
                 }
             }
         }
+        rec.Done(new Assignment([]), false, "No assignment makes every clause true, so no solution exists.");
         return "No solution exists";
     }
+
+    private static Assignment ToAssignment(Dictionary<string, bool> values) =>
+        new(values.Select(p => new KeyValuePair<string, string>(p.Key, p.Value.ToString())));
 
 
     #endregion

@@ -48,11 +48,13 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         ("dominatingsetdefaultvisualization", "dominatingsetforcedvertex", "GraphD3"),
     };
 
-    // Visualizations that build their own frames (the Graph picture) are checked in GraphFrames_Endpoint_Tests;
+    // Visualizations that build their own frames (the Graph picture, the Grouped Graph picture) are checked in
+    // GraphFrames_Endpoint_Tests and GroupedGraphFrames_Endpoint_Tests;
     // for the rest, format=frames is the list reshaped.
     private static readonly string[] OwnFrames = {
         "cliquedefaultvisualization", "vertexcoverdefaultvisualization", "minimumvertexcoverdefaultvisualization",
         "independentsetdefaultvisualization", "dominatingsetdefaultvisualization", "minimumspanningtreevisualization",
+        "sat3defaultvisualization",
     };
 
     public static TheoryData<string> SnapshotNames => new(SnapshotCases.Select(c => c.Vis));
