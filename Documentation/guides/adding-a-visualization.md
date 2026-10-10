@@ -81,7 +81,7 @@ Each frame is `{ event, caption, focus, nodes, edges, flow, value, path, groups?
 | `groups` | the Done frame | Every node id to `0` (S side, what the source can still reach) or `1` (T side) |
 | `cut` | the Done frame | The ids of the edges from S to T. Their capacities add up to `value` |
 
-Ids are built like the Layered Graph's: a node is its name with a `\` before every `\`, `-` and `>` (`1`, `a\-b`), and the edge from `x` to `y` is `{id of x}>{id of y}` (`1>2`). Build them with `FlowFrames.NodeId` and `ArcId`, never by hand. An id is a label, never something to split: every edge gives its ends as `a` and `b`.
+Ids: a node is its name with a `\` before every `\`, `-` and `>` (`1`, `a\-b`), and the edge from `x` to `y` is `{id of x}>{id of y}` (`1>2`). Build them with `FlowFrames.NodeId` and `ArcId`, never by hand. An id is a label, never something to split: every edge gives its ends as `a` and `b`.
 
 States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`, with `Untraveled` only where nothing else applies):
 
