@@ -121,9 +121,30 @@ static class GraphSubsetFrames {
         _ => throw new ArgumentOutOfRangeException(nameof(rule)),
     };
 
-    /// <summary>Canonical edge id: <c>"a-b"</c> with a &lt; b by ordinal comparison.</summary>
+    /// <summary>
+    /// Canonical edge id: <c>"a-b"</c> with a &lt; b by ordinal comparison. Node names may contain '-', so two
+    /// different edges can get the same id (<c>{a,b-c}</c> and <c>{a-b,c}</c> are both <c>"a-b-c"</c>);
+    /// <see cref="CheckEdgeIds"/> refuses such a graph rather than draw one edge for two.
+    /// </summary>
     public static string EdgeId(string a, string b) =>
         string.CompareOrdinal(a, b) <= 0 ? $"{a}-{b}" : $"{b}-{a}";
+
+    /// <summary>
+    /// Throws <see cref="AmbiguousEdgeIdException"/> if two different edges (loops aside) of <paramref name="edges"/>
+    /// get the same id from <paramref name="idOf"/>, which happens only when node names contain the id's separator.
+    /// </summary>
+    public static void CheckEdgeIds(IEnumerable<(string A, string B)> edges, Func<string, string, string> idOf) {
+        var owner = new Dictionary<string, (string A, string B)>(StringComparer.Ordinal);
+        foreach (var (x, y) in edges) {
+            if (x == y) continue;
+            string id = idOf(x, y);
+            if (!owner.TryGetValue(id, out var first)) owner[id] = (x, y);
+            // The same end nodes (in either order: a pair and its reverse share an id only when the id ignores order) are
+            // one edge given twice, which is fine.
+            else if (!((first.A == x && first.B == y) || (first.A == y && first.B == x)))
+                throw new AmbiguousEdgeIdException(id, first, (x, y));
+        }
+    }
 
     /// <summary>The distinct edges (loops dropped) with a before b, in first-seen order.</summary>
     private static List<(string A, string B, string Id)> CanonicalEdges(GraphSubsetSpec spec) {
@@ -269,17 +290,40 @@ static class GraphSubsetFrames {
     }
 
     /// <summary>
+    /// The frame that closes a run stopped by its time limit (<see cref="SolveRun.TimedOut"/>): a Done frame with
+    /// ok = false in which every element is Background. The solver had not finished, so nothing in the graph is an
+    /// answer, and nothing is judged either (an empty set is not a failed candidate). The other shapes add their own
+    /// empty annotation (<c>groups</c>, <c>order</c>) so the frame has the fields their other frames have.
+    /// </summary>
+    public static GraphFrame StoppedFrame(string caption) =>
+        new(StepEvent.Done, caption, [], new SortedDictionary<string, StateRef>(StringComparer.Ordinal),
+            new SortedDictionary<string, StateRef>(StringComparer.Ordinal), []) { Ok = false };
+
+    /// <summary>
+    /// The caption of a stopped run's frame when the run's own stopped Done step cannot be drawn (its steps are of
+    /// another shape).
+    /// </summary>
+    public const string StoppedCaption = "The solver had not finished within the time limit, so there is no answer to show.";
+
+    /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer
-    /// unless the last step already is the Done step.
+    /// unless the last step already is the Done step. A run stopped by its time limit has no answer: its Done step
+    /// (or, when its steps cannot be drawn, an added Done frame) is drawn as <see cref="StoppedFrame"/>, and its
+    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read as nodes.
     /// </summary>
     public static FramesResponse Build(GraphSubsetSpec spec, SolveRun run, Func<string, NodeSet> parseAnswer, Func<string, bool> verifyAnswer) {
+        CheckEdgeIds(spec.Edges.Select(e => (e.Key, e.Value)), EdgeId);
         var frames = new List<object>();
         SolverStep<NodeSet>? last = null;
         foreach (var step in run.StepsFor(typeof(NodeSet)).OfType<SolverStep<NodeSet>>()) {
-            frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
+            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+                ? StoppedFrame(step.Caption)
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (run.TimedOut) {
+            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(StoppedCaption));
+        } else if (last is not { Event: StepEvent.Done }) {
             NodeSet answer = parseAnswer(run.Answer);
             frames.Add(Frame(spec, answer, StepEvent.Done, [],
                 answer.Nodes.Length == 0 ? "No answer was found." : $"The answer is {Format(answer)}.",
@@ -304,11 +348,30 @@ interface IGraphSubsetVisualization<TProblem> : IFramesVisualization where TProb
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return GraphSubsetFrames.Build(Describe(problem), run,
+        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphSubsetFrames.Build(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }));
+    }
+}
+
+/// <summary>
+/// Two different edges of a graph would get the same edge id in the Graph picture, because node names contain the id's
+/// separator ('-', or '>' in a directed graph). The picture cannot tell them apart, so it refuses the instance.
+/// </summary>
+sealed class AmbiguousEdgeIdException : Exception {
+    public AmbiguousEdgeIdException(string id, (string A, string B) first, (string A, string B) second)
+        : base($"The Graph picture names edges by their end nodes joined with a separator, and the edges ({first.A}, {first.B}) "
+            + $"and ({second.A}, {second.B}) would both be \"{id}\". Rename the nodes so their names do not contain '-' or '>'.") { }
+
+    /// <summary>Runs <paramref name="build"/>, reporting an ambiguous edge id as a 400 (a <see cref="ProblemParseException"/>).</summary>
+    public static T AsParseError<T>(IProblem problem, string instance, Func<T> build) {
+        try {
+            return build();
+        } catch (AmbiguousEdgeIdException ex) {
+            throw new ProblemParseException(problem.problemName, instance, ex.Message, ex);
+        }
     }
 }

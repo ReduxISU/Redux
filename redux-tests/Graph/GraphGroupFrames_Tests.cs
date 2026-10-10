@@ -218,4 +218,37 @@ public class GraphGroupFrames_Tests {
         Assert.False(frame.Ok);
         Assert.Equal("No answer was found.", frame.Caption);
     }
+
+    // ---- runs stopped by the time limit, and edge ids ----
+
+    [Fact]
+    public void Build_StoppedRun_EndsWithABlankNotOkDone_WithEmptyGroups() {
+        object[] steps = [
+            new SolverStep<Groups>(Of(("a", 0), ("b", 0), ("c", 0)), StepEvent.Reject, ["a", "b"], "Try {a,b,c}: a and b share color 0."),
+            new SolverStep<Groups>(Of(("a", 0), ("b", 0), ("c", 0)), StepEvent.Done, [], "Stopped after 0.05 s and 2 steps; the solver had not finished.") { Ok = false },
+        ];
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(Groups)) { TimedOut = true };
+        var response = GraphGroupFrames.Build(Spec(GroupRule.CliqueCover), run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified"));
+        var done = Assert.IsType<GraphFrame>(response.Frames[^1]);
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.StartsWith("Stopped after", done.Caption);
+        Assert.Empty(done.Nodes);
+        Assert.DoesNotContain(done.Edges.Values, s => s.State == PictureState.Solution);   // no clique drawn as the cover
+        Assert.Empty(done.Phantoms);
+        Assert.Empty(done.Groups!);
+
+        var none = new SolveRun(SolveRun.TimedOutAnswer, [], null) { TimedOut = true };
+        var only = Assert.IsType<GraphFrame>(Assert.Single(GraphGroupFrames.Build(Spec(GroupRule.Coloring), none,
+            _ => throw new InvalidOperationException("not read"), _ => true).Frames));
+        Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
+        Assert.False(only.Ok);
+    }
+
+    [Fact]
+    public void Build_RefusesNodeNamesThatMakeTwoEdgesShareAnId() {
+        var spec = new GraphGroupSpec(["a", "b-c", "a-b", "c"], [new("a", "b-c"), new("a-b", "c")], 2, GroupRule.Coloring);
+        Assert.Throws<AmbiguousEdgeIdException>(() => GraphGroupFrames.Build(spec, new SolveRun("{}", [], null), _ => new Groups([]), _ => false));
+    }
 }
