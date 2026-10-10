@@ -259,6 +259,15 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(steps.Count, map.Count);
     }
 
+    // With K = 0 the empty set is a real answer on both sides; the verifiers alone refuse "{}" as unreadable, so the
+    // last map frame must take the backward map's own verdict.
+    [Fact]
+    public async Task Map_EmptyAnswerThatIsReal_EndsOk() {
+        var view = await View("reduceToCLIQUE", "(({a,b},{{a,b}}),0)");
+        var map = Phase(view, "map");
+        Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
+    }
+
     [Theory]
     [MemberData(nameof(Cases))]
     public async Task Map_StepsHighlightBothPanes_AndTheTargetKeepsItsSolution(string reduction, string instance) {
@@ -267,7 +276,9 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         string answer = red.reductionTo.defaultVisualization.solver.Run(red.reductionTo.instance, false).Answer;
         var map = Phase(view, "map");
         var solved = Phase(view, "solve")[^1].GetProperty("target");
-        if (ReductionBack.IsNoAnswer(answer)) {
+        // "{}" means B has no answer, unless the empty set is itself B's answer (the empty cover of an edgeless
+        // graph); then it maps back like any other answer and the mapped answer is not "{}".
+        if (ReductionBack.IsNoAnswer(answer) && ReductionBack.IsNoAnswer(red.MapBackRun(answer, false)!.Answer)) {
             Assert.Single(map);
             Assert.False(map[0].GetProperty("ok").GetBoolean());
             Assert.Empty(map[0].GetProperty("targetFocus").EnumerateArray());

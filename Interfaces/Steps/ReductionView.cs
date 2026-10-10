@@ -40,8 +40,8 @@ sealed class ReductionViewException(string error, string detail) : Exception(det
 /// <para>
 /// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer; the target pane keeps
 /// the solution and highlights the element being read. Each step's <c>targetFocus</c> is the target element read, its
-/// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. The last frame's <c>ok</c> is the source
-/// problem's verifier on the mapped-back answer.
+/// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. The last frame's <c>ok</c> is the backward
+/// map's own Done verdict: the source problem's verifier on the mapped-back answer.
 /// </para>
 /// </summary>
 static class ReductionView {
@@ -154,7 +154,9 @@ static class ReductionView {
         for (int i = 0; i < mapSteps.Count; i++) {
             var s = mapSteps[i];
             bool last = i == mapSteps.Count - 1;
-            bool? ok = last ? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : s.Ok;
+            // The backward map's Done step already carries the source verifier's verdict (MapBackRun), including
+            // when "{}" is a real empty answer, which the verifier alone would refuse as unreadable.
+            bool? ok = last && s.Event != StepEvent.Done ? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : s.Ok;
             JsonObject target = mapTargetPanes != null ? mapTargetPanes[i].Pane : solvedPane.DeepClone().AsObject();
             frames.Add(Frame(Map, s.Event, s.Caption, ok, sourceFocuses[i], s.Focus, mapSourceFrames[i].Pane, target));
         }
