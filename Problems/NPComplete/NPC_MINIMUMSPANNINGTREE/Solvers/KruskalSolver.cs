@@ -9,7 +9,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet> {
+class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
     public string solverName { get; } = "Kruskal's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by sorting edges by weight and adding each edge if it joins two different components.";
     public string source { get; } = "Kruskal, J. B. \"On the shortest spanning subtree of a graph and the traveling salesman problem.\" Proceedings of the American Mathematical Society 7, no. 1 (1956): 48-50.";
