@@ -93,6 +93,21 @@ public class DFA_Tests {
         Assert.Throws<InvalidOperationException>(() => new DFA(nfaInstance));
     }
 
+    // #779: a state with two moves on one symbol is an NFA, not a DFA. The solver used to follow whichever edge came first.
+    [Theory]
+    [InlineData("(({1,2,3},{a},{(1,a,2),(1,a,3)},1,{3}),a)")]
+    [InlineData("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,a,3)},1,{3}),aa)")]
+    public void DFA_Rejects_Two_Transitions_On_One_Symbol_From_One_State(string instance) {
+        var ex = Assert.Throws<InvalidOperationException>(() => new DFA(instance));
+        Assert.Contains("NFA", ex.Message);
+    }
+
+    [Fact]
+    public void DFA_Accepts_The_Same_Transition_Written_Twice() {
+        DFA dfa = new DFA("(({1,2},{a},{(1,a,2),(1,a,2)},1,{2}),a)");
+        Assert.Contains("1, 2", new DFASolver().solve(dfa));
+    }
+
     [Fact]
     public void DFA_Rejects_Edge_With_Symbol_Not_In_Alphabet() {
         string instance = "(({1,2},{a},{(1,c,2)},1,{2}),a)";

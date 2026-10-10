@@ -115,6 +115,13 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
                 if (!nodes.Contains(to))
                     throw new InvalidOperationException($"Edge To node '{to}' not in N.");
 
+                // A DFA has at most one move per state and symbol; a second one makes it an NFA (#779).
+                // The same transition written twice is still one transition.
+                DFAEdge? clash = edges.FirstOrDefault(x => x.From == from && x.Symbol == symbol && x.To != to);
+                if (clash != null)
+                    throw new InvalidOperationException(
+                        $"State '{from}' has two transitions on '{symbol}' (to '{clash.To}' and to '{to}'); a DFA allows one. Use NFA instead.");
+
                 edges.Add(new DFAEdge(from, symbol, to));
             } else throw new InvalidOperationException("Each edge must be a tuple with 3 elements");
         }
