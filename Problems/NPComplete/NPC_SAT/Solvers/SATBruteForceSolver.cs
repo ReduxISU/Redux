@@ -141,9 +141,10 @@ public class SATBruteForceSolver : ISolver {
             if (timerHasExpired)
                 return "timeout";
 
-            literalDict = increment(literalDict);
+            // Combination 0 is the starting all-false assignment; advance once per later combination.
+            if (currentCombination > 0)
+                literalDict = increment(literalDict);
             foreach (List<string> currentClause in clause) {
-                // change the T/F values of the literals. Starts with at least 1 being true by incrementing at the start.
                 bool currentEvaluation = evaluate(literalDict, currentClause);
 
                 if (currentEvaluation == false) {

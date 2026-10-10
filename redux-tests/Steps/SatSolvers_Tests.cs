@@ -14,7 +14,9 @@ namespace redux_tests;
 
 // The SAT brute force and 3SAT backtracking solvers record Assignment steps. Recording must never change an answer.
 // Endpoints/Snapshots/sat_solver_answers.tsv holds what each solver returned (solver, instance, answer; tab separated) BEFORE
-// it recorded steps, on its default instance and on hand-made and 12 seeded random formulas (satisfiable and not). The three
+// it recorded steps, on its default instance and on hand-made and 12 seeded random formulas (satisfiable and not). Five brute
+// force rows changed with #754, which made the solver try the all-false assignment first: each now holds that all-false answer,
+// which those formulas accept but the old counter skipped. The three
 // randomized 3SAT solvers (PPZ, Schoning, WalkSAT) are not touched, and give a different answer on every run.
 public class SatSolvers_Tests {
     private static string SnapshotPath(string file) =>
@@ -105,17 +107,36 @@ public class SatSolvers_Tests {
         var run = Create("satbruteforcesolver").Run("(x1 | x2) & (!x1 | !x2) & (x1 | !x2)", withSteps: true);
         var steps = StepsOf(run);
         Assert.Equal("(x1:True,x2:False)", run.Answer);
-        // The counter starts at x1 = False, x2 = True: clause 3, (x1 | !x2), is the first with no true literal.
+        // The counter starts at all-false: clause 1, (x1 | x2), is the first with no true literal.
         Assert.Equal(StepEvent.Reject, steps[0].Event);
-        Assert.Equal("Try x1 = False, x2 = True: clause C3 (x1 | !x2) has no true literal.", steps[0].Caption);
-        Assert.Equal(["c2"], steps[0].Focus);
-        Assert.Equal(new Assignment([new("x1", "False"), new("x2", "True")]), steps[0].Partial);
+        Assert.Equal("Try x1 = False, x2 = False: clause C1 (x1 | x2) has no true literal.", steps[0].Caption);
+        Assert.Equal(["c0"], steps[0].Focus);
+        Assert.Equal(new Assignment([new("x1", "False"), new("x2", "False")]), steps[0].Partial);
+        // Next x1 = False, x2 = True: clause 3, (x1 | !x2), is the first with no true literal.
+        Assert.Equal(StepEvent.Reject, steps[1].Event);
+        Assert.Equal("Try x1 = False, x2 = True: clause C3 (x1 | !x2) has no true literal.", steps[1].Caption);
+        Assert.Equal(["c2"], steps[1].Focus);
+        Assert.Equal(new Assignment([new("x1", "False"), new("x2", "True")]), steps[1].Partial);
         // Then x1 = True, x2 = False satisfies every clause: an Accept, then the Done.
         Assert.Equal(StepEvent.Accept, steps[^2].Event);
         Assert.Equal("Try x1 = True, x2 = False: every clause has a true literal.", steps[^2].Caption);
         Assert.Equal("The formula is satisfied by x1 = True, x2 = False.", steps[^1].Caption);
         Assert.True(steps[^1].Ok);
-        Assert.Equal(3, steps.Count);
+        Assert.Equal(4, steps.Count);
+    }
+
+    [Fact]
+    public void BruteForce_RecordedRun_TriesAllFalseFirst() {
+        // #754: the recorded path shares the solver's counter, so it must also try all-false, and here that is the answer.
+        var run = Create("satbruteforcesolver").Run("(!x1 | !x2) & (!x1) & (!x2)", withSteps: true);
+        var steps = StepsOf(run);
+        Assert.Equal("(x1:False,x2:False)", run.Answer);
+        Assert.Equal(2, steps.Count);
+        Assert.Equal(StepEvent.Accept, steps[0].Event);
+        Assert.Equal("Try x1 = False, x2 = False: every clause has a true literal.", steps[0].Caption);
+        Assert.Equal(new Assignment([new("x1", "False"), new("x2", "False")]), steps[0].Partial);
+        Assert.Equal(StepEvent.Done, steps[1].Event);
+        Assert.True(steps[1].Ok);
     }
 
     [Fact]
@@ -126,7 +147,9 @@ public class SatSolvers_Tests {
         Assert.False(steps[^1].Ok);
         Assert.Empty(steps[^1].Partial.Values);
         Assert.Equal("No assignment makes every clause true, so no solution exists.", steps[^1].Caption);
-        Assert.Equal("Try x1 = True: clause C2 (!x1) has no true literal.", steps[0].Caption);
+        Assert.Equal("Try x1 = False: clause C1 (x1) has no true literal.", steps[0].Caption);
+        Assert.Equal("Try x1 = True: clause C2 (!x1) has no true literal.", steps[1].Caption);
+        Assert.Equal(3, steps.Count);
     }
 
     [Fact]
