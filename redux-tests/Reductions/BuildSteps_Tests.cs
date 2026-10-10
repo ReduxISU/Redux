@@ -45,7 +45,12 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
     };
 
     // The Graph picture's edge id (GraphSubsetFrames.EdgeId): ends ordered by ordinal, '\', '-' and '>' escaped.
-    private static string PictureEdgeId(string a, string b) => API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(a, b);
+    // Written out here rather than calling GraphSubsetFrames.EdgeId, which BuildEdge now calls itself: the test would
+    // otherwise compare that function with itself.
+    private static string PictureEdgeId(string a, string b) {
+        static string Esc(string n) => n.Replace(@"\", @"\\").Replace("-", @"\-").Replace(">", @"\>");
+        return string.CompareOrdinal(a, b) <= 0 ? Esc(a) + "-" + Esc(b) : Esc(b) + "-" + Esc(a);
+    }
 
     // Replays the steps in order, checking as it goes that every edge joins two nodes already built and is announced once.
     private static (List<string> Nodes, List<string> Edges, int? Bound) Replay(IEnumerable<SolverStep<BuildDelta>> steps) {
