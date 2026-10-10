@@ -61,5 +61,5 @@ class MinCutVisualization : IVisualization<MINCUT, API_GraphJSON>, IGraphCutVisu
     Type? IVisualization.StepShape => typeof(Groups);
 
     GraphEdgeSpec IGraphCutVisualization<MINCUT>.Describe(MINCUT problem) =>
-        new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.MinCut);
+        new(problem.nodes, problem.listedEdges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.MinCut);
 }

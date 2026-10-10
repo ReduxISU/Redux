@@ -39,6 +39,7 @@ public class GraphEdgeFrames_Tests {
         Assert.DoesNotContain("color", json);
         Assert.DoesNotContain("terminal", json);
         Assert.DoesNotContain("\"k\"", json);
+        Assert.DoesNotContain("label", JsonSerializer.Serialize(p.Edges));   // no pair has parallel edges
     }
 
     [Fact]
@@ -63,6 +64,41 @@ public class GraphEdgeFrames_Tests {
         var edges = GraphEdgeFrames.Payload(spec).Edges;
         Assert.Equal("a-b", Assert.Single(edges).Id);
         Assert.Equal(2d, edges[0].Weight);
+    }
+
+    // ---- parallel edges (#769): one drawn edge per pair, labelled with every listed weight ----
+
+    [Theory]
+    [InlineData("SpanningTree", 2d)]   // a tree uses the lightest
+    [InlineData("WeightedCut", 16d)]   // a cut adds them: 5 + 2 + 9
+    [InlineData("MaxCut", 16d)]
+    [InlineData("MinCut", 16d)]
+    public void Payload_ParallelEdges_AreOneEdge_WeighingWhatCounts_LabelledWithEveryWeight(string rule, double counted) {
+        var spec = new GraphEdgeSpec(["a", "b", "c"], [new("a", "b", 5), new("b", "a", 2), new("b", "c", 4), new("a", "b", 9)], Enum.Parse<EdgeRule>(rule));
+        var edges = GraphEdgeFrames.Payload(spec).Edges;
+        Assert.Equal(["a-b", "b-c"], edges.Select(e => e.Id));
+        Assert.Equal(counted, edges[0].Weight);
+        Assert.Equal("5,2,9", edges[0].Label);   // in the order listed
+        Assert.Null(edges[1].Label);             // listed once: draw its weight
+        string json = JsonSerializer.Serialize(GraphEdgeFrames.Payload(spec));
+        Assert.Contains($"\"id\":\"a-b\",\"a\":\"a\",\"b\":\"b\",\"weight\":{counted},\"label\":\"5,2,9\"", json);
+        Assert.Equal(1, JsonSerializer.Serialize(edges).Split("\"label\"").Length - 1);
+    }
+
+    [Fact]
+    public void Payload_ParallelUnweightedEdges_AreOneEdge_WithNoLabel() {
+        var spec = new GraphEdgeSpec(["a", "b"], [new("a", "b"), new("b", "a")], EdgeRule.Cut) { K = 1 };
+        var edge = Assert.Single(GraphEdgeFrames.Payload(spec).Edges);
+        Assert.Null(edge.Weight);
+        Assert.Null(edge.Label);
+    }
+
+    [Fact]
+    public void CutFrame_ParallelEdges_MarkTheOneEdgeId() {
+        var spec = new GraphEdgeSpec(["a", "b", "c"], [new("a", "b", 5), new("b", "a", 2), new("b", "c", 4)], EdgeRule.MaxCut);
+        var f = GraphEdgeFrames.CutFrame(spec, GraphEdgeFrames.Split(["a", "b", "c"], ["a"]), StepEvent.Done, [], "x", true);
+        Assert.Equal(["a-b"], f.Edges.Keys);
+        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
     }
 
     [Theory]
@@ -201,7 +237,7 @@ public class GraphEdgeFrames_Tests {
         var edges = new GraphEdgeInput[] { new("a", "b", 4), new("b", "a", 6), new("b", "c", 2), new("c", "c", 9) };
         var (count, weight) = GraphEdgeFrames.Crossing(edges, new HashSet<string> { "a" });
         Assert.Equal(1, count);
-        Assert.Equal(4d, weight);   // the lightest of the parallel a-b edges is the one drawn
+        Assert.Equal(10d, weight);  // both parallel a-b edges cross, so their weights add (#769): 4 + 6
     }
 
     // ---- runs stopped by the time limit ----
