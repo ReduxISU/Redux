@@ -161,18 +161,15 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
 
         clauses.Add(new List<string> { l1, l2, newVar });
 
-        // Adding clause highlighting gadget
-        var existing = gadgets.FirstOrDefault(g =>
+        // Adding the new clause to its source clause's highlighting gadget. findSet only returns clauses
+        // with more than 3 literals and every clause added here has exactly 3, so index is always an
+        // original clause, and reduce() gave each original clause a group gadget before splitting.
+        var existing = gadgets.First(g =>
             g.color == "ClauseHighlight" &&
             g.reductionFromIds.FirstOrDefault() == index.ToString()
         );
-
-        if (existing != null) {
-            existing.reductionToIds.Add((clauses.Count - 1).ToString());
-            existing.targetIds.Add(StableId((clauses.Count - 1).ToString()));
-        } else
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { StableId(index.ToString()) }, new List<string> { StableId((clauses.Count - 1).ToString()) },
-                new List<string> { index.ToString() }, new List<string> { (clauses.Count - 1).ToString() }));
+        existing.reductionToIds.Add((clauses.Count - 1).ToString());
+        existing.targetIds.Add(StableId((clauses.Count - 1).ToString()));
 
         // Adding element highlighting gadget
         var literal1 = gadgets.FirstOrDefault(g =>
