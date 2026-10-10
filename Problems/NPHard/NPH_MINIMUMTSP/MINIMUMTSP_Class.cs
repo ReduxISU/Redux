@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_TSP;
 using API.Problems.NPHard.NPH_MINIMUMTSP.Solvers;
 using API.Problems.NPHard.NPH_MINIMUMTSP.Verifiers;
@@ -27,7 +28,7 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
     public const string InstanceGrammar = "{(N,E) | " + TSP.WeightedGraphGrammar + "}";
     private static string _defaultInstance = "({a,b,c,d,e},{({a,b},3),({a,c},4),({a,d},2),({a,e},7),({b,c},4),({b,d},6),({b,e},3),({c,d},5),({c,e},8),({d,e},6)})";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = $"Weighted graph, shaped as (nodes, edges): {InstanceGrammar}. Each edge is ({{n1,n2}},w), an undirected pair of nodes and its integer weight; at most one edge may join two nodes. Example: {_defaultInstance}";
+    public string instanceFormat { get; } = $"Weighted graph, shaped as (nodes, edges): {InstanceGrammar}. Each edge is ({{n1,n2}},w), an undirected pair of nodes and its integer weight. Parallel edges: when two edges join the same cities, the lightest one is used. Example: {_defaultInstance}";
     public string certificateFormat { get; } =
         $"Format: {MinimumTSPVerifier.CertificateGrammar} Example: {MinimumTSPVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
@@ -35,6 +36,11 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
     private List<(string source, string target, int weight)> _edges = new List<(string source, string target, int weight)>();
     // The weight of the edge between two cities, keyed by the pair in ordinal order.
     private Dictionary<(string, string), int> _weights = new Dictionary<(string, string), int>();
+    /// <summary>
+    /// The edges as listed in the instance, before parallel edges are merged into <see cref="edges"/>. Kept for
+    /// pictures that show every listed weight; internal, so it is not part of the problem's JSON.
+    /// </summary>
+    internal List<(string source, string target, int weight)> listedEdges { get; private set; } = new();
     public string wikiName { get; } = "";
     public BruteForceMinimumTSP defaultSolver { get; } = new BruteForceMinimumTSP();
     public MinimumTSPVerifier defaultVerifier { get; } = new MinimumTSPVerifier();
@@ -82,15 +88,16 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
         try {
             minimumTsp.parse(instanceInput);
             nodes = minimumTsp["N"].ToList().Select(node => node.ToString()).ToList();
-            edges = TSP.ReadWeightedEdges(minimumTsp["E"]);
+            listedEdges = TSP.ReadWeightedEdges(minimumTsp["E"]);
+            // A tour takes the cheapest way between two cities, so parallel edges merge into the lightest (#769).
+            edges = ParallelEdges.Lightest(listedEdges);
             graph = new UtilCollectionGraph(minimumTsp["N"], minimumTsp["E"]);
         } catch (Exception ex) when (ex is not ProblemParseException) {
             throw new ProblemParseException("MINIMUMTSP", instanceInput, ex.Message);
         }
 
-        // Every edge joins two of the nodes (the grammar alone lets an edge name another city). Two edges between the same
-        // cities would give a hop two costs; say so rather than pick one. A loop ({a,a},w) is kept in the graph but never
-        // walked by a tour.
+        // Every edge joins two of the nodes (the grammar alone lets an edge name another city). Parallel edges are already
+        // merged, so each pair has one weight. A loop ({a,a},w) is kept in the graph but never walked by a tour.
         foreach (var (source, target, weight) in edges) {
             foreach (string end in new[] { source, target }) {
                 if (!nodes.Contains(end)) {
@@ -98,9 +105,7 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
                 }
             }
             if (source == target) continue;
-            if (!_weights.TryAdd(Key(source, target), weight)) {
-                throw new ProblemParseException("MINIMUMTSP", instanceInput, $"more than one edge joins {source} and {target}");
-            }
+            _weights[Key(source, target)] = weight;
         }
     }
 

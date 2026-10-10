@@ -62,5 +62,5 @@ class MinimumTSPDefaultVisualization : IVisualization<MINIMUMTSP, API_GraphJSON>
 
     // Traveling Salesperson's tour picture, weighted, with no K.
     GraphTourSpec IGraphTourVisualization<MINIMUMTSP>.Describe(MINIMUMTSP problem) =>
-        new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, null, TourRule.MinimumTravelingSalesperson);
+        new(problem.nodes, problem.listedEdges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, null, TourRule.MinimumTravelingSalesperson);
 }

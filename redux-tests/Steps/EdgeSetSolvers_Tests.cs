@@ -184,17 +184,17 @@ public class EdgeSetSolvers_Tests {
     }
 
     [Fact]
-    public void MinCut_WithParallelEdges_DoneIsOkOnlyIfTheVerifierAcceptsTheAnswer() {
-        // Stoer-Wagner adds the parallel 1-2 edges up (a cut of 8), but the answer lists one of them (weight 3), which the
-        // verifier refuses. The answer is what it always was; the Done step must not claim it is right.
+    public void MinCut_WithParallelEdges_AnswersTheSummedEdge_AndTheDoneStepIsOk() {
+        // The parallel 1-2 edges merge into one weighing 3 + 5 = 8 (#769), so the answer lists that edge and the verifier
+        // accepts it. Before #769 the answer listed only the first edge, ({1,2},3), which the verifier refused.
         const string instance = "({1,2},{({1,2},3),({2,1},5)})";
         var solver = new API.Problems.P.P_MINCUT.Solvers.MinCutStoerWagner();
         var run = ((ISolver)solver).Run(instance, true);
-        Assert.Equal("{({1,2},3)}", run.Answer);
-        Assert.False(((API.Interfaces.IProblem)new MINCUT()).defaultVerifier.verify(instance, run.Answer));
+        Assert.Equal("{({1,2},8)}", run.Answer);
+        Assert.True(((API.Interfaces.IProblem)new MINCUT()).defaultVerifier.verify(instance, run.Answer));
         var done = run.Steps.Cast<SolverStep<Groups>>().Last();
-        Assert.False(done.Ok);
-        Assert.Equal("The minimum cut weighs 8, but the answer lists one edge per pair of nodes, weighing 3, so it does not show that cut.", done.Caption);
+        Assert.True(done.Ok);
+        Assert.Equal("The minimum cut weighs 8: {2} against {1}.", done.Caption);
     }
 
     [Fact]

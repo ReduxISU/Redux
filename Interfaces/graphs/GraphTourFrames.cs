@@ -16,7 +16,9 @@ sealed record GraphTourEdge(string From, string To, double? Weight = null);
 /// No colors, no drawing.
 /// </summary>
 /// <param name="Nodes">Node ids, in instance order.</param>
-/// <param name="Edges">The edges as given; loops and repeated edges are tolerated (the first of a repeated edge wins).</param>
+/// <param name="Edges">The edges as listed in the instance, parallel edges included; loops are tolerated. Parallel edges (the
+/// same pair of nodes, in the same direction if directed) are drawn as one edge weighing the lightest, labelled with every
+/// listed weight (#769).</param>
 /// <param name="Directed">True when an edge may only be walked from its From end to its To end.</param>
 /// <param name="K">The instance's K (the most a tour may weigh), or null for problems without one.</param>
 /// <param name="Rule">Which problem this is.</param>
@@ -74,23 +76,33 @@ static class GraphTourFrames {
     public static string EdgeId(bool directed, string from, string to) =>
         directed ? $"{GraphSubsetFrames.EscapeName(from)}>{GraphSubsetFrames.EscapeName(to)}" : GraphSubsetFrames.EdgeId(from, to);
 
-    private static List<(string A, string B, string Id, double? Weight)> CanonicalEdges(GraphTourSpec spec) {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var result = new List<(string, string, string, double?)>();
+    /// <summary>
+    /// One edge per pair of nodes (per direction, if directed), loops dropped, in first-seen order. A tour takes the
+    /// cheapest way between two cities, so the weight is the lightest of the pair's listed weights; the label lists them
+    /// all in the order listed (<c>"2,5"</c>), or is null for an edge listed once or an unweighted graph (#769).
+    /// </summary>
+    private static List<(string A, string B, string Id, double? Weight, string? Label)> CanonicalEdges(GraphTourSpec spec) {
+        var index = new Dictionary<string, int>(StringComparer.Ordinal);
+        var result = new List<(string A, string B, string Id, List<double?> Weights)>();
         foreach (var e in spec.Edges) {
             if (e.From == e.To) continue;
             string a = e.From, b = e.To;
             if (!spec.Directed && string.CompareOrdinal(a, b) > 0) (a, b) = (b, a);
             string id = EdgeId(spec.Directed, a, b);
-            if (seen.Add(id)) result.Add((a, b, id, e.Weight));
+            if (index.TryGetValue(id, out int at)) {
+                result[at].Weights.Add(e.Weight);
+            } else {
+                index[id] = result.Count;
+                result.Add((a, b, id, [e.Weight]));
+            }
         }
-        return result;
+        return result.Select(e => (e.A, e.B, e.Id, GraphEdgeFrames.Counted(e.Weights, addWeights: false), GraphEdgeFrames.WeightLabel(e.Weights))).ToList();
     }
 
     public static GraphPayload Payload(GraphTourSpec spec) =>
         new("graph", spec.Directed ? "directed" : "undirected", "circle",
             spec.Nodes.Select(n => new GraphNodeDto(n, n)).ToList(),
-            CanonicalEdges(spec).Select(e => new GraphEdgeDto(e.Id, e.A, e.B) { Weight = e.Weight }).ToList(),
+            CanonicalEdges(spec).Select(e => new GraphEdgeDto(e.Id, e.A, e.B) { Weight = e.Weight, Label = e.Label }).ToList(),
             ShapeName, RuleName(spec.Rule)) { K = spec.K };
 
     /// <summary>
