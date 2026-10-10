@@ -16,20 +16,13 @@ class CutBruteForce : ISolver<CUT> {
     // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    // Declared, not derived. Enumerates subsets of size 1..K (K <= edges.Count, but K
-    // can still be Theta(n)); each candidate costs O(n^2) to build (certificateToEdges)
-    // plus O(m) to verify.
+    // Declared, not derived. Enumerates the S sides of size 1..n/2 (every split of the
+    // nodes, up to swapping the sides); each candidate costs O(n^2) to build
+    // (certificateToEdges) plus O(m) to verify.
     public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
 
     public CutBruteForce() {
 
-    }
-    private long factorial(long x) {
-        long y = 1;
-        for (long i = 1; i <= x; i++) {
-            y *= i;
-        }
-        return y;
     }
     //Function below turns index list into certificate
     private string indexListToCertificate(List<int> indecies, List<string> nodes) {
@@ -68,38 +61,41 @@ class CutBruteForce : ISolver<CUT> {
 
     }
 
-    // helper function to go through possible combinations
-    private List<int> nextComb(List<int> combination, int size) {
+    // Moves combination to the next combination of its size from 0..size-1, in lexicographic order. Returns false,
+    // leaving it unchanged, when it is already the last one.
+    private bool nextComb(List<int> combination, int size) {
         for (int i = combination.Count - 1; i >= 0; i--) {
             if (combination[i] + 1 <= (i + size - combination.Count)) {
                 combination[i] += 1;
                 for (int j = i + 1; j < combination.Count; j++) {
                     combination[j] = combination[j - 1] + 1;
                 }
-                return combination;
+                return true;
             }
         }
-        return combination;
+        return false;
     }
     public string solve(CUT cut) {
         if (cut.K > cut.edges.Count) { // impossible to do cut if not enough edges
             return "{}";
         }
-        for (int i = 0; i < cut.K; i++) {
+        if (cut.K <= 0) { // no side needs trying: "{}" is the answer for K = 0, and no cut has fewer edges
+            return "{}";
+        }
+        // Every S side of 1 to n/2 nodes. K bounds the edges that cross, not the size of a side, and a bigger S
+        // side gives the same cut as its smaller other side, so this tries every split.
+        for (int size = 1; size <= cut.nodes.Count / 2; size++) {
             List<int> combination = new List<int>();
-            for (int j = 0; j <= i; j++) {
+            for (int j = 0; j < size; j++) {
                 combination.Add(j);
             }
-            long reps = factorial(cut.nodes.Count) / (factorial(i + 1) * factorial(cut.nodes.Count - i - 1));
-            for (int k = 0; k < reps; k++) {
+            do {
                 string certificate = indexListToCertificate(combination, cut.nodes);
                 certificate = certificateToEdges(cut, certificate); // last two could be one function, but it is okay
                 if (cut.defaultVerifier.verify(cut, certificate)) {
                     return certificate;
                 }
-                combination = nextComb(combination, cut.nodes.Count);
-
-            }
+            } while (nextComb(combination, cut.nodes.Count));
         }
         return "{}";
     }

@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using API.Problems.NPComplete.NPC_CUT;
 using API.Problems.NPComplete.NPC_CUT.Verifiers;
 using API.Problems.NPComplete.NPC_CUT.Solvers;
@@ -66,5 +66,18 @@ public class CUT_Tests {
         CUT cut = new CUT("(({1,2},{{1,2}}),5)");
         CutBruteForce solver = cut.defaultSolver;
         Assert.Equal("{}", solver.solve(cut));
+    }
+
+    // #751: the solver only tried S sides of 1..K nodes, but K counts the edges that cross, not the nodes on a side.
+    // Two triangles joined by the edge c-d: the only cut of one edge puts a triangle on each side, and K = 1 meant
+    // sides of three nodes were never tried.
+    [Theory]
+    [InlineData("(({a,b,c,d,e,f},{{a,b},{b,c},{a,c},{d,e},{e,f},{d,f},{c,d}}),1)", "{{c,d}}")]
+    [InlineData("(({a,b,c,d,e,f,g,h},{{a,b},{a,c},{a,d},{b,c},{b,d},{c,d},{e,f},{e,g},{e,h},{f,g},{f,h},{g,h},{a,e},{b,f}}),2)", "{{a,e},{b,f}}")]
+    public void CUT_solver_tries_sides_larger_than_K(string instance, string expected) {
+        CUT cut = new CUT(instance);
+        string certificate = cut.defaultSolver.solve(cut);
+        Assert.Equal(expected, certificate);
+        Assert.True(cut.defaultVerifier.verify(cut, certificate));
     }
 }
