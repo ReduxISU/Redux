@@ -46,6 +46,7 @@ public class IncrementalSolvers_Tests {
         ["tspbruteforce"] = false,
         ["tspbranchandbound"] = true,
         ["tspgreedy"] = true,
+        ["bruteforceminimumtsp"] = false,
         // Assignment (the clause picture). The SAT brute force records Assignment steps through its own Run, without the
         // typed solver interface.
         ["satbruteforcesolver"] = false,

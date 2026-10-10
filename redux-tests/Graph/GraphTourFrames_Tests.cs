@@ -31,6 +31,7 @@ public class GraphTourFrames_Tests {
     [Theory]
     [InlineData("HamiltonianCycle", "hamiltonianCycle")]
     [InlineData("TravelingSalesperson", "tsp")]
+    [InlineData("MinimumTravelingSalesperson", "minTsp")]
     public void Payload_IsTheTourShape_OnACircle_WithCanonicalUndirectedEdges(string rule, string name) {
         var p = GraphTourFrames.Payload(Undirected(Enum.Parse<TourRule>(rule)));
         Assert.Equal("graph", p.Kind);

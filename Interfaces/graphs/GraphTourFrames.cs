@@ -3,12 +3,12 @@ using API.Interfaces.Steps;
 namespace API.Interfaces.Graphs;
 
 /// <summary>Which rule a tour is judged by. The picture is the same; the payload names the problem so a frontend can word its checks.</summary>
-enum TourRule { HamiltonianCycle, TravelingSalesperson }
+enum TourRule { HamiltonianCycle, TravelingSalesperson, MinimumTravelingSalesperson }
 
 /// <summary>One edge of a tour problem's graph. For a directed graph it runs From to To; for an undirected one the ends are interchangeable.</summary>
 /// <param name="From">One end (the tail, if directed).</param>
 /// <param name="To">The other end (the head, if directed).</param>
-/// <param name="Weight">The edge's weight (Traveling Salesperson), or null for an unweighted graph.</param>
+/// <param name="Weight">The edge's weight (Traveling Salesperson, Minimum Traveling Salesperson), or null for an unweighted graph.</param>
 sealed record GraphTourEdge(string From, string To, double? Weight = null);
 
 /// <summary>
@@ -29,7 +29,7 @@ sealed record GraphTourSpec(
 
 /// <summary>
 /// Derives the Graph picture for problems whose answer is a tour or path in visiting order (<c>shape: "tour"</c>:
-/// Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson). It shares the payload, frame and state
+/// Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson). It shares the payload, frame and state
 /// vocabulary of <see cref="GraphSubsetFrames"/> and nothing here knows about a particular problem or solver.
 /// <para>
 /// Every frame carries <c>order</c>, the path so far as node ids in visiting order. A closed tour repeats its first node
@@ -62,6 +62,7 @@ static class GraphTourFrames {
     public static string RuleName(TourRule rule) => rule switch {
         TourRule.HamiltonianCycle => "hamiltonianCycle",
         TourRule.TravelingSalesperson => "tsp",
+        TourRule.MinimumTravelingSalesperson => "minTsp",
         _ => throw new ArgumentOutOfRangeException(nameof(rule)),
     };
 
@@ -184,7 +185,7 @@ static class GraphTourFrames {
 
 /// <summary>
 /// A visualization for a graph problem whose answer is a tour or path in visiting order (Hamiltonian Cycle, Directed
-/// Hamiltonian Cycle, Traveling Salesperson). The visualization declares only what the problem is (<see cref="Describe"/>);
+/// Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson). The visualization declares only what the problem is (<see cref="Describe"/>);
 /// the frames hook then comes for free. Implement members explicitly so nothing new appears in /info. The class must also
 /// declare <c>Type? IVisualization.StepShape =&gt; typeof(Tour)</c>. A solver's steps carry the path so far
 /// (<see cref="Tour"/>: node ids in order); only the solved frame of a solver that records no steps has to be rebuilt
