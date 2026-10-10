@@ -51,6 +51,12 @@ class VCVerifier : IVerifier<VERTEXCOVER> {
             throw new CertificateParseException(problem, certificate,
                 "certificate did not parse to a non-empty list of node names");
         }
+        // Vertex Cover asks for a cover of at most K nodes, so a larger set is rejected
+        // even when it covers every edge. Repeated names count once.
+        if (certificateNodes.Distinct().Count() > problem.K) {
+            return false;
+        }
+
         List<string> GNodes = problem.nodes;
         List<KeyValuePair<string, string>> Gedges = problem.edges;
 
