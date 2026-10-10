@@ -5,7 +5,7 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
-class TSPGreedy : ISolver<TSP, Tour> {
+class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Greedy";
@@ -149,7 +149,8 @@ class TSPGreedy : ISolver<TSP, Tour> {
                     () => withinK
                         ? $"Close the tour {route[^2]} → {startNode}: total {total} is no better than the best so far ({best})."
                         : $"Close the tour {route[^2]} → {startNode}: total {total} is more than K = {tsp.K}.",
-                    () => TSPTourSteps.EdgeIds(tsp, route));
+                    // The route was built hop by hop, so what failed is the closing hop, not the whole tour.
+                    route[^2], startNode, GraphTourFrames.EdgeId(false, route[^2], startNode));
             }
         }
 

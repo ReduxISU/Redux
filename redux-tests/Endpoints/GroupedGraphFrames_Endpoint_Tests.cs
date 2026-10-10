@@ -262,7 +262,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                     Assert.NotEqual("Background", state);   // Background is omitted
                 }
             Assert.All(Assignment(f).Keys, k => Assert.Contains(k, variableIds));
-            AssertLiteralStatesFollowTheAssignment(f, clauses);
+            AssertLiteralStatesFollowTheAssignment(f, clauses, typeof(API.Interfaces.IIncrementalSolver).IsAssignableFrom(ProblemProvider.Solvers[solver]));
             bool isDone = f.GetProperty("event").GetString() == "Done";
             Assert.Equal(isDone, f.TryGetProperty("ok", out _));
             // A clause is Rejected exactly when the assignment makes every one of its literals false, and Covered when one is true.
@@ -294,12 +294,13 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // Every literal's state, judged here from the instance text and the frame's own assignment: a true literal is Solution
-    // only in a step that keeps the assignment (Accept, Backtrack, Done) and ElementHighlight in one that only tries it
-    // (Try, Reject); a false literal is False (or Rejected with its clause, or highlighted while its variable is tried); a
-    // literal of an unassigned variable is Background unless it is being looked at.
-    private static void AssertLiteralStatesFollowTheAssignment(JsonElement frame, List<string[]> clauses) {
+    // only in a step that keeps the assignment (Accept, Backtrack, Done, and every step of an incremental solver, whose
+    // assignment is the variables decided so far) and ElementHighlight in one that only tries a whole assignment (Try,
+    // Reject), or while its variable is the one being tried; a false literal is False (or Rejected with its clause), even
+    // while its variable is tried; a literal of an unassigned variable is Background unless it is being looked at.
+    private static void AssertLiteralStatesFollowTheAssignment(JsonElement frame, List<string[]> clauses, bool incremental) {
         string ev = frame.GetProperty("event").GetString()!;
-        bool onlyTried = ev is "Try" or "Reject";
+        bool onlyTried = !incremental && ev is "Try" or "Reject";
         var assigned = Assignment(frame);
         var nodes = States(frame, "nodes");
         for (int i = 0; i < clauses.Count; i++)
@@ -312,7 +313,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 else if (value != literal.StartsWith('!'))
                     Assert.True(onlyTried ? state is "ElementHighlight" : state is "Solution" or "ElementHighlight", $"{where}: {state}");
                 else
-                    Assert.True(state is "False" or "Rejected" or "ElementHighlight", $"{where}: {state}");
+                    Assert.True(state is "False" or "Rejected", $"{where}: {state}");
             }
         if (onlyTried) Assert.DoesNotContain("Solution", nodes.Values);
     }
@@ -328,7 +329,9 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(new Dictionary<string, bool> { ["v:x1"] = true }, Assignment(first));
         // (x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1): x1 occurs at c0-0, c1-0, c1-2 and c2-2.
         Assert.Equal(["c0-0", "c1-0", "c1-2", "c2-2"], States(first, "nodes").Keys.Order());
-        Assert.All(States(first, "nodes").Values, s => Assert.Equal("ElementHighlight", s));
+        // The true occurrences (x1) are highlighted; the false ones (!x1 at c1-0 and c2-2) stay False.
+        Assert.Equal(new Dictionary<string, string> { ["c0-0"] = "ElementHighlight", ["c1-0"] = "False", ["c1-2"] = "ElementHighlight", ["c2-2"] = "False" },
+            States(first, "nodes"));
         // Clauses c0 and c1 contain a true x1 already.
         Assert.Equal(new Dictionary<string, string> { ["c0"] = "Covered", ["c1"] = "Covered" }, States(first, "groups"));
         var last = frames[^1];

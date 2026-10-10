@@ -271,11 +271,15 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Go New York → Chicago (weight 790, path cost 790): the nearest city not yet visited.", frames[1].GetProperty("caption").GetString());
         Assert.Equal("Close the tour Miami → New York: total 6830, the best so far.", frames[5].GetProperty("caption").GetString());
         Assert.Equal(["New York", "Chicago", "Denver", "Los Angeles", "Miami", "New York"], Order(frames[5]));
-        // A worse tour is rejected with the best so far named; the whole tour is the thing that failed.
+        // A worse tour is rejected with the best so far named. The greedy built the route hop by hop, so the route stays the
+        // path so far (Solution) and only the closing hop that was tested is Rejected.
         var worse = frames.First(f => f.GetProperty("caption").GetString()!.StartsWith("Close the tour Los Angeles → Chicago"));
         Assert.Equal("Reject", worse.GetProperty("event").GetString());
         Assert.Contains("total 7160 is no better than the best so far (6830)", worse.GetProperty("caption").GetString());
-        Assert.All(States(worse, "edges").Values, s => Assert.Equal("Rejected", s));
+        var worseEdges = States(worse, "edges");
+        Assert.Equal(5, worseEdges.Count);
+        Assert.Equal("Rejected", worseEdges["Chicago-Los Angeles"]);
+        Assert.All(worseEdges.Where(e => e.Key != "Chicago-Los Angeles"), e => Assert.Equal("Solution", e.Value));
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
         Assert.Equal(["New York", "Chicago", "Denver", "Los Angeles", "Miami", "New York"], Order(frames[^1]));
     }
