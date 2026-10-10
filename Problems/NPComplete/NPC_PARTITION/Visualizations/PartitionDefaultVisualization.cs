@@ -31,6 +31,8 @@ class PartitionDefaultVisualization : IVisualization<PARTITION, API_SET> {
         foreach (UtilCollection e in sol) {
             groups.Add(e);
         }
+        // "{}" (no split exists) or anything else that is not two groups: there is no answer to draw (#796).
+        if (groups.Count != 2) return visualize(partition);
 
         foreach (var e in ec.data.list ?? []) {
             if (e.value is null) continue;
