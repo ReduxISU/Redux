@@ -119,5 +119,12 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
         _S = parser["S"].ToList().Select(item => int.Parse(item.ToString())).ToList();
         _C = int.Parse(parser["C"].ToString());
         _K = int.Parse(parser["K"].ToString());
+
+        // Item sizes are positive integers (the definition says so, and the verifier rejects any other size), so a size of 0
+        // or less is refused here rather than packed into an answer the verifier then rejects (#794).
+        foreach (int size in _S) {
+            if (size <= 0)
+                throw new ProblemParseException(problemName, input, $"the item size {size} must be positive");
+        }
     }
 }

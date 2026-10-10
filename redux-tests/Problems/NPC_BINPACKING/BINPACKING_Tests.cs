@@ -237,4 +237,15 @@ public class BINPACKING_Tests {
         BinPackingVerifier verifier = new BinPackingVerifier();
         Assert.True(verifier.verify(bp, BinPackingVerifier.CertificateExample));
     }
+
+    // #794: a size of 0 or less was accepted, and the brute force packed it into an answer its own verifier rejects.
+    // The constructor refuses it, so the endpoints answer the usual 400.
+    [Theory]
+    [InlineData("((0,3),5,1)")]
+    [InlineData("((-2,3),5,1)")]
+    public void BINPACKING_NonPositiveSize_IsRefused(string instance) {
+        var e = Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new BinPackingBruteForce()).solve(instance));
+        Assert.Contains("positive", e.Message);
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new BinPackingFFD()).solve(instance));
+    }
 }
