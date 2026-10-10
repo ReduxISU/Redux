@@ -3,6 +3,7 @@ using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUE;
 using API.Problems.NPComplete.NPC_SAT3;
+using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 
@@ -10,11 +11,9 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 // instances already Sipser-formatted by SipserReduceToCliqueStandard (nodes named
 // '<literal>_<clauseIdx>') -- see SipserNodes.Parse and reductionDefinition. An
 // arbitrary CLIQUE instance (e.g. CLIQUE.defaultInstance, plain node names) has no such
-// structure to invert -- and its own parameterless constructor immediately hits this,
-// since `new CLIQUE()` isn't Sipser-formatted either, so this can't safely be
-// Activator.CreateInstance'd just to inspect it (see NotAGeneralReductionAttribute's own
-// comment in Interfaces/ReductionInterface.cs for why that's an attribute, not a
-// property). Excluded from ReductionGraphData's navigable graph so it isn't advertised as
+// structure to invert, so the parameterless constructor starts from SipserReduceToCliqueStandard's
+// output for 3SAT's default formula instead of `new CLIQUE()` (#767). Excluded from
+// ReductionGraphData's navigable graph so it isn't advertised as
 // a working CLIQUE -> SAT3 reduction for any input; still directly callable by name via
 // /ProblemProvider/reduce for its actual purpose (mapping a solution back through a
 // paired SipserReduceToCliqueStandard run).
@@ -75,7 +74,9 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         }
     }
     public SipserReduceToSAT3(string instance) : this(new CLIQUE(instance)) { }
-    public SipserReduceToSAT3() : this(new CLIQUE()) { }
+    // CLIQUE's own default instance has plain node names, which reduce() cannot invert, so the default is the
+    // Sipser-formatted CLIQUE that SipserReduceToCliqueStandard builds from 3SAT's default formula (#767).
+    public SipserReduceToSAT3() : this(new SipserReduceToCliqueStandard(new API.Problems.NPComplete.NPC_SAT3.SAT3()).reductionTo) { }
 
     // --- Methods ---
     public API.Problems.NPComplete.NPC_SAT3.SAT3 reduce() {

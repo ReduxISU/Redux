@@ -303,18 +303,15 @@ public class ContributorProfile_Tests {
 
     [Fact]
     public void GetContributorProfile_JasonWright_ReductionLookupSucceeds() {
-        // SipserReduceToSAT3 (NPC_CLIQUE/ReduceTo/NPC_SAT3) credits "Jason L. Wright" but
-        // has no parameterless constructor — its only ctor immediately calls reduce(),
-        // which requires a specially Sipser-formatted CLIQUE instance (see
-        // [NotAGeneralReduction] on that class). Reduction contributor lookup is
-        // reflection-based (ProblemProvider.Reductions + Activator.CreateInstance), so
-        // it can't safely construct that one and it's expected to be absent here —
-        // consistent with it already being excluded from /Navigation/Reductions.
+        // SipserReduceToSAT3 (NPC_CLIQUE/ReduceTo/NPC_SAT3) credits "Jason L. Wright". Its
+        // parameterless constructor threw until #767, so the reflection-based lookup
+        // (ProblemProvider.Reductions + Activator.CreateInstance) skipped it; now it is
+        // credited by its declared reductionName, like every other reduction.
         var ok = _controller.GetContributorProfile("Jason L. Wright") as OkObjectResult;
         Assert.NotNull(ok);
         var portfolio = ok.Value as ContributorPortfolio;
         Assert.NotNull(portfolio);
-        Assert.DoesNotContain("SipserReduceToSAT3", portfolio.ReductionsCreated);
+        Assert.Contains("Sipser's 3SAT Reduction", portfolio.ReductionsCreated);
     }
 
     [Fact]
