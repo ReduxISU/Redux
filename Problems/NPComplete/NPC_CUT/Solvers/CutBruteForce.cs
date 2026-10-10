@@ -85,9 +85,15 @@ class CutBruteForce : ISolver<CUT, Groups> {
             rec.Done(new Groups([]), false, $"The graph has only {cut.edges.Count} edges, so no cut can have {cut.K}.");
             return "{}";
         }
-        if (cut.K <= 0) { // no side needs trying: "{}" is the answer for K = 0, and no cut has fewer edges
-            if (cut.K == 0) rec.Done(new Groups([]), true, "A cut of size 0 needs no edges.");
-            else rec.Done(new Groups([]), false, $"No cut has {cut.K} edges.");
+        if (cut.K <= 0) { // no side needs trying: "{}" is the only candidate for K = 0, and no cut has fewer edges
+            if (cut.K == 0) {
+                // Both sides of a cut hold a node, so "{}" is a cut only when the graph falls into separate pieces. The
+                // verifier decides (#770).
+                bool ok = cut.defaultVerifier.verify(cut, "{}");
+                rec.Done(new Groups([]), ok, ok
+                    ? "The graph falls into separate pieces, so splitting them apart cuts no edges."
+                    : "Every split of the nodes into two sides cuts an edge, so no cut has 0 edges.");
+            } else rec.Done(new Groups([]), false, $"No cut has {cut.K} edges.");
             return "{}";
         }
         int tried = 0;

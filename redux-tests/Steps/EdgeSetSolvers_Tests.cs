@@ -210,6 +210,19 @@ public class EdgeSetSolvers_Tests {
         Assert.Equal("{1,2,3} against {4,5,6} cuts 1 edges, found after 22 tries.", done.Caption);
     }
 
+    // #770: with K = 0 the only candidate is "{}", and the Done step's ok is the verifier's verdict on it (a cut's two sides
+    // are non-empty, so "{}" is a cut only of a graph in separate pieces).
+    [Theory]
+    [InlineData("(({a,b,c},{{a,b},{b,c}}),0)")]
+    [InlineData("(({a,b,c,d},{{a,b},{c,d}}),0)")]
+    public void CutBruteForce_KOf0_EndsWithTheVerifiersVerdictOnTheEmptySet(string instance) {
+        var cut = new API.Problems.NPComplete.NPC_CUT.CUT(instance);
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CUT.Solvers.CutBruteForce()).Run(instance, true);
+        Assert.Equal("{}", run.Answer);
+        var done = run.Steps.Cast<SolverStep<Groups>>().Last();
+        Assert.Equal(cut.defaultVerifier.verify(cut, "{}"), done.Ok);
+    }
+
     [Fact]
     public void CutBruteForce_GivingUp_SaysEverySplitWasTried() {
         // K4 with K = 1: each one-node side cuts 3 edges and each two-node side cuts 4. Sides of 1 to n/2 = 2 nodes cover
