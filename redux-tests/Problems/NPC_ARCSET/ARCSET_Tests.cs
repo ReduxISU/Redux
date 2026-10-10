@@ -138,4 +138,42 @@ public class ARCSET_Tests {
         Assert.True(new ArcSetVerifier().verify(problem, "{(1,2)}"));
         Assert.True(new ArcSetVerifier().verify(problem, "{}"));
     }
+
+    // #789: the brute force tried one-edge removals first, so an acyclic graph got an edge it did not need to remove.
+    [Theory]
+    [InlineData("(({1,2,3},{(1,2),(2,3)}),1)")]
+    [InlineData("(({1,2,3},{(1,2),(2,3)}),0)")]
+    [InlineData("(({1,2,3,4},{(1,2),(1,3),(2,4),(3,4)}),2)")]
+    [InlineData("(({1,2},{}),1)")]
+    public void ARCSET_BruteForce_AnswersTheEmptySet_OnAnAcyclicGraph(string instance) {
+        ARCSET arc = new ARCSET(instance);
+        string answer = new ArcSetBruteForce().solve(arc);
+        Assert.Equal("{}", answer);
+        Assert.True(arc.defaultVerifier.verify(arc, answer));
+    }
+
+    [Theory]
+    [InlineData("(({1,2,3},{(1,2),(2,3)}),0)")]
+    [InlineData("(({1,2,3},{(1,2),(2,3)}),1)")]
+    [InlineData("(({1,2,3},{(1,2),(2,3)}),3)")]
+    public void ARCSET_Verifier_AcceptsTheEmptySet_OnAnAcyclicGraph(string instance) {
+        ARCSET arc = new ARCSET(instance);
+        Assert.True(new ArcSetVerifier().verify(arc, "{}"));
+    }
+
+    [Theory]
+    [InlineData("(({1,2,3},{(1,2),(2,3),(3,1)}),0)")]
+    [InlineData("(({1,2,3},{(1,2),(2,3),(3,1)}),1)")]
+    public void ARCSET_Verifier_RejectsTheEmptySet_OnACyclicGraph(string instance) {
+        ARCSET arc = new ARCSET(instance);
+        Assert.False(new ArcSetVerifier().verify(arc, "{}"));
+    }
+
+    [Fact]
+    public void ARCSET_BruteForce_StillRemovesAnEdge_OnACyclicGraph() {
+        ARCSET arc = new ARCSET("(({1,2,3},{(1,2),(2,3),(3,1)}),1)");
+        string answer = new ArcSetBruteForce().solve(arc);
+        Assert.NotEqual("{}", answer);
+        Assert.True(arc.defaultVerifier.verify(arc, answer));
+    }
 }
