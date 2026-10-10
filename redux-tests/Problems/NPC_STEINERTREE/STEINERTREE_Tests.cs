@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using API.Problems.NPComplete.NPC_STEINERTREE;
 using API.Problems.NPComplete.NPC_STEINERTREE.Verifiers;
 using API.Problems.NPComplete.NPC_STEINERTREE.Solvers;
@@ -70,6 +70,20 @@ public class STEINERTREE_Tests {
         SteinerTreeBruteForce solver = steiner.defaultSolver;
         string certificate = solver.solve(steiner);
         Assert.Equal("{{A,B}}", certificate);
+        Assert.True(steiner.defaultVerifier.verify(steiner, certificate));
+    }
+
+    // #750: the solver counted C(m, i+1) tries for combinations of i edges, so once i+1 > m/2 it ran short and never
+    // reached the later combinations. With every terminal needed and K = 2, the only tree uses both edges -- the one
+    // combination of size 2 -- and C(2, 3) = 0 tries meant it was never checked.
+    [Theory]
+    [InlineData("(({1,2,3},{{1,2},{3,1}}),{2,3,1},2)", "{{1,2},{3,1}}")]   // K = edge count
+    [InlineData("(({1,2,3},{{1,2},{3,1}}),{2,3,1},5)", "{{1,2},{3,1}}")]   // K above the edge count
+    [InlineData("(({a,b,c,d},{{a,b},{b,c},{c,d}}),{a,d},3)", "{{a,b},{b,c},{c,d}}")]   // the path is the last combination of 3
+    public void STEINERTREE_solver_tries_every_combination_of_each_size(string instance, string expected) {
+        STEINERTREE steiner = new STEINERTREE(instance);
+        string certificate = steiner.defaultSolver.solve(steiner);
+        Assert.Equal(expected, certificate);
         Assert.True(steiner.defaultVerifier.verify(steiner, certificate));
     }
 }
