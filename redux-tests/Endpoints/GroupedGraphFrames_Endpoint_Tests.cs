@@ -453,16 +453,28 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [Theory]
     [InlineData(SatVis)]
     [InlineData(Sat3Vis)]
-    public async Task Frames_NamesWithTheSeparators_GiveUniqueEscapedIds_AndEdgesNameTheirEnds(string vis) {
-        // Names SAT and 3SAT accept that hold this picture's separators ('-', '~', '\\'). (':' is left out here only
-        // because the SAT verifiers cannot read a certificate whose names hold ':'.)
+    public async Task Frames_NamesWithTheSeparators_AreAParseError(string vis) {
+        // SAT and 3SAT names are letters, digits and underscores (#759), so a name holding one of this picture's
+        // separators ('-', '~', ':', '\') never reaches it: the instance is a 400, not a picture. EscapeName stays as a
+        // defence and is unit-tested on its own in GroupedGraphFrames_Tests.
         string instance = @"(a-b | !c~d | e\f) & (!a-b | c~d) & (!e\f | a)";
+        var (status, body) = await Visualize($"visualization={vis}&format=frames", instance);
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        Assert.Contains("instance_parse_error", body);
+        Assert.Contains("a-b", body);
+    }
+
+    [Theory]
+    [InlineData(SatVis)]
+    [InlineData(Sat3Vis)]
+    public async Task Frames_NamesWithUnderscoresAndCapitals_GiveUniqueIds_AndEdgesNameTheirEnds(string vis) {
+        string instance = "(a_b | !C1 | e_F) & (!a_b | C1) & (!e_F | a)";
         var (status, body) = await Visualize($"visualization={vis}&format=frames", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         var payload = JsonDocument.Parse(body).RootElement.GetProperty("payload");
         var variables = payload.GetProperty("variables").EnumerateArray()
             .ToDictionary(v => v.GetProperty("id").GetString()!, v => v.GetProperty("label").GetString()!);
-        Assert.Equal(new Dictionary<string, string> { ["v:a"] = "a", [@"v:a\-b"] = "a-b", [@"v:c\~d"] = "c~d", [@"v:e\\f"] = @"e\f" }, variables);
+        Assert.Equal(new Dictionary<string, string> { ["v:a"] = "a", ["v:a_b"] = "a_b", ["v:C1"] = "C1", ["v:e_F"] = "e_F" }, variables);
         var nodes = payload.GetProperty("nodes").EnumerateArray().ToList();
         Assert.All(nodes, n => Assert.Contains(n.GetProperty("variable").GetString()!, variables.Keys));
         var nodeIds = nodes.Select(n => n.GetProperty("id").GetString()!).ToHashSet();
@@ -475,7 +487,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var all = variables.Keys.Concat(nodeIds).Concat(edges.Select(e => e.GetProperty("id").GetString()!)).ToList();
         Assert.Equal(all.Count, all.Distinct().Count());
 
-        // The frames key the assignment by the same escaped ids, and the answer is right.
+        // The frames key the assignment by the same ids, and the answer is right.
         var frames = Frames(body);
         Assert.All(frames, f => Assert.All(Assignment(f).Keys, k => Assert.Contains(k, variables.Keys)));
         var last = frames[^1];
