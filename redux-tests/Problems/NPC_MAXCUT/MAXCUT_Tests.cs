@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_MAXCUT;
 using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
@@ -197,5 +197,18 @@ public class MAXCUT_Tests {
             .ToHashSet();
 
         return MaxCutSolver.CutWeight(problem.edges, sNodes);
+    }
+
+    // #751 (Max Cut note): the solver started its best weight at -1 and GetMaxCutWeight at 0, so when every split
+    // weighs less than zero the solver found no split and the verifier wanted a weight no split has.
+    [Theory]
+    [InlineData("({1,2},{({1,2},-3)})", "{1}", -3)]
+    [InlineData("({1,2,3},{({1,2},-1),({2,3},-2),({1,3},-4)})", "{2}", -3)]
+    public void MAXCUT_Solver_And_Verifier_Agree_On_Negative_Weights(string instance, string expected, int weight) {
+        MAXCUT problem = new MAXCUT(instance);
+        string solution = new MaxCutSolver().solve(problem);
+        Assert.Equal(expected, solution);
+        Assert.Equal(weight, ComputeCutWeight(problem, solution));
+        Assert.True(new MaxCutVerifier().verify(problem, solution));
     }
 }
