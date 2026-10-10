@@ -42,26 +42,61 @@ public class STEINERTREE_Tests {
         Assert.Equal(expected, verifier.verify(steiner, certificate));
     }
 
-    // BUG: SteinerTreeVerifier.verify() never checks that the certificate's edges are a subset
-    // of problem.edges -- it just parses whatever edge pairs are handed to it and checks (a) the
-    // resulting graph is connected and (b) every terminal appears among the edge endpoints. A
-    // certificate built entirely from edges that don't exist in G is accepted regardless.
-    [Fact(Skip = "BUG: SteinerTreeVerifier accepts fabricated edges that don't exist in problem.edges -- see comment")]
+    [Fact]
     public void STEINERTREE_verifier_rejects_edges_not_in_graph() {
         STEINERTREE steiner = new STEINERTREE(); // default graph has no edge {5,2} or {2,8}
         SteinerTreeVerifier verifier = new SteinerTreeVerifier();
         Assert.False(verifier.verify(steiner, "{{5,2},{2,8}}"));
     }
 
-    // BUG: SteinerTreeVerifier.verify() never reads problem.K -- a certificate using more edges
-    // (i.e. more weight, since every edge here is unit-weight) than K permits is still accepted
-    // as long as it stays connected and covers the terminals.
-    [Fact(Skip = "BUG: SteinerTreeVerifier never checks certificate weight/edge-count against problem.K -- see comment")]
+    [Fact] // K bounds the number of edges
     public void STEINERTREE_verifier_rejects_certificate_over_K() {
         STEINERTREE steiner = new STEINERTREE(); // K = 6
         SteinerTreeVerifier verifier = new SteinerTreeVerifier();
         // 7 real edges, all connected, covers every terminal -- but 7 > K (6)
         Assert.False(verifier.verify(steiner, "{{3,5},{2,3},{2,1},{6,1},{6,8},{2,4},{4,5}}"));
+    }
+
+    [Fact] // within K, connected, covers terminals, but contains a cycle
+    public void STEINERTREE_verifier_rejects_cycle() {
+        STEINERTREE steiner = new STEINERTREE();
+        // 2-3-5-4-2 is a cycle; 6 edges total, so only the cycle can reject it
+        Assert.False(steiner.defaultVerifier.verify(steiner, "{{2,3},{3,5},{4,5},{2,4},{2,1},{6,1}}"));
+        STEINERTREE small = new STEINERTREE("(({1,2,3},{{1,2},{2,3},{1,3}}),{1,2,3},3)");
+        Assert.False(small.defaultVerifier.verify(small, "{{1,2},{2,3},{1,3}}"));
+    }
+
+    [Fact]
+    public void STEINERTREE_verifier_rejects_repeated_edge() {
+        STEINERTREE steiner = new STEINERTREE("(({1,2},{{1,2}}),{1,2},2)");
+        Assert.False(steiner.defaultVerifier.verify(steiner, "{{1,2},{2,1}}"));
+    }
+
+    [Fact]
+    public void STEINERTREE_verifier_accepts_valid_tree() {
+        STEINERTREE steiner = new STEINERTREE(); // K = 6
+        Assert.True(steiner.defaultVerifier.verify(steiner, "{{3,5},{2,3},{2,1},{6,1},{6,8}}"));
+        // routes through non-terminal 4 instead; still 5 edges
+        Assert.True(steiner.defaultVerifier.verify(steiner, "{{2,4},{4,5},{2,1},{6,1},{6,8}}"));
+    }
+
+    [Fact]
+    public void STEINERTREE_solver_default_instance_verifies() {
+        STEINERTREE steiner = new STEINERTREE();
+        string certificate = steiner.defaultSolver.solve(steiner);
+        Assert.NotEqual("{}", certificate);
+        Assert.True(steiner.defaultVerifier.verify(steiner, certificate));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("garbage")]
+    [InlineData("{{3}}")]
+    [InlineData("{{3,5,2}}")]
+    [InlineData("{3,5}")]
+    public void STEINERTREE_verifier_malformed_certificate_returns_false(string certificate) {
+        STEINERTREE steiner = new STEINERTREE();
+        Assert.False(steiner.defaultVerifier.verify(steiner, certificate));
     }
 
     [Fact] // solver must find the minimum Steiner tree -- constructed so the correct answer is the very first edge combination tried
