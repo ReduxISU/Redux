@@ -33,8 +33,8 @@ class DFASolver : ISolver<DFA, ActiveStates> {
     // The run dies with a Reject; Done always closes the run with the states it stopped in.
     // Recorder state lives only in this call, so the solver object stays stateless.
     public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
-        // Input String //
-        string inputString = problem.inputString;
+        // Input String (the empty input is written "ε", and reads no symbol) //
+        string inputString = problem.inputString == "ε" ? "" : problem.inputString;
         // First Node To Be Analyzed //
         string currentNode = problem.startState;
         // Will Track Path Through Nodes //
@@ -52,10 +52,6 @@ class DFASolver : ISolver<DFA, ActiveStates> {
         }
 
         foreach (char character in inputString) {
-            // Accept Empty String If Start State Is an Accept State //
-            if (character == 'ε' && problem.acceptStates.Contains(currentNode))
-                return Finish($"The sequence of states to accept is: {currentNode}", true, $"The input is empty and {currentNode} is an accept state, so the DFA accepts.");
-
             // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character)) {
                 rec.Reject(() => new ActiveStates([currentNode], consumed),
