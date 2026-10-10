@@ -59,6 +59,31 @@ public class GraphTourFrames_Tests {
         Assert.Contains("\"k\":8000", json);
     }
 
+    // ---- parallel edges (#769): one drawn edge per pair, weighing the lightest, labelled with every listed weight ----
+
+    [Fact]
+    public void Payload_Tsp_ParallelEdges_AreOneEdge_WeighingTheLightest_LabelledWithEveryWeight() {
+        var spec = new GraphTourSpec(["a", "b", "c"], [new("a", "b", 2), new("b", "a", 5), new("b", "c", 1), new("c", "a", 1)], false, 4, TourRule.TravelingSalesperson);
+        var p = GraphTourFrames.Payload(spec);
+        Assert.Equal(["a-b", "b-c", "a-c"], p.Edges.Select(e => e.Id));
+        Assert.Equal(2d, p.Edges[0].Weight);
+        Assert.Equal("2,5", p.Edges[0].Label);   // in the order listed
+        Assert.All(p.Edges.Skip(1), e => Assert.Null(e.Label));
+        Assert.Contains("{\"id\":\"a-b\",\"a\":\"a\",\"b\":\"b\",\"weight\":2,\"label\":\"2,5\"}", JsonSerializer.Serialize(p));
+        // A frame names the one edge id.
+        var f = GraphTourFrames.Frame(spec, Of("a", "b", "c", "a"), StepEvent.Done, [], "x", true);
+        Assert.Equal(["a-b", "a-c", "b-c"], f.Edges.Keys.Order());
+    }
+
+    [Fact]
+    public void Payload_Directed_ParallelEdges_MergeOnlyInTheSameDirection() {
+        var spec = new GraphTourSpec(["a", "b"], [new("a", "b", 3), new("b", "a", 4), new("a", "b", 1)], true, null, TourRule.HamiltonianCycle);
+        var p = GraphTourFrames.Payload(spec);
+        Assert.Equal(["a>b", "b>a"], p.Edges.Select(e => e.Id));
+        Assert.Equal([1d, 4d], p.Edges.Select(e => e.Weight!.Value));
+        Assert.Equal(["3,1", null], p.Edges.Select(e => e.Label));
+    }
+
     [Fact]
     public void Payload_Directed_SaysSo_AndKeepsTheDirectionInTheIdAndEnds() {
         var p = GraphTourFrames.Payload(Directed());
