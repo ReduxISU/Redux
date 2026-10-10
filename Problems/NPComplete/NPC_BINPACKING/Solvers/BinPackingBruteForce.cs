@@ -5,7 +5,7 @@
 //
 // Because this solver is exhaustive, it always gives the right answer:
 //   - If a valid packing exists, it returns one as a certificate string.
-//   - If no packing fits within K bins of capacity C, it returns "".
+//   - If no packing fits within K bins of capacity C, it returns "{}" (no answer).
 //
 // Worst-case time complexity is O(K^n) — exponential — so it will be slow
 // on large inputs. That's expected; Bin Packing is NP-Complete.
@@ -22,7 +22,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
 
     // Plain-English explanation of the algorithm strategy, including the two
     // pruning tricks that make it faster in practice than the raw O(K^n) bound.
-    public string solverDefinition { get; } = "Exhaustive backtracking solver for the Bin Packing decision problem. For each item in the input order, the solver attempts to place the item into each of the K candidate bins; branches that would exceed capacity C are pruned, and symmetric placements into equivalent empty bins are skipped. The first complete assignment that respects capacity and the bin-count limit is returned as the certificate; if no such assignment exists the solver returns the empty string.";
+    public string solverDefinition { get; } = "Exhaustive backtracking solver for the Bin Packing decision problem. For each item in the input order, the solver attempts to place the item into each of the K candidate bins; branches that would exceed capacity C are pruned, and symmetric placements into equivalent empty bins are skipped. The first complete assignment that respects capacity and the bin-count limit is returned as the certificate; if no such assignment exists the solver returns {}.";
 
     public string source { get; } = "Garey, M. R., and Johnson, D. S. Computers and Intractability: A Guide to the Theory of NP-Completeness. W. H. Freeman, 1979. Problem SR1.";
     public string sourceFile { get; } = SourceFile.Path();
@@ -50,13 +50,13 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
         // Fast pre-check: if any single item is larger than a bin can hold,
         // there is no valid packing regardless of how many bins we have.
         foreach (int size in items) {
-            if (size > C) return "";
+            if (size > C) return "{}";
         }
 
         // Edge case: no bins allowed.
         // An empty item list can be packed into zero bins; anything else cannot.
         if (K <= 0) {
-            return n == 0 ? "()" : "";
+            return n == 0 ? "()" : "{}";
         }
 
         // Set up K empty bins — each bin tracks its running sum and its contents.
@@ -65,7 +65,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
         for (int i = 0; i < K; i++) binContents[i] = new List<int>();
 
         // Run the backtracking search starting from the first item.
-        if (!Place(0, items, binSums, binContents, C, K)) return "";
+        if (!Place(0, items, binSums, binContents, C, K)) return "{}";
         return FormatCertificate(binContents);
     }
 

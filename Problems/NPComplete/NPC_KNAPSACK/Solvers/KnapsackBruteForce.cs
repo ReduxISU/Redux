@@ -45,7 +45,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
             if (knapsack.defaultVerifier.verify(knapsack, strCertificate)) return strCertificate;
         }
 
-        return "";
+        return "{}";
     }
 
 }

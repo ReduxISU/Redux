@@ -93,8 +93,16 @@ public class KNAPSACK_Tests {
         string bruteForceCertificate = new KnapsackBruteForce().solve(problem);
 
         Assert.Equal("{}", dpCertificate);
-        Assert.Equal("", bruteForceCertificate);
+        Assert.Equal("{}", bruteForceCertificate);
         Assert.False(new KnapsackVerifier().verify(problem, dpCertificate));
+    }
+
+    // #792: the brute force said "no answer" with "" while every other solver says "{}".
+    [Fact]
+    public void BruteForce_NoAnswer_IsBraces_AndTheVerifierRejectsIt() {
+        KNAPSACK problem = new KNAPSACK("({(10,60)},5,100)");
+        Assert.Equal("{}", new KnapsackBruteForce().solve(problem));
+        Assert.False(new KnapsackVerifier().verify(problem, "{}"));
     }
 
     [Fact]

@@ -9,7 +9,7 @@
 //
 // FFD is much faster than brute force — O(n²) — and usually finds a good
 // packing, but it is NOT guaranteed to find one when the answer is YES.
-// If FFD needs more than K bins, it returns "" — but that does NOT prove
+// If FFD needs more than K bins, it returns "{}" — but that does NOT prove
 // the instance is a NO-instance. The brute force solver is the authoritative
 // decider; FFD is offered as a fast heuristic alternative.
 //
@@ -28,7 +28,7 @@ class BinPackingFFD : ISolver<BINPACKING> {
 
     // The definition explains the algorithm, its complexity, and — importantly —
     // the caveat that FFD is a heuristic, not an exact decider.
-    public string solverDefinition { get; } = "First Fit Decreasing is a classical approximation heuristic for Bin Packing. Items are first sorted in descending order of size; each item is then placed into the first existing bin with enough remaining capacity, or into a newly opened bin if no existing bin fits. FFD runs in O(n^2) time and is guaranteed to use at most (11/9) OPT + 6/9 bins (Dosa, 2007). Because FFD is a heuristic for the optimization variant, on a decision instance where the minimum number of bins equals K it may still open more than K bins; in that case this solver returns an empty certificate, which should not be interpreted as proof of infeasibility.";
+    public string solverDefinition { get; } = "First Fit Decreasing is a classical approximation heuristic for Bin Packing. Items are first sorted in descending order of size; each item is then placed into the first existing bin with enough remaining capacity, or into a newly opened bin if no existing bin fits. FFD runs in O(n^2) time and is guaranteed to use at most (11/9) OPT + 6/9 bins (Dosa, 2007). Because FFD is a heuristic for the optimization variant, on a decision instance where the minimum number of bins equals K it may still open more than K bins; in that case this solver returns {}, which should not be interpreted as proof of infeasibility.";
 
     // Two sources: Johnson's original PhD thesis that introduced FFD, and
     // Dósa's 2007 paper that proved the tight (11/9) OPT bound.
@@ -61,7 +61,7 @@ class BinPackingFFD : ISolver<BINPACKING> {
         // Fast pre-check: if any item exceeds bin capacity, packing is impossible
         // regardless of how many bins we have.
         foreach (int size in sorted) {
-            if (size > C) return "";
+            if (size > C) return "{}";
         }
 
         // bins holds the items placed in each bin so far.
@@ -87,9 +87,9 @@ class BinPackingFFD : ISolver<BINPACKING> {
             // No existing bin had room — open a new one.
             if (!placed) {
                 // If opening a new bin would exceed the K-bin limit, we give up.
-                // This returns "" which means "FFD couldn't find a packing within K bins".
+                // This returns "{}" which means "FFD couldn't find a packing within K bins".
                 // It does NOT mean the instance is unsolvable — use brute force to be sure.
-                if (bins.Count + 1 > K) return "";
+                if (bins.Count + 1 > K) return "{}";
                 bins.Add(new List<int> { size });
                 binSums.Add(size);
             }

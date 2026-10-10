@@ -6,9 +6,9 @@
 //   - Verifier: valid certificates that should return true
 //   - Verifier: invalid certificates that should return false
 //   - BruteForce solver: feasible instances (checks exact certificate output)
-//   - BruteForce solver: infeasible instances (must return empty string)
+//   - BruteForce solver: infeasible instances (must answer "{}")
 //   - FFD solver: feasible instances (checks exact certificate output)
-//   - FFD solver: infeasible/over-K instances (must return empty string)
+//   - FFD solver: infeasible/over-K instances (must answer "{}")
 //   - Round-trip: solver output fed directly into verifier must always pass
 //
 // All expected certificate strings were hand-traced before writing the tests.
@@ -114,7 +114,7 @@ public class BINPACKING_Tests {
 
     //  Brute Force Solver — infeasible instances
     // These are NO-instances. The solver must exhaustively confirm no packing
-    // exists and return an empty string "".
+    // exists and answer "{}" (no answer, #792).
 
     [Theory]
     [InlineData("((6,6,6),10,1)")]
@@ -124,7 +124,7 @@ public class BINPACKING_Tests {
     public void BINPACKING_BruteForce_Infeasible_Returns_Empty(string instance) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingBruteForce solver = new BinPackingBruteForce();
-        Assert.Equal("", solver.solve(bp));
+        Assert.Equal("{}", solver.solve(bp));
     }
 
     // FFD Solver — feasible instances 
@@ -148,19 +148,34 @@ public class BINPACKING_Tests {
     }
 
     //  FFD Solver — over-K or impossible instances 
-    // When FFD would need more than K bins, it returns "" rather than exceeding
-    // the limit. Note: "" from FFD does NOT prove infeasibility — use brute force.
+    // When FFD would need more than K bins, it answers "{}" rather than exceeding
+    // the limit. Note: "{}" from FFD does NOT prove infeasibility — use brute force.
 
     [Theory]
     [InlineData("((6,6,6),10,1)")]
     // FFD opens bin0 for first 6, then can't place second 6 (12>10) and
-    //   opening bin1 would exceed K=1 — so it gives up and returns ""
+    //   opening bin1 would exceed K=1 — so it gives up and answers "{}"
     [InlineData("((11,5),10,3)")]
-    // item size 11 exceeds C=10 — caught by the pre-check, returns "" immediately
+    // item size 11 exceeds C=10 — caught by the pre-check, answers "{}" immediately
     public void BINPACKING_FFD_Infeasible_Returns_Empty(string instance) {
         BINPACKING bp = new BINPACKING(instance);
         BinPackingFFD solver = new BinPackingFFD();
-        Assert.Equal("", solver.solve(bp));
+        Assert.Equal("{}", solver.solve(bp));
+    }
+
+    // #792: "no answer" is "{}" like every other solver's, and the verifier rejects it. "()" (no bins) is still the
+    // answer when there are no items.
+    [Fact]
+    public void BINPACKING_NoAnswer_IsBraces_AndTheVerifierRejectsIt() {
+        BINPACKING bp = new BINPACKING("((6,6,6),10,2)");
+        Assert.Equal("{}", new BinPackingBruteForce().solve(bp));
+        Assert.Equal("{}", new BinPackingFFD().solve(bp));
+        Assert.Equal("{}", new BinPackingBruteForce().solve(new BINPACKING("((1),5,0)")));
+        Assert.False(new BinPackingVerifier().verify(bp, "{}"));
+        BINPACKING empty = new BINPACKING("((),5,1)");
+        Assert.Equal("()", new BinPackingBruteForce().solve(empty));
+        Assert.Equal("()", new BinPackingFFD().solve(empty));
+        Assert.True(new BinPackingVerifier().verify(empty, "()"));
     }
 
     //  Round-trip: Solver output → Verifier 
