@@ -48,7 +48,9 @@ class KnapsackDP : ISolver<KNAPSACK> {
         UtilCollection selectedItems = new UtilCollection("{}");
         int remainingCapacity = capacity;
 
-        for (int i = n; i > 0 && remainingCapacity > 0; i--) {
+        // Every row, even once the capacity is used up: a zero-weight item the table took still has to be picked up (#795).
+        // With no room left, an item that weighs something never changes dp[i, 0], so it is not taken.
+        for (int i = n; i > 0; i--) {
             if (dp[i, remainingCapacity] != dp[i - 1, remainingCapacity]) {
                 var item = itemValues[i - 1];
                 selectedItems.Add(item);

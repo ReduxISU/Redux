@@ -178,4 +178,14 @@ public class KNAPSACK_Tests {
     public void ZeroCapacityAndWeight_AndNegativeValues_AreStillAllowed() {
         Assert.Equal("{(0,5)}", new KnapsackBruteForce().solve(new KNAPSACK("({(0,5),(3,-2)},0,5)")));
     }
+
+    // #795: the trace-back stopped once the capacity was used up, so it never reached a zero-weight item the table counted.
+    [Theory]
+    [InlineData("({(0,3),(5,10)},5,13)")]
+    [InlineData("({(0,5)},0,5)")]
+    public void KnapsackDP_ZeroWeightItem_IsInTheAnswer(string instance) {
+        KNAPSACK problem = new KNAPSACK(instance);
+        string certificate = new KnapsackDP().solve(problem);
+        Assert.True(new KnapsackVerifier().verify(problem, certificate), certificate);
+    }
 }
