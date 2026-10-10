@@ -1,0 +1,65 @@
+# GraphColoringToCliqueCover
+ElementHighlight | a | a
+ElementHighlight | b | b
+ElementHighlight | c | c
+ElementHighlight | d | d
+ElementHighlight | e | e
+ElementHighlight | f | f
+ElementHighlight | g | g
+ElementHighlight | h | h
+ElementHighlight | i | i
+# KarpSATToSAT3
+ClauseHighlight | 0 | 0,3,4
+ElementHighlight | 0-0 | 0-0
+ElementHighlight | 0-1 | 0-1
+ElementHighlight | 0-2 | 4-0
+ElementHighlight | 0-3 | 3-0
+ElementHighlight | 0-4 | 3-1
+ClauseHighlight | 1 | 1
+ElementHighlight | 1-0 | 1-0
+ElementHighlight | 1-1 | 1-1
+ClauseHighlight | 2 | 2
+ElementHighlight | 2-0 | 2-0
+ElementHighlight | 2-1 | 2-1
+ElementHighlight | 2-2 | 2-2
+ElementHighlight | 1-0 | 1-2
+# KarpVertexCoverToNodeSet
+ElementHighlight | a | a
+ElementHighlight | b | b
+ElementHighlight | c | c
+ElementHighlight | d | d
+ElementHighlight | e | e
+# LawlerKarp
+ElementHighlight | a | a0,a1
+ElementHighlight | b | b0,b1
+ElementHighlight | c | c0,c1
+ElementHighlight | d | d0,d1
+ElementHighlight | e | e0,e1
+# reduceToCLIQUE
+ElementHighlight | a | a
+ElementHighlight | b | b
+ElementHighlight | c | c
+ElementHighlight | d | d
+ElementHighlight | e | e
+ElementHighlight | f | f
+ElementHighlight | g | g
+# SipserReduceToCliqueStandard
+ElementHighlight | 0-0 | x1_0
+ElementHighlight | 0-1 | !x2_0
+ElementHighlight | 0-2 | x3_0
+ClauseHighlight | 0 | x1_0,!x2_0,x3_0
+ElementHighlight | 1-0 | !x1_1
+ElementHighlight | 1-1 | x3_1
+ElementHighlight | 1-2 | x1_1
+ClauseHighlight | 1 | !x1_1,x3_1,x1_1
+ElementHighlight | 2-0 | x2_2
+ElementHighlight | 2-1 | !x3_2
+ElementHighlight | 2-2 | !x1_2
+ClauseHighlight | 2 | x2_2,!x3_2,!x1_2
+# sipserReductionVertexCover
+ElementHighlight | 1 | 1
+ElementHighlight | 2 | 2
+ElementHighlight | 3 | 3
+ElementHighlight | 4 | 4
+ElementHighlight | 5 | 5
+ElementHighlight | 6 | 6
