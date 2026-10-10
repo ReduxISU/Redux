@@ -357,6 +357,33 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(["a", "f", "b", "d", "c", "e", "g", "a"], Order(frames[^1]));
     }
 
+    // 1 and 2 are joined by two edges, 5 and 1 (#769). A tour uses the lightest, so 1-2-3-1 costs 3 = K: the payload draws
+    // one 1-2 edge weighing 1 and labelled "5,1", and the captions' costs use the 1. Before #769 the payload and the
+    // Greedy's captions took the first edge listed (5), and every solver answered {} because the verifier did too.
+    [Theory]
+    [InlineData("tspbruteforce")]
+    [InlineData("tspgreedy")]
+    [InlineData("tspbranchandbound")]
+    public async Task Frames_Tsp_ParallelEdges_AreOneEdge_WeighingTheLightest(string solver) {
+        const string instance = "(({1,2,3},{({1,2},5),({1,2},1),({2,3},1),({1,3},1)}),3)";
+        var (status, body) = await Visualize($"visualization={TspVis}&format=frames&solver={solver}", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        var edges = root.GetProperty("payload").GetProperty("edges").EnumerateArray().ToDictionary(e => e.GetProperty("id").GetString()!, e => e);
+        Assert.Equal(["1-2", "2-3", "1-3"], edges.Keys);
+        Assert.Equal(1, edges["1-2"].GetProperty("weight").GetInt32());
+        Assert.Equal("5,1", edges["1-2"].GetProperty("label").GetString());
+        var frames = Frames(body);
+        Assert.All(frames, f => Assert.All(States(f, "edges").Keys, id => Assert.Contains(id, edges.Keys)));
+        Assert.DoesNotContain(frames, f => f.GetProperty("caption").GetString()!.Contains("weight 5"));
+        var done = frames[^1];
+        Assert.True(done.GetProperty("ok").GetBoolean());
+        Assert.Equal(4, Order(done).Length);
+        var order = Order(done);
+        int cost = Enumerable.Range(0, order.Length - 1).Sum(i => edges[string.CompareOrdinal(order[i], order[i + 1]) < 0 ? $"{order[i]}-{order[i + 1]}" : $"{order[i + 1]}-{order[i]}"].GetProperty("weight").GetInt32());
+        Assert.Equal(3, cost);
+    }
+
     [Theory]
     [MemberData(nameof(EverySolver))]
     public async Task Frames_EveryCompatibleSolver_EndsInAVerifiedDoneFrame(string vis, string solver) {

@@ -9,9 +9,8 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 /// </summary>
 static class TSPTourSteps {
     /// <summary>
-    /// The weight of the edge between two cities, or null if there is none: the first edge listed from <paramref name="a"/> to
-    /// <paramref name="b"/>, else the first listed from b to a. (With parallel or reversed edges of different weights this can
-    /// differ from the weight the picture draws, which is the first listed in either direction.)
+    /// The weight of the edge between two cities, or null if there is none. The problem's edges hold one edge per pair, the
+    /// lightest of any parallel edges (#769), so this is the weight the verifier counts and the picture draws.
     /// </summary>
     public static int? Weight(TSP tsp, string a, string b) {
         foreach (var e in tsp.edges)

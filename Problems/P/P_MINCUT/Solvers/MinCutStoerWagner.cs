@@ -54,8 +54,8 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
             listedWeight += edge.weight;
         }
 
-        // The answer lists one edge per pair of nodes, but Stoer-Wagner adds parallel edges up, so with parallel edges the
-        // answer can weigh less than the cut it names. The verifier then refuses it, and so must the Done step.
+        // The answer lists one edge per pair of nodes. Parallel edges are already merged into one with their summed weight
+        // (#769), so it weighs the cut it names; if it ever did not, the verifier would refuse it, and so must the Done step.
         bool listsTheCut = listedWeight == minWeight;
         rec.Done(GraphEdgeFrames.Split(problem.nodes, minSide.Select(i => problem.nodes[i])), listsTheCut,
             !listsTheCut

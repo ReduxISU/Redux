@@ -56,7 +56,7 @@ class MaxCutVisualization : IVisualization<MAXCUT, API_GraphJSON>, IGraphCutVisu
     Type? IVisualization.StepShape => typeof(Groups);
 
     GraphEdgeSpec IGraphCutVisualization<MAXCUT>.Describe(MAXCUT problem) =>
-        new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.MaxCut);
+        new(problem.nodes, problem.listedEdges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.MaxCut);
 
     // Max Cut's answer is the S side itself, not the cut edges.
     Groups IGraphCutVisualization<MAXCUT>.ParseAnswer(MAXCUT problem, string answer) {
