@@ -52,6 +52,12 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
         set => _edges = value;
     }
 
+    /// <summary>
+    /// The edges as listed in the instance, before parallel edges are merged into <see cref="edges"/>. Kept for
+    /// pictures that show every listed weight; internal, so it is not part of the problem's JSON.
+    /// </summary>
+    internal List<(string source, string destination, int weight)> listedEdges { get; private set; } = new();
+
     public MINIMUMSPANNINGTREE() : this(_defaultInstance) { }
 
     public MINIMUMSPANNINGTREE(string instanceString) {
@@ -62,10 +68,13 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
         mstParser.parse(instanceString);
 
         nodes = mstParser["N"].ToList().Select(node => node.ToString()).ToList();
-        edges = mstParser["E"].ToList().Select(edge => {
+        listedEdges = mstParser["E"].ToList().Select(edge => {
             List<UtilCollection> endpoints = edge[0].ToList();
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));
         }).ToList();
+        // A tree takes the lightest edge between two nodes, so parallel edges merge into the lightest (#769). The solvers
+        // read the same merged edges (KruskalSolver.ExtractEdges).
+        edges = ParallelEdges.Lightest(listedEdges);
 
         // Reject malformed instances before building the graph object used elsewhere.
         ValidateInstance(nodes, mstParser["E"]);

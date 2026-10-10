@@ -198,4 +198,20 @@ public class MAXCUT_Tests {
 
         return MaxCutSolver.CutWeight(problem.edges, sNodes);
     }
+
+    // ----- Parallel edges (#769): a cut adds the weights of parallel edges ----- //
+
+    // 1 and 2 are joined twice (5 and 2). The solver already added them; the problem's edges now hold one edge per pair, as
+    // in every other cut problem.
+    [Fact]
+    public void MAXCUT_Parallel_Edges_Are_Added() {
+        MAXCUT problem = new MAXCUT("({1,2,3},{({1,2},5),({1,2},2),({2,3},4)})");
+        Assert.Equal(2, problem.edges.Count);
+        Assert.Contains(("1", "2", 7), problem.edges);
+        Assert.Equal(3, problem.listedEdges.Count);
+        string answer = new MaxCutSolver().solve(problem);
+        Assert.Equal("{2}", answer);
+        Assert.Equal(11, MaxCutSolver.CutWeight(problem.edges, new HashSet<string> { "2" }));
+        Assert.True(problem.defaultVerifier.verify(problem, answer));
+    }
 }

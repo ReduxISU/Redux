@@ -217,4 +217,30 @@ public class MINIMUMSPANNINGTREE_Tests {
         MinimumSpanningTreeVerifier verifier = new MinimumSpanningTreeVerifier();
         Assert.True(verifier.verify(problem, MinimumSpanningTreeVerifier.CertificateExample));
     }
+
+    // ----- Parallel edges (#769): a tree uses the lightest edge between two nodes ----- //
+
+    // 1 and 2 are joined twice (5, then 1). The answers were already right, but the solvers' edge list kept both, so
+    // Kruskal looked at the 5 after taking the 1 and skipped "edge 1-2" as closing a cycle; the problem's edges kept both too.
+    private const string ParallelInstance = "({1,2,3},{({1,2},5),({1,2},1),({2,3},1),({1,3},3)})";
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_Parallel_Edges_Merge_Into_The_Lightest() {
+        MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE(ParallelInstance);
+        Assert.Equal(3, problem.edges.Count);
+        Assert.Contains(("1", "2", 1), problem.edges);
+        Assert.Equal(4, problem.listedEdges.Count);
+    }
+
+    [Fact]
+    public void MINIMUMSPANNINGTREE_Parallel_Edges_Solvers_See_One_Edge_Per_Pair() {
+        MINIMUMSPANNINGTREE problem = new MINIMUMSPANNINGTREE(ParallelInstance);
+        var edges = KruskalSolver.ExtractEdges(problem.graph);
+        Assert.Equal(3, edges.Count);
+        Assert.Contains(("1", "2", 1), edges);
+        foreach (string answer in new[] { new KruskalSolver().solve(problem), new PrimSolver().solve(problem) }) {
+            Assert.Equal("{{1,2},{2,3}}", answer);
+            Assert.True(problem.defaultVerifier.verify(problem, answer));
+        }
+    }
 }
