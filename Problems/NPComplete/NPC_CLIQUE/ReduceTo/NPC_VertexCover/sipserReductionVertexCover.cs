@@ -72,6 +72,8 @@ class sipserReductionVertexCover : IReduction<CLIQUE, VERTEXCOVER> {
     /// authored by Janita Aamir. Contributed to by Alex Diviney.
     /// </remarks>
     public VERTEXCOVER reduce() {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         CLIQUE CLIQUEInstance = _reductionFrom;
         VERTEXCOVER reducedVERTEXCOVER = new VERTEXCOVER();
 

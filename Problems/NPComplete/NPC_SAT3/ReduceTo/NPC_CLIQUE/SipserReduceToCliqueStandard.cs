@@ -94,6 +94,8 @@ class SipserReduceToCliqueStandard : IReduction<SAT3, CLIQUE> {
     }
 
     public CLIQUE reduce() {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         UtilCollection nodes = new("{}");
         UtilCollection edges = new("{}");
         for (int i = 0; i < reductionFrom.clauses.Count; i++) {

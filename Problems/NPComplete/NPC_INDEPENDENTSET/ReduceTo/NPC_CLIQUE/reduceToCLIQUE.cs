@@ -78,6 +78,8 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
     /// authored by Janita Aamir. Contributed to by Alex Diviney.
     /// </remarks>
     public CLIQUE reduce() {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         INDEPENDENTSET INDPENDENTSETInstance = _reductionFrom;
         CLIQUE reducedCLIQUE = new CLIQUE();
         reducedCLIQUE.nodes = INDPENDENTSETInstance.nodes;
