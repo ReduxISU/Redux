@@ -85,6 +85,14 @@ sealed record GraphFrame(
     [JsonPropertyName("groups")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<string, int>? Groups { get; init; }
+
+    /// <summary>
+    /// The tour or path so far, as node ids in visiting order (the tour shape). A closed tour repeats its first node at
+    /// the end, as the certificate does. Omitted by every other shape.
+    /// </summary>
+    [JsonPropertyName("order")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? Order { get; init; }
 }
 
 /// <summary>

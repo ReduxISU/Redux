@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_TSP.Solvers;
 
 namespace API.Problems.NPComplete.NPC_TSP.Visualizations;
 
-class TSPDefaultVisualization : IVisualization<TSP, API_GraphJSON> {
+class TSPDefaultVisualization : IVisualization<TSP, API_GraphJSON>, IGraphTourVisualization<TSP> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Traveling Salesperson Visualization";
@@ -54,4 +56,10 @@ class TSPDefaultVisualization : IVisualization<TSP, API_GraphJSON> {
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Tour);
+
+    GraphTourSpec IGraphTourVisualization<TSP>.Describe(TSP problem) =>
+        new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, problem.K, TourRule.TravelingSalesperson);
 }
