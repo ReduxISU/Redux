@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
+class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet> {
     public string solverName { get; } = "Prim's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by repeatedly adding the lowest-weight edge that connects the growing tree to a new vertex.";
     public string source { get; } = "Prim, R. C. \"Shortest connection networks and some generalizations.\" Bell System Technical Journal 36, no. 6 (1957): 1389-1401.";
@@ -24,17 +26,24 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
     // times O(E log E) per iteration, not the textbook O(E log V) (heap) or O(V^2) (array).
     public string complexity { get; } = "O(V * E log E)";
 
-    public string solve(MINIMUMSPANNINGTREE problem) {
+    public string solve(MINIMUMSPANNINGTREE problem) => Solve(problem, StepRecorder<EdgeSet>.Off);
+
+    // Steps: start at the first node, then one Accept per edge added to the growing tree.
+    public string Solve(MINIMUMSPANNINGTREE problem, StepRecorder<EdgeSet> rec) {
         // Sort once so equal-weight instances still produce deterministic certificates.
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().OrderBy(n => n).ToList();
         var edges = KruskalSolver.ExtractEdges(problem.graph);
 
-        if (nodes.Count == 0)
+        if (nodes.Count == 0) {
+            rec.Done(new EdgeSet([]), true, "There are no nodes, so there is nothing to connect.");
             return "{}";
+        }
 
         var adjacency = BuildAdjacency(nodes, edges);
         var visited = new HashSet<string> { nodes[0] };
         var selected = new List<(string u, string v, int weight)>();
+        EdgeSet Chosen() => new(selected.Select(e => GraphSubsetFrames.EdgeId(e.u, e.v)));
+        rec.Try(Chosen, () => $"Start the tree at node {nodes[0]}.", nodes[0]);
 
         while (selected.Count < nodes.Count - 1) {
             if (timerHasExpired)
@@ -45,8 +54,10 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
                 .Where(edge => !visited.Contains(edge.to))
                 .ToList();
 
-            if (candidateEdges.Count == 0)
+            if (candidateEdges.Count == 0) {
+                rec.Done(new EdgeSet([]), false, "No edge leaves the tree, so the graph is in more than one piece and has no spanning tree.");
                 return "{}";
+            }
 
             // Tie-break lexicographically so the API returns stable output when multiple MSTs exist.
             var nextEdge = candidateEdges
@@ -57,8 +68,14 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
 
             selected.Add((nextEdge.from, nextEdge.to, nextEdge.weight));
             visited.Add(nextEdge.to);
+            rec.Accept(Chosen,
+                () => $"Edge {GraphSubsetFrames.EdgeId(nextEdge.from, nextEdge.to)} is the lightest edge leaving the tree, so add it (weight {nextEdge.weight}). Node {nextEdge.to} joins.",
+                GraphSubsetFrames.EdgeId(nextEdge.from, nextEdge.to));
         }
 
+        rec.Done(Chosen(), true, selected.Count == 0
+            ? "A single node needs no edges."
+            : $"The tree uses {selected.Count} edges with total weight {selected.Sum(e => e.weight)}.");
         return KruskalSolver.EdgeListToCertificate(selected);
     }
 

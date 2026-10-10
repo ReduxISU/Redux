@@ -1,3 +1,5 @@
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_STEINERTREE.Solvers;
 
 namespace API.Problems.NPComplete.NPC_STEINERTREE.Visualizations;
 
-class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE, API_GraphJSON> {
+class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE, API_GraphJSON>, IGraphEdgesVisualization<STEINERTREE> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Steiner Tree Visualization";
@@ -47,4 +49,10 @@ class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE, API_GraphJSO
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(EdgeSet);
+
+    GraphEdgeSpec IGraphEdgesVisualization<STEINERTREE>.Describe(STEINERTREE problem) =>
+        new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.Key, e.Value)).ToList(), EdgeRule.SteinerTree) { Terminals = problem.terminals, K = problem.K };
 }

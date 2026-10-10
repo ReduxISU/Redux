@@ -1,3 +1,5 @@
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
@@ -8,7 +10,7 @@ using API.Problems.NPComplete.NPC_WEIGHTEDCUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Visualizations;
 
-class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT, API_GraphJSON> {
+class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT, API_GraphJSON>, IGraphCutVisualization<WEIGHTEDCUT> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Weighted Cut Visualization";
@@ -64,4 +66,10 @@ class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT, API_GraphJSO
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Groups);
+
+    GraphEdgeSpec IGraphCutVisualization<WEIGHTEDCUT>.Describe(WEIGHTEDCUT problem) =>
+        new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.WeightedCut) { K = problem.K };
 }

@@ -45,7 +45,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | --- | --- | --- | --- |
 | `GraphD3` | [`API_GraphJSON`](../../Interfaces/JSON_Objects/Graphs/API_GraphJSON.cs) | [StandardGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardGraphSvgReact.js) | Independent Set, Max Cut, Vertex Cover |
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
-| `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
+| `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs), [`GraphEdgeFrames`](../../Interfaces/graphs/GraphEdgeFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set; Minimum Spanning Tree, Steiner Tree; Cut, Weighted Cut, Max Cut, Minimum Cut. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format. See "The Graph picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -58,6 +58,26 @@ Two things that trip people up:
 
 - Every payload class carries a `kind` field (`"graph"`, `"sat"`, `"set"`, `"table"`, `"empty"`, ...). It tells a reader what the JSON is without guessing. You do not set it. The class does.
 - `Unimplemented` means "no renderer exists". The GUI shows an honest "not renderable" message instead of a broken picture. A few old classes use it, and a test (section 6) stops **new** classes from joining them.
+
+### The Graph picture (`format=frames`)
+
+A graph problem whose answer is a set of nodes, a set of edges, or a split of the nodes in two can also serve the shared `Graph` picture. This is additive: you keep `visualize` and `SolvedVisualization` exactly as they are (old frontends read those), and add one interface plus a description of the problem. The solver records typed steps (see `StepRecorder`), and the base derives every picture from the step's partial answer, so a greedy and a brute-force solver animate on the same picture.
+
+The payload (sent once) is `{ kind: "graph", subtype: "undirected", layout: "force", nodes, edges, shape, rule, k? }`. Edge ids are `"a-b"` with `a < b` (ordinal). Each frame is `{ event, caption, focus, ok?, nodes, edges, phantoms, groups? }` where `nodes` and `edges` map an id to `{ state }`; an id that is absent is `Background`. When several states apply to one element the order is `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`.
+
+| `shape` | Problems (`rule`) | Interface to implement | `StepShape` | How the answer reads |
+| --- | --- | --- | --- | --- |
+| `subset` | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set | `IGraphSubsetVisualization<T>` (`GraphSubsetSpec`) | `NodeSet` | Chosen nodes `Solution`; edges the answer handles `Covered`, edges breaking the rule `Rejected`; Clique draws a `phantoms` entry for each unjoined chosen pair. |
+| `edges` | Minimum Spanning Tree (`spanningTree`), Steiner Tree (`steinerTree`) | `IGraphEdgesVisualization<T>` (`GraphEdgeSpec`) | `EdgeSet` (edge ids, `"a-b"`) | Chosen edges `Solution`; a node an edge of the answer touches is `Covered` (the nodes joined so far); the edge being tried is `ElementHighlight`; in a `Reject` step the thing that failed (an edge that would close a cycle, a terminal that is not reached) is `Rejected`. Weights are `weight` on the payload's edges. Steiner terminals are `terminal: true` on the payload's nodes (not a state: the frontend draws a double outline). |
+| `cut` | Cut (`cut`), Weighted Cut (`weightedCut`), Max Cut (`maxCut`), Minimum Cut (`minCut`) | `IGraphCutVisualization<T>` (`GraphEdgeSpec`) | `Groups` (node id to `0` for the S side, `1` for the T side) | The frame carries the split as `groups` (node id to 0 or 1: an annotation, the frontend colors the sides, not a state) and every edge that crosses it is `Solution`, tentative or final. A rejected candidate split is told apart by its `Reject` event and its caption, not by a red element. |
+
+To add a problem to a shape:
+
+1. Implement the interface on the default visualization, **explicitly**, so nothing new appears in `/info`, and declare the step shape: `Type? IVisualization.StepShape => typeof(EdgeSet);` (or `NodeSet`, `Groups`).
+2. Return the spec from `Describe`: nodes, edges (with `GraphEdgeInput(a, b, weight)` where the problem has weights), the rule, and `K` or `Terminals` if it has them. Loops are dropped and the lightest of parallel edges is drawn.
+3. If the solver's answer string is not the usual form, override `ParseAnswer`. The edge shapes read `{{a,b},...}` and `{({a,b},w),...}` by default, and the cut shape recovers a split from a list of cut edges (Max Cut's answer is the S side itself, so it overrides). The answer string is only used for the last frame of a solver that records no steps; a solver that records steps ends with a `Done` step carrying its own partial answer.
+4. Make the solver implement `ISolver<T, EdgeSet>` (or `Groups`) and record decisions with captions in the problem's words ("Edge 2-5 joins two trees, so add it (weight 3)."). Pass lambdas, so nothing is built when recording is off, and keep the answer identical. Cut solvers record the *split* and let the base draw the crossing edges.
+5. Prove nothing changed for old clients: snapshot the list-format output and `/info` before touching code, and snapshot what the solver answers on seeded instances (`Endpoints/Snapshots/`, `GraphFrames_Endpoint_Tests`, `GraphEdgeFrames_Endpoint_Tests`, `EdgeSetSolvers_Tests`).
 
 ## 3. How Redux finds your visualization
 
