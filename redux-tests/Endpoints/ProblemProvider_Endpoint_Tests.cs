@@ -146,6 +146,33 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("reduction_input_parse_error", body);
     }
 
+    // #755: a reduction into a problem with no picture (wired to DummyVisualization) answered 500, because the
+    // stand-in visualization tried to parse the target instance into the IProblem interface. The picture is
+    // omitted instead: 200 with an empty list.
+    public static TheoryData<string> ReductionsIntoProblemsWithNoPicture() => new(ProblemProvider.Reductions
+        .Where(r => r.Value.Assembly == typeof(ProblemProvider).Assembly)
+        .Select(r => (r.Key, Reduction: TryCreate(r.Value)))
+        .Where(r => r.Reduction?.reductionTo.defaultVisualization is API.DummyClasses.DummyVisualization)
+        .Select(r => r.Key)
+        .OrderBy(k => k));
+
+    private static API.Interfaces.IReduction? TryCreate(Type type) {
+        try { return Activator.CreateInstance(type) as API.Interfaces.IReduction; } catch { return null; }
+    }
+
+    [Theory]
+    [MemberData(nameof(ReductionsIntoProblemsWithNoPicture))]
+    public async Task VisualizeReduction_IntoAProblemWithNoPicture_Returns200WithNoPicture(string reduction) {
+        var red = TryCreate(ProblemProvider.Reductions[reduction])!;
+        string instance = red.reductionFrom.defaultInstance;
+        string solution = red.reductionFrom.defaultSolver.solve(instance);
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction={reduction}&solution={Uri.EscapeDataString(solution)}", content, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.True(response.StatusCode == HttpStatusCode.OK, $"{(int)response.StatusCode}: {body}");
+        Assert.Equal(0, JsonDocument.Parse(body).RootElement.GetArrayLength());
+    }
+
     // ── unparsable-instance handling on the remaining reduction/visualization
     //    endpoints (issue #355) ─────────────────────────────────────────────
     // Each of these builds a SAT3 from the posted instance; a malformed SAT3
