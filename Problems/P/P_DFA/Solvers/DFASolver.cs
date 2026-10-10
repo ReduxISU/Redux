@@ -29,17 +29,14 @@ class DFASolver : ISolver<DFA> {
     public DFASolver() { }
 
     public string solve(DFA problem) {
-        // Input String //
-        string inputString = problem.inputString;
+        // Input String (the empty input is written "ε", and reads no symbol) //
+        string inputString = problem.inputString == "ε" ? "" : problem.inputString;
         // First Node To Be Analyzed //
         string currentNode = problem.startState;
         // Will Track Path Through Nodes //
         nodePath = new List<string> { currentNode };
 
         foreach (char character in inputString) {
-            // Accept Empty String If Start State Is an Accept State //
-            if (character == 'ε' && problem.acceptStates.Contains(currentNode)) return $"The sequence of states to accept is: {currentNode}";
-
             // Check If Character Is In Alphabet //
             if (!problem.alphabet.Contains(character)) {
                 return $"No Solution: Input contains character '{character}' not in DFA alphabet";

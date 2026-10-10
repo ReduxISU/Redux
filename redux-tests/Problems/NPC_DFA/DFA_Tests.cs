@@ -178,11 +178,12 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Solver_Rejects_Empty_String_When_Start_Is_Not_Accept() {
-        // Start state q0 is NOT accept; ε input cannot reach q1
+        // Start state q0 is NOT accept; ε input cannot reach q1. The machine reads nothing and stays in q0,
+        // so it ends in a non-accepting state: ε is the empty input, not a symbol outside the alphabet (#778).
         DFA dfa = new DFA("(({q0,q1},{a},{(q0,a,q1)},q0,{q1}),ε)");
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
-        Assert.Contains("No Solution", result);
+        Assert.Equal("No Solution Exists: The DFA ended in a non-accepting state", result);
     }
 
     [Fact]
