@@ -139,7 +139,8 @@ public class GraphTourFrames_Tests {
         Assert.Equal(("2", "4", PictureState.Rejected), (phantom.A, phantom.B, phantom.State));
         Assert.Equal(["1-2"], f.Edges.Keys);
         Assert.Equal(PictureState.Rejected, State(f, "4"));   // in a Reject step the focus is what failed
-        Assert.Equal(PictureState.Covered, State(f, "2"));
+        Assert.Equal(PictureState.ElementHighlight, State(f, "2"));   // a path being tried is highlighted, not Covered
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "1-2"));
     }
 
     [Fact]
@@ -286,5 +287,35 @@ public class GraphTourFrames_Tests {
         Assert.Equal(GraphSubsetFrames.StoppedCaption, only.Caption);
         Assert.False(only.Ok);
         Assert.Empty(only.Order!);
+    }
+
+    // ---- paths being tried are highlighted, not drawn as the answer; edge ids ----
+
+    [Theory]
+    [InlineData("Try")]
+    [InlineData("Reject")]
+    public void APathBeingTried_IsElementHighlight_NeverSolution(string ev) {
+        // 1 → 2 → 3 → 4 → 1 is a Hamiltonian cycle, but a Try or Reject only looks at it.
+        var f = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3", "4", "1"), Enum.Parse<StepEvent>(ev), [], "x");
+        Assert.DoesNotContain(f.Edges.Values.Concat(f.Nodes.Values), s => s.State == PictureState.Solution);
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "1-2"));
+        Assert.Equal(PictureState.ElementHighlight, State(f, "3"));
+        var accept = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3"), StepEvent.Accept, [], "x");
+        Assert.Equal(PictureState.Solution, EdgeState(accept, "1-2"));
+        Assert.Equal(PictureState.Covered, State(accept, "2"));
+    }
+
+    [Fact]
+    public void EdgeIds_AreUniqueWhenNamesContainSeparators_DirectedAndUndirected() {
+        // Unescaped, a → b>c and a>b → c would both be "a>b>c".
+        var directed = new GraphTourSpec(["a", "b>c", "a>b", "c"], [new("a", "b>c"), new("a>b", "c")], true, null, TourRule.HamiltonianCycle);
+        var p = GraphTourFrames.Payload(directed);
+        Assert.Equal([@"a>b\>c", @"a\>b>c"], p.Edges.Select(e => e.Id));
+        Assert.Equal([("a", "b>c"), ("a>b", "c")], p.Edges.Select(e => (e.A, e.B)));
+        var f = GraphTourFrames.Frame(directed, Of("a>b", "c"), StepEvent.Accept, [], "x");
+        Assert.Equal([@"a\>b>c"], f.Edges.Keys);
+
+        var undirected = new GraphTourSpec(["n-1", "n-2", "n", "1-n-2"], [new("n-1", "n-2"), new("n", "1-n-2")], false, null, TourRule.HamiltonianCycle);
+        Assert.Equal([@"n\-1-n\-2", @"1\-n\-2-n"], GraphTourFrames.Payload(undirected).Edges.Select(e => e.Id));
     }
 }
