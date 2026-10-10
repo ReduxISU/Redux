@@ -107,15 +107,20 @@ public class SATBruteForceSolver : ISolver {
         return false;
     }
 
-    public string solve(string SATInstance) => Solve(SATInstance, StepRecorder<Assignment>.Off);
+    public string solve(string SATInstance) => Solve(CheckedFormula(SATInstance), StepRecorder<Assignment>.Off);
+
+    // This solver takes the raw string (it is not an ISolver<SAT>), so both entry points check it as a SAT formula first,
+    // as ISolver<T> does: text outside the formula rule is a parse error (HTTP 400), not a run over made-up variables
+    // (#759). The SAT's instance has tabs and newlines turned into spaces, which is what Boolean_Parser expects.
+    static string CheckedFormula(string instance) => ParseGuard.CreateProblem<SAT>(instance).instance;
 
     // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
     // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
     // The instance is checked as a SAT formula first (as ISolver<T> does), so text the solver's own parser would trip over
     // ("(x1) & & (x2)" leaves an empty clause) is a parse error (HTTP 400), not a crash inside the solve.
     SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
-        ParseGuard.CreateProblem<SAT>(instance);
-        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(instance, rec));
+        string formula = CheckedFormula(instance);
+        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec));
     }
 
     // Steps: one per candidate assignment, in the order the counter tries them. A candidate is a Reject naming the first
