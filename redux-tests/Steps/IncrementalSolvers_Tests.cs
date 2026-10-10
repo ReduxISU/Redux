@@ -46,6 +46,7 @@ public class IncrementalSolvers_Tests {
         ["tspbruteforce"] = false,
         ["tspbranchandbound"] = true,
         ["tspgreedy"] = true,
+        ["bruteforceminimumtsp"] = false,
     };
 
     // The answer shapes a Graph picture draws.

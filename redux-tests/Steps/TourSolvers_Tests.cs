@@ -7,13 +7,15 @@ using API.Problems.NPComplete.NPC_HAMILTONIAN;
 using API.Problems.NPComplete.NPC_HAMILTONIAN.Solvers;
 using API.Problems.NPComplete.NPC_TSP;
 using API.Problems.NPComplete.NPC_TSP.Solvers;
+using API.Problems.NPHard.NPH_MINIMUMTSP;
+using API.Problems.NPHard.NPH_MINIMUMTSP.Solvers;
 using Xunit;
 
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// The Hamiltonian Cycle, Directed Hamiltonian Cycle and Traveling Salesperson (brute force, greedy, branch and bound)
-// solvers record Tour steps. Recording must never change an answer. Endpoints/Snapshots/tour_solver_answers.tsv holds what
+// The Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson (brute force, greedy, branch and bound) and
+// Minimum Traveling Salesperson (brute force) solvers record Tour steps. Recording must never change an answer. Endpoints/Snapshots/tour_solver_answers.tsv holds what
 // each solver returned (solver, instance, answer; tab separated) BEFORE it recorded steps, on its default instance and on
 // 12 seeded random graphs and 4 to 7 hand-made ones (including ones with no answer).
 public class TourSolvers_Tests {
@@ -41,7 +43,7 @@ public class TourSolvers_Tests {
     [Fact]
     public void TheSnapshotCoversEveryTourSolver_WithAnswersAndWithout() {
         var rows = RecordedAnswers.Select(d => d.Data).GroupBy(d => d.Item1).ToDictionary(g => g.Key, g => g.ToList());
-        Assert.Equal(["directedhamiltonianbruteforce", "hamiltonianbruteforce", "tspbranchandbound", "tspbruteforce", "tspgreedy"], rows.Keys.Order());
+        Assert.Equal(["bruteforceminimumtsp", "directedhamiltonianbruteforce", "hamiltonianbruteforce", "tspbranchandbound", "tspbruteforce", "tspgreedy"], rows.Keys.Order());
         foreach (var (solver, list) in rows) {
             Assert.Contains(list, d => d.Item3 == "{}");
             Assert.Contains(list, d => d.Item3 != "{}");
@@ -286,6 +288,92 @@ public class TourSolvers_Tests {
         var done = Assert.Single(StepsOf(run));
         Assert.Equal(StepEvent.Done, done.Event);
         Assert.False(done.Ok);
+    }
+
+    // ---- Minimum Traveling Salesperson ----
+
+    [Fact]
+    public void MinimumTspBruteForce_EveryNewBestTourIsAnAccept_EveryOtherOrderingARejectThatSaysWhy() {
+        // The default K5 (see MINIMUMTSP_Tests): the orderings with a first cost 25, 23, 29, 27, 21, 21, 27, 19, ...; the
+        // cheapest, 19, is the 8th of 24.
+        var run = Run(new BruteForceMinimumTSP(), new MINIMUMTSP().defaultInstance);
+        Assert.Equal("{a,c,b,e,d,a}", run.Answer);
+        var steps = StepsOf(run);
+        Assert.Equal(24 + 1, steps.Count);   // (5-1)! orderings, then Done
+        Assert.Equal([0, 1, 4, 7], steps.Select((s, i) => (s, i)).Where(x => x.s.Event == StepEvent.Accept).Select(x => x.i));
+        Assert.All(steps.Take(24).Where(s => s.Event != StepEvent.Accept), s => Assert.Equal(StepEvent.Reject, s.Event));
+        Assert.DoesNotContain(steps, s => s.Event is StepEvent.Try or StepEvent.Backtrack);
+
+        Assert.Equal("Try a → b → c → d → e → a: cost 25, the first tour found, so the best so far.", steps[0].Caption);
+        Assert.Equal(["a", "b", "c", "d", "e", "a"], steps[0].Partial.Order);
+        Assert.Empty(steps[0].Focus);
+        Assert.Equal("Try a → b → c → e → d → a: cost 23, a new best tour (it beats 25).", steps[1].Caption);
+        Assert.Equal("Try a → b → d → c → e → a: cost 29, not better than the best so far (23).", steps[2].Caption);
+        Assert.Equal(new[] { "a-b", "b-d", "c-d", "c-e", "a-e" }.Order(), steps[2].Focus.Order());   // the whole tour failed
+        // A tie is not better: the first of equally cheap tours stays the best.
+        Assert.Equal("Try a → b → e → d → c → a: cost 21, not better than the best so far (21).", steps[5].Caption);
+        Assert.Equal("Try a → c → b → e → d → a: cost 19, a new best tour (it beats 21).", steps[7].Caption);
+
+        Assert.Equal(StepEvent.Done, steps[^1].Event);
+        Assert.True(steps[^1].Ok);
+        Assert.Equal(["a", "c", "b", "e", "d", "a"], steps[^1].Partial.Order);
+        Assert.Equal("Tried all 24 orderings of the cities after a. The cheapest tour is a → c → b → e → d → a, cost 19.", steps[^1].Caption);
+    }
+
+    [Fact]
+    public void MinimumTspBruteForce_AMissingHopIsARejectThatNamesIt() {
+        // No edge c-d, so the first ordering is not a tour; the first tour is a,b,c,e,d,a (16), the cheapest a,d,b,c,e,a (14).
+        const string instance = "({a,b,c,d,e},{({a,b},6),({b,c},1),({a,c},9),({a,e},5),({b,d},2),({b,e},8),({c,e},2),({d,e},3),({a,d},4)})";
+        var steps = StepsOf(Run(new BruteForceMinimumTSP(), instance));
+        Assert.Equal(StepEvent.Reject, steps[0].Event);
+        Assert.Equal("Try a → b → c → d → e → a: there is no edge between c and d.", steps[0].Caption);
+        Assert.Equal(["c", "d"], steps[0].Focus);
+        Assert.Equal("Try a → b → c → e → d → a: cost 16, the first tour found, so the best so far.", steps[1].Caption);
+        Assert.Equal(StepEvent.Accept, steps[1].Event);
+        var last = steps.Last(s => s.Event == StepEvent.Accept);
+        Assert.Equal("Try a → d → b → c → e → a: cost 14, a new best tour (it beats 16).", last.Caption);
+        Assert.Equal("Tried all 24 orderings of the cities after a. The cheapest tour is a → d → b → c → e → a, cost 14.", steps[^1].Caption);
+    }
+
+    [Theory]
+    [InlineData("({},{})", "There are no cities to tour.")]
+    [InlineData("({a},{})", "A tour needs at least three cities, and there is one.")]
+    [InlineData("({a,b},{({a,b},1)})", "A tour needs at least three cities, and there are two.")]
+    [InlineData("({a,b,c,d},{({a,b},1),({b,c},1),({c,a},1),({c,d},1)})", "Tried all 6 orderings of the cities after a. None is a tour.")]
+    public void MinimumTspBruteForce_WithNoTour_EndsWithADoneThatSaysWhy(string instance, string caption) {
+        var run = Run(new BruteForceMinimumTSP(), instance);
+        Assert.Equal("{}", run.Answer);
+        var steps = StepsOf(run);
+        Assert.Equal(caption, steps[^1].Caption);
+        Assert.False(steps[^1].Ok);
+        Assert.Empty(steps[^1].Partial.Order);
+        Assert.DoesNotContain(steps, s => s.Event == StepEvent.Accept);
+    }
+
+    [Fact]
+    public void MinimumTspBruteForce_PastTheCap_KeepsTheLastAccept_TheCheapestTour() {
+        // K7 with every edge 10 except the cycle a-f-b-d-c-e-g-a, whose edges cost 1. That cycle (cost 7) is the only
+        // cheapest tour; both its directions start a → f or a → g, the last two blocks of 120 orderings, so it is found
+        // long after the first 150 steps.
+        string[] cities = ["a", "b", "c", "d", "e", "f", "g"];
+        var cheap = new HashSet<string> { "a-f", "b-f", "b-d", "c-d", "c-e", "e-g", "a-g" };
+        var edges = new List<string>();
+        for (int i = 0; i < 7; i++)
+            for (int j = i + 1; j < 7; j++)
+                edges.Add($"({{{cities[i]},{cities[j]}}},{(cheap.Contains($"{cities[i]}-{cities[j]}") ? 1 : 10)})");
+        string instance = $"({{{string.Join(",", cities)}}},{{{string.Join(",", edges)}}})";
+
+        var run = Run(new BruteForceMinimumTSP(), instance);
+        Assert.Equal("{a,f,b,d,c,e,g,a}", run.Answer);
+        var steps = StepsOf(run);
+        Assert.Equal(StepRecorder<Tour>.DefaultCap + 2, steps.Count);   // the first 150, the last Accept, Done
+        var lastAccept = steps[^2];
+        Assert.Equal(StepEvent.Accept, lastAccept.Event);
+        Assert.StartsWith("Try a → f → b → d → c → e → g → a: cost 7, a new best tour (it beats ", lastAccept.Caption);
+        Assert.Equal(["a", "f", "b", "d", "c", "e", "g", "a"], lastAccept.Partial.Order);
+        Assert.Equal(StepEvent.Done, steps[^1].Event);
+        // 720 orderings: 150 kept, the last Accept kept, 569 not shown.
+        Assert.Equal("Tried all 720 orderings of the cities after a. The cheapest tour is a → f → b → d → c → e → g → a, cost 7. (569 not shown)", steps[^1].Caption);
     }
 
     // ---- the recorder cap ----

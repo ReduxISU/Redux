@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -6,7 +8,7 @@ using API.Problems.NPHard.NPH_MINIMUMTSP.Solvers;
 
 namespace API.Problems.NPHard.NPH_MINIMUMTSP.Visualizations;
 
-class MinimumTSPDefaultVisualization : IVisualization<MINIMUMTSP, API_GraphJSON> {
+class MinimumTSPDefaultVisualization : IVisualization<MINIMUMTSP, API_GraphJSON>, IGraphTourVisualization<MINIMUMTSP> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Minimum Traveling Salesperson Visualization";
@@ -54,4 +56,11 @@ class MinimumTSPDefaultVisualization : IVisualization<MINIMUMTSP, API_GraphJSON>
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Tour);
+
+    // Traveling Salesperson's tour picture, weighted, with no K.
+    GraphTourSpec IGraphTourVisualization<MINIMUMTSP>.Describe(MINIMUMTSP problem) =>
+        new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, null, TourRule.MinimumTravelingSalesperson);
 }
