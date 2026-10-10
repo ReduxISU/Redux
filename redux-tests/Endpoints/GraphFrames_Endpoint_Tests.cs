@@ -304,4 +304,22 @@ public class GraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(2, JsonDocument.Parse(body).RootElement.GetArrayLength());
     }
+
+    [Fact]
+    public async Task Frames_NodeNamesThatMakeTwoEdgesShareAnId_AreA400_AndTheListFormatStillWorks() {
+        // {a,b-c} and {a-b,c} would both be the edge "a-b-c".
+        const string instance = "(({a,b-c,a-b,c},{{a,b-c},{a-b,c}}),2)";
+        var (status, body) = await Visualize("visualization=cliquedefaultvisualization&format=frames", instance);
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        Assert.Equal("instance_parse_error", root.GetProperty("error").GetString());
+        Assert.Contains("a-b-c", body);
+        var (listStatus, _) = await Visualize("visualization=cliquedefaultvisualization", instance);
+        Assert.Equal(HttpStatusCode.OK, listStatus);
+
+        // Dashes alone are fine when no two edges collide.
+        var (okStatus, okBody) = await Visualize("visualization=cliquedefaultvisualization&format=frames", "(({a-b,c},{{a-b,c}}),2)");
+        Assert.Equal(HttpStatusCode.OK, okStatus);
+        Assert.Equal("a-b-c", JsonDocument.Parse(okBody).RootElement.GetProperty("payload").GetProperty("edges")[0].GetProperty("id").GetString());
+    }
 }
