@@ -26,8 +26,8 @@ class TopologicalSortDefaultVisualization : IVisualization<TOPOLOGICALSORT, API_
     public API_JSON SolvedVisualization(TOPOLOGICALSORT problem, string solution) {
         API_GraphJSON apiGraph = problem.graph.ToAPIGraph();
 
-        // No valid topological ordering (cycle in graph): return graph un-highlighted.
-        if (string.IsNullOrWhiteSpace(solution) || solution.Trim() == "{}")
+        // No valid topological ordering (cycle in graph): return graph un-highlighted. Kahn's Algorithm says so with "()" (#782).
+        if (string.IsNullOrWhiteSpace(solution) || solution.Trim() is "{}" or "()")
             return apiGraph;
 
         // Compute the topological rank of every node.
