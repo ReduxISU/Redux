@@ -177,6 +177,37 @@ public class SatSolvers_Tests {
     }
 
     [Fact]
+    public void BruteForce_StoppedByItsOwnTimer_EndsWithADoneThatSaysItDidNotFinish() {
+        // timerHasExpired is the solver's own stop flag (ISolver.TimerExpired), separate from the recording time limit.
+        var solver = new SATBruteForceSolver();
+        ((ISolver)solver).TimerExpired();
+        var run = ((ISolver)solver).Run("(x1 | x2) & (!x1)", withSteps: true);
+        Assert.False(run.TimedOut);
+        Assert.Equal("timeout", run.Answer);   // what solve has always answered
+        var done = Assert.Single(StepsOf(run));
+        Assert.Equal((StepEvent.Done, (bool?)false), (done.Event, done.Ok));
+        Assert.Equal(GroupedGraphFrames.SolverTimeoutCaption, done.Caption);
+        Assert.Empty(done.Partial.Values);   // no candidate is shown as an answer
+        Assert.Equal("timeout", solver.solve("(x1 | x2) & (!x1)"));
+
+        // The frames end on that stopped Done, and the answer "timeout" is never read as an assignment.
+        var frames = GroupedGraphFrames.Build(GroupedGraphSpec.FromLiterals(new SAT("(x1 | x2) & (!x1)").clauses), run,
+            _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified")).Frames;
+        var last = Assert.IsType<GroupedGraphFrame>(Assert.Single(frames));
+        Assert.Equal((StepEvent.Done, (bool?)false, GroupedGraphFrames.SolverTimeoutCaption), (last.Event, last.Ok, last.Caption));
+        Assert.Empty(last.Assignment);
+    }
+
+    [Theory]
+    [InlineData("(x1 | x2) & & (x3)")]   // the solver's own parser leaves an empty clause here and used to crash on it
+    [InlineData("(1 | 2)")]
+    [InlineData("")]
+    public void BruteForce_Run_RejectsWhatSatCannotParse_AsAParseError(string instance) {
+        Assert.Throws<ProblemParseException>(() => Create("satbruteforcesolver").Run(instance, withSteps: true));
+        Assert.Throws<ProblemParseException>(() => Create("satbruteforcesolver").Run(instance, withSteps: false));
+    }
+
+    [Fact]
     public void BruteForce_IsNotOfferedAsAGenericSolverForSat() {
         // It records typed steps by overriding Run, not by implementing ISolver<SAT, Assignment>: that interface would add
         // it to the navigation lists, which this change must not alter.
@@ -236,12 +267,13 @@ public class SatSolvers_Tests {
     }
 
     [Fact]
-    public void Backtracking_WhenRecordingIsOff_NoCaptionOrPartialIsBuilt() {
+    public void Backtracking_WithRecordingOff_RecordsNothing_AndAnswersTheSame() {
+        // What this can check from outside: the Off recorder keeps no step and the answer is the recorded run's. (That the
+        // solver builds its captions only inside the recorder's lambdas is a code-review matter; no test here can see it.)
         var problem = new SAT3(new SAT3().defaultInstance);
-        // The shared Off recorder never invokes a lambda; a throwing lambda would show if one were built.
         var off = StepRecorder<Assignment>.Off;
-        off.Try(() => throw new InvalidOperationException(), () => throw new InvalidOperationException(), "v:x1");
         Assert.Equal("(x1:True,x2:True,x3:False)", new Sat3BacktrackingSolver().Solve(problem, off));
         Assert.Empty(off.Steps);
+        Assert.Equal(new Sat3BacktrackingSolver().Solve(problem, new StepRecorder<Assignment>()), new Sat3BacktrackingSolver().Solve(problem, off));
     }
 }

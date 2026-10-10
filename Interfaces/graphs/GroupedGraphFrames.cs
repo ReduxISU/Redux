@@ -59,8 +59,8 @@ sealed record GroupedGraphPayload(
 /// <summary>
 /// One picture of the clause graph. <c>nodes</c> (literal occurrences) and <c>groups</c> (clauses) list only elements whose
 /// state is not <see cref="PictureState.Background"/>; an id that is absent is Background. <c>assignment</c> says what
-/// is assigned so far, keyed by variable id; a variable that is absent is unassigned. A literal that is false is Background
-/// in <c>nodes</c>: the frontend mutes it by reading <c>assignment</c> and the node's <c>positive</c>.
+/// is assigned so far, keyed by variable id; a variable that is absent is unassigned. A literal that is false under the
+/// assignment is <see cref="PictureState.False"/> in <c>nodes</c>; a literal of an unassigned variable is Background.
 /// </summary>
 sealed record GroupedGraphFrame(
     [property: JsonPropertyName("event")] StepEvent Event,
@@ -80,11 +80,13 @@ sealed record GroupedGraphFrame(
 /// <para>
 /// <b>Ids</b> (a contract: the Reduction View matches gadgets on them). Clause <c>i</c> (0-based, in formula order) is
 /// <c>c{i}</c>. The <c>j</c>-th literal of clause <c>i</c> (0-based) is <c>c{i}-{j}</c>, one node per occurrence, so a
-/// literal written twice is two nodes. Variable <c>v</c> is <c>v:{name}</c>. An edge id joins its two literal ids with
-/// <c>~</c> (<c>c0-1~c2-0</c>). The separator cannot be <c>-</c> (literal ids contain it, so <c>c0-1-c2-0</c> cannot be split
-/// back) or <c>:</c> or <c>c</c>, and <c>~</c> never appears in a clause, literal or variable id. The earlier occurrence
-/// (by clause, then position, compared as numbers, so <c>c2</c> comes before <c>c10</c>) is written first, so an edge has
-/// exactly one id.
+/// literal written twice is two nodes. Variable <c>v</c> is <c>v:{name}</c>, with the name written by
+/// <see cref="EscapeName"/> (a <c>\</c> before every <c>\</c>, <c>~</c>, <c>-</c> and <c>:</c> in it), so two variables never
+/// share an id and a separator inside a variable id never comes bare from a name. An edge id joins its two literal ids with
+/// <c>~</c> (<c>c0-1~c2-0</c>); the separator is not <c>-</c>, because literal ids contain it. Clause and literal ids hold no
+/// names, so they never contain <c>~</c>. The earlier occurrence (by clause, then position, compared as numbers, so
+/// <c>c2</c> comes before <c>c10</c>) is written first, so an edge has exactly one id. An id is a label, not something to
+/// split: every payload edge gives its two ends as <c>a</c> and <c>b</c>, and every node gives its <c>variable</c> id.
 /// </para>
 /// <para>
 /// <b>Edges.</b> <c>edges</c> are the complement pairs: a literal and the negation of the same variable in a
@@ -93,14 +95,16 @@ sealed record GroupedGraphFrame(
 /// both lists.
 /// </para>
 /// <para>
-/// <b>States.</b> A true literal is <c>Solution</c>; its clause is <c>Covered</c>. A clause whose literals are all false is
-/// <c>Rejected</c>, and so are its literals. Unassigned and false literals are <c>Background</c>; the picture does not use a
-/// <c>False</c> state (the vocabulary leaves it out while it is under review) because <c>assignment</c> already says which
-/// literals are false. The variable being tried (a <c>v:</c> id in the step's focus) is <c>ElementHighlight</c> on every
-/// occurrence; a clause in the focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a <see cref="StepEvent.Reject"/> step
-/// (the clause that just failed). When several states apply to one element the order is the Graph picture's:
-/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>. Whether a clause is falsified
-/// is judged from the assignment alone, never from the event, so no event is treated as "still in progress".
+/// <b>States.</b> A true literal is <c>Solution</c> in a step that keeps the assignment (Accept, Backtrack, Done) and
+/// <c>ElementHighlight</c> in a step that only tries it (Try, Reject: see <see cref="GraphSubsetFrames.Picked"/>); either
+/// way its clause is <c>Covered</c>. A literal that is false under the assignment is <c>False</c>; a literal whose variable
+/// is unassigned stays <c>Background</c> (nothing has been decided about it). A clause whose literals are all false is
+/// <c>Rejected</c>, and so are its literals. The variable being tried (a <c>v:</c> id in the step's focus) is
+/// <c>ElementHighlight</c> on every occurrence; a clause in the focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a
+/// <see cref="StepEvent.Reject"/> step (the clause that just failed). When several states apply to one element the order is
+/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; False &gt; Background</c>
+/// (<see cref="GraphSubsetFrames.Rank"/>). Whether a clause is falsified is judged from the assignment alone, never from
+/// the event, so no event is treated as "still in progress".
 /// </para>
 /// </summary>
 static class GroupedGraphFrames {
@@ -113,7 +117,18 @@ static class GroupedGraphFrames {
 
     public static string ClauseId(int clause) => $"c{clause}";
     public static string LiteralId(int clause, int position) => $"c{clause}-{position}";
-    public static string VariableId(string name) => $"v:{name}";
+    /// <summary><c>v:{name}</c>, the name written with <see cref="EscapeName"/>.</summary>
+    public static string VariableId(string name) => "v:" + EscapeName(name);
+
+    /// <summary>
+    /// A variable name as it is written inside an id: a backslash before every <c>\</c>, <c>~</c>, <c>-</c> and <c>:</c> (the
+    /// separators of this picture's ids), so no two different names give the same id. Ordinary names (<c>x1</c>) are
+    /// unchanged. The same rule as <see cref="GraphSubsetFrames.EscapeName"/>, over this picture's separators.
+    /// </summary>
+    public static string EscapeName(string name) =>
+        name.IndexOfAny(['\\', '~', '-', ':']) < 0
+            ? name
+            : name.Replace(@"\", @"\\").Replace("~", @"\~").Replace("-", @"\-").Replace(":", @"\:");
 
     /// <summary>The id of an edge between two literals: <c>"a~b"</c>, written in the order given (callers give the earlier first).</summary>
     public static string EdgeId(string a, string b) => $"{a}~{b}";
@@ -175,6 +190,8 @@ static class GroupedGraphFrames {
                 assignment[VariableId(spec.Variables[v - 1])] = value;
             }
 
+        // A true literal of a candidate that is only being tried is highlighted, not drawn as the answer.
+        var picked = GraphSubsetFrames.Picked(ev);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var groups = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var literalsOfVariable = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -188,11 +205,14 @@ static class GroupedGraphFrames {
                 string variableId = VariableId(spec.Variables[variable - 1]);
                 if (!literalsOfVariable.TryGetValue(variableId, out var list)) literalsOfVariable[variableId] = list = [];
                 list.Add(id);
-                if (!values.TryGetValue(variable, out bool assigned)) continue;
+                if (!values.TryGetValue(variable, out bool assigned)) continue;   // unassigned: Background
                 if (assigned == clause[j] > 0) {
                     trues++;
-                    GraphSubsetFrames.Raise(nodes, id, PictureState.Solution);
-                } else falses++;
+                    GraphSubsetFrames.Raise(nodes, id, picked);
+                } else {
+                    falses++;
+                    GraphSubsetFrames.Raise(nodes, id, PictureState.False);
+                }
             }
             if (trues > 0) GraphSubsetFrames.Raise(groups, ClauseId(i), PictureState.Covered);
             else if (clause.Length > 0 && falses == clause.Length) {
@@ -206,7 +226,7 @@ static class GroupedGraphFrames {
         foreach (var id in focus) {
             if (literalsOfVariable.TryGetValue(id, out var occurrences))
                 foreach (var literal in occurrences) GraphSubsetFrames.Raise(nodes, literal, PictureState.ElementHighlight);
-            else if (groups.ContainsKey(id) || IsClauseId(spec, id)) GraphSubsetFrames.Raise(groups, id, clauseMark);
+            else if (IsClauseId(spec, id)) GraphSubsetFrames.Raise(groups, id, clauseMark);
             else if (IsLiteralId(spec, id)) GraphSubsetFrames.Raise(nodes, id, PictureState.ElementHighlight);
         }
 
@@ -230,15 +250,19 @@ static class GroupedGraphFrames {
 
     /// <summary>
     /// The assignment named by a certificate such as <c>(x1:True,x2:False)</c> (<c>=</c> also separates; <c>T</c>/<c>F</c> are
-    /// accepted; parentheses are optional). Values are normalized to <c>True</c>/<c>False</c>. "No Solution" and anything
-    /// unreadable give no assignment.
+    /// accepted; parentheses are optional). The value follows the <i>last</i> <c>:</c> or <c>=</c> of an item, so a name
+    /// that contains one (<c>a:b:True</c>) is read whole. Values are normalized to <c>True</c>/<c>False</c>. "No Solution"
+    /// and anything unreadable give no assignment. A name that contains <c>,</c> cannot be read back (the certificate
+    /// format has no escape for it).
     /// </summary>
     public static Assignment ParseAssignment(string answer) {
         var pairs = new List<KeyValuePair<string, string>>();
         foreach (var item in answer.Trim().TrimStart('(').TrimEnd(')').Split(',')) {
-            var parts = item.Split([':', '='], 2);
-            if (parts.Length != 2 || parts[0].Trim().Length == 0 || ParseValue(parts[1]) is not bool value) continue;
-            pairs.Add(new(parts[0].Trim(), value ? "True" : "False"));
+            int at = item.LastIndexOfAny([':', '=']);
+            if (at < 0) continue;
+            string name = item[..at].Trim();
+            if (name.Length == 0 || ParseValue(item[(at + 1)..]) is not bool value) continue;
+            pairs.Add(new(name, value ? "True" : "False"));
         }
         return new Assignment(pairs.GroupBy(p => p.Key, StringComparer.Ordinal).Select(g => g.First()));
     }
@@ -269,26 +293,62 @@ static class GroupedGraphFrames {
         return -1;
     }
 
-    /// <summary>Orders names the way people count: <c>x2</c> before <c>x10</c>, a before b.</summary>
+    /// <summary>
+    /// Orders names the way people count: <c>x2</c> before <c>x10</c>, a before b. A name is read as runs of ASCII digits
+    /// and runs of other characters, compared run by run: two digit runs by value (then by text, so <c>x01</c> comes
+    /// before <c>x1</c>), two other runs ordinally, and a digit run before another run; a name that runs out first comes
+    /// first. That is a total order, so the result never depends on the order the names arrive in.
+    /// </summary>
     public static readonly IComparer<string> NaturalOrder = Comparer<string>.Create(NaturalCompare);
 
-    private static readonly Regex NumberSuffix = new(@"^(.*?)(\d+)$", RegexOptions.Compiled);
-
-    private static int NaturalCompare(string a, string b) {
-        var ma = NumberSuffix.Match(a);
-        var mb = NumberSuffix.Match(b);
-        if (ma.Success && mb.Success) {
-            int byPrefix = string.CompareOrdinal(ma.Groups[1].Value, mb.Groups[1].Value);
-            if (byPrefix != 0) return byPrefix;
-            string da = ma.Groups[2].Value.TrimStart('0'), db = mb.Groups[2].Value.TrimStart('0');
-            if (da.Length != db.Length) return da.Length.CompareTo(db.Length);
-            int byNumber = string.CompareOrdinal(da, db);
-            if (byNumber != 0) return byNumber;
+    private static int NaturalCompare(string? a, string? b) {
+        if (a is null || b is null) return a is null ? (b is null ? 0 : -1) : 1;
+        int i = 0, j = 0;
+        while (i < a.Length && j < b.Length) {
+            bool digitA = char.IsAsciiDigit(a[i]), digitB = char.IsAsciiDigit(b[j]);
+            int endA = RunEnd(a, i, digitA), endB = RunEnd(b, j, digitB);
+            var runA = a.AsSpan(i, endA - i);
+            var runB = b.AsSpan(j, endB - j);
+            int byRun;
+            if (digitA && digitB) {
+                var va = runA.TrimStart('0');
+                var vb = runB.TrimStart('0');
+                byRun = va.Length != vb.Length ? va.Length.CompareTo(vb.Length) : va.SequenceCompareTo(vb);
+                if (byRun == 0) byRun = runA.SequenceCompareTo(runB);
+            } else if (digitA != digitB) {
+                byRun = digitA ? -1 : 1;
+            } else {
+                byRun = runA.SequenceCompareTo(runB);
+            }
+            if (byRun != 0) return Math.Sign(byRun);
+            i = endA;
+            j = endB;
         }
-        return string.CompareOrdinal(a, b);
+        return (a.Length - i).CompareTo(b.Length - j);
+    }
+
+    private static int RunEnd(string s, int start, bool digits) {
+        int end = start;
+        while (end < s.Length && char.IsAsciiDigit(s[end]) == digits) end++;
+        return end;
     }
 
     // ---- The whole response ----
+
+    /// <summary>
+    /// The caption of a solved frame built from an answer string: the assignment; "No answer was found." when the solver
+    /// says there is none (<c>No Solution</c>, <c>No solution exists</c>, <c>{}</c>, nothing); and, for any other text it
+    /// could not read (a solver error, another format), that the answer could not be drawn, so a failure is not passed off
+    /// as an unsatisfiable formula.
+    /// </summary>
+    internal static string AnswerCaption(string answerText, Assignment answer) {
+        if (answer.Values.Count > 0)
+            return $"The answer is {Assigned(answer.Values.Select(p => new KeyValuePair<string, bool>(p.Key, p.Value == "True")))}.";
+        string text = answerText.Trim();
+        return text.Length == 0 || text == "{}" || text.StartsWith("No ", StringComparison.OrdinalIgnoreCase)
+            ? "No answer was found."
+            : "The solver's answer is not an assignment, so there is nothing to draw.";
+    }
 
     /// <summary>
     /// The frame that closes a run stopped by its time limit: a Done frame with ok = false, no assignment, and every node
@@ -300,26 +360,36 @@ static class GroupedGraphFrames {
             new SortedDictionary<string, StateRef>(StringComparer.Ordinal), new SortedDictionary<string, bool>(StringComparer.Ordinal)) { Ok = false };
 
     /// <summary>
+    /// What the SAT brute force answers when its own timer (<see cref="ISolver.timerHasExpired"/>) stops it. It is not a
+    /// certificate; <see cref="Build"/> treats it like a run stopped by the recording time limit.
+    /// </summary>
+    public const string SolverTimeoutAnswer = "timeout";
+
+    /// <summary>The caption of the Done step a solver records when its own timer stops it.</summary>
+    public const string SolverTimeoutCaption = "The solver stopped without finishing: its time ran out before it found an answer or ruled one out.";
+
+    /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
-    /// step already is the Done step. A run stopped by its time limit ends with <see cref="StoppedFrame"/> instead, and its
-    /// answer string is never read.
+    /// step already is the Done step. A run that was stopped, by the recording time limit (<see cref="SolveRun.TimedOut"/>)
+    /// or by the solver's own timer (the answer <see cref="SolverTimeoutAnswer"/>), ends with <see cref="StoppedFrame"/>
+    /// instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer) {
+        bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
         foreach (var step in run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>()) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+            frames.Add(stopped && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
                 : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok));
             last = step;
         }
-        if (run.TimedOut) {
-            if (last is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(GraphSubsetFrames.StoppedCaption));
+        if (stopped) {
+            if (last is not { Event: StepEvent.Done })
+                frames.Add(StoppedFrame(run.TimedOut ? GraphSubsetFrames.StoppedCaption : SolverTimeoutCaption));
         } else if (last is not { Event: StepEvent.Done }) {
             Assignment answer = parseAnswer(run.Answer);
-            frames.Add(Frame(spec, answer, StepEvent.Done, [],
-                answer.Values.Count == 0 ? "No answer was found." : $"The answer is {Assigned(answer.Values.Select(p => new KeyValuePair<string, bool>(p.Key, p.Value == "True")))}.",
-                verifyAnswer(run.Answer)));
+            frames.Add(Frame(spec, answer, StepEvent.Done, [], AnswerCaption(run.Answer, answer), verifyAnswer(run.Answer)));
         }
         return new FramesResponse(nameof(VisualizationType.GroupedGraph), Payload(spec), frames);
     }
