@@ -111,8 +111,12 @@ public class SATBruteForceSolver : ISolver {
 
     // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
     // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
-    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) =>
-        SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(instance, rec));
+    // The instance is checked as a SAT formula first (as ISolver<T> does), so text the solver's own parser would trip over
+    // ("(x1) & & (x2)" leaves an empty clause) is a parse error (HTTP 400), not a crash inside the solve.
+    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
+        ParseGuard.CreateProblem<SAT>(instance);
+        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(instance, rec));
+    }
 
     // Steps: one per candidate assignment, in the order the counter tries them. A candidate is a Reject naming the first
     // clause with no true literal (the solver stops checking there), or the Accept that ends the search. The recorder's cap

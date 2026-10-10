@@ -226,7 +226,7 @@ static class GroupedGraphFrames {
         foreach (var id in focus) {
             if (literalsOfVariable.TryGetValue(id, out var occurrences))
                 foreach (var literal in occurrences) GraphSubsetFrames.Raise(nodes, literal, PictureState.ElementHighlight);
-            else if (groups.ContainsKey(id) || IsClauseId(spec, id)) GraphSubsetFrames.Raise(groups, id, clauseMark);
+            else if (IsClauseId(spec, id)) GraphSubsetFrames.Raise(groups, id, clauseMark);
             else if (IsLiteralId(spec, id)) GraphSubsetFrames.Raise(nodes, id, PictureState.ElementHighlight);
         }
 
@@ -293,26 +293,62 @@ static class GroupedGraphFrames {
         return -1;
     }
 
-    /// <summary>Orders names the way people count: <c>x2</c> before <c>x10</c>, a before b.</summary>
+    /// <summary>
+    /// Orders names the way people count: <c>x2</c> before <c>x10</c>, a before b. A name is read as runs of ASCII digits
+    /// and runs of other characters, compared run by run: two digit runs by value (then by text, so <c>x01</c> comes
+    /// before <c>x1</c>), two other runs ordinally, and a digit run before another run; a name that runs out first comes
+    /// first. That is a total order, so the result never depends on the order the names arrive in.
+    /// </summary>
     public static readonly IComparer<string> NaturalOrder = Comparer<string>.Create(NaturalCompare);
 
-    private static readonly Regex NumberSuffix = new(@"^(.*?)(\d+)$", RegexOptions.Compiled);
-
-    private static int NaturalCompare(string a, string b) {
-        var ma = NumberSuffix.Match(a);
-        var mb = NumberSuffix.Match(b);
-        if (ma.Success && mb.Success) {
-            int byPrefix = string.CompareOrdinal(ma.Groups[1].Value, mb.Groups[1].Value);
-            if (byPrefix != 0) return byPrefix;
-            string da = ma.Groups[2].Value.TrimStart('0'), db = mb.Groups[2].Value.TrimStart('0');
-            if (da.Length != db.Length) return da.Length.CompareTo(db.Length);
-            int byNumber = string.CompareOrdinal(da, db);
-            if (byNumber != 0) return byNumber;
+    private static int NaturalCompare(string? a, string? b) {
+        if (a is null || b is null) return a is null ? (b is null ? 0 : -1) : 1;
+        int i = 0, j = 0;
+        while (i < a.Length && j < b.Length) {
+            bool digitA = char.IsAsciiDigit(a[i]), digitB = char.IsAsciiDigit(b[j]);
+            int endA = RunEnd(a, i, digitA), endB = RunEnd(b, j, digitB);
+            var runA = a.AsSpan(i, endA - i);
+            var runB = b.AsSpan(j, endB - j);
+            int byRun;
+            if (digitA && digitB) {
+                var va = runA.TrimStart('0');
+                var vb = runB.TrimStart('0');
+                byRun = va.Length != vb.Length ? va.Length.CompareTo(vb.Length) : va.SequenceCompareTo(vb);
+                if (byRun == 0) byRun = runA.SequenceCompareTo(runB);
+            } else if (digitA != digitB) {
+                byRun = digitA ? -1 : 1;
+            } else {
+                byRun = runA.SequenceCompareTo(runB);
+            }
+            if (byRun != 0) return Math.Sign(byRun);
+            i = endA;
+            j = endB;
         }
-        return string.CompareOrdinal(a, b);
+        return (a.Length - i).CompareTo(b.Length - j);
+    }
+
+    private static int RunEnd(string s, int start, bool digits) {
+        int end = start;
+        while (end < s.Length && char.IsAsciiDigit(s[end]) == digits) end++;
+        return end;
     }
 
     // ---- The whole response ----
+
+    /// <summary>
+    /// The caption of a solved frame built from an answer string: the assignment; "No answer was found." when the solver
+    /// says there is none (<c>No Solution</c>, <c>No solution exists</c>, <c>{}</c>, nothing); and, for any other text it
+    /// could not read (a solver error, another format), that the answer could not be drawn, so a failure is not passed off
+    /// as an unsatisfiable formula.
+    /// </summary>
+    internal static string AnswerCaption(string answerText, Assignment answer) {
+        if (answer.Values.Count > 0)
+            return $"The answer is {Assigned(answer.Values.Select(p => new KeyValuePair<string, bool>(p.Key, p.Value == "True")))}.";
+        string text = answerText.Trim();
+        return text.Length == 0 || text == "{}" || text.StartsWith("No ", StringComparison.OrdinalIgnoreCase)
+            ? "No answer was found."
+            : "The solver's answer is not an assignment, so there is nothing to draw.";
+    }
 
     /// <summary>
     /// The frame that closes a run stopped by its time limit: a Done frame with ok = false, no assignment, and every node
@@ -353,9 +389,7 @@ static class GroupedGraphFrames {
                 frames.Add(StoppedFrame(run.TimedOut ? GraphSubsetFrames.StoppedCaption : SolverTimeoutCaption));
         } else if (last is not { Event: StepEvent.Done }) {
             Assignment answer = parseAnswer(run.Answer);
-            frames.Add(Frame(spec, answer, StepEvent.Done, [],
-                answer.Values.Count == 0 ? "No answer was found." : $"The answer is {Assigned(answer.Values.Select(p => new KeyValuePair<string, bool>(p.Key, p.Value == "True")))}.",
-                verifyAnswer(run.Answer)));
+            frames.Add(Frame(spec, answer, StepEvent.Done, [], AnswerCaption(run.Answer, answer), verifyAnswer(run.Answer)));
         }
         return new FramesResponse(nameof(VisualizationType.GroupedGraph), Payload(spec), frames);
     }

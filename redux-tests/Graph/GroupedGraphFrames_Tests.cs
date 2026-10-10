@@ -33,6 +33,24 @@ public class GroupedGraphFrames_Tests {
     }
 
     [Fact]
+    public void NaturalOrder_IsATotalOrder_SoTheNumberingNeverDependsOnTheFormulasOrder() {
+        // "a1b" sits between "a10" and "a2" by plain text, and "a2" before "a10" by number: a comparer that mixes the two
+        // rules (number suffix, else ordinal) is circular here, and the order then depends on where the sort starts.
+        string[] names = ["a10", "a1b", "a2", "x", "x01", "x1", "x1y2", "x10y1", "b"];
+        string[] expected = ["a1b", "a2", "a10", "b", "x", "x01", "x1", "x1y2", "x10y1"];
+        var rng = new Random(7);
+        for (int k = 0; k < 200; k++) {
+            var shuffled = names.OrderBy(_ => rng.Next()).ToArray();
+            Assert.Equal(expected, shuffled.Order(GroupedGraphFrames.NaturalOrder));
+            var spec = GroupedGraphSpec.FromLiterals(shuffled.Select(n => new[] { n }));
+            Assert.Equal(expected, spec.Variables);
+        }
+        foreach (var a in names)
+            foreach (var b in names)
+                Assert.Equal(Math.Sign(GroupedGraphFrames.NaturalOrder.Compare(a, b)), -Math.Sign(GroupedGraphFrames.NaturalOrder.Compare(b, a)));
+    }
+
+    [Fact]
     public void FromLiterals_HandlesNamesThatAreNotNumbered() {
         var spec = GroupedGraphSpec.FromLiterals([["q", "!p"], ["p"]]);
         Assert.Equal(["p", "q"], spec.Variables);
@@ -403,6 +421,22 @@ public class GroupedGraphFrames_Tests {
         Assert.True(frame.Ok);
         Assert.Equal("The answer is x1 = False, x2 = True, x3 = False, x4 = False.", frame.Caption);
         Assert.Equal(["c0", "c1", "c2"], frame.Groups.Keys);
+    }
+
+    [Theory]
+    [InlineData("No Solution", "No answer was found.")]
+    [InlineData("No solution exists", "No answer was found.")]
+    [InlineData("{}", "No answer was found.")]
+    [InlineData("", "No answer was found.")]
+    [InlineData("{\"error\": \"Connection refused\"}", "The solver's answer is not an assignment, so there is nothing to draw.")]
+    [InlineData("0110", "The solver's answer is not an assignment, so there is nothing to draw.")]
+    public void Build_AnAnswerThatIsNotAnAssignment_IsNotCalledAMissingAnswerUnlessItSaysSo(string answer, string caption) {
+        // A solver that fails (the quantum SAT solver returns its error as the answer) has not shown that no answer exists.
+        var r = GroupedGraphFrames.Build(Spec, new SolveRun(answer, [], null), GroupedGraphFrames.ParseAssignment, _ => false);
+        var frame = Assert.IsType<GroupedGraphFrame>(Assert.Single(r.Frames));
+        Assert.Equal(caption, frame.Caption);
+        Assert.False(frame.Ok);
+        Assert.Empty(frame.Assignment);
     }
 
     [Fact]

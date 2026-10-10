@@ -198,6 +198,15 @@ public class SatSolvers_Tests {
         Assert.Empty(last.Assignment);
     }
 
+    [Theory]
+    [InlineData("(x1 | x2) & & (x3)")]   // the solver's own parser leaves an empty clause here and used to crash on it
+    [InlineData("(1 | 2)")]
+    [InlineData("")]
+    public void BruteForce_Run_RejectsWhatSatCannotParse_AsAParseError(string instance) {
+        Assert.Throws<ProblemParseException>(() => Create("satbruteforcesolver").Run(instance, withSteps: true));
+        Assert.Throws<ProblemParseException>(() => Create("satbruteforcesolver").Run(instance, withSteps: false));
+    }
+
     [Fact]
     public void BruteForce_IsNotOfferedAsAGenericSolverForSat() {
         // It records typed steps by overriding Run, not by implementing ISolver<SAT, Assignment>: that interface would add
@@ -258,12 +267,13 @@ public class SatSolvers_Tests {
     }
 
     [Fact]
-    public void Backtracking_WhenRecordingIsOff_NoCaptionOrPartialIsBuilt() {
+    public void Backtracking_WithRecordingOff_RecordsNothing_AndAnswersTheSame() {
+        // What this can check from outside: the Off recorder keeps no step and the answer is the recorded run's. (That the
+        // solver builds its captions only inside the recorder's lambdas is a code-review matter; no test here can see it.)
         var problem = new SAT3(new SAT3().defaultInstance);
-        // The shared Off recorder never invokes a lambda; a throwing lambda would show if one were built.
         var off = StepRecorder<Assignment>.Off;
-        off.Try(() => throw new InvalidOperationException(), () => throw new InvalidOperationException(), "v:x1");
         Assert.Equal("(x1:True,x2:True,x3:False)", new Sat3BacktrackingSolver().Solve(problem, off));
         Assert.Empty(off.Steps);
+        Assert.Equal(new Sat3BacktrackingSolver().Solve(problem, new StepRecorder<Assignment>()), new Sat3BacktrackingSolver().Solve(problem, off));
     }
 }

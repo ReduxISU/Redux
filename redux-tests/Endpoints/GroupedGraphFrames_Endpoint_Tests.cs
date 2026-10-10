@@ -423,6 +423,19 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("instance_parse_error", body);
     }
 
+    [Theory]
+    [InlineData(SatVis, "frames")]
+    [InlineData(SatVis, "list")]
+    [InlineData(Sat3Vis, "frames")]
+    [InlineData(Sat3Vis, "list")]
+    public async Task Visualize_AFormulaWithAnEmptyClause_Returns400_Not500(string vis, string format) {
+        // "& &" leaves an empty clause. The SAT brute force solves before the visualization parses the formula, and its own
+        // parser crashed on the empty clause (500); it now checks the formula first, as the 3SAT solver always has.
+        var (status, body) = await Visualize($"visualization={vis}&format={format}", "(x1 | x2) & & (x3)");
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        Assert.Contains("instance_parse_error", body);
+    }
+
     [Fact]
     public async Task Frames_AFormulaWithRepeatedAndOpposedLiterals_KeepsOneNodePerOccurrence() {
         // (x1 | !x1) is a tautology: no complement edge inside it; (x1 | x1) is two nodes.
