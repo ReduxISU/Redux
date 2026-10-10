@@ -297,4 +297,12 @@ public class TSP_Tests {
         TSP second = new TSP("(({1,2,3},{({1,2},1),({1,2},5),({2,3},1),({1,3},1)}),3)");
         Assert.Equal(new TSPBruteForce().solve(first), new TSPBruteForce().solve(second));
     }
+
+    [Fact]
+    public void TSP_Reversed_Copy_Of_An_Edge_Is_Listed_Once() {
+        // The picture labels a pair with every listed weight, so a copy written the other way round must not show as "5,5".
+        TSP tsp = new TSP("(({1,2,3},{({1,2},5),({2,1},5),({2,3},1),({1,3},1)}),7)");
+        Assert.Equal(3, tsp.listedEdges.Count);
+        Assert.Equal(3, tsp.edges.Count);
+    }
 }
