@@ -95,4 +95,15 @@ public class WEIGHTEDCUT_Tests {
         Assert.Equal("{}", new WeightedCutBruteForce().solve(problem));
         Assert.False(problem.defaultVerifier.verify(problem, "{({1,2},2)}"));
     }
+
+    // ({1,2},5) and ({2,1},5) are the same edge written twice, so the cut weighs 5, not 10.
+    [Fact]
+    public void WEIGHTEDCUT_Reversed_Copy_Of_An_Edge_Counts_Once() {
+        WEIGHTEDCUT problem = new WEIGHTEDCUT("(({1,2},{({1,2},5),({2,1},5)}),5)");
+        Assert.Equal(new List<(string, string, int)> { ("1", "2", 5) }, problem.edges);
+        Assert.Single(problem.listedEdges);
+        string answer = new WeightedCutBruteForce().solve(problem);
+        Assert.Equal("{({1,2},5)}", answer);
+        Assert.True(problem.defaultVerifier.verify(problem, answer));
+    }
 }
