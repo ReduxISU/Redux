@@ -76,7 +76,9 @@ public class GraphSubsetFrames_Tests {
             // a-d and b-d are not edges.
             Assert.Equal([("a", "d"), ("b", "d")], f.Phantoms.Select(p => (p.A, p.B)));
             Assert.All(f.Phantoms, p => Assert.Equal(PictureState.Rejected, p.State));
-            Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+            // A candidate only being tried is highlighted; a taken set and the answer are Solution.
+            var picked = ev is StepEvent.Try or StepEvent.Reject ? PictureState.ElementHighlight : PictureState.Solution;
+            Assert.Equal(picked, EdgeState(f, "a-b"));
         }
     }
 
@@ -132,8 +134,9 @@ public class GraphSubsetFrames_Tests {
         foreach (var ev in new[] { StepEvent.Try, StepEvent.Accept, StepEvent.Done }) {
             var f = GraphSubsetFrames.Frame(Spec(SubsetRule.IndependentSet), Set("a", "b"), ev, [], "x");
             Assert.Equal(PictureState.Rejected, EdgeState(f, "a-b"));
-            Assert.Equal(PictureState.Solution, State(f, "a"));   // chosen beats Blocked
-            Assert.Equal(PictureState.Solution, State(f, "b"));
+            var picked = ev == StepEvent.Try ? PictureState.ElementHighlight : PictureState.Solution;
+            Assert.Equal(picked, State(f, "a"));   // chosen beats Blocked
+            Assert.Equal(picked, State(f, "b"));
             Assert.Equal(PictureState.Blocked, State(f, "c"));
         }
     }
@@ -246,13 +249,45 @@ public class GraphSubsetFrames_Tests {
     // ---- edge ids ----
 
     [Fact]
-    public void CheckEdgeIds_RefusesTwoEdgesWithOneId_ButNotOneEdgeGivenTwice() {
-        var ex = Assert.Throws<AmbiguousEdgeIdException>(() =>
-            GraphSubsetFrames.CheckEdgeIds([("a", "b-c"), ("a-b", "c")], GraphSubsetFrames.EdgeId));
-        Assert.Contains("\"a-b-c\"", ex.Message);
-        GraphSubsetFrames.CheckEdgeIds([("a-b", "c"), ("c", "a-b"), ("x", "x")], GraphSubsetFrames.EdgeId);
-        var spec = new GraphSubsetSpec(["a", "b-c", "a-b", "c"], [new("a", "b-c"), new("a-b", "c")], 2, SubsetRule.Clique);
-        Assert.Throws<AmbiguousEdgeIdException>(() => GraphSubsetFrames.Build(spec, new SolveRun("{}", [], null), _ => Set(), _ => false));
+    public void EdgeIds_StayPlainForOrdinaryNames_AndAreUniqueWhenNamesContainSeparators() {
+        Assert.Equal("a-b", GraphSubsetFrames.EdgeId("b", "a"));
+        // Without escaping, both of these pairs would be "n-1-n-2".
+        Assert.Equal(@"n\-1-n\-2", GraphSubsetFrames.EdgeId("n-1", "n-2"));
+        Assert.Equal(@"1\-n\-2-n", GraphSubsetFrames.EdgeId("n", "1-n-2"));
+        Assert.Equal(@"a\>b-a\\b", GraphSubsetFrames.EdgeId(@"a\b", "a>b"));   // "a>b" < "a\b"; a backslash is doubled
+
+        var spec = new GraphSubsetSpec(["n-1", "n-2", "n", "1-n-2", "a", "b-c", "a-b", "c"],
+            [new("n-1", "n-2"), new("n", "1-n-2"), new("a", "b-c"), new("a-b", "c"), new("n-2", "n-1")], 2, SubsetRule.Clique);
+        var p = GraphSubsetFrames.Payload(spec);
+        // Four distinct edges (the reversed n-2,n-1 is the first one again), each with its own id and its two ends given
+        // explicitly, so a renderer never splits an id.
+        Assert.Equal(4, p.Edges.Count);
+        Assert.Equal(4, p.Edges.Select(e => e.Id).Distinct().Count());
+        Assert.Equal([("n-1", "n-2"), ("1-n-2", "n"), ("a", "b-c"), ("a-b", "c")], p.Edges.Select(e => (e.A, e.B)));
+        Assert.All(p.Edges, e => Assert.Equal(GraphSubsetFrames.EdgeId(e.A, e.B), e.Id));
+
+        // A frame marks exactly the edge its set joins, not the other one that would have shared its id.
+        var f = GraphSubsetFrames.Frame(spec, Set("n", "1-n-2"), StepEvent.Accept, [], "x");
+        Assert.Equal([GraphSubsetFrames.EdgeId("n", "1-n-2")], f.Edges.Keys);
+    }
+
+    // ---- candidates being tried are highlighted, not drawn as the answer ----
+
+    [Theory]
+    [InlineData("Try")]
+    [InlineData("Reject")]
+    public void Frame_ACandidateBeingTried_IsElementHighlight_NeverSolution(string ev) {
+        // {a,b,c} is a clique: on Accept and Done it is drawn as the answer, but a Try or Reject only looks at it.
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b", "c"), Enum.Parse<StepEvent>(ev), [], "x");
+        Assert.DoesNotContain(f.Nodes.Values, s => s.State == PictureState.Solution);
+        Assert.DoesNotContain(f.Edges.Values, s => s.State == PictureState.Solution);
+        Assert.Equal(PictureState.ElementHighlight, State(f, "a"));
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-b"));
+        foreach (var answer in new[] { StepEvent.Accept, StepEvent.Done }) {
+            var g = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b", "c"), answer, [], "x", answer == StepEvent.Done ? true : null);
+            Assert.Equal(PictureState.Solution, State(g, "a"));
+            Assert.Equal(PictureState.Solution, EdgeState(g, "a-b"));
+        }
     }
 
     // ---- runs stopped by the time limit ----

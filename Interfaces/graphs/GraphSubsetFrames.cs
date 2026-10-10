@@ -101,8 +101,21 @@ sealed record GraphFrame(
 /// <see cref="StepEvent.Reject"/> and <see cref="StepEvent.Done"/> judge a complete candidate, so they are.
 /// Missing clique edges and edges inside an independent set are failures in every event.
 /// </para>
+/// <para>
+/// A candidate that is only being tried (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/>) is not an answer,
+/// so its nodes and the edges it joins are <c>ElementHighlight</c>, never <c>Solution</c> (see <see cref="Picked"/>).
+/// <c>Solution</c> is for a set the solver has taken (<see cref="StepEvent.Accept"/>, and what is left after a
+/// <see cref="StepEvent.Backtrack"/>) and for the final answer (<see cref="StepEvent.Done"/>).
+/// </para>
 /// </summary>
 static class GraphSubsetFrames {
+    /// <summary>
+    /// The state of the elements a step's partial answer picks: <c>ElementHighlight</c> for a candidate that is only being
+    /// tried (Try, Reject), <c>Solution</c> otherwise (Accept, Backtrack, Done). Shared by every Graph shape.
+    /// </summary>
+    public static PictureState Picked(StepEvent ev) =>
+        ev is StepEvent.Try or StepEvent.Reject ? PictureState.ElementHighlight : PictureState.Solution;
+
     public static string RuleName(SubsetRule rule) => rule switch {
         SubsetRule.Clique => "clique",
         SubsetRule.VertexCover => "vertexCover",
@@ -113,29 +126,21 @@ static class GraphSubsetFrames {
     };
 
     /// <summary>
-    /// Canonical edge id: <c>"a-b"</c> with a &lt; b by ordinal comparison. Node names may contain '-', so two
-    /// different edges can get the same id (<c>{a,b-c}</c> and <c>{a-b,c}</c> are both <c>"a-b-c"</c>);
-    /// <see cref="CheckEdgeIds"/> refuses such a graph rather than draw one edge for two.
+    /// Canonical edge id: <c>"a-b"</c> with a &lt; b by ordinal comparison of the node names. The id is a label, not
+    /// something to split: the payload gives every edge's two ends as <c>a</c> and <c>b</c>. Node names may contain the
+    /// separators, so each name is written with <see cref="EscapeName"/>; that keeps every edge's id unique (nodes
+    /// <c>n-1</c>, <c>n-2</c> give <c>n\-1-n\-2</c>, and nodes <c>n</c>, <c>1-n-2</c> give <c>n-1\-n\-2</c>) and leaves
+    /// ordinary names as they are (<c>"a-b"</c>).
     /// </summary>
     public static string EdgeId(string a, string b) =>
-        string.CompareOrdinal(a, b) <= 0 ? $"{a}-{b}" : $"{b}-{a}";
+        string.CompareOrdinal(a, b) <= 0 ? $"{EscapeName(a)}-{EscapeName(b)}" : $"{EscapeName(b)}-{EscapeName(a)}";
 
     /// <summary>
-    /// Throws <see cref="AmbiguousEdgeIdException"/> if two different edges (loops aside) of <paramref name="edges"/>
-    /// get the same id from <paramref name="idOf"/>, which happens only when node names contain the id's separator.
+    /// A node name as it is written inside an edge id: a backslash before every <c>\</c>, <c>-</c> and <c>&gt;</c> (the
+    /// separators of undirected and directed ids), so no two different edges can share an id.
     /// </summary>
-    public static void CheckEdgeIds(IEnumerable<(string A, string B)> edges, Func<string, string, string> idOf) {
-        var owner = new Dictionary<string, (string A, string B)>(StringComparer.Ordinal);
-        foreach (var (x, y) in edges) {
-            if (x == y) continue;
-            string id = idOf(x, y);
-            if (!owner.TryGetValue(id, out var first)) owner[id] = (x, y);
-            // The same end nodes (in either order: a pair and its reverse share an id only when the id ignores order) are
-            // one edge given twice, which is fine.
-            else if (!((first.A == x && first.B == y) || (first.A == y && first.B == x)))
-                throw new AmbiguousEdgeIdException(id, first, (x, y));
-        }
-    }
+    public static string EscapeName(string name) =>
+        name.IndexOfAny(['\\', '-', '>']) < 0 ? name : name.Replace(@"\", @"\\").Replace("-", @"\-").Replace(">", @"\>");
 
     /// <summary>The distinct edges (loops dropped) with a before b, in first-seen order.</summary>
     private static List<(string A, string B, string Id)> CanonicalEdges(GraphSubsetSpec spec) {
@@ -187,14 +192,15 @@ static class GraphSubsetFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var phantoms = new List<GraphPhantom>();
 
-        foreach (var n in chosen) Raise(nodes, n, PictureState.Solution);
+        var picked = Picked(ev);
+        foreach (var n in chosen) Raise(nodes, n, picked);
 
         switch (spec.Rule) {
             case SubsetRule.Clique:
                 var members = chosen.OrderBy(n => n, StringComparer.Ordinal).ToList();
                 for (int i = 0; i < members.Count; i++)
                     for (int j = i + 1; j < members.Count; j++) {
-                        if (adj[members[i]].Contains(members[j])) Raise(edgeStates, EdgeId(members[i], members[j]), PictureState.Solution);
+                        if (adj[members[i]].Contains(members[j])) Raise(edgeStates, EdgeId(members[i], members[j]), picked);
                         else phantoms.Add(new GraphPhantom(members[i], members[j], PictureState.Rejected));
                     }
                 break;
@@ -303,7 +309,6 @@ static class GraphSubsetFrames {
     /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read as nodes.
     /// </summary>
     public static FramesResponse Build(GraphSubsetSpec spec, SolveRun run, Func<string, NodeSet> parseAnswer, Func<string, bool> verifyAnswer) {
-        CheckEdgeIds(spec.Edges.Select(e => (e.Key, e.Value)), EdgeId);
         var frames = new List<object>();
         SolverStep<NodeSet>? last = null;
         foreach (var step in run.StepsFor(typeof(NodeSet)).OfType<SolverStep<NodeSet>>()) {
@@ -339,30 +344,11 @@ interface IGraphSubsetVisualization<TProblem> : IFramesVisualization where TProb
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
-        return AmbiguousEdgeIdException.AsParseError(problem, instance, () => GraphSubsetFrames.Build(Describe(problem), run,
+        return GraphSubsetFrames.Build(Describe(problem), run,
             answer => ParseAnswer(problem, answer),
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            }));
-    }
-}
-
-/// <summary>
-/// Two different edges of a graph would get the same edge id in the Graph picture, because node names contain the id's
-/// separator ('-', or '>' in a directed graph). The picture cannot tell them apart, so it refuses the instance.
-/// </summary>
-sealed class AmbiguousEdgeIdException : Exception {
-    public AmbiguousEdgeIdException(string id, (string A, string B) first, (string A, string B) second)
-        : base($"The Graph picture names edges by their end nodes joined with a separator, and the edges ({first.A}, {first.B}) "
-            + $"and ({second.A}, {second.B}) would both be \"{id}\". Rename the nodes so their names do not contain '-' or '>'.") { }
-
-    /// <summary>Runs <paramref name="build"/>, reporting an ambiguous edge id as a 400 (a <see cref="ProblemParseException"/>).</summary>
-    public static T AsParseError<T>(IProblem problem, string instance, Func<T> build) {
-        try {
-            return build();
-        } catch (AmbiguousEdgeIdException ex) {
-            throw new ProblemParseException(problem.problemName, instance, ex.Message, ex);
-        }
+            });
     }
 }
