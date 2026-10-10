@@ -20,16 +20,19 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
 
     public string complexity { get; } = "O(2^n)";
 
+    // Every subset of len items, as 0/1 per item, in mask order: 0, 1, 2, ... with bit k picking item k. Counted with one
+    // digit per item, not an int mask, so there is no limit on the number of items (#791).
     public IEnumerable<List<int>> possibleSolutions(int len) {
-        for (int i = 0; i < Math.Pow(2, len); i++) {
-            List<int> solution = new List<int>();
-            for (int solBin = i + (int)Math.Pow(2, len); solBin != 1; solBin >>= 1) {
-                if ((solBin & 1) == 0)
-                    solution.Add(0);
-                else
-                    solution.Add(1);
+        int[] bits = new int[len];
+        while (true) {
+            yield return bits.ToList();
+            int k = 0;
+            while (k < len && bits[k] == 1) {
+                bits[k] = 0;
+                k++;
             }
-            yield return solution;
+            if (k == len) yield break;
+            bits[k] = 1;
         }
     }
     // --- Methods Including Constructors ---
