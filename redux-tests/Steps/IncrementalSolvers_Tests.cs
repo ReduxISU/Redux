@@ -28,10 +28,18 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        // Placement (Packing pictures)
+        ["partitionbruteforce"] = false,
+        ["subsetsumbruteforce"] = false,
+        ["fastapproximation"] = false,
+        ["knapsackbruteforce"] = false,
+        ["knapsackdp"] = true,
+        ["binpackingbruteforce"] = true,
+        ["binpackingffd"] = true,
     };
 
-    // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet)];
+    // The answer shapes the Graph and Packing pictures draw.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(Placement)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

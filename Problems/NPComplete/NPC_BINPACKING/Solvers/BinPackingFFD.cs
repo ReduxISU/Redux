@@ -17,10 +17,13 @@
 //   FFD uses at most (11/9) · OPT + 6/9 bins — tight bound.
 
 using API.Interfaces;
+using API.Interfaces.Packing;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_BINPACKING.Solvers;
 
-class BinPackingFFD : ISolver<BINPACKING> {
+// Incremental: a greedy pass that puts each item in a bin for good, so every step's partial is what is placed so far.
+class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
 
     // ── Metadata ─────────────────────────────────────────────────────────────
 
@@ -50,19 +53,37 @@ class BinPackingFFD : ISolver<BINPACKING> {
 
     // ── Public entry point ────────────────────────────────────────────────────
 
-    public string solve(BINPACKING problem) {
+    public string solve(BINPACKING problem) => Solve(problem, StepRecorder<Placement>.Off);
+
+    // Steps: the sorted order (nothing placed yet), an Accept for every item put in a bin, a Reject for the item that would
+    // need a bin past K, then the answer. Item i of the picture is S[i]; bin b is container b.
+    public string Solve(BINPACKING problem, StepRecorder<Placement> rec) {
         int C = problem.C;
         int K = problem.K;
 
         // Step 1: Sort items largest-first. We create a new sorted list so we
         // don't mutate the original problem's S (immutability principle).
-        List<int> sorted = problem.S.OrderByDescending(x => x).ToList();
+        // The positions in S, in the same (stable) order, for the picture.
+        List<int> order = Enumerable.Range(0, problem.S.Count).OrderByDescending(i => problem.S[i]).ToList();
+        List<int> sorted = order.Select(i => problem.S[i]).ToList();
+        int[] binOf = Enumerable.Repeat(-1, problem.S.Count).ToArray();
 
         // Fast pre-check: if any item exceeds bin capacity, packing is impossible
         // regardless of how many bins we have.
-        foreach (int size in sorted) {
-            if (size > C) return "{}";
+        foreach (int i in order) {
+            int size = problem.S[i];
+            if (size > C) {
+                rec.Reject(() => new Placement([]), () => $"{size} is bigger than a whole bin ({C}), so nothing can work.", PackingFrames.ItemId(i));
+                rec.Done(new Placement([]), false, $"No packing exists: {size} doesn't fit in a bin of {C}.");
+                return "{}";
+            }
         }
+
+        if (sorted.Count == 0) {
+            rec.Done(new Placement([]), true, "There are no items, so no bins are needed.");
+            return FormatCertificate(new List<List<int>>());
+        }
+        rec.Try(() => new Placement([]), () => $"Sort largest first: {string.Join(", ", sorted)}. Each goes in the first bin with room.");
 
         // bins holds the items placed in each bin so far.
         // binSums tracks each bin's current total — kept parallel to bins.
@@ -70,7 +91,8 @@ class BinPackingFFD : ISolver<BINPACKING> {
         List<int> binSums = new List<int>();
 
         // Step 2: Place each item using the First Fit rule.
-        foreach (int size in sorted) {
+        foreach (int i in order) {
+            int size = problem.S[i];
             bool placed = false;
 
             // Scan existing bins left to right — place in the first one that fits.
@@ -80,6 +102,12 @@ class BinPackingFFD : ISolver<BINPACKING> {
                     // Create a new sum value rather than mutating in-place.
                     binSums[b] = binSums[b] + size;
                     placed = true;
+                    binOf[i] = b;
+                    int bin = b, now = binSums[b];
+                    rec.Accept(() => new Placement(binOf), () => bin == 0
+                        ? $"{size} fits in bin 1: {now} of {C} used."
+                        : $"{size} doesn't fit in {(bin == 1 ? "bin 1" : $"bins 1 to {bin}")}, so it goes in bin {bin + 1}: {now} of {C} used.",
+                        PackingFrames.ItemId(i), PackingFrames.ContainerId(b));
                     break;
                 }
             }
@@ -89,12 +117,29 @@ class BinPackingFFD : ISolver<BINPACKING> {
                 // If opening a new bin would exceed the K-bin limit, we give up.
                 // This returns "{}" which means "FFD couldn't find a packing within K bins".
                 // It does NOT mean the instance is unsolvable — use brute force to be sure.
-                if (bins.Count + 1 > K) return "{}";
+                if (bins.Count + 1 > K) {
+                    int open = bins.Count;
+                    rec.Reject(() => new Placement(binOf), () => open == 0
+                        ? $"There is no bin yet for {size}, and K = {K} allows none."
+                        : $"No open bin has room for {size}, and opening another would need {open + 1} bins, more than K = {K}.",
+                        PackingFrames.ItemId(i));
+                    rec.Done(new Placement([]), false,
+                        $"First Fit Decreasing needs more than {K} {(K == 1 ? "bin" : "bins")}. It is a heuristic, so the brute force may still find a packing.");
+                    return "{}";
+                }
                 bins.Add(new List<int> { size });
                 binSums.Add(size);
+                binOf[i] = bins.Count - 1;
+                int opened = bins.Count;
+                rec.Accept(() => new Placement(binOf), () => opened == 1
+                    ? $"{size} goes in bin 1: {size} of {C} used."
+                    : $"No open bin has room for {size}, so open bin {opened}: {size} of {C} used.",
+                    PackingFrames.ItemId(i), PackingFrames.ContainerId(opened - 1));
             }
         }
 
+        rec.Done(new Placement(binOf), true,
+            $"Everything is packed into {bins.Count} {(bins.Count == 1 ? "bin" : "bins")} of {C}, within K = {K}.");
         return FormatCertificate(bins);
     }
 
