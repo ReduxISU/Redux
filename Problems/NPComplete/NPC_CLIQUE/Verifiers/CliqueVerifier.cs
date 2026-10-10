@@ -35,6 +35,11 @@ class CliqueVerifier : IVerifier<CLIQUE> {
             throw new CertificateParseException(problem, certificate, "certificate is empty");
         }
 
+        // "{}" is the empty set, a clique of size 0: the answer when K = 0, and wrong for any other K.
+        if (string.Concat(certificate.Where(c => !char.IsWhiteSpace(c))) == "{}") {
+            return problem.K == 0;
+        }
+
         StringParser parser = new(CertificateGrammar);
         List<string> nodeList;
         try {
@@ -45,6 +50,8 @@ class CliqueVerifier : IVerifier<CLIQUE> {
         } catch (Exception ex) {
             throw new CertificateParseException(problem, certificate, ex.Message);
         }
+        // SPADE reads some text that is not a set (such as "abc") as an empty list, so an empty list from
+        // anything but "{}" is still a parse error.
         if (nodeList.Count == 0 || nodeList.Any(string.IsNullOrWhiteSpace)) {
             throw new CertificateParseException(problem, certificate,
                 "certificate did not parse to a non-empty list of node names");
