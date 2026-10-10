@@ -363,4 +363,19 @@ public class SPSP_Tests {
         }
         return total;
     }
+
+    // #781: weighted undirected edges ({1,2},w) make an undirected graph, so a path that walks one against the order it is
+    // written in is still drawn.
+    [Fact]
+    public void SPSP_WeightedUndirectedEdges_MakeAnUndirectedGraph_AndThePictureFollowsThePathBackwards() {
+        var problem = new SPSP("({1,2,3},{({1,2},1),({2,3},1)},3,1)");
+        Assert.False(problem.isDirected);
+        Assert.True(new SPSP("({1,2,3},{((1,2),1),((2,3),1)},3,1)").isDirected);
+        string answer = new SPSPSolver().solve(problem);
+        Assert.Equal("{3,2,1}", answer);
+
+        var graph = (API.Interfaces.JSON_Objects.Graphs.API_GraphJSON)new SPSPVisualization().SolvedVisualization(problem, answer);
+
+        Assert.All(graph.links, link => Assert.Equal("Solution", link.color));
+    }
 }

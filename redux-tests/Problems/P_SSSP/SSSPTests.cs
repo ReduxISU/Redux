@@ -325,4 +325,41 @@ public class SSSP_Tests {
 
         Assert.NotEmpty(previousSettledEdges);
     }
+
+    // #781: in an undirected graph a tree edge can be walked against the order it is written in ({1,2} walked 2 -> 1),
+    // weighted or not.
+    [Theory]
+    [InlineData("({1,2,3},{({1,2},1),({2,3},1)},3)")]
+    [InlineData("({1,2,3},{{1,2},{2,3}},3)")]
+    public void SSSP_UndirectedEdges_MakeAnUndirectedGraph(string instance) {
+        Assert.False(new SSSP(instance).isDirected);
+        Assert.True(new SSSP("({1,2,3},{((1,2),1),((2,3),1)},3)").isDirected);
+    }
+
+    [Theory]
+    [InlineData("({1,2,3},{({1,2},1),({2,3},1)},3)")]
+    [InlineData("({1,2,3},{{1,2},{2,3}},3)")]
+    public void SSSPVisualization_SolvedVisualization_HighlightsTreeEdgesWalkedAgainstTheirWrittenOrder(string instance) {
+        SSSP problem = new SSSP(instance);
+        string answer = new SSSPSolver().solve(problem);
+        Assert.Equal("{(1,{3,2,1}),(2,{3,2}),(3,{3})}", answer);
+
+        var graph = (API_GraphJSON)new SSSPVisualization().SolvedVisualization(problem, answer);
+
+        Assert.All(graph.links, link => Assert.Equal("Solution", link.color));
+    }
+
+    [Theory]
+    [InlineData("({1,2,3},{({1,2},1),({2,3},1)},3)")]
+    [InlineData("({1,2,3},{{1,2},{2,3}},3)")]
+    public void SSSPVisualization_StepsVisualization_HighlightsTreeEdgesWalkedAgainstTheirWrittenOrder(string instance) {
+        SSSP problem = new SSSP(instance);
+        var steps = new SSSPSolver().GetSteps(problem);
+
+        var last = (API_GraphJSON)new SSSPVisualization().StepsVisualization(problem, steps)[^1];
+
+        // The last step settles 1 through the edge {1,2}: that edge is the current one, {2,3} is in the tree.
+        Assert.Equal("ElementHighlight", last.links.Single(l => l.source == "1" && l.target == "2").color);
+        Assert.Equal("Solution", last.links.Single(l => l.source == "2" && l.target == "3").color);
+    }
 }
