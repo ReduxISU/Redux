@@ -60,4 +60,12 @@ interface IFramesVisualization : IVisualization {
     /// <param name="instance">The problem instance string.</param>
     /// <param name="run">The solver's answer and steps (use <see cref="SolveRun.StepsFor"/> before reading steps).</param>
     FramesResponse BuildFrames(string instance, SolveRun run);
+
+    /// <summary>
+    /// Whether this visualization's list methods (<c>StepsVisualization</c>) draw the solver's typed steps. False (the
+    /// default) means they were written for legacy steps, so the list format gets none of the typed ones. A visualization
+    /// whose list format already drew typed steps before it got a frames hook (DFA) returns true, so its list output stays
+    /// as it was. A method, not a property, so it never appears in /info.
+    /// </summary>
+    bool ListReadsTypedSteps() => false;
 }

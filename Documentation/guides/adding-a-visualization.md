@@ -48,6 +48,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs), [`GraphEdgeFrames`](../../Interfaces/graphs/GraphEdgeFrames.cs), [`GraphGroupFrames`](../../Interfaces/graphs/GraphGroupFrames.cs), [`GraphTourFrames`](../../Interfaces/graphs/GraphTourFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set; Minimum Spanning Tree, Steiner Tree; Cut, Weighted Cut, Max Cut, Minimum Cut; Graph Coloring, Clique Cover; Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format. See "The Graph picture" below |
 | `GroupedGraph` | not a list item: a `payload` plus `frames` of named states ([`GroupedGraphFrames`](../../Interfaces/graphs/GroupedGraphFrames.cs)) | none yet | SAT, 3SAT (the clause graph). Reported only as the `type` of `visualize?format=frames`; these visualizations still report `BooleanSatisfiability` in /info and in the default list format. See "The Grouped Graph picture" below |
 | `BipartiteGraph` | not a list item: a `payload` plus `frames` of named states ([`BipartiteFrames`](../../Interfaces/graphs/BipartiteFrames.cs)) | none yet | Set Cover, Exact Cover, Hitting Set (exact). Reported only as the `type` of `visualize?format=frames`; these visualizations still report `SetD3` in /info and in the default list format. See "The Bipartite Graph picture" below |
+| `Automaton` | not a list item: a `payload` plus `frames` of named states ([`AutomatonFrames`](../../Interfaces/graphs/AutomatonFrames.cs)) | none yet | DFA, NFA. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphLaTeX` in /info and in the default list format. See "The Automaton picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -140,6 +141,47 @@ To add a problem:
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer on seeded instances before touching code (`Endpoints/Snapshots/`, `BipartiteFrames_Endpoint_Tests`, `BipartiteSolvers_Tests`, `BipartiteFrames_Tests`).
 
 **The SAT factor graph.** SAT and 3SAT have a second Bipartite picture, their factor graph, served by two extra visualizations, `SatFactorGraphVisualization` and `Sat3FactorGraphVisualization` (`IFactorGraphVisualization<T>`, [`FactorGraphFrames`](../../Interfaces/graphs/FactorGraphFrames.cs)). Their list format is exactly the default SAT and 3SAT pictures', so old frontends see the same picture under a second name. They read the same `GroupedGraphSpec` and the same `Assignment` steps as the clause graph, so every SAT solver animates on both. The payload is the Bipartite one with the variables as `elements`, the clauses as `sets`, `pickSide: "assignment"`, `rule: "satisfiability"`, and an edge per literal occurrence carrying `positive` (false for a negated literal, drawn dashed). Ids are the clause graph's: variables `v:{name}`, clauses `c{i}`, and each edge is its literal's id `c{i}-{j}`. Each frame adds `assignment` (variable id to `true`/`false`). A true literal's edge and a true variable are `Solution` (`ElementHighlight` while a whole assignment is only tried); a false one is `False`; a clause with a true literal is `Covered` (`hits` counts its true literals), one with every literal false is `Rejected` while its edges stay `False`; the variable being tried is `ElementHighlight` with its true edges. The order is `Rejected > ElementHighlight > Solution > Covered > Blocked > False > Background`.
+
+### The Automaton picture (`format=frames`)
+
+DFA and NFA serve the shared `Automaton` picture: states laid out left to right in the order the machine reaches them, merged transition arrows, a start arrow, double-ring accept states and an input tape. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the machine.
+
+The problem hands over `AutomatonSpec(kind, states, alphabet, transitions, start, accepting, input)`: `AutomatonKind.Dfa` or `Nfa`, the state names, the symbols, each transition as `(from, symbol, to)` with `"ε"` for an ε-transition, the start state, the accept states and the input string (`"ε"` is the empty input).
+
+The payload (sent once) is `{ kind: "dfa" | "nfa", layout: "layered", states, start, accepting, alphabet, transitions, input, garbage?, paths?, pathsTruncated? }`:
+
+- A state is `{ id, label, layer }`. `layer` is how many moves the start state needs to reach it; a state it cannot reach goes one layer past the last.
+- `start` and `accepting` hold state ids. `input` is the tape, one symbol per cell (`[]` for the empty input).
+- A transition is one arrow `{ id, a, b, label, symbols, epsilon }` for every transition from `a` to `b`: `label` joins the symbols with commas (`"a,b"`), and `epsilon` is true when every symbol is ε (the arrow is dashed).
+- `garbage` is there only for a DFA with a missing move: `{ id: "garbage", label: "Garbage", missing }`, where `missing` lists each `{ state, symbol }` with no move. It is drawn apart, with no arrows into it. Its label gets a `'` while a state already has that name.
+- `paths` is there only for an NFA: its runs for the path picker, accepting runs first, at most 40 (`pathsTruncated` says whether there are more). Each is `{ id, label, accepted, outcome, frames }`. The `label` reads like `Path 1: 1 ⇢ 2 → 3, accepts` (⇢ is an ε move), `outcome` is `accepts`, `rejects` or `dies`, and `frames` follow that run alone, in the same shape as the main frames. The runs are the ones `NFASolver.GetPathRuns` finds, in the same order, so Path *i* is Run *i* of the NFA table.
+
+Each frame is `{ event, caption, focus, position, active, nodes, edges, ok? }`. `position` is how many symbols have been read (the tape head sits on the next one). `active` lists the ids of the states the machine is in. `nodes` and `edges` map an id to `{ state }`; an id that is absent is `Background`.
+
+| What | Id | Example |
+| --- | --- | --- |
+| State `x` (a `\` before every `\`, `>` and `:` in the name) | `q:{x}` | `q:1`, `q:a\>b` |
+| Every transition from `x` to `y` | `{id of x}>{id of y}` | `q:1>q:2` |
+| The DFA's Garbage state | `garbage` | `garbage` |
+
+Build ids with `AutomatonFrames.StateId`, `TransitionId` and `GarbageId`, never by hand. An id is a label, never something to split: every arrow gives its ends as `a` and `b`.
+
+States: the active states are `ElementHighlight` while the machine runs, and so is the focus (the arrow just taken, the state just reached). In a `Reject` the focus is `Rejected`. `Solution` appears only in an `Accept` (an active accept state) and in the `Done` frame of an input the machine accepts (the active accept states). In a `Done` that rejects, every active state is `Rejected`, Garbage included. In every `Done`, a state the run never reached on this input is `Untraveled`. The order when several apply is `Rejected > ElementHighlight > Solution > Background`. A run stopped by the time limit ends with a `Done` frame with `ok: false`, nothing active and every element `Background`; its answer string is never read.
+
+The solvers and their steps (`ISolver<T, ActiveStates>`; a step's partial is the states the machine is in and how many symbols it has read):
+
+- `DFASolver` records a `Try` for the start state and one per symbol read (focus: the arrow taken). A missing move is a `Reject` whose partial has no states: the picture shows the machine in Garbage (focus: `garbage`). A symbol outside the alphabet, or input used up in a state that does not accept, is a `Reject` on that state.
+- `NFASolver` follows one run at a time: a `Try` for each move (focus: its arrow), `Accept` when a run ends in an accept state, `Reject` at a dead end, and `Backtrack` when it backs out of a move.
+- `NFASubsetSolver` ("NFA Subset Simulation") runs every branch at once. It records a `Try` per symbol with the whole active set (focus: every arrow taken, ε moves included), then an `Accept` on the accept states it reached, or a `Reject`. This is the picture's "all branches" view. The path picker is the "one path" view.
+
+Every run ends with `Done`, whose `ok` says whether the machine accepts.
+
+To add an automaton problem:
+
+1. Implement `IAutomatonVisualization<T>` on its visualization, **explicitly**, so nothing new appears in `/info`, and declare `Type? IVisualization.StepShape => typeof(ActiveStates);`.
+2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets tests build the same description.
+3. If the list format already drew the typed steps before the picture existed, also return `true` from `IFramesVisualization.ListReadsTypedSteps()`, so the list keeps getting them. It is a method, not a property, so it never shows in `/info`.
+4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/automaton_*.tsv`, `AutomatonFrames_Endpoint_Tests`, `AutomatonSolvers_Tests`, `AutomatonFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 

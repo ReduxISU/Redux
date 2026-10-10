@@ -97,6 +97,30 @@ public class DFA_Tests {
         Assert.Throws<InvalidOperationException>(() => new DFA(nfaInstance));
     }
 
+    // #779: a state with two moves on one symbol is an NFA, not a DFA. The solver used to follow whichever edge came first.
+    [Theory]
+    [InlineData("(({1,2,3},{a},{(1,a,2),(1,a,3)},1,{3}),a)")]
+    [InlineData("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,a,3)},1,{3}),aa)")]
+    public void DFA_Rejects_Two_Transitions_On_One_Symbol_From_One_State(string instance) {
+        var ex = Assert.Throws<InvalidOperationException>(() => new DFA(instance));
+        Assert.Contains("NFA", ex.Message);
+    }
+
+    [Fact]
+    public void DFA_Accepts_The_Same_Transition_Written_Twice() {
+        DFA dfa = new DFA("(({1,2},{a},{(1,a,2),(1,a,2)},1,{2}),a)");
+        Assert.Contains("1, 2", new DFASolver().solve(dfa));
+    }
+
+    // #780: a symbol is one character; "ab" used to be cut to "a" without a word.
+    [Theory]
+    [InlineData("(({1,2},{ab,c},{(1,c,2)},1,{2}),c)")]   // in the alphabet
+    [InlineData("(({1,2},{a,c},{(1,ab,2)},1,{2}),a)")]   // in a transition
+    public void DFA_Rejects_Multi_Character_Symbol(string instance) {
+        var ex = Assert.Throws<InvalidOperationException>(() => new DFA(instance));
+        Assert.Contains("one character", ex.Message);
+    }
+
     [Fact]
     public void DFA_Rejects_Edge_With_Symbol_Not_In_Alphabet() {
         string instance = "(({1,2},{a},{(1,c,2)},1,{2}),a)";
@@ -182,11 +206,12 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Solver_Rejects_Empty_String_When_Start_Is_Not_Accept() {
-        // Start state q0 is NOT accept; ε input cannot reach q1
+        // Start state q0 is NOT accept; ε input cannot reach q1. The machine reads nothing and stays in q0,
+        // so it ends in a non-accepting state: ε is the empty input, not a symbol outside the alphabet (#778).
         DFA dfa = new DFA("(({q0,q1},{a},{(q0,a,q1)},q0,{q1}),ε)");
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
-        Assert.Contains("No Solution", result);
+        Assert.Equal("No Solution Exists: The DFA ended in a non-accepting state", result);
     }
 
     [Fact]
@@ -214,13 +239,31 @@ public class DFA_Tests {
     // Verifier
     // -------------------------------------------------------------------------
 
+    // The default machine with another input string.
+    private static string DefaultMachineWithInput(string input) =>
+        "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2})," + input + ")";
+
     [Theory]
-    [InlineData("1,2")]    // 1 →a→ 2 (accept)
-    [InlineData("1,3,2")]  // 1 →b→ 3 →a→ 2 (accept)
-    public void DFA_Verifier_Accepts_Valid_Path(string certificate) {
-        DFA dfa = new DFA(DefaultInstance);
+    [InlineData("a", "1,2")]       // 1 →a→ 2 (accept)
+    [InlineData("ba", "1,3,2")]    // 1 →b→ 3 →a→ 2 (accept)
+    [InlineData("aa", "1, 2, 2")]  // spaces after the commas are fine
+    public void DFA_Verifier_Accepts_Valid_Path(string input, string certificate) {
+        DFA dfa = new DFA(DefaultMachineWithInput(input));
         DFAVerifier verifier = new DFAVerifier();
         Assert.True(verifier.verify(dfa, certificate));
+    }
+
+    // #777: the certificate must be the run on this input, not just any walk to an accept state.
+    [Theory]
+    [InlineData("b", "1,2")]      // on b, 1 goes to 3
+    [InlineData("a", "1,3,2")]    // that run reads "ba"
+    [InlineData("aa", "1,2")]     // reads one symbol of two
+    [InlineData("a", "1,2,2")]    // reads two symbols of one
+    [InlineData("ε", "1,2")]      // the empty input reads nothing
+    public void DFA_Verifier_Rejects_Path_That_Does_Not_Follow_The_Input(string input, string certificate) {
+        DFA dfa = new DFA(DefaultMachineWithInput(input));
+        DFAVerifier verifier = new DFAVerifier();
+        Assert.False(verifier.verify(dfa, certificate));
     }
 
     [Theory]

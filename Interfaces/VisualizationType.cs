@@ -56,4 +56,11 @@ public enum VisualizationType {
     /// the legacy <see cref="SetD3"/>.
     /// </summary>
     BipartiteGraph,
+    /// <summary>
+    /// The Automaton picture (DFA, NFA): states layered from the start state, merged transition arrows, an input tape, a
+    /// Garbage state for a DFA's missing moves and the runs of an NFA for the path picker; a static payload plus one frame of
+    /// named states per solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the
+    /// <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy <see cref="GraphLaTeX"/>.
+    /// </summary>
+    Automaton,
 }

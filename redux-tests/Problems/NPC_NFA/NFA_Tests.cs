@@ -90,6 +90,24 @@ public class NFA_Tests {
         Assert.Throws<InvalidOperationException>(() => new NFA(instance));
     }
 
+    // #780: a symbol is one character; "ab" used to be cut to "a" without a word.
+    [Theory]
+    [InlineData("(({1,2},{ab,c},{(1,c,2)},1,{2}),c)")]   // in the alphabet
+    [InlineData("(({1,2},{a,c},{(1,ab,2)},1,{2}),a)")]   // in a transition
+    public void NFA_Rejects_Multi_Character_Symbol(string instance) {
+        var ex = Assert.Throws<InvalidOperationException>(() => new NFA(instance));
+        Assert.Contains("one character", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("ε")]
+    [InlineData("eps")]
+    [InlineData("epsilon")]
+    public void NFA_Still_Reads_Every_Epsilon_Spelling(string epsilon) {
+        NFA nfa = new NFA("(({1,2},{a},{(1," + epsilon + ",2)},1,{2}),ε)");
+        Assert.Equal('ε', Assert.Single(nfa.edges).Symbol);
+    }
+
     [Fact]
     public void NFA_Rejects_Unknown_Start_State() {
         string instance = "(({1,2},{a},{(1,a,2)},9,{2}),a)";

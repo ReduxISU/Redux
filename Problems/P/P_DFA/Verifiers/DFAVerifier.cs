@@ -21,40 +21,22 @@ class DFAVerifier : IVerifier<DFA> {
     public DFAVerifier() { }
 
     public bool verify(DFA problem, string certificate) {
-        // Trim Unwanted Space //
-        certificate.Trim();
-        // Get Each Node //
-        string[] nodes = certificate.Split(',');
+        // The empty input is written "ε".
+        string input = problem.inputString == "ε" ? "" : problem.inputString;
+        // One state per comma; spaces around a state are ignored ("1, 2" reads like "1,2").
+        string[] states = certificate.Trim().Split(',').Select(s => s.Trim()).ToArray();
 
-        // Start State //
-        string currentNode = nodes[0];
-        // Tracks If Acceptable Edge Was Found //
-        bool foundEdge = false;
+        // The run on an input of n symbols visits n + 1 states, starting at the start state (#777).
+        if (states.Length != input.Length + 1) return false;
+        if (states[0] != problem.startState) return false;
 
-        // Certificate Did Not Begin At Start State //
-        if (!currentNode.Equals(problem.startState)) return false;
-
-        // For Each Node //
-        for (int i = 0; i < nodes.Count() - 1; i++) {
-            // Check If Character Is In Alphabet //
-            if (!problem.nodes.Contains(nodes[i])) { return false; }
-
-            if (problem.nodes.Contains(nodes[i])) {
-                foundEdge = false;
-                foreach (var edge in problem.edges) {
-                    if (!edge.From.Equals(currentNode)) continue;
-                    else if (edge.From.Equals(nodes[i]) && !edge.To.Equals(nodes[i + 1])) continue;
-                    else if (!edge.From.Equals(nodes[i]) && !edge.To.Equals(nodes[i + 1])) continue;
-                    else { currentNode = nodes[i + 1]; foundEdge = true; }
-                }
-            }
-
-            // If No Edge DFA Returns False //
-            if (!foundEdge) return false;
+        // Each step reads the next input symbol along a transition of the DFA.
+        for (int i = 0; i < input.Length; i++) {
+            if (!problem.edges.Any(e => e.From == states[i] && e.Symbol == input[i] && e.To == states[i + 1]))
+                return false;
         }
 
-        // Return True If Last State Is Accept State //
-        if (problem.acceptStates.Contains(currentNode)) return true;
-        else return false;
+        // The run ends in an accept state.
+        return problem.acceptStates.Contains(states[^1]);
     }
 }

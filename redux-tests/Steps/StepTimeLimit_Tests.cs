@@ -131,10 +131,16 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
         Assert.True(took < TimeSpan.FromSeconds(10), $"took {took}");
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal(new[] { "type", "payload", "frames" }, root.EnumerateObject().Select(p => p.Name));
-        // NFAVisualization draws no step frames, so a stopped run leaves only the payload (the initial picture):
-        // no solved picture is appended because there is no answer.
+        // NFAVisualization draws the Automaton picture (#666): the steps kept before the limit, then a Done frame that
+        // says the solver had not finished, with nothing active or judged. No solved picture: there is no answer.
+        Assert.Equal("Automaton", root.GetProperty("type").GetString());
         Assert.Equal(JsonValueKind.Object, root.GetProperty("payload").ValueKind);
-        Assert.Equal(0, root.GetProperty("frames").GetArrayLength());
+        var done = root.GetProperty("frames").EnumerateArray().Last();
+        Assert.Equal("Done", done.GetProperty("event").GetString());
+        Assert.False(done.GetProperty("ok").GetBoolean());
+        Assert.StartsWith("Stopped after", done.GetProperty("caption").GetString());
+        Assert.Empty(done.GetProperty("nodes").EnumerateObject());
+        Assert.Empty(done.GetProperty("active").EnumerateArray());
     }
 
     [Fact]
