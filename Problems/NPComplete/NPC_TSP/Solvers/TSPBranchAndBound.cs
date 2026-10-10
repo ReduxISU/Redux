@@ -5,7 +5,7 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
-class TSPBranchAndBound : ISolver<TSP, Tour> {
+class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Branch and Bound";
@@ -150,7 +150,10 @@ class TSPBranchAndBound : ISolver<TSP, Tour> {
                         () => double.IsPositiveInfinity(tourCost)
                             ? $"Close the tour {nodes[current.path[^1]]} → {nodes[current.path[0]]}: there is no such edge."
                             : $"Close the tour {nodes[current.path[^1]]} → {nodes[current.path[0]]}: total {TSPTourSteps.Num(tourCost)} is no better than the best so far ({TSPTourSteps.Num(bestNow)}).",
-                        () => double.IsPositiveInfinity(tourCost) ? new[] { nodes[current.path[^1]], nodes[current.path[0]] } : TSPTourSteps.EdgeIds(problem, Names(current.path, close: true)));
+                        // The path was built hop by hop, so what failed is the closing hop, not the whole tour.
+                        () => double.IsPositiveInfinity(tourCost)
+                            ? new[] { nodes[current.path[^1]], nodes[current.path[0]] }
+                            : new[] { nodes[current.path[^1]], nodes[current.path[0]], GraphTourFrames.EdgeId(false, nodes[current.path[^1]], nodes[current.path[0]]) });
                 }
                 continue;
             }
@@ -194,7 +197,7 @@ class TSPBranchAndBound : ISolver<TSP, Tour> {
                     double boundNow = bestCost;
                     rec.Reject(() => new Tour(Names(current.path).Append(nodes[skipped])),
                         () => $"Skip {nodes[skipped]} after {nodes[lastNode]}: the lower bound {TSPTourSteps.Num(childBound)} is no better than the best tour so far ({TSPTourSteps.Num(boundNow)}).",
-                        nodes[skipped]);
+                        nodes[skipped], GraphTourFrames.EdgeId(false, nodes[lastNode], nodes[skipped]));
                     continue;   //Prune
                 }
 

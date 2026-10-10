@@ -191,7 +191,7 @@ static class GroupedGraphFrames {
             }
 
         // A true literal of a candidate that is only being tried is highlighted, not drawn as the answer.
-        var picked = GraphSubsetFrames.Picked(ev);
+        var picked = GraphSubsetFrames.Picked(ev, incremental: false);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var groups = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var literalsOfVariable = new Dictionary<string, List<string>>(StringComparer.Ordinal);

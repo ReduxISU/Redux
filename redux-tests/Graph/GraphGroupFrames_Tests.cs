@@ -257,6 +257,31 @@ public class GraphGroupFrames_Tests {
         Assert.DoesNotContain(f.Edges.Values.Concat(f.Nodes.Values), s => s.State == PictureState.Solution);
     }
 
+    // ---- incremental runs: the grouping so far stays Solution, only the piece under test is marked ----
+
+    [Fact]
+    public void CliqueCover_Incremental_Reject_KeepsTheCliquesSoFarSolution_AndRejectsOnlyTheNodeUnderTest() {
+        // A search that has put a, b and c in one clique and fails to place d: the clique stays drawn solid.
+        var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0)), StepEvent.Reject, ["d"], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Solution, EdgeState(f, "b-c"));
+        Assert.Equal(PictureState.Solution, EdgeState(f, "a-c"));
+        Assert.Equal(PictureState.Rejected, State(f, "d"));
+        var tried = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0), ("d", 1)), StepEvent.Try, ["d"], "x", incremental: true);
+        Assert.Equal(PictureState.Solution, EdgeState(tried, "a-b"));
+        Assert.Equal(PictureState.ElementHighlight, State(tried, "d"));
+    }
+
+    [Fact]
+    public void Build_ReadsIncrementalFromTheRun() {
+        var steps = new List<object> { new SolverStep<Groups>(Of(("a", 0), ("b", 0)), StepEvent.Reject, ["c"], "x") };
+        GraphFrame First(bool incremental) => (GraphFrame)GraphGroupFrames.Build(Spec(GroupRule.CliqueCover),
+            new SolveRun("{}", steps, typeof(Groups)) { Incremental = incremental }, _ => Of(), _ => false).Frames[0];
+        Assert.Equal(PictureState.Solution, EdgeState(First(true), "a-b"));
+        Assert.Equal(PictureState.ElementHighlight, EdgeState(First(false), "a-b"));
+        Assert.Equal(PictureState.Rejected, State(First(true), "c"));
+    }
+
     [Fact]
     public void Payload_NodeNamesWithSeparators_GetUniqueIds() {
         var spec = new GraphGroupSpec(["n-1", "n-2", "n", "1-n-2"], [new("n-1", "n-2"), new("n", "1-n-2")], 2, GroupRule.Coloring);
