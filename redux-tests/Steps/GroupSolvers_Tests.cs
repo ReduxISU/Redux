@@ -141,9 +141,12 @@ public class GroupSolvers_Tests {
         var rejects = steps.Where(s => s.Event == StepEvent.Reject).ToList();
         Assert.NotEmpty(rejects);
         Assert.All(rejects, s => Assert.Matches(@"^Try \{[^}]*\},\{[^}]*\},\{[^}]*\}: (\S+ and \S+ are in one group but aren't joined|\S+ is in no group)\.$", s.Caption));
-        // The search tries far more than 150 candidates, so the recorder keeps the first 150 and then Done (the Accept for the
-        // winning candidate is one of the steps it drops).
-        Assert.Equal(151, steps.Count);
+        // The search tries far more than 150 candidates, so the recorder keeps the first 150, then the Accept for the
+        // winning candidate (kept past the cap), then Done.
+        Assert.Equal(152, steps.Count);
+        Assert.Equal(StepEvent.Accept, steps[^2].Event);
+        Assert.Equal(steps[^1].Partial, steps[^2].Partial);
+        Assert.EndsWith("Every group is a clique.", steps[^2].Caption);
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         Assert.Contains("not shown", steps[^1].Caption);
         Assert.Equal(["1", "2", "3"], steps[^1].Partial.Of.Where(p => p.Value == steps[^1].Partial.Of["1"]).Select(p => p.Key).Order());
