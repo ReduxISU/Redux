@@ -218,6 +218,23 @@ public class GraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
     }
 
+    // #762: with K = 0 the brute-force solvers try the one size-0 candidate, "{}", like any other, and the Done frame's
+    // ok is the verifier's verdict on it (it used to be decided by hand, because the verifiers threw on "{}").
+    [Theory]
+    [InlineData("cliquedefaultvisualization", "cliquebruteforce", "(({a,b,c},{{a,b}}),0)", true)]
+    [InlineData("vertexcoverdefaultvisualization", "vertexcoverbruteforce", "(({a,b,c},{}),0)", true)]
+    [InlineData("vertexcoverdefaultvisualization", "vertexcoverbruteforce", "(({a,b,c},{{a,b}}),0)", false)]
+    public async Task Frames_BruteForceWithKOf0_EndsWithTheVerifiersVerdictOnTheEmptySet(string vis, string solver, string instance, bool ok) {
+        var (status, body) = await Visualize($"visualization={vis}&format=frames&solver={solver}", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(2, frames.Count);
+        Assert.Equal(ok ? "Accept" : "Reject", frames[0].GetProperty("event").GetString());
+        Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
+        Assert.Equal(ok, frames[^1].GetProperty("ok").GetBoolean());
+        Assert.DoesNotContain(frames[^1].GetProperty("nodes").EnumerateObject(), n => n.Value.GetProperty("state").GetString() == "Solution");
+    }
+
     [Fact]
     public async Task Frames_VertexCoverWhereTheSolverFindsNoCover_EndsRejectedAndNotOk() {
         // The 2-approximation always uses 4 nodes on the default instance, more than K = 3, so it answers "{}".
