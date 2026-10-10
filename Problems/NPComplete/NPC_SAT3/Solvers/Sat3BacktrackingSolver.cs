@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_SAT3;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-class Sat3BacktrackingSolver : ISolver<SAT3, Assignment> {
+class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "3SAT Backtracking";

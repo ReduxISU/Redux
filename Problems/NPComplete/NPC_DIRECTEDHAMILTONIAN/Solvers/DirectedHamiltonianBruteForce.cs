@@ -7,7 +7,9 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Solvers;
 
-class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour> {
+// Despite its name it is a backtracking search: it builds the path one edge at a time and backs out of dead ends, so
+// it is an IIncrementalSolver (its steps hold the path so far).
+class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Directed Hamiltonian Brute Force";

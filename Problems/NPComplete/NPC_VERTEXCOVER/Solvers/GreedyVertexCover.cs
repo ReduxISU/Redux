@@ -7,7 +7,7 @@ using API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class GreedyVertexCover : ISolver<VERTEXCOVER, NodeSet> {
+class GreedyVertexCover : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Max-Degree Greedy";

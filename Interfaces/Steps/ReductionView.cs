@@ -135,7 +135,7 @@ static class ReductionView {
         if (solved.TimedOut && solveSteps.Count == 0)
             solveSteps = [NewStep(targetShape, emptyTarget, StepEvent.Done, [], ReadStep(solved.Steps[^1]).Caption, false)];
         // A stopped run stays stopped when it is drawn, so the picture closes it with its blank stopped Done frame.
-        var solveFrames = Render(targetVis, targetInstance, solveSteps, targetShape, solved.Answer, exact: false, timedOut: solved.TimedOut).Frames;
+        var solveFrames = Render(targetVis, targetInstance, solveSteps, targetShape, solved.Answer, exact: false, timedOut: solved.TimedOut, incremental: solved.Incremental).Frames;
         for (int i = 0; i < solveFrames.Count; i++) {
             var f = solveFrames[i];
             bool last = i == solveFrames.Count - 1;
@@ -217,11 +217,12 @@ static class ReductionView {
     /// Draws <paramref name="steps"/> (typed <see cref="SolverStep{TPartial}"/> of <paramref name="shape"/>) with the picture's
     /// own frame builder, one pane per step in order. The builder closes a run that does not end in a Done step with a solved frame
     /// built from <paramref name="answer"/>; that frame is cut when <paramref name="exact"/> (so panes line up with steps) and
-    /// kept otherwise (the solve phase wants it).
+    /// kept otherwise (the solve phase wants it). <paramref name="incremental"/> is the solver's
+    /// <see cref="SolveRun.Incremental"/>, so the solve phase draws an incremental solver's committed part as the answer so far.
     /// </summary>
     private static (FramesResponse Response, List<Rendered> Frames) Render(
-        IFramesVisualization vis, string instance, IReadOnlyList<object> steps, Type shape, string answer = "{}", bool exact = true, bool timedOut = false) {
-        var response = vis.BuildFrames(instance, new SolveRun(answer, steps.ToList(), shape) { TimedOut = timedOut });
+        IFramesVisualization vis, string instance, IReadOnlyList<object> steps, Type shape, string answer = "{}", bool exact = true, bool timedOut = false, bool incremental = false) {
+        var response = vis.BuildFrames(instance, new SolveRun(answer, steps.ToList(), shape) { TimedOut = timedOut, Incremental = incremental });
         var frames = new List<Rendered>();
         foreach (object frame in response.Frames) {
             var node = (JsonObject)JsonSerializer.SerializeToNode(frame, frame.GetType(), FramesResponse.JsonOptions)!;

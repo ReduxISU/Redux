@@ -342,6 +342,29 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(Phase(byDefault, "build").Count, Phase(view, "build").Count);
     }
 
+    // An incremental solver's solve phase is drawn the way its own picture draws it: the clique so far stays Solution in a
+    // step that skips a vertex, and only the skipped vertex is Rejected (IIncrementalSolver, SolveRun.Incremental).
+    [Theory]
+    [InlineData(Is, "carraghanpardalos")]
+    public async Task IncrementalSolver_SolvePhase_KeepsTheCommittedPartSolution_LikeItsOwnPicture(string reduction, string solver) {
+        IReduction red = Build(reduction, ((IReduction)Activator.CreateInstance(ProblemProvider.Reductions[reduction.ToLower()])!).reductionFrom.defaultInstance);
+        var view = await View(reduction, red.reductionFrom.defaultInstance, solver);
+        var run = ((ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver])!).Run(red.reductionTo.instance, true);
+        Assert.True(run.Incremental);
+        var steps = run.Steps.Cast<SolverStep<NodeSet>>().ToList();
+        var solve = Phase(view, "solve");
+        var checkedSteps = steps.Select((s, i) => (Step: s, Frame: solve[i])).Where(p => p.Step.Event is StepEvent.Try or StepEvent.Reject).ToList();
+        Assert.Contains(checkedSteps, p => p.Step.Event == StepEvent.Reject && p.Step.Partial.Nodes.Length > 0);
+        foreach (var (step, frame) in checkedSteps) {
+            var nodes = frame.GetProperty("target").GetProperty("nodes");
+            foreach (var node in step.Partial.Nodes.Except(step.Focus))
+                Assert.Equal("Solution", nodes.GetProperty(node).GetProperty("state").GetString());
+            string mark = step.Event == StepEvent.Reject ? "Rejected" : "ElementHighlight";
+            foreach (var id in step.Focus)
+                Assert.Equal(mark, nodes.GetProperty(id).GetProperty("state").GetString());
+        }
+    }
+
     // ---- 400s ----
 
     private async Task<JsonElement> Error(string reduction, string instance, string? solver = null) {

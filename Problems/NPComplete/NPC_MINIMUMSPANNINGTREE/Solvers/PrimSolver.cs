@@ -7,7 +7,7 @@ using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet> {
+class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
     public string solverName { get; } = "Prim's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by repeatedly adding the lowest-weight edge that connects the growing tree to a new vertex.";
     public string source { get; } = "Prim, R. C. \"Shortest connection networks and some generalizations.\" Bell System Technical Journal 36, no. 6 (1957): 1389-1401.";

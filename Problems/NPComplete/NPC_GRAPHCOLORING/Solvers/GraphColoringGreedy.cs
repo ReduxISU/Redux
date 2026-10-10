@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
-class GraphColoringGreedy : ISolver<GRAPHCOLORING, Groups> {
+class GraphColoringGreedy : ISolver<GRAPHCOLORING, Groups>, IIncrementalSolver {
 
     public string solverName { get; } = "Graph Coloring Greedy";
     public string solverDefinition { get; } = "A greedy algorithm that iterates through each vertex and assigns the smallest color not used by any of its neighbors.";
