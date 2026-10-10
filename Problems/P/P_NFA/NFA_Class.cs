@@ -77,6 +77,11 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     public List<string> acceptStates { get => _acceptStates; set => _acceptStates = value; }
     public string inputString { get => _inputString; set => _inputString = value; }
 
+    // A symbol as one character, or a parse error that says so instead of keeping only its first character (#780).
+    private static char OneCharacter(string symbol, string what) =>
+        symbol.Length == 1 ? symbol[0]
+            : throw new InvalidOperationException($"{what} '{symbol}' must be one character; the input is read one character at a time.");
+
     // ----- Constructors ----- //
     public NFA() : this(_defaultInstance) { }
 
@@ -99,7 +104,8 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
 
         // Convert Nodes and Alphabet //
         nodes = N.ToList().Select(x => x.ToString()).ToList();
-        alphabet = A.ToList().Select(x => x.ToString()[0]).ToList();
+        // A symbol is one character: the input is read one character at a time (#780).
+        alphabet = A.ToList().Select(x => OneCharacter(x.ToString(), "Alphabet symbol")).ToList();
 
         // Parse and Validate Edges //
         edges = new List<NFAEdge>();
@@ -113,10 +119,8 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
                 char symbol;
                 if (symbolText == "ε" || string.Equals(symbolText, "\\u03B5", StringComparison.OrdinalIgnoreCase) || string.Equals(symbolText, "epsilon", StringComparison.OrdinalIgnoreCase) || symbolText == "eps") {
                     symbol = '\u03B5';
-                } else if (symbolText.Length >= 1) {
-                    symbol = symbolText[0];
                 } else {
-                    throw new InvalidOperationException("Edge symbol empty");
+                    symbol = OneCharacter(symbolText, "Edge symbol");
                 }
 
                 // Validate Edge //
