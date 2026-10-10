@@ -249,4 +249,17 @@ public class EXACTCOVER_Tests {
         string certificate = new ExactCoverBruteForce().solve(problem);
         Assert.Equal("{}", certificate);
     }
+    // #773: the loop over the chosen column's rows threw "Collection was modified" when select removed a row from that
+    // same list, which happens when the row's other columns come first in its set.
+    [Theory]
+    [InlineData("({1,2,3,4},{{3,1},{1},{3,2},{3,4}})")]
+    [InlineData("({1,2,3,4,5,6,7},{{1,2,5,6},{5},{2,3,7},{1,2},{7,4,1},{1,5,7},{7,6,4}})")]
+    [InlineData("({1,2,3,4,5,6,7},{{4,5},{5,7},{3,4,6},{5,4,2,1},{7,1},{2,3,4,7}})")]
+    [InlineData("({1,2,3},{{2,1},{3,1},{2},{3}})")]
+    public void DancingLinks_Agrees_With_Brute_Force_When_A_Row_Lists_Another_Column_First(string instance) {
+        EXACTCOVER problem = new EXACTCOVER(instance);
+        string bruteForce = new ExactCoverBruteForce().solve(problem);
+        string certificate = new DancingLinks().solve(problem);
+        Assert.Equal(new ExactCoverVerifier().verify(problem, bruteForce), new ExactCoverVerifier().verify(problem, certificate));
+    }
 }

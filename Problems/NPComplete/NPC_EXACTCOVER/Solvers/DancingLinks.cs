@@ -67,7 +67,8 @@ class DancingLinks : ISolver<EXACTCOVER> {
         if (foundSolution == true) return;
         else {
             int minimumColumn = X.OrderBy(kv => kv.Value.Count).First().Key;
-            foreach (var row in X[minimumColumn]) {
+            // A copy: select and deselect change this column's row list while the loop runs (#773).
+            foreach (var row in X[minimumColumn].ToList()) {
                 solution.Push(row);
                 Stack<List<int>> columns = select(Y, ref X, row);
                 iterate(Y, ref X, ref solution, ref foundSolution);
