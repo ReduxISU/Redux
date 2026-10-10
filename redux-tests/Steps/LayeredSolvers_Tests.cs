@@ -16,7 +16,8 @@ namespace redux_tests;
 // The six Layered Graph solvers record steps for the picture. Recording must never change an answer.
 // Endpoints/Snapshots/layered_solver_answers.tsv holds what each solver returned (solver, instance, answer as a JSON string;
 // tab separated) BEFORE the picture existed (with the #781-#784 fixes in), on its default instance, a few hand-picked
-// instances and seeded random ones.
+// instances and seeded random ones. Two rows changed since, on purpose: with #789 the Arc Set and Node Set brute forces
+// try removing nothing first, so the acyclic (({1,...,6},{(2,6),(1,2),(2,3),(1,3)}),1) now answers {} for both.
 public class LayeredSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -151,25 +152,49 @@ public class LayeredSolvers_Tests {
     [Fact]
     public void ArcSet_TriesEachEdge_NamingTheCycleThatSurvives() {
         var steps = Steps(new ArcSetBruteForce(), FeedbackDefault);
-        Assert.Equal("Try removing {(1,2)}: the cycle 2 → 3 → 4 → 5 → 2 is still there.", steps[0].Caption);
-        Assert.Equal(StepEvent.Reject, steps[0].Event);
-        Assert.Equal(["1>2"], steps[0].Focus);
+        // #789: removing nothing is the first try.
+        Assert.Equal((StepEvent.Reject, "Try removing nothing: the cycle 1 → 2 → 3 → 1 is there."), (steps[0].Event, steps[0].Caption));
+        Assert.Equal(new EdgeSet([]), steps[0].Partial);
+        Assert.Empty(steps[0].Focus);
+        Assert.Equal("Try removing {(1,2)}: the cycle 2 → 3 → 4 → 5 → 2 is still there.", steps[1].Caption);
+        Assert.Equal(StepEvent.Reject, steps[1].Event);
+        Assert.Equal(["1>2"], steps[1].Focus);
         Assert.Equal((StepEvent.Accept, "Try removing {(2,3)}. No cycle is left."), (steps[^2].Event, steps[^2].Caption));
         Assert.Equal(new EdgeSet(["2>3"]), steps[^1].Partial);
-        Assert.Equal("Removing {(2,3)} leaves no cycle, within K = 1. Found after 2 tries.", steps[^1].Caption);
+        Assert.Equal("Removing {(2,3)} leaves no cycle, within K = 1. Found after 3 tries.", steps[^1].Caption);
     }
 
     [Fact]
     public void ArcSet_WithNoCycleAndKZero_RemovesNothing() {
         var steps = Steps(new ArcSetBruteForce(), "(({1,2,3},{(1,2),(2,3)}),0)");
-        var done = Assert.Single(steps);
-        Assert.Equal((new EdgeSet([]), true, "The graph has no cycle, so removing nothing is enough."), ((EdgeSet)done.Partial, done.Ok!.Value, done.Caption));
+        Assert.Equal(2, steps.Count);
+        Assert.Equal((StepEvent.Accept, "Try removing nothing. No cycle is left."), (steps[0].Event, steps[0].Caption));
+        Assert.Equal(new EdgeSet([]), steps[0].Partial);
+        Assert.Empty(steps[0].Focus);
+        var done = steps[1];
+        Assert.Equal((new EdgeSet([]), true, "The graph has no cycle, so removing nothing is enough. Found after 1 try."), ((EdgeSet)done.Partial, done.Ok!.Value, done.Caption));
+    }
+
+    // #789: with K >= 1 an acyclic graph used to get an edge or node it did not need to remove; removing nothing is tried
+    // first and accepted.
+    [Theory]
+    [InlineData("arcsetbruteforce")]
+    [InlineData("nodesetbruteforce")]
+    public void FeedbackSets_WithNoCycleAndKOne_AcceptRemovingNothingFirst(string solverName) {
+        const string instance = "(({1,2,3,4,5,6},{(2,6),(1,2),(2,3),(1,3)}),1)";
+        var steps = Steps(solverName == "arcsetbruteforce" ? new ArcSetBruteForce() : new NodeSetBruteForce(), instance);
+        Assert.Equal(2, steps.Count);
+        Assert.Equal((StepEvent.Accept, "Try removing nothing. No cycle is left."), (steps[0].Event, steps[0].Caption));
+        Assert.Empty(steps[0].Focus);
+        Assert.Equal((StepEvent.Done, true), (steps[1].Event, steps[1].Ok!.Value));
     }
 
     [Fact]
     public void NodeSet_TriesEachNode_NamingTheCycleThatSurvives() {
         var steps = Steps(new NodeSetBruteForce(), FeedbackDefault);
-        Assert.Equal("Try removing {1}: the cycle 2 → 3 → 4 → 5 → 2 is still there.", steps[0].Caption);
+        Assert.Equal((StepEvent.Reject, "Try removing nothing: the cycle 1 → 2 → 3 → 1 is there."), (steps[0].Event, steps[0].Caption));
+        Assert.Equal(new NodeSet([]), steps[0].Partial);
+        Assert.Equal("Try removing {1}: the cycle 2 → 3 → 4 → 5 → 2 is still there.", steps[1].Caption);
         Assert.Equal(new NodeSet(["2"]), steps[^1].Partial);
         Assert.Equal(["2"], steps[^2].Focus);
         Assert.True(steps[^1].Ok);
@@ -178,7 +203,7 @@ public class LayeredSolvers_Tests {
     [Fact]
     public void NodeSet_ACandidateThatFailsEverywhere_EndsNotOk() {
         var steps = Steps(new NodeSetBruteForce(), "(({1,2,3,4,5,6},{(1,2),(2,3),(3,1),(4,5),(5,6),(6,4),(3,4)}),1)");
-        Assert.Equal("Checked every way to remove up to K = 1 node (6 tries). A cycle always survives.", steps[^1].Caption);
+        Assert.Equal("Checked every way to remove up to K = 1 node (7 tries). A cycle always survives.", steps[^1].Caption);
         Assert.False(steps[^1].Ok);
     }
 

@@ -64,6 +64,15 @@ class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
     public string Solve(NODESET nodeSet, StepRecorder<NodeSet> rec) {
         var cycle = LayeredFrames.SurvivingCycle(NodeSetDefaultVisualization.Spec(nodeSet));
         int tried = 0;
+
+        // Removing nothing comes first: an acyclic graph needs no node removed (#789).
+        tried++;
+        if (nodeSet.defaultVerifier.verify(nodeSet, "{}")) {
+            rec.Accept(() => new NodeSet([]), () => "Try removing nothing. No cycle is left.");
+            rec.Done(new NodeSet([]), true, "The graph has no cycle, so removing nothing is enough. Found after 1 try.");
+            return "{}";
+        }
+        rec.Reject(() => new NodeSet([]), () => $"Try removing nothing: the cycle {cycle([], [])} is there.");
         for (int i = 0; i < nodeSet.K; i++) {
             List<int> combination = new List<int>();
             for (int j = 0; j <= i; j++) {
@@ -85,11 +94,9 @@ class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
 
             }
         }
-        // Nothing of size 1 to K works; removing nothing is the answer only when the graph has no cycle at all.
-        bool acyclic = nodeSet.defaultVerifier.verify(nodeSet, "{}");
-        rec.Done(new NodeSet([]), acyclic, acyclic
-            ? "The graph has no cycle, so removing nothing is enough."
-            : $"Checked every way to remove up to K = {nodeSet.K} {(nodeSet.K == 1 ? "node" : "nodes")} ({tried} {(tried == 1 ? "try" : "tries")}). A cycle always survives.");
+        // Removing nothing failed above, and so did every set of 1 to K nodes.
+        rec.Done(new NodeSet([]), false,
+            $"Checked every way to remove up to K = {nodeSet.K} {(nodeSet.K == 1 ? "node" : "nodes")} ({tried} {(tried == 1 ? "try" : "tries")}). A cycle always survives.");
         return "{}";
     }
 }

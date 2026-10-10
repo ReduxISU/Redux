@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Visualizations
 /// <summary>
 /// Strongly Connected Components as the Layered Graph picture (format=frames): Kosaraju's two passes, the finish numbers
 /// of the first and the components of the second. The list format draws the graph, and its solved picture the edges that
-/// lie inside a component. The problem's default visualization is still <c>DummyVisualization</c>.
+/// lie inside a component. It is the problem's default visualization.
 /// </summary>
 class SCCVisualization : IVisualization<STRONGLYCONNECTEDCOMPONENTS, API_GraphJSON>, ILayeredVisualization<STRONGLYCONNECTEDCOMPONENTS> {
     public string visualizationName { get; } = "Strongly Connected Components Visualization";

@@ -10,8 +10,11 @@ namespace redux_tests;
 // The Layered Graph picture on the actual /ProblemProvider/visualize?format=frames output, for Topological Sort, Feedback
 // Arc Set, Feedback Node Set, Strongly Connected Components, SSSP and SPSP with their solvers, plus the guards that keep
 // everything old frontends read exactly as it was:
-//   - the list format (Snapshots/layered_list_snapshots.tsv, captured before the picture existed),
+//   - the list format (Snapshots/layered_list_snapshots.tsv, captured before the picture existed; two Arc Set / Node Set
+//     rows retaken for #789, where an acyclic graph now gets {} and so nothing drawn as removed),
 //   - /info for every problem, solver and visualization that was touched (info.<name>.json, captured the same way).
+// The one deliberate exception is Strongly Connected Components' default visualization, which moved off
+// DummyVisualization to SCCVisualization: see the "rewire" test.
 public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -57,7 +60,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         "topologicalsortdefaultvisualization", "arcsetdefaultvisualization", "nodesetdefaultvisualization", "ssspvisualization",
         "sssptablevisualization", "spspvisualization", "spsptablevisualization", "kahnsalgorithm", "arcsetbruteforce",
         "nodesetbruteforce", "kosarajusolver", "ssspsolver", "spspsolver", "topologicalsort", "arcset", "nodeset",
-        "stronglyconnectedcomponents", "sssp", "spsp",
+        "sssp", "spsp",
     ]);
 
     // ---- What old frontends read must not change. ----
@@ -72,6 +75,22 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.DoesNotContain("ListReadsTypedSteps", body);
         Assert.DoesNotContain("ListedEdges", body);
         Assert.DoesNotContain("LayeredGraph", body);
+    }
+
+    // Strongly Connected Components' default visualization moved off DummyVisualization to SCCVisualization. Its /info
+    // snapshot was retaken after the rewire; the diff against the pre-change capture is only that nested object.
+    [Fact]
+    public async Task Rewire_SccInfo_ShowsSccVisualization_AndNothingElse() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=stronglyconnectedcomponents", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot("info.stronglyconnectedcomponents.json"), body);
+        Assert.DoesNotContain("DummyVisualization", body);
+        Assert.DoesNotContain("LayeredGraph", body);
+        var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal("Strongly Connected Components Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("GraphD3", vis.GetProperty("visualizationType").GetString());
+        Assert.Equal("Kosaraju's Algorithm", vis.GetProperty("solver").GetProperty("solverName").GetString());
     }
 
     [Theory]
@@ -230,8 +249,53 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal([@"a>a\-b", @"a\-b>b\>c"], payload.GetProperty("edges").EnumerateArray().Select(e => e.GetProperty("id").GetString()));
     }
 
+    // #789: the feedback-set brute forces try removing nothing first. The empty candidate draws cleanly: nothing is
+    // highlighted, an acyclic graph is accepted at once, and on a cyclic graph only the surviving cycle is Rejected.
+    [Theory]
+    [InlineData("arcsetdefaultvisualization", "arcsetbruteforce")]
+    [InlineData("nodesetdefaultvisualization", "nodesetbruteforce")]
+    public async Task Frames_RemovingNothing_IsTheFirstTry_AndDrawsNothingHighlighted(string vis, string solver) {
+        var (status, body) = await Visualize($"visualization={vis}&format=frames&solver={solver}", "(({1,2,3,4,5,6},{(2,6),(1,2),(2,3),(1,3)}),1)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(2, frames.Count);
+        Assert.Equal("Accept", frames[0].GetProperty("event").GetString());
+        Assert.Equal("Try removing nothing. No cycle is left.", frames[0].GetProperty("caption").GetString());
+        Assert.Empty(frames[0].GetProperty("focus").EnumerateArray());
+        Assert.Empty(frames[0].GetProperty("nodes").EnumerateObject());
+        Assert.Empty(frames[0].GetProperty("edges").EnumerateObject());
+        Assert.Equal("Done", frames[1].GetProperty("event").GetString());
+        Assert.True(frames[1].GetProperty("ok").GetBoolean());
+        Assert.Empty(frames[1].GetProperty("nodes").EnumerateObject());
+        Assert.Empty(frames[1].GetProperty("edges").EnumerateObject());
+
+        (status, body) = await Visualize($"visualization={vis}&format=frames&solver={solver}", "(({1,2,3},{(1,2),(2,3),(3,1)}),1)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var first = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().First();
+        Assert.Equal("Reject", first.GetProperty("event").GetString());
+        Assert.StartsWith("Try removing nothing: the cycle ", first.GetProperty("caption").GetString());
+        Assert.Empty(first.GetProperty("nodes").EnumerateObject());
+        Assert.Equal(["1>2", "2>3", "3>1"], first.GetProperty("edges").EnumerateObject().Select(e => e.Name).Order());
+        Assert.All(first.GetProperty("edges").EnumerateObject(), e => Assert.Equal("Rejected", e.Value.GetProperty("state").GetString()));
+    }
+
+    // #790: {} is SPSP's "no path" answer and the verifier now says so too. The picture of an unreachable target ends on a
+    // Done that is not ok, with the target Rejected, and the verifier agrees with that ok.
     [Fact]
-    public async Task Frames_SccHasAPictureNow_ButItsDefaultVisualizationIsUnchanged() {
+    public async Task Frames_SpspUnreachableTarget_EndsNotOk_WithTheTargetRejected() {
+        const string instance = "(({1,2,3},{((2,3),1)}),1,3)";
+        var (status, body) = await Visualize("visualization=spspvisualization&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var done = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().Last();
+        Assert.Equal("Done", done.GetProperty("event").GetString());
+        Assert.False(done.GetProperty("ok").GetBoolean());
+        Assert.Equal("Rejected", done.GetProperty("nodes").GetProperty("3").GetProperty("state").GetString());
+        var problem = new API.Problems.P.P_SPSP.SPSP(instance);
+        Assert.False(problem.defaultVerifier.verify(problem, problem.defaultSolver.solve(problem)));
+    }
+
+    [Fact]
+    public async Task Frames_SccHasAPicture() {
         var (status, body) = await Visualize("visualization=sccvisualization&format=frames", "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})");
         Assert.Equal(HttpStatusCode.OK, status);
         var done = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().Last();
