@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Tools;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 using API.Problems.NPComplete.NPC_SAT3.Verifiers;
 
@@ -18,7 +19,7 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string defaultInstance { get; } = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
-    public string instanceFormat { get; } = "Boolean formula in 3-CNF. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)";
+    public string instanceFormat { get; } = "Boolean formula in 3-CNF. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!' written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)";
     public string certificateFormat { get; } = "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public Sat3BacktrackingSolver defaultSolver { get; } = new Sat3BacktrackingSolver();
     public SAT3Verifier defaultVerifier { get; } = new SAT3Verifier();
@@ -63,30 +64,18 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
 
         validateInstance(phiInput);
 
-        instance = phiInput;
+        instance = CnfFormula.NormalizeWhitespace(phiInput);
         clauses = getClauses(instance);
         literals = getLiterals(instance);
     }
 
+    // Throws ProblemParseException (HTTP 400) unless phiInput follows the CNF grammar in CnfFormula (#759)
+    // and every clause has at most three literals.
     private static void validateInstance(string phiInput) {
-        if (string.IsNullOrWhiteSpace(phiInput)) {
-            throw new ProblemParseException("3SAT", phiInput, "instance is empty");
-        }
-
-        string stripped = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-        string[] rawClauses = stripped.Split('&');
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('|');
-            if (rawLiterals.Length < 1 || rawLiterals.Length > 3) {
+        foreach (List<string> clause in CnfFormula.Parse("3SAT", phiInput)) {
+            if (clause.Count > 3) {
                 throw new ProblemParseException("3SAT", phiInput,
-                    $"clause '{clause}' has {rawLiterals.Length} literals; 3-CNF allows 1-3");
-            }
-            foreach (string literal in rawLiterals) {
-                string name = literal.StartsWith("!") ? literal.Substring(1) : literal;
-                if (string.IsNullOrEmpty(name) || !char.IsLetter(name[0])) {
-                    throw new ProblemParseException("3SAT", phiInput,
-                        $"literal '{literal}' is not a valid identifier (optionally prefixed with '!')");
-                }
+                    $"clause '{string.Join("|", clause)}' has {clause.Count} literals; 3-CNF allows 1-3");
             }
         }
     }
