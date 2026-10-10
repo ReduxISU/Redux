@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Visualizations;
 
-class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING, API_GraphJSON> {
+class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING, API_GraphJSON>, IGraphGroupsVisualization<GRAPHCOLORING> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Graph Coloring Visualization";
@@ -63,4 +65,10 @@ class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING, API_Grap
 
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Groups);
+
+    GraphGroupSpec IGraphGroupsVisualization<GRAPHCOLORING>.Describe(GRAPHCOLORING problem) =>
+        new(problem.nodes, problem.edges, problem.K, GroupRule.Coloring);
 }

@@ -78,8 +78,9 @@ sealed record GraphFrame(
     public bool? Ok { get; init; }
 
     /// <summary>
-    /// Node id to group index, for pictures that split the nodes in two (the cut shape: 0 is the S side, 1 is the
-    /// T side). Not a state: the frontend colors each group. Omitted by every other shape.
+    /// Node id to group index, for pictures that split the nodes: in two (the cut shape: 0 is the S side, 1 is the
+    /// T side) or into K groups (the groups shape: color classes or cliques, 0-based; a node with no group yet is
+    /// left out). Not a state: the frontend colors each group. Omitted by every other shape.
     /// </summary>
     [JsonPropertyName("groups")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
