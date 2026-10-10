@@ -30,7 +30,7 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
     public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     public static string _defaultInstance { get; } = "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance} Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total.";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance} Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total. An edge written twice with the same weight, either way round, counts once.";
     public string certificateFormat { get; } =
         $"Format: {WeightedCutVerifier.CertificateGrammar} Example: {WeightedCutVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
@@ -92,10 +92,10 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
         StringParser weightedCut = new(InstanceGrammar);
         weightedCut.parse(GInput);
         nodes = weightedCut["N"].ToList().Select(node => node.ToString()).ToList();
-        listedEdges = weightedCut["E"].ToList().Select(edge => {
+        listedEdges = ParallelEdges.Distinct(weightedCut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
-        }).ToList();
+        }));
         // Every parallel edge crosses a cut that separates its ends, so their weights add (#769).
         edges = ParallelEdges.Summed(listedEdges);
         _K = int.Parse(weightedCut["K"].ToString());

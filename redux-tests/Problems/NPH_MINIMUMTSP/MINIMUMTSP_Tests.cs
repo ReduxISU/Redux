@@ -256,4 +256,12 @@ public class MINIMUMTSP_Tests {
         MINIMUMTSP problem = new MINIMUMTSP("({a,b,c},{({a,b},3),({b,a},2),({b,c},1),({a,c},1)})");
         Assert.Equal(2, problem.Weight("a", "b"));
     }
+
+    [Fact]
+    public void MINIMUMTSP_Reversed_Copy_Of_An_Edge_Is_Listed_Once() {
+        // ({a,b},5) and ({b,a},5) are the same edge written twice, so the picture must not label the pair "5,5".
+        MINIMUMTSP problem = new MINIMUMTSP("({a,b,c},{({a,b},5),({b,a},5),({b,c},1),({a,c},1)})");
+        Assert.Equal(3, problem.listedEdges.Count);
+        Assert.Equal(3, problem.edges.Count);
+    }
 }

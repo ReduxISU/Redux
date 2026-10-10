@@ -26,7 +26,7 @@ class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualizat
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "";
-    public string instanceFormat { get; } = "Weighted undirected graph: ({nodes},{({u,v},w),...}) — e.g. ({1,2,3},{({1,2},4),({2,3},2),({1,3},3)}). Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total.";
+    public string instanceFormat { get; } = "Weighted undirected graph: ({nodes},{({u,v},w),...}) — e.g. ({1,2,3},{({1,2},4),({2,3},2),({1,3},3)}). Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total. An edge written twice with the same weight, either way round, counts once.";
     public string certificateFormat { get; } = "Set of cut edges with weights: {({u,v},w),...} — e.g. {({1,2},4),({1,3},3)}";
 
     private List<string> _nodes = new();
@@ -53,10 +53,10 @@ class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualizat
         StringParser parser = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
         parser.parse(instanceString);
         nodes = parser["N"].ToList().Select(n => n.ToString()).ToList();
-        listedEdges = parser["E"].ToList().Select(edge => {
+        listedEdges = ParallelEdges.Distinct(parser["E"].ToList().Select(edge => {
             List<UtilCollection> endpoints = edge[0].ToList();
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));
-        }).ToList();
+        }));
         // Every parallel edge crosses a cut that separates its ends, so their weights add (#769).
         edges = ParallelEdges.Summed(listedEdges);
         graph = new UtilCollectionGraph(parser["N"], parser["E"]);
