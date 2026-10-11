@@ -87,10 +87,12 @@ public class IncrementalSolvers_Tests {
         ["jobseqbruteforce"] = false,
         ["pumpschedulingcmsolver"] = true,
         ["pumpschedulingemsolver"] = true,
+        // ChosenTriples (Tripartite Matching picture)
+        ["threedimensionalmatchingbruteforce"] = false,
     };
 
-    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board or Schedule picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells), typeof(JobOrder), typeof(PumpPlan)];
+    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board, Schedule or Tripartite Matching picture draws.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells), typeof(JobOrder), typeof(PumpPlan), typeof(ChosenTriples)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

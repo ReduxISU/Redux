@@ -367,6 +367,20 @@ sealed class PumpPlan : IEquatable<PumpPlan> {
         HashCode.Combine(Budget, Reached.Length, ShapeUtil.HashOf(On.Select(hour => string.Join(",", hour))));
 }
 
+/// <summary>
+/// The triples a 3-Dimensional Matching solver has chosen so far, by id. Triples are named by their position in M,
+/// <c>T{i+1}</c> for the triple at 0-based index i (see <c>TripartiteFrames.TripleId</c>), never by their names, so a triple
+/// listed twice stays two triples and no id needs escaping. A set: stored sorted and de-duplicated. The answer is the last
+/// one: the matching the solver returns, or no triples when there is none.
+/// </summary>
+sealed class ChosenTriples : IEquatable<ChosenTriples> {
+    [JsonPropertyName("triples")] public string[] Triples { get; }
+    public ChosenTriples(IEnumerable<string> triples) { Triples = ShapeUtil.SortedSet(triples); }
+    public bool Equals(ChosenTriples? other) => other != null && Triples.SequenceEqual(other.Triples, StringComparer.Ordinal);
+    public override bool Equals(object? obj) => Equals(obj as ChosenTriples);
+    public override int GetHashCode() => ShapeUtil.HashOf(Triples);
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -389,5 +403,6 @@ static class Shapes {
         : shape == typeof(BoardCells) ? new BoardCells([], [])
         : shape == typeof(JobOrder) ? new JobOrder([])
         : shape == typeof(PumpPlan) ? new PumpPlan([], [], null)
+        : shape == typeof(ChosenTriples) ? new ChosenTriples([])
         : null;
 }

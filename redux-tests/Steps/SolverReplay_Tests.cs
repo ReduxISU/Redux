@@ -3,6 +3,7 @@ using API.Interfaces.Packing;
 using API.Interfaces.Board;
 using API.Interfaces.Schedule;
 using API.Interfaces.Steps;
+using API.Interfaces.Tripartite;
 using Xunit;
 
 namespace redux_tests;
@@ -134,6 +135,13 @@ public class SolverReplay_Tests {
             var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
             object parsed = hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
             return parsed is PumpPlan plan ? new PumpPlan(((PumpPlan)lastPartial).Reached, plan.On, plan.Budget) : parsed;
+        }
+        if (lastPartial is ChosenTriples) {
+            // 3-Dimensional Matching answers name their triples ("{{Paul,Austin,Jake},...}"); "{}" is no answer. The problem's
+            // Tripartite Matching visualization reads them as triples of M.
+            var hook = typeof(ITripartiteVisualization<>).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
         }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");

@@ -475,10 +475,10 @@ public class SAT3_Tests {
         // The variable gadget emits exactly two Z entries (one per polarity) for every
         // literal occurrence in the original SAT3 instance.
         Assert.Equal(2 * sat3.literals.Count, dm3.Z.Count);
-        // instance is built by wrapping each M-triple in its own "{...}", one brace
-        // pair per triple.
-        Assert.Equal(dm3.M.Count, dm3.instance.Count(c => c == '{'));
-        Assert.Equal(dm3.M.Count, dm3.instance.Count(c => c == '}'));
+        // instance is {X}{Y}{Z} followed by each M-triple in its own "{...}": one brace
+        // pair per set and per triple (#807).
+        Assert.Equal(3 + dm3.M.Count, dm3.instance.Count(c => c == '{'));
+        Assert.Equal(3 + dm3.M.Count, dm3.instance.Count(c => c == '}'));
     }
 
     [Fact]

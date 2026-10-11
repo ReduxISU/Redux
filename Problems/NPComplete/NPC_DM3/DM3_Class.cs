@@ -88,6 +88,24 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
         _Y = ParseProblem(instance, "Y");
         _Z = ParseProblem(instance, "Z");
         _M = ParseM(instance);
+        Validate(instanceInput);
+    }
+
+    // X, Y and Z each need at least one name and no blank one, and every group of M must be a triple from X x Y x Z: three
+    // names, the first in X, the second in Y and the third in Z (#805). Otherwise the solver glued M's groups together and the
+    // verifier read them as triples.
+    private void Validate(string instanceInput) {
+        foreach (var (name, set) in new[] { ("X", _X), ("Y", _Y), ("Z", _Z) })
+            if (set.Count == 0 || set.Any(string.IsNullOrEmpty))
+                throw new ProblemParseException("DM3", instanceInput, $"{name} must name at least one element, and no name may be blank");
+        for (int i = 0; i < _M.Count; i++) {
+            var t = _M[i];
+            string triple = "{" + string.Join(",", t) + "}";
+            if (t.Count != 3)
+                throw new ProblemParseException("DM3", instanceInput, $"triple {i + 1} of M, {triple}, must name exactly three elements");
+            if (!_X.Contains(t[0]) || !_Y.Contains(t[1]) || !_Z.Contains(t[2]))
+                throw new ProblemParseException("DM3", instanceInput, $"triple {i + 1} of M, {triple}, must name an element of X, then one of Y, then one of Z");
+        }
     }
     // The instance is a sequence of brace-delimited groups: {x1,...}{y1,...}{z1,...}{x,y,z},...
     // The first three groups are X, Y, and Z (each on its own, independent of the other groups'
