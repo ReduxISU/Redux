@@ -46,6 +46,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphD3` | [`API_GraphJSON`](../../Interfaces/JSON_Objects/Graphs/API_GraphJSON.cs) | [StandardGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardGraphSvgReact.js) | Independent Set, Max Cut, Vertex Cover |
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
+| `Geometry` | not a list item: a `payload` plus `frames` of named states ([`GeometryFrames`](../../Interfaces/Geometry/GeometryFrames.cs)) | none yet | Convex Hull. Reported only as the `type` of `visualize?format=frames`; `ConvexHullVisualization` still reports `Unimplemented` in /info and in the default list format. See "The Geometry picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -58,6 +59,51 @@ Two things that trip people up:
 
 - Every payload class carries a `kind` field (`"graph"`, `"sat"`, `"set"`, `"table"`, `"empty"`, ...). It tells a reader what the JSON is without guessing. You do not set it. The class does.
 - `Unimplemented` means "no renderer exists". The GUI shows an honest "not renderable" message instead of a broken picture. A few old classes use it, and a test (section 6) stops **new** classes from joining them.
+
+### The Geometry picture (`format=frames`)
+
+Convex Hull serves the `Geometry` picture: the points drawn to scale on real axes, the small hulls a divide-and-conquer solver builds and merges, the chain each merge walks, the points it drops and, at the end, the hull's corners in order. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the instance.
+
+The problem hands over `GeometrySpec(points)`: its points in instance order, as `(x, y)` pairs.
+
+The payload (sent once) is `{ kind: "geometry", points }`, where each point is `{ id, x, y }`.
+
+Each frame is `{ event, caption, focus, pieces, chain, hull, points, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `pieces` | The hulls on the table, each `{ points, role }` with its corners counterclockwise. `role` is `left` or `right` for the two being merged (drawn in two group colors) and `piece` for a finished hull waiting to be merged. A role is an annotation, not a state |
+| `chain` | The corners a merge has walked so far, in order (the bottom edge left to right, then the top edge back), drawn as a line. Empty outside a merge |
+| `hull` | The answer's corners in output order, for the order badges. Empty until the `Done` frame |
+| `points` | Point id to `{ state }`, only for points that are not `Background` |
+
+Ids are positions, never coordinates: the i-th point (from 1) is `P{i}`. Build them with `GeometryFrames.PointId`. A solver works with distinct points, so if a problem ever lets a point repeat, steps name it by its first copy and every copy is drawn the same (`GeometryFrames.FirstOf`). Today the instance parser already merges repeated points.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`):
+
+| State | Points |
+| --- | --- |
+| `ElementHighlight` | The focus: the corner just pushed onto the chain, the corners of a piece just made or merged. Also every corner on the table while a whole candidate is only tried (a solver that is not incremental; today's is) |
+| `Solution` | Corners of the hulls on the table and points on the chain: what the incremental solver has committed. In the `Done` frame, the hull's corners |
+| `Covered` | In the `Done` frame, every point that is not a corner: inside the hull or on an edge |
+| `Rejected` | The focus of a `Reject`: the corner popped off the chain. A point dropped so far (inside a merged hull, or in the middle of an edge). In a `Done` frame whose answer is wrong, its corners |
+| `Blocked`, `Untraveled` | not used |
+
+A run stopped by the time limit ends with a blank `Done` frame, `ok: false`: no hulls, no states. Its answer string is never read. Long runs keep their first 150 steps, then the `Accept` with the whole hull and the `Done` frame; its caption says how many steps were not shown.
+
+The solver and its steps (`HullBuild`: `pieces`, `left`, `right`, `chain` and `dropped`, as above):
+
+| Solver | Incremental | Steps |
+| --- | --- | --- |
+| Convex Hull Divide and Conquer | yes | A `Try` for the sort ("Sort the 10 points by x, then y: P3, P4, ... Then split the list in half, again and again, until each piece has at most 3 points."), a `Try` per smallest piece ("Smallest piece: P1, P9 and P5. Its hull is the triangle they make."), and per merge: a `Try` to start it, a `Try` per corner pushed ("Add P9 to the bottom edge."), a `Reject` per corner popped ("The turn at P4 (from P3 to P1) is clockwise, so pop P4 from the bottom edge."; "P1, P2 and P3 are on one line, so pop P2 ..."), and a `Try` with the merged hull ("The merged hull is P3, P5, P9 and P4. P1 is now inside it (or on an edge), so it is dropped."). Then an `Accept` with the whole hull and `Done` with the verifier's verdict |
+
+`ConvexHullVisualization` got the picture; its list format is unchanged (still empty), and it is still Convex Hull's default. The solver asks the verifier for the `Done` step only while it records steps: the verifier checks every point against every edge, which would make a plain solve of a large hull quadratic.
+
+To add another hull solver (the mockup's monotone chain, for example):
+
+1. Record a `HullBuild` per decision, built only inside the recorder's lambdas, with the focus as a lambda too. A one-pass solver leaves `pieces`, `left` and `right` empty and builds only the `chain`.
+2. Declare `IIncrementalSolver`: the committed corners stay `Solution`, and only the point under test is highlighted, or `Rejected` when it is popped.
+3. Add it to `IncrementalSolvers_Tests.Classification` and prove nothing changed for old clients: snapshot the list format, `/info` and what it answers before touching code (`Endpoints/Snapshots/geometry_*.tsv`, `GeometryFrames_Endpoint_Tests`, `GeometrySolvers_Tests`, `GeometryFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 
