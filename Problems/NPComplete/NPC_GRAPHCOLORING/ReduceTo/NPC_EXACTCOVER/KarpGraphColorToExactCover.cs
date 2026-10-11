@@ -72,6 +72,17 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
     }
     public KarpGraphColorToExactCover(string instance) : this(new GRAPHCOLORING(instance)) { }
     public KarpGraphColorToExactCover() : this(new GRAPHCOLORING()) { }
+
+    // Elements: a node u is "u", an edge {u,v} is "u_v" and the slot of u at edge {u,v} for color j is "u_u_v_j". A name
+    // that holds "_" (or the escape character) is written with a \ before every \ and "_", so a node, an edge and a slot
+    // never share an element; other names are written as they are (#824).
+    private static string EdgeElement(string u, string v) => ElementName(u) + "_" + ElementName(v);
+
+    private static string SlotElement(string node, string u, string v, int color) => ElementName(node) + "_" + EdgeElement(u, v) + "_" + color;
+
+    private static string ElementName(string name) =>
+        name.IndexOfAny(['\\', '_']) < 0 ? name : name.Replace(@"\", @"\\").Replace("_", @"\_");
+
     public EXACTCOVER reduce() {
         GRAPHCOLORING GRAPHCOLORINGInstance = _reductionFrom;
         EXACTCOVER reducedExactCover = new EXACTCOVER();
@@ -81,11 +92,11 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
         List<string> currentSubset = new List<string>();
 
         foreach (var i in reductionFrom.nodes) { //adding nodes to universal
-            universalSet.Add(i);
+            universalSet.Add(ElementName(i));
         }
 
         foreach (var i in reductionFrom.edges) {//adding edges to universal
-            universalSet.Add(i.Key + '_' + i.Value);
+            universalSet.Add(EdgeElement(i.Key, i.Value));
         }
 
         foreach (var u in reductionFrom.nodes) {
@@ -93,7 +104,7 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
                 //adding edges to universal
                 if (e.Key == u || e.Value == u) {
                     for (int j = 1; j <= reductionFrom.K; j++) {
-                        universalSet.Add(u + "_" + e.Key + '_' + e.Value + "_" + j.ToString());
+                        universalSet.Add(SlotElement(u, e.Key, e.Value, j));
                     }
                 }
 
@@ -102,11 +113,11 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
 
         foreach (var u in reductionFrom.nodes) {
             for (int j = 1; j <= reductionFrom.K; j++) {
-                currentSubset.Add(u);
+                currentSubset.Add(ElementName(u));
                 foreach (var e in reductionFrom.edges) {
 
                     if (e.Key == u || e.Value == u) {
-                        currentSubset.Add(u + "_" + e.Key + '_' + e.Value + "_" + j.ToString());
+                        currentSubset.Add(SlotElement(u, e.Key, e.Value, j));
 
                     }
                 }
@@ -121,13 +132,13 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
             for (int f1 = 1; f1 <= reductionFrom.K; f1++) {
                 for (int f2 = 1; f2 <= reductionFrom.K; f2++) {
                     if (f1 != f2) {
-                        currentSubset.Add(e.Key + '_' + e.Value);
+                        currentSubset.Add(EdgeElement(e.Key, e.Value));
                         for (int i = 1; i <= reductionFrom.K; i++)
                             if (i != f1)
-                                currentSubset.Add(e.Key + '_' + e.Key + '_' + e.Value + '_' + i.ToString());
+                                currentSubset.Add(SlotElement(e.Key, e.Key, e.Value, i));
                         for (int i = 1; i <= reductionFrom.K; i++)
                             if (i != f2)
-                                currentSubset.Add(e.Value + '_' + e.Key + '_' + e.Value + '_' + i.ToString());
+                                currentSubset.Add(SlotElement(e.Value, e.Key, e.Value, i));
                         subsets.Add(new List<string>(currentSubset));
                         currentSubset.Clear();
                     }

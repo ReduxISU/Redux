@@ -67,6 +67,14 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
     }
     public KarpVertexCoverToSetCover(string instance) : this(new VERTEXCOVER(instance)) { }
     public KarpVertexCoverToSetCover() : this(new VERTEXCOVER()) { }
+
+    // An edge {u,v} is the element "u_v". A name that holds "_" (or the escape character) is written with a \ before
+    // every \ and "_", so two different edges never share an element; other names are written as they are (#824).
+    private static string EdgeElement(string u, string v) => ElementName(u) + "_" + ElementName(v);
+
+    private static string ElementName(string name) =>
+        name.IndexOfAny(['\\', '_']) < 0 ? name : name.Replace(@"\", @"\\").Replace("_", @"\_");
+
     /***************************************************
      * reduce() called after GareyAndJohnsonReduction reduction, and returns a THREE_DM object, that
      * is a reduction from the VERTEXCOVER object passed into GareyAndJohnsonReduction.
@@ -82,8 +90,9 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
             subsets.Add(new List<string>());
             foreach (var j in reductionFrom.edges) {
                 if (j.Key == reductionFrom.nodes[i] || j.Value == reductionFrom.nodes[i]) {
-                    subsets[i].Add(j.Key + "_" + j.Value);
-                    if (!universal.Contains(j.Key + "_" + j.Value)) universal.Add(j.Key + "_" + j.Value);
+                    string element = EdgeElement(j.Key, j.Value);
+                    subsets[i].Add(element);
+                    if (!universal.Contains(element)) universal.Add(element);
                 }
             }
         }
