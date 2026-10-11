@@ -65,6 +65,7 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
     public KarpSATToSAT3(string instance) : this(new SAT(instance)) { }
     public KarpSATToSAT3() : this(new SAT()) { }
     public SAT3 reduce() {
+        _splits.Clear();
         SAT SATInstance = _reductionFrom;
         SAT3 reducedSAT3 = new SAT3();
 
@@ -146,6 +147,7 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
         // Getting last two literals from the clause
         string l1 = clauses[index][clauses[index].Count - 2];
         string l2 = clauses[index][clauses[index].Count - 1];
+        _splits.Add((newVar, l1, l2));
 
         string index1 = index.ToString() + "-" + (clauses[index].Count - 2).ToString();
         string index2 = index.ToString() + "-" + (clauses[index].Count - 1).ToString();
@@ -199,8 +201,44 @@ class KarpSATToSAT3 : IReduction<SAT, SAT3> {
     }
 
 
+    // Every split, in the order reduce() made them: the new variable and the two literals moved with it into its new clause
+    // (l1 | l2 | y), while the old clause keeps !y. mapSolutions reads them back.
+    private readonly List<(string Variable, string A, string B)> _splits = new();
+
+    /// <summary>
+    /// Maps a SAT assignment to the 3SAT formula reduce() built (#821). The original variables keep their values. A new variable
+    /// y of a split is true exactly when both literals moved into its clause (l1 | l2 | y) are false: then that clause holds
+    /// through y, and the shortened clause, which keeps !y, has to hold through the literals left in it, as the original
+    /// clause did. Splits are read in the order they were made, so a literal that is an earlier split's !y already has a value.
+    /// A variable the assignment does not mention is False.
+    /// </summary>
     public string mapSolutions(string reductionFromSolution) {
-        return "";
+        var values = new Dictionary<string, bool>();
+        var order = new List<string>();
+        string text = reductionFromSolution.Trim();
+        if (text.StartsWith('(') && text.EndsWith(')')) text = text[1..^1];
+        foreach (string raw in text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+            string[] parts = raw.Split(':', '=');
+            bool? value = parts.Length != 2 ? null : parts[1].Trim().ToLowerInvariant() switch {
+                "true" or "t" => true,
+                "false" or "f" => false,
+                _ => null,
+            };
+            if (value is not bool v || parts[0].Trim().Length == 0)
+                throw new ReductionInputException(this, reductionFromSolution, reductionFrom.certificateFormat,
+                    $"'{raw}' is not a variable:True or variable:False pair");
+            string name = parts[0].Trim();
+            if (!values.ContainsKey(name)) order.Add(name);
+            values[name] = v;
+        }
+        bool Holds(string literal) => literal.StartsWith('!')
+            ? !values.GetValueOrDefault(literal[1..])
+            : values.GetValueOrDefault(literal);
+        foreach (var (variable, a, b) in _splits) {
+            if (!values.ContainsKey(variable)) order.Add(variable);
+            values[variable] = !Holds(a) && !Holds(b);
+        }
+        return "(" + string.Join(",", order.Select(v => $"{v}:{(values[v] ? "True" : "False")}")) + ")";
     }
 
 }
