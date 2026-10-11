@@ -46,14 +46,14 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphD3` | [`API_GraphJSON`](../../Interfaces/JSON_Objects/Graphs/API_GraphJSON.cs) | [StandardGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardGraphSvgReact.js) | Independent Set, Max Cut, Vertex Cover |
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
-| `Geometry` | not a list item: a `payload` plus `frames` of named states ([`GeometryFrames`](../../Interfaces/Geometry/GeometryFrames.cs)) | none yet | Convex Hull. Reported only as the `type` of `visualize?format=frames`; `ConvexHullVisualization` still reports `Unimplemented` in /info and in the default list format. See "The Geometry picture" below |
+| `Geometry` | not a list item: a `payload` plus `frames` of named states ([`GeometryFrames`](../../Interfaces/Geometry/GeometryFrames.cs)) | none yet | Convex Hull. Reported only as the `type` of `visualize?format=frames`; `ConvexHullVisualization` reports `DynamicTable` in /info, and its default list format is a table of the points. See "The Geometry picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
 | `QuantumCircuitQjs` | `API_QUANTUMCIRCUIT` | [QuantumCircuitVis.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/QuantumCircuitVis.js) | Deutsch, Shor's |
 | `PumpSchedule` | a pump-frame class defined next to the visualization | [PumpSchedulingSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/PumpSchedulingSvgReact.js) | Pump Scheduling |
 | `DynamicTable` | [`API_TableJSON`](../../Interfaces/JSON_Objects/Tables/API_TableJSON.cs) | [DynamicTableSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/DynamicTableSvgReact.js) | DFA table view, shortest paths |
-| `Unimplemented` | `API_empty` | nothing, on purpose | Convex Hull, Sudoku (see below) |
+| `Unimplemented` | `API_empty` | nothing, on purpose | Sudoku (see below) |
 
 Two things that trip people up:
 
@@ -97,7 +97,7 @@ The solver and its steps (`HullBuild`: `pieces`, `left`, `right`, `chain` and `d
 | --- | --- | --- |
 | Convex Hull Divide and Conquer | yes | A `Try` for the sort ("Sort the 10 points by x, then y: P3, P4, ... Then split the list in half, again and again, until each piece has at most 3 points."), a `Try` per smallest piece ("Smallest piece: P1, P9 and P5. Its hull is the triangle they make."), and per merge: a `Try` to start it, a `Try` per corner pushed ("Add P9 to the bottom edge."), a `Reject` per corner popped ("The turn at P4 (from P3 to P1) is clockwise, so pop P4 from the bottom edge."; "P1, P2 and P3 are on one line, so pop P2 ..."), and a `Try` with the merged hull ("The merged hull is P3, P5, P9 and P4. P1 is now inside it (or on an edge), so it is dropped."). Then an `Accept` with the whole hull and `Done` with the verifier's verdict |
 
-`ConvexHullVisualization` got the picture; its list format is unchanged (still empty), and it is still Convex Hull's default. The solver asks the verifier for the `Done` step only while it records steps: the verifier checks every point against every edge, which would make a plain solve of a large hull quadratic.
+`ConvexHullVisualization` got the picture, and it is still Convex Hull's default. Its list format, once empty (`Unimplemented`), is now a table of the points (`DynamicTable`): each point's x and y and, once solved, its place among the hull's corners in counterclockwise order, the corners marked Solution. The solver asks the verifier for the `Done` step only while it records steps: the verifier checks every point against every edge, which would make a plain solve of a large hull quadratic.
 
 To add another hull solver (the mockup's monotone chain, for example):
 
@@ -369,8 +369,8 @@ You do not have to register your visualization with these tests. They find it th
 
 | Test | What it checks |
 | --- | --- |
-| [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs): `NoNewUndeclared` | Your class does **not** declare `VisualizationType.Unimplemented`. Only four old classes may (`ConvexHullVisualization`, `SudokuVisualization`, `LosslessDataCompressionVisualization`, `DummyVisualization`). A new one that is still `Unimplemented` fails here, with your class name in the message. |
-| same file: `AllowlistHasNoStaleEntries` | That list of four contains no class that has since been given a real type. If you finally implement one of the four, delete its line from `UnimplementedAllowlist`. This is the only time you should edit that list. |
+| [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs): `NoNewUndeclared` | Your class does **not** declare `VisualizationType.Unimplemented`. Only three old classes may (`SudokuVisualization`, `LosslessDataCompressionVisualization`, `DummyVisualization`). A new one that is still `Unimplemented` fails here, with your class name in the message. |
+| same file: `AllowlistHasNoStaleEntries` | That list of three contains no class that has since been given a real type. If you finally implement one of the three, delete its line from `UnimplementedAllowlist`. This is the only time you should edit that list. |
 | same file: `ManifestMatchesEnum` | [Documentation/visualization-types.json](../visualization-types.json) lists exactly the members of the `VisualizationType` enum, in order. This is the API half of the cross-repo contract. |
 | same file: `AllInfo_SerializesEveryVisualizationTypeAsString` | Every visualization's type is sent as a **word** (`"GraphD3"`), never a number, and the word appears in the manifest. A visualization with a type missing from the manifest fails here. |
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs): `Visualize_GarbageInstance_IsNever500` | Sending garbage instance strings to `/visualize` for your class never produces a server error (HTTP 500). Bad input should give a friendly 400. |
