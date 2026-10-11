@@ -46,7 +46,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphD3` | [`API_GraphJSON`](../../Interfaces/JSON_Objects/Graphs/API_GraphJSON.cs) | [StandardGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardGraphSvgReact.js) | Independent Set, Max Cut, Vertex Cover |
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
-| `Board` | not a list item: a `payload` plus `frames` of named states ([`BoardFrames`](../../Interfaces/Board/BoardFrames.cs)) | none yet | Sudoku, N-Queens. Reported only as the `type` of `visualize?format=frames`; Sudoku's visualization still reports `Unimplemented` and N-Queens' reports `DynamicTable` in /info and in the default list format. See "The Board picture" below |
+| `Board` | not a list item: a `payload` plus `frames` of named states ([`BoardFrames`](../../Interfaces/Board/BoardFrames.cs)) | none yet | Sudoku, N-Queens. Reported only as the `type` of `visualize?format=frames`; both visualizations report `DynamicTable` in /info, and their default list format is a table (Sudoku's grid; each N-Queens row's queen). See "The Board picture" below |
 | `SearchTree` | not a list item: a `payload` plus `frames` of named states ([`SearchTreeFrames`](../../Interfaces/SearchTree/SearchTreeFrames.cs)) | none yet | A second view of a solver that branches and backs up (see "The Search Tree picture" below). Reported only as the `type` of `visualize?format=frames`; each search-tree visualization reports its problem's legacy type in /info and serves that picture's list format |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
@@ -54,7 +54,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `QuantumCircuitQjs` | `API_QUANTUMCIRCUIT` | [QuantumCircuitVis.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/QuantumCircuitVis.js) | Deutsch, Shor's |
 | `PumpSchedule` | a pump-frame class defined next to the visualization | [PumpSchedulingSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/PumpSchedulingSvgReact.js) | Pump Scheduling |
 | `DynamicTable` | [`API_TableJSON`](../../Interfaces/JSON_Objects/Tables/API_TableJSON.cs) | [DynamicTableSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/DynamicTableSvgReact.js) | DFA table view, shortest paths |
-| `Unimplemented` | `API_empty` | nothing, on purpose | Convex Hull, Sudoku (see below) |
+| `Unimplemented` | `API_empty` | nothing, on purpose | Convex Hull (see below) |
 
 Two things that trip people up:
 
@@ -103,7 +103,7 @@ The solvers and their steps (`BoardCells`: `values`, every square that holds som
 | N-Queens Backtracking | yes | A `Try` per queen placed, with the squares skipped in its row as conflicts ("Row 1: columns 0 and 1 are attacked (0 along its column by the queen at (0,0)). Place the queen at column 2."), a `Reject` naming the whole row and the queen above it when no square is safe ("Row 2: every column is attacked, so back up and move the queen in row 1."), `Done` |
 | N-Queens Constructive | yes | A `Try` with the column list the formula writes, then a `Try` per row ("Row 0: column 1, straight from the list. No checking needed."), `Done`. Rows are `Try`, not `Accept`: the recorder builds every `Accept` past its cap, which for a large n would build the board n times |
 
-`SudokuVisualization` got the picture; its list format is unchanged (still an empty placeholder). N-Queens has a new `NQueensVisualization`, whose list format is a table of each row's queen (`DynamicTable`). N-Queens' default visualization is still `DummyVisualization`, so its /info is unchanged.
+`SudokuVisualization` got the picture, and its list format, once an empty placeholder (`Unimplemented`), is now the grid as a table (`DynamicTable`): the clues, and once solved every square the solver filled in marked Solution. N-Queens has a new `NQueensVisualization`, whose list format is a table of each row's queen (`DynamicTable`). It is N-Queens' default visualization.
 
 To add a grid puzzle or another board solver:
 
@@ -434,8 +434,8 @@ You do not have to register your visualization with these tests. They find it th
 
 | Test | What it checks |
 | --- | --- |
-| [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs): `NoNewUndeclared` | Your class does **not** declare `VisualizationType.Unimplemented`. Only four old classes may (`ConvexHullVisualization`, `SudokuVisualization`, `LosslessDataCompressionVisualization`, `DummyVisualization`). A new one that is still `Unimplemented` fails here, with your class name in the message. |
-| same file: `AllowlistHasNoStaleEntries` | That list of four contains no class that has since been given a real type. If you finally implement one of the four, delete its line from `UnimplementedAllowlist`. This is the only time you should edit that list. |
+| [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs): `NoNewUndeclared` | Your class does **not** declare `VisualizationType.Unimplemented`. Only three old classes may (`ConvexHullVisualization`, `LosslessDataCompressionVisualization`, `DummyVisualization`). A new one that is still `Unimplemented` fails here, with your class name in the message. |
+| same file: `AllowlistHasNoStaleEntries` | That list of three contains no class that has since been given a real type. If you finally implement one of the three, delete its line from `UnimplementedAllowlist`. This is the only time you should edit that list. |
 | same file: `ManifestMatchesEnum` | [Documentation/visualization-types.json](../visualization-types.json) lists exactly the members of the `VisualizationType` enum, in order. This is the API half of the cross-repo contract. |
 | same file: `AllInfo_SerializesEveryVisualizationTypeAsString` | Every visualization's type is sent as a **word** (`"GraphD3"`), never a number, and the word appears in the manifest. A visualization with a type missing from the manifest fails here. |
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs): `Visualize_GarbageInstance_IsNever500` | Sending garbage instance strings to `/visualize` for your class never produces a server error (HTTP 500). Bad input should give a friendly 400. |
