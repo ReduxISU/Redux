@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using Xunit;
@@ -28,10 +28,14 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        // BoardCells (Board pictures)
+        ["sudokusolver"] = true,
+        ["nqueensbacktracking"] = true,
+        ["nqueensconstructive"] = true,
     };
 
-    // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet)];
+    // The answer shapes the Graph and Board pictures draw.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(BoardCells)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
