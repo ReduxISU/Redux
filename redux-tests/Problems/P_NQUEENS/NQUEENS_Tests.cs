@@ -205,4 +205,15 @@ public class NQUEENS_Tests {
         Assert.Equal(0, new NQUEENS("0").n);
         Assert.Equal("{}", ((API.Interfaces.ISolver)new NQueensBacktracking()).solve("0"));
     }
+
+    // #799: a certificate with n entries that are not (row,col) pairs of integers is not a placement, so it is false, as
+    // every other certificate the verifier cannot read is.
+    [Theory]
+    [InlineData("{1,2,3,4}")]
+    [InlineData("{(0,1,2),(1,3),(2,0),(3,2)}")]
+    [InlineData("{(a,b),(1,3),(2,0),(3,2)}")]
+    [InlineData("{(0,1),(1,3),(2,0),((3,2))}")]
+    public void NQUEENS_Verifier_Rejects_Entries_That_Are_Not_Pairs(string certificate) {
+        Assert.False(new NQueensVerifier().verify(new NQUEENS("4"), certificate));
+    }
 }
