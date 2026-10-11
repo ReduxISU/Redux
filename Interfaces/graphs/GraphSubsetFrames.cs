@@ -247,7 +247,7 @@ static class GraphSubsetFrames {
         return new GraphFrame(ev, caption, focus, ToRefs(nodes), ToRefs(edgeStates), phantoms) { Ok = ok };
     }
 
-    private static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
+    internal static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
         var sorted = new SortedDictionary<string, StateRef>(StringComparer.Ordinal);
         foreach (var (id, state) in map)
             if (state != PictureState.Background) sorted[id] = new StateRef(state);

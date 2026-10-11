@@ -1,5 +1,5 @@
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_DM3.Visualizations;
 using API.Problems.NPComplete.NPC_DM3.Solvers;
 using API.Problems.NPComplete.NPC_DM3.Verifiers;
 using SPADE;
@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace API.Problems.NPComplete.NPC_DM3;
 
-class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, DummyVisualization> {
+class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, DM3Visualization> {
 
     // --- Fields ---
     public string problemName { get; } = "3-Dimensional Matching";
@@ -35,7 +35,7 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     private List<List<string>> _M;
     public ThreeDimensionalMatchingBruteForce defaultSolver { get; } = new ThreeDimensionalMatchingBruteForce();
     public GenericVerifierDM3 defaultVerifier { get; } = new GenericVerifierDM3();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public DM3Visualization defaultVisualization { get; } = new DM3Visualization();
     // Declared, not derived. DM3 (3-Dimensional Matching) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
@@ -88,6 +88,24 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
         _Y = ParseProblem(instance, "Y");
         _Z = ParseProblem(instance, "Z");
         _M = ParseM(instance);
+        Validate(instanceInput);
+    }
+
+    // X, Y and Z each need at least one name and no blank one, and every group of M must be a triple from X x Y x Z: three
+    // names, the first in X, the second in Y and the third in Z (#805). Otherwise the solver glued M's groups together and the
+    // verifier read them as triples.
+    private void Validate(string instanceInput) {
+        foreach (var (name, set) in new[] { ("X", _X), ("Y", _Y), ("Z", _Z) })
+            if (set.Count == 0 || set.Any(string.IsNullOrEmpty))
+                throw new ProblemParseException("DM3", instanceInput, $"{name} must name at least one element, and no name may be blank");
+        for (int i = 0; i < _M.Count; i++) {
+            var t = _M[i];
+            string triple = "{" + string.Join(",", t) + "}";
+            if (t.Count != 3)
+                throw new ProblemParseException("DM3", instanceInput, $"triple {i + 1} of M, {triple}, must name exactly three elements");
+            if (!_X.Contains(t[0]) || !_Y.Contains(t[1]) || !_Z.Contains(t[2]))
+                throw new ProblemParseException("DM3", instanceInput, $"triple {i + 1} of M, {triple}, must name an element of X, then one of Y, then one of Z");
+        }
     }
     // The instance is a sequence of brace-delimited groups: {x1,...}{y1,...}{z1,...}{x,y,z},...
     // The first three groups are X, Y, and Z (each on its own, independent of the other groups'

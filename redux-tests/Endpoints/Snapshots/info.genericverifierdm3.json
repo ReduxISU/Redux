@@ -1,0 +1,1 @@
+{"verifierName":"Default 3-Dimensional Matching Verifier","verifierDefinition":"This verifier checks that a given certificate is the correct size, and contains all elements of X, Y and Z","source":"","sourceFile":"Problems/NPComplete/NPC_DM3/Verifiers/GenericVerifierDM3.cs","contributors":["Caleb Eardley"],"certificate":""}
