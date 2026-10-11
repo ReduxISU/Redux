@@ -72,6 +72,9 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization> {
         foreach (var i in Enumerable.Range(0, bitslist.Count())) {
             ilist.Add(bitslist[i].parseInt());
         }
+        if (ilist.Count == 0 || (ilist.Count & (ilist.Count - 1)) != 0)
+            throw new ProblemParseException(problemName, input,
+                $"f's table must have a power-of-2 number of entries (one per input in {{0,1}}^n); got {ilist.Count}");
         _funcValues = ilist.ToArray();
     }
 
