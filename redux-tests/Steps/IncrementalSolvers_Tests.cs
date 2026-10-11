@@ -39,6 +39,7 @@ public class IncrementalSolvers_Tests {
         // Groups (groups pictures)
         ["graphcoloringbruteforce"] = false,
         ["graphcoloringgreedy"] = true,
+        ["graphcoloringbacktracking"] = true,
         ["cliquecoverbruteforce"] = false,
         // Tour (tour pictures)
         ["hamiltonianbruteforce"] = true,
@@ -105,6 +106,7 @@ public class IncrementalSolvers_Tests {
         ["unstructuredgroversolver"] = true,
         ["primefactorsolver"] = true,
         ["shorsquantumsolver"] = true,
+        ["threedimensionalmatchingbacktracking"] = true,
     };
 
     // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board, Schedule, Tripartite Matching, Geometry, Code Tree or Quantum Circuit picture draws.

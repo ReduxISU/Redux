@@ -343,6 +343,55 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
 
     // ---- Solve and map ----
 
+    // 3SAT to Graph Coloring and to 3-Dimensional Matching name their backtracking solvers for the view (#814): on the default
+    // formula, which the brute forces cannot finish in the 10 s limit, the view solves the target and maps the answer back to
+    // an assignment 3SAT's verifier accepts. 5 s leaves room for a busy test run; alone each takes well under a second.
+    [Theory]
+    [InlineData(Coloring, "Graph Coloring Backtracking")]
+    [InlineData(Matching, "3-Dimensional Matching Backtracking")]
+    public async Task DefaultFormula_SolvesWithTheBacktracking_AndMapsBack(string reduction, string solverName) {
+        string instance = DefaultInstance(reduction);
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        var view = await View(reduction, instance);
+        clock.Stop();
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"{reduction}: the view took {clock.Elapsed}");
+        Assert.Equal(solverName, view.GetProperty("solver").GetString());
+        Assert.True(Phase(view, "solve")[^1].GetProperty("ok").GetBoolean(), Phase(view, "solve")[^1].GetProperty("caption").GetString());
+        var map = Phase(view, "map");
+        Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
+        IReduction red = Build(reduction, instance);
+        string assignment = ShownAssignment(view, map[^1]);
+        Assert.True(Verifies(red.reductionFrom, instance, assignment), assignment);
+    }
+
+    // The solver a reduction names for its view solves the target the view draws (the same check as ?solver=), and only
+    // these two name one.
+    [Fact]
+    public void ReductionViewSolver_SolvesTheTarget_AndOnlyTheSlowTargetsNameOne() {
+        foreach (var (name, type) in ProblemProvider.Reductions) {
+            IReduction red;
+            try { red = (IReduction)Activator.CreateInstance(type)!; } catch { continue; }
+            ISolver? solver = red.ReductionViewSolver();
+            if (name is "karpreducegraphcoloring" or "gareyjohnson") {
+                Assert.NotNull(solver);
+                Assert.Contains(solver!.GetType().GetInterfaces(), i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)
+                    && i.GetGenericArguments()[0] == red.reductionTo.GetType());
+                Assert.True(solver is IIncrementalSolver);
+            } else {
+                Assert.Null(solver);
+            }
+        }
+    }
+
+    // Naming the brute force still runs it: the default only applies when no solver is named.
+    [Theory]
+    [InlineData(Coloring, "GraphColoringBruteForce", "Graph Coloring Brute Force")]
+    [InlineData(Matching, "ThreeDimensionalMatchingBruteForce", "3-Dimensional Matching Brute Force")]
+    public async Task NamedSolver_OverridesTheReductionsViewSolver(string reduction, string solver, string solverName) {
+        var view = await View(reduction, "(x1 | !x2)", solver);
+        Assert.Equal(solverName, view.GetProperty("solver").GetString());
+    }
+
     [Theory]
     [MemberData(nameof(CaseData))]
     public async Task Map_DoneOk_IsTheSourceVerifierOnTheMappedAnswer(string reduction, string instance) {
@@ -474,7 +523,8 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
 
 // The Reduction View of the 3SAT reductions with a 50 ms solve budget: the default formula's 3-coloring (27 nodes) and
 // 3-dimensional matching (135 triples) targets are far past what their brute forces finish, so the solve phase ends with its
-// stopped frame and the map phase says there is nothing to map back.
+// stopped frame and the map phase says there is nothing to map back. The view runs the backtracking solvers by default
+// (#814), which finish, so the brute forces are asked for by name.
 public class ReductionView_Sat3_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
@@ -483,11 +533,11 @@ public class ReductionView_Sat3_TimeLimit_Tests : IClassFixture<TinyBudgetAppFac
     }
 
     [Theory]
-    [InlineData(ReductionView_Sat3_Tests.Coloring, "Graph Coloring")]
-    [InlineData(ReductionView_Sat3_Tests.Matching, "3-Dimensional Matching")]
-    public async Task DefaultFormula_StoppedSolve_EndsWithTheStoppedFrame_AndSkipsTheMap(string reduction, string target) {
+    [InlineData(ReductionView_Sat3_Tests.Coloring, "Graph Coloring", "GraphColoringBruteForce")]
+    [InlineData(ReductionView_Sat3_Tests.Matching, "3-Dimensional Matching", "ThreeDimensionalMatchingBruteForce")]
+    public async Task DefaultFormula_StoppedSolve_EndsWithTheStoppedFrame_AndSkipsTheMap(string reduction, string target, string bruteForce) {
         var content = new StringContent(JsonSerializer.Serialize(ReductionView_Sat3_Tests.DefaultInstance(reduction)), Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync($"/ProblemProvider/reductionView?reduction={reduction}", content, TestContext.Current.CancellationToken);
+        var response = await _client.PostAsync($"/ProblemProvider/reductionView?reduction={reduction}&solver={bruteForce}", content, TestContext.Current.CancellationToken);
         string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.True(response.StatusCode == HttpStatusCode.OK, body);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
