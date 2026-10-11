@@ -35,4 +35,11 @@ public enum VisualizationType {
     /// type (<see cref="GraphD3"/>, <see cref="GraphLaTeX"/>) in /info so old frontends are unaffected.
     /// </summary>
     Graph,
+    /// <summary>
+    /// The Geometry picture (Convex Hull): points drawn to scale on real axes, the hulls a solver builds and merges, the chain
+    /// it walks, the points it drops and, at the end, the hull's corners in order; a static payload plus one frame of named
+    /// states per solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the <c>format=frames</c>
+    /// response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type.
+    /// </summary>
+    Geometry,
 }
