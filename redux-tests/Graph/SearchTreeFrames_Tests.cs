@@ -167,6 +167,25 @@ public class SearchTreeFrames_Tests {
         Assert.Equal(["n0", "n1", "n4"], frames[^1].Nodes.Where(n => n.State == PictureState.Solution).Select(n => n.Id));
     }
 
+    [Fact]
+    public void ADoneStepsPatches_NameTheAnswer_EvenWhenItsStepsWereNotKept() {
+        // An early best answer (n2), then past the cap only a queued node's Accept was kept; the Done step names the real
+        // answer's path, root first, so the tree ends on it and the early one is just explored.
+        var frames = Frames(Run(
+            Step(StepEvent.Try, "Start.", N(0, null, "A", Q)),
+            Step(StepEvent.Accept, "Queue B.", N(1, 0, "B", Q)),
+            Step(StepEvent.Accept, "Close a tour under B.", N(2, 1, "C", S)),
+            Step(StepEvent.Accept, "Queue D (past the cap).", N(40, 30, "D", Q)),
+            new SolverStep<NodeSet>(new NodeSet([]), StepEvent.Done, [], "The best tour.") {
+                Ok = true, Tree = [N(0, null, "A", E), N(5, 0, "E", E), N(9, 5, "F", S)],
+            }));
+        var done = frames[^1];
+        Assert.Empty(done.Focus);
+        Assert.Equal(["n0", "n5", "n9"], done.Nodes.Where(n => n.State == PictureState.Solution).Select(n => n.Id));
+        Assert.Equal("explored", ById(done)["n2"].Kind);
+        Assert.Equal(("n5", "E"), (ById(done)["n9"].Parent, ById(done)["n5"].Label));
+    }
+
     // ---- steps without patches, missing parents, stopped runs ----
 
     [Fact]

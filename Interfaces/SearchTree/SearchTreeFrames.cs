@@ -101,8 +101,9 @@ sealed record SearchTreeFrame(
 /// cut-off children <c>Rejected</c>.</item>
 /// <item>The node the step is about (its last patch) is marked as <see cref="GraphSubsetFrames.FocusMark"/> says:
 /// <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject.</item>
-/// <item>The answer's path, from the root to the solution node, is <c>Solution</c> only in the Accept that reaches it and in a
-/// Done with ok = true.</item>
+/// <item>The answer's path, from the root to the latest solution node, is <c>Solution</c> only in the Accept that reaches it
+/// and in a Done with ok = true. A Done step may carry patches too: a solver whose answer was found past the recorder's cap
+/// names the answer's path there, so the tree ends on it.</item>
 /// <item>A run stopped by its time limit ends with the tree so far in a Done frame with ok = false: nothing highlighted, no
 /// answer path. Its answer string is never read.</item>
 /// </list>
