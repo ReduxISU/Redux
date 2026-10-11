@@ -99,7 +99,7 @@ public class Gadget_Kinds_Tests {
     private static readonly Dictionary<string, string> ExpectedKinds = new() {
         // The reductions out of 3SAT and SAT (#693) on their default formula.
         ["GareyJohnson"] = "Element x9, Group x3, Palette x1, OrGadget x3",
-        ["GraphColoringToCliqueCover"] = "Element x9",
+        ["GraphColoringToCliqueCover"] = "Element x9, EdgeRule x6, Bound x1",
         ["KarpIntProgStandard"] = "Element x12, OrGadget x3, Bound x3",
         ["KarpReduceGRAPHCOLORING"] = "Element x3, Palette x1, OrGadget x3, Bound x1",
         // 11 for the literals and the padding, then (#693) one per variable and one per new variable of a split.

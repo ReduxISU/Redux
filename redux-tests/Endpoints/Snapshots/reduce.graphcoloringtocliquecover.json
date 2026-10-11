@@ -192,6 +192,160 @@
       "targetIds": [
         "i"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-d",
+        "b-e",
+        "b-f",
+        "b-g",
+        "b-h",
+        "b-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d",
+        "b-e",
+        "b-f",
+        "b-g",
+        "b-h",
+        "b-i"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c-d",
+        "c-e",
+        "c-f",
+        "c-g",
+        "c-h",
+        "c-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c-d",
+        "c-e",
+        "c-f",
+        "c-g",
+        "c-h",
+        "c-i"
+      ],
+      "note": "c is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d-f",
+        "d-g",
+        "d-h",
+        "d-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d-f",
+        "d-g",
+        "d-h",
+        "d-i"
+      ],
+      "note": "d is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e-f",
+        "e-g",
+        "e-h",
+        "e-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e-f",
+        "e-g",
+        "e-h",
+        "e-i"
+      ],
+      "note": "e is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "f"
+      ],
+      "reductionToIds": [
+        "f-h",
+        "f-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "f"
+      ],
+      "targetIds": [
+        "f-h",
+        "f-i"
+      ],
+      "note": "f is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "g"
+      ],
+      "reductionToIds": [
+        "g-h",
+        "g-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "g"
+      ],
+      "targetIds": [
+        "g-h",
+        "g-i"
+      ],
+      "note": "g is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
     }
   ],
   "reductionFrom": {

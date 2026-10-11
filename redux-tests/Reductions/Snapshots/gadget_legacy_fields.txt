@@ -25,6 +25,13 @@ ElementHighlight | f | f
 ElementHighlight | g | g
 ElementHighlight | h | h
 ElementHighlight | i | i
+ElementHighlight | b | b-d,b-e,b-f,b-g,b-h,b-i
+ElementHighlight | c | c-d,c-e,c-f,c-g,c-h,c-i
+ElementHighlight | d | d-f,d-g,d-h,d-i
+ElementHighlight | e | e-f,e-g,e-h,e-i
+ElementHighlight | f | f-h,f-i
+ElementHighlight | g | g-h,g-i
+ElementHighlight |  | 
 # KarpDirectedHamiltonianToUndirectedHamiltonian
 ElementHighlight | 1 | 11,12,13,11-12,12-13
 ElementHighlight | 2 | 21,22,23,21-22,22-23
