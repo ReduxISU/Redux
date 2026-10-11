@@ -4,6 +4,7 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Interfaces.JSON_Objects.Tables;
+using API.Interfaces.Table;
 using API.Problems.P.P_SPSP;
 using API.Problems.P.P_SPSP.Solvers;
 using static API.Problems.P.P_SSSP.Solvers.SSSPSolver;
@@ -11,7 +12,13 @@ using SPSPTableStep = API.Problems.P.P_SPSP.Solvers.SPSPSolver.SPSPTableStep;
 
 namespace API.Problems.P.P_SPSP.Visualizations;
 
-class SPSPTableVisualization : IVisualization<SPSP> {
+/// <summary>
+/// Dijkstra's table. The list format is the step table it always was; under format=frames it is the Table picture's trace
+/// table (<see cref="DistanceTraceTable"/>), a second view of the run the Layered Graph picture draws: one row per node with
+/// when it was settled, its cost, the node it is reached through and its path. The problem's default visualization is
+/// unchanged.
+/// </summary>
+class SPSPTableVisualization : IVisualization<SPSP>, ITableVisualization<SPSP, Distances> {
     public string visualizationName { get; } = "Single Pair Shortest Path Table Visualization";
     public string visualizationDefinition { get; } = "Displays a step-by-step table of Dijkstra's algorithm execution, showing each vertex's known status, current cost, and path at each stage of the algorithm.";
     public string source { get; } = "";
@@ -23,6 +30,15 @@ class SPSPTableVisualization : IVisualization<SPSP> {
     // The run's steps are typed (Distances) since #667; this table makes its own from the solver, but must still be called
     // with them. Implemented explicitly so it is not part of /info.
     Type? IVisualization.StepShape => typeof(Distances);
+
+    // The list methods were already given the typed steps (they need some to draw their tables), so they keep getting them.
+    bool IFramesVisualization.ListReadsTypedSteps() => true;
+
+    // The Table picture (format=frames only). Implemented explicitly so it is not part of /info.
+    TableSpec ITableVisualization<SPSP, Distances>.Describe(SPSP problem) => DistanceTraceTable.Spec(problem.sourceNode, problem.targetNode);
+    IReadOnlyList<TableDraft> ITableVisualization<SPSP, Distances>.Draw(SPSP problem, IReadOnlyList<SolverStep<Distances>> steps, bool incremental) =>
+        DistanceTraceTable.Drafts(steps, problem.nodes, problem.sourceNode, problem.targetNode);
+    TableDraft ITableVisualization<SPSP, Distances>.Blank(SPSP problem) => DistanceTraceTable.Blank(problem.nodes);
 
     public SPSPTableVisualization() { }
 

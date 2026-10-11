@@ -102,11 +102,12 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Frames_TheShortestPathTables_AreStillTheListReshaped() {
+    public async Task Frames_TheShortestPathTables_AreTheTablePicture_NotTheLayeredGraph() {
+        // The tables are the Table picture's second view of the same runs (#671, TablePathsFrames_Endpoint_Tests).
         foreach (var (vis, instance) in new[] {
             ("sssptablevisualization", "({1,2,3},{((1,2),1),((2,3),1)},1)"), ("spsptablevisualization", "({1,2,3},{((1,2),1),((2,3),1)},1,3)") }) {
             var (_, body) = await Visualize($"visualization={vis}&format=frames", instance);
-            Assert.Equal("DynamicTable", JsonDocument.Parse(body).RootElement.GetProperty("type").GetString());
+            Assert.Equal("Table", JsonDocument.Parse(body).RootElement.GetProperty("type").GetString());
         }
     }
 
