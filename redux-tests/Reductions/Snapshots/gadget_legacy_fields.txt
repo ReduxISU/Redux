@@ -94,6 +94,13 @@ ElementHighlight | d | d
 ElementHighlight | e | e
 ElementHighlight | f | f
 ElementHighlight | g | g
+ElementHighlight | a | a-f
+ElementHighlight | b | b-d,b-e,b-f
+ElementHighlight | c | c-d,c-e,c-f,c-g
+ElementHighlight | d | d-g
+ElementHighlight | e | e-g
+ElementHighlight | f | f-g
+ElementHighlight |  | 
 # SipserReduceToCliqueStandard
 ElementHighlight | 0-0 | x1_0
 ElementHighlight | 0-1 | !x2_0
