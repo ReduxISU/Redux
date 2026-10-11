@@ -4,12 +4,12 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 
 class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
-    public const string CertificateGrammar = "(f1,...,fn) | product of factors equals the original number";
+    public const string CertificateGrammar = "(f1,...,fn) | prime factors whose product is the original number";
     public const string CertificateExample = "(2,2,3)";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Prime Factorization Verifier";
-    public string verifierDefinition { get; } = "Verifies that the product of the proposed factors equals the original input number.";
+    public string verifierDefinition { get; } = "Verifies that every proposed factor is prime and that their product equals the original input number.";
     public string source { get; } = " ";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Jason L. Wright", "Paul Gilbreath", "Alex Svancara", "Grant Gardner" };
@@ -36,16 +36,28 @@ class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
         parser = new("{f | f is list}");
         parser.parse(certificate);
         SPADE.UtilCollection factorsList = parser["f"];
-        int certProduct = 1;
+        // Every factor must be prime (#812), and the product is a BigInteger so it cannot wrap around.
+        System.Numerics.BigInteger certProduct = 1;
         foreach (var factor in factorsList) {
             var factorStr = factor.ToString();
             if (factorStr is null) {
                 return false;
             }
-            int factorInt = int.Parse(factorStr);
-            certProduct *= factorInt;
+            var factorValue = System.Numerics.BigInteger.Parse(factorStr, System.Globalization.CultureInfo.InvariantCulture);
+            if (factorValue > originalNumber || !IsPrime((long)System.Numerics.BigInteger.Max(factorValue, 0)))
+                return false;
+            certProduct *= factorValue;
         }
 
         return certProduct == originalNumber;
+    }
+
+    private static bool IsPrime(long n) {
+        if (n < 2)
+            return false;
+        for (long d = 2; d * d <= n; d++)
+            if (n % d == 0)
+                return false;
+        return true;
     }
 }

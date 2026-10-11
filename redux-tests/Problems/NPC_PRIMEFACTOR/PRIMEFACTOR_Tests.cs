@@ -38,6 +38,28 @@ public class PRIMEFACTOR_tests {
         Assert.True(verifier.verify(problem, certificate));
     }
 
+    // #812: every factor must be prime, and the product must not overflow.
+    [Theory]
+    [InlineData("12", "(12)")]
+    [InlineData("12", "(4,3)")]
+    [InlineData("12", "(1,12)")]
+    [InlineData("12", "(1,2,2,3)")]
+    [InlineData("12", "(-2,-6)")]
+    [InlineData("12", "(-2,-2,3)")]
+    [InlineData("131073", "(65537,65537)")]
+    [InlineData("1", "(1)")]
+    public void PRIMEFACTOR_verifier_RefusesFactorsThatAreNotPrime(string instance, string certificate) {
+        Assert.False(new PrimeFactorVerifier().verify(new PRIMEFACTOR(instance), certificate));
+    }
+
+    [Theory]
+    [InlineData("1", "()")]   // 1 is the empty product
+    [InlineData("2147483647", "(2147483647)")]
+    [InlineData("2147483646", "(2,3,3,7,11,31,151,331)")]
+    public void PRIMEFACTOR_verifier_AcceptsThePrimeFactorization(string instance, string certificate) {
+        Assert.True(new PrimeFactorVerifier().verify(new PRIMEFACTOR(instance), certificate));
+    }
+
     [Theory] //tests solver
     [InlineData("15", "(3,5)")]
     [InlineData("7", "(7)")]
