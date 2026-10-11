@@ -1,12 +1,12 @@
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Visualizations;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Solvers;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01;
 
-class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier01INTP, DummyVisualization> {
+class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier01INTP, IntProgrammingVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "0-1 Integer Linear Programming";
@@ -29,7 +29,7 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     public string wikiName { get; } = "";
     public IntegerProgrammingBruteForce defaultSolver { get; } = new IntegerProgrammingBruteForce();
     public GenericVerifier01INTP defaultVerifier { get; } = new GenericVerifier01INTP();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public IntProgrammingVisualization defaultVisualization { get; } = new IntProgrammingVisualization();
     public string instance { get; set; } = string.Empty;
     public string[] contributors { get; } = { "Caleb Eardley", "Michael Trosper" };
     // Declared, not derived. INTPROGRAMMING01 (0-1 Integer Linear Programming) is NP-complete (Karp, 1972).
