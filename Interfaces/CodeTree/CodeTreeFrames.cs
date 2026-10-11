@@ -14,13 +14,14 @@ sealed record CodeTreeSpec(string Text);
 // --- JSON shapes (explicit names so the contract does not depend on serializer naming options) ---
 
 /// <summary>
-/// A character of the text: its id (<c>c1</c>, in character order), the character itself, a label that is safe to draw
-/// (<c>␣</c> for a space, <c>↵</c> for a line break, <c>⇥</c> for a tab, <c>U+XXXX</c> for any other control or lone
+/// A character of the text: its id (<c>c1</c>, in character order), its UTF-16 code (as the certificate writes it: 97 for
+/// <c>a</c>; a number, because half of a surrogate pair cannot be sent as a JSON string on its own), a label that is safe to
+/// draw (<c>␣</c> for a space, <c>↵</c> for a line break, <c>⇥</c> for a tab, <c>U+XXXX</c> for any other control or lone
 /// surrogate), and how often it appears.
 /// </summary>
 sealed record CodeTreeSymbolDto(
     [property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("symbol")] string Symbol,
+    [property: JsonPropertyName("code")] int Code,
     [property: JsonPropertyName("label")] string Label,
     [property: JsonPropertyName("count")] int Count);
 
@@ -123,7 +124,7 @@ static class CodeTreeFrames {
     // ---- The payload ----
 
     public static CodeTreePayload Payload(CodeTreeSpec spec) =>
-        new(Kind, spec.Text, Symbols(spec).Select((s, i) => new CodeTreeSymbolDto(LeafId(i), s.Symbol.ToString(), Label(s.Symbol), s.Count)).ToList());
+        new(Kind, spec.Text, Symbols(spec).Select((s, i) => new CodeTreeSymbolDto(LeafId(i), s.Symbol, Label(s.Symbol), s.Count)).ToList());
 
     // ---- Frames ----
 

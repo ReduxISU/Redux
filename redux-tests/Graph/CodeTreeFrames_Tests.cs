@@ -45,8 +45,8 @@ public class CodeTreeFrames_Tests {
     [Fact]
     public void Payload_Json_HasTheTextAndItsCharactersInCharacterOrder() {
         Assert.Equal(
-            "{\"kind\":\"codeTree\",\"text\":\"abaca\",\"symbols\":[{\"id\":\"c1\",\"symbol\":\"a\",\"label\":\"a\",\"count\":3},"
-            + "{\"id\":\"c2\",\"symbol\":\"b\",\"label\":\"b\",\"count\":1},{\"id\":\"c3\",\"symbol\":\"c\",\"label\":\"c\",\"count\":1}]}",
+            "{\"kind\":\"codeTree\",\"text\":\"abaca\",\"symbols\":[{\"id\":\"c1\",\"code\":97,\"label\":\"a\",\"count\":3},"
+            + "{\"id\":\"c2\",\"code\":98,\"label\":\"b\",\"count\":1},{\"id\":\"c3\",\"code\":99,\"label\":\"c\",\"count\":1}]}",
             JsonSerializer.Serialize(JsonDocument.Parse(Json(CodeTreeFrames.Payload(Abc))).RootElement));
         var spaced = CodeTreeFrames.Payload(new CodeTreeSpec("b a\n"));
         Assert.Equal(["c1 ↵ 1", "c2 ␣ 1", "c3 a 1", "c4 b 1"], spaced.Symbols.Select(s => $"{s.Id} {s.Label} {s.Count}"));
