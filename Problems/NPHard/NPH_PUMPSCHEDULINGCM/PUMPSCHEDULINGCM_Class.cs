@@ -130,11 +130,15 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
             if (DemandGph.Count != 24)
                 throw new ProblemParseException(problemName, input,
                     $"Demand curve must have exactly 24 values; got {DemandGph.Count}.");
+            if (DemandGph.Any(d => d < 0))
+                throw new ProblemParseException(problemName, input, "Demand cannot be negative.");
 
             var hList = ((UtilCollection)dSections[1]).ToList();
             PeakHours = hList.Count == 0
                 ? new HashSet<int>()
                 : hList.Select(x => int.Parse(x.ToString().Trim())).ToHashSet();
+            if (PeakHours.Any(h => h < 0 || h >= 24))
+                throw new ProblemParseException(problemName, input, "Peak hours are 0-based hours of the day, 0 to 23.");
 
             var costs = ((UtilCollection)dSections[2]).ToList();
             if (costs.Count != 2)
@@ -142,6 +146,8 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
                     "Rate sub-list must have exactly 2 values: (on_peak_rate,off_peak_rate).");
             OnPeakCostPerKwh = ParseDouble(costs[0].ToString());
             OffPeakCostPerKwh = ParseDouble(costs[1].ToString());
+            if (OnPeakCostPerKwh < 0 || OffPeakCostPerKwh < 0)
+                throw new ProblemParseException(problemName, input, "Tariffs cannot be negative.");
 
             // Section 2: Pumps — ((name,flow_gph,kw,startup_cost),...)
             foreach (UtilCollection pump in (UtilCollection)sections[2]) {
@@ -158,6 +164,8 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
             }
             if (Pumps.Count == 0)
                 throw new ProblemParseException(problemName, input, "At least one pump is required.");
+            if (Pumps.Any(p => p.FlowRateGph < 0 || p.PowerKw < 0 || p.StartupCostDollars < 0))
+                throw new ProblemParseException(problemName, input, "A pump's flow, power and startup cost cannot be negative.");
         } catch (ProblemParseException) { throw; } catch (Exception ex) {
             throw new ProblemParseException(problemName, input, ex.Message);
         }
