@@ -11,7 +11,7 @@ namespace API.Problems.P.P_NQUEENS.Visualizations;
 /// <summary>
 /// N-Queens as the Board picture (format=frames): an n x n chessboard, each queen as it lands, and the squares skipped in its
 /// row linked back to the queen attacking them, step by step for the selected solver. The list format is a table with one
-/// row per board row and the column of its queen. The problem's default visualization is still <c>DummyVisualization</c>.
+/// row per board row and the column of its queen. It is the problem's default visualization.
 /// </summary>
 class NQueensVisualization : IVisualization<NQUEENS, API_TableJSON>, IBoardVisualization<NQUEENS> {
     public string visualizationName { get; } = "N-Queens Board Visualization";

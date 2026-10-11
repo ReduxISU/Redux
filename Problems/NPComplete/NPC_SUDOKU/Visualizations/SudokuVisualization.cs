@@ -1,6 +1,7 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Board;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.JSON_Objects.Tables;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_SUDOKU;
 using API.Problems.NPComplete.NPC_SUDOKU.Solvers;
@@ -11,15 +12,17 @@ namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizations;
 
 /// <summary>
 /// Sudoku as the Board picture (format=frames): the clues in bold, the digits the solver puts down, and the square it is
-/// trying, step by step for the selected solver. The list format is unchanged: still an empty placeholder.
+/// trying, step by step for the selected solver. The list format is the grid as a table (<c>DynamicTable</c>): one row per
+/// grid row, one column per grid column, the clues as given and, once solved, every square the solver filled in marked
+/// Solution.
 /// </summary>
-class SudokuVisualization : IVisualization<SUDOKU, API_QUANTUMCIRCUIT>, IBoardVisualization<SUDOKU> {
+class SudokuVisualization : IVisualization<SUDOKU, API_TableJSON>, IBoardVisualization<SUDOKU> {
     public string visualizationName { get; } = "Sudoku Visualization";
-    public string visualizationDefinition { get; } = "TODO";
+    public string visualizationDefinition { get; } = "Draws the 9 x 9 grid as a table, rows and columns numbered from 1. The clues stand as given; once solved, every square the solver filled in is shown in the Solution color.";
     public string source { get; } = "TODO";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Eric Hill" };
-    public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
+    public VisualizationType visualizationType { get; } = VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SudokuSolver();
 
     // The Board picture (format=frames only). Implemented explicitly so it is not part of /info.
@@ -56,12 +59,36 @@ class SudokuVisualization : IVisualization<SUDOKU, API_QUANTUMCIRCUIT>, IBoardVi
     // --- Methods Including Constructors ---
     public SudokuVisualization() {
     }
-    public API_QUANTUMCIRCUIT visualize(SUDOKU instance) {
-        var qc = new API_QUANTUMCIRCUIT();
-        // var solvers = new UnstructuredGroverSolver();
-        // qc.solution = solvers.solve(instance);
-        // qc.circuit = instance.circuit;
-        // return qc;
-        return qc;
+
+    // The list format: one row per grid row ("row" holds its number), one column per grid column. A clue keeps its square;
+    // a square the clues leave empty holds the answer's digit, marked Solution. With no answer
+    // ({} or anything that is not a grid) only the clues are shown.
+    private static API_TableJSON Table(SUDOKU problem, BoardCells answer) {
+        int n = problem.grid.Length;
+        var table = new API_TableJSON();
+        table.columns.Add(new TableColumn { key = "row", label = "" });
+        for (int c = 0; c < n; c++) table.columns.Add(new TableColumn { key = $"c{c + 1}", label = (c + 1).ToString() });
+        for (int r = 0; r < n; r++) {
+            var cells = new Dictionary<string, string> { ["row"] = (r + 1).ToString() };
+            var colors = new Dictionary<string, string>();
+            for (int c = 0; c < n; c++) {
+                string key = $"c{c + 1}";
+                int clue = c < problem.grid[r].Length ? problem.grid[r][c] : 0;
+                if (clue != 0) {
+                    cells[key] = clue.ToString();
+                } else if (answer.Values.TryGetValue(BoardFrames.CellId(r, c), out var digit)) {
+                    cells[key] = digit;
+                    colors[key] = "Solution";
+                } else {
+                    cells[key] = "";
+                }
+            }
+            table.rows.Add(new TableRow { id = $"r{r}", cells = cells, cellColors = colors.Count > 0 ? colors : null });
+        }
+        return table;
     }
+
+    public API_TableJSON visualize(SUDOKU problem) => Table(problem, new BoardCells([], []));
+
+    public API_JSON SolvedVisualization(SUDOKU problem, string solution) => Table(problem, ParseGrid(solution));
 }

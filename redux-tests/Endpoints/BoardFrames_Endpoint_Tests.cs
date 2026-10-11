@@ -12,6 +12,11 @@ namespace redux_tests;
 //   - the list format of Sudoku's visualization (Snapshots/board_list_snapshots.tsv, captured before the picture existed),
 //   - /info for the two problems, their three solvers, their verifiers and Sudoku's visualization (info.<name>.json, captured
 //     the same way).
+// The deliberate exceptions:
+//   - N-Queens' default visualization moved off DummyVisualization to NQueensVisualization: see the "rewire" test.
+//   - Sudoku's list format was an empty placeholder (Unimplemented, answering []). It is now the grid as a DynamicTable, so
+//     its rows in board_list_snapshots.tsv and info.sudoku.json / info.sudokuvisualization.json were retaken: see the
+//     "SudokuList" tests. Its format=frames picture is unchanged.
 public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -62,7 +67,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     public static TheoryData<string> TouchedInterfaces => new([
-        "sudoku", "sudokusolver", "sudokuverifier", "sudokuvisualization", "nqueens", "nqueensbacktracking", "nqueensconstructive", "nqueensverifier",
+        "sudokusolver", "sudokuverifier", "nqueensbacktracking", "nqueensconstructive", "nqueensverifier",
     ]);
 
     // ---- What old frontends read must not change. ----
@@ -80,12 +85,84 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.DoesNotContain("ParseAnswer", body);
     }
 
+    // N-Queens' default visualization moved off DummyVisualization to NQueensVisualization. Its /info snapshot was retaken
+    // after the rewire; the diff against the pre-change capture is only that nested object. No reduction goes into or out
+    // of N-Queens, so nothing else embeds it.
+    [Fact]
+    public async Task Rewire_NQueensInfo_ShowsNQueensVisualization_AndNothingElse() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=nqueens", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot("info.nqueens.json"), body);
+        Assert.DoesNotContain("DummyVisualization", body);
+        Assert.DoesNotContain("\"Board\"", body);
+        var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal("N-Queens Board Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
+        Assert.Equal("N-Queens Backtracking", vis.GetProperty("solver").GetProperty("solverName").GetString());
+        var own = await _client.GetAsync("/ProblemProvider/info?interface=nqueensvisualization", TestContext.Current.CancellationToken);
+        Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(vis.GetRawText()));
+    }
+
     [Theory]
     [MemberData(nameof(ListCases))]
     public async Task List_MatchesPreChangeSnapshot(string vis, string instance, string expected) {
         var (status, body) = await Visualize($"visualization={vis}", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(expected, Compact(body));
+    }
+
+    // ---- Sudoku's list format: the grid as a DynamicTable instead of an empty placeholder. ----
+
+    // /info for Sudoku and its visualization, retaken after the change: the only difference from the pre-change capture is
+    // the visualization's visualizationType (Unimplemented to DynamicTable) and its visualizationDefinition (was "TODO").
+    [Theory]
+    [InlineData("sudoku")]
+    [InlineData("sudokuvisualization")]
+    public async Task SudokuList_Info_ReportsDynamicTable_AndNothingOfThePicture(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        var root = JsonDocument.Parse(body).RootElement;
+        var vis = name == "sudoku" ? root.GetProperty("defaultVisualization") : root;
+        Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
+        Assert.DoesNotContain("\"Board\"", body);
+        Assert.DoesNotContain("StepShape", body);
+        Assert.DoesNotContain("Describe", body);
+        Assert.DoesNotContain("ParseAnswer", body);
+    }
+
+    [Fact]
+    public async Task SudokuList_IsTheGridBeforeAndAfter_TheSolversSquaresMarkedSolution() {
+        string instance = "0,4,8,1,9,5,2,7,3;3,2,1,7,4,8,5,9,6;9,7,5,3,2,6,4,8,1;5,9,2,6,7,1,8,3,4;8,6,7,4,3,2,1,5,9;1,3,4,8,5,9,6,2,7;2,1,9,5,6,3,7,4,8;7,5,6,9,8,4,3,1,2;4,8,3,2,1,7,9,6,5";
+        var (status, body) = await Visualize("visualization=sudokuvisualization", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var list = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, list.Count);
+        Assert.All(list, t => Assert.Equal("table", t.GetProperty("kind").GetString()));
+        Assert.Equal(["", "1", "2", "3", "4", "5", "6", "7", "8", "9"], list[0].GetProperty("columns").EnumerateArray().Select(c => c.GetProperty("label").GetString()));
+        Assert.Equal(9, list[0].GetProperty("rows").GetArrayLength());
+        // Before: the clues, R1C1 empty, nothing colored.
+        var before = list[0].GetProperty("rows")[0];
+        Assert.Equal("1", before.GetProperty("cells").GetProperty("row").GetString());
+        Assert.Equal("", before.GetProperty("cells").GetProperty("c1").GetString());
+        Assert.Equal("4", before.GetProperty("cells").GetProperty("c2").GetString());
+        Assert.All(list[0].GetProperty("rows").EnumerateArray(), r => Assert.Equal(JsonValueKind.Null, r.GetProperty("cellColors").ValueKind));
+        // After: the one square the solver filled, R1C1 = 6, is the only one marked.
+        var after = list[1].GetProperty("rows")[0];
+        Assert.Equal("6", after.GetProperty("cells").GetProperty("c1").GetString());
+        Assert.Equal("{\"c1\":\"Solution\"}", Readable(after.GetProperty("cellColors")));
+        Assert.All(list[1].GetProperty("rows").EnumerateArray().Skip(1), r => Assert.Equal(JsonValueKind.Null, r.GetProperty("cellColors").ValueKind));
+    }
+
+    [Fact]
+    public async Task SudokuList_NoSolution_ShowsOnlyTheClues() {
+        string instance = "5,0,0,0,0,0,0,0,0;0,5,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0";
+        var (_, body) = await Visualize("visualization=sudokuvisualization", instance);
+        var list = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal(Readable(list[0]), Readable(list[1]));
     }
 
     // The new visualization reports its legacy list type in /info and nothing of the picture.
