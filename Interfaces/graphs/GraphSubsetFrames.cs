@@ -173,7 +173,7 @@ static class GraphSubsetFrames {
         _ => 0,
     };
 
-    private static void Raise(Dictionary<string, PictureState> map, string id, PictureState state) {
+    internal static void Raise(Dictionary<string, PictureState> map, string id, PictureState state) {
         if (!map.TryGetValue(id, out var current) || Rank(state) > Rank(current)) map[id] = state;
     }
 
