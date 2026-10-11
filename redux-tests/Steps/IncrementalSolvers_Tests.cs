@@ -30,6 +30,7 @@ public class IncrementalSolvers_Tests {
         ["dominatingsetnaiveinclusionexclusion"] = true,
         // ChosenTriples (Tripartite Matching picture)
         ["threedimensionalmatchingbruteforce"] = false,
+        ["threedimensionalmatchingbacktracking"] = true,
     };
 
     // The answer shapes the Graph and Tripartite Matching pictures draw.
