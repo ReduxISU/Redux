@@ -830,6 +830,7 @@ Solvers that record a search tree:
 
 | Problem | Solver | Visualization | Search |
 | --- | --- | --- | --- |
+| 3SAT | 3SAT Backtracking | `Sat3SearchTreeVisualization` | Best first. The root `start` is queued; each value tried is a node (`x2=F`) under the state it decides, then queued with its priority (`priority -1`), pruned with the clause it makes false (`C3 false`), or the solution. A `Backtrack` takes the node it goes back to off the queue, so nodes carry order badges. The `Done` step names the solution's path |
 
 Not covered, because nothing in Redux branches for them: Knapsack (`KnapsackBruteForce` enumerates every set of items in a flat loop and `KnapsackDP` fills a table) and Graph Coloring (`GraphColoringBruteForce` counts through every coloring and `GraphColoringGreedy` never backs up). SAT has only its brute force and Grover's solver; 3SAT's PPZ, Schöning and WalkSAT are randomized local searches. TSP's brute force and greedy solvers don't branch either.
 
