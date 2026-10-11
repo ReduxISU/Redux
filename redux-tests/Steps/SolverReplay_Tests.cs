@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Packing;
 using API.Interfaces.Steps;
 using API.Interfaces.Tripartite;
 using Xunit;
@@ -110,6 +111,13 @@ public class SolverReplay_Tests {
             // 3-Dimensional Matching answers name their triples ("{{Paul,Austin,Jake},...}"); "{}" is no answer. The problem's
             // Tripartite Matching visualization reads them as triples of M.
             var hook = typeof(ITripartiteVisualization<>).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
+        }
+        if (lastPartial is Placement) {
+            // Packing answers name numbers, not positions: the problem's Packing visualization reads them as a placement (equal
+            // numbers fill items in order, which the default instances never repeat).
+            var hook = typeof(IPackingVisualization<>).MakeGenericType(problem.GetType());
             var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
             return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
         }

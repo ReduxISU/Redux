@@ -251,6 +251,27 @@ sealed class Components : IEquatable<Components> {
         HashCode.Combine(ShapeUtil.HashOf(Visited), ShapeUtil.HashOf(Finished), ShapeUtil.HashOf(Of.Select(p => $"{p.Key}={p.Value}")));
 }
 
+/// <summary>
+/// Which container each item is in (packing problems: Partition, Subset Sum, Knapsack, Bin Packing). Items and containers
+/// are named by position, never by their numbers, so two items of the same size stay two items: <c>Assign[i]</c> is the
+/// 0-based container of item <c>i</c> (instance order), or -1 when item <c>i</c> is left out. An item past the end of
+/// <c>Assign</c> is left out too, so trailing -1s are dropped (any negative number is read as -1) and equal placements
+/// compare equal however they were written.
+/// </summary>
+sealed class Placement : IEquatable<Placement> {
+    [JsonPropertyName("assign")] public int[] Assign { get; }
+    public Placement(IEnumerable<int> assign) {
+        var a = assign.Select(c => c < 0 ? -1 : c).ToList();
+        while (a.Count > 0 && a[^1] == -1) a.RemoveAt(a.Count - 1);
+        Assign = a.ToArray();
+    }
+    /// <summary>The container of item <paramref name="item"/>, or -1 when it is left out.</summary>
+    public int Of(int item) => item >= 0 && item < Assign.Length ? Assign[item] : -1;
+    public bool Equals(Placement? other) => other != null && Assign.SequenceEqual(other.Assign);
+    public override bool Equals(object? obj) => Equals(obj as Placement);
+    public override int GetHashCode() => ShapeUtil.HashOf(Assign.Select(c => c.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -269,5 +290,6 @@ static class Shapes {
         : shape == typeof(TableCells) ? new TableCells([], [], [])
         : shape == typeof(Distances) ? new Distances([], [], [])
         : shape == typeof(Components) ? new Components([], [], [])
+        : shape == typeof(Placement) ? new Placement([])
         : null;
 }

@@ -79,4 +79,11 @@ public enum VisualizationType {
     /// the legacy <see cref="SetD3"/>.
     /// </summary>
     BipartiteGraph,
+    /// <summary>
+    /// The Packing picture (Partition, Subset Sum, Knapsack, Bin Packing): items in a pool and containers drawn to scale with
+    /// their target or limit lines, and which container each item is in; a static payload plus one frame of named states per
+    /// solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the <c>format=frames</c> response of
+    /// <c>/ProblemProvider/visualize</c>; /info keeps the legacy <see cref="SetD3"/>.
+    /// </summary>
+    Packing,
 }

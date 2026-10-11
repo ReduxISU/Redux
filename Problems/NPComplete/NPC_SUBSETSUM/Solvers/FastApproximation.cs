@@ -3,10 +3,13 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 using System.Numerics;
 using System.Diagnostics;
+using API.Interfaces.Packing;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 
-class FastApproximation : ISolver<SUBSETSUM> {
+// Not incremental: each step shows the best subset kept so far, a candidate the next number can still replace.
+class FastApproximation : ISolver<SUBSETSUM, Placement> {
     // --- Fields ---
     public string solverName { get; } = "Fast Approximation Algorithm";
     public string solverDefinition { get; } = "A fast approximation algorithm for subset sum that trades"
@@ -33,10 +36,13 @@ class FastApproximation : ISolver<SUBSETSUM> {
     private struct SumState {
         public double Sum;
         public List<int> ChosenItems;
+        // The positions in S of ChosenItems, for the picture (two equal numbers are two items).
+        public List<int> Positions;
 
-        public SumState(double sum, List<int> items) {
+        public SumState(double sum, List<int> items, List<int> positions) {
             Sum = sum;
             ChosenItems = items;
+            Positions = positions;
         }
     }
 
@@ -44,7 +50,11 @@ class FastApproximation : ISolver<SUBSETSUM> {
     public FastApproximation() {
     }
 
-    public string solve(SUBSETSUM subsetsum) {
+    public string solve(SUBSETSUM subsetsum) => Solve(subsetsum, StepRecorder<Placement>.Off);
+
+    // Steps: one per number, after the sums it reaches are merged in and trimmed, showing the best subset kept so far; then
+    // the answer.
+    public string Solve(SUBSETSUM subsetsum, StepRecorder<Placement> rec) {
 
         int target = subsetsum.T;
         List<int> numbers = subsetsum.S.Select(int.Parse).ToList();
@@ -52,29 +62,33 @@ class FastApproximation : ISolver<SUBSETSUM> {
 
         if (target < 0) {
             // No subset of the input can sum to a negative target.
+            rec.Done(new Placement([]), false, $"T is {target}. This approximation only builds sums from 0 up to T, so it answers no.");
             return "{}";
         }
 
         if (target == 0) {
             // The empty subset is the only subset this solver reports for T = 0, written as {}.
+            rec.Done(new Placement([]), true, "T is 0, so the empty set is the answer.");
             return "{}";
         }
 
         if (n == 0) {
+            rec.Done(new Placement([]), false, "There are no numbers, so nothing adds up to T.");
             return "{}";
         }
 
         double delta = _epsilon / (2 * n);
 
-        List<SumState> L = new List<SumState> { new SumState(0, new List<int>()) };
+        List<SumState> L = new List<SumState> { new SumState(0, new List<int>(), new List<int>()) };
 
-        foreach (int item in numbers) {
+        for (int position = 0; position < n; position++) {
+            int item = numbers[position];
             List<SumState> LPrime = new List<SumState>(L);
             foreach (var state in L) {
                 double nextSum = state.Sum + item;
                 if (nextSum <= target) {
                     var nextItems = new List<int>(state.ChosenItems) { item };
-                    LPrime.Add(new SumState(nextSum, nextItems));
+                    LPrime.Add(new SumState(nextSum, nextItems, new List<int>(state.Positions) { position }));
                 }
             }
 
@@ -83,6 +97,14 @@ class FastApproximation : ISolver<SUBSETSUM> {
 
             // Run list-trimming function to drop values that are mathematically too close
             L = Trim(LPrime, delta);
+            int merged = LPrime.Count, at = position;
+            List<SumState> kept = L;
+            rec.Try(() => Best(kept, n), () => {
+                int dropped = merged - kept.Count;
+                string trimmed = dropped > 0 ? $", {dropped} trimmed as too close to another" : "";
+                return $"Add {item} to every sum kept so far that stays within {target}. {kept.Count} {(kept.Count == 1 ? "sum" : "sums")} kept{trimmed}. "
+                    + $"Best so far: {(int)kept[^1].Sum}.";
+            }, PackingFrames.ItemId(at));
         }
 
         // Extract the optimal subset path tracking record from the back of the remaining sparse list
@@ -93,7 +115,18 @@ class FastApproximation : ISolver<SUBSETSUM> {
 
         // The trimmed list only guarantees a sum close to the optimum, so the best subset can
         // miss the target. Only report it if it is actually a solution.
-        return subsetsum.defaultVerifier.verify(subsetsum, certificate) ? certificate : "{}";
+        bool ok = subsetsum.defaultVerifier.verify(subsetsum, certificate);
+        rec.Done(ok ? Best(L, n) : new Placement([]), ok, ok
+            ? $"The best sum kept is exactly {target}: {PackingFrames.Braces(bestState.ChosenItems.Select(PackingFrames.Num))}."
+            : $"The best sum kept is {(int)bestState.Sum}, not {target}, so the approximation answers no, even if an exact subset exists.");
+        return ok ? certificate : "{}";
+    }
+
+    // The best (largest) sum kept, as a placement: its numbers in the one container.
+    private static Placement Best(List<SumState> kept, int n) {
+        var assign = Enumerable.Repeat(-1, n).ToArray();
+        foreach (int position in kept[^1].Positions) assign[position] = 0;
+        return new Placement(assign);
     }
 
     private List<SumState> Trim(List<SumState> list, double delta) {

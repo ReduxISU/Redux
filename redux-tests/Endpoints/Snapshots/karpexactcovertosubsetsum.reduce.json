@@ -1,0 +1,173 @@
+{
+  "reductionName": "Karp\u0027s Subset Sum Reduction",
+  "reductionDefinition": "Karp\u0027s Reduction from Exact Cover to Subset Sum",
+  "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/ReduceTo/NPC_SUBSETSUM/KarpExactCoverToSubsetSum.cs",
+  "contributors": [
+    "Andrija Sevaljevic"
+  ],
+  "visualization": {
+    "visualizationName": "Subset Sum Visualization",
+    "visualizationDefinition": "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.",
+    "visualizationType": "SetD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs",
+    "contributors": [
+      "Michael Trosper"
+    ],
+    "solver": {
+      "solverName": "Subset Sum Brute Force",
+      "solverDefinition": "This is a brute force solver for Subset Sum",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Garret Stouffer"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(n * 2^n), n = |S|",
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [],
+  "reductionFrom": {
+    "problemName": "Exact Cover",
+    "formalDefinition": "Exact Cover = {\u003CS, X\u003E | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ",
+    "problemDefinition": "The exact cover problem is a decision problem to determine if an exact cover exists for some \u003CS, X\u003E",
+    "inputDescription": "X, a set, and S, a collection of subsets of X",
+    "outputDescription": "True or False, whether an exact cover of X exists using subsets from S",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/EXACTCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "instance": "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "instanceFormat": "Format: {(U,S) | U is set, S subset {a | a subset U}} Example: ({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "certificateFormat": "Format: {T | T subset S, union of T = X, T pairwise disjoint} Example: {{2,3},{4,1}}",
+    "complexityClass": "NPComplete",
+    "problemType": "SetsAndPartitions",
+    "contributors": [
+      "Caleb Eardley",
+      "Alex Diviney",
+      "Michael Trosper"
+    ],
+    "defaultSolver": {
+      "solverName": "Exact Cover Brute Force",
+      "solverDefinition": "This is a generic brute force solver for Exact Cover",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Solvers/ExactCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(2^s * s^2 * n), s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Exact Cover Verifier",
+      "verifierDefinition": "This is a verifier for Exact Cover",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Verifiers/ExactCoverVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Exact Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Exact Cover",
+      "visualizationType": "SetD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Knuth\u0027s Algorithm X",
+        "solverDefinition": "",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Solvers/DancingLinks.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "complexity": "O(2^s * s^2 * x^2), s = |S| (rows/subsets), x = |X| (columns/universe)",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Subset Sum",
+    "formalDefinition": "Subset Sum = \u003CS, T\u003E | S is a set of positive integers and there exists a subset of S, K where the sum of K\u0027s elements equals T",
+    "problemDefinition": "The problem is to determine whether there exists a sum of elements that totals to the number T.",
+    "inputDescription": "S, a set of integers, and T, a target sum",
+    "outputDescription": "True or False, whether some subset of S sums to T",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "({1,7,12,15},28)",
+    "instance": "({21,20,65},85)",
+    "instanceFormat": "Format: {(S,T) | S subset int, T is int} Example: ({1,7,12,15},28)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,12,15}",
+    "complexityClass": "NPComplete",
+    "problemType": "SetsAndPartitions",
+    "contributors": [
+      "Garret Stouffer",
+      "Caleb Eardley"
+    ],
+    "defaultSolver": {
+      "solverName": "Subset Sum Brute Force",
+      "solverDefinition": "This is a brute force solver for Subset Sum",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Garret Stouffer"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "complexity": "O(n * 2^n), n = |S|",
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Subset Sum Verifier",
+      "verifierDefinition": "This is a verifier for Subset Sum",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Garret Stouffer"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Subset Sum Visualization",
+      "visualizationDefinition": "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.",
+      "visualizationType": "SetD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs",
+      "contributors": [
+        "Michael Trosper"
+      ],
+      "solver": {
+        "solverName": "Subset Sum Brute Force",
+        "solverDefinition": "This is a brute force solver for Subset Sum",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Garret Stouffer"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "complexity": "O(n * 2^n), n = |S|",
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}

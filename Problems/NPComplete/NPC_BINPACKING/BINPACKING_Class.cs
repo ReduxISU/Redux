@@ -6,14 +6,14 @@
 // no manual registration in Program.cs is needed.
 
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_BINPACKING.Visualizations;
 using API.Problems.NPComplete.NPC_BINPACKING.Solvers;
 using API.Problems.NPComplete.NPC_BINPACKING.Verifiers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_BINPACKING;
 
-class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisualization> {
+class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, BinPackingVisualization> {
 
     // ── Human-readable metadata shown in the Redux UI 
 
@@ -76,9 +76,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     public BinPackingBruteForce defaultSolver { get; } = new BinPackingBruteForce();
     public BinPackingVerifier defaultVerifier { get; } = new BinPackingVerifier();
 
-    // No custom visualization — we reuse the shared DummyVisualization,
-    // Dummy visualization is an approach also used by KNAPSACK and JOBSEQ.
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public BinPackingVisualization defaultVisualization { get; } = new BinPackingVisualization();
 
     // Declared, not derived. BINPACKING is NP-complete (Garey & Johnson, 1979, problem SR1).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
@@ -119,5 +117,12 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
         _S = parser["S"].ToList().Select(item => int.Parse(item.ToString())).ToList();
         _C = int.Parse(parser["C"].ToString());
         _K = int.Parse(parser["K"].ToString());
+
+        // Item sizes are positive integers (the definition says so, and the verifier rejects any other size), so a size of 0
+        // or less is refused here rather than packed into an answer the verifier then rejects (#794).
+        foreach (int size in _S) {
+            if (size <= 0)
+                throw new ProblemParseException(problemName, input, $"the item size {size} must be positive");
+        }
     }
 }

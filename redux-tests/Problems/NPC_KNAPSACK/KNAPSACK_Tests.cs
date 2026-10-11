@@ -93,8 +93,16 @@ public class KNAPSACK_Tests {
         string bruteForceCertificate = new KnapsackBruteForce().solve(problem);
 
         Assert.Equal("{}", dpCertificate);
-        Assert.Equal("", bruteForceCertificate);
+        Assert.Equal("{}", bruteForceCertificate);
         Assert.False(new KnapsackVerifier().verify(problem, dpCertificate));
+    }
+
+    // #792: the brute force said "no answer" with "" while every other solver says "{}".
+    [Fact]
+    public void BruteForce_NoAnswer_IsBraces_AndTheVerifierRejectsIt() {
+        KNAPSACK problem = new KNAPSACK("({(10,60)},5,100)");
+        Assert.Equal("{}", new KnapsackBruteForce().solve(problem));
+        Assert.False(new KnapsackVerifier().verify(problem, "{}"));
     }
 
     [Fact]
@@ -105,6 +113,25 @@ public class KNAPSACK_Tests {
         string certificate = new KnapsackDP().solve(problem);
         Assert.NotEqual("{}", certificate);
         Assert.True(new KnapsackVerifier().verify(problem, certificate));
+    }
+
+    // #791: with 31 items the candidate count (int)Math.Pow(2, 31) saturated, so the first candidate held every item instead
+    // of none, and the second never ended.
+    [Fact]
+    public void BruteForce_ThirtyOneItems_StartsWithTheEmptySet() {
+        var first = new KnapsackBruteForce().possibleSolutions(31).First();
+        Assert.Equal(Enumerable.Repeat(0, 31), first);
+        // The empty set is worth V = 0 and fits, so it is the answer. (W holds all 31 items too, so the old order answered
+        // with all of them instead of looping forever.)
+        var items = string.Join(",", Enumerable.Range(1, 31).Select(i => $"({i},1)"));
+        Assert.Equal("{}", new KnapsackBruteForce().solve(new KNAPSACK($"({{{items}}},1000,0)")));
+    }
+
+    [Fact]
+    public void BruteForce_Candidates_AreTheMasksInOrder_BitKPickingItemK() {
+        var candidates = new KnapsackBruteForce().possibleSolutions(3).Take(10).Select(c => string.Concat(c)).ToList();
+        Assert.Equal(["000", "100", "010", "110", "001", "101", "011", "111"], candidates);
+        Assert.Equal([[]], new KnapsackBruteForce().possibleSolutions(0).ToList());
     }
 
     // -------------------------------------------------------------------------
@@ -134,5 +161,31 @@ public class KNAPSACK_Tests {
         KNAPSACK problem = new KNAPSACK();
         KnapsackVerifier verifier = new KnapsackVerifier();
         Assert.True(verifier.verify(problem, KnapsackVerifier.CertificateExample));
+    }
+
+    // #793: a negative capacity or weight was accepted, and the DP then crashed sizing or indexing its table. The
+    // constructor refuses them, so the endpoints answer the usual 400.
+    [Theory]
+    [InlineData("({(10,60)},-2,0)", "W")]
+    [InlineData("({(-1,60),(3,5)},5,10)", "-1")]
+    public void NegativeCapacityOrWeight_IsRefused(string instance, string detail) {
+        var e = Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new KnapsackDP()).solve(instance));
+        Assert.Contains(detail, e.Message);
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new KnapsackBruteForce()).solve(instance));
+    }
+
+    [Fact]
+    public void ZeroCapacityAndWeight_AndNegativeValues_AreStillAllowed() {
+        Assert.Equal("{(0,5)}", new KnapsackBruteForce().solve(new KNAPSACK("({(0,5),(3,-2)},0,5)")));
+    }
+
+    // #795: the trace-back stopped once the capacity was used up, so it never reached a zero-weight item the table counted.
+    [Theory]
+    [InlineData("({(0,3),(5,10)},5,13)")]
+    [InlineData("({(0,5)},0,5)")]
+    public void KnapsackDP_ZeroWeightItem_IsInTheAnswer(string instance) {
+        KNAPSACK problem = new KNAPSACK(instance);
+        string certificate = new KnapsackDP().solve(problem);
+        Assert.True(new KnapsackVerifier().verify(problem, certificate), certificate);
     }
 }

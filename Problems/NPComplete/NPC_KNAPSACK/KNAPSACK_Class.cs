@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_KNAPSACK.Visualizations;
 using API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 using API.Problems.NPComplete.NPC_KNAPSACK.Verifiers;
 using SPADE;
@@ -8,7 +8,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_KNAPSACK;
 
-class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualization> {
+class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, KnapsackVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Knapsack (Binary)";
@@ -50,7 +50,7 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
 
     public KnapsackBruteForce defaultSolver { get; } = new KnapsackBruteForce();
     public KnapsackVerifier defaultVerifier { get; } = new KnapsackVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public KnapsackVisualization defaultVisualization { get; } = new KnapsackVisualization();
     // Declared, not derived. KNAPSACK is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.MathematicalProgramming;
@@ -77,5 +77,15 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
         items = parser["i"];
         W = int.Parse(parser["w"].ToString());
         V = int.Parse(parser["v"].ToString());
+
+        // A capacity and a weight are sizes, so neither can be negative (#793): the DP sizes its table by W and indexes it
+        // by W minus a weight. Zero is allowed, and values are not limited.
+        if (W < 0)
+            throw new ProblemParseException(problemName, HWVInput, $"the capacity W ({W}) must not be negative");
+        foreach (UtilCollection item in items) {
+            int weight = int.Parse(item[0].ToString());
+            if (weight < 0)
+                throw new ProblemParseException(problemName, HWVInput, $"the item {item} has weight {weight}; a weight must not be negative");
+        }
     }
 }

@@ -71,10 +71,18 @@ public class IncrementalSolvers_Tests {
         ["dancinglinks"] = true,
         ["exactcoverrecursive"] = true,
         ["hittingsetbruteforce"] = false,
+        // Placement (Packing pictures)
+        ["partitionbruteforce"] = false,
+        ["subsetsumbruteforce"] = false,
+        ["fastapproximation"] = false,
+        ["knapsackbruteforce"] = false,
+        ["knapsackdp"] = true,
+        ["binpackingbruteforce"] = true,
+        ["binpackingffd"] = true,
     };
 
-    // The answer shapes the Graph, Grouped Graph, Tripartite Matching, Table, Layered Graph and Bipartite Graph pictures draw.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenTriples), typeof(TableCells), typeof(Components), typeof(Distances), typeof(ChosenSets)];
+    // The answer shapes the Graph, Grouped Graph, Tripartite Matching, Table, Layered Graph, Bipartite Graph and Packing pictures draw.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenTriples), typeof(TableCells), typeof(Components), typeof(Distances), typeof(ChosenSets), typeof(Placement)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

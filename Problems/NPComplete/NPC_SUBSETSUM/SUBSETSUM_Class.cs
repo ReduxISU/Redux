@@ -1,12 +1,12 @@
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_SUBSETSUM.Visualizations;
 using API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 using API.Problems.NPComplete.NPC_SUBSETSUM.Verifiers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM;
 
-class SUBSETSUM : IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualization> {
+class SUBSETSUM : IProblem<SubsetSumBruteForce, SubsetSumVerifier, SubsetSumVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Subset Sum";
@@ -32,7 +32,7 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualiz
     public string wikiName { get; } = "";
     public SubsetSumBruteForce defaultSolver { get; } = new SubsetSumBruteForce();
     public SubsetSumVerifier defaultVerifier { get; } = new SubsetSumVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public SubsetSumVisualization defaultVisualization { get; } = new SubsetSumVisualization();
     // Declared, not derived. SUBSETSUM is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;

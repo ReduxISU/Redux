@@ -51,6 +51,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
 | `LayeredGraph` | not a list item: a `payload` plus `frames` of named states ([`LayeredFrames`](../../Interfaces/graphs/LayeredFrames.cs)) | none yet | Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components, SSSP, SPSP. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` (or `DynamicTable` for the tables, which are unchanged) in /info and in the default list format. See "The Layered Graph picture" below |
 | `BipartiteGraph` | not a list item: a `payload` plus `frames` of named states ([`BipartiteFrames`](../../Interfaces/graphs/BipartiteFrames.cs)) | none yet | Set Cover, Exact Cover, Hitting Set (exact). Reported only as the `type` of `visualize?format=frames`; these visualizations still report `SetD3` in /info and in the default list format. See "The Bipartite Graph picture" below |
+| `Packing` | not a list item: a `payload` plus `frames` of named states ([`PackingFrames`](../../Interfaces/Packing/PackingFrames.cs)) | none yet | Partition, Subset Sum, Knapsack, Bin Packing. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `SetD3` in /info and in the default list format. See "The Packing picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -309,6 +310,69 @@ To add a problem:
 2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets the solvers build captions from the same description.
 3. Make each solver implement `ISolver<T, ChosenSets>` (set ids, `S1`, `S2`, ...) or `ISolver<T, NodeSet>` (element names), and mark the ones that build an answer piece by piece with `IIncrementalSolver`. A brute force records each candidate as a `Reject` (or the winning `Accept`) with `BipartiteFrames.Why` in the caption ("Try {S1,S2}: 5 isn't covered."); a greedy records each pick as an `Accept` and a final `Reject` for a cover that is incomplete or over K; a backtracking search (Algorithm X) records `Accept` for a set it takes, `Reject` for an element no set can cover (focus: the element) or a budget it exceeds (focus: the set), and `Backtrack` for a set it undoes. Always end with `Done`, whose `ok` is the verifier's verdict on the answer (`{}` is the empty collection).
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer on seeded instances before touching code (`Endpoints/Snapshots/`, `BipartiteFrames_Endpoint_Tests`, `BipartiteSolvers_Tests`, `BipartiteFrames_Tests`).
+
+### The Packing picture (`format=frames`)
+
+Partition, Subset Sum, Knapsack and Bin Packing serve the shared `Packing` picture. Every one of them asks the same question in a different container: which items go where, so that a total hits its mark. The items sit in a pool, and the containers are drawn to scale with their lines. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the instance.
+
+The problem hands over `PackingSpec(items, rule)`. `items` are `PackingItemInput(size, value, label)` in instance order (`value` only for Knapsack, `label` as the instance writes the item: `4`, `(10,60)`). The rule's numbers go in `Target` (Subset Sum's T), `Limit` (Knapsack's W, Bin Packing's C), `AtLeast` (Knapsack's V) and `Bins` (Bin Packing's K).
+
+The payload (sent once) is `{ kind: "packing", rule, items, containers, total, maxBins? }`:
+
+- `rule` is `"partition"`, `"subsetSum"`, `"knapsack"` or `"binPacking"`.
+- An item is `{ id, label, size, value? }`, with `value` only for Knapsack.
+- A container is `{ id, label, target?, limit?, atLeast? }`. The base derives them from the rule:
+
+| Rule | Containers | Lines |
+| --- | --- | --- |
+| `partition` | `S1` and `S2` | `target`: half the total on each (it can end in `.5`, when no split can balance) |
+| `subsetSum` | `Chosen` | `target`: T |
+| `knapsack` | `Knapsack` | `limit`: W, on the sizes (the weights). `atLeast`: V, on the values |
+| `binPacking` | `Bin 1` ... `Bin m`, with m = min(K, number of items) | `limit`: C on each. `maxBins` is K itself, since no packing fills more bins than it has items |
+
+- `total` is the sum of every item's size.
+
+Each frame is `{ event, caption, focus, items, containers, assign, totals, ok? }`. `items` and `containers` map an id to `{ state }` (absent means `Background`). The annotations:
+
+| Field | Meaning |
+| --- | --- |
+| `assign` | One entry per item: the 0-based index of its container in `containers`, or `-1` when it is left out. The group colors of Partition's sides and Bin Packing's bins come from it |
+| `totals` | One entry per container: `{ size, value? }`, the sum of its items' sizes and, for Knapsack, of their values |
+
+Ids are positions, never numbers: item `i` (0-based, instance order) is `I{i+1}` and container `c` is `C{c+1}`. Two items of the same size are two items, and no id needs escaping. Build them with `PackingFrames.ItemId` and `ContainerId`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`, with `Untraveled` only where nothing else applies):
+
+| State | Items | Containers |
+| --- | --- | --- |
+| `ElementHighlight` | In a container while a whole candidate is only tried (a `Try` or `Reject` of a brute force); the focus | The focus |
+| `Solution` | In a container in an `Accept`, after a `Backtrack`, in every step of an incremental solver (what it has committed) and in `Done` | not used |
+| `Untraveled` | Left out of a correct answer (`Done`, `ok: true`) | not used |
+| `Covered` | not used | Its line is met: a target hit exactly, a knapsack within W and worth at least V, a bin that holds something and is within C |
+| `Rejected` | The focus of an incremental solver's `Reject` (an item no bin has room for) | Over its limit, in every frame. A target missed, or a value short of V, only when a whole placement is judged (`Done`, or a `Try` or `Reject` that is not part of an answer still being built) and something is placed |
+
+A run stopped by the time limit ends with a `Done` frame, `ok: false`, every element `Background`, nothing placed (`assign` all `-1`) and every total 0. Its answer string is never read.
+
+The solvers and their steps (`Placement`: one container index per item, by position, `-1` for left out; trailing `-1`s are dropped):
+
+| Solver | Incremental | Steps |
+| --- | --- | --- |
+| Partition Brute Force | no | A `Reject` per split that fails ("Try S1 = {7,12}: 19 against 131, off by 112."), the `Accept` of the one that balances, `Done` |
+| Subset Sum Brute Force | no | A `Reject` per subset in mask order ("Try {1,7}: 1 + 7 = 8, not 28."), the `Accept` of the one that adds up to T, `Done` |
+| Fast Approximation Algorithm | no | A `Try` per number with the best subset kept so far ("Add 12 to every sum kept so far that stays within 28. 8 sums kept. Best so far: 20."), `Done` |
+| Knapsack Brute Force | no | A `Reject` per set in mask order, the empty set first ("Try {(10,60)}: weight 10, value 60, short of 220."), the `Accept` of the one that works, `Done` |
+| Knapsack Dynamic Programming | yes | A `Try` per row of the table with its item in focus and nothing taken, then an `Accept` per item the trace-back takes, `Done`. The table itself belongs to the Table picture (#671) |
+| Bin Packing Brute Force | yes | An `Accept` per item put in a bin ("Put 4 in bin 1: 4 of 10 used."), a `Reject` when an item has nowhere to go, a `Backtrack` per placement taken back, `Done` |
+| Bin Packing First Fit Decreasing | yes | A `Try` with the sorted order, an `Accept` per item put in the first bin with room, a `Reject` for the item that would need a bin past K, `Done` |
+
+Subset Sum, Knapsack and Bin Packing have their own visualizations for the picture (`SubsetSumVisualization`, `KnapsackVisualization`, `BinPackingVisualization`). Their list format draws the items as a set (`SetD3`). They are the problems' default visualizations.
+
+To add a packing problem or another packing solver:
+
+1. Implement `IPackingVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(Placement)`.
+2. Return the spec from `Describe`, and read an answer string as a placement in `ParseAnswer` (`PackingFrames.Groups` and `FromGroups` do the usual shapes; equal numbers fill items in order). A static `Spec(problem)` next to it lets tests build the same description.
+3. Record a `Placement` per decision, by position: keep track of which item went where, not just the numbers. Declare `IIncrementalSolver` when the solver commits items one at a time.
+4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/packing_*.tsv`, `PackingFrames_Endpoint_Tests`, `PackingSolvers_Tests`, `PackingFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 
