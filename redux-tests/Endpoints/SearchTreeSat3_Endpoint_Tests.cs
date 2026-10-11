@@ -77,71 +77,31 @@ public class SearchTreeSat3_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // ---- The picture ----
 
-    private static readonly HashSet<string> Vocabulary = ["Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked"];
-    private static readonly HashSet<string> Kinds = ["queued", "explored", "pruned", "failed", "solution", "skipped", "more", "cut", "hidden"];
-
     [Theory]
     [MemberData(nameof(Instances))]
     public async Task Frames_HaveTheSearchTreePayload_AndAWellFormedTreeInEveryFrame(string instance) {
         var (status, body) = await Visualize($"visualization={Vis}&format=frames", instance);
         Assert.Equal(HttpStatusCode.OK, status);
-        var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["type", "payload", "frames"], root.EnumerateObject().Select(p => p.Name));
-        Assert.Equal("SearchTree", root.GetProperty("type").GetString());
-        var payload = root.GetProperty("payload");
-        Assert.Equal(["kind", "problem", "instance", "maxLeaves"], payload.EnumerateObject().Select(p => p.Name));
-        Assert.Equal("searchTree", payload.GetProperty("kind").GetString());
-        Assert.Equal("3SAT", payload.GetProperty("problem").GetString());
-        Assert.Equal(instance, payload.GetProperty("instance").GetString());
-        Assert.Equal(12, payload.GetProperty("maxLeaves").GetInt32());
-
-        var frames = root.GetProperty("frames").EnumerateArray().ToList();
-        var done = Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
-        Assert.Equal(done, frames[^1]);
-        var (_, answer) = await Visualize($"visualization=sat3defaultvisualization&format=frames&solver={Solver}", instance);
+        var frames = SearchTreeJson.Check(body, "3SAT", instance);
+        var done = frames[^1];
         // The same run as the clause graph: same events and captions.
-        var clauseFrames = JsonDocument.Parse(answer).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        var (_, clauseBody) = await Visualize($"visualization=sat3defaultvisualization&format=frames&solver={Solver}", instance);
+        var clauseFrames = JsonDocument.Parse(clauseBody).RootElement.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(clauseFrames.Select(f => (f.GetProperty("event").GetString(), f.GetProperty("caption").GetString())),
             frames.Select(f => (f.GetProperty("event").GetString(), f.GetProperty("caption").GetString())));
-        foreach (var f in frames) {
-            bool isDone = f.GetProperty("event").GetString() == "Done";
-            Assert.Equal(["event", "caption", "focus", "nodes", "total", "cut", .. isDone ? new[] { "ok" } : []], f.EnumerateObject().Select(p => p.Name));
-            var nodes = f.GetProperty("nodes").EnumerateArray().ToList();
-            var ids = new HashSet<string>();
-            foreach (var n in nodes) {
-                string id = n.GetProperty("id").GetString()!;
-                Assert.True(ids.Add(id), $"{id} twice");
-                Assert.Matches(@"^n\d+(\.more|\.cut)?$", id);
-                var parent = n.GetProperty("parent");
-                if (parent.ValueKind == JsonValueKind.Null) Assert.Equal("n0", id);
-                else Assert.Contains(parent.GetString()!, ids);   // parents come first
-                Assert.Contains(n.GetProperty("kind").GetString()!, Kinds);
-                Assert.Contains(n.GetProperty("state").GetString()!, Vocabulary);
-            }
-            Assert.True(nodes.Count(n => !nodes.Any(k => k.GetProperty("parent").ValueKind == JsonValueKind.String && k.GetProperty("parent").GetString() == n.GetProperty("id").GetString())) <= 12
-                || nodes.Any(n => n.GetProperty("kind").GetString() == "queued"), "more than 12 leaves without a queued node holding them open");
-            var focus = f.GetProperty("focus").EnumerateArray().Select(x => x.GetString()!).ToList();
-            Assert.True(focus.Count <= 1);
-            Assert.All(focus, id => Assert.Contains(id, ids));
-            if (isDone) Assert.Empty(focus);
-            else Assert.Single(focus);
-            Assert.Equal(nodes.Count(n => n.GetProperty("kind").GetString() is not ("more" or "cut")) + nodes.Sum(n => n.TryGetProperty("hidden", out var h) ? h.GetInt32() : 0),
-                f.GetProperty("total").GetInt32());
-        }
+        Assert.All(frames.SkipLast(1), f => Assert.Single(f.GetProperty("focus").EnumerateArray()));
 
         // Done: ok when there is an answer, and then the path from the root to it is green and spells it (when its steps
         // were all kept).
         bool satisfiable = clauseFrames[^1].GetProperty("ok").GetBoolean();
         Assert.Equal(satisfiable, done.GetProperty("ok").GetBoolean());
-        var green = done.GetProperty("nodes").EnumerateArray().Where(n => n.GetProperty("state").GetString() == "Solution").ToList();
+        var green = SearchTreeJson.GreenPath(done);
         if (!satisfiable) {
             Assert.Empty(green);
             return;
         }
-        Assert.Equal("n0", green[0].GetProperty("id").GetString());
-        Assert.Equal("solution", green[^1].GetProperty("kind").GetString());
-        for (int i = 1; i < green.Count; i++) Assert.Equal(green[i - 1].GetProperty("id").GetString(), green[i].GetProperty("parent").GetString());
-        if (green.Any(n => n.GetProperty("kind").GetString() == "hidden")) return;
+        Assert.Equal("solution", SearchTreeJson.Kind(green[^1]));
+        if (green.Any(n => SearchTreeJson.Kind(n) == "hidden")) return;
         var assignment = clauseFrames[^1].GetProperty("assignment").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetBoolean());
         foreach (var n in green.Skip(1)) {
             var label = n.GetProperty("label").GetString()!.Split('=');
