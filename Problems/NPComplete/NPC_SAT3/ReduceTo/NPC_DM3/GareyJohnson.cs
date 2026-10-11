@@ -98,14 +98,16 @@ class GareyJohnson : IReduction<SAT3, DM3> {
                 Z.Add("z_" + literal + "_" + i.ToString());
                 M.Add(new List<string> { X[X.Count - 1], Y[Y.Count - 1], Z[Z.Count - 1] });
                 Z.Add("z_" + "!" + literal + "_" + i.ToString());
-                M.Add(new List<string> { X[X.Count - 1], "y_" + literal + "_" + ((i + 2) % count).ToString(), Z[Z.Count - 1] });
+                // The next spoke's y (Garey and Johnson's a[j+1]): a shift of 1 makes the wheel one cycle, so every spoke
+                // takes the same value. A shift of 2 split a wheel of an even size into two halves that could disagree (#819).
+                M.Add(new List<string> { X[X.Count - 1], "y_" + literal + "_" + ((i + 1) % count).ToString(), Z[Z.Count - 1] });
             }
         }
         // clause gadget
         List<string> unusedLiterals = new List<string>(Z);
         for (int i = 0; i < SAT3Instance.clauses.Count; i++) {
             foreach (var literal in SAT3Instance.clauses[i]) {
-                string? found = unusedLiterals.Find(x => x.Contains("z_" + literal));
+                string? found = unusedLiterals.Find(x => IsElementOf(x, literal));
                 if (found is null) {
                     continue;
                 }
@@ -140,6 +142,15 @@ class GareyJohnson : IReduction<SAT3, DM3> {
 
         //return new THREE_DM();
         return reduced3DM;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="z"/> is one of <paramref name="literal"/>'s own Z elements, <c>z_&lt;literal&gt;_&lt;k&gt;</c>. A
+    /// substring test also matched every variable whose name starts with the literal (x1 took z_x10_0, a took z_a_1_0, #820).
+    /// </summary>
+    private static bool IsElementOf(string z, string literal) {
+        string prefix = "z_" + literal + "_";
+        return z.StartsWith(prefix, StringComparison.Ordinal) && z.Length > prefix.Length && z[prefix.Length..].All(char.IsAsciiDigit);
     }
 
     public string mapSolutions(string problemFromSolution) {
@@ -191,7 +202,7 @@ class GareyJohnson : IReduction<SAT3, DM3> {
             for (int i = 0; i < count; i++) {
                 string xName = "x_" + variable + "_" + i;
                 if (isTrue) {
-                    string yName = "y_" + variable + "_" + ((i + 2) % count);
+                    string yName = "y_" + variable + "_" + ((i + 1) % count);
                     string zName = "z_!" + variable + "_" + i;
                     mappedSolutionList.Add(string.Format("{{{0},{1},{2}}}", xName, yName, zName));
                     availableZ.Add("z_" + variable + "_" + i);
@@ -210,7 +221,7 @@ class GareyJohnson : IReduction<SAT3, DM3> {
                 if (!solutionList.Contains(literal)) {
                     continue;
                 }
-                string? found = availableZ.Find(z => z.Contains("z_" + literal + "_"));
+                string? found = availableZ.Find(z => IsElementOf(z, literal));
                 if (found is null) {
                     continue;
                 }
