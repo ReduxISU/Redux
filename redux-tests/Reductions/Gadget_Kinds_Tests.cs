@@ -117,6 +117,8 @@ public class Gadget_Kinds_Tests {
         ["KarpReduceSAT"] = "Element x27, Group x21",
         // #695: one element per number, and the bound (the container on both sides).
         ["FengReduction"] = "Element x4, Bound x1",
+        // #695: one element per number, the two added numbers, and the two sides.
+        ["SubsetSumToPartitionReduction"] = "Element x4, Palette x2, Bound x1",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>
