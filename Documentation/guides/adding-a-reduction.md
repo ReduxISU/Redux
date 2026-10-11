@@ -149,12 +149,21 @@ Be honest about what your method does. The worked example's `mapSolutions` is a 
 
 ### Step 5 (optional). Record construction steps
 
-A reduction can also tell the story of how it built the target, one step per gadget, in both problems' words ("Clause C2 (x1 | !x2 | x3) becomes nodes x1_1, !x2_1, x3_1"). The Reduction View plays these as its Build phase. Three reductions do it so far; copy one of them (`SipserReduceToCliqueStandard` is the fullest).
+A reduction can also tell the story of how it built the target, one step per gadget, in both problems' words ("Clause C2 (x1 | !x2 | x3) becomes nodes x1_1, !x2_1, x3_1"). The Reduction View plays these as its Build phase. Seven reductions do it so far; copy one of them (`SipserReduceToCliqueStandard` is the fullest for a graph target, `KarpIntProgStandard` the shortest for a table).
 
 1. Implement `IRecordedReduction<FROM, TO>` next to your other interfaces.
 2. Move the body of `reduce()` into a private `Build(StepRecorder<BuildDelta> rec)` and make `reduce()` call `Build(StepRecorder<BuildDelta>.Off)`. `Build` starts with `gadgets.Clear()`, so calling `reduce()` again does not add a second copy of each gadget. Do the same for the constructor: a private one takes the recorder, the public ones pass `Off`. Implement `Rebuild(rec)` by constructing a fresh copy with the recorder and returning `new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps)`. Also add a public constructor `(string instance, StepRecorder<BuildDelta> rec)` that passes the recorder on: `/buildSteps` and `/reductionView` build your reduction with it, so one build gives both the reduction and its steps (a test checks every recorded reduction has it). The steps must come from the real build code. Do not write a second, parallel version of the construction to narrate it.
 3. Inside `Build`, call `rec.Accept(...)` for each piece you build and `rec.Reject(...)` for a piece the rule leaves out. End with `rec.Done(new BuildDelta { Bound = K }, true, caption)`. Every step is recorded; when there are more than 150 before Done, `BuildRun` keeps the first 150 and folds the rest into one step whose caption says they were combined, so replaying the steps always gives the whole target. Pass lambdas for the delta and the caption. Anything you must prepare in order to record (a list of ids, a bucket per pair) goes behind `if (rec.Enabled)`, so that recording off costs nothing.
 4. A step's delta (`BuildDelta`) holds only what that step **added**: the target `Nodes` and `Edges` (each a `new BuildEdge(u, v)`, which carries its two ends and the id the Graph picture gives that edge), the `Skipped` pairs (also `BuildEdge`s), the indices of the `Gadgets` it builds, and the `SourceFocus` ids it came from. Its `Focus` holds the target ids being looked at. Replaying the deltas in order must give exactly the target. Source ids use the gadget convention (graph nodes by name; formulas `c{i}`, `c{i}-{j}`, `v:{name}`).
+   "Nodes" and "edges" are the target picture's pieces, whatever it calls them, and every piece of its payload is added by exactly one step:
+
+   | Target picture | `Nodes` | `Edges` |
+   | --- | --- | --- |
+   | Graph | nodes | edges (`new BuildEdge(u, v)`) |
+   | Grouped Graph (SAT, 3SAT) | clauses `c{i}`, literals `c{i}-{j}`, variables `v:{name}` | complement and clause edges, with the picture's own id: `new BuildEdge(GroupedGraphFrames.EdgeId(a, b), a, b)` |
+   | Tripartite Matching (3DM) | elements `x{i}`, `y{i}`, `z{i}` and triples `T{i}` | none |
+   | Table (0-1 ILP) | rows `r{i}` and columns `c{j}` (their cells come with them) | none |
+
 5. Every gadget in `gadgets` must be named by some step, and each step needs a caption that says what happened in plain words. Keep steps to one per gadget or per pair or node, not per edge, so default instances stay under the cap.
 6. Test it the way `redux-tests/Reductions/BuildSteps_Tests.cs` does: the target built with recording equals the normal target, replaying the steps reproduces it, every gadget is named, and the ids are real. Add your reduction to the `/reduce` and `/gadgets` snapshot first, before touching the code.
 
@@ -169,7 +178,7 @@ The endpoint is `POST /ProblemProvider/buildSteps?reduction=...` with the source
 3. **A backward map**: `IReversibleReduction<FROM, TO, TPartial>`, where `TPartial` is A's answer shape from `Interfaces/Steps/Shapes.cs`. Its `MapBack` records one step per element of B's answer it reads (the step's focus is that B element). Without it the view answers 400 `{"error":"no_backward_map"}`.
 4. **Typed pictures on both ends.** A's and B's default visualizations must build frames (`IFramesVisualization`, for example `IGraphSubsetVisualization`), and their `StepShape` must be the shape the backward map and the solver record. Otherwise the answer is 400 `no_source_picture` or `no_target_picture`.
 
-Reductions that do all of this today: 3SAT to Clique, Clique to Vertex Cover and Independent Set to Clique. To check yours, add it to `Cases()` in `redux-tests/Reductions/Reduction_Output_Snapshot_Tests.cs` and to the `Pictures` table in `redux-tests/Endpoints/ReductionView_Endpoint_Tests.cs`, and run those tests: they check that every gadget id is in its picture, that the phases come in order, that the Build phase ends with exactly the target's nodes and edges, and that the last Solve and Map frames agree with the problems' own verifiers.
+Reductions that do all of this today: 3SAT to Clique, Clique to Vertex Cover and Independent Set to Clique (#692), and 3SAT to Graph Coloring, 3SAT to 3-Dimensional Matching, 3SAT to 0-1 Integer Programming and SAT to 3SAT (#693). To check yours, add it to `Cases()` in `redux-tests/Reductions/Reduction_Output_Snapshot_Tests.cs` and to the `Pictures` table in `redux-tests/Endpoints/ReductionView_Endpoint_Tests.cs` (graph pictures), or to `Cases()` and `TargetPicture` in `redux-tests/Endpoints/ReductionView_Sat3_Tests.cs` (any picture), and run those tests: they check that every gadget id is in its picture, that the phases come in order, that the Build phase ends with exactly the target's nodes and edges, and that the last Solve and Map frames agree with the problems' own verifiers.
 
 ## 5. Write tests
 

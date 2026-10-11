@@ -280,6 +280,125 @@
       "targetIds": [
         "c1-2"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0",
+        "2-1"
+      ],
+      "reductionToIds": [
+        "0-0",
+        "2-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "v:x3"
+      ],
+      "targetIds": [
+        "v:x3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1",
+        "1-0",
+        "2-0"
+      ],
+      "reductionToIds": [
+        "0-1",
+        "1-0",
+        "1-2",
+        "2-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "v:x4"
+      ],
+      "targetIds": [
+        "v:x4"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-2",
+        "0-4"
+      ],
+      "reductionToIds": [
+        "3-1",
+        "4-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "v:x2"
+      ],
+      "targetIds": [
+        "v:x2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-3",
+        "1-1",
+        "2-2"
+      ],
+      "reductionToIds": [
+        "1-1",
+        "2-2",
+        "3-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "v:x1"
+      ],
+      "targetIds": [
+        "v:x1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "3-2",
+        "4-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "v:x5"
+      ],
+      "note": "x5 is new: it links the clauses that clause C1 is split into."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "0-2",
+        "4-2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "v:x6"
+      ],
+      "note": "x6 is new: it links the clauses that clause C1 is split into."
     }
   ],
   "reductionFrom": {

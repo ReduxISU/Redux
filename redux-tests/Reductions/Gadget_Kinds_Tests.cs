@@ -97,8 +97,13 @@ public class Gadget_Kinds_Tests {
     // Which kinds each reduction emits on its default instance, and how many of each. Written out by hand so
     // that a reduction switching a gadget's kind (or dropping one) fails here.
     private static readonly Dictionary<string, string> ExpectedKinds = new() {
+        // The reductions out of 3SAT and SAT (#693) on their default formula.
+        ["GareyJohnson"] = "Element x9, Group x3, Palette x1, OrGadget x3",
         ["GraphColoringToCliqueCover"] = "Element x9",
-        ["KarpSATToSAT3"] = "Element x11, Group x3",
+        ["KarpIntProgStandard"] = "Element x12, OrGadget x3, Bound x3",
+        ["KarpReduceGRAPHCOLORING"] = "Element x3, Palette x1, OrGadget x3, Bound x1",
+        // 11 for the literals and the padding, then (#693) one per variable and one per new variable of a split.
+        ["KarpSATToSAT3"] = "Element x17, Group x3",
         ["KarpVertexCoverToNodeSet"] = "Element x5",
         ["LawlerKarp"] = "Element x5",
         ["reduceToCLIQUE"] = "Element x7",
@@ -142,8 +147,10 @@ public class Gadget_Kinds_Tests {
 
     [Fact]
     public void KarpSatToSat3_StableIdsFollowLegacyIds_AfterTheReductionEditsThem() {
+        // The clause and literal gadgets; the variable gadgets #693 added name variables, which Redux_GUI does not draw, so
+        // their legacy ids are the variable's occurrences instead (see KarpSatToSat3_VariableGadgets_...).
         foreach (var (name, red) in ReductionsWithGadgets().Where(r => r.Name == "KarpSATToSAT3"))
-            foreach (Gadget g in red.gadgets) {
+            foreach (Gadget g in red.gadgets.Where(g => g.sourceIds.All(id => id.StartsWith('c')) && g.targetIds.All(id => id.StartsWith('c')))) {
                 Assert.Equal(g.reductionFromIds.Select(i => "c" + i), g.sourceIds);
                 Assert.Equal(g.reductionToIds.Select(i => "c" + i), g.targetIds);
             }
@@ -204,7 +211,8 @@ public class Gadget_Kinds_Tests {
         // Every SAT3 position holding an original variable is the target of exactly one element gadget, and
         // both ends name the same literal; positions holding a fresh variable belong to no element gadget.
         var targeted = new Dictionary<(int, int), int>();
-        foreach (Gadget g in red.gadgets.Where(g => g.gadgetKind == GadgetKind.Element)) {
+        // The literal gadgets (one literal of SAT to its places in 3SAT); the variable gadgets of #693 are checked below.
+        foreach (Gadget g in red.gadgets.Where(g => g.gadgetKind == GadgetKind.Element && g.sourceIds.All(id => System.Text.RegularExpressions.Regex.IsMatch(id, @"^c\d+-\d+$")))) {
             var (sc, sl) = LiteralId(Assert.Single(g.sourceIds));
             Assert.NotEmpty(g.targetIds);
             foreach (string id in g.targetIds) {
