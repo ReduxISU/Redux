@@ -28,10 +28,14 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        // JobOrder and PumpPlan (Schedule pictures)
+        ["jobseqbruteforce"] = false,
+        ["pumpschedulingcmsolver"] = true,
+        ["pumpschedulingemsolver"] = true,
     };
 
-    // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet)];
+    // The answer shapes the Graph and Schedule pictures draw.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(JobOrder), typeof(PumpPlan)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

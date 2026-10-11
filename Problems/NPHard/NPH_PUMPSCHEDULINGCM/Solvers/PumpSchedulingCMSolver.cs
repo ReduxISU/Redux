@@ -1,11 +1,16 @@
 ﻿using System;
 using API.Interfaces;
+using API.Interfaces.Schedule;
+using API.Interfaces.Steps;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
+using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
 
-class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
+// Incremental: the forward pass fills the table hour by hour, the trace back commits the schedule, and the replay walks
+// the committed schedule hour by hour.
+class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncrementalSolver {
     public string solverName { get; } = "Pump Scheduling Cost Minimization Dynamic Programming";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents " +
@@ -28,15 +33,15 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
     // i.e. exponential in the number of pumps.
     public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
 
-    // Return a non-empty sentinel so the IVisualization<T> default dispatch in
-    // VisualizationInterface.cs does not short-circuit StepsVisualization when
-    // the steps list is empty.
-    public List<object> GetSteps(PUMPSCHEDULINGCM _) => [true];
-
     private const int Hours = 24;
     private const double Inf = double.PositiveInfinity;
 
-    public string solve(PUMPSCHEDULINGCM problem) {
+    public string solve(PUMPSCHEDULINGCM problem) => Solve(problem, StepRecorder<PumpPlan>.Off);
+
+    // Steps: the forward pass, one Try per hour with the band of tank levels still reachable (a Reject, and no answer, at
+    // an hour no state survives); the trace back, one Accept that commits the schedule; the replay, one Try per hour of
+    // it; then Done.
+    public string Solve(PUMPSCHEDULINGCM problem, StepRecorder<PumpPlan> rec) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double cap = problem.TankCapacity;
@@ -89,6 +94,8 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
 
         int initB = ToBucket(problem.TankCurrentLevel);
         dp[0, initB, 0] = 0.0;
+        // The forward pass, hour by hour, for the steps.
+        var reached = new List<ReachedHour>();
 
         for (int h = 0; h < Hours; h++) {
             if (timerHasExpired) return string.Empty;
@@ -118,6 +125,32 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
                     }
                 }
             }
+
+            // The states the table holds after hour h: how many, their tank levels and the cheapest cost so far.
+            int states = 0;
+            double low = Inf, high = -Inf, cheapest = Inf;
+            for (int b = 0; b < stateB; b++)
+                for (int m = 0; m < nMasks; m++)
+                    if (dp[h + 1, b, m] < Inf) {
+                        states++;
+                        low = Math.Min(low, ToLevel(b));
+                        high = Math.Max(high, ToLevel(b));
+                        cheapest = Math.Min(cheapest, dp[h + 1, b, m]);
+                    }
+            int hour = h;
+            if (states == 0) {
+                // Nothing reaches this hour, so nothing reaches hour 24: the answer is already "no answer".
+                rec.Reject(() => new PumpPlan(reached, [], null),
+                    () => $"Forward pass, hour {hour}: no state survives. Every pump mix either drains the tank below empty or overflows it.",
+                    ScheduleFrames.HourId(hour));
+                rec.Done(new PumpPlan(reached, [], null), false,
+                    "No schedule keeps the tank between empty and full for all 24 hours, so there is no answer.");
+                return "{}";
+            }
+            reached.Add(new ReachedHour(states, low, high, cheapest));
+            rec.Try(() => new PumpPlan(reached, [], null),
+                () => $"{ScheduleFrames.ForwardCaption(hour, states, low, high)}, cheapest so far {ScheduleFrames.Money(cheapest)}.",
+                ScheduleFrames.HourId(hour));
         }
 
         double minCost = Inf;
@@ -131,7 +164,11 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
                 }
 
         // No schedule keeps the tank between empty and full: "{}" is "no answer" (#803, #605).
-        if (bestB == -1) return "{}";
+        if (bestB == -1) {
+            rec.Done(new PumpPlan(reached, [], null), false,
+                "No schedule keeps the tank between empty and full for all 24 hours, so there is no answer.");
+            return "{}";
+        }
 
         int[] schedMasks = new int[Hours];
         int curB = bestB, curM = bestM;
@@ -157,6 +194,33 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
             sched.Add(pumpSched);
         }
         cert.Add(sched);
-        return cert.ToString();
+        string certificate = cert.ToString();
+
+        var on = schedMasks.Select(m => (IReadOnlyCollection<string>)ScheduleFrames.OnFromMask(m, n)).ToList();
+        var plan = new PumpPlan(reached, on, null);
+        rec.Accept(() => plan,
+            () => $"Trace back from the cheapest state at hour 24 ({ScheduleFrames.Money(minCost)}), following each state's parent, to recover the schedule.");
+        for (int h = 0; h < Hours; h++) {
+            int hour = h;
+            rec.Try(() => plan, () => ScheduleFrames.ReplayCaption(PumpSchedulingCMVisualization.Spec(problem), on, hour, null), ScheduleFrames.HourId(hour));
+        }
+        // The verifier simulates the schedule exactly; the table rounds the tank to whole gallons (#738), so it can disagree.
+        bool ok;
+        try { ok = problem.defaultVerifier.verify(problem, certificate); } catch { ok = false; }
+        rec.Done(plan, ok, DoneCaption(problem, on, ok));
+        return certificate;
+    }
+
+    private static string DoneCaption(PUMPSCHEDULINGCM problem, IReadOnlyList<IReadOnlyCollection<string>> on, bool ok) {
+        var spec = PumpSchedulingCMVisualization.Spec(problem);
+        var (levels, cost) = ScheduleFrames.Exact(spec, on);
+        if (ok) {
+            double low = Math.Min(spec.Level, levels.Min()), high = Math.Max(spec.Level, levels.Max());
+            return $"Cheapest schedule: {ScheduleFrames.Money(cost)} for the day. The tank stays between {ScheduleFrames.Gallons(low)} and {ScheduleFrames.Gallons(high)} gal.";
+        }
+        return ScheduleFrames.FirstOutOfLimits(spec, on) is var (hour, level)
+            ? $"The schedule costs {ScheduleFrames.Money(cost)}, but the tank ends hour {hour} at {ScheduleFrames.Gallons(level)} gal, outside 0 to "
+                + $"{ScheduleFrames.Gallons(spec.Capacity)} gal: the solver rounds the tank level to whole gallons, so it did not see this."
+            : $"The schedule costs {ScheduleFrames.Money(cost)}, which the verifier does not accept.";
     }
 }

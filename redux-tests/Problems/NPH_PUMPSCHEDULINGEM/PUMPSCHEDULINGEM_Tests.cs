@@ -431,7 +431,8 @@ public class PUMPSCHEDULINGEM_Tests {
         PumpSchedulingEMSolver solver = new();
         PumpSchedulingEMVisualization visualization = new();
 
-        var steps = solver.GetSteps(p);
+        // The solver's steps are typed now (the Schedule picture); the list format ignores them and draws the answer.
+        var steps = ((API.Interfaces.ISolver<PUMPSCHEDULINGEM>)solver).GetSteps(p);
         var frames = visualization.StepsVisualization(p, steps);
 
         Assert.Equal(24, frames.Count);

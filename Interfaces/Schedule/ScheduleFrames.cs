@@ -486,6 +486,58 @@ static class ScheduleFrames {
     /// <summary>Money as captions write it: $32.12.</summary>
     public static string Money(double v) => (v < 0 ? "-$" : "$") + Math.Abs(v).ToString("#,0.00", CultureInfo.InvariantCulture);
 
+    /// <summary>
+    /// The tank level after each hour of a schedule and what the whole day costs, both exactly (as the verifiers simulate
+    /// it), for captions.
+    /// </summary>
+    public static (List<double> Levels, double Cost) Exact(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on) {
+        var levels = ExactLevels(spec, on);
+        var hours = Simulate(spec, on);
+        return (levels, hours.Sum(h => h.Energy + h.Startup));
+    }
+
+    /// <summary>The first hour whose tank level leaves the limits, and that level; null when every hour stays within them.</summary>
+    public static (int Hour, double Level)? FirstOutOfLimits(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on) {
+        var levels = ExactLevels(spec, on);
+        for (int h = 0; h < levels.Count; h++)
+            if (OutOfLimits(spec, levels[h])) return (h, levels[h]);
+        return null;
+    }
+
+    /// <summary>
+    /// A replay caption for hour <paramref name="hour"/> of a schedule: "Hour 9 (peak): PumpA and PumpB on. In 550, out 1,000
+    /// gal, so the tank drops to 4,100 gal. Hour cost $1.62." With a <paramref name="budget"/>, it also says how much of it
+    /// the day has spent so far.
+    /// </summary>
+    public static string ReplayCaption(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on, int hour, double? budget) {
+        var hours = Simulate(spec, on);
+        var levels = ExactLevels(spec, on);
+        var r = hours[hour];
+        double before = hour == 0 ? spec.Level : levels[hour - 1], after = levels[hour];
+        var index = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
+        string Names(IEnumerable<string> ids) => AndList(ids.Select(id => spec.Pumps[index[id]].Name).ToList());
+        string pumps = r.On.Count == 0 ? "no pump on" : $"{Names(r.On)} on";
+        string verb = after > before ? "rises to" : after < before ? "drops to" : "stays at";
+        string text = $"Hour {hour}{(spec.PeakHours.Contains(hour) ? " (peak)" : "")}: {pumps}. In {Gallons(r.Inflow)}, out {Gallons(spec.Demand[hour])} gal, so the tank {verb} {Gallons(after)} gal.";
+        if (after < spec.Minimum)
+            text += spec.Minimum == 0 ? " That is below empty." : $" That is below the {Gallons(spec.Minimum)}-gal minimum.";
+        else if (after > spec.Capacity)
+            text += $" That is over the {Gallons(spec.Capacity)}-gal capacity.";
+        text += $" Hour cost {Money(r.Energy + r.Startup)}";
+        if (r.Startup > 0) text += $", including {Money(r.Startup)} to start {Names(r.Starts)}";
+        text += ".";
+        if (budget is double b) text += $" {Money(hours.Take(hour + 1).Sum(x => x.Energy + x.Startup))} of the {Money(b)} budget spent.";
+        return text;
+    }
+
+    /// <summary>
+    /// The start of a forward-pass caption: "Forward pass, hour 3: 64 reachable (tank level, pumps on) states, levels 3,800 to
+    /// 5,900 gal".
+    /// </summary>
+    public static string ForwardCaption(int hour, int states, double low, double high) =>
+        $"Forward pass, hour {hour}: {Num(states)} reachable (tank level, pumps on) {(states == 1 ? "state" : "states")}, "
+        + (low == high ? $"level {Gallons(low)} gal" : $"levels {Gallons(low)} to {Gallons(high)} gal");
+
     /// <summary>"a", "a and b", "a, b and c".</summary>
     public static string AndList(IReadOnlyList<string> items) =>
         items.Count switch {

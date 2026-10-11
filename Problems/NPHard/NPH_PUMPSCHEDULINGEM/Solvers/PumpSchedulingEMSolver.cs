@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using API.Interfaces;
+using API.Interfaces.Schedule;
+using API.Interfaces.Steps;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM;
+using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Solvers;
 
-class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
+// Incremental: the forward pass fills the table hour by hour, the trace back commits the schedule, and the replay walks
+// the committed schedule hour by hour.
+class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncrementalSolver {
     public string solverName { get; } = "Pump Scheduling Emergency Resilience Longest Path";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents\r\n" +
@@ -30,35 +35,82 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
     // two sequential passes don't change the asymptotic bound.
     public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
 
-    public List<object> GetSteps(PUMPSCHEDULINGEM _) => [true];
-
     private const string NoSolution = "{}";
     private const int Hours = 24;
     private const double BudgetSlack = 1.5;
     private const double Inf = double.PositiveInfinity;
     private const double NegInf = double.NegativeInfinity;
 
-    public string solve(PUMPSCHEDULINGEM problem) {
-        double effectiveBudget = problem.BudgetLimitDollars;
+    public string solve(PUMPSCHEDULINGEM problem) => Solve(problem, StepRecorder<PumpPlan>.Off);
 
-        if (effectiveBudget <= 0) {
+    // Steps: when the budget is 0, one Try that fixes it from the cheapest schedule; the forward pass, one Try per hour
+    // with the band of tank levels still reachable (a Reject, and no answer, at an hour no state survives); the trace back,
+    // one Accept that commits the schedule; the replay, one Try per hour of it; then Done.
+    public string Solve(PUMPSCHEDULINGEM problem, StepRecorder<PumpPlan> rec) {
+        double effectiveBudget = problem.BudgetLimitDollars;
+        bool auto = effectiveBudget <= 0;
+
+        if (auto) {
             // Auto-compute: run cost-minimization solve first.
             double minCost = RunCostMinimization(problem);
             effectiveBudget = minCost * BudgetSlack;
+            double fixedBudget = Math.Round(effectiveBudget, 2);
+            rec.Try(() => new PumpPlan([], [], fixedBudget),
+                () => minCost > 0
+                    ? $"The budget is 0, which means 1.5 times the cheapest schedule that keeps the tank within its limits. That costs "
+                        + $"{ScheduleFrames.Money(minCost)}, so the budget is {ScheduleFrames.Money(fixedBudget)}."
+                    : "The budget is 0, which means 1.5 times the cheapest schedule that keeps the tank within its limits. That costs "
+                        + "nothing (or there is none), so the budget is $0.00.");
         }
+        // The budget as the certificate writes it.
+        double budget = Math.Round(effectiveBudget, 2);
 
-        int[]? schedMasks = RunEmergencyResilience(problem, effectiveBudget);
+        var reached = new List<ReachedHour>();
+        var (schedMasks, bestScore) = RunEmergencyResilience(problem, effectiveBudget, rec, reached, budget);
 
         // No schedule fits the tank limits and the budget: report "no solution" ("{}", the repo's
         // standard convention, see #605) rather than inventing an over-budget schedule.
-        if (schedMasks == null)
+        if (schedMasks == null) {
+            rec.Done(new PumpPlan(reached, [], budget), false, timerHasExpired
+                ? "The solver's timer ran out, so there is no answer."
+                : $"No schedule keeps the tank between {ScheduleFrames.Gallons(problem.TankMinLevel)} and {ScheduleFrames.Gallons(problem.TankCapacity)} gal "
+                    + $"within the {ScheduleFrames.Money(budget)} budget for all 24 hours, so there is no answer.");
             return timerHasExpired ? "timeout" : NoSolution;
+        }
 
         double totalCost = ComputeTotalCost(problem, schedMasks);
 
-        return BuildCertificate(problem, schedMasks,
+        string certificate = BuildCertificate(problem, schedMasks,
             Math.Round(effectiveBudget, 2),
             Math.Round(totalCost, 2));
+
+        int n = problem.Pumps.Count;
+        var on = schedMasks.Select(m => (IReadOnlyCollection<string>)ScheduleFrames.OnFromMask(m, n)).ToList();
+        var plan = new PumpPlan(reached, on, budget);
+        rec.Accept(() => plan,
+            () => $"Trace back from the state that stores the most water by hour 24 ({ScheduleFrames.Gallons(bestScore)} gal·h), "
+                + "following each step's parent, to recover the schedule.");
+        for (int h = 0; h < Hours; h++) {
+            int hour = h;
+            rec.Try(() => plan, () => ScheduleFrames.ReplayCaption(PumpSchedulingEMVisualization.Spec(problem), on, hour, budget), ScheduleFrames.HourId(hour));
+        }
+        // The verifier simulates the schedule exactly; the table rounds the tank to whole gallons (#738), so it can disagree.
+        bool ok;
+        try { ok = problem.defaultVerifier.verify(problem, certificate); } catch { ok = false; }
+        rec.Done(plan, ok, DoneCaption(problem, on, ok, budget, auto));
+        return certificate;
+    }
+
+    private static string DoneCaption(PUMPSCHEDULINGEM problem, IReadOnlyList<IReadOnlyCollection<string>> on, bool ok, double budget, bool auto) {
+        var spec = PumpSchedulingEMVisualization.Spec(problem);
+        var (levels, cost) = ScheduleFrames.Exact(spec, on);
+        if (ok)
+            return $"Most water stored within the {ScheduleFrames.Money(budget)} budget{(auto ? " (1.5 times the cheapest schedule)" : "")}: "
+                + $"{ScheduleFrames.Gallons(levels.Sum())} gal·h, for {ScheduleFrames.Money(cost)}.";
+        return ScheduleFrames.FirstOutOfLimits(spec, on) is var (hour, level)
+            ? $"The schedule costs {ScheduleFrames.Money(cost)}, but the tank ends hour {hour} at {ScheduleFrames.Gallons(level)} gal, outside "
+                + $"{ScheduleFrames.Gallons(spec.Minimum)} to {ScheduleFrames.Gallons(spec.Capacity)} gal: the solver rounds the tank level to whole gallons, so it did not see this."
+            : $"The schedule costs {ScheduleFrames.Money(cost)}, which the verifier does not accept.";
     }
 
     // ── Cost-minimization sub-solve (shortest path) — returns total cost ──────
@@ -158,7 +210,9 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
     // Each (tank bucket, previous mask) state keeps the Pareto front of (cost, score) labels instead
     // of a single max-score path: a cheaper, lower-scoring path may be the only one that still fits
     // the budget in later hours, so it must not be discarded.
-    private int[]? RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit) {
+    // Returns the schedule (null when there is none) and the water it stores, as the table counts it.
+    private (int[]? Masks, double Score) RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit,
+        StepRecorder<PumpPlan> rec, List<ReachedHour> reached, double budget) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double cap = problem.TankCapacity;
@@ -177,7 +231,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
         dp[initB, 0] = new List<Label> { new Label(0.0, 0.0, 0, null) };
 
         for (int h = 0; h < Hours; h++) {
-            if (timerHasExpired) return null;
+            if (timerHasExpired) return (null, 0);
 
             List<Label>?[,] next = new List<Label>?[stateB, nMasks];
             double demand = problem.DemandGph[h];
@@ -210,6 +264,31 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
             }
 
             dp = next;
+
+            // The states the table holds after hour h: how many, their tank levels and the most water stored so far.
+            int states = 0;
+            double low = Inf, high = NegInf, most = NegInf;
+            for (int b = 0; b < stateB; b++)
+                for (int m = 0; m < nMasks; m++) {
+                    var front = dp[b, m];
+                    if (front == null) continue;
+                    states++;
+                    low = Math.Min(low, ToLevel(b));
+                    high = Math.Max(high, ToLevel(b));
+                    foreach (var l in front) most = Math.Max(most, l.Score);
+                }
+            int hour = h;
+            if (states == 0) {
+                // Nothing reaches this hour, so nothing reaches hour 24: the answer is already "no answer".
+                rec.Reject(() => new PumpPlan(reached, [], budget),
+                    () => $"Forward pass, hour {hour}: no state survives. Every pump mix either breaks the tank's limits or the budget.",
+                    ScheduleFrames.HourId(hour));
+                return (null, 0);
+            }
+            reached.Add(new ReachedHour(states, low, high, most));
+            rec.Try(() => new PumpPlan(reached, [], budget),
+                () => $"{ScheduleFrames.ForwardCaption(hour, states, low, high)}, most water stored so far {ScheduleFrames.Gallons(most)} gal·h.",
+                ScheduleFrames.HourId(hour));
         }
 
         // Pick the terminal label with the highest cumulative water score.
@@ -223,7 +302,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
                         best = l;
             }
 
-        if (best == null) return null;
+        if (best == null) return (null, 0);
 
         // Walk the parent chain to recover the per-hour masks.
         int[] schedMasks = new int[Hours];
@@ -233,7 +312,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
             cur = cur.Parent;
         }
 
-        return schedMasks;
+        return (schedMasks, best.Score);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

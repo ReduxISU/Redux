@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Schedule;
 using API.Interfaces.Steps;
 using Xunit;
 
@@ -38,7 +39,7 @@ public class SolverReplay_Tests {
     }
 
     // What the final Partial must equal, derived independently from the answer string.
-    private static object ExpectedFinalPartial(object lastPartial, string answer) {
+    private static object ExpectedFinalPartial(object lastPartial, string answer, IProblem problem) {
         if (lastPartial is ActiveStates last) {
             // The end states of the accepting run(s): the last state of each path line.
             var ends = answer.Split('\n')
@@ -49,6 +50,15 @@ public class SolverReplay_Tests {
         if (lastPartial is NodeSet) {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+        }
+        if (lastPartial is JobOrder or PumpPlan) {
+            // Schedule answers are the problem's own certificate (an order of job indices, a cost and pump rows): the problem's
+            // Schedule visualization reads them. A plan's forward pass (Reached) is the solver's own, not in the answer; it is
+            // checked in ScheduleSolvers_Tests.
+            var hook = (lastPartial is JobOrder ? typeof(IJobScheduleVisualization<>) : typeof(IPumpScheduleVisualization<>)).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            object parsed = hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
+            return parsed is PumpPlan plan ? new PumpPlan(((PumpPlan)lastPartial).Reached, plan.On, plan.Budget) : parsed;
         }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
@@ -89,7 +99,7 @@ public class SolverReplay_Tests {
         Assert.Equal(StepEvent.Done, (StepEvent)last.Event);
         Assert.Equal(1, withSteps.Steps.Count(s => ((dynamic)s).Event == StepEvent.Done));
         object finalPartial = last.Partial;
-        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer), finalPartial);
+        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer, problem), finalPartial);
 
         // (c) Done.Ok agrees with the problem's own verifier on the returned answer.
         bool? ok = last.Ok;
