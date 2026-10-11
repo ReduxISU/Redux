@@ -93,9 +93,30 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
 
     /// <summary>
     /// The gadgets (#694): per node a group (the node to its element, its color slots and its K color sets) and per edge a
-    /// group (the edge to its element and its K * (K - 1) sets, one per pair of different colors of its ends).
+    /// group (the edge to its element and its K * (K - 1) sets, one per pair of different colors of its ends). They are worked
+    /// out the first time they are asked for (the Reduction View, /reduce's JSON, the backward map), not by every reduce():
+    /// finding each set among the sets Exact Cover reads means parsing the target, which made reduce() some 25 times slower.
     /// </summary>
-    public List<Gadget> gadgets { get; } = new();
+    public List<Gadget> gadgets {
+        get {
+            EnsurePieces();
+            return _gadgets;
+        }
+    }
+
+    private readonly List<Gadget> _gadgets = new();
+
+    // The sets and instance of the last build, for working out the gadgets when first asked for; null once they are.
+    private List<List<string>>? _pendingSubsets;
+    private string? _pendingInstance;
+
+    private void EnsurePieces() {
+        if (_pendingSubsets is null) return;
+        var (subsets, instance) = (_pendingSubsets, _pendingInstance!);
+        _pendingSubsets = null;
+        _pendingInstance = null;
+        RecordPieces(subsets, instance, StepRecorder<BuildDelta>.Off);
+    }
 
     public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
         var copy = new KarpGraphColorToExactCover(reductionFrom, rec);
@@ -108,7 +129,9 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
     // (its element and its sets), then Done.
     private EXACTCOVER Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
-        gadgets.Clear();
+        _gadgets.Clear();
+        _pendingSubsets = null;
+        _pendingInstance = null;
         GRAPHCOLORING GRAPHCOLORINGInstance = _reductionFrom;
         EXACTCOVER reducedExactCover = new EXACTCOVER();
 
@@ -184,7 +207,13 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         reducedExactCover.X = universalSet;
         reducedExactCover.instance = instance;
 
-        RecordPieces(subsets, instance, rec);
+        // The gadgets wait until they are asked for, unless the construction steps are being recorded now.
+        if (rec.Enabled) {
+            RecordPieces(subsets, instance, rec);
+        } else {
+            _pendingSubsets = subsets;
+            _pendingInstance = instance;
+        }
 
         reductionTo = reducedExactCover;
         return reducedExactCover;
@@ -203,7 +232,11 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         var edges = reductionFrom.edges;
         int k = reductionFrom.K;
         var parsed = new EXACTCOVER(instance).S;
-        int[] read = subsets.Select(set => parsed.FindIndex(p => p.ToHashSet(StringComparer.Ordinal).SetEquals(set))).ToArray();
+        // Each read set's first place, by its elements (sorted, each once), so finding a set is a lookup, not a scan.
+        var firstRead = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int p = 0; p < parsed.Count; p++)
+            firstRead.TryAdd(SetKey(parsed[p]), p);
+        int[] read = subsets.Select(set => firstRead.TryGetValue(SetKey(set), out int p) ? p : -1).ToArray();
         _listedAs.Clear();
         _listedAs.AddRange(parsed.Select((_, p) => Array.IndexOf(read, p)));
         var built = new HashSet<string>(StringComparer.Ordinal);
@@ -223,8 +256,8 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
                 .SelectMany(e => Enumerable.Range(1, k).Select(j => SlotElement(node, e.Key, e.Value, j))).ToList();
             var (sets, memberships) = Sets(Enumerable.Range(u * k, k));
             var pieces = Fresh(new[] { ElementName(node) }.Concat(slots)).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
-            nodeSteps.Add((node, gadgets.Count, pieces, memberships, slots.Distinct().Count()));
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, pieces.ToList()));
+            nodeSteps.Add((node, _gadgets.Count, pieces, memberships, slots.Distinct().Count()));
+            _gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, pieces.ToList()));
         }
         var edgeSteps = new List<(string A, string B, int Gadget, string[] Pieces, BuildEdge[] Edges)>();
         int first = nodes.Count * k;
@@ -232,8 +265,8 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             var (a, b) = (edges[e].Key, edges[e].Value);
             var (sets, memberships) = Sets(Enumerable.Range(first + e * k * (k - 1), k * (k - 1)));
             var pieces = Fresh([EdgeElement(a, b)]).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
-            edgeSteps.Add((a, b, gadgets.Count, pieces, memberships));
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, pieces.ToList()));
+            edgeSteps.Add((a, b, _gadgets.Count, pieces, memberships));
+            _gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, pieces.ToList()));
         }
         if (!rec.Enabled) return;
 
@@ -258,6 +291,10 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             + $"the sets have an exact cover exactly when the graph can be colored with {BuildCaptions.Count(k, "color")}.");
     }
 
+    // A set's elements, sorted and each once: two sets have the same key exactly when they are equal as sets.
+    private static string SetKey(IEnumerable<string> set) =>
+        string.Join("", set.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
+
     public Groups EmptyAnswer() => new Groups([]);
 
     // "{}" on either side keeps the default (the verifiers): only a graph with no nodes has the empty exact cover and the
@@ -270,6 +307,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
     /// set chosen gets no color (a Reject), and Graph Coloring's verifier decides.
     /// </summary>
     public (string Answer, Groups Partial) MapBack(string problemToSolution, StepRecorder<Groups> rec) {
+        EnsurePieces();
         var target = new EXACTCOVER(reductionTo.instance).S;
         int k = reductionFrom.K;
         var color = new Dictionary<string, int>(StringComparer.Ordinal);
