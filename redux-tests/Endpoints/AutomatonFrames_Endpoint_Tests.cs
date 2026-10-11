@@ -246,11 +246,11 @@ public class AutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Frames_DfaTableAndNfaTable_AreStillTheListReshaped() {
-        // The Trace Table is a picture type of its own (#671); its format=frames is unchanged here.
+    public async Task Frames_DfaTableAndNfaTable_AreTheTablePicture_NotTheAutomaton() {
+        // The trace tables are the Table picture's second view of the same runs (#671, TableAutomatonFrames_Endpoint_Tests).
         foreach (var vis in new[] { "dfatablevisualization", "nfatablevisualization" }) {
             var (_, body) = await Visualize($"visualization={vis}&format=frames", ReadSnapshot($"{vis}.instance.txt"));
-            Assert.Equal("DynamicTable", JsonDocument.Parse(body).RootElement.GetProperty("type").GetString());
+            Assert.Equal("Table", JsonDocument.Parse(body).RootElement.GetProperty("type").GetString());
         }
     }
 }

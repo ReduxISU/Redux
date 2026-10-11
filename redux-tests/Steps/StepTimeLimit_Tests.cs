@@ -197,8 +197,8 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
     // #764: the stopped solve no longer leaves the table to re-enumerate 2^40 runs with no limit. The test server runs
     // the controller on the calling thread, so the request runs on its own task and the test stops waiting after 30 s:
     // a hang fails the test instead of stalling the run.
+    // format=frames is the Table picture since #671; its stopped run is tested in TableAutomatonFrames_StoppedRun_Endpoint_Tests.
     [Theory]
-    [InlineData("frames")]
     [InlineData("list")]
     public async Task NfaTable_StoppedSolve_Returns200_WithTheStoppedTable(string format) {
         var ct = TestContext.Current.CancellationToken;
