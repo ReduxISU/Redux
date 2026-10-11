@@ -70,13 +70,15 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
             instance += node + ',';
         }
 
-        instance = instance.TrimEnd(',') + "},{{";
+        // The complement: every pair of distinct nodes that G does not join, in either order (#822).
+        var pairs = new List<string>();
+        instance = instance.TrimEnd(',') + "},{";
         foreach (var node in reductionFrom.nodes) {
             foreach (var node2 in reductionFrom.nodes) {
                 KeyValuePair<string, string> pairCheck1 = new KeyValuePair<string, string>(node, node2);
                 KeyValuePair<string, string> pairCheck2 = new KeyValuePair<string, string>(node2, node);
-                if (!(reductionFrom.edges.Contains(pairCheck1) || reductionFrom.edges.Contains(pairCheck1)) && node != node2) {
-                    instance += node + ',' + node2 + "},{";
+                if (!(reductionFrom.edges.Contains(pairCheck1) || reductionFrom.edges.Contains(pairCheck2)) && node != node2) {
+                    pairs.Add("{" + node + ',' + node2 + "}");
                 }
             }
         }
@@ -86,7 +88,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
         }
         // --- Generate G string for new CLIQUE ---
 
-        instance = instance.TrimEnd('{').TrimEnd(',') + "})," + reductionFrom.K.ToString() + ')';
+        instance += string.Join(",", pairs) + "})," + reductionFrom.K.ToString() + ')';
 
         reducedCLIQUECOVER.K = reductionFrom.K;
         reducedCLIQUECOVER.nodes = reductionFrom.nodes;
