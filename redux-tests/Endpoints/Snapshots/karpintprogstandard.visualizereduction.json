@@ -1,0 +1,190 @@
+[
+  {
+    "kind": "table",
+    "title": null,
+    "columns": [
+      {
+        "key": "row",
+        "label": ""
+      },
+      {
+        "key": "x1",
+        "label": "x1"
+      },
+      {
+        "key": "x2",
+        "label": "x2"
+      },
+      {
+        "key": "x3",
+        "label": "x3"
+      },
+      {
+        "key": "total",
+        "label": "Total"
+      },
+      {
+        "key": "bound",
+        "label": "Bound"
+      },
+      {
+        "key": "holds",
+        "label": "Holds?"
+      }
+    ],
+    "rows": [
+      {
+        "id": "r0",
+        "color": null,
+        "cells": {
+          "row": "x =",
+          "x1": "?",
+          "x2": "?",
+          "x3": "?",
+          "total": "",
+          "bound": "",
+          "holds": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "r1",
+        "color": null,
+        "cells": {
+          "row": "row 1",
+          "x1": "-1",
+          "x2": "1",
+          "x3": "-1",
+          "total": "",
+          "bound": "0",
+          "holds": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "r2",
+        "color": null,
+        "cells": {
+          "row": "row 2",
+          "x1": "0",
+          "x2": "0",
+          "x3": "-1",
+          "total": "",
+          "bound": "0",
+          "holds": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "r3",
+        "color": null,
+        "cells": {
+          "row": "row 3",
+          "x1": "1",
+          "x2": "-1",
+          "x3": "1",
+          "total": "",
+          "bound": "1",
+          "holds": ""
+        },
+        "cellColors": null
+      }
+    ]
+  },
+  {
+    "kind": "table",
+    "title": null,
+    "columns": [
+      {
+        "key": "row",
+        "label": ""
+      },
+      {
+        "key": "x1",
+        "label": "x1"
+      },
+      {
+        "key": "x2",
+        "label": "x2"
+      },
+      {
+        "key": "x3",
+        "label": "x3"
+      },
+      {
+        "key": "total",
+        "label": "Total"
+      },
+      {
+        "key": "bound",
+        "label": "Bound"
+      },
+      {
+        "key": "holds",
+        "label": "Holds?"
+      }
+    ],
+    "rows": [
+      {
+        "id": "r0",
+        "color": null,
+        "cells": {
+          "row": "x =",
+          "x1": "1",
+          "x2": "1",
+          "x3": "0",
+          "total": "",
+          "bound": "",
+          "holds": ""
+        },
+        "cellColors": {
+          "x1": "Solution",
+          "x2": "Solution",
+          "x3": "Solution"
+        }
+      },
+      {
+        "id": "r1",
+        "color": "Solution",
+        "cells": {
+          "row": "row 1",
+          "x1": "-1",
+          "x2": "1",
+          "x3": "-1",
+          "total": "0",
+          "bound": "0",
+          "holds": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "r2",
+        "color": "Solution",
+        "cells": {
+          "row": "row 2",
+          "x1": "0",
+          "x2": "0",
+          "x3": "-1",
+          "total": "0",
+          "bound": "0",
+          "holds": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "r3",
+        "color": "Solution",
+        "cells": {
+          "row": "row 3",
+          "x1": "1",
+          "x2": "-1",
+          "x3": "1",
+          "total": "0",
+          "bound": "1",
+          "holds": "yes"
+        },
+        "cellColors": null
+      }
+    ]
+  }
+]
