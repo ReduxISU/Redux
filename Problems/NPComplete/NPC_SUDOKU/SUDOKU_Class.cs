@@ -13,16 +13,16 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     public string problemName { get; } = "Sudoku";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Sudoku";
     public string formalDefinition { get; } =       //"Sudoku = {{(x_1, y_1, z_1), (x_2, y_2, z_2), ... (x_n, y_n, z_n)} | x_i is int 0-8, y is int 0-8, z is int 1-9}"; //TODO: make this true to the actual format of the problem instance once we decide on that format
-        "SUDOKU = {⟨C,n⟩ | n is a perfect square, C ⊆ {0,…,n−1} × {0,…,n−1} × {1,…,n}, " +
-        "and there exists an n×n grid H satisfying: " +
+        "SUDOKU = {C | C ⊆ {0,…,8} × {0,…,8} × {1,…,9}, " +
+        "and there exists a 9×9 grid H satisfying: " +
         "(1) ∀(x,y,z) ∈ C, H[x,y] = z; " +
-        "(2) each row contains each value 1…n exactly once; " +
-        "(3) each column contains each value 1…n exactly once; " +
-        "(4) each √n×√n block contains each value 1…n exactly once }"; //TODO: maybe make this more clear/only be about how to write the problem instance in REDUX
+        "(2) each row contains each value 1…9 exactly once; " +
+        "(3) each column contains each value 1…9 exactly once; " +
+        "(4) each 3×3 block contains each value 1…9 exactly once }"; //TODO: maybe make this more clear/only be about how to write the problem instance in REDUX
 
     public string problemDefinition { get; } = "Sudoku is a logic-based, combinatorial number-placement puzzle where the goal is to fill a 9x9 grid with digits so that each column, row, and 3x3 box contains all of the digits from 1 to 9."; //"The problem is meant to represent and solve an instance of a classic sudoku problem. Each tuple describes one of the starting hints - the position (x and y) and the value (z)";
     public string inputDescription { get; } = "A partially filled 9x9 Sudoku grid of clues";
-    public string outputDescription { get; } = "True or False, whether the given grid is a valid, fully completed solution matching the clues";
+    public string outputDescription { get; } = "The fully solved 9x9 grid (9 rows of 9 digits 1-9, rows separated by semicolons) that matches every clue, or {} if the clues admit no solution";
     public string source { get; } = "Bhattarai, Apekshya, Dinisha Uprety, Pooja Pathak, Safal Shrestha, Salina Narkarmi, and Sanjog Sigdel. 2025. “A Study of Sudoku Solving Algorithms: Backtracking and Heuristic.” Department of Computer Science, Kathmandu University.";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.48550/arXiv.2507.09708";
@@ -45,6 +45,9 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     // TODO: keep Eric? I think so but not sure
     public string[] contributors { get; } = { "Eric Hill", "Carter Luker", "Collin M Kress", "Danny Fawson" };
 
+    // Only the standard 9x9 board is supported.
+    public const int Size = 9;
+
     public int[][] grid { get; set; }
 
     // --- Methods and Constructors ---
@@ -64,18 +67,28 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
         // SPADE.UtilCollection parsedSet = parser["N"];
         // funcValues = new List<int>();
 
-        // Parses the input string into a 2D array representing the Sudoku grid
+        // Parses the input string into a 9x9 grid of ints 0-9 (0 = blank). Anything else is a parse error.
         instance = input;
 
-        input = input.ReplaceLineEndings(string.Empty);
+        var rows = input.ReplaceLineEndings(string.Empty)
+            .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        var rows = input.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        if (rows.Length != Size)
+            throw new ProblemParseException(problemName, input, $"Sudoku grid must have exactly {Size} rows separated by semicolons; got {rows.Length}.");
 
-        grid = new int[rows.Length][];
+        grid = new int[Size][];
 
-        for (int i = 0; i < rows.Length; i++) {
-            var nums = rows[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
-            grid[i] = Array.ConvertAll(nums, int.Parse);
+        for (int i = 0; i < Size; i++) {
+            var cells = rows[i].Split(',');
+            if (cells.Length != Size)
+                throw new ProblemParseException(problemName, input, $"Row {i + 1} must have exactly {Size} comma-separated values; got {cells.Length}.");
+
+            grid[i] = new int[Size];
+            for (int j = 0; j < Size; j++) {
+                if (!int.TryParse(cells[j], System.Globalization.NumberStyles.AllowLeadingWhite | System.Globalization.NumberStyles.AllowTrailingWhite, System.Globalization.CultureInfo.InvariantCulture, out int value) || value > Size)
+                    throw new ProblemParseException(problemName, input, $"Row {i + 1}, column {j + 1}: '{cells[j].Trim()}' is not a digit 0-{Size} (0 means blank).");
+                grid[i][j] = value;
+            }
         }
 
 

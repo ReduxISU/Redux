@@ -32,7 +32,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -265,7 +273,7 @@
     "wikiName": "",
     "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
     "instance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
-    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter or \u0027_\u0027 and contain only letters, digits and \u0027_\u0027. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
     "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
     "complexityClass": "NPComplete",
     "problemType": "Logic",
@@ -283,7 +291,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "Backtracking",
-      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "timeComplexity": {
+        "Function": "2^n * |phi|",
+        "Description": ", n = number of variables, |phi| = formula size",
+        "VariableNames": [
+          "n",
+          "phi"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -316,7 +332,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
-        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "timeComplexity": {
+          "Function": "2^n * |phi|",
+          "Description": ", n = number of variables, |phi| = formula size",
+          "VariableNames": [
+            "n",
+            "phi"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -351,7 +375,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -387,7 +419,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -649,7 +689,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -882,7 +930,7 @@
     "wikiName": "",
     "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
     "instance": "(x1 | x2 | x3) \u0026 (!x1 | !x2 | x3) \u0026 (x1 | !x3 | x2)",
-    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter or \u0027_\u0027 and contain only letters, digits and \u0027_\u0027. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
     "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
     "complexityClass": "NPComplete",
     "problemType": "Logic",
@@ -900,7 +948,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "Backtracking",
-      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "timeComplexity": {
+        "Function": "2^n * |phi|",
+        "Description": ", n = number of variables, |phi| = formula size",
+        "VariableNames": [
+          "n",
+          "phi"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -933,7 +989,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
-        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "timeComplexity": {
+          "Function": "2^n * |phi|",
+          "Description": ", n = number of variables, |phi| = formula size",
+          "VariableNames": [
+            "n",
+            "phi"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -968,7 +1032,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -1004,7 +1076,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -1266,7 +1346,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -1461,7 +1549,7 @@
     "wikiName": "",
     "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
     "instance": "(x1 | x2) \u0026 (!x1 | x3) \u0026 (!x2 | !x3 | y)",
-    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter or \u0027_\u0027 and contain only letters, digits and \u0027_\u0027. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
     "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
     "complexityClass": "NPComplete",
     "problemType": "Logic",
@@ -1479,7 +1567,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "Backtracking",
-      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "timeComplexity": {
+        "Function": "2^n * |phi|",
+        "Description": ", n = number of variables, |phi| = formula size",
+        "VariableNames": [
+          "n",
+          "phi"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -1512,7 +1608,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
-        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "timeComplexity": {
+          "Function": "2^n * |phi|",
+          "Description": ", n = number of variables, |phi| = formula size",
+          "VariableNames": [
+            "n",
+            "phi"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -1547,7 +1651,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -1583,7 +1695,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -1807,7 +1927,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -1892,7 +2020,7 @@
     "wikiName": "",
     "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
     "instance": "(x1) \u0026 (!x1)",
-    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter or \u0027_\u0027 and contain only letters, digits and \u0027_\u0027. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
     "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
     "complexityClass": "NPComplete",
     "problemType": "Logic",
@@ -1910,7 +2038,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "Backtracking",
-      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "timeComplexity": {
+        "Function": "2^n * |phi|",
+        "Description": ", n = number of variables, |phi| = formula size",
+        "VariableNames": [
+          "n",
+          "phi"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -1943,7 +2079,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
-        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "timeComplexity": {
+          "Function": "2^n * |phi|",
+          "Description": ", n = number of variables, |phi| = formula size",
+          "VariableNames": [
+            "n",
+            "phi"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -1978,7 +2122,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -2014,7 +2166,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -2128,7 +2288,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -2395,7 +2563,7 @@
     "wikiName": "",
     "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
     "instance": "(x1 | x1 | !x2) \u0026 (x2 | x3 | x4) \u0026 (!x4 | !x1 | x2) \u0026 (x3)",
-    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter or \u0027_\u0027 and contain only letters, digits and \u0027_\u0027. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
     "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
     "complexityClass": "NPComplete",
     "problemType": "Logic",
@@ -2413,7 +2581,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "Backtracking",
-      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "timeComplexity": {
+        "Function": "2^n * |phi|",
+        "Description": ", n = number of variables, |phi| = formula size",
+        "VariableNames": [
+          "n",
+          "phi"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -2446,7 +2622,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
-        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "timeComplexity": {
+          "Function": "2^n * |phi|",
+          "Description": ", n = number of variables, |phi| = formula size",
+          "VariableNames": [
+            "n",
+            "phi"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -2481,7 +2665,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -2517,7 +2709,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -2782,7 +2982,7 @@
 ### reduce sipserReductionVertexCover (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)
 {
   "reductionName": "Sipser\u0027s Vertex Cover Reduction",
-  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\n                                            This is done by first taking all possible edges in the original clique graph, and removing\n                                            the edges that are actually in the clique graph from that set.",
   "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
   "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
   "contributors": [
@@ -2809,7 +3009,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -2947,7 +3155,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -2983,7 +3199,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -3017,7 +3241,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -3050,7 +3282,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -3167,7 +3407,7 @@
 ### reduce sipserReductionVertexCover (({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)
 {
   "reductionName": "Sipser\u0027s Vertex Cover Reduction",
-  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\n                                            This is done by first taking all possible edges in the original clique graph, and removing\n                                            the edges that are actually in the clique graph from that set.",
   "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
   "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
   "contributors": [
@@ -3194,7 +3434,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -3298,7 +3546,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -3334,7 +3590,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -3368,7 +3632,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -3401,7 +3673,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -3484,7 +3764,7 @@
 ### reduce sipserReductionVertexCover (({a,b,c,d},{{b,a},{c,b},{c,d}}),2)
 {
   "reductionName": "Sipser\u0027s Vertex Cover Reduction",
-  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\n                                            This is done by first taking all possible edges in the original clique graph, and removing\n                                            the edges that are actually in the clique graph from that set.",
   "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
   "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
   "contributors": [
@@ -3511,7 +3791,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -3615,7 +3903,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -3651,7 +3947,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -3685,7 +3989,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -3718,7 +4030,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -3801,7 +4121,7 @@
 ### reduce sipserReductionVertexCover (({a,b,c},{{a,b},{b,c},{a,c}}),3)
 {
   "reductionName": "Sipser\u0027s Vertex Cover Reduction",
-  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\n                                            This is done by first taking all possible edges in the original clique graph, and removing\n                                            the edges that are actually in the clique graph from that set.",
   "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
   "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
   "contributors": [
@@ -3828,7 +4148,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -3915,7 +4243,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -3951,7 +4287,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -3985,7 +4329,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -4018,7 +4370,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -4084,7 +4444,7 @@
 ### reduce sipserReductionVertexCover (({a,b,c,d,e},{}),1)
 {
   "reductionName": "Sipser\u0027s Vertex Cover Reduction",
-  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\r\n                                            This is done by first taking all possible edges in the original clique graph, and removing\r\n                                            the edges that are actually in the clique graph from that set.",
+  "reductionDefinition": "This Sipsers reduction converts the Clique problem into a Vertex Cover problem.\n                                            This is done by first taking all possible edges in the original clique graph, and removing\n                                            the edges that are actually in the clique graph from that set.",
   "source": "Sipser, Michael. Introduction to the Theory of Computation.ACM Sigact News 27.1 (1996): 27-29.",
   "sourceFile": "Problems/NPComplete/NPC_CLIQUE/ReduceTo/NPC_VertexCover/sipserReductionVertexCover.cs",
   "contributors": [
@@ -4111,7 +4471,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -4232,7 +4600,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -4268,7 +4644,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -4302,7 +4686,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -4335,7 +4727,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -4435,7 +4835,7 @@
 ### reduce reduceToCLIQUE (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)
 {
   "reductionName": "Clique Reduction",
-  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \n                                            by taking the complement of the graph, or inverting all the edges.",
   "source": "",
   "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
   "contributors": [
@@ -4463,7 +4863,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -4616,7 +5024,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -4648,7 +5064,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -4683,7 +5107,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -4719,7 +5151,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -4853,7 +5293,7 @@
 ### reduce reduceToCLIQUE (({a,b,c,d},{{a,b},{b,c},{c,d}}),2)
 {
   "reductionName": "Clique Reduction",
-  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \n                                            by taking the complement of the graph, or inverting all the edges.",
   "source": "",
   "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
   "contributors": [
@@ -4881,7 +5321,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -4983,7 +5431,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -5015,7 +5471,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -5050,7 +5514,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -5086,7 +5558,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -5169,7 +5649,7 @@
 ### reduce reduceToCLIQUE (({a,b,c,d},{{b,a},{d,c}}),1)
 {
   "reductionName": "Clique Reduction",
-  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \n                                            by taking the complement of the graph, or inverting all the edges.",
   "source": "",
   "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
   "contributors": [
@@ -5197,7 +5677,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -5299,7 +5787,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -5331,7 +5827,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -5366,7 +5870,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -5402,7 +5914,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -5485,7 +6005,7 @@
 ### reduce reduceToCLIQUE (({a,b,c},{{a,b},{b,c},{a,c}}),2)
 {
   "reductionName": "Clique Reduction",
-  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \n                                            by taking the complement of the graph, or inverting all the edges.",
   "source": "",
   "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
   "contributors": [
@@ -5513,7 +6033,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -5598,7 +6126,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -5630,7 +6166,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -5665,7 +6209,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -5701,7 +6253,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -5767,7 +6327,7 @@
 ### reduce reduceToCLIQUE (({a,b,c,d,e},{}),3)
 {
   "reductionName": "Clique Reduction",
-  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \r\n                                            by taking the complement of the graph, or inverting all the edges.",
+  "reductionDefinition": "This reduction converts an independent set problem into a clique problem, \n                                            by taking the complement of the graph, or inverting all the edges.",
   "source": "",
   "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/ReduceTo/NPC_CLIQUE/reduceToCLIQUE.cs",
   "contributors": [
@@ -5795,7 +6355,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -5914,7 +6482,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -5946,7 +6522,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -5981,7 +6565,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -6017,7 +6609,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
