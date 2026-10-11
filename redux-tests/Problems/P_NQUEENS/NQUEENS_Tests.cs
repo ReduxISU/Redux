@@ -189,4 +189,20 @@ public class NQUEENS_Tests {
         Assert.True(verifier.verify(problem, certificate),
             $"Constructive solution for n={n} failed verification: {certificate}");
     }
+
+    // #798: n is the board size, so a negative n is not an instance. Every endpoint reports it as a parse error (400).
+    [Theory]
+    [InlineData("-1")]
+    [InlineData(" -5 ")]
+    public void NQUEENS_Negative_N_Is_A_Parse_Error(string instance) {
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => API.Interfaces.ParseGuard.CreateProblem<NQUEENS>(instance));
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new NQueensBacktracking()).solve(instance));
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => ((API.Interfaces.ISolver)new NQueensConstructive()).solve(instance));
+    }
+
+    [Fact]
+    public void NQUEENS_Zero_Is_Still_An_Instance() {
+        Assert.Equal(0, new NQUEENS("0").n);
+        Assert.Equal("{}", ((API.Interfaces.ISolver)new NQueensBacktracking()).solve("0"));
+    }
 }
