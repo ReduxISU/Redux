@@ -67,19 +67,26 @@ sealed class StepRecorder<TPartial> {
     public void Reject(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Reject, partial, caption, focus);
     public void Backtrack(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Backtrack, partial, caption, focus);
 
+    // The same, with the search-tree nodes the step creates or updates (SolverStep.Tree; the last is the node the step is
+    // about), for a solver that branches. Built lazily like the rest, and only for steps that are kept.
+    public void Try(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Try, partial, caption, focus, tree);
+    public void Accept(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Accept, partial, caption, focus, tree);
+    public void Reject(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Reject, partial, caption, focus, tree);
+    public void Backtrack(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Backtrack, partial, caption, focus, tree);
+
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, string[] focus) {
         if (!_enabled) return;
         Add(kind, partial, caption, () => focus);
     }
 
-    private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, Func<string[]> focus) {
+    private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]>? tree = null) {
         if (!_enabled) return;
         _total++;
         if (_shownDecisions < _cap) {
             _shownDecisions++;
-            _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()));
+            _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()) { Tree = tree?.Invoke() });
         } else if (kind == StepEvent.Accept) {
-            _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption());
+            _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption()) { Tree = tree?.Invoke() };
         }
         // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
         if (Environment.TickCount64 >= _deadline)
