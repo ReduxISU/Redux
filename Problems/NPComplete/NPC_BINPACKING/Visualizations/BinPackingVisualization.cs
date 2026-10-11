@@ -9,8 +9,8 @@ namespace API.Problems.NPComplete.NPC_BINPACKING.Visualizations;
 
 /// <summary>
 /// Bin Packing as the Packing picture (format=frames): the item sizes, and the bins of capacity C (at most K), step by step
-/// for the selected solver. The list format draws the list of sizes, all marked Solution once they are packed. The problem's
-/// default visualization is still <c>DummyVisualization</c>.
+/// for the selected solver. The list format draws the list of sizes, all marked Solution once they are packed. It is the
+/// problem's default visualization.
 /// </summary>
 class BinPackingVisualization : IVisualization<BINPACKING, API_SET>, IPackingVisualization<BINPACKING> {
     public string visualizationName { get; } = "Bin Packing Visualization";

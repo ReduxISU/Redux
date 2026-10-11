@@ -11,6 +11,8 @@ namespace redux_tests;
 // Bin Packing with every one of their solvers, plus the guards that keep everything old frontends read exactly as it was:
 //   - the list format of Partition's visualization (Snapshots/packing_list_snapshots.tsv, captured before the picture existed),
 //   - /info for the four problems, their seven solvers and Partition's visualization (info.<name>.json, captured the same way).
+// The deliberate exception is the default visualization of Subset Sum, Knapsack and Bin Packing, which moved off
+// DummyVisualization to their Packing visualizations: see the "rewire" tests.
 public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -56,7 +58,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     public static TheoryData<string> TouchedInterfaces => new([
-        "partition", "subsetsum", "knapsack", "binpacking", "partitionbruteforce", "subsetsumbruteforce", "fastapproximation",
+        "partition", "partitionbruteforce", "subsetsumbruteforce", "fastapproximation",
         "knapsackbruteforce", "knapsackdp", "binpackingbruteforce", "binpackingffd", "partitiondefaultvisualization",
     ]);
 
@@ -73,6 +75,70 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
+    }
+
+    // ---- Subset Sum, Knapsack and Bin Packing moved off DummyVisualization: the only thing that may change. ----
+
+    // What embeds one of their defaultVisualizations: the three problems, and the reductions into or out of them (Exact
+    // Cover to Subset Sum, Subset Sum to Knapsack, Subset Sum to Partition). Their snapshots were taken after the rewire;
+    // the diff against the pre-change capture is only the nested defaultVisualization objects (and reduce's visualization).
+    public static TheoryData<string> EmbedsAPackingDefault => new() {
+        "subsetsum", "knapsack", "binpacking", "karpexactcovertosubsetsum", "fengreduction", "subsetsumtopartitionreduction",
+    };
+
+    [Theory]
+    [MemberData(nameof(EmbedsAPackingDefault))]
+    public async Task Rewire_Info_ShowsThePackingVisualizations_AndNothingElse(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        Assert.DoesNotContain("DummyVisualization", body);
+        Assert.DoesNotContain("\"Packing\"", body);
+        Assert.DoesNotContain("StepShape", body);
+    }
+
+    [Theory]
+    [InlineData("subsetsum", "subsetsumvisualization", "Subset Sum Visualization", "Subset Sum Brute Force")]
+    [InlineData("knapsack", "knapsackvisualization", "Knapsack Visualization", "Knapsack Brute Force")]
+    [InlineData("binpacking", "binpackingvisualization", "Bin Packing Visualization", "Bin Packing Brute Force")]
+    public async Task Rewire_ProblemInfo_ReportsItsPackingVisualization(string problem, string vis, string name, string solver) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={problem}", TestContext.Current.CancellationToken);
+        var nested = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal(name, nested.GetProperty("visualizationName").GetString());
+        Assert.Equal("SetD3", nested.GetProperty("visualizationType").GetString());
+        Assert.Equal(solver, nested.GetProperty("solver").GetProperty("solverName").GetString());
+        // The same object the visualization reports about itself.
+        var own = await _client.GetAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken);
+        Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(nested.GetRawText()));
+    }
+
+    [Theory]
+    [InlineData("karpexactcovertosubsetsum", "({1,2,3,4},{{1,2,3},{2,3},{4,1}})")]
+    [InlineData("fengreduction", "({1,7,12,15},28)")]
+    [InlineData("subsetsumtopartitionreduction", "({1,7,12,15},28)")]
+    public async Task Rewire_Reduce_ChangesOnlyTheNestedVisualization(string reduction, string instance) {
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync($"/ProblemProvider/reduce?reduction={reduction}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(ReadSnapshot($"{reduction}.reduce.json"), (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
+    }
+
+    // Before the rewire the target's visualization was DummyVisualization, so visualizeReduction answered an empty list
+    // (#755). Now it answers the target's list items. Neither reduction maps solutions yet (mapSolutions answers ""), so
+    // both items are the unsolved picture.
+    [Theory]
+    [InlineData("karpexactcovertosubsetsum", "{{2,3},{4,1}}", "({1,2,3,4},{{1,2,3},{2,3},{4,1}})")]
+    [InlineData("fengreduction", "{1,12,15}", "({1,7,12,15},28)")]
+    public async Task Rewire_VisualizeReduction_IntoSubsetSumOrKnapsack_NowReturnsThePicture(string reduction, string solution, string instance) {
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction={reduction}&solution={Uri.EscapeDataString(solution)}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot($"{reduction}.visualizereduction.json"), body);
+        var items = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, items.Count);
+        Assert.All(items, i => Assert.Equal("set", i.GetProperty("kind").GetString()));
     }
 
     [Theory]
