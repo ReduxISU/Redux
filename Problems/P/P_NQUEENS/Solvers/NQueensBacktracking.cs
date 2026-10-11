@@ -20,7 +20,7 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
 
-    public string complexity { get; } = "O(N!)";
+    public MathematicalFunction timeComplexity { get; } = new("N!", "");
 
     // --- Solver ---
     public string solve(NQUEENS problem) => Solve(problem, StepRecorder<BoardCells>.Off);

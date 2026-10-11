@@ -31,7 +31,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncremental
     // polynomial in the hour count H and tank-bucket count B, but the per-hour transition
     // enumerates prevMask x mask over nMasks = 2^n pump-on/off states (n = pump count),
     // i.e. exponential in the number of pumps.
-    public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
+    public MathematicalFunction timeComplexity { get; } = new("H * B * n * 4^n", ", H = 24 hours, B = tank buckets, n = number of pumps");
 
     private const int Hours = 24;
     private const double Inf = double.PositiveInfinity;

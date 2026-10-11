@@ -24,7 +24,7 @@ class ArcSetBruteForce : ISolver<ARCSET, EdgeSet> {
     // case -- bounded by K the same way CutBruteForce is bounded by K, but here the base is
     // the edge count m rather than the node count n). Each candidate costs O(n^2 * m) to
     // verify (ArcSetVerifier's isACyclical reachability fixpoint).
-    public string complexity { get; } = "O(2^m * n^2 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^m * n^2 * m", ", n = |nodes|, m = |edges|");
 
     public string[] contributors { get; } = { "Alex Diviney", "Caleb Eardley", "Russell Phillips" };
 

@@ -22,7 +22,7 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Each of the n input symbols moves every active state along its transitions and then takes the ε-closure, each a
     // pass over at most Q states and E transitions.
-    public string complexity { get; } = "O(n * (Q + E)), where n = input length, Q = state count, E = transition count";
+    public MathematicalFunction timeComplexity { get; } = new("n * (Q + E)", ", where n = input length, Q = state count, E = transition count");
 
     public NFASubsetSolver() { }
 

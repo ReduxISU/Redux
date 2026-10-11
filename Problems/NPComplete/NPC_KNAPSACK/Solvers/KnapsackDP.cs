@@ -25,7 +25,7 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
     // nuance.
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(n * W)";
+    public MathematicalFunction timeComplexity { get; } = new("n * W", "");
 
     public string solve(KNAPSACK knapsack) => Solve(knapsack, StepRecorder<Placement>.Off);
 

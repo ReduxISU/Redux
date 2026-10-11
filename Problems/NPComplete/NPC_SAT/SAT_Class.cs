@@ -1,5 +1,5 @@
 using API.Interfaces;
-using API.Tools;
+using API.Interfaces.Logic;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
@@ -24,7 +24,7 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, SatDefaultVisualization> 
 
     public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!' written directly before the name. Variable names start with a letter and contain only letters, digits and underscores. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
+    public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!' written directly before the name. Variable names start with a letter or '_' and contain only letters, digits and '_'. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
     public string certificateFormat { get; } = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public string instance { get; set; } = string.Empty;
 
@@ -74,23 +74,31 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, SatDefaultVisualization> 
 
     #endregion
 
+    // The parsed instance. Internal so it stays out of the serialized problem JSON.
+    // Note: clauses/literals still have public setters for older callers; code that assigns
+    // them directly does not update this.
+    internal CnfFormula formula { get; private set; }
+
     #region Constructors
     // --- Methods Including Constructors ---
-    public SAT() {
-        instance = defaultInstance;
-        clauses = getClauses(instance);
-        literals = getLiterals(instance);
+    public SAT() : this(_defaultInstance) {
     }
     public SAT(string phiInput) {
-        validateInstance(phiInput);
-        instance = CnfFormula.NormalizeWhitespace(phiInput);
-        clauses = getClauses(instance);
-        literals = getLiterals(instance);
+        formula = parseInstance(phiInput);
+        instance = phiInput;
+        clauses = formula.ClauseStrings();
+        literals = formula.LiteralStrings();
     }
 
-    // Throws ProblemParseException (HTTP 400) unless phiInput follows the CNF grammar in CnfFormula (#759).
-    private static void validateInstance(string phiInput) {
-        CnfFormula.Parse("SAT", phiInput);
+    private static CnfFormula parseInstance(string phiInput) {
+        if (string.IsNullOrWhiteSpace(phiInput)) {
+            throw new ProblemParseException("SAT", phiInput, "instance is empty");
+        }
+        try {
+            return CnfParser.Parse(phiInput);
+        } catch (CnfParseException e) {
+            throw new ProblemParseException("SAT", phiInput, e.Message, e);
+        }
     }
 
     #endregion
@@ -102,45 +110,11 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, SatDefaultVisualization> 
     }
 
     public List<List<string>> getClauses(string phiInput) {
-
-        List<List<string>> clauses = new List<List<string>>();
-
-        // Strip extra characters
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('&');
-
-        foreach (string clause in rawClauses) {
-            List<string> clauseToAdd = new List<string>();
-            string[] literals = clause.Split('|');
-
-            foreach (string literal in literals) {
-                clauseToAdd.Add(literal);
-            }
-            clauses.Add(clauseToAdd);
-        }
-
-        return clauses;
-
+        return parseInstance(phiInput).ClauseStrings();
     }
 
     public List<string> getLiterals(string phiInput) {
-
-        List<string> literals = new List<string>();
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('|');
-
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('&');
-
-            foreach (string literal in rawLiterals) {
-                literals.Add(literal);
-            }
-        }
-        return literals;
+        return parseInstance(phiInput).LiteralStrings();
     }
 
     #endregion

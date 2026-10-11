@@ -26,7 +26,7 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE, TableCells>, IIncrementalSolv
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Fills the full (m+1) x (n+1) DP table with one O(1) transition per cell.
-    public string complexity { get; } = "O(m * n)";
+    public MathematicalFunction timeComplexity { get; } = new("m * n", "");
 
     public EditDistanceDPSolver() { }
 

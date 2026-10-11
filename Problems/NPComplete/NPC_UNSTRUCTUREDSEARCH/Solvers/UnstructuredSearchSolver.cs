@@ -22,7 +22,7 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // solve() linearly scans problem.funcValues (length 2^n) until it finds a 1, worst
     // case (or "no solution") requiring all 2^n oracle queries.
-    public string complexity { get; } = "O(2^n) queries";
+    public MathematicalFunction timeComplexity { get; } = new("2^n", " queries");
 
     // --- Methods Including Constructors ---
     public UnstructuredSearchSolver() { }

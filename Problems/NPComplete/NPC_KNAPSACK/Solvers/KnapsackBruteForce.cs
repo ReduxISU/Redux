@@ -21,7 +21,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK, Placement> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 
 
-    public string complexity { get; } = "O(2^n)";
+    public MathematicalFunction timeComplexity { get; } = new("2^n", "");
 
     // Every subset of len items, as 0/1 per item, in mask order: 0, 1, 2, ... with bit k picking item k. Counted with one
     // digit per item, not an int mask, so there is no limit on the number of items (#791).

@@ -1,9 +1,8 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.Logic;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_SAT;
-
-using API.Tools.Boolean_Parser;
 
 namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 #pragma warning disable CS1591
@@ -27,7 +26,7 @@ public class SATBruteForceSolver : ISolver {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates all 2^n truth assignments (n = distinct literals);
     // each is evaluated against every clause, O(|phi|) total literal occurrences.
-    public string complexity { get; } = "O(2^n * |phi|), n = number of variables, |phi| = formula size";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * |phi|", ", n = number of variables, |phi| = formula size");
     public string[] contributors { get; } = { "Daniel Igbokwe", "Show Pratoomratana" };
 
     #endregion
@@ -40,159 +39,78 @@ public class SATBruteForceSolver : ISolver {
     #endregion
 
 
-    #region Methods 
-
-    // We can think of a SAT problem as 0 as false and 1 as true. To cycle through every possible combination
-    // we can think of it as counting in binary as in 01 = FT, 11 = TT, 00 = FF.
-    // This makes it simple to try every combination of T/F pairs in a SAT problem by simply converting it to binary adding +1 and converting back.
-    public Dictionary<string, Boolean> increment(Dictionary<string, Boolean> dict) {
-        string binaryConv = "";
-        List<bool> values = dict.Values.ToList();
-        // Converting the current T/F assigment to binary
-        foreach (bool currentValue in values) {
-            if (currentValue == false) {
-                binaryConv = binaryConv + "0";
-            } else {
-                binaryConv = binaryConv + "1";
-            }
-        }
-        // Converting the string to binary and adding 1.
-        int originalBinNumber = Convert.ToInt32(binaryConv, 2);
-        int one = Convert.ToInt32("1", 2);
-        string incrementedNumber = Convert.ToString(originalBinNumber + one, 2);
-
-        // Adding back the 0s that proceed the number.
-        for (int i = binaryConv.Length; incrementedNumber.Length < binaryConv.Length; i++) {
-            incrementedNumber = "0" + incrementedNumber;
-        }
-
-        // Making a new dictionary and converting the binary back into a T/F assigment.
-        List<string> originalDictKey = dict.Keys.ToList();
-        Dictionary<string, Boolean> convertedDict = new Dictionary<string, bool>();
-        for (int i = 0; i < binaryConv.Length; i++) {
-            char intBool = incrementedNumber[i];
-            convertedDict.Add(originalDictKey[i], charToBool(intBool));
-        }
-        return convertedDict;
-    }
-
-    // Just a quick char to binary converter. 
-    private bool charToBool(char character) {
-        string zero = "0"; // Bit of weird casting here, but it works.
-        if (character == zero.ToCharArray()[0]) { return false; }
-        return true;
-    }
-    // Evalutes a clause, given the True/False value of each literal and it's single clause it's within.
-    public Boolean evaluate(Dictionary<string, Boolean> mapping, List<string> clause) {
-        List<Boolean> booleanClause = new List<bool>();
-
-        foreach (string literal in clause) {
-            // If there is a !(Not) in front of the literal. Remove it(to match it's Dictionary value) then invert the boolean and add it to the list
-            if (literal.Contains("!")) {
-                booleanClause.Add(!mapping[literal.Replace("!", "")]);
-            }
-            // Otherwise just add the boolean to the list
-            else {
-                booleanClause.Add(mapping[literal]);
-            }
-        }
-
-        // Iterate through our boolean list, if any are true the clause is satisfied.
-        foreach (bool currentBool in booleanClause) {
-            if (currentBool == true) {
-                return true;
-            }
-        }
-        // All literals in the clause evaluated to false. Thus the whole clause is false.
-        return false;
-    }
+    #region Methods
 
     public string solve(string SATInstance) => Solve(CheckedFormula(SATInstance), StepRecorder<Assignment>.Off);
 
-    // This solver takes the raw string (it is not an ISolver<SAT>), so both entry points check it as a SAT formula first,
-    // as ISolver<T> does: text outside the formula rule is a parse error (HTTP 400), not a run over made-up variables
-    // (#759). The SAT's instance has tabs and newlines turned into spaces, which is what Boolean_Parser expects.
-    static string CheckedFormula(string instance) => ParseGuard.CreateProblem<SAT>(instance).instance;
+    // This solver takes the raw string (it is not an ISolver<SAT>), so both entry points parse it as a SAT
+    // first, as ISolver<T> does: a malformed instance is a ProblemParseException (HTTP 400).
+    static CnfFormula CheckedFormula(string instance) => ParseGuard.CreateProblem<SAT>(instance).formula;
 
     // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
     // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
-    // The instance is checked as a SAT formula first (as ISolver<T> does), so text the solver's own parser would trip over
-    // ("(x1) & & (x2)" leaves an empty clause) is a parse error (HTTP 400), not a crash inside the solve.
     SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
-        string formula = CheckedFormula(instance);
+        CnfFormula formula = CheckedFormula(instance);
         return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec));
     }
 
+    // Tries every assignment, counting through them like a binary number with false = 0 and
+    // true = 1 (the last variable is the low bit), starting from all-false.
     // Steps: one per candidate assignment, in the order the counter tries them. A candidate is a Reject naming the first
-    // clause with no true literal (the solver stops checking there), or the Accept that ends the search. The recorder's cap
+    // clause with no true literal, or the Accept that ends the search. The recorder's cap
     // hides the rest of a long run. Recorder state lives only in this call.
-    internal string Solve(string SATInstance, StepRecorder<Assignment> rec) {
-        //string SATInstance = "(!x1 | !x2 | !x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
-        Boolean_Parser parser = new Boolean_Parser(SATInstance);
-        List<string> literals = parser.getLiterals();
-        // Removing all ! from the literals and removing duplicates for the dictionary
-        for (int i = 0; i < literals.Count; i++) {
-            literals[i] = literals[i].Replace("!", "");
-        }
-        literals = literals.Distinct().ToList();
+    internal string Solve(CnfFormula formula, StepRecorder<Assignment> rec) {
+        IReadOnlyList<string> variables = formula.Variables;
+        List<List<string>> clauseStrings = formula.ClauseStrings();
+        bool[] values = new bool[variables.Count];
+        Dictionary<string, bool> assignment = new Dictionary<string, bool>();
 
-        // Adding all the literals to a dictionary with their starting value as false
-        Dictionary<string, Boolean> literalDict = new Dictionary<string, bool>();
-        foreach (string literal in literals) {
-            literalDict.Add(literal, false);
-        }
-
-        List<List<string>> clause = parser.getClause();
-
-        // Loop through all combinations. The total number of binary choices you can make is 2^(number of items). E.G. 3 variables is 2^3.
-        for (int currentCombination = 0; currentCombination < Math.Pow(2, literals.Count); currentCombination++) {
-            int trueClauses = 0;
+        while (true) {
             if (timerHasExpired) {
                 // Its own timer stopped it: there is no answer, so the run ends on a Done that says so (never on a candidate).
                 rec.Done(new Assignment([]), false, GroupedGraphFrames.SolverTimeoutCaption);
                 return GroupedGraphFrames.SolverTimeoutAnswer;
             }
 
-            // Combination 0 is the starting all-false assignment; advance once per later combination.
-            if (currentCombination > 0)
-                literalDict = increment(literalDict);
-            foreach (List<string> currentClause in clause) {
-                bool currentEvaluation = evaluate(literalDict, currentClause);
+            for (int i = 0; i < variables.Count; i++) {
+                assignment[variables[i]] = values[i];
+            }
 
-                if (currentEvaluation == false) {
-                    // Every clause before this one was true, so trueClauses is this clause's index.
-                    int failed = trueClauses;
-                    var failedClause = currentClause;
-                    rec.Reject(() => ToAssignment(literalDict),
-                        () => $"Try {GroupedGraphFrames.Assigned(literalDict)}: clause C{failed + 1} {GroupedGraphFrames.ClauseText(failedClause)} has no true literal.",
-                        () => [GroupedGraphFrames.ClauseId(failed)]);
-                    break;// A clause is false, so the whole SAT is false.
-                }
-
-                trueClauses++; // All clauses are true. We found a valid SAT solution
-                if (clause.Count == trueClauses) {
-                    string solutionString = "(";
-                    foreach (KeyValuePair<string, bool> pair in literalDict) {
-                        solutionString += string.Format("{0}:{1},", pair.Key, pair.Value);
-                    }
-                    solutionString += ")";
-                    // Just getting rid of the extra comma at the end.
-                    solutionString = solutionString.Remove(solutionString.Length - 2, 1);
-                    rec.Accept(() => ToAssignment(literalDict),
-                        () => $"Try {GroupedGraphFrames.Assigned(literalDict)}: every clause has a true literal.",
-                        () => []);
-                    rec.Done(ToAssignment(literalDict), true, $"The formula is satisfied by {GroupedGraphFrames.Assigned(literalDict)}.");
-                    return solutionString;
+            int failed = -1;
+            for (int c = 0; c < formula.Clauses.Count; c++) {
+                if (!formula.Clauses[c].Literals.Any(l => assignment[l.Variable] != l.Negated)) {
+                    failed = c;
+                    break;
                 }
             }
+            if (failed < 0) {
+                rec.Accept(() => ToAssignment(assignment),
+                    () => $"Try {GroupedGraphFrames.Assigned(assignment)}: every clause has a true literal.",
+                    () => []);
+                rec.Done(ToAssignment(assignment), true, $"The formula is satisfied by {GroupedGraphFrames.Assigned(assignment)}.");
+                return "(" + string.Join(",", variables.Select(v => $"{v}:{assignment[v]}")) + ")";
+            }
+            List<string> failedClause = clauseStrings[failed];
+            rec.Reject(() => ToAssignment(assignment),
+                () => $"Try {GroupedGraphFrames.Assigned(assignment)}: clause C{failed + 1} {GroupedGraphFrames.ClauseText(failedClause)} has no true literal.",
+                () => [GroupedGraphFrames.ClauseId(failed)]);
+
+            // Advance to the next assignment; wrapping back to all-false means all were tried.
+            int bit = values.Length - 1;
+            while (bit >= 0 && values[bit]) {
+                values[bit] = false;
+                bit--;
+            }
+            if (bit < 0) {
+                rec.Done(new Assignment([]), false, "No assignment makes every clause true, so no solution exists.");
+                return "No solution exists";
+            }
+            values[bit] = true;
         }
-        rec.Done(new Assignment([]), false, "No assignment makes every clause true, so no solution exists.");
-        return "No solution exists";
     }
 
     private static Assignment ToAssignment(Dictionary<string, bool> values) =>
         new(values.Select(p => new KeyValuePair<string, string>(p.Key, p.Value.ToString())));
-
 
     #endregion
 

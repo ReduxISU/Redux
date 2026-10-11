@@ -17,7 +17,7 @@ class BruteForceMinimumTSP : ISolver<MINIMUMTSP, Tour> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
     // Declared, not derived. (n-1)! orderings of the cities after the first, each summed in O(n) from a weight table
     // built once in O(n^2 + m).
-    public string complexity { get; } = "O((n-1)! * n + m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("(n-1)! * n + m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public BruteForceMinimumTSP() {
