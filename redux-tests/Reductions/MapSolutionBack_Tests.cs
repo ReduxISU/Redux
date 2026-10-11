@@ -121,8 +121,14 @@ public class MapSolutionBack_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public void ReductionsWithoutABackwardMap_ReportNoneAndDoNotMap() {
-        // Karp's Vertex Cover to Feedback Node Set was the example until it gained a backward map (#694).
-        IReduction red = Build("KarpExactCoverToSubsetSum", DefaultInstance("KarpExactCoverToSubsetSum"));
+        // Every shipped reduction maps answers back since #695 (Karp's Exact Cover to Subset Sum was the last example), so a
+        // test-only one stands in.
+        Assert.All(ProblemProvider.Reductions.Values.Where(t => t.Assembly == typeof(ProblemProvider).Assembly), t => {
+            IReduction? shipped = null;
+            try { shipped = Activator.CreateInstance(t) as IReduction; } catch { }
+            if (shipped != null) Assert.True(shipped.hasBackwardMap(), $"{t.Name} has no backward map");
+        });
+        IReduction red = new TestOnlyReductionWithoutSteps("({1,2},3)");
         Assert.False(red.hasBackwardMap());
         Assert.Null(red.mapSolutionBack("{a}"));
         Assert.Null(red.MapBackRun("{a}", true));
@@ -366,13 +372,13 @@ public class MapSolutionBack_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Endpoint_ReductionWithoutBackwardMap_Is400NoBackwardMap() {
-        // Karp's Vertex Cover to Feedback Node Set was the example until it gained a backward map (#694).
-        string instance = DefaultInstance("KarpExactCoverToSubsetSum");
-        var (status, body) = await Post("reduction=KarpExactCoverToSubsetSum&solution=" + Uri.EscapeDataString("{a}"), instance);
+        // Every shipped reduction maps answers back since #695 (Karp's Exact Cover to Subset Sum was the last example), so a
+        // test-only one stands in.
+        var (status, body) = await Post("reduction=TestOnlyReductionWithoutSteps&solution=" + Uri.EscapeDataString("{1}"), "({1,2},3)");
         Assert.Equal(HttpStatusCode.BadRequest, status);
         using var doc = JsonDocument.Parse(body);
         Assert.Equal("no_backward_map", doc.RootElement.GetProperty("error").GetString());
-        Assert.Equal("KarpExactCoverToSubsetSum", doc.RootElement.GetProperty("reduction").GetString());
+        Assert.Equal("TestOnlyReductionWithoutSteps", doc.RootElement.GetProperty("reduction").GetString());
     }
 
     [Fact]

@@ -37,7 +37,94 @@
       "complexityBucket": "Exponential"
     }
   },
-  "gadgets": [],
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "I1"
+      ],
+      "reductionToIds": [
+        "I1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I1"
+      ],
+      "targetIds": [
+        "I1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "I2"
+      ],
+      "reductionToIds": [
+        "I2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I2"
+      ],
+      "targetIds": [
+        "I2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "I3"
+      ],
+      "reductionToIds": [
+        "I3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I3"
+      ],
+      "targetIds": [
+        "I3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "I4"
+      ],
+      "reductionToIds": [
+        "I4"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I4"
+      ],
+      "targetIds": [
+        "I4"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "C1"
+      ],
+      "reductionToIds": [
+        "C1"
+      ],
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "C1"
+      ],
+      "targetIds": [
+        "C1"
+      ],
+      "note": "W = V = T = 28"
+    }
+  ],
   "reductionFrom": {
     "problemName": "Subset Sum",
     "formalDefinition": "Subset Sum = \u003CS, T\u003E | S is a set of positive integers and there exists a subset of S, K where the sum of K\u0027s elements equals T",

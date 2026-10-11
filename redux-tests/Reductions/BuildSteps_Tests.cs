@@ -415,13 +415,20 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         foreach (var (name, type) in ProblemProvider.Reductions) {
             IReduction red;
             try { red = (IReduction)Activator.CreateInstance(type)!; } catch { continue; }
-            // The three of #691, the reductions out of 3SAT and SAT (#693), and the graph reductions (#694).
-            bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT" }.Contains(type.Name);
+            // The three of #691, the reductions out of 3SAT and SAT (#693), the graph reductions (#694), and the set and number
+            // reductions (#695).
+            bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT", "FengReduction", "SubsetSumToPartitionReduction", "WEIGHTEDCUTReduction", "reduceToEXACTCOVER", "KarpExactCoverToSubsetSum" }.Contains(type.Name);
             Assert.Equal(expected, red.hasBuildSteps());
             Assert.Equal(expected, red.BuildRun(true) != null);
+            // Every shipped reduction records them since #695.
+            if (type.Assembly == typeof(ProblemProvider).Assembly) Assert.True(expected, $"{type.Name} has no construction steps");
             checkedCount++;
         }
         Assert.True(checkedCount > 3);
+        // So one without them is a test-only stand-in, which says no and builds nothing.
+        IReduction without = new TestOnlyReductionWithoutSteps("({1,2},3)");
+        Assert.False(without.hasBuildSteps());
+        Assert.Null(without.BuildRun(true));
     }
 
     [Theory]
@@ -486,12 +493,9 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Endpoint_ForAReductionWithoutBuildSteps_Is400NoBuildSteps() {
-        var (name, type) = ProblemProvider.Reductions
-            .Where(kv => !new[] { Sat, Vc, Is }.Contains(kv.Value.Name))
-            .Select(kv => (kv.Key, kv.Value))
-            .First(t => { try { return Activator.CreateInstance(t.Value) is IReduction r && !r.hasBuildSteps(); } catch { return false; } });
-        string instance = ((IReduction)Activator.CreateInstance(type)!).reductionFrom.defaultInstance;
-        var response = await Post(name, instance);
+        // Every shipped reduction records construction steps since #695, so a test-only one stands in for one that does not.
+        string name = nameof(TestOnlyReductionWithoutSteps);
+        var response = await Post(name, "({1,2},3)");
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         Assert.Equal("no_build_steps", doc.RootElement.GetProperty("error").GetString());

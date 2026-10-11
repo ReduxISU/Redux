@@ -221,7 +221,9 @@ static class PackingFrames {
 
         var items = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var boxes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        bool inProgress = ev is StepEvent.Accept or StepEvent.Backtrack || (incremental && ev == StepEvent.Try);
+        // An incremental run's Try and Reject are part of an answer still being built (a Reject there turns down one piece, as a
+        // backward map does when it leaves an item out), so nothing has missed yet, as the rule above says.
+        bool inProgress = ev is StepEvent.Accept or StepEvent.Backtrack || (incremental && ev is StepEvent.Try or StepEvent.Reject);
         bool placedAny = assign.Any(c => c >= 0);
 
         var picked = GraphSubsetFrames.Picked(ev, incremental);

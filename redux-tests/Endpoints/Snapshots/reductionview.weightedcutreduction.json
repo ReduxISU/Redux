@@ -1,0 +1,790 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "WEIGHTEDCUTReduction",
+  "reductionName": "Weighted Cut Reduction",
+  "solver": "Weighted Cut Brute Force",
+  "source": {
+    "problem": "Partition",
+    "instance": "{1,2,3}",
+    "picture": {
+      "type": "Packing",
+      "payload": {
+        "kind": "packing",
+        "rule": "partition",
+        "items": [
+          {
+            "id": "I1",
+            "label": "1",
+            "size": 1
+          },
+          {
+            "id": "I2",
+            "label": "2",
+            "size": 2
+          },
+          {
+            "id": "I3",
+            "label": "3",
+            "size": 3
+          }
+        ],
+        "containers": [
+          {
+            "id": "C1",
+            "label": "S1",
+            "target": 3
+          },
+          {
+            "id": "C2",
+            "label": "S2",
+            "target": 3
+          }
+        ],
+        "total": 6
+      }
+    }
+  },
+  "target": {
+    "problem": "Weighted Cut",
+    "instance": "(({1,2,3},{({1,2},2),({1,3},3),({2,3},6)}),9)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "1",
+            "label": "1"
+          },
+          {
+            "id": "2",
+            "label": "2"
+          },
+          {
+            "id": "3",
+            "label": "3"
+          }
+        ],
+        "edges": [
+          {
+            "id": "1-2",
+            "a": "1",
+            "b": "2",
+            "weight": 2
+          },
+          {
+            "id": "1-3",
+            "a": "1",
+            "b": "3",
+            "weight": 3
+          },
+          {
+            "id": "2-3",
+            "a": "2",
+            "b": "3",
+            "weight": 6
+          }
+        ],
+        "shape": "cut",
+        "rule": "weightedCut",
+        "k": 9
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "1",
+        "2",
+        "3"
+      ],
+      "edges": [
+        "1-2",
+        "1-3",
+        "2-3"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I1"
+      ],
+      "targetIds": [
+        "1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I2"
+      ],
+      "targetIds": [
+        "2"
+      ]
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "I1",
+        "I2"
+      ],
+      "targetIds": [
+        "1-2"
+      ],
+      "note": "1 * 2 = 2"
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I3"
+      ],
+      "targetIds": [
+        "3"
+      ]
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "I1",
+        "I3"
+      ],
+      "targetIds": [
+        "1-3"
+      ],
+      "note": "1 * 3 = 3"
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "I2",
+        "I3"
+      ],
+      "targetIds": [
+        "2-3"
+      ],
+      "note": "2 * 3 = 6"
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "C1",
+        "C2"
+      ],
+      "targetIds": [],
+      "note": "K = 9"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 1 becomes node 1.",
+      "sourceFocus": [
+        "I1"
+      ],
+      "targetFocus": [
+        "1"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {
+          "1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 1,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 2 becomes node 2, joined to node 1 by an edge weighing the product of their numbers: 1 * 2 = 2.",
+      "sourceFocus": [
+        "I2"
+      ],
+      "targetFocus": [
+        "2",
+        "1-2"
+      ],
+      "source": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {
+          "2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "1-2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 2,
+        "builtEdges": 1
+      },
+      "gadgets": [
+        1,
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 3 becomes node 3, joined to nodes 1, 2 by edges weighing the product of their numbers: 1 * 3 = 3, 2 * 3 = 6.",
+      "sourceFocus": [
+        "I3"
+      ],
+      "targetFocus": [
+        "3",
+        "1-3",
+        "2-3"
+      ],
+      "source": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {
+          "3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "1-3": {
+            "state": "ElementHighlight"
+          },
+          "2-3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 3,
+        "builtEdges": 3
+      },
+      "gadgets": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "K = 6^2 / 4 = 9. A cut between sides whose numbers add up to a and b weighs a * b, which reaches 3 * 3 = 9 only when a = b = 3: an even split.",
+      "ok": true,
+      "sourceFocus": [
+        "C1",
+        "C2"
+      ],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {
+          "C1": {
+            "state": "ElementHighlight"
+          },
+          "C2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 3,
+        "builtEdges": 3
+      },
+      "bound": 9,
+      "gadgets": [
+        6
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Put {1} against {2,3}: the crossing edges weigh 5, not 9.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "1-2": {
+            "state": "ElementHighlight"
+          },
+          "1-3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 0,
+          "2": 1,
+          "3": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Put {2} against {1,3}: the crossing edges weigh 8, not 9.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "1-2": {
+            "state": "ElementHighlight"
+          },
+          "2-3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 1,
+          "2": 0,
+          "3": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Put {3} against {1,2}: the crossing edges weigh 9, as wanted.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "1-3": {
+            "state": "Solution"
+          },
+          "2-3": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 1,
+          "2": 1,
+          "3": 0
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "{3} against {1,2} cuts edges of total weight 9, found after 3 tries.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "1-3": {
+            "state": "Solution"
+          },
+          "2-3": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 1,
+          "2": 1,
+          "3": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node 1 is number 1; it goes to side S1, and every other node\u0027s side is read from its edge to 1.",
+      "sourceFocus": [
+        "I1"
+      ],
+      "targetFocus": [
+        "1"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          0,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 1
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {
+          "1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "1-3": {
+            "state": "Solution"
+          },
+          "2-3": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 1,
+          "2": 1,
+          "3": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Edge {1,2} is not cut, so node 2 is on node 1\u0027s side: 2 goes to side S1.",
+      "sourceFocus": [
+        "I2"
+      ],
+      "targetFocus": [
+        "2"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 3
+          },
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "nodes": {
+          "2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "1-3": {
+            "state": "Solution"
+          },
+          "2-3": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 1,
+          "2": 1,
+          "3": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Edge {1,3} is cut, so node 3 is across from node 1: 3 goes to side S2.",
+      "sourceFocus": [
+        "I3"
+      ],
+      "targetFocus": [
+        "3"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 3
+          },
+          {
+            "size": 3
+          }
+        ]
+      },
+      "target": {
+        "nodes": {
+          "3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "1-3": {
+            "state": "Solution"
+          },
+          "2-3": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 1,
+          "2": 1,
+          "3": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{(1,2),(3)} is a valid Partition answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 3
+          },
+          {
+            "size": 3
+          }
+        ]
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "1-3": {
+            "state": "Solution"
+          },
+          "2-3": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "1": 1,
+          "2": 1,
+          "3": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1049 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "reduceToEXACTCOVER",
+  "reductionName": "Exact Cover Reduction",
+  "solver": "Knuth\u0027s Algorithm X",
+  "source": {
+    "problem": "Hitting Set",
+    "instance": "({1,2,3,4},{{1,3},{2,3,4},{1,4}})",
+    "picture": {
+      "type": "BipartiteGraph",
+      "payload": {
+        "kind": "bipartiteGraph",
+        "layout": "columns",
+        "pickSide": "elements",
+        "rule": "exactlyOnce",
+        "elements": [
+          {
+            "id": "e:1",
+            "label": "1"
+          },
+          {
+            "id": "e:2",
+            "label": "2"
+          },
+          {
+            "id": "e:3",
+            "label": "3"
+          },
+          {
+            "id": "e:4",
+            "label": "4"
+          }
+        ],
+        "sets": [
+          {
+            "id": "S1",
+            "label": "S1",
+            "members": [
+              "e:1",
+              "e:3"
+            ]
+          },
+          {
+            "id": "S2",
+            "label": "S2",
+            "members": [
+              "e:2",
+              "e:3",
+              "e:4"
+            ]
+          },
+          {
+            "id": "S3",
+            "label": "S3",
+            "members": [
+              "e:1",
+              "e:4"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "id": "e:1~S1",
+            "a": "e:1",
+            "b": "S1"
+          },
+          {
+            "id": "e:3~S1",
+            "a": "e:3",
+            "b": "S1"
+          },
+          {
+            "id": "e:2~S2",
+            "a": "e:2",
+            "b": "S2"
+          },
+          {
+            "id": "e:3~S2",
+            "a": "e:3",
+            "b": "S2"
+          },
+          {
+            "id": "e:4~S2",
+            "a": "e:4",
+            "b": "S2"
+          },
+          {
+            "id": "e:1~S3",
+            "a": "e:1",
+            "b": "S3"
+          },
+          {
+            "id": "e:4~S3",
+            "a": "e:4",
+            "b": "S3"
+          }
+        ]
+      }
+    }
+  },
+  "target": {
+    "problem": "Exact Cover",
+    "instance": "({1,2,3},{{1,3},{2},{1,2},{2,3}})",
+    "picture": {
+      "type": "BipartiteGraph",
+      "payload": {
+        "kind": "bipartiteGraph",
+        "layout": "columns",
+        "pickSide": "sets",
+        "rule": "exactlyOnce",
+        "elements": [
+          {
+            "id": "e:1",
+            "label": "1"
+          },
+          {
+            "id": "e:2",
+            "label": "2"
+          },
+          {
+            "id": "e:3",
+            "label": "3"
+          }
+        ],
+        "sets": [
+          {
+            "id": "S1",
+            "label": "S1",
+            "members": [
+              "e:1",
+              "e:3"
+            ]
+          },
+          {
+            "id": "S2",
+            "label": "S2",
+            "members": [
+              "e:2"
+            ]
+          },
+          {
+            "id": "S3",
+            "label": "S3",
+            "members": [
+              "e:1",
+              "e:2"
+            ]
+          },
+          {
+            "id": "S4",
+            "label": "S4",
+            "members": [
+              "e:2",
+              "e:3"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "id": "e:1~S1",
+            "a": "e:1",
+            "b": "S1"
+          },
+          {
+            "id": "e:3~S1",
+            "a": "e:3",
+            "b": "S1"
+          },
+          {
+            "id": "e:2~S2",
+            "a": "e:2",
+            "b": "S2"
+          },
+          {
+            "id": "e:1~S3",
+            "a": "e:1",
+            "b": "S3"
+          },
+          {
+            "id": "e:2~S3",
+            "a": "e:2",
+            "b": "S3"
+          },
+          {
+            "id": "e:2~S4",
+            "a": "e:2",
+            "b": "S4"
+          },
+          {
+            "id": "e:3~S4",
+            "a": "e:3",
+            "b": "S4"
+          }
+        ]
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "e:1",
+        "e:2",
+        "e:3",
+        "S1",
+        "S2",
+        "S3",
+        "S4"
+      ],
+      "edges": [
+        "e:1~S1",
+        "e:3~S1",
+        "e:2~S2",
+        "e:1~S3",
+        "e:2~S3",
+        "e:2~S4",
+        "e:3~S4"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S1"
+      ],
+      "targetIds": [
+        "e:1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S2"
+      ],
+      "targetIds": [
+        "e:2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S3"
+      ],
+      "targetIds": [
+        "e:3"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:1"
+      ],
+      "targetIds": [
+        "S1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:2"
+      ],
+      "targetIds": [
+        "S2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:3"
+      ],
+      "targetIds": [
+        "S3"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:4"
+      ],
+      "targetIds": [
+        "S4"
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Subset S1 {1,3} becomes the element 1: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.",
+      "sourceFocus": [
+        "S1"
+      ],
+      "targetFocus": [
+        "e:1"
+      ],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "e:1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "hits": {},
+        "builtNodes": 1,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Subset S2 {2,3,4} becomes the element 2: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.",
+      "sourceFocus": [
+        "S2"
+      ],
+      "targetFocus": [
+        "e:2"
+      ],
+      "source": {
+        "nodes": {
+          "S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "e:2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "hits": {},
+        "builtNodes": 2,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Subset S3 {1,4} becomes the element 3: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.",
+      "sourceFocus": [
+        "S3"
+      ],
+      "targetFocus": [
+        "e:3"
+      ],
+      "source": {
+        "nodes": {
+          "S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "e:3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "hits": {},
+        "builtNodes": 3,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Item 1 is in subsets S1, S3, so it becomes the set S1 {1,3} of their elements: taking 1 into the hitting set covers each of them once.",
+      "sourceFocus": [
+        "e:1",
+        "e:1~S1",
+        "e:1~S3"
+      ],
+      "targetFocus": [
+        "e:1",
+        "e:3",
+        "S1",
+        "e:1~S1",
+        "e:3~S1"
+      ],
+      "source": {
+        "nodes": {
+          "e:1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:1~S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "e:1": {
+            "state": "ElementHighlight"
+          },
+          "e:3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 4,
+        "builtEdges": 2
+      },
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Item 2 is in subset S2, so it becomes the set S2 {2} of their elements: taking 2 into the hitting set covers each of them once.",
+      "sourceFocus": [
+        "e:2",
+        "e:2~S2"
+      ],
+      "targetFocus": [
+        "e:2",
+        "S2",
+        "e:2~S2"
+      ],
+      "source": {
+        "nodes": {
+          "e:2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:2~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "e:2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:2~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 5,
+        "builtEdges": 3
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Item 3 is in subsets S1, S2, so it becomes the set S3 {1,2} of their elements: taking 3 into the hitting set covers each of them once.",
+      "sourceFocus": [
+        "e:3",
+        "e:3~S1",
+        "e:3~S2"
+      ],
+      "targetFocus": [
+        "e:1",
+        "e:2",
+        "S3",
+        "e:1~S3",
+        "e:2~S3"
+      ],
+      "source": {
+        "nodes": {
+          "e:3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:3~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "S3": {
+            "state": "ElementHighlight"
+          },
+          "e:1": {
+            "state": "ElementHighlight"
+          },
+          "e:2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:1~S3": {
+            "state": "ElementHighlight"
+          },
+          "e:2~S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 6,
+        "builtEdges": 5
+      },
+      "gadgets": [
+        5
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Item 4 is in subsets S2, S3, so it becomes the set S4 {2,3} of their elements: taking 4 into the hitting set covers each of them once.",
+      "sourceFocus": [
+        "e:4",
+        "e:4~S2",
+        "e:4~S3"
+      ],
+      "targetFocus": [
+        "e:2",
+        "e:3",
+        "S4",
+        "e:2~S4",
+        "e:3~S4"
+      ],
+      "source": {
+        "nodes": {
+          "e:4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:4~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:4~S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "S4": {
+            "state": "ElementHighlight"
+          },
+          "e:2": {
+            "state": "ElementHighlight"
+          },
+          "e:3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:2~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 7,
+        "builtEdges": 7
+      },
+      "gadgets": [
+        6
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "Exact Cover asks for sets that cover each of the 3 elements exactly once: items that hit each subset exactly once.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "hits": {},
+        "builtNodes": 7,
+        "builtEdges": 7
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "1 has the fewest options (2). Try S1 {1,3}.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Blocked"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:3": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "2 has the fewest options (1). Try S2 {2}.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Blocked"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "Solution"
+          },
+          "e:2~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S1": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:2": 1,
+          "e:3": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "Every element is covered by exactly one chosen set: {S1,S2}.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Solution"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Blocked"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "Solution"
+          },
+          "e:2~S2": {
+            "state": "Solution"
+          },
+          "e:3~S1": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:2": 1,
+          "e:3": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Set S2 {2} is in the exact cover. It is item 2\u0027s set, the subsets that hold 2, so 2 is in the hitting set.",
+      "sourceFocus": [
+        "e:2"
+      ],
+      "targetFocus": [
+        "S2"
+      ],
+      "source": {
+        "nodes": {
+          "S2": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "ElementHighlight"
+          },
+          "e:3": {
+            "state": "Blocked"
+          },
+          "e:4": {
+            "state": "Blocked"
+          }
+        },
+        "edges": {
+          "e:2~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "S2": 1
+        }
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Blocked"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "Solution"
+          },
+          "e:2~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S1": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:2": 1,
+          "e:3": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Set S1 {1,3} is in the exact cover. It is item 1\u0027s set, the subsets that hold 1, so 1 is in the hitting set.",
+      "sourceFocus": [
+        "e:1"
+      ],
+      "targetFocus": [
+        "S1"
+      ],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "Covered"
+          },
+          "S2": {
+            "state": "Covered"
+          },
+          "S3": {
+            "state": "Covered"
+          },
+          "e:1": {
+            "state": "ElementHighlight"
+          },
+          "e:2": {
+            "state": "Solution"
+          },
+          "e:3": {
+            "state": "Blocked"
+          },
+          "e:4": {
+            "state": "Blocked"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:1~S3": {
+            "state": "ElementHighlight"
+          },
+          "e:2~S2": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "S1": 1,
+          "S2": 1,
+          "S3": 1
+        }
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "S2": {
+            "state": "Solution"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Blocked"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:2~S2": {
+            "state": "Solution"
+          },
+          "e:3~S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:2": 1,
+          "e:3": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{2,1} is a valid Hitting Set answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "Covered"
+          },
+          "S2": {
+            "state": "Covered"
+          },
+          "S3": {
+            "state": "Covered"
+          },
+          "e:1": {
+            "state": "Solution"
+          },
+          "e:2": {
+            "state": "Solution"
+          },
+          "e:3": {
+            "state": "Blocked"
+          },
+          "e:4": {
+            "state": "Blocked"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "Solution"
+          },
+          "e:1~S3": {
+            "state": "Solution"
+          },
+          "e:2~S2": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "S1": 1,
+          "S2": 1,
+          "S3": 1
+        }
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Solution"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Blocked"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "Solution"
+          },
+          "e:2~S2": {
+            "state": "Solution"
+          },
+          "e:3~S1": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:2": 1,
+          "e:3": 1
+        }
+      }
+    }
+  ]
+}

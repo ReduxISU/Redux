@@ -647,35 +647,37 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("nosuchreduction", error.GetProperty("received").GetString());
     }
 
-    // A reduction without construction steps or a backward map cannot be shown. Pick one of each from the registry so the
-    // test keeps its meaning as reductions gain them.
+    // A reduction without construction steps or a backward map cannot be shown. The shipped reductions, by what they have
+    // (the test-only ones have no default constructor, so they are left out here).
     private static IEnumerable<string> ReductionsWhere(Func<IReduction, bool> keep) =>
         ProblemProvider.Reductions.Values
             .Select(t => { try { return (IReduction?)Activator.CreateInstance(t); } catch { return null; } })
             .Where(r => r != null && keep(r!)).Select(r => r!.GetType().Name);
 
+    // Every shipped reduction has both since #695 (checked below), so test-only reductions stand in for one without construction
+    // steps and one with steps but no backward map (TestOnlyReductions.cs).
     [Fact]
     public async Task ReductionWithoutBuildSteps_Is400_NoBuildSteps() {
-        string name = ReductionsWhere(r => !r.hasBuildSteps()).First();
-        var instance = ((IReduction)Activator.CreateInstance(ProblemProvider.Reductions[name.ToLower()])!).reductionFrom.defaultInstance;
-        var error = await Error(name, instance);
+        Assert.Empty(ReductionsWhere(r => !r.hasBuildSteps()));
+        string name = nameof(TestOnlyReductionWithoutSteps);
+        var error = await Error(name, "({1,2},3)");
         Assert.Equal("no_build_steps", error.GetProperty("error").GetString());
         Assert.Equal(name, error.GetProperty("reduction").GetString());
     }
 
     [Fact]
     public async Task ReductionWithBuildStepsButNoBackwardMap_Is400_NoBackwardMap() {
-        // None of the shipped reductions has build steps without a backward map yet, so only the order of the checks is pinned:
-        // a reduction missing both says what it is missing first (the build), and the ones that have both answer 200: the three
-        // of #692, the reductions out of 3SAT and SAT (#693) and the graph reductions (#694).
+        // Every shipped reduction has both: the three of #692, the reductions out of 3SAT and SAT (#693), the graph reductions
+        // (#694) and the set and number reductions (#695). A test-only reduction with steps but no backward map gets the 400.
         var both = ReductionsWhere(r => r.hasBuildSteps() && r.hasBackwardMap()).ToList();
-        Assert.Equal(new[] { Is, Sat, Vc, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT" }.Select(n => n.ToLower()).Order(),
+        Assert.Equal(new[] { Is, Sat, Vc, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT", "FengReduction", "SubsetSumToPartitionReduction", "WEIGHTEDCUTReduction", "reduceToEXACTCOVER", "KarpExactCoverToSubsetSum" }.Select(n => n.ToLower()).Order(),
             both.Select(n => n.ToLower()).Order());
-        var missing = ReductionsWhere(r => r.hasBuildSteps() && !r.hasBackwardMap()).ToList();
-        foreach (string name in missing) {
-            var instance = ((IReduction)Activator.CreateInstance(ProblemProvider.Reductions[name.ToLower()])!).reductionFrom.defaultInstance;
-            Assert.Equal("no_backward_map", (await Error(name, instance)).GetProperty("error").GetString());
-        }
+        Assert.Empty(ReductionsWhere(r => r.hasBuildSteps() && !r.hasBackwardMap()));
+        var error = await Error(nameof(TestOnlyReductionWithStepsButNoMap), "({1,2},3)");
+        Assert.Equal("no_backward_map", error.GetProperty("error").GetString());
+        Assert.Equal(nameof(TestOnlyReductionWithStepsButNoMap), error.GetProperty("reduction").GetString());
+        // A reduction missing both says what it is missing first: the build.
+        Assert.Equal("no_build_steps", (await Error(nameof(TestOnlyReductionWithoutSteps), "({1,2},3)")).GetProperty("error").GetString());
     }
 
     [Theory]
