@@ -45,6 +45,17 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
         return combinations;
     }
 
+    /// <summary>
+    /// The orders of <paramref name="x"/> jobs, one at a time, in the same order as <see cref="GenerateCombinations"/>
+    /// (lexicographic, starting from 0, 1, ..., x - 1), without building them all first (#802). Each order is a new list.
+    /// </summary>
+    public static IEnumerable<List<int>> Orders(int x) {
+        List<int> current = Enumerable.Range(0, x).ToList();
+        do {
+            yield return new List<int>(current);
+        } while (GetNextCombination(current));
+    }
+
     private static bool GetNextCombination(List<int> combination) {
         int x = combination.Count;
         int i = x - 2;
@@ -79,7 +90,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
         return certificate.TrimEnd(',') + ")";
     }
     public string solve(JOBSEQ jobseq) {
-        foreach (List<int> permutation in GenerateCombinations(jobseq.T.Count())) {
+        foreach (List<int> permutation in Orders(jobseq.T.Count())) {
             if (jobseq.defaultVerifier.verify(jobseq, permutation)) {
                 return permToCertificate(permutation);
             }
