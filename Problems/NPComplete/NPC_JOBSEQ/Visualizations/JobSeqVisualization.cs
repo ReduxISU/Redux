@@ -10,8 +10,8 @@ namespace API.Problems.NPComplete.NPC_JOBSEQ.Visualizations;
 /// <summary>
 /// Job Sequencing as the Schedule picture (format=frames): every job as a bar on one time axis with its deadline, the late
 /// ones in red, order by order as the selected solver tries them. The list format is a table with one row per job: its
-/// time, deadline and penalty and, once solved, when it runs and whether it is late. The problem's default visualization
-/// is still <c>DummyVisualization</c>.
+/// time, deadline and penalty and, once solved, when it runs and whether it is late. It is the problem's default
+/// visualization.
 /// </summary>
 class JobSeqVisualization : IVisualization<JOBSEQ, API_TableJSON>, IJobScheduleVisualization<JOBSEQ> {
     public string visualizationName { get; } = "Job Sequencing Schedule Visualization";

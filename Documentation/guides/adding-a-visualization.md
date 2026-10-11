@@ -117,7 +117,7 @@ The solvers and their steps:
 
 The pump solvers' table works in whole gallons, so with fractional flows or demands their schedule can leave the tank's limits (#738). The picture simulates exactly, so such a schedule shows the hours it runs dry as `Rejected` and its `Done` has `ok: false`, as the verifier says.
 
-`PumpSchedulingCMVisualization` and `PumpSchedulingEMVisualization` got the picture; their list format is unchanged. Job Sequencing has a new `JobSeqVisualization`, whose list format is a table of the jobs and when they run (`DynamicTable`). Job Sequencing's default visualization is still `DummyVisualization`, so its /info is unchanged.
+`PumpSchedulingCMVisualization` and `PumpSchedulingEMVisualization` got the picture; their list format is unchanged. Job Sequencing has a new `JobSeqVisualization`, whose list format is a table of the jobs and when they run (`DynamicTable`). It is Job Sequencing's default visualization.
 
 To add a scheduling problem or solver:
 

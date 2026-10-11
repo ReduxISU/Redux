@@ -13,6 +13,8 @@ namespace redux_tests;
 //   - the list format of both pump visualizations (Snapshots/schedule_list_snapshots.tsv, captured before the picture existed),
 //   - /info for the three problems, their solvers, their verifiers and the pump visualizations (info.<name>.json, captured the
 //     same way).
+// The deliberate exception is Job Sequencing's default visualization, which moved off DummyVisualization to
+// JobSeqVisualization: see the "rewire" test.
 public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -64,7 +66,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     public static TheoryData<string> TouchedInterfaces => new([
-        "jobseq", "jobseqbruteforce", "jobseqverifier",
+        "jobseqbruteforce", "jobseqverifier",
         "pumpschedulingcm", "pumpschedulingcmsolver", "pumpschedulingcmverifier", "pumpschedulingcmvisualization",
         "pumpschedulingem", "pumpschedulingemsolver", "pumpschedulingemverifier", "pumpschedulingemvisualization",
     ]);
@@ -82,6 +84,25 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
+    }
+
+    // Job Sequencing's default visualization moved off DummyVisualization to JobSeqVisualization. Its /info snapshot was
+    // retaken after the rewire; the diff against the pre-change capture is only that nested object. No reduction goes into
+    // or out of Job Sequencing, so nothing else embeds it.
+    [Fact]
+    public async Task Rewire_JobSeqInfo_ShowsJobSeqVisualization_AndNothingElse() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=jobseq", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(ReadSnapshot("info.jobseq.json"), body.ReplaceLineEndings("\n"));
+        Assert.DoesNotContain("DummyVisualization", body);
+        Assert.DoesNotContain("\"Schedule\"", body);
+        var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal("Job Sequencing Schedule Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
+        Assert.Equal("Job Sequencing Brute Force", vis.GetProperty("solver").GetProperty("solverName").GetString());
+        var own = await _client.GetAsync("/ProblemProvider/info?interface=jobseqvisualization", TestContext.Current.CancellationToken);
+        Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(vis.GetRawText()));
     }
 
     [Theory]
