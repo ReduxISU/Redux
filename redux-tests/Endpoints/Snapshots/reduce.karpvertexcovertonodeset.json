@@ -1,0 +1,399 @@
+{
+  "reductionName": "Karp\u0027s Node Set Reduction",
+  "reductionDefinition": "Karp\u0027s Reduction from Vertex Cover to Feedback Node Set",
+  "source": "This reduction was found by the Algorithms Seminar at the Cornell University Computer Science Department. Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/ReduceTo/NPC_NODESET/KarpVertexCoverToNodeSet.cs",
+  "contributors": [
+    "Andrija Sevaljevic"
+  ],
+  "visualization": {
+    "visualizationName": "Node Set Visualization",
+    "visualizationDefinition": "This is a default visualization for Node Set",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_NODESET/Visualizations/NodeSetDefaultVisualization.cs",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Node Set Brute Force",
+      "solverDefinition": "This is a brute force solver for the Node Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_NODESET/Solvers/NodeSetBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-b"
+      ],
+      "reductionToIds": [
+        "a\u003Eb",
+        "b\u003Ea"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "a\u003Eb",
+        "b\u003Ea"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-c"
+      ],
+      "reductionToIds": [
+        "a\u003Ec",
+        "c\u003Ea"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-c"
+      ],
+      "targetIds": [
+        "a\u003Ec",
+        "c\u003Ea"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-e"
+      ],
+      "reductionToIds": [
+        "a\u003Ee",
+        "e\u003Ea"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-e"
+      ],
+      "targetIds": [
+        "a\u003Ee",
+        "e\u003Ea"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b-e"
+      ],
+      "reductionToIds": [
+        "b\u003Ee",
+        "e\u003Eb"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-e"
+      ],
+      "targetIds": [
+        "b\u003Ee",
+        "e\u003Eb"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c-d"
+      ],
+      "reductionToIds": [
+        "c\u003Ed",
+        "d\u003Ec"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c-d"
+      ],
+      "targetIds": [
+        "c\u003Ed",
+        "d\u003Ec"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Feedback Node Set",
+    "formalDefinition": "Feedback Node Set = {\u003CG,k\u003E | G is a directed graph that can be rendered acyclic by removal of at most k nodes}",
+    "problemDefinition": "Feedback Node Set is solved by removing at most k nodes so that no cycles remain.",
+    "inputDescription": "G, a directed graph, and k, the maximum number of nodes to remove",
+    "outputDescription": "True or False, whether removing at most k nodes can make G acyclic",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_NODESET/NODESET_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)",
+    "instance": "(({a,b,c,d,e},{(a,b),(b,a),(a,c),(c,a),(a,e),(e,a),(b,e),(e,b),(c,d),(d,c)}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N cross N, K is int} Example: (({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)",
+    "certificateFormat": "Format: D subset N | at most K nodes, removing D (and incident edges) leaves the graph acyclic Example: {3}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Node Set Brute Force",
+      "solverDefinition": "This is a brute force solver for the Node Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_NODESET/Solvers/NodeSetBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Feedback Node Set Verifier",
+      "verifierDefinition": "This is a verifier for the Node Set problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_NODESET/Verifiers/NodeSetVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Node Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Node Set",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_NODESET/Visualizations/NodeSetDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Node Set Brute Force",
+        "solverDefinition": "This is a brute force solver for the Node Set problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_NODESET/Solvers/NodeSetBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Linear",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}

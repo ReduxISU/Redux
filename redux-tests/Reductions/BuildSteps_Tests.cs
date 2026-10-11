@@ -108,10 +108,11 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         ConstructionRun run = red.BuildRun(true)!;
         var announced = run.Steps.SelectMany(s => s.Partial.Gadgets).ToList();
         Assert.Equal(Enumerable.Range(0, run.Gadgets.Count), announced.Distinct().OrderBy(i => i));
-        // And the step's focus holds the target ids of the gadgets it announces.
+        // And the step's focus, or the edges it adds (an edge rule's targets, #694), holds the target ids of the gadgets it announces.
         foreach (var step in run.Steps.Where(s => s.Partial.Gadgets.Length > 0)) {
             var announcedTargets = step.Partial.Gadgets.SelectMany(i => run.Gadgets[i].targetIds);
-            Assert.All(announcedTargets, id => Assert.Contains(id, step.Focus));
+            var shown = step.Focus.Concat(step.Partial.Edges.Select(e => e.Id)).ToHashSet();
+            Assert.All(announcedTargets, id => Assert.Contains(id, shown));
         }
     }
 
@@ -414,8 +415,8 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         foreach (var (name, type) in ProblemProvider.Reductions) {
             IReduction red;
             try { red = (IReduction)Activator.CreateInstance(type)!; } catch { continue; }
-            // The three of #691, and the reductions out of 3SAT and SAT (#693).
-            bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3" }.Contains(type.Name);
+            // The three of #691, the reductions out of 3SAT and SAT (#693), and the graph reductions (#694).
+            bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT" }.Contains(type.Name);
             Assert.Equal(expected, red.hasBuildSteps());
             Assert.Equal(expected, red.BuildRun(true) != null);
             checkedCount++;
@@ -488,7 +489,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         var (name, type) = ProblemProvider.Reductions
             .Where(kv => !new[] { Sat, Vc, Is }.Contains(kv.Value.Name))
             .Select(kv => (kv.Key, kv.Value))
-            .First(t => { try { return Activator.CreateInstance(t.Value) is IReduction; } catch { return false; } });
+            .First(t => { try { return Activator.CreateInstance(t.Value) is IReduction r && !r.hasBuildSteps(); } catch { return false; } });
         string instance = ((IReduction)Activator.CreateInstance(type)!).reductionFrom.defaultInstance;
         var response = await Post(name, instance);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

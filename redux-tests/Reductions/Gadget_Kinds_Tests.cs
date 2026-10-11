@@ -99,16 +99,22 @@ public class Gadget_Kinds_Tests {
     private static readonly Dictionary<string, string> ExpectedKinds = new() {
         // The reductions out of 3SAT and SAT (#693) on their default formula.
         ["GareyJohnson"] = "Element x9, Group x3, Palette x1, OrGadget x3",
-        ["GraphColoringToCliqueCover"] = "Element x9",
+        ["GraphColoringToCliqueCover"] = "Element x9, EdgeRule x6, Bound x1",
         ["KarpIntProgStandard"] = "Element x12, OrGadget x3, Bound x3",
         ["KarpReduceGRAPHCOLORING"] = "Element x3, Palette x1, OrGadget x3, Bound x1",
         // 11 for the literals and the padding, then (#693) one per variable and one per new variable of a split.
         ["KarpSATToSAT3"] = "Element x17, Group x3",
-        ["KarpVertexCoverToNodeSet"] = "Element x5",
-        ["LawlerKarp"] = "Element x5",
-        ["reduceToCLIQUE"] = "Element x7",
-        ["sipserReductionVertexCover"] = "Element x6",
+        ["KarpVertexCoverToNodeSet"] = "Element x10, Bound x1",
+        ["LawlerKarp"] = "Element x10, Bound x1",
+        // #694: an edge rule per node that gets complement edges, and the bound.
+        ["reduceToCLIQUE"] = "Element x7, EdgeRule x6, Bound x1",
+        ["sipserReductionVertexCover"] = "Element x6, EdgeRule x3, Bound x1",
         ["SipserReduceToCliqueStandard"] = "Element x9, Group x3",
+        ["SipserReduceToSAT3"] = "Element x9, Group x3",
+        ["KarpVertexCoverToSetCover"] = "Element x10, Bound x1",
+        ["KarpDirectedHamiltonianToUndirectedHamiltonian"] = "Element x11",
+        ["KarpGraphColorToExactCover"] = "Group x21",
+        ["KarpReduceSAT"] = "Element x27, Group x21",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>

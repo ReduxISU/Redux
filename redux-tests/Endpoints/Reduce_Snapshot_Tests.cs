@@ -6,7 +6,7 @@ using Xunit;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// Pins /reduce and /info for the reductions that gain a backward map (#690), captured BEFORE the
+// Pins /reduce and /info for the reductions that gain a backward map (#690, and the graph reductions of #694), captured BEFORE the
 // change: adding mapSolutionBack to IReduction must not leak into either response. /reduce serializes
 // through the IReduction interface, so a new interface property (even a default one) would show up here.
 //   reduce.<reduction>.json / .instance.txt   /reduce response for the source problem's default instance
@@ -33,13 +33,22 @@ public class Reduce_Snapshot_Tests : IClassFixture<AppFactory> {
 
     private static string DefaultInstanceOf(string reduction) {
         var type = ProblemProvider.Reductions[reduction.ToLower()];
-        return ((API.Interfaces.IReduction)Activator.CreateInstance(type)!).reductionFrom.defaultInstance;
+        // The instance the default constructor reduces: the source's default, except for SipserReduceToSAT3, whose default
+        // is the Sipser-formatted clique graph of 3SAT's default formula (#767).
+        return ((API.Interfaces.IReduction)Activator.CreateInstance(type)!).reductionFrom.instance;
     }
 
     [Theory]
     [InlineData("SipserReduceToCliqueStandard")]
     [InlineData("sipserReductionVertexCover")]
     [InlineData("reduceToCLIQUE")]
+    // The graph reductions, before the Reduction View (#694).
+    [InlineData("SipserReduceToSAT3")]
+    [InlineData("LawlerKarp")]
+    [InlineData("KarpVertexCoverToNodeSet")]
+    [InlineData("KarpDirectedHamiltonianToUndirectedHamiltonian")]
+    [InlineData("GraphColoringToCliqueCover")]
+    [InlineData("KarpGraphColorToExactCover")]
     public async Task Reduce_DefaultInstance_MatchesPreChangeSnapshot(string reduction) {
         string instance = DefaultInstanceOf(reduction);
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
@@ -60,6 +69,15 @@ public class Reduce_Snapshot_Tests : IClassFixture<AppFactory> {
     [InlineData("SipserReduceToCliqueStandard")]
     [InlineData("sipserReductionVertexCover")]
     [InlineData("reduceToCLIQUE")]
+    // The graph reductions, before the Reduction View (#694).
+    [InlineData("SipserReduceToSAT3")]
+    [InlineData("LawlerKarp")]
+    [InlineData("KarpVertexCoverToNodeSet")]
+    [InlineData("KarpDirectedHamiltonianToUndirectedHamiltonian")]
+    [InlineData("GraphColoringToCliqueCover")]
+    [InlineData("KarpGraphColorToExactCover")]
+    [InlineData("KarpVertexCoverToSetCover")]
+    [InlineData("KarpReduceSAT")]
     public async Task Info_OfReduction_MatchesPreChangeSnapshot(string reduction) {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={reduction}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

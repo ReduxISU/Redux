@@ -1,0 +1,670 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "GraphColoringToCliqueCover",
+  "reductionName": "Clique Cover Reduction",
+  "solver": "Clique Cover Brute Force",
+  "source": {
+    "problem": "Graph Coloring",
+    "instance": "(({a,b,c},{{a,b},{b,c}}),2)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-b",
+            "a": "a",
+            "b": "b"
+          },
+          {
+            "id": "b-c",
+            "a": "b",
+            "b": "c"
+          }
+        ],
+        "shape": "groups",
+        "rule": "coloring",
+        "k": 2
+      }
+    }
+  },
+  "target": {
+    "problem": "Clique Cover",
+    "instance": "(({a,b,c},{{a,c},{c,a}}),2)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-c",
+            "a": "a",
+            "b": "c"
+          }
+        ],
+        "shape": "groups",
+        "rule": "cliqueCover",
+        "k": 2
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "a",
+        "b",
+        "c"
+      ],
+      "edges": [
+        "a-c"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-c"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 2"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Copy every node of the graph (a, b, c) into the new graph, with the same names. Its edges will be the pairs the graph is missing.",
+      "sourceFocus": [
+        "a",
+        "b",
+        "c"
+      ],
+      "targetFocus": [
+        "a",
+        "b",
+        "c"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 3,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node a has no edge to c in the graph, so it gets that edge in the complement.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "a",
+        "c",
+        "a-c"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 3,
+        "builtEdges": 1
+      },
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Reject",
+      "caption": "Node b is already joined to every node it has not met yet, so it gets no new edges.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "b"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 3,
+        "builtEdges": 1
+      }
+    },
+    {
+      "phase": "build",
+      "event": "Reject",
+      "caption": "Node c is the last node: the steps above already gave it its edges in the complement.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 3,
+        "builtEdges": 1
+      }
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "K stays 2. A color class has no edge in the graph, so its nodes are a clique in the complement: the graph can be colored with 2 colors exactly when the complement can be covered by 2 cliques.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {},
+        "builtNodes": 3,
+        "builtEdges": 1
+      },
+      "bound": 2,
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {a,b,c},{}: a and b are in one group but aren\u0027t joined.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "a",
+        "b"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "Rejected"
+          },
+          "b": {
+            "state": "Rejected"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [
+          {
+            "a": "a",
+            "b": "b",
+            "state": "Rejected"
+          },
+          {
+            "a": "b",
+            "b": "c",
+            "state": "Rejected"
+          }
+        ],
+        "groups": {
+          "a": 0,
+          "b": 0,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {b,c},{a}: b and c are in one group but aren\u0027t joined.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "b",
+        "c"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "Rejected"
+          },
+          "c": {
+            "state": "Rejected"
+          }
+        },
+        "edges": {},
+        "phantoms": [
+          {
+            "a": "b",
+            "b": "c",
+            "state": "Rejected"
+          }
+        ],
+        "groups": {
+          "a": 1,
+          "b": 0,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {b,c},{}: b and c are in one group but aren\u0027t joined.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "b",
+        "c"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "Rejected"
+          },
+          "c": {
+            "state": "Rejected"
+          }
+        },
+        "edges": {},
+        "phantoms": [
+          {
+            "a": "b",
+            "b": "c",
+            "state": "Rejected"
+          }
+        ],
+        "groups": {
+          "b": 0,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try {a,c},{b}. Every group is a clique.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "{a,c},{b} covers the nodes with cliques, found after 4 tries.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node a is in clique 1 of the complement, so it takes color 1.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "a"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 0
+        }
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node b is in clique 2 of the complement, so it takes color 2.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "b"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1
+        }
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node c is in clique 1 of the complement, so it takes color 1.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      },
+      "target": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{{a,c},{b}} is a valid Graph Coloring answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      }
+    }
+  ]
+}

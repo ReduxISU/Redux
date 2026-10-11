@@ -159,7 +159,8 @@ sealed record LayeredFrame(
 /// <item><b>Removed set</b> (Feedback Arc Set, edges; Feedback Node Set, nodes): what the candidate removes is
 /// <c>ElementHighlight</c> while it is only tried (<see cref="GraphSubsetFrames.Picked"/>) and <c>Solution</c> in an Accept
 /// or the answer (the frontend draws a removed edge dashed); edges that go with a removed node are <c>Untraveled</c>; a cycle
-/// that survives the removal is <c>Rejected</c>.</item>
+/// that survives the removal is <c>Rejected</c>, except in an Accept (a removal accepted leaves none, and the Reduction View
+/// draws a pane at rest as an Accept).</item>
 /// <item><b>Groups</b> (Strongly Connected Components): <c>groups</c> colors the nodes, so a node in a component has no
 /// state of its own (as in the Graph picture's groups shape); a node the first pass has visited but no component holds yet is
 /// <c>Covered</c>; an edge inside a component is <c>Solution</c>.</item>
@@ -215,6 +216,9 @@ static class LayeredFrames {
 
     /// <summary>The id of the edge between two nodes: <see cref="ArcId"/> when directed, else <see cref="GraphSubsetFrames.EdgeId"/>.</summary>
     public static string EdgeId(bool directed, string from, string to) => directed ? ArcId(from, to) : GraphSubsetFrames.EdgeId(from, to);
+
+    /// <summary>The arc from <paramref name="from"/> to <paramref name="to"/> as a construction step adds it: its id and its two ends' ids, tail first.</summary>
+    public static BuildEdge BuildArc(string from, string to) => new(ArcId(from, to), NodeId(from), NodeId(to));
 
     // ---- The model the payload and the frames read ----
 
@@ -445,10 +449,10 @@ static class LayeredFrames {
                 frame = OrderFrame(m, tour.Order.Where(known.Contains).Distinct(StringComparer.Ordinal).ToList(), ev, ok, nodes, edges);
                 break;
             case EdgeSet removed:
-                frame = ArcSetFrame(m, removed, GraphSubsetFrames.Picked(ev, incremental), edges);
+                frame = ArcSetFrame(m, removed, ev, GraphSubsetFrames.Picked(ev, incremental), edges);
                 break;
             case NodeSet removed:
-                frame = NodeSetFrame(m, removed, GraphSubsetFrames.Picked(ev, incremental), known, nodes, edges);
+                frame = NodeSetFrame(m, removed, ev, GraphSubsetFrames.Picked(ev, incremental), known, nodes, edges);
                 break;
             case Components components:
                 frame = GroupsFrame(m, components, known, nodes, edges);
@@ -481,19 +485,21 @@ static class LayeredFrames {
     private static LayeredFrame Blank(StepEvent ev, string caption, string[] focus) =>
         new(ev, caption, focus, new SortedDictionary<string, StateRef>(StringComparer.Ordinal), new SortedDictionary<string, StateRef>(StringComparer.Ordinal));
 
-    private static LayeredFrame ArcSetFrame(Model m, EdgeSet removed, PictureState picked, Dictionary<string, PictureState> edges) {
+    // A cycle that survives the removal is marked unless the step is an Accept: a solver accepts only a removal that leaves no
+    // cycle, and the Reduction View draws a pane at rest (nothing removed, nothing judged) as an Accept (#694).
+    private static LayeredFrame ArcSetFrame(Model m, EdgeSet removed, StepEvent ev, PictureState picked, Dictionary<string, PictureState> edges) {
         var gone = new HashSet<string>(removed.Edges.Where(m.EdgeById.ContainsKey), StringComparer.Ordinal);
         foreach (var id in gone) GraphSubsetFrames.Raise(edges, id, picked);
-        if (m.FindCycle(gone, new HashSet<string>()) is { } ring)
+        if (ev != StepEvent.Accept && m.FindCycle(gone, new HashSet<string>()) is { } ring)
             foreach (var id in ring) GraphSubsetFrames.Raise(edges, id, PictureState.Rejected);
         return Blank(StepEvent.Try, "", []);
     }
 
-    private static LayeredFrame NodeSetFrame(Model m, NodeSet removed, PictureState picked, HashSet<string> known,
+    private static LayeredFrame NodeSetFrame(Model m, NodeSet removed, StepEvent ev, PictureState picked, HashSet<string> known,
         Dictionary<string, PictureState> nodes, Dictionary<string, PictureState> edges) {
         var gone = new HashSet<string>(removed.Nodes.Where(known.Contains), StringComparer.Ordinal);
         foreach (var n in gone) GraphSubsetFrames.Raise(nodes, NodeId(n), picked);
-        if (m.FindCycle(new HashSet<string>(), gone) is { } ring)
+        if (ev != StepEvent.Accept && m.FindCycle(new HashSet<string>(), gone) is { } ring)
             foreach (var id in ring) GraphSubsetFrames.Raise(edges, id, PictureState.Rejected);
         foreach (var e in m.Edges)
             if (gone.Contains(e.A) || gone.Contains(e.B)) GraphSubsetFrames.Raise(edges, e.Id, PictureState.Untraveled);

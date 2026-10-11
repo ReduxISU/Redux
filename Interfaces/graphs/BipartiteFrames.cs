@@ -117,6 +117,13 @@ static class BipartiteFrames {
     public static string EdgeId(string elementId, string setId) => $"{elementId}~{setId}";
 
     /// <summary>
+    /// The membership of element <paramref name="element"/> (its name) in set <paramref name="setIndex"/> (0-based) as a
+    /// construction step adds it: its id, the element's id and the set's id.
+    /// </summary>
+    public static BuildEdge BuildMembership(string element, int setIndex) =>
+        new(EdgeId(ElementId(element), SetId(setIndex)), ElementId(element), SetId(setIndex));
+
+    /// <summary>
     /// An element name as it is written inside an id: a backslash before every <c>\</c>, <c>~</c> and <c>:</c> (the
     /// separators of this picture's ids). Ordinary names (<c>1</c>, <c>a</c>) are unchanged. The same rule as
     /// <see cref="GraphSubsetFrames.EscapeName"/>, over this picture's separators.

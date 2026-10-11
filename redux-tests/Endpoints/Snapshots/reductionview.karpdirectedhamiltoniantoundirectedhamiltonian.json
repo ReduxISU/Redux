@@ -1,0 +1,1632 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "KarpDirectedHamiltonianToUndirectedHamiltonian",
+  "reductionName": "Karp\u0027s Hamiltonian Reduction",
+  "solver": "Hamiltonian Brute Force",
+  "source": {
+    "problem": "Directed Hamiltonian Cycle",
+    "instance": "({1,2,3},{(1,2),(2,3),(3,1)})",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "directed",
+        "layout": "circle",
+        "nodes": [
+          {
+            "id": "1",
+            "label": "1"
+          },
+          {
+            "id": "2",
+            "label": "2"
+          },
+          {
+            "id": "3",
+            "label": "3"
+          }
+        ],
+        "edges": [
+          {
+            "id": "1\u003E2",
+            "a": "1",
+            "b": "2"
+          },
+          {
+            "id": "2\u003E3",
+            "a": "2",
+            "b": "3"
+          },
+          {
+            "id": "3\u003E1",
+            "a": "3",
+            "b": "1"
+          }
+        ],
+        "shape": "tour",
+        "rule": "hamiltonianCycle"
+      }
+    }
+  },
+  "target": {
+    "problem": "Hamiltonian Cycle",
+    "instance": "({11,12,13,21,22,23,31,32,33},{{11,12},{12,13},{21,22},{22,23},{31,32},{32,33},{13,21},{23,31},{33,11}})",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "circle",
+        "nodes": [
+          {
+            "id": "11",
+            "label": "11"
+          },
+          {
+            "id": "12",
+            "label": "12"
+          },
+          {
+            "id": "13",
+            "label": "13"
+          },
+          {
+            "id": "21",
+            "label": "21"
+          },
+          {
+            "id": "22",
+            "label": "22"
+          },
+          {
+            "id": "23",
+            "label": "23"
+          },
+          {
+            "id": "31",
+            "label": "31"
+          },
+          {
+            "id": "32",
+            "label": "32"
+          },
+          {
+            "id": "33",
+            "label": "33"
+          }
+        ],
+        "edges": [
+          {
+            "id": "11-12",
+            "a": "11",
+            "b": "12"
+          },
+          {
+            "id": "12-13",
+            "a": "12",
+            "b": "13"
+          },
+          {
+            "id": "21-22",
+            "a": "21",
+            "b": "22"
+          },
+          {
+            "id": "22-23",
+            "a": "22",
+            "b": "23"
+          },
+          {
+            "id": "31-32",
+            "a": "31",
+            "b": "32"
+          },
+          {
+            "id": "32-33",
+            "a": "32",
+            "b": "33"
+          },
+          {
+            "id": "13-21",
+            "a": "13",
+            "b": "21"
+          },
+          {
+            "id": "23-31",
+            "a": "23",
+            "b": "31"
+          },
+          {
+            "id": "11-33",
+            "a": "11",
+            "b": "33"
+          }
+        ],
+        "shape": "tour",
+        "rule": "hamiltonianCycle"
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "11",
+        "12",
+        "13",
+        "21",
+        "22",
+        "23",
+        "31",
+        "32",
+        "33"
+      ],
+      "edges": [
+        "11-12",
+        "12-13",
+        "21-22",
+        "22-23",
+        "31-32",
+        "32-33",
+        "13-21",
+        "23-31",
+        "11-33"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1"
+      ],
+      "targetIds": [
+        "11",
+        "12",
+        "13",
+        "11-12",
+        "12-13"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2"
+      ],
+      "targetIds": [
+        "21",
+        "22",
+        "23",
+        "21-22",
+        "22-23"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3"
+      ],
+      "targetIds": [
+        "31",
+        "32",
+        "33",
+        "31-32",
+        "32-33"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1\u003E2"
+      ],
+      "targetIds": [
+        "13-21"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2\u003E3"
+      ],
+      "targetIds": [
+        "23-31"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3\u003E1"
+      ],
+      "targetIds": [
+        "11-33"
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node 1 becomes the path 11 - 12 - 13. 12 has no other edge, so a tour that reaches 11 goes on through 12 to 13: 11 is where arcs into 1 arrive and 13 where arcs out of 1 leave.",
+      "sourceFocus": [
+        "1"
+      ],
+      "targetFocus": [
+        "11",
+        "12",
+        "13",
+        "11-12",
+        "12-13"
+      ],
+      "source": {
+        "nodes": {
+          "1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "ElementHighlight"
+          },
+          "12": {
+            "state": "ElementHighlight"
+          },
+          "13": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "ElementHighlight"
+          },
+          "12-13": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [],
+        "builtNodes": 3,
+        "builtEdges": 2
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node 2 becomes the path 21 - 22 - 23. 22 has no other edge, so a tour that reaches 21 goes on through 22 to 23: 21 is where arcs into 2 arrive and 23 where arcs out of 2 leave.",
+      "sourceFocus": [
+        "2"
+      ],
+      "targetFocus": [
+        "21",
+        "22",
+        "23",
+        "21-22",
+        "22-23"
+      ],
+      "source": {
+        "nodes": {
+          "2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "21": {
+            "state": "ElementHighlight"
+          },
+          "22": {
+            "state": "ElementHighlight"
+          },
+          "23": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "21-22": {
+            "state": "ElementHighlight"
+          },
+          "22-23": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [],
+        "builtNodes": 6,
+        "builtEdges": 4
+      },
+      "gadgets": [
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node 3 becomes the path 31 - 32 - 33. 32 has no other edge, so a tour that reaches 31 goes on through 32 to 33: 31 is where arcs into 3 arrive and 33 where arcs out of 3 leave.",
+      "sourceFocus": [
+        "3"
+      ],
+      "targetFocus": [
+        "31",
+        "32",
+        "33",
+        "31-32",
+        "32-33"
+      ],
+      "source": {
+        "nodes": {
+          "3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "31": {
+            "state": "ElementHighlight"
+          },
+          "32": {
+            "state": "ElementHighlight"
+          },
+          "33": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "31-32": {
+            "state": "ElementHighlight"
+          },
+          "32-33": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [],
+        "builtNodes": 9,
+        "builtEdges": 6
+      },
+      "gadgets": [
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Arc 1 \u2192 2 becomes the edge {13,21}: it leaves 1 by its out-end 13 and enters 2 by its in-end 21.",
+      "sourceFocus": [
+        "1\u003E2",
+        "1",
+        "2"
+      ],
+      "targetFocus": [
+        "13",
+        "21",
+        "13-21"
+      ],
+      "source": {
+        "nodes": {
+          "1": {
+            "state": "ElementHighlight"
+          },
+          "2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "1\u003E2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "13": {
+            "state": "ElementHighlight"
+          },
+          "21": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "13-21": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [],
+        "builtNodes": 9,
+        "builtEdges": 7
+      },
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Arc 2 \u2192 3 becomes the edge {23,31}: it leaves 2 by its out-end 23 and enters 3 by its in-end 31.",
+      "sourceFocus": [
+        "2\u003E3",
+        "2",
+        "3"
+      ],
+      "targetFocus": [
+        "23",
+        "31",
+        "23-31"
+      ],
+      "source": {
+        "nodes": {
+          "2": {
+            "state": "ElementHighlight"
+          },
+          "3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "2\u003E3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "23": {
+            "state": "ElementHighlight"
+          },
+          "31": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "23-31": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [],
+        "builtNodes": 9,
+        "builtEdges": 8
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Arc 3 \u2192 1 becomes the edge {33,11}: it leaves 3 by its out-end 33 and enters 1 by its in-end 11.",
+      "sourceFocus": [
+        "3\u003E1",
+        "3",
+        "1"
+      ],
+      "targetFocus": [
+        "33",
+        "11",
+        "11-33"
+      ],
+      "source": {
+        "nodes": {
+          "1": {
+            "state": "ElementHighlight"
+          },
+          "3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "3\u003E1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "ElementHighlight"
+          },
+          "33": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-33": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [],
+        "builtNodes": 9,
+        "builtEdges": 9
+      },
+      "gadgets": [
+        5
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "The undirected graph has a Hamiltonian cycle exactly when the directed graph does: every node\u0027s path is walked from its in-end to its out-end, so the edges between paths are walked along their arcs.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": [],
+        "builtNodes": 9,
+        "builtEdges": 9
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Try",
+      "caption": "Start the tour at 11.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "11"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "order": [
+          "11"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Go 11 \u2192 12: the path is 11 \u2192 12.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "12",
+        "11-12"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Covered"
+          },
+          "12": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Go 12 \u2192 13: the path is 11 \u2192 12 \u2192 13.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "13",
+        "12-13"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Covered"
+          },
+          "12": {
+            "state": "Covered"
+          },
+          "13": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Go 13 \u2192 21: the path is 11 \u2192 12 \u2192 13 \u2192 21.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "21",
+        "13-21"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Covered"
+          },
+          "12": {
+            "state": "Covered"
+          },
+          "13": {
+            "state": "Covered"
+          },
+          "21": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Go 21 \u2192 22: the path is 11 \u2192 12 \u2192 13 \u2192 21 \u2192 22.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "22",
+        "21-22"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Covered"
+          },
+          "12": {
+            "state": "Covered"
+          },
+          "13": {
+            "state": "Covered"
+          },
+          "21": {
+            "state": "Covered"
+          },
+          "22": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Go 22 \u2192 23: the path is 11 \u2192 12 \u2192 13 \u2192 21 \u2192 22 \u2192 23.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "23",
+        "22-23"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Covered"
+          },
+          "12": {
+            "state": "Covered"
+          },
+          "13": {
+            "state": "Covered"
+          },
+          "21": {
+            "state": "Covered"
+          },
+          "22": {
+            "state": "Covered"
+          },
+          "23": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Go 23 \u2192 31: the path is 11 \u2192 12 \u2192 13 \u2192 21 \u2192 22 \u2192 23 \u2192 31.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "31",
+        "23-31"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Covered"
+          },
+          "12": {
+            "state": "Covered"
+          },
+          "13": {
+            "state": "Covered"
+          },
+          "21": {
+            "state": "Covered"
+          },
+          "22": {
+            "state": "Covered"
+          },
+          "23": {
+            "state": "Covered"
+          },
+          "31": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Go 31 \u2192 32: the path is 11 \u2192 12 \u2192 13 \u2192 21 \u2192 22 \u2192 23 \u2192 31 \u2192 32.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "32",
+        "31-32"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Covered"
+          },
+          "12": {
+            "state": "Covered"
+          },
+          "13": {
+            "state": "Covered"
+          },
+          "21": {
+            "state": "Covered"
+          },
+          "22": {
+            "state": "Covered"
+          },
+          "23": {
+            "state": "Covered"
+          },
+          "31": {
+            "state": "Covered"
+          },
+          "32": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "Solution"
+          },
+          "31-32": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31",
+          "32"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Close the tour 33 \u2192 11: every node is visited once, so 11 \u2192 12 \u2192 13 \u2192 21 \u2192 22 \u2192 23 \u2192 31 \u2192 32 \u2192 33 \u2192 11 is a Hamiltonian cycle.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "33",
+        "11"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "ElementHighlight"
+          },
+          "12": {
+            "state": "Covered"
+          },
+          "13": {
+            "state": "Covered"
+          },
+          "21": {
+            "state": "Covered"
+          },
+          "22": {
+            "state": "Covered"
+          },
+          "23": {
+            "state": "Covered"
+          },
+          "31": {
+            "state": "Covered"
+          },
+          "32": {
+            "state": "Covered"
+          },
+          "33": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "11-33": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "Solution"
+          },
+          "31-32": {
+            "state": "Solution"
+          },
+          "32-33": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31",
+          "32",
+          "33",
+          "11"
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "Found the Hamiltonian cycle 11 \u2192 12 \u2192 13 \u2192 21 \u2192 22 \u2192 23 \u2192 31 \u2192 32 \u2192 33 \u2192 11 after checking 1 complete tour.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "order": []
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Solution"
+          },
+          "12": {
+            "state": "Solution"
+          },
+          "13": {
+            "state": "Solution"
+          },
+          "21": {
+            "state": "Solution"
+          },
+          "22": {
+            "state": "Solution"
+          },
+          "23": {
+            "state": "Solution"
+          },
+          "31": {
+            "state": "Solution"
+          },
+          "32": {
+            "state": "Solution"
+          },
+          "33": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "11-33": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "Solution"
+          },
+          "31-32": {
+            "state": "Solution"
+          },
+          "32-33": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31",
+          "32",
+          "33",
+          "11"
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Edge {13,21} is on the cycle. It leaves 1 by its out-end 13 and enters 2 by its in-end 21, so the tour goes 1 \u2192 2.",
+      "sourceFocus": [
+        "1\u003E2"
+      ],
+      "targetFocus": [
+        "13-21"
+      ],
+      "source": {
+        "nodes": {
+          "1": {
+            "state": "Covered"
+          },
+          "2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "1\u003E2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "1",
+          "2"
+        ]
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Solution"
+          },
+          "12": {
+            "state": "Solution"
+          },
+          "13": {
+            "state": "Solution"
+          },
+          "21": {
+            "state": "Solution"
+          },
+          "22": {
+            "state": "Solution"
+          },
+          "23": {
+            "state": "Solution"
+          },
+          "31": {
+            "state": "Solution"
+          },
+          "32": {
+            "state": "Solution"
+          },
+          "33": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "11-33": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "ElementHighlight"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "Solution"
+          },
+          "31-32": {
+            "state": "Solution"
+          },
+          "32-33": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31",
+          "32",
+          "33",
+          "11"
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Edge {23,31} is on the cycle. It leaves 2 by its out-end 23 and enters 3 by its in-end 31, so the tour goes 2 \u2192 3.",
+      "sourceFocus": [
+        "2\u003E3"
+      ],
+      "targetFocus": [
+        "23-31"
+      ],
+      "source": {
+        "nodes": {
+          "1": {
+            "state": "Covered"
+          },
+          "2": {
+            "state": "Covered"
+          },
+          "3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "1\u003E2": {
+            "state": "Solution"
+          },
+          "2\u003E3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Solution"
+          },
+          "12": {
+            "state": "Solution"
+          },
+          "13": {
+            "state": "Solution"
+          },
+          "21": {
+            "state": "Solution"
+          },
+          "22": {
+            "state": "Solution"
+          },
+          "23": {
+            "state": "Solution"
+          },
+          "31": {
+            "state": "Solution"
+          },
+          "32": {
+            "state": "Solution"
+          },
+          "33": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "11-33": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "ElementHighlight"
+          },
+          "31-32": {
+            "state": "Solution"
+          },
+          "32-33": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31",
+          "32",
+          "33",
+          "11"
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Edge {33,11} is on the cycle. It leaves 3 by its out-end 33 and enters 1 by its in-end 11, so the tour goes 3 \u2192 1, back to where it started.",
+      "sourceFocus": [
+        "3\u003E1"
+      ],
+      "targetFocus": [
+        "11-33"
+      ],
+      "source": {
+        "nodes": {
+          "1": {
+            "state": "Covered"
+          },
+          "2": {
+            "state": "Covered"
+          },
+          "3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "1\u003E2": {
+            "state": "Solution"
+          },
+          "2\u003E3": {
+            "state": "Solution"
+          },
+          "3\u003E1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "1",
+          "2",
+          "3",
+          "1"
+        ]
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Solution"
+          },
+          "12": {
+            "state": "Solution"
+          },
+          "13": {
+            "state": "Solution"
+          },
+          "21": {
+            "state": "Solution"
+          },
+          "22": {
+            "state": "Solution"
+          },
+          "23": {
+            "state": "Solution"
+          },
+          "31": {
+            "state": "Solution"
+          },
+          "32": {
+            "state": "Solution"
+          },
+          "33": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "11-33": {
+            "state": "ElementHighlight"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "Solution"
+          },
+          "31-32": {
+            "state": "Solution"
+          },
+          "32-33": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31",
+          "32",
+          "33",
+          "11"
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{1,2,3,1} is a valid Directed Hamiltonian Cycle answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "1": {
+            "state": "Solution"
+          },
+          "2": {
+            "state": "Solution"
+          },
+          "3": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "1\u003E2": {
+            "state": "Solution"
+          },
+          "2\u003E3": {
+            "state": "Solution"
+          },
+          "3\u003E1": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "1",
+          "2",
+          "3",
+          "1"
+        ]
+      },
+      "target": {
+        "nodes": {
+          "11": {
+            "state": "Solution"
+          },
+          "12": {
+            "state": "Solution"
+          },
+          "13": {
+            "state": "Solution"
+          },
+          "21": {
+            "state": "Solution"
+          },
+          "22": {
+            "state": "Solution"
+          },
+          "23": {
+            "state": "Solution"
+          },
+          "31": {
+            "state": "Solution"
+          },
+          "32": {
+            "state": "Solution"
+          },
+          "33": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "11-12": {
+            "state": "Solution"
+          },
+          "11-33": {
+            "state": "Solution"
+          },
+          "12-13": {
+            "state": "Solution"
+          },
+          "13-21": {
+            "state": "Solution"
+          },
+          "21-22": {
+            "state": "Solution"
+          },
+          "22-23": {
+            "state": "Solution"
+          },
+          "23-31": {
+            "state": "Solution"
+          },
+          "31-32": {
+            "state": "Solution"
+          },
+          "32-33": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": [],
+        "order": [
+          "11",
+          "12",
+          "13",
+          "21",
+          "22",
+          "23",
+          "31",
+          "32",
+          "33",
+          "11"
+        ]
+      }
+    }
+  ]
+}

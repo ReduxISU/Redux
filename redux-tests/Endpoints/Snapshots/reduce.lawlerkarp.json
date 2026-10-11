@@ -1,0 +1,423 @@
+{
+  "reductionName": "Lawler-Karp Arc Set Reduction",
+  "reductionDefinition": "This Reduction is an implementation of Lawler and Karp\u0027s reduction as laid out in Karp\u0027s 21 NP_Complete Problems. \r\n                                            It takes an instance of an undirected graph (specifically an instance of VERTEXCOVER) and returns an instance of ARCSET (ie. a Directed Graph)\r\n                                            Specifically, a reduction follows the following algorithm: \r\n                                            For an undirected graph H: Where H is made up of \u003CV,E\u003E\r\n                                            Convert the undirected edges in E to pairs of directed edges. So an undirected edge {{A,B}} turns into the directed pair of edges {(A,B),(B,A)} \r\n                                            Then turn every node into a pair of nodes denoted by 0 and 1. So a node \u0027A\u0027 turns into the two nodes \u0027\u003CA,0\u003E\u0027 and \u0027\u003CA,1\u003E\u0027\r\n                                            Now looks at the pairs of edges in E and maps from 1 to 0. So an edge (A,B) turns into (\u003CA,1\u003E, \u003CB,0\u003E) and edge (B,A) becomes (\u003CB,1\u003E,\u003CA,0\u003E)\r\n                                            Then add directed edges from every 0 node \u0027u\u0027 to 1 node \u0027u\u0027. ie. creates edges from \u003CA,0\u003E to \u003CA,1\u003E, \u003CB,0\u003E to \u003CB,1\u003E \u2026 \u003CZ,0\u003E to \u003CZ,1\u003E\r\n                                            Now the algorithm has created an ARCSET instance (in other words, a Digraph). ",
+  "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/ReduceTo/NPC_ARCSET/LawlerKarp.cs",
+  "contributors": [
+    "Daniel Igbokwe",
+    "Caleb Eardley"
+  ],
+  "visualization": {
+    "visualizationName": "Arc Set Visualization",
+    "visualizationDefinition": "This is a default visualization for Arc Set",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_ARCSET/Visualizations/ArcSetDefaultVisualization.cs",
+    "contributors": [
+      "Russell Phillips"
+    ],
+    "solver": {
+      "solverName": "Arc Set Brute Force",
+      "solverDefinition": " This Solver is a brute force solver, which checks all combinations of k edges until a solution is found or its determined there is no solution",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_ARCSET/Solvers/ArcSetBruteForce.cs",
+      "contributors": [
+        "Alex Diviney",
+        "Caleb Eardley",
+        "Russell Phillips"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^m * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "m",
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a0",
+        "a1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a0",
+        "a1",
+        "a0\u003Ea1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b0",
+        "b1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b0",
+        "b1",
+        "b0\u003Eb1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c0",
+        "c1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c0",
+        "c1",
+        "c0\u003Ec1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d0",
+        "d1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d0",
+        "d1",
+        "d0\u003Ed1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e0",
+        "e1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e0",
+        "e1",
+        "e0\u003Ee1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-b"
+      ],
+      "reductionToIds": [
+        "a1\u003Eb0",
+        "b1\u003Ea0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "a1\u003Eb0",
+        "b1\u003Ea0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-c"
+      ],
+      "reductionToIds": [
+        "a1\u003Ec0",
+        "c1\u003Ea0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-c"
+      ],
+      "targetIds": [
+        "a1\u003Ec0",
+        "c1\u003Ea0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-e"
+      ],
+      "reductionToIds": [
+        "a1\u003Ee0",
+        "e1\u003Ea0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-e"
+      ],
+      "targetIds": [
+        "a1\u003Ee0",
+        "e1\u003Ea0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b-e"
+      ],
+      "reductionToIds": [
+        "b1\u003Ee0",
+        "e1\u003Eb0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-e"
+      ],
+      "targetIds": [
+        "b1\u003Ee0",
+        "e1\u003Eb0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c-d"
+      ],
+      "reductionToIds": [
+        "c1\u003Ed0",
+        "d1\u003Ec0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c-d"
+      ],
+      "targetIds": [
+        "c1\u003Ed0",
+        "d1\u003Ec0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Feedback Arc Set",
+    "formalDefinition": "ARCSET = {\u003CG,k\u003E | G is a directed graph that can be rendered acyclic by removal of at most k edges}",
+    "problemDefinition": "ARCSET, or the Feedback Arc Set satisfiability problem, is an NP-complete problem that can be described like the following. Given a directed graph, does removing a given set of edges render the graph acyclical? That is, does removing the edges break every cycle in the graph?",
+    "inputDescription": "G, a directed graph, and k, the maximum number of edges allowed to be removed",
+    "outputDescription": "True or False, whether removing at most k edges can make G acyclic",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_ARCSET/ARCSET_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)",
+    "instance": "(({a0,a1,b0,b1,c0,c1,d0,d1,e0,e1},{(a1,b0),(b1,a0),(a1,c0),(c1,a0),(a1,e0),(e1,a0),(b1,e0),(e1,b0),(c1,d0),(d1,c0),(a0,a1),(b0,b1),(c0,c1),(d0,d1),(e0,e1)}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N cross N, K is int} Example: (({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)",
+    "certificateFormat": "Format: {(u,v)} subset E | at most K edges, removing them leaves the graph acyclic Example: {(2,3)}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Arc Set Brute Force",
+      "solverDefinition": " This Solver is a brute force solver, which checks all combinations of k edges until a solution is found or its determined there is no solution",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_ARCSET/Solvers/ArcSetBruteForce.cs",
+      "contributors": [
+        "Alex Diviney",
+        "Caleb Eardley",
+        "Russell Phillips"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^m * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "m",
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Feedback Arc Set Verifier",
+      "verifierDefinition": "This Verifier takes in an arcset problem and a list of edges to remove from that problem. It removes those edges and then checks if the problem is still an instance of ARCSET\r\n                                            ie. Does this input graph no longer have cycles after these input edges are removed? Returns true or false ",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_ARCSET/Verifiers/ArcSetVerifier.cs",
+      "certificate": "{(2,4)}",
+      "contributors": [
+        "Alex Diviney",
+        "Caleb Eardley",
+        "Russell Phillips"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Arc Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Arc Set",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_ARCSET/Visualizations/ArcSetDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Arc Set Brute Force",
+        "solverDefinition": " This Solver is a brute force solver, which checks all combinations of k edges until a solution is found or its determined there is no solution",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_ARCSET/Solvers/ArcSetBruteForce.cs",
+        "contributors": [
+          "Alex Diviney",
+          "Caleb Eardley",
+          "Russell Phillips"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "2^m * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "m",
+            "n"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Linear",
+  "reductionType": "LocalReplacement",
+  "complexityBucket": "Linear"
+}

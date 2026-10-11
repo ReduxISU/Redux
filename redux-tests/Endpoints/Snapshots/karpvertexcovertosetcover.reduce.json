@@ -37,7 +37,188 @@
       "complexityBucket": "Exponential"
     }
   },
-  "gadgets": [],
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "S1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "S1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-b"
+      ],
+      "reductionToIds": [
+        "e:a_b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "e:a_b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-c"
+      ],
+      "reductionToIds": [
+        "e:a_c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-c"
+      ],
+      "targetIds": [
+        "e:a_c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-e"
+      ],
+      "reductionToIds": [
+        "e:a_e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-e"
+      ],
+      "targetIds": [
+        "e:a_e"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "S2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "S2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b-e"
+      ],
+      "reductionToIds": [
+        "e:b_e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-e"
+      ],
+      "targetIds": [
+        "e:b_e"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "S3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "S3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c-d"
+      ],
+      "reductionToIds": [
+        "e:c_d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c-d"
+      ],
+      "targetIds": [
+        "e:c_d"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "S4"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "S4"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "S5"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "S5"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
+    }
+  ],
   "reductionFrom": {
     "problemName": "Vertex Cover",
     "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
