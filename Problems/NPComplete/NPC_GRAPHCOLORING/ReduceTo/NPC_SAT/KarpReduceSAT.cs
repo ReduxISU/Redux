@@ -79,6 +79,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
     #region Methods
 
     public SAT reduce() {
+        RequireNodesAndColors();
 
         // List<string> reducedClauses = new List<string>();
         List<string> reducedNodeClauses = new List<string>();
@@ -153,6 +154,19 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
         phiInstance += $"{reducedClauses[reducedClauses.Count - 1]}";
 
         return new SAT(phiInstance);
+    }
+
+    // The formula has a clause per node saying it takes one of the K colors. With no nodes there is no clause, and with K < 1
+    // the clause has no literal; SAT writes neither (an empty formula, an empty clause), so the reduction refuses them as
+    // input it cannot take: a 400 that says why, not a 500 or a parse error about a formula the caller never wrote (#827).
+    private void RequireNodesAndColors() {
+        GRAPHCOLORING g = _reductionFrom;
+        if (g.nodes.Count == 0)
+            throw new ReductionInputException(this, g.instance, g.instanceFormat,
+                "This reduction needs at least one node: a graph with no nodes gives SAT a formula with no clauses, which SAT cannot write.");
+        if (g.K < 1)
+            throw new ReductionInputException(this, g.instance, g.instanceFormat,
+                $"K must be at least 1 for this reduction, but it is {g.K}: each node's clause lists its K colors, and SAT cannot write an empty clause.");
     }
 
     private void DeMorgansLaw(List<string> clauses) {
