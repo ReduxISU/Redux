@@ -1,10 +1,14 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.Packing;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_SUBSETSUM;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.ReduceTo.NPC_SUBSETSUM;
 
-class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM> {
+class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, ChosenSets>, IRecordedReduction<EXACTCOVER, SUBSETSUM> {
 
     // --- Fields ---
     public string reductionName { get; } = "Karp's Subset Sum Reduction";
@@ -63,14 +67,37 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM> {
 
 
     // --- Methods Including Constructors ---
-    public KarpExactCoverToSubsetSum(EXACTCOVER from) {
+    public KarpExactCoverToSubsetSum(EXACTCOVER from) : this(from, StepRecorder<BuildDelta>.Off) { }
+
+    // The one place the target is built; rec is Off except when the construction steps are asked for.
+    private KarpExactCoverToSubsetSum(EXACTCOVER from, StepRecorder<BuildDelta> rec) {
         _reductionFrom = from;
-        _reductionTo = reduce();
+        _reductionTo = Build(rec);
 
     }
     public KarpExactCoverToSubsetSum(string instance) : this(new EXACTCOVER(instance)) { }
+    // Builds from the instance with rec recording the construction as it goes (IRecordedReduction).
+    public KarpExactCoverToSubsetSum(string instance, StepRecorder<BuildDelta> rec) : this(new EXACTCOVER(instance), rec) { }
     public KarpExactCoverToSubsetSum() : this(new EXACTCOVER()) { }
-    public SUBSETSUM reduce() {
+
+    /// <summary>
+    /// The gadgets (#695): per set of S, an element (Exact Cover's set S{j}, in the Bipartite Graph's ids, to Subset Sum's item
+    /// I{j}, its number); and the bound, every element of X (one digit each) to Subset Sum's container, whose target T has a 1 in
+    /// every digit.
+    /// </summary>
+    public List<Gadget> gadgets { get; } = new();
+
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new KarpExactCoverToSubsetSum(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
+    }
+
+    public SUBSETSUM reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // Construction steps (see IRecordedReduction): one per set of S (its number), then T.
+    private SUBSETSUM Build(StepRecorder<BuildDelta> rec) {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         EXACTCOVER ExactCoverInstance = _reductionFrom;
         SUBSETSUM reducedSUBSETSUM = new SUBSETSUM();
 
@@ -113,6 +140,30 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM> {
         reducedSUBSETSUM.T = (int)K;
         reducedSUBSETSUM.instance = instance;
 
+        var X = reductionFrom.X;
+        // A set's number written in base d, its highest digit (the last element of X) first: a 1 where the set holds the element.
+        string Digits(Func<int, bool> has) => digits == 0 ? "0" : string.Concat(Enumerable.Range(0, digits).Reverse().Select(i => has(i) ? '1' : '0'));
+        string order = digits == 0 ? "" : $" ({BuildCaptions.Names(Enumerable.Range(0, digits).Reverse().Select(i => X[i]).ToList())} from the left)";
+        for (int j = 0; j < reductionFrom.S.Count; j++) {
+            string set = BipartiteFrames.SetId(j), item = PackingFrames.ItemId(j), number = subsetSumS[j];
+            var members = reductionFrom.S[j];
+            int gadget = gadgets.Count;
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { set }, new List<string> { item }));
+            int at = j;
+            rec.Accept(() => new BuildDelta { SourceFocus = [set], Nodes = [item], Gadgets = [gadget] },
+                () => $"Set {set} {BipartiteFrames.Braces(members)} becomes the number {number}: {Digits(i => reductionFrom.S[at].Contains(X[i]))} in base {d}, one digit per element of X{order}, a 1 where {set} holds that element.",
+                item);
+        }
+        int bound = gadgets.Count;
+        string container = PackingFrames.ContainerId(0);
+        var elementIds = X.Select(BipartiteFrames.ElementId).ToList();
+        gadgets.Add(new Gadget(GadgetKind.Bound, elementIds, new List<string> { container }, note: $"T = {K}, a 1 in each of the {digits} digits"));
+        if (rec.Enabled) {
+            int t = (int)K;
+            rec.Done(new BuildDelta { SourceFocus = elementIds.ToArray(), Nodes = [container], Gadgets = [bound], Bound = t }, true,
+                $"The target T is {Digits(_ => true)} in base {d} = {t}: a 1 for every element of X. At most {r} sets add to any digit and {r} < {d}, so nothing carries, and numbers add up to T exactly when their sets hold every element once.");
+        }
+
         reductionTo = reducedSUBSETSUM;
         return reducedSUBSETSUM;
     }
@@ -136,6 +187,49 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM> {
             numbers.Add(reductionTo.S[j]);
         }
         return "{" + string.Join(",", numbers) + "}";
+    }
+
+    public ChosenSets EmptyAnswer() => new ChosenSets([]);
+
+    // "{}" on either side keeps the default (the verifiers): with X empty, T = 0, and the empty subset and the empty cover are
+    // both answers.
+
+    /// <summary>
+    /// Backward map (#695): item I{j} is the number of the j-th set of S, so the numbers of the subset are the sets of the exact
+    /// cover. One step per item of the Subset Sum instance, in order: in the subset (Accept, its set is in the cover) or left out
+    /// (Reject).
+    /// </summary>
+    public (string Answer, ChosenSets Partial) MapBack(string problemToSolution, StepRecorder<ChosenSets> rec) {
+        var keys = reductionTo.S.Select(PackingFrames.Key).ToList();
+        var groups = ReadNumbers(problemToSolution);
+        foreach (string number in groups)
+            if (!keys.Contains(number)) throw new FormatException($"'{number}' is not a number of the Subset Sum instance");
+        Placement chosen = PackingFrames.FromGroups(keys, [groups]);
+        var picked = new List<string>();
+        for (int j = 0; j < keys.Count; j++) {
+            string set = BipartiteFrames.SetId(j), item = PackingFrames.ItemId(j), number = reductionTo.S[j];
+            string text = BipartiteFrames.Braces(reductionFrom.S[j]);
+            if (chosen.Of(j) == 0) {
+                picked.Add(set);
+                rec.Accept(() => new ChosenSets(picked), () => $"Number {number} is in the subset, so set {set} {text} is in the exact cover: {number} is {set} written in base {Math.Max(reductionFrom.S.Count + 1, 2)}.", item);
+            } else {
+                rec.Reject(() => new ChosenSets(picked), () => $"Number {number} is not in the subset, so set {set} {text} is left out of the exact cover.", item);
+            }
+        }
+        var cover = Enumerable.Range(0, keys.Count).Where(j => chosen.Of(j) == 0).Select(j => BipartiteFrames.Braces(reductionFrom.S[j]));
+        return ("{" + string.Join(",", cover) + "}", new ChosenSets(picked));
+    }
+
+    // A Subset Sum answer, {21,65}: the chosen numbers. Malformed text throws FormatException, which the endpoint reports as a 400.
+    private static List<string> ReadNumbers(string certificate) {
+        string text = certificate.Trim();
+        if (text.Length < 2 || text[0] != '{' || text[^1] != '}')
+            throw new FormatException($"'{certificate}' is not a set of numbers in braces like {{21,65}}");
+        try {
+            return new SPADE.UtilCollection(text).ToList().Select(PackingFrames.Key).ToList();
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new FormatException($"'{certificate}' is not a set of numbers like {{21,65}}", ex);
+        }
     }
 
     // An Exact Cover answer, {{2,3},{4,1}}: the chosen sets by their elements.

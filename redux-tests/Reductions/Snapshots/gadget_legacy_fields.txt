@@ -50,6 +50,11 @@ ElementHighlight | 2>3 | 23-31
 ElementHighlight | 3>5 | 33-51
 ElementHighlight | 4>2 | 21-43
 ElementHighlight | 5>4 | 41-53
+# KarpExactCoverToSubsetSum
+ElementHighlight | S1 | I1
+ElementHighlight | S2 | I2
+ElementHighlight | S3 | I3
+ElementHighlight | e:1,e:2,e:3,e:4 | C1
 # KarpGraphColorToExactCover
 ClauseHighlight | a | e:a,e:a_a_b_1,e:a_a_b_2,e:a_a_b_3,e:a_a_c_1,e:a_a_c_2,e:a_a_c_3,e:a_d_a_1,e:a_d_a_2,e:a_d_a_3,e:a_a_e_1,e:a_a_e_2,e:a_a_e_3,e:a_a_f_1,e:a_a_f_2,e:a_a_f_3,e:a_g_a_1,e:a_g_a_2,e:a_g_a_3,e:a_a_h_1,e:a_a_h_2,e:a_a_h_3,e:a_i_a_1,e:a_i_a_2,e:a_i_a_3,S1,S2,S3
 ClauseHighlight | b | e:b,e:b_a_b_1,e:b_a_b_2,e:b_a_b_3,e:b_b_c_1,e:b_b_c_2,e:b_b_c_3,S4,S5,S6

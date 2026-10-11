@@ -123,6 +123,8 @@ public class Gadget_Kinds_Tests {
         ["WEIGHTEDCUTReduction"] = "Element x11, EdgeRule x55, Bound x1",
         // #695: one element per subset and one per item.
         ["reduceToEXACTCOVER"] = "Element x7",
+        // #695: one element per set, and the bound (T, from every element of X).
+        ["KarpExactCoverToSubsetSum"] = "Element x3, Bound x1",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>

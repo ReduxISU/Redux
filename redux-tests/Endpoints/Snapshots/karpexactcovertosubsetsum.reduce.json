@@ -37,7 +37,83 @@
       "complexityBucket": "Exponential"
     }
   },
-  "gadgets": [],
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "S1"
+      ],
+      "reductionToIds": [
+        "I1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S1"
+      ],
+      "targetIds": [
+        "I1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "S2"
+      ],
+      "reductionToIds": [
+        "I2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S2"
+      ],
+      "targetIds": [
+        "I2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "S3"
+      ],
+      "reductionToIds": [
+        "I3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S3"
+      ],
+      "targetIds": [
+        "I3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e:1",
+        "e:2",
+        "e:3",
+        "e:4"
+      ],
+      "reductionToIds": [
+        "C1"
+      ],
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "e:1",
+        "e:2",
+        "e:3",
+        "e:4"
+      ],
+      "targetIds": [
+        "C1"
+      ],
+      "note": "T = 85, a 1 in each of the 4 digits"
+    }
+  ],
   "reductionFrom": {
     "problemName": "Exact Cover",
     "formalDefinition": "Exact Cover = {\u003CS, X\u003E | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ",
