@@ -61,7 +61,7 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSo
                 rec.Accept(() => new QuantumProgress(result: answer), () => $"The quantum server answered {answer}.");
             else
                 rec.Reject(() => new QuantumProgress(), () => $"The quantum server gave no factors: {answer}");
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(result: factored ? answer : null),
+            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(result: answer),
                 ok => ok ? $"{number} = {string.Join(" × ", answer.Trim('(', ')').Split(','))}." : factored ? $"The answer {answer} is not correct." : "No answer: the quantum server did not give one.");
         }
         return answer;

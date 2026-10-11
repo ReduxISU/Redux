@@ -15,6 +15,9 @@ public sealed class FakeQuantumServer : HttpMessageHandler {
     /// <summary>Every request, in order: its path and body.</summary>
     public List<(string Path, string Body)> Requests { get; } = new();
 
+    /// <summary>How long the server takes to answer.</summary>
+    public TimeSpan Delay { get; set; } = TimeSpan.Zero;
+
     /// <summary>A canned reply (status, body) instead of the ideal one, when set.</summary>
     public (HttpStatusCode Status, string Body)? Canned { get; set; }
 
@@ -27,6 +30,7 @@ public sealed class FakeQuantumServer : HttpMessageHandler {
         string path = request.RequestUri?.AbsolutePath ?? "";
         string body = request.Content == null ? "" : await request.Content.ReadAsStringAsync(cancellationToken);
         lock (Requests) Requests.Add((path, body));
+        if (Delay > TimeSpan.Zero) await Task.Delay(Delay, cancellationToken);
         var (status, reply) = Canned ?? (HttpStatusCode.OK, Ideal(path, body));
         return new HttpResponseMessage(status) { Content = new StringContent(reply, Encoding.UTF8, "application/json") };
     }
