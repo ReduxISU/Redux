@@ -1,5 +1,6 @@
 using API.Interfaces;
 using API.Interfaces.Packing;
+using API.Interfaces.Board;
 using API.Interfaces.Steps;
 using Xunit;
 
@@ -114,6 +115,13 @@ public class SolverReplay_Tests {
             // Packing answers name numbers, not positions: the problem's Packing visualization reads them as a placement (equal
             // numbers fill items in order, which the default instances never repeat).
             var hook = typeof(IPackingVisualization<>).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
+        }
+        if (lastPartial is BoardCells) {
+            // Board answers are the puzzle's own certificate (a filled grid, a set of queens): the problem's Board visualization
+            // reads them as a board.
+            var hook = typeof(IBoardVisualization<>).MakeGenericType(problem.GetType());
             var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
             return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
         }

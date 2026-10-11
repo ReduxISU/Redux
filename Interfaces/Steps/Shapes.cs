@@ -275,6 +275,41 @@ sealed class TableCells : IEquatable<TableCells> {
         HashCode.Combine(ShapeUtil.HashOf(Reads), ShapeUtil.HashOf(Path), ShapeUtil.HashOf(Values.Select(p => $"{p.Key}={p.Value}")));
 }
 
+/// <summary>
+/// A square a board solver ruled out, and the square that rules it out: an N-Queens square skipped because a queen attacks
+/// it, or a Sudoku clue that repeats another. Both are cell ids, <c>r{i}c{j}</c> (see <c>BoardFrames.CellId</c>).
+/// </summary>
+sealed record BoardConflict(
+    [property: JsonPropertyName("cell")] string Cell,
+    [property: JsonPropertyName("with")] string With);
+
+/// <summary>
+/// A board as a puzzle solver sees it (Sudoku, N-Queens), as far as it has got. Squares are named by position,
+/// <c>r{i}c{j}</c> for row i and column j (0-based, see <c>BoardFrames.CellId</c>), never by their contents, so no id
+/// needs escaping.
+/// <list type="bullet">
+/// <item><see cref="Values"/>: what is on every square that holds something, the instance's clues included: a digit
+/// (<c>"5"</c>), or a piece's mark (<c>"Q"</c> for a queen). A square with no entry is empty.</item>
+/// <item><see cref="Conflicts"/>: the squares this step ruled out, each with the square that rules it out. Empty for most
+/// steps.</item>
+/// </list>
+/// The answer is the last one: the finished board, with no conflicts.
+/// </summary>
+sealed class BoardCells : IEquatable<BoardCells> {
+    [JsonPropertyName("values")] public IReadOnlyDictionary<string, string> Values { get; }
+    [JsonPropertyName("conflicts")] public BoardConflict[] Conflicts { get; }
+    public BoardCells(IEnumerable<KeyValuePair<string, string>> values, IEnumerable<BoardConflict> conflicts) {
+        Values = values.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+        Conflicts = conflicts.ToArray();
+    }
+    public bool Equals(BoardCells? other) =>
+        other != null && Conflicts.SequenceEqual(other.Conflicts)
+            && Values.Count == other.Values.Count && Values.All(p => other.Values.TryGetValue(p.Key, out var v) && v == p.Value);
+    public override bool Equals(object? obj) => Equals(obj as BoardCells);
+    public override int GetHashCode() =>
+        HashCode.Combine(ShapeUtil.HashOf(Conflicts.Select(c => $"{c.Cell}>{c.With}")), ShapeUtil.HashOf(Values.Select(p => $"{p.Key}={p.Value}")));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -294,5 +329,6 @@ static class Shapes {
         : shape == typeof(NetworkFlow) ? new NetworkFlow([], [], 0, [])
         : shape == typeof(Placement) ? new Placement([])
         : shape == typeof(TableCells) ? new TableCells([], [], [])
+        : shape == typeof(BoardCells) ? new BoardCells([], [])
         : null;
 }

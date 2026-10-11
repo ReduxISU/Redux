@@ -1,8 +1,11 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Board;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SUDOKU.Solvers;
 
-class SudokuSolver : ISolver<SUDOKU> {
+// Incremental: it fills one square at a time and takes digits back out, so every step's partial is the board so far.
+class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Sudoku Backtracking";
@@ -42,12 +45,18 @@ class SudokuSolver : ISolver<SUDOKU> {
         _problem = grid;
     }*/
 
-    public string solve(SUDOKU problem) {
-        //if (timerHasExpired)
-        //    return "timeout";
+    public string solve(SUDOKU problem) => Solve(problem, StepRecorder<BoardCells>.Off);
 
-        // The grid is the solver's only input; all dimensions are derived from it.
-        return SolveInternal(problem.grid);
+    // Steps (the Board picture): a Try for every digit put in a square, a Reject when a square has no digit left (or when
+    // the clues already clash), then the answer. The grid is the solver's only input; all dimensions are derived from it.
+    public string Solve(SUDOKU problem, StepRecorder<BoardCells> rec) => SolveInternal(problem.grid, rec);
+
+    // What the search carries besides the grid: the recorder, how many digits it has tried, and how many squares it has
+    // filled on the way to the current one (0: there is no earlier choice to undo).
+    private sealed class Search {
+        public required StepRecorder<BoardCells> Rec { get; init; }
+        public int Tries;
+        public int Depth;
     }
 
     // Given a cell's row and column index, return the index of the corresponding block unit.
@@ -152,7 +161,7 @@ class SudokuSolver : ISolver<SUDOKU> {
     }
 
     private bool SolveHelper(int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
-                              int row, int col, bool getAllSolutions, List<int[][]> solutions) {
+                              int row, int col, bool getAllSolutions, List<int[][]> solutions, Search search) {
         int gridSize = grid.Length;
         // Base case: all rows processed
         if (row == gridSize) {
@@ -165,24 +174,44 @@ class SudokuSolver : ISolver<SUDOKU> {
 
         // Move to next row
         if (col == gridSize)
-            return SolveHelper(grid, rows, cols, blocks, row + 1, 0, getAllSolutions, solutions);
+            return SolveHelper(grid, rows, cols, blocks, row + 1, 0, getAllSolutions, solutions, search);
 
         // Skip filled cells
         if (grid[row][col] != 0)
-            return SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions);
+            return SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions, search);
 
         // Try each candidate value
         int b = GetBlockIndex(grid, row, col);
-        foreach (int k in Intersect(rows[row], cols[col], blocks[b])) {
+        var candidates = Intersect(rows[row], cols[col], blocks[b]);
+        var rec = search.Rec;
+        if (candidates.Count == 0) {
+            rec.Reject(() => Board(grid, []),
+                () => $"{SquareName(row, col)} has no digit left: every digit from 1 to {gridSize} is already in its row, column or box. "
+                    + (search.Depth > 0 ? "Undo the last choice." : "So the grid has no solution."),
+                () => [BoardFrames.CellId(row, col)]);
+            return false;
+        }
+        int previous = 0;
+        foreach (int k in candidates) {
             SetValue(grid, rows, cols, blocks, k, row, col);
             //    var changelog = HiddenSingles(grid, rows, cols, blocks, row, col + 1);        // Hidden singles optimization is unfinished, requires more overhead
+            search.Tries++;
+            // The candidates are listed in the order this loop tries them (the sets' own order).
+            rec.Try(() => Board(grid, []),
+                () => previous != 0 ? $"{previous} in {SquareName(row, col)} led to a dead end. Try {k} instead."
+                    : candidates.Count == 1 ? $"{SquareName(row, col)} can only hold {k}. Try it."
+                    : $"{SquareName(row, col)} can still hold {BoardFrames.OrList(candidates.Select(v => v.ToString()).ToList())}. Try {k}.",
+                () => [BoardFrames.CellId(row, col)]);
 
-            if (SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions))
+            search.Depth++;
+            if (SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions, search))
                 return true;
+            search.Depth--;
 
             // Undo edits if solution is not valid
             ClearValue(grid, rows, cols, blocks, row, col);
             //    UndoHiddenSingles(grid, rows, cols, blocks, changelog);
+            previous = k;
         }
 
         return false;
@@ -190,8 +219,27 @@ class SudokuSolver : ISolver<SUDOKU> {
 
     //public string solve(SUDOKU problem) => solve();
 
-    public string SolveInternal(int[][] problem) {
+    public string SolveInternal(int[][] problem) => SolveInternal(problem, StepRecorder<BoardCells>.Off);
+
+    private string SolveInternal(int[][] problem, StepRecorder<BoardCells> rec) {
         int gridSize = problem.Length;
+
+        // The no-solution value is "{}" (the repo-wide convention, see #605).
+        if (!CluesAreValid(problem)) {
+            var clashes = Clashes(problem);
+            if (clashes.Count > 0) {
+                var (r1, c1, r2, c2, unit) = clashes[0];
+                rec.Reject(() => Board(problem, clashes.Select(k => new BoardConflict(BoardFrames.CellId(k.R2, k.C2), BoardFrames.CellId(k.R1, k.C1)))),
+                    () => $"The clues already clash: {SquareName(r1, c1)} and {SquareName(r2, c2)} both hold {problem[r1][c1]} in the same {unit}. "
+                        + "No grid can be completed, so there is nothing to search.",
+                    () => clashes.SelectMany(k => new[] { BoardFrames.CellId(k.R1, k.C1), BoardFrames.CellId(k.R2, k.C2) }).Distinct().ToArray());
+            }
+            rec.Done(new BoardCells([], []), false, clashes.Count > 0
+                ? "No solution: the clues break the rules before a single square is filled."
+                : "No solution: the grid is not a Sudoku the solver can fill.");
+            return NoSolution;
+        }
+
         int[][] solution = CopyGrid(problem);
 
         var rows = new HashSet<int>[gridSize];
@@ -216,14 +264,25 @@ class SudokuSolver : ISolver<SUDOKU> {
             }
         }
 
-        SolveHelper(solution, rows, cols, blocks, 0, 0, false, new List<int[][]>());
+        var search = new Search { Rec = rec };
+        SolveHelper(solution, rows, cols, blocks, 0, 0, false, new List<int[][]>(), search);
+        string tries = $"{BoardFrames.Count(search.Tries)} {(search.Tries == 1 ? "try" : "tries")}";
 
         // If solution contains any 0s, the problem is unsolveable
         for (int r = 0; r < solution.Length; r++) {
             for (int c = 0; c < solution.Length; c++) {
-                if (solution[r][c] == 0) return "";
+                if (solution[r][c] == 0) {
+                    rec.Done(new BoardCells([], []), false, search.Tries == 0
+                        ? "This grid has no solution."
+                        : $"Every choice ran into a dead end after {tries}. This grid has no solution.");
+                    return NoSolution;
+                }
             }
         }
+
+        rec.Done(Board(solution, []), true, search.Tries == 0
+            ? "Every square was already filled and no row, column or box repeats a digit, so there was nothing to try."
+            : $"Every square is filled and no row, column or box repeats a digit. Solved after {tries}.");
 
         var sb = new System.Text.StringBuilder();
         for (int r = 0; r < solution.Length; r++) {
@@ -234,6 +293,67 @@ class SudokuSolver : ISolver<SUDOKU> {
     }
 
     // --- Helpers ---
+
+    private const string NoSolution = "{}";
+
+    // --- The Board picture (built only inside recorder lambdas, so solving without steps never pays for it) ---
+
+    // How captions name a square: R1C1 for the top-left (rows and columns counted from 1, as Sudoku players do).
+    private static string SquareName(int row, int col) => $"R{row + 1}C{col + 1}";
+
+    // The board as the picture draws it: every filled square, clues included, and the conflicts a step found.
+    private static BoardCells Board(int[][] grid, IEnumerable<BoardConflict> conflicts) {
+        var values = new List<KeyValuePair<string, string>>();
+        for (int r = 0; r < grid.Length; r++)
+            for (int c = 0; c < grid[r].Length; c++)
+                if (grid[r][c] != 0) values.Add(new(BoardFrames.CellId(r, c), grid[r][c].ToString()));
+        return new BoardCells(values, conflicts);
+    }
+
+    // Every pair of clues that share a row, column or block and hold the same digit, in reading order: the earlier square
+    // first, then the later one, and which unit they share.
+    private static List<(int R1, int C1, int R2, int C2, string Unit)> Clashes(int[][] grid) {
+        int n = grid.Length;
+        int blockSize = (int)Math.Sqrt(n);
+        var found = new List<(int, int, int, int, string)>();
+        for (int p = 0; p < n * n; p++) {
+            int r1 = p / n, c1 = p % n;
+            if (grid[r1].Length != n || grid[r1][c1] == 0) continue;
+            for (int q = p + 1; q < n * n; q++) {
+                int r2 = q / n, c2 = q % n;
+                if (grid[r2].Length != n || grid[r2][c2] != grid[r1][c1]) continue;
+                string? unit = r1 == r2 ? "row" : c1 == c2 ? "column"
+                    : blockSize > 0 && r1 / blockSize == r2 / blockSize && c1 / blockSize == c2 / blockSize ? "box" : null;
+                if (unit != null) found.Add((r1, c1, r2, c2, unit));
+            }
+        }
+        return found;
+    }
+
+    // True when the grid is square, every value is in 0..n, and no non-zero clue repeats within a
+    // row, column or block. A grid that fails this has no solution, so there is nothing to search.
+    private static bool CluesAreValid(int[][] grid) {
+        int n = grid.Length;
+        int blockSize = (int)Math.Sqrt(n);
+        if (n == 0 || blockSize * blockSize != n) return false;
+
+        var rowSeen = new bool[n, n + 1];
+        var colSeen = new bool[n, n + 1];
+        var blockSeen = new bool[n, n + 1];
+
+        for (int r = 0; r < n; r++) {
+            if (grid[r].Length != n) return false;
+            for (int c = 0; c < n; c++) {
+                int v = grid[r][c];
+                if (v < 0 || v > n) return false;
+                if (v == 0) continue;
+                int b = r / blockSize * blockSize + c / blockSize;
+                if (rowSeen[r, v] || colSeen[c, v] || blockSeen[b, v]) return false;
+                rowSeen[r, v] = colSeen[c, v] = blockSeen[b, v] = true;
+            }
+        }
+        return true;
+    }
 
     // Returns a new HashSet containing the intersection of three sets, without mutating any of them.
     private static HashSet<int> Intersect(HashSet<int> a, HashSet<int> b, HashSet<int> c) {

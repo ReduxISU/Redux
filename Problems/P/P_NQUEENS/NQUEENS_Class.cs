@@ -63,5 +63,8 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
     public NQUEENS(string input) {
         instance = input;
         n = int.Parse(input.Trim());
+        // n is the board size: a negative one is not an instance (#798).
+        if (n < 0)
+            throw new ProblemParseException(problemName, input, $"n is the board size, so it must be 0 or more; got {n}.");
     }
 }

@@ -1,4 +1,4 @@
-using API.Interfaces;
+﻿using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using Xunit;
@@ -79,10 +79,14 @@ public class IncrementalSolvers_Tests {
         // TableCells and Assignment (Table pictures)
         ["editdistancedpsolver"] = true,
         ["integerprogrammingbruteforce"] = false,
+        // BoardCells (Board pictures)
+        ["sudokusolver"] = true,
+        ["nqueensbacktracking"] = true,
+        ["nqueensconstructive"] = true,
     };
 
-    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing or Table picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells)];
+    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table or Board picture draws.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

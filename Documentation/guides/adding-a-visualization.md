@@ -53,6 +53,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `FlowNetwork` | not a list item: a `payload` plus `frames` of named states ([`FlowFrames`](../../Interfaces/graphs/FlowFrames.cs)) | none yet | Minimum S-T Cut. Reported only as the `type` of `visualize?format=frames`; its visualization still reports `GraphD3` in /info and in the default list format. See "The Flow Network picture" below |
 | `Packing` | not a list item: a `payload` plus `frames` of named states ([`PackingFrames`](../../Interfaces/Packing/PackingFrames.cs)) | none yet | Partition, Subset Sum, Knapsack, Bin Packing. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `SetD3` in /info and in the default list format. See "The Packing picture" below |
 | `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming; the DFA and NFA run tables, the SSSP and SPSP tables. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
+| `Board` | not a list item: a `payload` plus `frames` of named states ([`BoardFrames`](../../Interfaces/Board/BoardFrames.cs)) | none yet | Sudoku, N-Queens. Reported only as the `type` of `visualize?format=frames`; Sudoku's visualization still reports `Unimplemented` and N-Queens' reports `DynamicTable` in /info and in the default list format. See "The Board picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -446,6 +447,57 @@ To add a table:
    `Blank` is the instance with nothing worked out. `Solved` (optional) draws an answer when the steps cannot be drawn. A static `Spec(problem)` next to it lets tests build the same description.
 3. A table that is a second view of a problem that already has another frames picture (an automaton's run, Dijkstra's distances) is its own visualization. It draws the same solver's steps, so the solver is not changed, and the problem's other pictures and default stay as they are.
 4. Prove nothing changed for old clients: snapshot `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/table_solver_answers.tsv`, `TableFrames_Endpoint_Tests`, `TableSolvers_Tests`, `TableFrames_Tests`).
+
+### The Board picture (`format=frames`)
+
+Sudoku and N-Queens serve the shared `Board` picture: a grid of squares, the clues the instance gives, the digits or pieces a solver puts down, and dashed links from a square that was ruled out to the square that rules it out. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the instance.
+
+The problem hands over `BoardSpec(game, size)`, with `Box` (Sudoku's 3), `LabelsFrom` (where row and column labels start: 1 for Sudoku, whose captions say R1C1; 0 for N-Queens, whose certificate counts from 0), `Clues` (`BoardClue(row, column, value)` for every square the instance fills in) and `PieceKind` (`"queen"` when the solver puts down pieces rather than text).
+
+The payload (sent once) is `{ kind: "board", game, size, box?, labelsFrom, clues }`:
+
+- `game` is `"sudoku"` or `"queens"`. It tells a frontend how to draw the squares: boxes with thick lines, or a checkerboard.
+- `box` is present only for a board with boxes.
+- A clue is `{ id, r, c, value }`. A frontend draws clues bold; they never change.
+
+Each frame is `{ event, caption, focus, values, pieces, cells, links, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `values` | The text on every square that holds text, keyed by square id: the clues and the digits placed so far (Sudoku). Empty for N-Queens |
+| `pieces` | `{ id, r, c, kind }` for every piece on the board (N-Queens' queens), in reading order. Empty for Sudoku |
+| `cells` | Square id to `{ state }`, only for squares that are not `Background`. A piece takes its square's state |
+| `links` | `{ from, to, state }`: from a square this step ruled out to the square that rules it out (a skipped square to the queen attacking it, a clue to the clue it repeats). Always `Rejected` so far |
+
+Ids are positions, never contents: the square in row `i` and column `j` (0-based) is `r{i}c{j}`. Equal digits are different squares, and no id needs escaping. Build them with `BoardFrames.CellId`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`):
+
+| State | Squares |
+| --- | --- |
+| `ElementHighlight` | The focus: the square being tried, the queen just placed. Also every placed square while a whole candidate is only tried (a `Try` or `Reject` of a solver that is not incremental; none of today's are) |
+| `Solution` | What the solver has put down: in every step of an incremental solver (what it has committed), in an `Accept`, and in a correct `Done`. Never a clue |
+| `Rejected` | The focus of an incremental solver's `Reject` (a square with no digit left, a row with no safe square and the queen above it that must move); a square a step ruled out (the start of a link); everything placed in a `Done` whose answer is wrong |
+| `Covered`, `Blocked`, `Untraveled` | not used. Squares a queen attacks are not marked: a frontend's Hints switch can shade them from the queens' positions |
+
+A run stopped by the time limit ends with a `Done` frame, `ok: false`, showing only the clues: no pieces, no links, every square `Background`. Its answer string is never read. Long searches keep their first 150 steps and then the `Done` frame with the finished board; its caption says how many steps were not shown.
+
+The solvers and their steps (`BoardCells`: `values`, every square that holds something, clues included, as a digit or `"Q"`; `conflicts`, each `{ cell, with }` a square ruled out and the square that rules it out):
+
+| Solver | Incremental | Steps |
+| --- | --- | --- |
+| Sudoku Backtracking | yes | A `Try` per digit put in a square ("R1C1 can still hold 6, 8 or 9. Try 6.", "6 in R1C1 led to a dead end. Try 8 instead."), a `Reject` when a square has no digit left ("R2C6 has no digit left: every digit from 1 to 9 is already in its row, column or box. Undo the last choice."), `Done`. Clues that clash get one `Reject` naming them, linked, and nothing is searched |
+| N-Queens Backtracking | yes | A `Try` per queen placed, with the squares skipped in its row as conflicts ("Row 1: columns 0 and 1 are attacked (0 along its column by the queen at (0,0)). Place the queen at column 2."), a `Reject` naming the whole row and the queen above it when no square is safe ("Row 2: every column is attacked, so back up and move the queen in row 1."), `Done` |
+| N-Queens Constructive | yes | A `Try` with the column list the formula writes, then a `Try` per row ("Row 0: column 1, straight from the list. No checking needed."), `Done`. Rows are `Try`, not `Accept`: the recorder builds every `Accept` past its cap, which for a large n would build the board n times |
+
+`SudokuVisualization` got the picture; its list format is unchanged (still an empty placeholder). N-Queens has a new `NQueensVisualization`, whose list format is a table of each row's queen (`DynamicTable`). N-Queens' default visualization is still `DummyVisualization`, so its /info is unchanged.
+
+To add a grid puzzle or another board solver:
+
+1. Implement `IBoardVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(BoardCells)`.
+2. Return the spec from `Describe`, and read an answer string as a board in `ParseAnswer`. A static `Spec(problem)` next to it lets tests build the same description.
+3. Record a `BoardCells` per decision with the whole board, clues included, and the squares the step ruled out as conflicts. Build it only inside the recorder's lambdas, and pass the focus as a lambda too, so solving without steps costs nothing. Declare `IIncrementalSolver` when the solver fills squares one at a time.
+4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/board_*.tsv`, `BoardFrames_Endpoint_Tests`, `BoardSolvers_Tests`, `BoardFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 

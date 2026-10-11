@@ -1,4 +1,6 @@
-using API.Interfaces;
+﻿using API.Interfaces;
+using API.Interfaces.Board;
+using API.Interfaces.Steps;
 
 namespace API.Problems.P.P_NQUEENS.Solvers;
 
@@ -15,7 +17,8 @@ namespace API.Problems.P.P_NQUEENS.Solvers;
 // build a column list where entry i is the column of the queen in row i, using
 // the even columns followed by the odd columns with a few remainder-dependent
 // rearrangements.
-class NQueensConstructive : ISolver<NQUEENS> {
+// Incremental: it places one queen per row, straight from the formula, and never takes one back.
+class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "N-Queens Constructive";
@@ -39,18 +42,56 @@ class NQueensConstructive : ISolver<NQUEENS> {
     public string complexity { get; } = "O(n)";
 
     // --- Solver ---
-    public string solve(NQUEENS problem) {
+    public string solve(NQUEENS problem) => Solve(problem, StepRecorder<BoardCells>.Off);
+
+    // Steps (the Board picture): the column list the formula writes down, then a Try per row placing its queen straight from
+    // the list, then the answer. The rows are Try steps, not Accept: a recorder builds every Accept past its step cap, which
+    // for a large n would build the board n times.
+    public string Solve(NQUEENS problem, StepRecorder<BoardCells> rec) {
         int n = problem.n;
 
         // n = 2 and n = 3 are the only sizes with no solution; n <= 0 is empty.
-        if (n <= 0 || n == 2 || n == 3) return "{}";
+        if (n <= 0 || n == 2 || n == 3) {
+            if (n <= 0) rec.Done(new BoardCells([], []), true, "An empty board needs no queens, so the answer is {}.");
+            else rec.Done(new BoardCells([], []), false, $"The formula has no answer for n = {n}, and none exists, so the solver returns {{}} without placing anything.");
+            return "{}";
+        }
 
-        int[] columns = buildColumns(n); // columns[row] = col, both 0-indexed
-        return formatCertificate(columns);
+        var notes = new List<string>();
+        int[] columns = buildColumns(n, notes); // columns[row] = col, both 0-indexed
+        rec.Try(() => new BoardCells([], []),
+            () => $"n = {n}, so n mod 12 = {n % 12}. Write the even columns, then the odd ones"
+                + (notes.Count > 0 ? ", and " + string.Join("; ", notes) : "")
+                + $": {ListText(columns.Select(c => c + 1))}. Row i gets the i-th number, minus 1.",
+            () => []);
+        for (int row = 0; row < n; row++) {
+            int r = row;
+            rec.Try(() => Queens(columns, r + 1), () => $"Row {r}: column {columns[r]}, straight from the list. No checking needed.",
+                () => [BoardFrames.CellId(r, columns[r])]);
+        }
+
+        string answer = formatCertificate(columns);
+        rec.Done(Queens(columns, n), true, n == 1 ? $"The one queen is placed in 1 step, with no search: {answer}."
+            : n <= ShortBoard ? $"All {n} queens placed in {n} steps, with no search: {answer}."
+            : $"All {BoardFrames.Count(n)} queens placed in {BoardFrames.Count(n)} steps, with no search.");
+        return answer;
     }
 
+    // Captions spell out the column list and the answer only for a board this small; a large n would make them huge.
+    private const int ShortBoard = 16;
+
+    private static string ListText(IEnumerable<int> numbers) {
+        var list = numbers.ToList();
+        return list.Count <= ShortBoard ? string.Join(", ", list) : string.Join(", ", list.Take(ShortBoard)) + $", … ({BoardFrames.Count(list.Count)} in all)";
+    }
+
+    // The queens in rows 0 .. rows-1 (built only inside recorder lambdas).
+    private static BoardCells Queens(int[] columns, int rows) =>
+        new(Enumerable.Range(0, rows).Select(r => new KeyValuePair<string, string>(BoardFrames.CellId(r, columns[r]), "Q")), []);
+
     // Returns a 0-indexed array where board[row] = col for each row 0..n-1.
-    private int[] buildColumns(int n) {
+    // notes gets each rearrangement made, in words, for the steps' caption.
+    private int[] buildColumns(int n, List<string> notes) {
         int rem = n % 12;
 
         // Even columns 2,4,...  and odd columns 1,3,... (1-indexed for now).
@@ -63,6 +104,7 @@ class NQueensConstructive : ISolver<NQUEENS> {
         // Remainder-dependent rearrangements.
         if (rem == 3 || rem == 9) {
             moveToEnd(evens, 2); // move column 2 to the end of the even list
+            notes.Add("move 2 to the end of the evens");
         }
 
         if (rem == 8) {
@@ -70,12 +112,15 @@ class NQueensConstructive : ISolver<NQUEENS> {
             for (int i = 0; i + 1 < odds.Count; i += 2) {
                 (odds[i], odds[i + 1]) = (odds[i + 1], odds[i]);
             }
+            notes.Add("swap the odds in pairs");
         } else if (rem == 2) {
             swapValues(odds, 1, 3); // switch the places of columns 1 and 3
             moveToEnd(odds, 5);     // then move column 5 to the end
+            notes.Add("swap 1 and 3, then move 5 to the end of the odds");
         } else if (rem == 3 || rem == 9) {
             moveToEnd(odds, 1); // move columns 1 and 3 to the end (1 first, then 3)
             moveToEnd(odds, 3);
+            notes.Add("move 1 and 3 to the end of the odds");
         }
 
         // Concatenate: row i (0-indexed) gets column list[i] (converted to 0-indexed).
