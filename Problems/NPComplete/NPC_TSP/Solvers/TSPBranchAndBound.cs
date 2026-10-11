@@ -36,6 +36,8 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
         public bool[]? visited;
         // Its node of the search tree (read only to record steps): the root is 0, every extension considered gets the next id.
         public SearchNode node = new(0, null, "", SearchNodeState.Queued);
+        // The nodes from the root down to this one, to name the best tour's path in the Done step.
+        public SearchNode[] nodePath = [];
     }
 
     private readonly struct PQPriority : IComparable<PQPriority> {
@@ -76,7 +78,8 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
     // Each step also names its node of the search tree (SolverStep.Tree, for the Search Tree picture): the root, the start
     // city, comes queued with the first step; a path taken off the queue is explored, or pruned if the best tour has caught up
     // with its bound; each extension is a node under its path, queued with its lower bound or pruned (no such edge, or its
-    // bound is no better); a complete tour is the solution (the best so far) or failed.
+    // bound is no better); a complete tour is the solution (the best so far) or failed. The Done step names the best tour's
+    // path again, root first, when the search found it (not the greedy solver).
     public string Solve(TSP problem, StepRecorder<Tour> rec) {
         if (timerHasExpired) {
             rec.Done(new Tour([]), false, "Ran out of time before the search finished.");
@@ -129,7 +132,9 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
             bound = initialLowerBound,
             visited = rootVisited,
             node = rootNode,
+            nodePath = [rootNode],
         };
+        SearchNode[]? bestNodePath = null;   // the best tour's nodes, once the search beats the greedy tour
 
         var pq = new PriorityQueue<SearchState, PQPriority>();
         Enqueue(pq, root);
@@ -154,6 +159,7 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
                     double previousBest = bestCost;
                     bestCost = tourCost;
                     bestPath = new List<int>(current.path);
+                    bestNodePath = current.nodePath;
                     rec.Accept(() => new Tour(Names(current.path, close: true)),
                         () => $"Close the tour {nodes[current.path[^1]]} → {nodes[current.path[0]]}: total {TSPTourSteps.Num(tourCost)}, the best so far{(double.IsPositiveInfinity(previousBest) ? "" : $" (it beats {TSPTourSteps.Num(previousBest)})")}.",
                         () => [nodes[current.path[^1]], nodes[current.path[0]]],
@@ -239,6 +245,7 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
                     matrix = childMatrix,
                     bound = childBound,
                     node = queuedNode,
+                    nodePath = [.. current.nodePath, queuedNode],
                 };
                 Enqueue(pq, child);
             }
@@ -248,8 +255,15 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
             if (problem.defaultVerifier.verify(problem, certificate)) {
                 var best = bestPath;
                 double finalCost = bestCost;
+                var bestNodes = bestNodePath;
+                // The best tour's path in the tree (none when the greedy tour was never beaten): past the cap, the last Accept kept
+                // need not be the one that found it.
                 rec.Done(GraphTourFrames.ParseTour(certificate), true,
-                    $"The cheapest tour is {GraphTourFrames.Arrows(Names(best, close: true))}, total {TSPTourSteps.Num(finalCost)}, within K = {problem.K}.");
+                    $"The cheapest tour is {GraphTourFrames.Arrows(Names(best, close: true))}, total {TSPTourSteps.Num(finalCost)}, within K = {problem.K}.",
+                    bestNodes is null ? null : () => [
+                        .. bestNodes[..^1].Select(x => x with { State = SearchNodeState.Explored, Bound = null }),
+                        bestNodes[^1] with { State = SearchNodeState.Solution, Bound = $"tour {TSPTourSteps.Num(finalCost)}" },
+                    ]);
                 return certificate;
             }
             rec.Done(new Tour([]), false, $"The cheapest tour costs {TSPTourSteps.Num(bestCost)}, which is more than K = {problem.K}.");

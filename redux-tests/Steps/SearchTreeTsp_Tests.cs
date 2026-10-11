@@ -49,10 +49,7 @@ public class SearchTreeTsp_Tests {
         int expanding = -1;
         for (int i = 0; i < steps.Count && i < StepRecorder<Tour>.DefaultCap; i++) {
             var step = steps[i];
-            if (step.Event == StepEvent.Done) {
-                Assert.Null(step.Tree);
-                continue;
-            }
+            if (step.Event == StepEvent.Done) continue;
             var node = Assert.Single(step.Tree!);
             var cities = step.Partial.Order;
             if (i == 0) {
@@ -110,5 +107,33 @@ public class SearchTreeTsp_Tests {
             }
             made[node.NodeId] = node;
         }
+    }
+
+    [Theory]
+    [MemberData(nameof(Snapshot))]
+    public void TheDoneStep_NamesTheBestToursPath_WhenTheSearchFoundIt(string solver, string instance, string _) {
+        var steps = Steps(solver, instance);
+        var done = steps[^1];
+        var accepts = steps.Where(s => s.Event == StepEvent.Accept && s.Caption.StartsWith("Close the tour", StringComparison.Ordinal)).ToList();
+        if (done.Ok != true || (accepts.Count == 0 && steps.Count <= StepRecorder<Tour>.DefaultCap + 1)) {
+            // No answer, or the greedy tour was never beaten: nothing to name.
+            Assert.Null(done.Tree);
+            return;
+        }
+        if (done.Tree == null) {
+            // Past the cap the greedy tour may still be the best; then no kept step closed a better one either.
+            Assert.Empty(accepts);
+            return;
+        }
+        var path = done.Tree;
+        Assert.Equal((0, (int?)null), (path[0].NodeId, path[0].ParentId));
+        for (int i = 1; i < path.Count; i++) Assert.Equal(path[i - 1].NodeId, path[i].ParentId);
+        Assert.All(path.SkipLast(1), n => Assert.Equal(SearchNodeState.Explored, n.State));
+        Assert.Equal(SearchNodeState.Solution, path[^1].State);
+        Assert.Matches(@"^tour [\d,.]+$", path[^1].Bound);
+        // It spells the answer, a tour that starts where the search starts.
+        Assert.Equal(done.Partial.Order.SkipLast(1), path.Select(n => n.Label));
+        // The last tour the search kept closing is this one, when it was kept.
+        if (accepts.Count > 0 && accepts[^1].Tree![0].NodeId == path[^1].NodeId) Assert.Equal(path[^1].Bound, accepts[^1].Tree![0].Bound);
     }
 }
