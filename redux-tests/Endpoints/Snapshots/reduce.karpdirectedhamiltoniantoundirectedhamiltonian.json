@@ -37,7 +37,235 @@
       "complexityBucket": "Factorial"
     }
   },
-  "gadgets": [],
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "11",
+        "12",
+        "13",
+        "11-12",
+        "12-13"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1"
+      ],
+      "targetIds": [
+        "11",
+        "12",
+        "13",
+        "11-12",
+        "12-13"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "21",
+        "22",
+        "23",
+        "21-22",
+        "22-23"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2"
+      ],
+      "targetIds": [
+        "21",
+        "22",
+        "23",
+        "21-22",
+        "22-23"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3"
+      ],
+      "reductionToIds": [
+        "31",
+        "32",
+        "33",
+        "31-32",
+        "32-33"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3"
+      ],
+      "targetIds": [
+        "31",
+        "32",
+        "33",
+        "31-32",
+        "32-33"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "4"
+      ],
+      "reductionToIds": [
+        "41",
+        "42",
+        "43",
+        "41-42",
+        "42-43"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "4"
+      ],
+      "targetIds": [
+        "41",
+        "42",
+        "43",
+        "41-42",
+        "42-43"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "5"
+      ],
+      "reductionToIds": [
+        "51",
+        "52",
+        "53",
+        "51-52",
+        "52-53"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "5"
+      ],
+      "targetIds": [
+        "51",
+        "52",
+        "53",
+        "51-52",
+        "52-53"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2\u003E1"
+      ],
+      "reductionToIds": [
+        "11-23"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2\u003E1"
+      ],
+      "targetIds": [
+        "11-23"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1\u003E3"
+      ],
+      "reductionToIds": [
+        "13-31"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1\u003E3"
+      ],
+      "targetIds": [
+        "13-31"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2\u003E3"
+      ],
+      "reductionToIds": [
+        "23-31"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2\u003E3"
+      ],
+      "targetIds": [
+        "23-31"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3\u003E5"
+      ],
+      "reductionToIds": [
+        "33-51"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3\u003E5"
+      ],
+      "targetIds": [
+        "33-51"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "4\u003E2"
+      ],
+      "reductionToIds": [
+        "21-43"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "4\u003E2"
+      ],
+      "targetIds": [
+        "21-43"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "5\u003E4"
+      ],
+      "reductionToIds": [
+        "41-53"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "5\u003E4"
+      ],
+      "targetIds": [
+        "41-53"
+      ]
+    }
+  ],
   "reductionFrom": {
     "problemName": "Directed Hamiltonian Cycle",
     "formalDefinition": "Directed Hamiltonian Cycle = {\u003CG\u003E | G is a directed graph with a cycle that follows the edge directions and visits every node exactly once}",
