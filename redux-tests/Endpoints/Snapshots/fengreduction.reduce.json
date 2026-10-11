@@ -26,7 +26,14 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n)",
+      "timeComplexity": {
+        "Function": "2^n",
+        "Description": "",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -61,7 +68,14 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(n * 2^n), n = |S|",
+      "timeComplexity": {
+        "Function": "n * 2^n",
+        "Description": ", n = |S|",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -94,7 +108,14 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(n * 2^n), n = |S|",
+        "timeComplexity": {
+          "Function": "n * 2^n",
+          "Description": ", n = |S|",
+          "VariableNames": [
+            "n"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -128,7 +149,14 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n)",
+      "timeComplexity": {
+        "Function": "2^n",
+        "Description": "",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -162,7 +190,14 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n)",
+        "timeComplexity": {
+          "Function": "2^n",
+          "Description": "",
+          "VariableNames": [
+            "n"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }

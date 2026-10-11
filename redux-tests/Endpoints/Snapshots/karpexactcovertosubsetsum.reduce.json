@@ -26,7 +26,14 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(n * 2^n), n = |S|",
+      "timeComplexity": {
+        "Function": "n * 2^n",
+        "Description": ", n = |S|",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -61,7 +68,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^s * s^2 * n), s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)",
+      "timeComplexity": {
+        "Function": "2^s * s^2 * n",
+        "Description": ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)",
+        "VariableNames": [
+          "s",
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -94,7 +109,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
-        "complexity": "O(2^s * s^2 * x^2), s = |S| (rows/subsets), x = |X| (columns/universe)",
+        "timeComplexity": {
+          "Function": "2^s * s^2 * x^2",
+          "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
+          "VariableNames": [
+            "s",
+            "x"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -129,7 +152,14 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(n * 2^n), n = |S|",
+      "timeComplexity": {
+        "Function": "n * 2^n",
+        "Description": ", n = |S|",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -162,7 +192,14 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(n * 2^n), n = |S|",
+        "timeComplexity": {
+          "Function": "n * 2^n",
+          "Description": ", n = |S|",
+          "VariableNames": [
+            "n"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
