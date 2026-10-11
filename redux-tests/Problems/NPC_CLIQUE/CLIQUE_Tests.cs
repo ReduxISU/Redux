@@ -63,6 +63,16 @@ public class CLIQUE_Tests {
         Assert.Equal(expected, verifier.verify(clique, certificate));
     }
 
+    [Theory] // repeated names count once, so a repeat cannot make a clique bigger (#766)
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),3)", "{1,1,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),2)", "{1,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),3)", "{1,2,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),2)", "{1,2,1}", true)]
+    public void CLIQUE_verifier_counts_repeated_nodes_once(string instance, string certificate, bool expected) {
+        CLIQUE clique = new CLIQUE(instance);
+        Assert.Equal(expected, new CliqueVerifier().verify(clique, certificate));
+    }
+
     [Fact]
     public void CLIQUE_verifier_rejects_empty_certificate() {
         CLIQUE clique = new CLIQUE();
