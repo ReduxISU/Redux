@@ -8,18 +8,22 @@ namespace redux_tests;
 #pragma warning disable CS1591
 
 // 3SAT Backtracking's steps as the Search Tree picture reads them. Endpoints/Snapshots/searchtree_sat3_steps.tsv holds
-// (solver, instance, the run's steps as compact JSON) captured BEFORE the solver reported its search tree: every 3SAT row of
-// sat_solver_answers.tsv, the mockup's examples, and five seeded random formulas (one past the 150-step cap, two
-// unsatisfiable). With each step's "tree" removed, the steps must be exactly those, so no other picture changes. The other
+// (solver, instance, step count, then a hash of each step: the first 16 hex digits of the SHA-256 of its compact JSON,
+// so a changed step is reported with its new JSON) captured BEFORE the solver reported its search tree: every 3SAT row
+// of sat_solver_answers.tsv, the mockup's examples, and five seeded random formulas (one past the 150-step cap, two
+// unsatisfiable). With each step's "tree" removed, the steps must hash the same, so no other picture changes. The other
 // tests check the tree links themselves.
 public class SearchTreeSat3_Tests {
-    public static TheoryData<string, string, string> Snapshot {
+    internal static IEnumerable<(string Solver, string Instance, int Count, string[] Hashes)> Rows() =>
+        File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", "searchtree_sat3_steps.tsv")).Where(l => l.Length > 0).Select(l => {
+            var parts = l.Split('\t');
+            return (parts[0], parts[1], int.Parse(parts[2]), parts[3].Split(' '));
+        });
+
+    public static TheoryData<string, string> Snapshot {
         get {
-            var data = new TheoryData<string, string, string>();
-            foreach (var line in File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", "searchtree_sat3_steps.tsv")).Where(l => l.Length > 0)) {
-                var parts = line.Split('\t');
-                data.Add(parts[0], parts[1], parts[2]);
-            }
+            var data = new TheoryData<string, string>();
+            foreach (var (solver, instance, _, _) in Rows()) data.Add(solver, instance);
             return data;
         }
     }
@@ -29,12 +33,18 @@ public class SearchTreeSat3_Tests {
     private static JsonArray StepsJson(SolveRun run) =>
         JsonNode.Parse(JsonSerializer.Serialize(run.Steps, ProblemProvider.VisualizeJsonOptions()))!.AsArray();
 
+    private static string Hash(JsonNode step) =>
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(step.ToJsonString())))[..16].ToLowerInvariant();
+
     [Theory]
     [MemberData(nameof(Snapshot))]
-    public void Steps_WithoutTheirTree_AreWhatTheyWereBeforeTheSearchTree(string solver, string instance, string expected) {
+    public void Steps_WithoutTheirTree_AreWhatTheyWereBeforeTheSearchTree(string solver, string instance) {
+        var (_, _, count, hashes) = Rows().Single(r => r.Solver == solver && r.Instance == instance);
         var steps = StepsJson(Create(solver).Run(instance, withSteps: true));
         foreach (var step in steps) step!.AsObject().Remove("tree");
-        Assert.Equal(expected, steps.ToJsonString());
+        Assert.Equal(count, steps.Count);
+        for (int i = 0; i < count; i++)
+            if (Hash(steps[i]!) != hashes[i]) Assert.Fail($"Step {i} changed. It is now {steps[i]!.ToJsonString()}");
     }
 
     private static List<SolverStep<Assignment>> Steps(string solver, string instance) =>
@@ -42,7 +52,7 @@ public class SearchTreeSat3_Tests {
 
     [Theory]
     [MemberData(nameof(Snapshot))]
-    public void EveryDecision_NamesItsNode_UnderTheStateItDecides(string solver, string instance, string _) {
+    public void EveryDecision_NamesItsNode_UnderTheStateItDecides(string solver, string instance) {
         var steps = Steps(solver, instance);
         var made = new Dictionary<int, SearchNode>();
         bool pastCap = steps.Count > StepRecorder<Assignment>.DefaultCap + 1;
@@ -104,7 +114,7 @@ public class SearchTreeSat3_Tests {
 
     [Theory]
     [MemberData(nameof(Snapshot))]
-    public void TheDoneStep_NamesTheSolutionsPath_WhichSpellsTheAssignmentItFound(string solver, string instance, string _) {
+    public void TheDoneStep_NamesTheSolutionsPath_WhichSpellsTheAssignmentItFound(string solver, string instance) {
         var steps = Steps(solver, instance);
         var done = steps[^1];
         if (done.Ok != true) {
