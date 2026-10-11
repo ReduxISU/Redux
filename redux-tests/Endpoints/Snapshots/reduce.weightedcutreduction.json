@@ -1433,7 +1433,7 @@
     "defaultInstance": "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)",
     "instance": "(({1,2,3,4,5,6,7,8,9,10,11},{({1,2},7),({1,3},12),({1,4},15),({1,5},33),({1,6},11),({1,7},5),({1,8},6),({1,9},9),({1,10},21),({1,11},18),({2,3},84),({2,4},105),({2,5},231),({2,6},77),({2,7},35),({2,8},42),({2,9},63),({2,10},147),({2,11},126),({3,4},180),({3,5},396),({3,6},132),({3,7},60),({3,8},72),({3,9},108),({3,10},252),({3,11},216),({4,5},495),({4,6},165),({4,7},75),({4,8},90),({4,9},135),({4,10},315),({4,11},270),({5,6},363),({5,7},165),({5,8},198),({5,9},297),({5,10},693),({5,11},594),({6,7},55),({6,8},66),({6,9},99),({6,10},231),({6,11},198),({7,8},30),({7,9},45),({7,10},105),({7,11},90),({8,9},54),({8,10},126),({8,11},108),({9,10},189),({9,11},162),({10,11},378)}),4761)",
     "instanceFormat": "Format: {((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int} Example: (({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5) Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total. An edge written twice with the same weight, either way round, counts once.",
-    "certificateFormat": "Format: {S | S subset E, sum of edge weights in S = K} Example: {({2,1},5)}",
+    "certificateFormat": "Format: {S | S subset E, S is exactly the set of edges crossing some partition of N into two non-empty sets, sum of edge weights in S = K} Example: {({2,1},5)}",
     "complexityClass": "NPComplete",
     "problemType": "NetworkDesign",
     "contributors": [
@@ -1462,7 +1462,7 @@
     },
     "defaultVerifier": {
       "verifierName": "Default Weighted Cut Verifier",
-      "verifierDefinition": "This is a verifier for the Weighted Cut problem",
+      "verifierDefinition": "Checks that the certificate edges all exist in G with the stated weights, are distinct, are exactly the edges crossing some partition of the vertices into two non-empty sets, and have total weight exactly K.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Verifiers/WeightedCutVerifier.cs",
       "certificate": "",
