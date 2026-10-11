@@ -37,7 +37,7 @@ Because of those three type parameters, a problem cannot compile alone. You need
 | Default verifier | One class implementing `IVerifier<YourProblem>` | [adding-a-verifier.md](adding-a-verifier.md) |
 | Default visualization | A real one, **or** the built-in `DummyVisualization` placeholder | [adding-a-visualization.md](adding-a-visualization.md) |
 
-`DummyVisualization` ([Interfaces/DummyClasses/DummyVisualization.cs](../../Interfaces/DummyClasses/DummyVisualization.cs), namespace `API.DummyClasses`) is the official "no visualization yet" answer. The worked example below uses it. If you do write a real visualization that introduces a new drawing type, the extra steps (a manifest file and a GUI check) are in [adding-a-visualization.md](adding-a-visualization.md).
+`DummyVisualization` ([Interfaces/DummyClasses/DummyVisualization.cs](../../Interfaces/DummyClasses/DummyVisualization.cs), namespace `API.DummyClasses`) is the official "no visualization yet" answer. Many problems still use it; Subset Sum, the worked example below, has its own (`SubsetSumVisualization`). If you do write a real visualization that introduces a new drawing type, the extra steps (a manifest file and a GUI check) are in [adding-a-visualization.md](adding-a-visualization.md).
 
 ## 2. Before you start
 
@@ -85,7 +85,7 @@ Rules that matter:
 | Namespace | Matches the folder path, see the table above | `API.Problems.NPComplete.NPC_SUBSETSUM` |
 | Class name | Unique across the project; **no** `NPC_`/`NPH_`/`P_` prefix | `SUBSETSUM` |
 | Sub-folders | `Solvers/`, `Verifiers/`, `Visualizations/`, `ReduceTo/`, each with its own sub-namespace | `...NPC_SUBSETSUM.Solvers` |
-| Implements | `IProblem<Solver, Verifier, Visualization>`, or `IGraphProblem<...>` for graph problems | `IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualization>` |
+| Implements | `IProblem<Solver, Verifier, Visualization>`, or `IGraphProblem<...>` for graph problems | `IProblem<SubsetSumBruteForce, SubsetSumVerifier, SubsetSumVisualization>` |
 
 **The folder is a filing label, not the truth.** A problem's real complexity class is the `complexityClass` value you declare in the class ([Interfaces/ComplexityClass.cs](../../Interfaces/ComplexityClass.cs)). The API trusts that value, not the folder. A few existing problems sit in a folder that does not match their declared class (for example `NPC_MAXCUT` declares `NPHard`). Put yours in the folder that matches your declared class, and make the two agree.
 
@@ -167,7 +167,7 @@ Also remove every `"TODO"` before you open the PR (the contributor name `"TODO"`
 
 ### Step 2. Fill in the members
 
-Every problem implements the members in [Interfaces/ProblemInterface.cs](../../Interfaces/ProblemInterface.cs). Here is each one in plain words, with the value used by the worked example, [`SUBSETSUM_Class.cs`](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs) (Subset Sum, from Karp's 1972 paper). It is a good one to copy from because it is small, uses the current conventions, and uses `DummyVisualization`.
+Every problem implements the members in [Interfaces/ProblemInterface.cs](../../Interfaces/ProblemInterface.cs). Here is each one in plain words, with the value used by the worked example, [`SUBSETSUM_Class.cs`](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs) (Subset Sum, from Karp's 1972 paper). It is a good one to copy from because it is small and uses the current conventions.
 
 | Member | What it is for | Worked example value |
 | --- | --- | --- |
@@ -190,7 +190,7 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 | `wikiName` | Deprecated, but still required by the interface. Set it to an empty string. | `""` |
 | `defaultSolver` | An object of the default solver. | `new SubsetSumBruteForce()` |
 | `defaultVerifier` | An object of the default verifier. | `new SubsetSumVerifier()` |
-| `defaultVisualization` | An object of the default visualization. | `new DummyVisualization()` |
+| `defaultVisualization` | An object of the default visualization (`new DummyVisualization()` if you have none yet). | `new SubsetSumVisualization()` |
 
 Your class also needs the **fields that hold the parsed instance** (here a list `S` and a number `T`) and **two constructors** (see Step 3).
 
