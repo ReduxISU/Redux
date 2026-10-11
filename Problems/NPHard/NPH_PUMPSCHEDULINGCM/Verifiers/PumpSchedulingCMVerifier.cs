@@ -28,6 +28,9 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
     public bool verify(PUMPSCHEDULINGCM problem, string certificate) {
         this.certificate = certificate ?? string.Empty;
 
+        // "{}" is the solver's "no answer" (#803); it is never a valid schedule.
+        if (this.certificate.Trim() == "{}") return false;
+
         UtilCollection parsed;
         try {
             parsed = new UtilCollection(this.certificate);

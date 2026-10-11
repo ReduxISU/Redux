@@ -130,7 +130,8 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
                     bestM = m;
                 }
 
-        if (bestB == -1) return string.Empty;
+        // No schedule keeps the tank between empty and full: "{}" is "no answer" (#803, #605).
+        if (bestB == -1) return "{}";
 
         int[] schedMasks = new int[Hours];
         int curB = bestB, curM = bestM;
