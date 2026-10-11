@@ -55,6 +55,7 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
             nextBinary(binary);
 
         }
-        return "()";
+        // No assignment works: "{}", the empty set every solver answers when there is no answer (#797).
+        return "{}";
     }
 }
