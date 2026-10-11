@@ -1,0 +1,214 @@
+{
+  "reductionName": "Karp\u0027s Exact Cover Reduction",
+  "reductionDefinition": "Karp\u0027s Reduction from Exact Cover to Subset Sum",
+  "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/ReduceTo/NPC_EXACTCOVER/KarpGraphColorToExactCover.cs",
+  "contributors": [
+    "Andrija Sevaljevic"
+  ],
+  "visualization": {
+    "visualizationName": "Exact Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Exact Cover",
+    "visualizationType": "SetD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
+    "contributors": [
+      "Russell Phillips",
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Knuth\u0027s Algorithm X",
+      "solverDefinition": "",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Solvers/DancingLinks.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "Backtracking",
+      "timeComplexity": {
+        "Function": "2^s * s^2 * x^2",
+        "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
+        "VariableNames": [
+          "s",
+          "x"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [],
+  "reductionFrom": {
+    "problemName": "Graph Coloring",
+    "formalDefinition": "GRAPHCOLORING = {\u003CG,k\u003E | G is a graph that has a k-coloring}",
+    "problemDefinition": "An assignment of labels (e.g., colors) to the vertices of a graph such that no two adjacent vertices are of the same label. This is called a vertex coloring.",
+    "inputDescription": "G, a graph, and k, the number of colors",
+    "outputDescription": "True or False, whether G has a valid k-coloring",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/GRAPHCOLORING_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "instance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "certificateFormat": "Format: {c1,...,cK} | color classes partition N, no edge in E has both endpoints in the same class Example: {{a},{b,d,f,h},{c,e,g,i}}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Daniel Igbokwe",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Graph Coloring Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Graph Coloring problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "(numColors\u002B1)^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+        "VariableNames": [
+          "numColors",
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Graph Coloring Verifier",
+      "verifierDefinition": "This is a verifier for Graph Coloring.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Verifiers/GraphColoringVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Graph Coloring Visualization",
+      "visualizationDefinition": "This is a default visualization for Graph Coloring",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Visualizations/GraphColoringDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic",
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Graph Coloring Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Graph Coloring problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "(numColors\u002B1)^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+          "VariableNames": [
+            "numColors",
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Exact Cover",
+    "formalDefinition": "Exact Cover = {\u003CS, X\u003E | S is a collection of subsets of a set X where S* exists such that S* is a subcollection of S and an exact cover, of S. This means that each element of X is in exactly one subset of S*.} ",
+    "problemDefinition": "The exact cover problem is a decision problem to determine if an exact cover exists for some \u003CS, X\u003E",
+    "inputDescription": "X, a set, and S, a collection of subsets of X",
+    "outputDescription": "True or False, whether an exact cover of X exists using subsets from S",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/EXACTCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "instance": "({a,b,c,d,e,f,g,h,i,a_b,b_c,a_c,d_a,d_e,a_e,a_f,f_g,g_a,a_h,h_i,i_a,a_a_b_1,a_a_b_2,a_a_b_3,a_a_c_1,a_a_c_2,a_a_c_3,a_d_a_1,a_d_a_2,a_d_a_3,a_a_e_1,a_a_e_2,a_a_e_3,a_a_f_1,a_a_f_2,a_a_f_3,a_g_a_1,a_g_a_2,a_g_a_3,a_a_h_1,a_a_h_2,a_a_h_3,a_i_a_1,a_i_a_2,a_i_a_3,b_a_b_1,b_a_b_2,b_a_b_3,b_b_c_1,b_b_c_2,b_b_c_3,c_b_c_1,c_b_c_2,c_b_c_3,c_a_c_1,c_a_c_2,c_a_c_3,d_d_a_1,d_d_a_2,d_d_a_3,d_d_e_1,d_d_e_2,d_d_e_3,e_d_e_1,e_d_e_2,e_d_e_3,e_a_e_1,e_a_e_2,e_a_e_3,f_a_f_1,f_a_f_2,f_a_f_3,f_f_g_1,f_f_g_2,f_f_g_3,g_f_g_1,g_f_g_2,g_f_g_3,g_g_a_1,g_g_a_2,g_g_a_3,h_a_h_1,h_a_h_2,h_a_h_3,h_h_i_1,h_h_i_2,h_h_i_3,i_h_i_1,i_h_i_2,i_h_i_3,i_i_a_1,i_i_a_2,i_i_a_3},{{a,a_a_b_1,a_a_c_1,a_d_a_1,a_a_e_1,a_a_f_1,a_g_a_1,a_a_h_1,a_i_a_1},{a,a_a_b_2,a_a_c_2,a_d_a_2,a_a_e_2,a_a_f_2,a_g_a_2,a_a_h_2,a_i_a_2},{a,a_a_b_3,a_a_c_3,a_d_a_3,a_a_e_3,a_a_f_3,a_g_a_3,a_a_h_3,a_i_a_3},{b,b_a_b_1,b_b_c_1},{b,b_a_b_2,b_b_c_2},{b,b_a_b_3,b_b_c_3},{c,c_b_c_1,c_a_c_1},{c,c_b_c_2,c_a_c_2},{c,c_b_c_3,c_a_c_3},{d,d_d_a_1,d_d_e_1},{d,d_d_a_2,d_d_e_2},{d,d_d_a_3,d_d_e_3},{e,e_d_e_1,e_a_e_1},{e,e_d_e_2,e_a_e_2},{e,e_d_e_3,e_a_e_3},{f,f_a_f_1,f_f_g_1},{f,f_a_f_2,f_f_g_2},{f,f_a_f_3,f_f_g_3},{g,g_f_g_1,g_g_a_1},{g,g_f_g_2,g_g_a_2},{g,g_f_g_3,g_g_a_3},{h,h_a_h_1,h_h_i_1},{h,h_a_h_2,h_h_i_2},{h,h_a_h_3,h_h_i_3},{i,i_h_i_1,i_i_a_1},{i,i_h_i_2,i_i_a_2},{i,i_h_i_3,i_i_a_3},{a_b,a_a_b_2,a_a_b_3,b_a_b_1,b_a_b_3},{a_b,a_a_b_2,a_a_b_3,b_a_b_1,b_a_b_2},{a_b,a_a_b_1,a_a_b_3,b_a_b_2,b_a_b_3},{a_b,a_a_b_1,a_a_b_3,b_a_b_1,b_a_b_2},{a_b,a_a_b_1,a_a_b_2,b_a_b_2,b_a_b_3},{a_b,a_a_b_1,a_a_b_2,b_a_b_1,b_a_b_3},{b_c,b_b_c_2,b_b_c_3,c_b_c_1,c_b_c_3},{b_c,b_b_c_2,b_b_c_3,c_b_c_1,c_b_c_2},{b_c,b_b_c_1,b_b_c_3,c_b_c_2,c_b_c_3},{b_c,b_b_c_1,b_b_c_3,c_b_c_1,c_b_c_2},{b_c,b_b_c_1,b_b_c_2,c_b_c_2,c_b_c_3},{b_c,b_b_c_1,b_b_c_2,c_b_c_1,c_b_c_3},{a_c,a_a_c_2,a_a_c_3,c_a_c_1,c_a_c_3},{a_c,a_a_c_2,a_a_c_3,c_a_c_1,c_a_c_2},{a_c,a_a_c_1,a_a_c_3,c_a_c_2,c_a_c_3},{a_c,a_a_c_1,a_a_c_3,c_a_c_1,c_a_c_2},{a_c,a_a_c_1,a_a_c_2,c_a_c_2,c_a_c_3},{a_c,a_a_c_1,a_a_c_2,c_a_c_1,c_a_c_3},{d_a,d_d_a_2,d_d_a_3,a_d_a_1,a_d_a_3},{d_a,d_d_a_2,d_d_a_3,a_d_a_1,a_d_a_2},{d_a,d_d_a_1,d_d_a_3,a_d_a_2,a_d_a_3},{d_a,d_d_a_1,d_d_a_3,a_d_a_1,a_d_a_2},{d_a,d_d_a_1,d_d_a_2,a_d_a_2,a_d_a_3},{d_a,d_d_a_1,d_d_a_2,a_d_a_1,a_d_a_3},{d_e,d_d_e_2,d_d_e_3,e_d_e_1,e_d_e_3},{d_e,d_d_e_2,d_d_e_3,e_d_e_1,e_d_e_2},{d_e,d_d_e_1,d_d_e_3,e_d_e_2,e_d_e_3},{d_e,d_d_e_1,d_d_e_3,e_d_e_1,e_d_e_2},{d_e,d_d_e_1,d_d_e_2,e_d_e_2,e_d_e_3},{d_e,d_d_e_1,d_d_e_2,e_d_e_1,e_d_e_3},{a_e,a_a_e_2,a_a_e_3,e_a_e_1,e_a_e_3},{a_e,a_a_e_2,a_a_e_3,e_a_e_1,e_a_e_2},{a_e,a_a_e_1,a_a_e_3,e_a_e_2,e_a_e_3},{a_e,a_a_e_1,a_a_e_3,e_a_e_1,e_a_e_2},{a_e,a_a_e_1,a_a_e_2,e_a_e_2,e_a_e_3},{a_e,a_a_e_1,a_a_e_2,e_a_e_1,e_a_e_3},{a_f,a_a_f_2,a_a_f_3,f_a_f_1,f_a_f_3},{a_f,a_a_f_2,a_a_f_3,f_a_f_1,f_a_f_2},{a_f,a_a_f_1,a_a_f_3,f_a_f_2,f_a_f_3},{a_f,a_a_f_1,a_a_f_3,f_a_f_1,f_a_f_2},{a_f,a_a_f_1,a_a_f_2,f_a_f_2,f_a_f_3},{a_f,a_a_f_1,a_a_f_2,f_a_f_1,f_a_f_3},{f_g,f_f_g_2,f_f_g_3,g_f_g_1,g_f_g_3},{f_g,f_f_g_2,f_f_g_3,g_f_g_1,g_f_g_2},{f_g,f_f_g_1,f_f_g_3,g_f_g_2,g_f_g_3},{f_g,f_f_g_1,f_f_g_3,g_f_g_1,g_f_g_2},{f_g,f_f_g_1,f_f_g_2,g_f_g_2,g_f_g_3},{f_g,f_f_g_1,f_f_g_2,g_f_g_1,g_f_g_3},{g_a,g_g_a_2,g_g_a_3,a_g_a_1,a_g_a_3},{g_a,g_g_a_2,g_g_a_3,a_g_a_1,a_g_a_2},{g_a,g_g_a_1,g_g_a_3,a_g_a_2,a_g_a_3},{g_a,g_g_a_1,g_g_a_3,a_g_a_1,a_g_a_2},{g_a,g_g_a_1,g_g_a_2,a_g_a_2,a_g_a_3},{g_a,g_g_a_1,g_g_a_2,a_g_a_1,a_g_a_3},{a_h,a_a_h_2,a_a_h_3,h_a_h_1,h_a_h_3},{a_h,a_a_h_2,a_a_h_3,h_a_h_1,h_a_h_2},{a_h,a_a_h_1,a_a_h_3,h_a_h_2,h_a_h_3},{a_h,a_a_h_1,a_a_h_3,h_a_h_1,h_a_h_2},{a_h,a_a_h_1,a_a_h_2,h_a_h_2,h_a_h_3},{a_h,a_a_h_1,a_a_h_2,h_a_h_1,h_a_h_3},{h_i,h_h_i_2,h_h_i_3,i_h_i_1,i_h_i_3},{h_i,h_h_i_2,h_h_i_3,i_h_i_1,i_h_i_2},{h_i,h_h_i_1,h_h_i_3,i_h_i_2,i_h_i_3},{h_i,h_h_i_1,h_h_i_3,i_h_i_1,i_h_i_2},{h_i,h_h_i_1,h_h_i_2,i_h_i_2,i_h_i_3},{h_i,h_h_i_1,h_h_i_2,i_h_i_1,i_h_i_3},{i_a,i_i_a_2,i_i_a_3,a_i_a_1,a_i_a_3},{i_a,i_i_a_2,i_i_a_3,a_i_a_1,a_i_a_2},{i_a,i_i_a_1,i_i_a_3,a_i_a_2,a_i_a_3},{i_a,i_i_a_1,i_i_a_3,a_i_a_1,a_i_a_2},{i_a,i_i_a_1,i_i_a_2,a_i_a_2,a_i_a_3},{i_a,i_i_a_1,i_i_a_2,a_i_a_1,a_i_a_3}})",
+    "instanceFormat": "Format: {(U,S) | U is set, S subset {a | a subset U}} Example: ({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "certificateFormat": "Format: {T | T subset S, union of T = X, T pairwise disjoint} Example: {{2,3},{4,1}}",
+    "complexityClass": "NPComplete",
+    "problemType": "SetsAndPartitions",
+    "contributors": [
+      "Caleb Eardley",
+      "Alex Diviney",
+      "Michael Trosper"
+    ],
+    "defaultSolver": {
+      "solverName": "Exact Cover Brute Force",
+      "solverDefinition": "This is a generic brute force solver for Exact Cover",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Solvers/ExactCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^s * s^2 * n",
+        "Description": ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)",
+        "VariableNames": [
+          "s",
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Exact Cover Verifier",
+      "verifierDefinition": "This is a verifier for Exact Cover",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Verifiers/ExactCoverVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Caleb Eardley"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Exact Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Exact Cover",
+      "visualizationType": "SetD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips",
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Knuth\u0027s Algorithm X",
+        "solverDefinition": "",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Solvers/DancingLinks.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "Backtracking",
+        "timeComplexity": {
+          "Function": "2^s * s^2 * x^2",
+          "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
+          "VariableNames": [
+            "s",
+            "x"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "HigherPolynomial",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}
