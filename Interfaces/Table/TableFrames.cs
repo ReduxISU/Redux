@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
 using API.Interfaces.Graphs;
+using API.Interfaces.JSON_Objects.Tables;
 using API.Interfaces.Steps;
 
 namespace API.Interfaces.Table;
@@ -311,6 +312,37 @@ static class TableFrames {
         }
         return new FramesResponse(nameof(VisualizationType.Table), Payload(spec, frames.Count == 0 ? 0 : frames.Max(f => f.Values.Count)),
             frames.Cast<object>().ToList());
+    }
+
+    // ---- The list format ----
+
+    /// <summary>
+    /// One frame as the list format's <see cref="API_TableJSON"/> (the legacy <c>DynamicTable</c>), for a visualization
+    /// that has no older list output to keep. A table with row headers gets a first column, <c>row</c>, holding them. Column
+    /// keys are the spec's keys, or the column ids; empty cells are <c>""</c>; row and cell states become the row's
+    /// <c>color</c> and its <c>cellColors</c>.
+    /// </summary>
+    public static API_TableJSON ToListTable(TableSpec spec, TableFrame frame) {
+        var table = new API_TableJSON { title = spec.Title };
+        if (spec.RowLabels != null) table.columns.Add(new TableColumn { key = "row", label = spec.RowAxis ?? "" });
+        var keys = spec.Columns.Select((c, j) => c.Key ?? ColumnId(j)).ToList();
+        for (int j = 0; j < keys.Count; j++) table.columns.Add(new TableColumn { key = keys[j], label = spec.Columns[j].Label });
+        for (int i = 0; i < frame.Values.Count; i++) {
+            var cells = new Dictionary<string, string>();
+            if (spec.RowLabels is { } labels) cells["row"] = labels[i];
+            var colors = new Dictionary<string, string>();
+            for (int j = 0; j < keys.Count; j++) {
+                cells[keys[j]] = frame.Values[i][j] ?? "";
+                if (frame.Cells.TryGetValue(CellId(i, j), out var state)) colors[keys[j]] = state.State.ToString();
+            }
+            table.rows.Add(new TableRow {
+                id = RowId(i),
+                cells = cells,
+                color = frame.Rows.TryGetValue(RowId(i), out var row) ? row.State.ToString() : null,
+                cellColors = colors.Count > 0 ? colors : null,
+            });
+        }
+        return table;
     }
 
     // ---- Captions ----
