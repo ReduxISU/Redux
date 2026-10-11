@@ -140,6 +140,9 @@ public class PackingFrames_Tests {
         Assert.Equal("C1:Rejected", States(PackingFrames.Frame(spec, P(0, 0), StepEvent.Reject, [], "c").Containers));
         Assert.Empty(PackingFrames.Frame(spec, P(0, 0), StepEvent.Accept, [], "c", incremental: true).Containers);
         Assert.Empty(PackingFrames.Frame(spec, P(0, 0), StepEvent.Try, [], "c", incremental: true).Containers);
+        // An incremental run's Reject turns down one piece of an answer still being built (a backward map leaving an item
+        // out): the goal not reached yet is not a miss.
+        Assert.Empty(PackingFrames.Frame(spec, P(0, 0), StepEvent.Reject, ["I3"], "c", incremental: true).Containers);
         Assert.Equal("C1:Covered", States(PackingFrames.Frame(spec, P(-1, 0, 0), StepEvent.Accept, [], "c").Containers));
         // The empty candidate is not judged: nothing is placed.
         Assert.Empty(PackingFrames.Frame(spec, P(), StepEvent.Reject, [], "c").Containers);
