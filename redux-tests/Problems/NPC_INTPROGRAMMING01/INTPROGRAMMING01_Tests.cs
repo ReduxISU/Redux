@@ -69,13 +69,23 @@ public class INTPROGRAMMING01_Tests {
     public void INTPROGRAMMING01_BruteForce_Returns_Empty_When_No_Assignment_Satisfies() {
         // A single variable x in {0,1} with constraint x <= -1: neither x=0 (Cx=0) nor
         // x=1 (Cx=1) can satisfy <= -1, so the solver must exhaust both candidates
-        // (including nextBinary's carry-rollover from [1] back to [0]) and return "()".
+        // (including nextBinary's carry-rollover from [1] back to [0]) and return "{}", the empty set every solver answers
+        // when there is no answer (#797).
         INTPROGRAMMING01 problem = new INTPROGRAMMING01("(1)<=(-1)");
         IntegerProgrammingBruteForce solver = new IntegerProgrammingBruteForce();
 
         string solution = solver.solve(problem);
 
-        Assert.Equal("()", solution);
+        Assert.Equal("{}", solution);
+        Assert.False(new GenericVerifier01INTP().verify(problem, solution));
+    }
+
+    [Theory]
+    [InlineData("(1)<=(-1)")]
+    [InlineData("(-1 -1 0),(1 1 0),(0 0 1)<=(-2 1 1)")]
+    public void INTPROGRAMMING01_Verifier_Rejects_The_Empty_Answer(string instance) {
+        // "{}" (no assignment) is never a solution: the verifier says false instead of failing to parse it (#797).
+        Assert.False(new GenericVerifier01INTP().verify(new INTPROGRAMMING01(instance), "{}"));
     }
 
     [Fact]
@@ -117,7 +127,7 @@ public class INTPROGRAMMING01_Tests {
             INTPROGRAMMING01 problem = new INTPROGRAMMING01(inst);
             IntegerProgrammingBruteForce solver = new IntegerProgrammingBruteForce();
             string solution = solver.solve(problem);
-            if (solution == "()") continue; // no satisfying assignment exists; nothing to verify
+            if (solution == "{}") continue; // no satisfying assignment exists; nothing to verify
             Assert.True(new GenericVerifier01INTP().verify(problem, solution), $"Solver output failed verifier for: {inst}");
         }
     }
