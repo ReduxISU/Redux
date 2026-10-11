@@ -62,7 +62,7 @@ Two things that trip people up:
 
 ### The Tripartite Matching picture (`format=frames`)
 
-3-Dimensional Matching serves the `TripartiteMatching` picture: X, Y and Z as three columns, each triple of M a line through one element of each, the triples a solver chooses, and the elements they use once or more than once. Like the Graph picture it is additive: the problem's default visualization (`DummyVisualization`) is unchanged, and the picture comes from a new `DM3Visualization`.
+3-Dimensional Matching serves the `TripartiteMatching` picture: X, Y and Z as three columns, each triple of M a line through one element of each, the triples a solver chooses, and the elements they use once or more than once. The picture comes from a new `DM3Visualization`, which is also the problem's default visualization (its list format is a table of the triples, `DynamicTable`).
 
 The problem hands over `TripartiteSpec(X, Y, Z, Triples)`: the names in each set in instance order, and each triple of M as `TripartiteTriple(x, y, z)`, the positions of its names in X, Y and Z.
 

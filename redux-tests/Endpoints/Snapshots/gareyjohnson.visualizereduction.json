@@ -1,0 +1,3298 @@
+[
+  {
+    "kind": "table",
+    "title": "135 triples over |X| = 18, |Y| = 18, |Z| = 18",
+    "columns": [
+      {
+        "key": "triple",
+        "label": "Triple"
+      },
+      {
+        "key": "x",
+        "label": "X"
+      },
+      {
+        "key": "y",
+        "label": "Y"
+      },
+      {
+        "key": "z",
+        "label": "Z"
+      },
+      {
+        "key": "chosen",
+        "label": "Chosen"
+      }
+    ],
+    "rows": [
+      {
+        "id": "T1",
+        "color": null,
+        "cells": {
+          "triple": "T1",
+          "x": "x_x1_0",
+          "y": "y_x1_0",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T2",
+        "color": null,
+        "cells": {
+          "triple": "T2",
+          "x": "x_x1_0",
+          "y": "y_x1_2",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T3",
+        "color": null,
+        "cells": {
+          "triple": "T3",
+          "x": "x_x1_1",
+          "y": "y_x1_1",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T4",
+        "color": null,
+        "cells": {
+          "triple": "T4",
+          "x": "x_x1_1",
+          "y": "y_x1_3",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T5",
+        "color": null,
+        "cells": {
+          "triple": "T5",
+          "x": "x_x1_2",
+          "y": "y_x1_2",
+          "z": "z_x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T6",
+        "color": null,
+        "cells": {
+          "triple": "T6",
+          "x": "x_x1_2",
+          "y": "y_x1_0",
+          "z": "z_!x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T7",
+        "color": null,
+        "cells": {
+          "triple": "T7",
+          "x": "x_x1_3",
+          "y": "y_x1_3",
+          "z": "z_x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T8",
+        "color": null,
+        "cells": {
+          "triple": "T8",
+          "x": "x_x1_3",
+          "y": "y_x1_1",
+          "z": "z_!x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T9",
+        "color": null,
+        "cells": {
+          "triple": "T9",
+          "x": "x_x2_0",
+          "y": "y_x2_0",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T10",
+        "color": null,
+        "cells": {
+          "triple": "T10",
+          "x": "x_x2_0",
+          "y": "y_x2_0",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T11",
+        "color": null,
+        "cells": {
+          "triple": "T11",
+          "x": "x_x2_1",
+          "y": "y_x2_1",
+          "z": "z_x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T12",
+        "color": null,
+        "cells": {
+          "triple": "T12",
+          "x": "x_x2_1",
+          "y": "y_x2_1",
+          "z": "z_!x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T13",
+        "color": null,
+        "cells": {
+          "triple": "T13",
+          "x": "x_x3_0",
+          "y": "y_x3_0",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T14",
+        "color": null,
+        "cells": {
+          "triple": "T14",
+          "x": "x_x3_0",
+          "y": "y_x3_2",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T15",
+        "color": null,
+        "cells": {
+          "triple": "T15",
+          "x": "x_x3_1",
+          "y": "y_x3_1",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T16",
+        "color": null,
+        "cells": {
+          "triple": "T16",
+          "x": "x_x3_1",
+          "y": "y_x3_0",
+          "z": "z_!x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T17",
+        "color": null,
+        "cells": {
+          "triple": "T17",
+          "x": "x_x3_2",
+          "y": "y_x3_2",
+          "z": "z_x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T18",
+        "color": null,
+        "cells": {
+          "triple": "T18",
+          "x": "x_x3_2",
+          "y": "y_x3_1",
+          "z": "z_!x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T19",
+        "color": null,
+        "cells": {
+          "triple": "T19",
+          "x": "x_clause_0",
+          "y": "y_clause0",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T20",
+        "color": null,
+        "cells": {
+          "triple": "T20",
+          "x": "x_clause_0",
+          "y": "y_clause0",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T21",
+        "color": null,
+        "cells": {
+          "triple": "T21",
+          "x": "x_clause_0",
+          "y": "y_clause0",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T22",
+        "color": null,
+        "cells": {
+          "triple": "T22",
+          "x": "x_clause_1",
+          "y": "y_clause1",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T23",
+        "color": null,
+        "cells": {
+          "triple": "T23",
+          "x": "x_clause_1",
+          "y": "y_clause1",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T24",
+        "color": null,
+        "cells": {
+          "triple": "T24",
+          "x": "x_clause_1",
+          "y": "y_clause1",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T25",
+        "color": null,
+        "cells": {
+          "triple": "T25",
+          "x": "x_clause_2",
+          "y": "y_clause2",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T26",
+        "color": null,
+        "cells": {
+          "triple": "T26",
+          "x": "x_clause_2",
+          "y": "y_clause2",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T27",
+        "color": null,
+        "cells": {
+          "triple": "T27",
+          "x": "x_clause_2",
+          "y": "y_clause2",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T28",
+        "color": null,
+        "cells": {
+          "triple": "T28",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T29",
+        "color": null,
+        "cells": {
+          "triple": "T29",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T30",
+        "color": null,
+        "cells": {
+          "triple": "T30",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T31",
+        "color": null,
+        "cells": {
+          "triple": "T31",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T32",
+        "color": null,
+        "cells": {
+          "triple": "T32",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T33",
+        "color": null,
+        "cells": {
+          "triple": "T33",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T34",
+        "color": null,
+        "cells": {
+          "triple": "T34",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T35",
+        "color": null,
+        "cells": {
+          "triple": "T35",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T36",
+        "color": null,
+        "cells": {
+          "triple": "T36",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T37",
+        "color": null,
+        "cells": {
+          "triple": "T37",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T38",
+        "color": null,
+        "cells": {
+          "triple": "T38",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T39",
+        "color": null,
+        "cells": {
+          "triple": "T39",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T40",
+        "color": null,
+        "cells": {
+          "triple": "T40",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T41",
+        "color": null,
+        "cells": {
+          "triple": "T41",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T42",
+        "color": null,
+        "cells": {
+          "triple": "T42",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T43",
+        "color": null,
+        "cells": {
+          "triple": "T43",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T44",
+        "color": null,
+        "cells": {
+          "triple": "T44",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T45",
+        "color": null,
+        "cells": {
+          "triple": "T45",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T46",
+        "color": null,
+        "cells": {
+          "triple": "T46",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T47",
+        "color": null,
+        "cells": {
+          "triple": "T47",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T48",
+        "color": null,
+        "cells": {
+          "triple": "T48",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T49",
+        "color": null,
+        "cells": {
+          "triple": "T49",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T50",
+        "color": null,
+        "cells": {
+          "triple": "T50",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T51",
+        "color": null,
+        "cells": {
+          "triple": "T51",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T52",
+        "color": null,
+        "cells": {
+          "triple": "T52",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T53",
+        "color": null,
+        "cells": {
+          "triple": "T53",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T54",
+        "color": null,
+        "cells": {
+          "triple": "T54",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T55",
+        "color": null,
+        "cells": {
+          "triple": "T55",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T56",
+        "color": null,
+        "cells": {
+          "triple": "T56",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T57",
+        "color": null,
+        "cells": {
+          "triple": "T57",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T58",
+        "color": null,
+        "cells": {
+          "triple": "T58",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T59",
+        "color": null,
+        "cells": {
+          "triple": "T59",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T60",
+        "color": null,
+        "cells": {
+          "triple": "T60",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T61",
+        "color": null,
+        "cells": {
+          "triple": "T61",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T62",
+        "color": null,
+        "cells": {
+          "triple": "T62",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T63",
+        "color": null,
+        "cells": {
+          "triple": "T63",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T64",
+        "color": null,
+        "cells": {
+          "triple": "T64",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T65",
+        "color": null,
+        "cells": {
+          "triple": "T65",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T66",
+        "color": null,
+        "cells": {
+          "triple": "T66",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T67",
+        "color": null,
+        "cells": {
+          "triple": "T67",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T68",
+        "color": null,
+        "cells": {
+          "triple": "T68",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T69",
+        "color": null,
+        "cells": {
+          "triple": "T69",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T70",
+        "color": null,
+        "cells": {
+          "triple": "T70",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T71",
+        "color": null,
+        "cells": {
+          "triple": "T71",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T72",
+        "color": null,
+        "cells": {
+          "triple": "T72",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T73",
+        "color": null,
+        "cells": {
+          "triple": "T73",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T74",
+        "color": null,
+        "cells": {
+          "triple": "T74",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T75",
+        "color": null,
+        "cells": {
+          "triple": "T75",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T76",
+        "color": null,
+        "cells": {
+          "triple": "T76",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T77",
+        "color": null,
+        "cells": {
+          "triple": "T77",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T78",
+        "color": null,
+        "cells": {
+          "triple": "T78",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T79",
+        "color": null,
+        "cells": {
+          "triple": "T79",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T80",
+        "color": null,
+        "cells": {
+          "triple": "T80",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T81",
+        "color": null,
+        "cells": {
+          "triple": "T81",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T82",
+        "color": null,
+        "cells": {
+          "triple": "T82",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T83",
+        "color": null,
+        "cells": {
+          "triple": "T83",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T84",
+        "color": null,
+        "cells": {
+          "triple": "T84",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T85",
+        "color": null,
+        "cells": {
+          "triple": "T85",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T86",
+        "color": null,
+        "cells": {
+          "triple": "T86",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T87",
+        "color": null,
+        "cells": {
+          "triple": "T87",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T88",
+        "color": null,
+        "cells": {
+          "triple": "T88",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T89",
+        "color": null,
+        "cells": {
+          "triple": "T89",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T90",
+        "color": null,
+        "cells": {
+          "triple": "T90",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T91",
+        "color": null,
+        "cells": {
+          "triple": "T91",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T92",
+        "color": null,
+        "cells": {
+          "triple": "T92",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T93",
+        "color": null,
+        "cells": {
+          "triple": "T93",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T94",
+        "color": null,
+        "cells": {
+          "triple": "T94",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T95",
+        "color": null,
+        "cells": {
+          "triple": "T95",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T96",
+        "color": null,
+        "cells": {
+          "triple": "T96",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T97",
+        "color": null,
+        "cells": {
+          "triple": "T97",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T98",
+        "color": null,
+        "cells": {
+          "triple": "T98",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T99",
+        "color": null,
+        "cells": {
+          "triple": "T99",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T100",
+        "color": null,
+        "cells": {
+          "triple": "T100",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T101",
+        "color": null,
+        "cells": {
+          "triple": "T101",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T102",
+        "color": null,
+        "cells": {
+          "triple": "T102",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T103",
+        "color": null,
+        "cells": {
+          "triple": "T103",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T104",
+        "color": null,
+        "cells": {
+          "triple": "T104",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T105",
+        "color": null,
+        "cells": {
+          "triple": "T105",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T106",
+        "color": null,
+        "cells": {
+          "triple": "T106",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T107",
+        "color": null,
+        "cells": {
+          "triple": "T107",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T108",
+        "color": null,
+        "cells": {
+          "triple": "T108",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T109",
+        "color": null,
+        "cells": {
+          "triple": "T109",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T110",
+        "color": null,
+        "cells": {
+          "triple": "T110",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T111",
+        "color": null,
+        "cells": {
+          "triple": "T111",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T112",
+        "color": null,
+        "cells": {
+          "triple": "T112",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T113",
+        "color": null,
+        "cells": {
+          "triple": "T113",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T114",
+        "color": null,
+        "cells": {
+          "triple": "T114",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T115",
+        "color": null,
+        "cells": {
+          "triple": "T115",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T116",
+        "color": null,
+        "cells": {
+          "triple": "T116",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T117",
+        "color": null,
+        "cells": {
+          "triple": "T117",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T118",
+        "color": null,
+        "cells": {
+          "triple": "T118",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T119",
+        "color": null,
+        "cells": {
+          "triple": "T119",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T120",
+        "color": null,
+        "cells": {
+          "triple": "T120",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T121",
+        "color": null,
+        "cells": {
+          "triple": "T121",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T122",
+        "color": null,
+        "cells": {
+          "triple": "T122",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T123",
+        "color": null,
+        "cells": {
+          "triple": "T123",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T124",
+        "color": null,
+        "cells": {
+          "triple": "T124",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T125",
+        "color": null,
+        "cells": {
+          "triple": "T125",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_3",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T126",
+        "color": null,
+        "cells": {
+          "triple": "T126",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T127",
+        "color": null,
+        "cells": {
+          "triple": "T127",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x2_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T128",
+        "color": null,
+        "cells": {
+          "triple": "T128",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T129",
+        "color": null,
+        "cells": {
+          "triple": "T129",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x2_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T130",
+        "color": null,
+        "cells": {
+          "triple": "T130",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T131",
+        "color": null,
+        "cells": {
+          "triple": "T131",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x3_0",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T132",
+        "color": null,
+        "cells": {
+          "triple": "T132",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T133",
+        "color": null,
+        "cells": {
+          "triple": "T133",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x3_1",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T134",
+        "color": null,
+        "cells": {
+          "triple": "T134",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T135",
+        "color": null,
+        "cells": {
+          "triple": "T135",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x3_2",
+          "chosen": ""
+        },
+        "cellColors": null
+      }
+    ]
+  },
+  {
+    "kind": "table",
+    "title": "135 triples over |X| = 18, |Y| = 18, |Z| = 18",
+    "columns": [
+      {
+        "key": "triple",
+        "label": "Triple"
+      },
+      {
+        "key": "x",
+        "label": "X"
+      },
+      {
+        "key": "y",
+        "label": "Y"
+      },
+      {
+        "key": "z",
+        "label": "Z"
+      },
+      {
+        "key": "chosen",
+        "label": "Chosen"
+      }
+    ],
+    "rows": [
+      {
+        "id": "T1",
+        "color": null,
+        "cells": {
+          "triple": "T1",
+          "x": "x_x1_0",
+          "y": "y_x1_0",
+          "z": "z_x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T2",
+        "color": "Solution",
+        "cells": {
+          "triple": "T2",
+          "x": "x_x1_0",
+          "y": "y_x1_2",
+          "z": "z_!x1_0",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T3",
+        "color": null,
+        "cells": {
+          "triple": "T3",
+          "x": "x_x1_1",
+          "y": "y_x1_1",
+          "z": "z_x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T4",
+        "color": "Solution",
+        "cells": {
+          "triple": "T4",
+          "x": "x_x1_1",
+          "y": "y_x1_3",
+          "z": "z_!x1_1",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T5",
+        "color": null,
+        "cells": {
+          "triple": "T5",
+          "x": "x_x1_2",
+          "y": "y_x1_2",
+          "z": "z_x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T6",
+        "color": "Solution",
+        "cells": {
+          "triple": "T6",
+          "x": "x_x1_2",
+          "y": "y_x1_0",
+          "z": "z_!x1_2",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T7",
+        "color": null,
+        "cells": {
+          "triple": "T7",
+          "x": "x_x1_3",
+          "y": "y_x1_3",
+          "z": "z_x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T8",
+        "color": "Solution",
+        "cells": {
+          "triple": "T8",
+          "x": "x_x1_3",
+          "y": "y_x1_1",
+          "z": "z_!x1_3",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T9",
+        "color": null,
+        "cells": {
+          "triple": "T9",
+          "x": "x_x2_0",
+          "y": "y_x2_0",
+          "z": "z_x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T10",
+        "color": "Solution",
+        "cells": {
+          "triple": "T10",
+          "x": "x_x2_0",
+          "y": "y_x2_0",
+          "z": "z_!x2_0",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T11",
+        "color": null,
+        "cells": {
+          "triple": "T11",
+          "x": "x_x2_1",
+          "y": "y_x2_1",
+          "z": "z_x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T12",
+        "color": "Solution",
+        "cells": {
+          "triple": "T12",
+          "x": "x_x2_1",
+          "y": "y_x2_1",
+          "z": "z_!x2_1",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T13",
+        "color": "Solution",
+        "cells": {
+          "triple": "T13",
+          "x": "x_x3_0",
+          "y": "y_x3_0",
+          "z": "z_x3_0",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T14",
+        "color": null,
+        "cells": {
+          "triple": "T14",
+          "x": "x_x3_0",
+          "y": "y_x3_2",
+          "z": "z_!x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T15",
+        "color": "Solution",
+        "cells": {
+          "triple": "T15",
+          "x": "x_x3_1",
+          "y": "y_x3_1",
+          "z": "z_x3_1",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T16",
+        "color": null,
+        "cells": {
+          "triple": "T16",
+          "x": "x_x3_1",
+          "y": "y_x3_0",
+          "z": "z_!x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T17",
+        "color": "Solution",
+        "cells": {
+          "triple": "T17",
+          "x": "x_x3_2",
+          "y": "y_x3_2",
+          "z": "z_x3_2",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T18",
+        "color": null,
+        "cells": {
+          "triple": "T18",
+          "x": "x_x3_2",
+          "y": "y_x3_1",
+          "z": "z_!x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T19",
+        "color": "Solution",
+        "cells": {
+          "triple": "T19",
+          "x": "x_clause_0",
+          "y": "y_clause0",
+          "z": "z_x1_0",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T20",
+        "color": null,
+        "cells": {
+          "triple": "T20",
+          "x": "x_clause_0",
+          "y": "y_clause0",
+          "z": "z_!x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T21",
+        "color": null,
+        "cells": {
+          "triple": "T21",
+          "x": "x_clause_0",
+          "y": "y_clause0",
+          "z": "z_x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T22",
+        "color": null,
+        "cells": {
+          "triple": "T22",
+          "x": "x_clause_1",
+          "y": "y_clause1",
+          "z": "z_!x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T23",
+        "color": null,
+        "cells": {
+          "triple": "T23",
+          "x": "x_clause_1",
+          "y": "y_clause1",
+          "z": "z_x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T24",
+        "color": "Solution",
+        "cells": {
+          "triple": "T24",
+          "x": "x_clause_1",
+          "y": "y_clause1",
+          "z": "z_x1_1",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T25",
+        "color": "Solution",
+        "cells": {
+          "triple": "T25",
+          "x": "x_clause_2",
+          "y": "y_clause2",
+          "z": "z_x2_0",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T26",
+        "color": null,
+        "cells": {
+          "triple": "T26",
+          "x": "x_clause_2",
+          "y": "y_clause2",
+          "z": "z_!x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T27",
+        "color": null,
+        "cells": {
+          "triple": "T27",
+          "x": "x_clause_2",
+          "y": "y_clause2",
+          "z": "z_!x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T28",
+        "color": null,
+        "cells": {
+          "triple": "T28",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T29",
+        "color": null,
+        "cells": {
+          "triple": "T29",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T30",
+        "color": null,
+        "cells": {
+          "triple": "T30",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T31",
+        "color": null,
+        "cells": {
+          "triple": "T31",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T32",
+        "color": "Solution",
+        "cells": {
+          "triple": "T32",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_2",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T33",
+        "color": null,
+        "cells": {
+          "triple": "T33",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T34",
+        "color": null,
+        "cells": {
+          "triple": "T34",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T35",
+        "color": null,
+        "cells": {
+          "triple": "T35",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T36",
+        "color": null,
+        "cells": {
+          "triple": "T36",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T37",
+        "color": null,
+        "cells": {
+          "triple": "T37",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T38",
+        "color": null,
+        "cells": {
+          "triple": "T38",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T39",
+        "color": null,
+        "cells": {
+          "triple": "T39",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T40",
+        "color": null,
+        "cells": {
+          "triple": "T40",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T41",
+        "color": null,
+        "cells": {
+          "triple": "T41",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T42",
+        "color": null,
+        "cells": {
+          "triple": "T42",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T43",
+        "color": null,
+        "cells": {
+          "triple": "T43",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T44",
+        "color": null,
+        "cells": {
+          "triple": "T44",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T45",
+        "color": null,
+        "cells": {
+          "triple": "T45",
+          "x": "x_garb_0",
+          "y": "y_garb_0",
+          "z": "z_!x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T46",
+        "color": null,
+        "cells": {
+          "triple": "T46",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T47",
+        "color": null,
+        "cells": {
+          "triple": "T47",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T48",
+        "color": null,
+        "cells": {
+          "triple": "T48",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T49",
+        "color": null,
+        "cells": {
+          "triple": "T49",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T50",
+        "color": null,
+        "cells": {
+          "triple": "T50",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T51",
+        "color": null,
+        "cells": {
+          "triple": "T51",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T52",
+        "color": "Solution",
+        "cells": {
+          "triple": "T52",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x1_3",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T53",
+        "color": null,
+        "cells": {
+          "triple": "T53",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T54",
+        "color": null,
+        "cells": {
+          "triple": "T54",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T55",
+        "color": null,
+        "cells": {
+          "triple": "T55",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T56",
+        "color": null,
+        "cells": {
+          "triple": "T56",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T57",
+        "color": null,
+        "cells": {
+          "triple": "T57",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T58",
+        "color": null,
+        "cells": {
+          "triple": "T58",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T59",
+        "color": null,
+        "cells": {
+          "triple": "T59",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T60",
+        "color": null,
+        "cells": {
+          "triple": "T60",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T61",
+        "color": null,
+        "cells": {
+          "triple": "T61",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T62",
+        "color": null,
+        "cells": {
+          "triple": "T62",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T63",
+        "color": null,
+        "cells": {
+          "triple": "T63",
+          "x": "x_garb_1",
+          "y": "y_garb_1",
+          "z": "z_!x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T64",
+        "color": null,
+        "cells": {
+          "triple": "T64",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T65",
+        "color": null,
+        "cells": {
+          "triple": "T65",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T66",
+        "color": null,
+        "cells": {
+          "triple": "T66",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T67",
+        "color": null,
+        "cells": {
+          "triple": "T67",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T68",
+        "color": null,
+        "cells": {
+          "triple": "T68",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T69",
+        "color": null,
+        "cells": {
+          "triple": "T69",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T70",
+        "color": null,
+        "cells": {
+          "triple": "T70",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T71",
+        "color": null,
+        "cells": {
+          "triple": "T71",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T72",
+        "color": null,
+        "cells": {
+          "triple": "T72",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T73",
+        "color": null,
+        "cells": {
+          "triple": "T73",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T74",
+        "color": "Solution",
+        "cells": {
+          "triple": "T74",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x2_1",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T75",
+        "color": null,
+        "cells": {
+          "triple": "T75",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T76",
+        "color": null,
+        "cells": {
+          "triple": "T76",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T77",
+        "color": null,
+        "cells": {
+          "triple": "T77",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T78",
+        "color": null,
+        "cells": {
+          "triple": "T78",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T79",
+        "color": null,
+        "cells": {
+          "triple": "T79",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T80",
+        "color": null,
+        "cells": {
+          "triple": "T80",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T81",
+        "color": null,
+        "cells": {
+          "triple": "T81",
+          "x": "x_garb_2",
+          "y": "y_garb_2",
+          "z": "z_!x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T82",
+        "color": null,
+        "cells": {
+          "triple": "T82",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T83",
+        "color": null,
+        "cells": {
+          "triple": "T83",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T84",
+        "color": null,
+        "cells": {
+          "triple": "T84",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T85",
+        "color": null,
+        "cells": {
+          "triple": "T85",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T86",
+        "color": null,
+        "cells": {
+          "triple": "T86",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T87",
+        "color": null,
+        "cells": {
+          "triple": "T87",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T88",
+        "color": null,
+        "cells": {
+          "triple": "T88",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T89",
+        "color": null,
+        "cells": {
+          "triple": "T89",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T90",
+        "color": null,
+        "cells": {
+          "triple": "T90",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T91",
+        "color": null,
+        "cells": {
+          "triple": "T91",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T92",
+        "color": null,
+        "cells": {
+          "triple": "T92",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T93",
+        "color": null,
+        "cells": {
+          "triple": "T93",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T94",
+        "color": null,
+        "cells": {
+          "triple": "T94",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T95",
+        "color": "Solution",
+        "cells": {
+          "triple": "T95",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x3_0",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T96",
+        "color": null,
+        "cells": {
+          "triple": "T96",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T97",
+        "color": null,
+        "cells": {
+          "triple": "T97",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T98",
+        "color": null,
+        "cells": {
+          "triple": "T98",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T99",
+        "color": null,
+        "cells": {
+          "triple": "T99",
+          "x": "x_garb_3",
+          "y": "y_garb_3",
+          "z": "z_!x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T100",
+        "color": null,
+        "cells": {
+          "triple": "T100",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T101",
+        "color": null,
+        "cells": {
+          "triple": "T101",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T102",
+        "color": null,
+        "cells": {
+          "triple": "T102",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T103",
+        "color": null,
+        "cells": {
+          "triple": "T103",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T104",
+        "color": null,
+        "cells": {
+          "triple": "T104",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T105",
+        "color": null,
+        "cells": {
+          "triple": "T105",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T106",
+        "color": null,
+        "cells": {
+          "triple": "T106",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T107",
+        "color": null,
+        "cells": {
+          "triple": "T107",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T108",
+        "color": null,
+        "cells": {
+          "triple": "T108",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T109",
+        "color": null,
+        "cells": {
+          "triple": "T109",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T110",
+        "color": null,
+        "cells": {
+          "triple": "T110",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T111",
+        "color": null,
+        "cells": {
+          "triple": "T111",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T112",
+        "color": null,
+        "cells": {
+          "triple": "T112",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T113",
+        "color": null,
+        "cells": {
+          "triple": "T113",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T114",
+        "color": null,
+        "cells": {
+          "triple": "T114",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T115",
+        "color": "Solution",
+        "cells": {
+          "triple": "T115",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x3_1",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T116",
+        "color": null,
+        "cells": {
+          "triple": "T116",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T117",
+        "color": null,
+        "cells": {
+          "triple": "T117",
+          "x": "x_garb_4",
+          "y": "y_garb_4",
+          "z": "z_!x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T118",
+        "color": null,
+        "cells": {
+          "triple": "T118",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T119",
+        "color": null,
+        "cells": {
+          "triple": "T119",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T120",
+        "color": null,
+        "cells": {
+          "triple": "T120",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T121",
+        "color": null,
+        "cells": {
+          "triple": "T121",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T122",
+        "color": null,
+        "cells": {
+          "triple": "T122",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T123",
+        "color": null,
+        "cells": {
+          "triple": "T123",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T124",
+        "color": null,
+        "cells": {
+          "triple": "T124",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T125",
+        "color": null,
+        "cells": {
+          "triple": "T125",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x1_3",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T126",
+        "color": null,
+        "cells": {
+          "triple": "T126",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T127",
+        "color": null,
+        "cells": {
+          "triple": "T127",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x2_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T128",
+        "color": null,
+        "cells": {
+          "triple": "T128",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T129",
+        "color": null,
+        "cells": {
+          "triple": "T129",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x2_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T130",
+        "color": null,
+        "cells": {
+          "triple": "T130",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T131",
+        "color": null,
+        "cells": {
+          "triple": "T131",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x3_0",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T132",
+        "color": null,
+        "cells": {
+          "triple": "T132",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T133",
+        "color": null,
+        "cells": {
+          "triple": "T133",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x3_1",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T134",
+        "color": null,
+        "cells": {
+          "triple": "T134",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_x3_2",
+          "chosen": "no"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "T135",
+        "color": "Solution",
+        "cells": {
+          "triple": "T135",
+          "x": "x_garb_5",
+          "y": "y_garb_5",
+          "z": "z_!x3_2",
+          "chosen": "yes"
+        },
+        "cellColors": null
+      }
+    ]
+  }
+]

@@ -10,6 +10,8 @@ namespace redux_tests;
 // The Tripartite Matching picture on the actual /ProblemProvider/visualize?format=frames output, for 3-Dimensional Matching
 // and its brute force solver, plus the guard that keeps what old frontends read exactly as it was: /info for the problem, its
 // solver and its verifier (info.<name>.json, captured before the picture existed).
+// The deliberate exception is the problem's default visualization, which moved off DummyVisualization to DM3Visualization:
+// see the "rewire" tests.
 public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -47,7 +49,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         }
     }
 
-    public static TheoryData<string> TouchedInterfaces => new(["dm3", "threedimensionalmatchingbruteforce", "genericverifierdm3"]);
+    public static TheoryData<string> TouchedInterfaces => new(["threedimensionalmatchingbruteforce", "genericverifierdm3"]);
 
     // ---- What old frontends read must not change. ----
 
@@ -62,6 +64,57 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
+    }
+
+    // ---- 3-Dimensional Matching moved off DummyVisualization: the only thing that may change. ----
+
+    // What embeds its defaultVisualization: the problem and the reduction into it (3SAT to 3DM, Garey and Johnson). Their
+    // snapshots were taken after the rewire; the diff against the pre-change capture is only the nested defaultVisualization
+    // object (and reduce's visualization).
+    private const string Sat3Default = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+
+    [Theory]
+    [InlineData("dm3")]
+    [InlineData("gareyjohnson")]
+    public async Task Rewire_Info_ShowsDM3Visualization_AndNothingElse(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ReplaceLineEndings("\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        Assert.DoesNotContain("DummyVisualization", body);
+        Assert.DoesNotContain("TripartiteMatching", body);
+        Assert.DoesNotContain("StepShape", body);
+    }
+
+    [Fact]
+    public async Task Rewire_Dm3Info_ReportsDM3VisualizationAndItsSolver() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=dm3", TestContext.Current.CancellationToken);
+        var vis = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal("3-Dimensional Matching Tripartite Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
+        var own = await _client.GetAsync("/ProblemProvider/info?interface=dm3visualization", TestContext.Current.CancellationToken);
+        Assert.Equal(JsonSerializer.Serialize(JsonDocument.Parse(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement), JsonSerializer.Serialize(vis));
+    }
+
+    [Fact]
+    public async Task Rewire_Reduce_Sat3To3DM_ChangesOnlyTheNestedVisualization() {
+        var (status, body) = await Post("reduce?reduction=gareyjohnson", JsonSerializer.Serialize(Sat3Default));
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Equal(ReadSnapshot("gareyjohnson.reduce.json"), body);
+    }
+
+    // Before the rewire 3DM's visualization was DummyVisualization, so visualizeReduction answered an empty list (#755). Now
+    // it answers the table of the reduced instance's triples before and after; the mapped matching picks 18 of the 135
+    // triples, one for each element of X.
+    [Fact]
+    public async Task Rewire_VisualizeReduction_Sat3To3DM_NowReturnsTheTriples() {
+        var (status, body) = await Post("visualizeReduction?reduction=gareyjohnson&solution=" + Uri.EscapeDataString("(x1:True,x2:True,x3:False)"), JsonSerializer.Serialize(Sat3Default));
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Equal(ReadSnapshot("gareyjohnson.visualizereduction.json"), body);
+        var items = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, items.Count);
+        Assert.All(items, i => Assert.Equal("table", i.GetProperty("kind").GetString()));
+        Assert.Equal(18, items[1].GetProperty("rows").EnumerateArray().Count(r => r.GetProperty("color").ValueKind == JsonValueKind.String && r.GetProperty("color").GetString() == "Solution"));
     }
 
     // The new visualization reports its legacy list type in /info and nothing of the picture.
