@@ -1,10 +1,11 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers;
 
-class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
+class CliqueCoverBruteForce : ISolver<CLIQUECOVER, Groups> {
 
     // --- Fields ---
     public string solverName { get; } = "Clique Cover Brute Force";
@@ -22,7 +23,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
     // carrying, so the loop runs until every node reaches label K-1, a state reached after
     // Theta((K+1)^n) steps. Each candidate costs O(n^2 * m) to verify (CliqueCoverVerifier's
     // worst case is one group holding all n nodes: O(n^2) pairs x O(m) edge lookup each).
-    // With K allowed up to n (see the K > nodes.Count guard in solve()), worst case is
+    // With the group count capped at n (min(K, n) in solve()), worst case is
     // Theta((n+1)^n) -- asymptotically worse than n! (n^n / n! -> e^n), i.e. worse than the
     // existing SolverComplexityBucket.Factorial tier; Exponential is kept only because no
     // stronger bucket value exists.
@@ -66,9 +67,26 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
     }
 
 
-    public string solve(CLIQUECOVER clique) {
+    public string solve(CLIQUECOVER clique) => Solve(clique, StepRecorder<Groups>.Off);
 
-        if (clique.K > clique.nodes.Count) {
+    // Steps: one per candidate grouping tried, in the order the solver tries them. A node whose digit is the group count
+    // (min(K, n); the odometer's extra value) is in no group in that candidate, so it is left out of the partial answer.
+    // Recorder state lives only in this call.
+    public string Solve(CLIQUECOVER clique, StepRecorder<Groups> rec) {
+
+        // When this solver gives up, "{}" is its answer: the Done step says what the verifier says of it (an empty graph is
+        // covered by no cliques at all).
+        bool EmptyAnswerOk() {
+            try { return clique.defaultVerifier.verify(clique, "{}"); } catch { return false; }
+        }
+
+        // A cover never needs more cliques than there are nodes (each node alone is a clique), so more than n groups
+        // would only add empty ones.
+        int numGroups = Math.Min(clique.K, clique.nodes.Count);
+        if (numGroups <= 0) { // no group to put a node in: only a graph with no nodes is covered, by "{}"
+            rec.Done(new Groups([]), EmptyAnswerOk(), clique.nodes.Count == 0
+                ? "The graph has no nodes, so no cliques are needed to cover it."
+                : $"K = {clique.K} allows no groups, so the {clique.nodes.Count} {(clique.nodes.Count == 1 ? "node" : "nodes")} can't be covered.");
             return "{}";
         }
 
@@ -77,15 +95,32 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
             binary.Add(0);
         }
 
-        while (binary.Count(n => n == (clique.K - 1)) < clique.nodes.Count) {
-            string certificate = BinaryToCertificate(binary, clique.nodes, clique.K);
-            if (clique.defaultVerifier.verify(clique, certificate)) {
-                return certificate;
-            }
-            nextBinary(binary, clique.K);
-
+        int tried = 0;
+        Dictionary<string, int> Candidate() {
+            var groups = new Dictionary<string, int>();
+            for (int i = 0; i < binary.Count; i++)
+                if (binary[i] < numGroups) groups[clique.nodes[i]] = binary[i];
+            return groups;
         }
 
+        // A do-while, so the all-zero candidate is checked even when numGroups is 1 (every digit already equals
+        // numGroups - 1), as in GraphColoringBruteForce.
+        do {
+            string certificate = BinaryToCertificate(binary, clique.nodes, numGroups);
+            tried++;
+            if (clique.defaultVerifier.verify(clique, certificate)) {
+                rec.Accept(() => new Groups(Candidate()), () => $"Try {GraphGroupFrames.Classes(Candidate(), numGroups)}. Every group is a clique.", Array.Empty<string>());
+                rec.Done(new Groups(Candidate()), true, $"{GraphGroupFrames.Classes(Candidate(), numGroups)} covers the nodes with cliques, found after {tried} tries.");
+                return certificate;
+            }
+            rec.Reject(() => new Groups(Candidate()),
+                () => $"Try {GraphGroupFrames.Classes(Candidate(), numGroups)}: {GraphGroupFrames.Why(GroupRule.CliqueCover, clique.nodes, clique.edges, Candidate())?.Reason ?? "the verifier rejects it"}.",
+                () => GraphGroupFrames.Why(GroupRule.CliqueCover, clique.nodes, clique.edges, Candidate())?.Focus ?? Array.Empty<string>());
+            nextBinary(binary, numGroups);
+
+        } while (binary.Count(n => n == (numGroups - 1)) < clique.nodes.Count);
+
+        rec.Done(new Groups([]), EmptyAnswerOk(), $"Checked {tried} candidate groupings into at most {numGroups} groups. None is a cover by cliques.");
         return "{}";
     }
 }

@@ -90,6 +90,11 @@ class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
         } catch {
             return false;
         }
+        // A K-coloring uses at most K colors, so more non-empty color classes than K is rejected even when no
+        // neighbours share one. An empty class uses no color.
+        if (nodeSet.Count(cls => cls.Count > 0) > problem.K) {
+            return false;
+        }
         List<string> bandAid = new List<string>(problem.nodes);
         foreach (var nodeList in nodeSet) {
             foreach (var i in nodeList) {

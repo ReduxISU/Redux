@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
-class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
+class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
     public string solverName { get; } = "Kruskal's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by sorting edges by weight and adding each edge if it joins two different components.";
     public string source { get; } = "Kruskal, J. B. \"On the shortest spanning subtree of a graph and the traveling salesman problem.\" Proceedings of the American Mathematical Society 7, no. 1 (1956): 48-50.";
@@ -24,32 +25,49 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
     // rank, near-O(1) amortized per operation, so the sort dominates.
     public string complexity { get; } = "O(E log E)";
 
-    public string solve(MINIMUMSPANNINGTREE problem) {
+    public string solve(MINIMUMSPANNINGTREE problem) => Solve(problem, StepRecorder<EdgeSet>.Off);
+
+    // Steps: one per edge looked at, lightest first: Accept when it joins two trees, Reject when it would close a cycle.
+    // The edges after the last one the tree needs are never looked at, so they get no step.
+    public string Solve(MINIMUMSPANNINGTREE problem, StepRecorder<EdgeSet> rec) {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         var edges = ExtractEdges(problem.graph);
 
-        if (nodes.Count == 0)
+        if (nodes.Count == 0) {
+            rec.Done(new EdgeSet([]), true, "There are no nodes, so there is nothing to connect.");
             return "{}";
+        }
 
         UnionFind<string> uf = new(nodes);
         List<(string u, string v, int weight)> selected = new();
+        EdgeSet Chosen() => new(selected.Select(e => GraphSubsetFrames.EdgeId(e.u, e.v)));
 
         // Deterministic tie-breaking keeps certificates stable across runs.
         foreach (var edge in edges.OrderBy(e => e.weight).ThenBy(e => CanonicalKey(e.u, e.v))) {
             if (timerHasExpired)
                 return "{}";
 
-            if (uf.Find(edge.u) != uf.Find(edge.v)) {
-                uf.Union(edge.u, edge.v);
+            var (u, v, weight) = edge;
+            string[] focus = u == v ? [] : [GraphSubsetFrames.EdgeId(u, v)];
+            if (uf.Find(u) != uf.Find(v)) {
+                uf.Union(u, v);
                 selected.Add(edge);
+                rec.Accept(Chosen, () => $"Edge {GraphSubsetFrames.EdgeId(u, v)} joins two trees, so add it (weight {weight}).", focus);
                 if (selected.Count == nodes.Count - 1)
                     break;
+            } else {
+                rec.Reject(Chosen, () => $"Edge {GraphSubsetFrames.EdgeId(u, v)} would close a cycle, so skip it (weight {weight}).", focus);
             }
         }
 
-        if (selected.Count != nodes.Count - 1)
+        if (selected.Count != nodes.Count - 1) {
+            rec.Done(new EdgeSet([]), false, "The edges leave the graph in more than one piece, so it has no spanning tree.");
             return "{}";
+        }
 
+        rec.Done(Chosen(), true, selected.Count == 0
+            ? "A single node needs no edges."
+            : $"The tree uses {selected.Count} edges with total weight {selected.Sum(e => e.weight)}.");
         return EdgeListToCertificate(selected);
     }
 

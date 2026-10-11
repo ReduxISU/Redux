@@ -1,3 +1,5 @@
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -6,7 +8,7 @@ using SPADE;
 
 namespace API.Problems.P.P_MINCUT.Visualizations;
 
-class MinCutVisualization : IVisualization<MINCUT, API_GraphJSON> {
+class MinCutVisualization : IVisualization<MINCUT, API_GraphJSON>, IGraphCutVisualization<MINCUT> {
     public string visualizationName { get; } = "Minimum Cut Visualization";
     public string visualizationDefinition { get; } = "Displays a weighted undirected graph and highlights the edges belonging to the minimum cut.";
     public string source { get; } = "";
@@ -54,4 +56,10 @@ class MinCutVisualization : IVisualization<MINCUT, API_GraphJSON> {
 
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Groups);
+
+    GraphEdgeSpec IGraphCutVisualization<MINCUT>.Describe(MINCUT problem) =>
+        new(problem.nodes, problem.listedEdges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.MinCut);
 }

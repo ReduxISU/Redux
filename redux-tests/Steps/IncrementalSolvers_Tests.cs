@@ -28,10 +28,22 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        // EdgeSet (edges pictures) and Groups (cut pictures)
+        ["kruskalsolver"] = true,
+        ["primsolver"] = true,
+        ["steinertreebruteforce"] = false,
+        ["cutbruteforce"] = false,
+        ["weightedcutbruteforce"] = false,
+        ["maxcutsolver"] = false,
+        ["mincutstoerwagner"] = false,
+        // Groups (groups pictures)
+        ["graphcoloringbruteforce"] = false,
+        ["graphcoloringgreedy"] = true,
+        ["cliquecoverbruteforce"] = false,
     };
 
     // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet)];
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
@@ -99,6 +111,48 @@ public class IncrementalSolvers_Tests {
             var mark = step.Event == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
             foreach (var id in step.Focus)
                 Assert.Equal(mark, frame.Nodes[id].State);
+        }
+    }
+
+    // ---- Edges pictures, from real runs ----
+
+    [Theory]
+    // 1-3 would close a cycle once 1-2 and 2-3 are in the tree.
+    [InlineData("({1,2,3,4},{({1,2},1),({2,3},1),({1,3},3),({3,4},5)})")]
+    [InlineData("({a,b,c,d,e},{({a,b},1),({b,c},1),({a,c},1),({c,d},2),({b,d},2),({d,e},3),({a,e},4)})")]
+    public void Kruskal_ASkippedEdge_IsRejected_AndTheTreeSoFarStaysSolution(string instance) {
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers.KruskalSolver()).Run(instance, withSteps: true);
+        Assert.True(run.Incremental);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["minimumspanningtreevisualization"])!;
+        var frames = vis.BuildFrames(instance, run).Frames.Cast<GraphFrame>().ToList();
+        var steps = run.Steps.Cast<SolverStep<EdgeSet>>().ToList();
+        var rejects = steps.Select((s, i) => (Step: s, Frame: frames[i])).Where(p => p.Step.Event == StepEvent.Reject).ToList();
+        Assert.NotEmpty(rejects);
+        foreach (var (step, frame) in rejects) {
+            Assert.NotEmpty(step.Partial.Edges);
+            foreach (var edge in step.Partial.Edges) Assert.Equal(PictureState.Solution, frame.Edges[edge].State);
+            Assert.Equal(PictureState.Rejected, frame.Edges[Assert.Single(step.Focus)].State);
+        }
+    }
+
+    // ---- Groups pictures, from real runs ----
+
+    [Fact]
+    public void GreedyColoring_ANodeThatNeedsTooManyColors_IsRejected_AndTheColoringSoFarIsKept() {
+        // A triangle with K = 2: the greedy colors a and b, then c needs color 2.
+        const string instance = "(({a,b,c},{{a,b},{b,c},{a,c}}),2)";
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringGreedy()).Run(instance, withSteps: true);
+        Assert.True(run.Incremental);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["graphcoloringdefaultvisualization"])!;
+        var frames = vis.BuildFrames(instance, run).Frames.Cast<GraphFrame>().ToList();
+        var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
+        int at = steps.FindIndex(s => s.Event == StepEvent.Reject);
+        Assert.True(at >= 0);
+        Assert.Equal(PictureState.Rejected, frames[at].Nodes[Assert.Single(steps[at].Focus)].State);
+        // The nodes colored before it keep their groups and are not marked as tried.
+        foreach (var node in steps[at].Partial.Of.Keys.Except(steps[at].Focus)) {
+            Assert.True(frames[at].Groups!.ContainsKey(node));
+            Assert.False(frames[at].Nodes.TryGetValue(node, out var state) && state.State == PictureState.ElementHighlight);
         }
     }
 }

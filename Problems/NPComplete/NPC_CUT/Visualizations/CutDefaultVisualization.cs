@@ -1,3 +1,5 @@
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_CUT.Solvers;
 
 namespace API.Problems.NPComplete.NPC_CUT.Visualizations;
 
-class CutDefaultVisualization : IVisualization<CUT, API_GraphJSON> {
+class CutDefaultVisualization : IVisualization<CUT, API_GraphJSON>, IGraphCutVisualization<CUT> {
 
     // --- Fields ---
     public string visualizationName { get; } = " Cut Visualization";
@@ -60,4 +62,10 @@ class CutDefaultVisualization : IVisualization<CUT, API_GraphJSON> {
 
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(Groups);
+
+    GraphEdgeSpec IGraphCutVisualization<CUT>.Describe(CUT problem) =>
+        new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.Key, e.Value)).ToList(), EdgeRule.Cut) { K = problem.K };
 }

@@ -1,0 +1,262 @@
+[
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "1",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "1"
+      },
+      {
+        "name": "2",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "2"
+      },
+      {
+        "name": "3",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "3"
+      },
+      {
+        "name": "4",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "4"
+      },
+      {
+        "name": "5",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "5"
+      }
+    ],
+    "links": [
+      {
+        "source": "2",
+        "target": "1",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "5",
+        "weighted": true,
+        "directed": false,
+        "id": "2-1"
+      },
+      {
+        "source": "1",
+        "target": "3",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "4",
+        "weighted": true,
+        "directed": false,
+        "id": "1-3"
+      },
+      {
+        "source": "2",
+        "target": "3",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2",
+        "weighted": true,
+        "directed": false,
+        "id": "2-3"
+      },
+      {
+        "source": "3",
+        "target": "5",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": true,
+        "directed": false,
+        "id": "3-5"
+      },
+      {
+        "source": "2",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "4",
+        "weighted": true,
+        "directed": false,
+        "id": "2-4"
+      },
+      {
+        "source": "4",
+        "target": "5",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2",
+        "weighted": true,
+        "directed": false,
+        "id": "4-5"
+      }
+    ]
+  },
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "1",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "1"
+      },
+      {
+        "name": "2",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "2"
+      },
+      {
+        "name": "3",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "3"
+      },
+      {
+        "name": "4",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "4"
+      },
+      {
+        "name": "5",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "5"
+      }
+    ],
+    "links": [
+      {
+        "source": "2",
+        "target": "1",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "True",
+        "delay": "",
+        "weight": "5",
+        "weighted": true,
+        "directed": false,
+        "id": "2-1"
+      },
+      {
+        "source": "1",
+        "target": "3",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "True",
+        "delay": "",
+        "weight": "4",
+        "weighted": true,
+        "directed": false,
+        "id": "1-3"
+      },
+      {
+        "source": "2",
+        "target": "3",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "2",
+        "weighted": true,
+        "directed": false,
+        "id": "2-3"
+      },
+      {
+        "source": "3",
+        "target": "5",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": true,
+        "directed": false,
+        "id": "3-5"
+      },
+      {
+        "source": "2",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "True",
+        "delay": "",
+        "weight": "4",
+        "weighted": true,
+        "directed": false,
+        "id": "2-4"
+      },
+      {
+        "source": "4",
+        "target": "5",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "True",
+        "delay": "",
+        "weight": "2",
+        "weighted": true,
+        "directed": false,
+        "id": "4-5"
+      }
+    ]
+  }
+]

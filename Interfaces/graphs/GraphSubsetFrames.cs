@@ -24,15 +24,33 @@ sealed record GraphSubsetSpec(
 
 sealed record GraphNodeDto(
     [property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("label")] string Label);
+    [property: JsonPropertyName("label")] string Label) {
+    /// <summary>True for a Steiner terminal (drawn with a double outline). Omitted for every other node.</summary>
+    [JsonPropertyName("terminal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Terminal { get; init; }
+}
 
 sealed record GraphEdgeDto(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("a")] string A,
     [property: JsonPropertyName("b")] string B) {
+    /// <summary>
+    /// The weight that counts for the edge: for parallel edges (two or more joining the same pair of nodes, in the same
+    /// direction if directed) their sum in a cut problem and the lightest in every other one (#769). Omitted when unweighted.
+    /// </summary>
     [JsonPropertyName("weight")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Weight { get; init; }
+
+    /// <summary>
+    /// What to write on a drawn edge that stands for parallel edges: every listed weight, in the order the instance lists
+    /// them, comma-separated (<c>"2,5"</c>), the way an automaton writes <c>"a,b"</c> on one transition. Omitted for an edge
+    /// listed once; draw <c>label</c> if present, else <c>weight</c>.
+    /// </summary>
+    [JsonPropertyName("label")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Label { get; init; }
 }
 
 /// <summary>The static part of a Graph picture, sent once per response.</summary>
@@ -71,6 +89,15 @@ sealed record GraphFrame(
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
+
+    /// <summary>
+    /// Node id to group index, for pictures that split the nodes: in two (the cut shape: 0 is the S side, 1 is the
+    /// T side) or into K groups (the groups shape: color classes or cliques, 0-based; a node with no group yet is
+    /// left out). Not a state: the frontend colors each group. Omitted by every other shape.
+    /// </summary>
+    [JsonPropertyName("groups")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<string, int>? Groups { get; init; }
 }
 
 /// <summary>
@@ -164,7 +191,7 @@ static class GraphSubsetFrames {
             CanonicalEdges(spec).Select(e => new GraphEdgeDto(e.Id, e.A, e.B)).ToList(),
             "subset", RuleName(spec.Rule)) { K = spec.K };
 
-    private static int Rank(PictureState s) => s switch {
+    internal static int Rank(PictureState s) => s switch {
         PictureState.Rejected => 5,
         PictureState.ElementHighlight => 4,
         PictureState.Solution => 3,
@@ -247,7 +274,7 @@ static class GraphSubsetFrames {
         return new GraphFrame(ev, caption, focus, ToRefs(nodes), ToRefs(edgeStates), phantoms) { Ok = ok };
     }
 
-    private static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
+    internal static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
         var sorted = new SortedDictionary<string, StateRef>(StringComparer.Ordinal);
         foreach (var (id, state) in map)
             if (state != PictureState.Background) sorted[id] = new StateRef(state);
