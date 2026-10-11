@@ -1,7 +1,7 @@
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_EDITDISTANCE.Solvers;
 using API.Problems.NPComplete.NPC_EDITDISTANCE.Verifiers;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_EDITDISTANCE.Visualizations;
 using SPADE;
 
 
@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_EDITDISTANCE;
 // --- Fields, Properties, and Constructors ---
 // Note: Edit Distance is a P problem, but we are treating it as NP-Complete Temporarily
 // bc frontend not yet set up to handle P problems. 
-class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyVisualization> {
+class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, EditDistanceVisualization> {
     public string problemName { get; } = "Edit Distance";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Edit_distance";
     public string formalDefinition { get; } = "{(x,y,k) | x and y are strings, k is int, and there exists a sequence of k operations to transform x into y}";
@@ -31,7 +31,7 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
 
     public EditDistanceDPSolver defaultSolver { get; } = new EditDistanceDPSolver();
     public EditDistanceVerifier defaultVerifier { get; } = new EditDistanceVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public EditDistanceVisualization defaultVisualization { get; } = new EditDistanceVisualization();
     public string[] contributors { get; } = { "Kaosi Ibeabuchi", "Diya Pandey", "Srijan Pant" };
     // Declared, not derived from the Problems/NPComplete/ folder. The comment above
     // (this problem is solved with DP in polynomial time) already said as much; this

@@ -405,7 +405,7 @@ The solvers and their steps:
 
 `TableCells` holds the text of every cell filled so far (by cell id), the cells the latest fill read (the one it took first), and the trace-back's cells in order. It suits any dynamic-programming table.
 
-The two problems have their own visualizations for the picture (`EditDistanceVisualization`, `IntProgrammingVisualization`). Their list format is a `DynamicTable` before and after, built by `TableFrames.ToListTable`. The problems' default visualization is still `DummyVisualization`, so their /info is unchanged.
+The two problems have their own visualizations for the picture (`EditDistanceVisualization`, `IntProgrammingVisualization`). Their list format is a `DynamicTable` before and after, built by `TableFrames.ToListTable`. They are the problems' default visualizations.
 
 #### Trace tables: DFA and NFA
 

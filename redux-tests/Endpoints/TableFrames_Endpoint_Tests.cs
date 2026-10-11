@@ -10,6 +10,8 @@ namespace redux_tests;
 // The Table picture on the actual /ProblemProvider/visualize?format=frames output, for Edit Distance and 0-1 Integer Linear
 // Programming with their solvers, plus the guard that keeps what old frontends read exactly as it was: /info for the two
 // problems and their solvers (info.<name>.json, captured before the picture existed).
+// The deliberate exception is the two problems' default visualization, which moved off DummyVisualization to their Table
+// visualizations: see the "rewire" tests.
 public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -25,6 +27,8 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.PostAsync($"/ProblemProvider/visualize?{query}", content, TestContext.Current.CancellationToken);
         return (response.StatusCode, (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
     }
+
+    private static string Compact(string json) => JsonSerializer.Serialize(JsonDocument.Parse(json).RootElement);
 
     private static string Readable(JsonElement element) =>
         JsonSerializer.Serialize(element, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
@@ -42,7 +46,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     public static TheoryData<string> TouchedInterfaces => new([
-        "editdistance", "editdistancedpsolver", "intprogramming01", "integerprogrammingbruteforce",
+        "editdistancedpsolver", "integerprogrammingbruteforce",
     ]);
 
     // ---- What old frontends read must not change. ----
@@ -56,6 +60,64 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
         Assert.DoesNotContain("\"Table\"", body);
         Assert.DoesNotContain("StepShape", body);
+    }
+
+    // ---- Edit Distance and 0-1 ILP moved off DummyVisualization: the only thing that may change. ----
+
+    // What embeds one of their defaultVisualizations: the two problems and the reduction into 0-1 ILP (3SAT to 0-1 ILP).
+    // No reduction goes into or out of Edit Distance. Their snapshots were taken after the rewire; the diff against the
+    // pre-change capture is only the nested defaultVisualization object (and reduce's visualization).
+    public static TheoryData<string> EmbedsATableDefault => new() { "editdistance", "intprogramming01", "karpintprogstandard" };
+
+    private const string Sat3Default = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+
+    [Theory]
+    [MemberData(nameof(EmbedsATableDefault))]
+    public async Task Rewire_Info_ShowsTheTableVisualizations_AndNothingElse(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        Assert.DoesNotContain("\"Table\"", body);
+        Assert.DoesNotContain("StepShape", body);
+        Assert.DoesNotContain("DummyVisualization", body);
+    }
+
+    [Theory]
+    [InlineData("editdistance", "editdistancevisualization", "Edit Distance Table Visualization", "Edit Distance Dynamic Programming")]
+    [InlineData("intprogramming01", "intprogrammingvisualization", "0-1 Integer Programming Table Visualization", "0-1 ILP Brute Force")]
+    public async Task Rewire_ProblemInfo_ReportsItsTableVisualization(string problem, string vis, string name, string solver) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={problem}", TestContext.Current.CancellationToken);
+        var nested = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal(name, nested.GetProperty("visualizationName").GetString());
+        Assert.Equal("DynamicTable", nested.GetProperty("visualizationType").GetString());
+        Assert.Equal(solver, nested.GetProperty("solver").GetProperty("solverName").GetString());
+        // The same object the visualization reports about itself.
+        var own = await _client.GetAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken);
+        Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(nested.GetRawText()));
+    }
+
+    [Fact]
+    public async Task Rewire_Reduce_Sat3ToIlp_ChangesOnlyTheNestedVisualization() {
+        var content = new StringContent(JsonSerializer.Serialize(Sat3Default), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=karpintprogstandard", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(ReadSnapshot("karpintprogstandard.reduce.json"), (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
+    }
+
+    // Before the rewire 0-1 ILP's visualization was DummyVisualization, so visualizeReduction answered an empty list (#755).
+    // Now it answers the matrix before and after, the mapped assignment (1 1 0) meeting every row.
+    [Fact]
+    public async Task Rewire_VisualizeReduction_Sat3ToIlp_NowReturnsTheMatrix() {
+        var content = new StringContent(JsonSerializer.Serialize(Sat3Default), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=karpintprogstandard&solution=" + Uri.EscapeDataString("(x1:True,x2:True,x3:False)"), content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot("karpintprogstandard.visualizereduction.json"), body);
+        var items = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, items.Count);
+        Assert.All(items, i => Assert.Equal("table", i.GetProperty("kind").GetString()));
+        Assert.All(items[1].GetProperty("rows").EnumerateArray().Skip(1), r => Assert.Equal("Solution", r.GetProperty("color").GetString()));
     }
 
     // The new visualizations report their legacy list type in /info and nothing of the picture.

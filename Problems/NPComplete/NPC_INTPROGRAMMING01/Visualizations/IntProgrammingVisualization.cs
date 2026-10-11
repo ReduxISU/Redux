@@ -12,8 +12,7 @@ namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Visualizations;
 /// <summary>
 /// 0-1 Integer Linear Programming as the Table picture's matrix (format=frames): the assignment on top, then one row per
 /// constraint with its coefficients, its total under the assignment, its bound and whether it holds, step by step for the
-/// selected solver. The list format draws the matrix before and after. The problem's default visualization is still
-/// <c>DummyVisualization</c>.
+/// selected solver. The list format draws the matrix before and after. It is the problem's default visualization.
 /// </summary>
 class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJSON>, ITableVisualization<INTPROGRAMMING01, Assignment> {
     public string visualizationName { get; } = "0-1 Integer Programming Table Visualization";
