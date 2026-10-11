@@ -47,7 +47,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
 | `Automaton` | not a list item: a `payload` plus `frames` of named states ([`AutomatonFrames`](../../Interfaces/graphs/AutomatonFrames.cs)) | none yet | DFA, NFA. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphLaTeX` in /info and in the default list format. See "The Automaton picture" below |
-| `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
+| `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming; the DFA and NFA run tables. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -155,6 +155,21 @@ The solvers and their steps:
 `TableCells` holds the text of every cell filled so far (by cell id), the cells the latest fill read (the one it took first), and the trace-back's cells in order. It suits any dynamic-programming table.
 
 The two problems have their own visualizations for the picture (`EditDistanceVisualization`, `IntProgrammingVisualization`). Their list format is a `DynamicTable` before and after, built by `TableFrames.ToListTable`. The problems' default visualization is still `DummyVisualization`, so their /info is unchanged.
+
+#### Trace tables: DFA and NFA
+
+`DFATableVisualization` and `NFATableVisualization` are the run tables, separate from the DFA and NFA graphs. Under `format=frames` they draw the Table picture's `trace` shape, read off the same `ActiveStates` steps the Automaton picture draws ([`AutomatonTraceTable`](../../Interfaces/Table/AutomatonTraceTable.cs)). No solver changes for them.
+
+- The columns are Step, Read, From, To and Accepting? (keys `step`, `read`, `from`, `to`, `accepting`). Read is `ε` for an ε move and `—` for the start row.
+- Every move adds a row. The new row is the focus, and its To cell is marked changed.
+- An `Accept` marks its row `Solution`, and a `Reject` marks its row `Rejected`. In `Done` the last row is `Solution` when the input is accepted and `Rejected` when not.
+- A DFA's missing move is a row into `Garbage`. Every NFA branch dying is a row into `∅`. Both rows are `Rejected`.
+- NFA Backtracking (the table's own solver) shows the branch being explored: a `Try` adds a row and a `Backtrack` takes it away. Its `Done` shows the first branch that accepted, or the last one that died.
+- NFA Subset Simulation (`&solver=nfasubsetsolver`) adds one row per symbol, with every active state in braces.
+- Past the 150-step cap a step may not follow on from the one before. A row of `…` then stands for the steps not shown. A DFA keeps the rows before it, since they are the start of its one run. An NFA keeps only its start row, because a search's backtracking may have been hidden.
+- A stopped run ends with an empty table, `ok: false`.
+
+Their list format and /info are unchanged. `ListReadsTypedSteps()` returns true, so their list methods keep getting the steps they always did.
 
 To add a table:
 
