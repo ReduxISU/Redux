@@ -102,6 +102,9 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
             if (i.Count == 0) instance = instance.TrimEnd('{').TrimEnd(',').TrimEnd('}');
         }
         instance = instance.TrimEnd('{').TrimEnd(',') + "}," + reductionFrom.K + ")";
+        // With no edges every set is empty and dropped, and the trimming above eats into the universe too: nothing to
+        // cover and no sets (#826).
+        if (universal.Count == 0) instance = "({},{}," + reductionFrom.K + ")";
 
         reducedSetCover.universal = universal;
         reducedSetCover.subsets = subsets;
