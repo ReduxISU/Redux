@@ -1,0 +1,204 @@
+{
+  "reductionName": "Weighted Cut Reduction",
+  "reductionDefinition": "Karp\u0027s Reduction from Graph Coloring to Clique Cover",
+  "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_PARTITION/ReduceTo/NPC_WEIGHTEDCUT/WEIGHTEDCUTReduction.cs",
+  "contributors": [
+    "Andrija Sevaljevic"
+  ],
+  "visualization": {
+    "visualizationName": "Weighted Cut Visualization",
+    "visualizationDefinition": "This is a default visualization for Cut",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Visualizations/WeightedCutDefaultVisualization.cs",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Weighted Cut Brute Force",
+      "solverDefinition": "This is a brute force solver for the Weighted Cut problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Solvers/WeightedCutBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [],
+  "reductionFrom": {
+    "problemName": "Partition",
+    "formalDefinition": "Partition = \u003CS, I\u003E | S is a set of positive integers and there exists a subset of S, I where the sum of I\u0027s elements equals the sum of elements not in set I",
+    "problemDefinition": "The partition problem is the task of deciding whether a given multiset S of positive integers can be partitioned into two subsets S1 and S2 such that the sum of the numbers in S1 equals the sum of the numbers in S2",
+    "inputDescription": "S, a multiset of positive integers",
+    "outputDescription": "True or False, whether S can be partitioned into two subsets with equal sum",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_PARTITION/PARTITION_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "{1,7,12,15,33,12,11,5,6,9,21,18}",
+    "instance": "{1,7,12,15,33,12,11,5,6,9,21,18}",
+    "instanceFormat": "Format: {N | N subset int} (a set of positive integers S; duplicate values in the input collapse to one) Example: {1,7,12,15,33,12,11,5,6,9,21,18}",
+    "certificateFormat": "Format: (S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2) Example: (33,21,15),(1,7,12,11,5,6,9,18)",
+    "complexityClass": "NPComplete",
+    "problemType": "SetsAndPartitions",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Partition Brute Force",
+      "solverDefinition": "This is a brute force solver for the Partition problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_PARTITION/Solvers/PartitionBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "n^2 * 2^n",
+        "Description": ", n = |S|",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Partition Verifier",
+      "verifierDefinition": "This is a verifier for the Partition problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_PARTITION/Verifiers/PartitionVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Partition Visualization",
+      "visualizationDefinition": "This is a default visualization for Partition",
+      "visualizationType": "SetD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Partition Brute Force",
+        "solverDefinition": "This is a brute force solver for the Partition problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_PARTITION/Solvers/PartitionBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "n^2 * 2^n",
+          "Description": ", n = |S|",
+          "VariableNames": [
+            "n"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Weighted Cut",
+    "formalDefinition": "Weighted Cut = {\u003CG, k\u003E | G is a graph with cut of size k}",
+    "problemDefinition": "A weighted cut in an undirected graph is a partition of the graph\u0027s vertices into two complementary sets S and T, and the size of the cut is the sum of edge weights between S and T.",
+    "inputDescription": "G, a weighted graph, and k, a target cut weight",
+    "outputDescription": "True or False, whether the given edge subset forms a cut of total weight exactly k",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/WEIGHTEDCUT_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)",
+    "instance": "(({1,2,3,4,5,6,7,8,9,10,11},{({1,2},7),({1,3},12),({1,4},15),({1,5},33),({1,6},11),({1,7},5),({1,8},6),({1,9},9),({1,10},21),({1,11},18),({2,3},84),({2,4},105),({2,5},231),({2,6},77),({2,7},35),({2,8},42),({2,9},63),({2,10},147),({2,11},126),({3,4},180),({3,5},396),({3,6},132),({3,7},60),({3,8},72),({3,9},108),({3,10},252),({3,11},216),({4,5},495),({4,6},165),({4,7},75),({4,8},90),({4,9},135),({4,10},315),({4,11},270),({5,6},363),({5,7},165),({5,8},198),({5,9},297),({5,10},693),({5,11},594),({6,7},55),({6,8},66),({6,9},99),({6,10},231),({6,11},198),({7,8},30),({7,9},45),({7,10},105),({7,11},90),({8,9},54),({8,10},126),({8,11},108),({9,10},189),({9,11},162),({10,11},378)}),4761)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int} Example: (({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5) Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total. An edge written twice with the same weight, either way round, counts once.",
+    "certificateFormat": "Format: {S | S subset E, sum of edge weights in S = K} Example: {({2,1},5)}",
+    "complexityClass": "NPComplete",
+    "problemType": "NetworkDesign",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Weighted Cut Brute Force",
+      "solverDefinition": "This is a brute force solver for the Weighted Cut problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Solvers/WeightedCutBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Weighted Cut Verifier",
+      "verifierDefinition": "This is a verifier for the Weighted Cut problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Verifiers/WeightedCutVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Weighted Cut Visualization",
+      "visualizationDefinition": "This is a default visualization for Cut",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Visualizations/WeightedCutDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Weighted Cut Brute Force",
+        "solverDefinition": "This is a brute force solver for the Weighted Cut problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Solvers/WeightedCutBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "ComponentDesign",
+  "complexityBucket": "Polynomial"
+}

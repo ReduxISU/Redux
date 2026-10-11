@@ -6,7 +6,7 @@ using Xunit;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// Pins /reduce and /info for the reductions that gain a backward map (#690, and the graph reductions of #694), captured BEFORE the
+// Pins /reduce and /info for the reductions that gain a backward map (#690, the graph reductions of #694, and the set and number reductions of #695), captured BEFORE the
 // change: adding mapSolutionBack to IReduction must not leak into either response. /reduce serializes
 // through the IReduction interface, so a new interface property (even a default one) would show up here.
 //   reduce.<reduction>.json / .instance.txt   /reduce response for the source problem's default instance
@@ -49,6 +49,9 @@ public class Reduce_Snapshot_Tests : IClassFixture<AppFactory> {
     [InlineData("KarpDirectedHamiltonianToUndirectedHamiltonian")]
     [InlineData("GraphColoringToCliqueCover")]
     [InlineData("KarpGraphColorToExactCover")]
+    // The set and number reductions, before the Reduction View (#695). The other three are pinned by PackingFrames_Endpoint_Tests.
+    [InlineData("reduceToEXACTCOVER")]
+    [InlineData("WEIGHTEDCUTReduction")]
     public async Task Reduce_DefaultInstance_MatchesPreChangeSnapshot(string reduction) {
         string instance = DefaultInstanceOf(reduction);
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
@@ -78,6 +81,9 @@ public class Reduce_Snapshot_Tests : IClassFixture<AppFactory> {
     [InlineData("KarpGraphColorToExactCover")]
     [InlineData("KarpVertexCoverToSetCover")]
     [InlineData("KarpReduceSAT")]
+    // The set and number reductions, before the Reduction View (#695). The other three are pinned by PackingFrames_Endpoint_Tests.
+    [InlineData("reduceToEXACTCOVER")]
+    [InlineData("WEIGHTEDCUTReduction")]
     public async Task Info_OfReduction_MatchesPreChangeSnapshot(string reduction) {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={reduction}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
