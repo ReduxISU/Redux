@@ -78,4 +78,28 @@ public class SIMON_tests {
         var verifier = new SimonVerifier();
         Assert.True(verifier.verify(problem, SimonVerifier.CertificateExample));
     }
+
+    // ---- #810 ----
+
+    [Theory]
+    [InlineData("(1,2,3,4)", true)]   // one-to-one: s = 0, which the format lets the certificate leave empty
+    [InlineData("(1,1,2,2)", false)]  // s = 1, not 0
+    [InlineData("(7)", true)]         // a one-entry table: the solver's answer is ""
+    public void SIMON_verifier_EmptyCertificate_MeansSZero(string instance, bool expected) {
+        Assert.Equal(expected, new SimonVerifier().verify(new SIMON(instance), ""));
+    }
+
+    [Fact]
+    public void SIMON_solver_OneEntryTable_AnswerIsVerified() {
+        var problem = new SIMON("(7)");
+        Assert.True(new SimonVerifier().verify(problem, new SimonSolver().solve(problem)));
+    }
+
+    [Theory]
+    [InlineData("(1,2,3)")]
+    [InlineData("(1,1,2,2,3,3)")]
+    [InlineData("()")]
+    public void SIMON_TableNotAPowerOfTwoLong_IsAParseError(string instance) {
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => API.Interfaces.ParseGuard.CreateProblem<SIMON>(instance));
+    }
 }
