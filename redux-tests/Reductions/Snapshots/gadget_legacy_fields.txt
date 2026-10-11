@@ -80,6 +80,12 @@ ElementHighlight | b | b
 ElementHighlight | c | c
 ElementHighlight | d | d
 ElementHighlight | e | e
+ElementHighlight | a-b | a>b,b>a
+ElementHighlight | a-c | a>c,c>a
+ElementHighlight | a-e | a>e,e>a
+ElementHighlight | b-e | b>e,e>b
+ElementHighlight | c-d | c>d,d>c
+ElementHighlight |  | 
 # LawlerKarp
 ElementHighlight | a | a0,a1
 ElementHighlight | b | b0,b1

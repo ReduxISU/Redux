@@ -122,6 +122,111 @@
       "targetIds": [
         "e"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-b"
+      ],
+      "reductionToIds": [
+        "a\u003Eb",
+        "b\u003Ea"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "a\u003Eb",
+        "b\u003Ea"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-c"
+      ],
+      "reductionToIds": [
+        "a\u003Ec",
+        "c\u003Ea"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-c"
+      ],
+      "targetIds": [
+        "a\u003Ec",
+        "c\u003Ea"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-e"
+      ],
+      "reductionToIds": [
+        "a\u003Ee",
+        "e\u003Ea"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-e"
+      ],
+      "targetIds": [
+        "a\u003Ee",
+        "e\u003Ea"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b-e"
+      ],
+      "reductionToIds": [
+        "b\u003Ee",
+        "e\u003Eb"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-e"
+      ],
+      "targetIds": [
+        "b\u003Ee",
+        "e\u003Eb"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c-d"
+      ],
+      "reductionToIds": [
+        "c\u003Ed",
+        "d\u003Ec"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c-d"
+      ],
+      "targetIds": [
+        "c\u003Ed",
+        "d\u003Ec"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
     }
   ],
   "reductionFrom": {

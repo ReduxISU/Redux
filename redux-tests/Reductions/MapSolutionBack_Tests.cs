@@ -121,7 +121,8 @@ public class MapSolutionBack_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public void ReductionsWithoutABackwardMap_ReportNoneAndDoNotMap() {
-        IReduction red = Build("KarpVertexCoverToNodeSet", DefaultInstance("KarpVertexCoverToNodeSet"));
+        // Karp's Vertex Cover to Feedback Node Set was the example until it gained a backward map (#694).
+        IReduction red = Build("KarpExactCoverToSubsetSum", DefaultInstance("KarpExactCoverToSubsetSum"));
         Assert.False(red.hasBackwardMap());
         Assert.Null(red.mapSolutionBack("{a}"));
         Assert.Null(red.MapBackRun("{a}", true));
@@ -365,12 +366,13 @@ public class MapSolutionBack_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Endpoint_ReductionWithoutBackwardMap_Is400NoBackwardMap() {
-        string instance = DefaultInstance("KarpVertexCoverToNodeSet");
-        var (status, body) = await Post("reduction=KarpVertexCoverToNodeSet&solution=" + Uri.EscapeDataString("{a}"), instance);
+        // Karp's Vertex Cover to Feedback Node Set was the example until it gained a backward map (#694).
+        string instance = DefaultInstance("KarpExactCoverToSubsetSum");
+        var (status, body) = await Post("reduction=KarpExactCoverToSubsetSum&solution=" + Uri.EscapeDataString("{a}"), instance);
         Assert.Equal(HttpStatusCode.BadRequest, status);
         using var doc = JsonDocument.Parse(body);
         Assert.Equal("no_backward_map", doc.RootElement.GetProperty("error").GetString());
-        Assert.Equal("KarpVertexCoverToNodeSet", doc.RootElement.GetProperty("reduction").GetString());
+        Assert.Equal("KarpExactCoverToSubsetSum", doc.RootElement.GetProperty("reduction").GetString());
     }
 
     [Fact]
