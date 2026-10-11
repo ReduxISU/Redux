@@ -175,7 +175,8 @@ public class PUMPSCHEDULINGCM_Tests {
         PUMPSCHEDULINGCM p = new(instance);
         PumpSchedulingCMSolver solver = new();
         string cert = solver.solve(p);
-        Assert.Equal(string.Empty, cert);
+        // "{}" is "no answer" (#803).
+        Assert.Equal("{}", cert);
     }
 
     // ── Additional class parse-validation ────────────────────────────────────
