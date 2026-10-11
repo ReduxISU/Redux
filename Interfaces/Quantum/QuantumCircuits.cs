@@ -270,7 +270,7 @@ static class QuantumCircuits {
         for (int t = 1; t <= rounds; t++) {
             int round = t;
             columns.Add(new([new QuantumGate("box", data, Label: "Oracle", Oracle: true)], st => st.FlipSigns(i => markedSet.Contains((int)i)),
-                _ => $"Round {round}: the oracle flips the sign of the marked {items}. The probabilities stay the same; only the {Plural(M, "sign", "signs")} change."));
+                _ => $"Round {round}: the oracle flips the sign of the marked {items}. The probabilities stay the same; only the {Plural(M, "sign changes", "signs change")}."));
             columns.Add(new([new QuantumGate("box", data, Label: "Diffuse")], st => st.Diffuse(), d => d == null
                 ? $"Round {round}: reflect every amplitude about the average. The marked {items} {Plural(M, "grows", "grow")}, the rest shrink."
                 : $"Round {round}: reflect every amplitude about the average. The marked {items} now {Plural(M, "has", "have")} probability {Percent(MarkedChance(d))}."));

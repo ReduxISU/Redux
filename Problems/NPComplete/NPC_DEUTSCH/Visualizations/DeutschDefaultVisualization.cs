@@ -1,11 +1,17 @@
 using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCH;
 using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class DeutschDefaultVisualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT> {
+/// <summary>
+/// The Quantum Circuit picture (format=frames) comes from the instance's circuit and the chosen solver's steps; the list
+/// format below is unchanged.
+/// </summary>
+class DeutschDefaultVisualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<DEUTSCH> {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests the QASM for the two-qubit Deutsch circuit, showing the oracle call and measurement that separates constant vs. balanced functions in one query for Q.js rendering.";
 
@@ -14,6 +20,10 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT> 
     public string[] contributors { get; } = { "Jason L. Wright", "Grant Gardner", "Courtney Bodily", "Andreas Kramer", "Rakesh Itani" };
     public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new DeutschClassicalSolver();
+
+    // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(QuantumProgress);
+    QuantumCircuitSpec IQuantumCircuitVisualization<DEUTSCH>.Describe(DEUTSCH problem) => QuantumCircuits.Deutsch(problem.funcValues);
 
     // --- Methods Including Constructors ---
     public DeutschDefaultVisualization() {

@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA;
 using API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 using API.Tools;
 
-class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA, API_QUANTUMCIRCUIT> {
+/// <summary>
+/// The Quantum Circuit picture (format=frames) comes from the instance's circuit and the chosen solver's steps; the list
+/// format below is unchanged.
+/// </summary>
+class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<DEUTSCHJOZSA> {
     public string visualizationName { get; } = "Deutsch-Jozsa Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
         "Builds an n-qubit Deutsch-Jozsa circuit with Hadamard prep, highlights the oracle, and shows how one query distinguishes constant vs. balanced functions via interference using D3.js.";
@@ -17,6 +23,10 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA, API_QUANTUMCIRC
     public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
     public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitD3;
     public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
+
+    // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(QuantumProgress);
+    QuantumCircuitSpec IQuantumCircuitVisualization<DEUTSCHJOZSA>.Describe(DEUTSCHJOZSA problem) => QuantumCircuits.DeutschJozsa(problem.w);
     public DeutschJozsaD3Visualization() { }
 
     public API_QUANTUMCIRCUIT visualize(DEUTSCHJOZSA instance) {

@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_DEUTSCH;
 using API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 using API.Tools;
 
-class DeutschD3Visualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT> {
+/// <summary>
+/// The Quantum Circuit picture (format=frames) comes from the instance's circuit and the chosen solver's steps; the list
+/// format below is unchanged.
+/// </summary>
+class DeutschD3Visualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<DEUTSCH> {
     public string visualizationName { get; } = "Deutsch Quantum Circuit (D3)";
     public string visualizationDefinition { get; } = "Builds a two-qubit Deutsch circuit, highlights the oracle block, and illustrates how interference distinguishes constant vs. balanced functions in one query using D3.js.";
     public string source { get; } = "https://d3js.org/";
@@ -16,6 +22,10 @@ class DeutschD3Visualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT> {
     public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
     public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitD3;
     public ISolver solver { get; } = new DeutschClassicalSolver();
+
+    // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(QuantumProgress);
+    QuantumCircuitSpec IQuantumCircuitVisualization<DEUTSCH>.Describe(DEUTSCH problem) => QuantumCircuits.Deutsch(problem.funcValues);
 
     public DeutschD3Visualization() { }
 

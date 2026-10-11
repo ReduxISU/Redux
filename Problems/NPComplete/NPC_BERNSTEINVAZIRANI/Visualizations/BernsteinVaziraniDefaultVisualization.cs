@@ -1,11 +1,17 @@
 using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI, API_QUANTUMCIRCUIT> {
+/// <summary>
+/// The Quantum Circuit picture (format=frames) comes from the instance's circuit and the chosen solver's steps; the list
+/// format below is unchanged.
+/// </summary>
+class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<BERNSTEINVAZIRANI> {
     public string visualizationName { get; } = "Bernstein-Vazirani Quantum Circuit (Q)";
     public string visualizationDefinition { get; } = "Requests QASM for the Bernstein-Vazirani circuit (Hadamards, oracle, measure data qubits) to show how one query recovers the hidden bit string for Q.js rendering.";
     public string source { get; } = "";
@@ -13,6 +19,10 @@ class BernsteinVaziraniDefaultVisualization : IVisualization<BERNSTEINVAZIRANI, 
     public string[] contributors { get; } = { "Courtney Bodily", "Andreas Kramer", "Rakesh Itani", "Grant Gardner" };
     public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new BernsteinVaziraniClassicalSolver();
+
+    // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(QuantumProgress);
+    QuantumCircuitSpec IQuantumCircuitVisualization<BERNSTEINVAZIRANI>.Describe(BERNSTEINVAZIRANI problem) => QuantumCircuits.BernsteinVazirani(problem.funcValues);
 
     // --- Methods Including Constructors ---
     public BernsteinVaziraniDefaultVisualization() {

@@ -1,4 +1,6 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Tools;
 using System.Text.Json;
 
@@ -8,7 +10,8 @@ namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 /// Deutsch-Jozsa solver that uses an external quantum computing API.
 /// Supports both ISU AWS server and local server configurations.
 /// </summary>
-class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
+// Incremental: the circuit is applied one column at a time, and then read.
+class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Deutsch-Jozsa Algorithm";
@@ -33,7 +36,37 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
 
     // --- Methods ---
 
-    public string solve(DEUTSCHJOZSA problem) {
+    public string solve(DEUTSCHJOZSA problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
+
+    // Steps: a Try per column of the Deutsch-Jozsa circuit (the one the server runs, drawn and simulated here, never asked of
+    // the server), then an Accept with what the server measured (a Reject when it gave no answer), and Done with the verdict.
+    public string Solve(DEUTSCHJOZSA problem, StepRecorder<QuantumProgress> rec) {
+        var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.DeutschJozsa(problem.w) : null;
+        if (spec != null) QuantumSteps.Columns(rec, spec);
+        var counts = new List<KeyValuePair<string, long>>();
+        string answer = Ask(problem, counts);
+        if (spec != null) {
+            int all = spec.Columns.Count, n = problem.n;
+            string zeros = QuantumCircuits.Bits(0, n);
+            // Constant reads all zeros; balanced reads something else, which only the server's counts can say.
+            long? outcome = answer == "constant" ? 0 : answer == "balanced" ? QuantumSteps.MostFrequent(counts, n) : null;
+            string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
+            if (answer is "constant" or "balanced")
+                rec.Accept(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer), () => answer == "constant"
+                    ? $"The quantum server measured all zeros ({zeros}){QuantumSteps.Shots(counts, zeros)}, so f is constant. One oracle call."
+                    : $"The quantum server measured {(outcome is long y ? QuantumCircuits.Bits(y, n) : "an outcome")}, not all zeros, so f is balanced. One oracle call.",
+                    read);
+            else
+                rec.Reject(() => new QuantumProgress(all, counts: counts), () => $"The quantum server gave no answer: {answer}");
+            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
+                ok => ok ? $"f is {answer}, found with one call to the oracle."
+                    : answer is "constant" or "balanced" ? $"The answer {answer} is not correct." : "No answer: the quantum server did not give one.");
+        }
+        return answer;
+    }
+
+    // The server's answer, as solve has always returned it; its counts, when it sends them, go into counts.
+    private static string Ask(DEUTSCHJOZSA problem, List<KeyValuePair<string, long>> counts) {
         try {
             // Convert the list of integers to boolean array for the API
             bool[] requestBody = problem.w.Select(val => val != 0).ToArray();
@@ -48,6 +81,7 @@ class DeutschJozsaQuantumSolver : ISolver<DEUTSCHJOZSA> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
+            counts.AddRange(QuantumSteps.Counts(root));
             if (root.TryGetProperty("answer", out JsonElement answerElement)) {
                 return answerElement.GetString() ?? "No answer found";
             }

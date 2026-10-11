@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI;
 using API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 using API.Tools;
 
-class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI, API_QUANTUMCIRCUIT> {
+/// <summary>
+/// The Quantum Circuit picture (format=frames) comes from the instance's circuit and the chosen solver's steps; the list
+/// format below is unchanged.
+/// </summary>
+class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<BERNSTEINVAZIRANI> {
     public string visualizationName { get; } = "Bernstein-Vazirani Quantum Circuit (D3)";
     public string visualizationDefinition { get; } =
         "Builds the Bernstein-Vazirani circuit with ancilla, highlights the oracle that encodes the secret string, and shows how a single query plus phase kickback reveals the hidden bits in D3.js.";
@@ -17,6 +23,10 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI, API_Q
     public string[] contributors { get; } = { "Andreas Kramer", "Courtney Bodily", "Rakesh Itani" };
     public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitD3;
     public ISolver solver { get; } = new BernsteinVaziraniClassicalSolver();
+
+    // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(QuantumProgress);
+    QuantumCircuitSpec IQuantumCircuitVisualization<BERNSTEINVAZIRANI>.Describe(BERNSTEINVAZIRANI problem) => QuantumCircuits.BernsteinVazirani(problem.funcValues);
 
     public BernsteinVaziraniD3Visualization() { }
 

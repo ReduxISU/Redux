@@ -50,6 +50,11 @@ public class SolverReplay_Tests {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
         }
+        if (lastPartial is QuantumProgress quantum) {
+            // A quantum problem's answer is the certificate itself; the rest (columns applied, oracle calls, the outcome read)
+            // is the run's own, checked in QuantumSolvers_Tests.
+            return new QuantumProgress(quantum.Applied, quantum.Queries, quantum.Outcome, quantum.Counts, answer);
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
@@ -69,6 +74,7 @@ public class SolverReplay_Tests {
         var problem = (IProblem)Activator.CreateInstance(problemType)!;
         string instance = problem.defaultInstance;
         var solver = CreateSolver(solverType);
+        using var quantum = FakeQuantumServer.Install(out _);   // the quantum solvers ask a server; never a real one here
 
         var withSteps = solver.Run(instance, withSteps: true);
         var withoutSteps = solver.Run(instance, withSteps: false);

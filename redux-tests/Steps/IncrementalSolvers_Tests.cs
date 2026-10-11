@@ -28,10 +28,22 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        // QuantumProgress (Quantum Circuit picture)
+        ["deutschclassicalsolver"] = true,
+        ["deutschquantumsolver"] = true,
+        ["deutschjozsaclassicalsolver"] = true,
+        ["deutschjozsaquantumsolver"] = true,
+        ["bernsteinvaziraniclassicalsolver"] = true,
+        ["bernsteinvaziraniquantumsolver"] = true,
+        ["simonsolver"] = true,
+        ["unstructuredsearchsolver"] = false,
+        ["unstructuredgroversolver"] = true,
+        ["primefactorsolver"] = true,
+        ["shorsquantumsolver"] = true,
     };
 
-    // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet)];
+    // The answer shapes the Graph and Quantum Circuit pictures draw.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(QuantumProgress)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
@@ -47,6 +59,7 @@ public class IncrementalSolvers_Tests {
     [Theory]
     [MemberData(nameof(Classified))]
     public void Solver_DeclaresWhetherItIsIncremental_AndItsRunSaysSo(string solverName, bool incremental) {
+        using var quantum = FakeQuantumServer.Install(out _);   // the quantum solvers ask a server; never a real one here
         var type = ProblemProvider.Solvers[solverName];
         Assert.Equal(incremental, typeof(IIncrementalSolver).IsAssignableFrom(type));
         var solver = (ISolver)Activator.CreateInstance(type)!;

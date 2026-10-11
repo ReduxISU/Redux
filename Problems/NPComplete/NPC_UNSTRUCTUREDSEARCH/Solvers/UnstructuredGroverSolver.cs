@@ -1,10 +1,13 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Tools;
 using System.Text.Json;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
 
-class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
+// Incremental: the circuit is applied one column at a time, and then read.
+class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Grover's Algorithm";
@@ -30,9 +33,16 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         throw new ArithmeticException("not a power of two");
     }
 
-    public string solve(UNSTRUCTUREDSEARCH problem) {
+    public string solve(UNSTRUCTUREDSEARCH problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
+
+    // Steps: a Try per column of Grover's circuit for the table (the textbook circuit, drawn and simulated here; the server
+    // builds its own from the SAT expression and is never asked for these), then an Accept with the item the server
+    // measured, and Done with the verdict. A server that gives no answer throws, as solve always has.
+    public string Solve(UNSTRUCTUREDSEARCH problem, StepRecorder<QuantumProgress> rec) {
         // We have to convert the function values into a SAT problem
         int nbits = PowerOfTwo(problem.funcValues.Count);
+        var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.UnstructuredSearch(problem.funcValues) : null;
+        if (spec != null) QuantumSteps.Columns(rec, spec);
         var exprs = new List<string>();
         for (int i = 0; i < problem.funcValues.Count; i++) {
             if (problem.funcValues[i] != 0) {
@@ -51,8 +61,22 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         }
 
         var satproblem = String.Join(" | ", exprs);
-        var solution = ReverseString(SolveAsSat(problem, satproblem));
-        return Convert.ToInt32(solution, 2).ToString();
+        var counts = new List<KeyValuePair<string, long>>();
+        string measured = SolveAsSat(problem, satproblem, counts);
+        var solution = ReverseString(measured);
+        string answer = Convert.ToInt32(solution, 2).ToString();
+        if (spec != null) {
+            int all = spec.Columns.Count, index = Convert.ToInt32(solution, 2);
+            long? outcome = index < problem.funcValues.Count ? index : null;
+            rec.Accept(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
+                () => $"The quantum server measured item {answer} ({QuantumCircuits.Bits(index, nbits)}){QuantumSteps.Shots(counts, measured)}.",
+                all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : []);
+            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
+                ok => ok ? $"Item {answer} is marked, found with {QuantumCircuits.GroverRounds(problem.funcValues.Count, problem.funcValues.Count(v => v != 0))} rounds of Grover's algorithm."
+                    : problem.funcValues.All(v => v == 0) ? $"Nothing is marked, so item {answer} is not either: the answer should be no solution."
+                    : $"Item {answer} is not marked: the measurement missed. Running the circuit again usually finds a marked item.");
+        }
+        return answer;
     }
 
     public static string ReverseString(string s) {
@@ -68,7 +92,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         }
     }
 
-    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance) {
+    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, List<KeyValuePair<string, long>> counts) {
         try {
             var requestBody = new JSON_Sat_Problem(problemInstance);
 
@@ -82,6 +106,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
+            counts.AddRange(QuantumSteps.Counts(root));
             if (root.TryGetProperty("qasm", out JsonElement circuitElement)) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
