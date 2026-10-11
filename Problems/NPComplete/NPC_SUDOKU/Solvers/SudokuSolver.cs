@@ -192,6 +192,11 @@ class SudokuSolver : ISolver<SUDOKU> {
 
     public string SolveInternal(int[][] problem) {
         int gridSize = problem.Length;
+
+        // The no-solution value is "{}" (the repo-wide convention, see #605).
+        if (!CluesAreValid(problem))
+            return NoSolution;
+
         int[][] solution = CopyGrid(problem);
 
         var rows = new HashSet<int>[gridSize];
@@ -221,7 +226,7 @@ class SudokuSolver : ISolver<SUDOKU> {
         // If solution contains any 0s, the problem is unsolveable
         for (int r = 0; r < solution.Length; r++) {
             for (int c = 0; c < solution.Length; c++) {
-                if (solution[r][c] == 0) return "";
+                if (solution[r][c] == 0) return NoSolution;
             }
         }
 
@@ -234,6 +239,33 @@ class SudokuSolver : ISolver<SUDOKU> {
     }
 
     // --- Helpers ---
+
+    private const string NoSolution = "{}";
+
+    // True when the grid is square, every value is in 0..n, and no non-zero clue repeats within a
+    // row, column or block. A grid that fails this has no solution, so there is nothing to search.
+    private static bool CluesAreValid(int[][] grid) {
+        int n = grid.Length;
+        int blockSize = (int)Math.Sqrt(n);
+        if (n == 0 || blockSize * blockSize != n) return false;
+
+        var rowSeen = new bool[n, n + 1];
+        var colSeen = new bool[n, n + 1];
+        var blockSeen = new bool[n, n + 1];
+
+        for (int r = 0; r < n; r++) {
+            if (grid[r].Length != n) return false;
+            for (int c = 0; c < n; c++) {
+                int v = grid[r][c];
+                if (v < 0 || v > n) return false;
+                if (v == 0) continue;
+                int b = r / blockSize * blockSize + c / blockSize;
+                if (rowSeen[r, v] || colSeen[c, v] || blockSeen[b, v]) return false;
+                rowSeen[r, v] = colSeen[c, v] = blockSeen[b, v] = true;
+            }
+        }
+        return true;
+    }
 
     // Returns a new HashSet containing the intersection of three sets, without mutating any of them.
     private static HashSet<int> Intersect(HashSet<int> a, HashSet<int> b, HashSet<int> c) {
