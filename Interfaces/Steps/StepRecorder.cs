@@ -12,8 +12,8 @@ namespace API.Interfaces.Steps;
 /// <para>
 /// Only the first <c>cap</c> non-<see cref="StepEvent.Done"/> steps are kept; the rest are counted in
 /// <see cref="Hidden"/>. Past the cap the most recent <see cref="StepEvent.Accept"/> is also kept, and is placed
-/// just before <see cref="Done"/>, so a brute-force run that spends the cap on failed tries still shows the step
-/// that found the answer. <see cref="Done"/> is always kept, so a run holds at most <c>cap + 2</c> steps.
+/// just before <see cref="Done(TPartial, bool, string)"/>, so a brute-force run that spends the cap on failed tries still shows the step
+/// that found the answer. <see cref="Done(TPartial, bool, string)"/> is always kept, so a run holds at most <c>cap + 2</c> steps.
 /// Past the cap the lambdas of an Accept are evaluated (the recorder cannot know it is the last Accept until
 /// Done arrives, and a stored lambda would read the solver's state as it is at Done, not as it was at the
 /// Accept); the lambdas of every other step past the cap are never evaluated.
@@ -73,19 +73,26 @@ sealed class StepRecorder<TPartial> {
     public void Reject(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Reject, partial, caption, focus);
     public void Backtrack(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Backtrack, partial, caption, focus);
 
+    // The same, with the search-tree nodes the step creates or updates (SolverStep.Tree; the last is the node the step is
+    // about), for a solver that branches. Built lazily like the rest, and only for steps that are kept.
+    public void Try(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Try, partial, caption, focus, tree);
+    public void Accept(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Accept, partial, caption, focus, tree);
+    public void Reject(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Reject, partial, caption, focus, tree);
+    public void Backtrack(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Backtrack, partial, caption, focus, tree);
+
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, string[] focus) {
         if (!_enabled) return;
         Add(kind, partial, caption, () => focus);
     }
 
-    private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, Func<string[]> focus) {
+    private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]>? tree = null) {
         if (!_enabled) return;
         _total++;
         if (_shownDecisions < _cap) {
             _shownDecisions++;
-            _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()));
+            _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()) { Tree = tree?.Invoke() });
         } else if (kind == StepEvent.Accept) {
-            _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption());
+            _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption()) { Tree = tree?.Invoke() };
         }
         // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
         if (Environment.TickCount64 >= _deadline)
@@ -96,7 +103,14 @@ sealed class StepRecorder<TPartial> {
     /// Records the final step. Always kept, after the last Accept past the cap if there was one; its caption gets
     /// " (n not shown)" when steps were hidden.
     /// </summary>
-    public void Done(TPartial answer, bool ok, string caption) {
+    public void Done(TPartial answer, bool ok, string caption) => Done(answer, ok, caption, null);
+
+    /// <summary>
+    /// <see cref="Done(TPartial, bool, string)"/> with search-tree nodes (<see cref="SolverStep{TPartial}.Tree"/>), for a
+    /// solver whose answer's node might not be in the kept steps: past the cap, the last Accept kept need not be the one that
+    /// found the answer. A solver that branches names the answer's path here, root first, so the tree ends on it.
+    /// </summary>
+    public void Done(TPartial answer, bool ok, string caption, Func<SearchNode[]>? tree) {
         if (!_enabled) return;
         if (_lastAcceptPastCap != null) {
             _steps.Add(_lastAcceptPastCap);
@@ -105,7 +119,7 @@ sealed class StepRecorder<TPartial> {
         int hidden = Hidden;
         _total++;
         if (hidden > 0) caption += $" ({hidden} not shown)";
-        _steps.Add(new SolverStep<TPartial>(answer, StepEvent.Done, Array.Empty<string>(), caption) { Ok = ok });
+        _steps.Add(new SolverStep<TPartial>(answer, StepEvent.Done, Array.Empty<string>(), caption) { Ok = ok, Tree = tree?.Invoke() });
     }
 
     /// <summary>

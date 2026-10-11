@@ -39,6 +39,7 @@ public class IncrementalSolvers_Tests {
         // Groups (groups pictures)
         ["graphcoloringbruteforce"] = false,
         ["graphcoloringgreedy"] = true,
+        ["graphcoloringbacktracking"] = true,
         ["cliquecoverbruteforce"] = false,
         // Tour (tour pictures)
         ["hamiltonianbruteforce"] = true,

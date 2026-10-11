@@ -20,4 +20,12 @@ record SolverStep<TPartial>(
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
+
+    /// <summary>
+    /// The search-tree nodes this step creates or updates, for the Search Tree picture; the last one is the node the step is
+    /// about. Null (and omitted from JSON) for every step of a solver that does not branch, so its JSON is what it always was.
+    /// </summary>
+    [JsonPropertyName("tree")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<SearchNode>? Tree { get; init; }
 }
