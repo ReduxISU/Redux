@@ -52,17 +52,59 @@ public class INTPROGRAMMING01_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void INTPROGRAMMING01_BruteForce_Default_Instance_Returns_AllZero_Assignment() {
-        // solve() checks the all-zero assignment (the loop's initial binary vector) BEFORE
-        // ever calling nextBinary, and for the default instance Cx = (0,0,0) <= d = (0,0,0)
-        // is trivially satisfied, so it must return immediately without advancing.
+    public void INTPROGRAMMING01_BruteForce_Default_Instance_Needs_NonTrivial_Assignment() {
+        // The default must not be satisfied by all zeros (or all ones): only x = (0 1 0) is found
+        // after the solver has rejected (0 0 0) and (1 0 0).
         INTPROGRAMMING01 problem = new INTPROGRAMMING01();
-        IntegerProgrammingBruteForce solver = new IntegerProgrammingBruteForce();
+        GenericVerifier01INTP verifier = new GenericVerifier01INTP();
 
-        string solution = solver.solve(problem);
+        Assert.False(verifier.verify(problem, "(0 0 0)"));
+        Assert.False(verifier.verify(problem, "(1 1 1)"));
 
-        Assert.Equal("(0 0 0)", solution);
-        Assert.True(new GenericVerifier01INTP().verify(problem, solution));
+        string solution = new IntegerProgrammingBruteForce().solve(problem);
+
+        Assert.Equal("(0 1 0)", solution);
+        Assert.True(verifier.verify(problem, solution));
+    }
+
+    // -------------------------------------------------------------------------
+    // Parsing (#707)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void INTPROGRAMMING01_Parser_Tolerates_Repeated_Whitespace() {
+        INTPROGRAMMING01 problem = new INTPROGRAMMING01("( 1   -1 ),(0  1)<=(  -1   2 )");
+        Assert.Equal(new List<int> { 1, -1 }, problem.C[0]);
+        Assert.Equal(new List<int> { 0, 1 }, problem.C[1]);
+        Assert.Equal(new List<int> { -1, 2 }, problem.d);
+    }
+
+    [Theory]
+    [InlineData("(1 -1),(0 1)<=(-1)")]          // d shorter than the rows of C
+    [InlineData("(1 -1)<=(-1 2)")]              // d longer than the rows of C
+    [InlineData("(1 -1),(0)<=(-1 2)")]          // ragged rows
+    [InlineData("(1 -1)(0 1)")]                 // no <=
+    [InlineData("(1 -1)<=(0)<=(1)")]            // two <=
+    [InlineData("(1 x)<=(0)")]                  // not an integer
+    [InlineData("(1 -1)<=()")]                  // empty d
+    [InlineData("<=(0)")]                       // empty C
+    [InlineData("")]
+    public void INTPROGRAMMING01_Parser_Rejects_Malformed_Instances(string instance) {
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => new INTPROGRAMMING01(instance));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("(0 x 0)")]
+    [InlineData("(0 0)")]
+    [InlineData("(0 1 0 0)")]
+    public void INTPROGRAMMING01_Verifier_Returns_False_For_Malformed_Certificates(string certificate) {
+        Assert.False(new GenericVerifier01INTP().verify(new INTPROGRAMMING01(), certificate));
+    }
+
+    [Fact]
+    public void INTPROGRAMMING01_Verifier_Tolerates_Repeated_Whitespace_In_Certificate() {
+        Assert.True(new GenericVerifier01INTP().verify(new INTPROGRAMMING01(), "(0   1  0)"));
     }
 
     [Fact]
@@ -111,7 +153,7 @@ public class INTPROGRAMMING01_Tests {
             INTPROGRAMMING01._defaultInstance,
             "(1 -1)<=(-1)",
             "(1)<=(5)",
-            "(-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)",
+            "(-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)", // the former default; all zeros satisfies it
         };
         foreach (string inst in instances) {
             INTPROGRAMMING01 problem = new INTPROGRAMMING01(inst);
