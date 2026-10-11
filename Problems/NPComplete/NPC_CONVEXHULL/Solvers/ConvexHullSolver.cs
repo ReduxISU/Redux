@@ -47,8 +47,12 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
 
         problem.convexHull = hull;
         problem.solution = Format(hull);
-        build.Finish(hull);
-        rec.Done(build.Answer(hull), problem.defaultVerifier.verify(problem, problem.solution), build.DoneCaption(hull));
+        // Done and its verdict only when recording: the verifier checks every point against every edge, O(n h), which would
+        // make a plain solve of a large hull slower than the hull itself.
+        if (!ReferenceEquals(rec, StepRecorder<HullBuild>.Off)) {
+            build.Finish(hull);
+            rec.Done(build.Answer(hull), problem.defaultVerifier.verify(problem, problem.solution), build.DoneCaption(hull));
+        }
         return problem.solution;
     }
 
