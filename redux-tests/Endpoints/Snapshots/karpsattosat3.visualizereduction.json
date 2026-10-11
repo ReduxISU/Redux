@@ -113,7 +113,7 @@
           {
             "id": "0-0",
             "literal": "!x3",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "0-1",
@@ -123,7 +123,7 @@
           {
             "id": "0-2",
             "literal": "!x6",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -133,7 +133,7 @@
           {
             "id": "1-0",
             "literal": "!x4",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "1-1",
@@ -143,7 +143,7 @@
           {
             "id": "1-2",
             "literal": "!x4",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -173,12 +173,12 @@
           {
             "id": "3-0",
             "literal": "x1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "3-1",
             "literal": "x2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "3-2",
@@ -198,7 +198,7 @@
           {
             "id": "4-1",
             "literal": "!x5",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "4-2",
