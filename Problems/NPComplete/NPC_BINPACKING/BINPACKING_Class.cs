@@ -6,14 +6,14 @@
 // no manual registration in Program.cs is needed.
 
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_BINPACKING.Visualizations;
 using API.Problems.NPComplete.NPC_BINPACKING.Solvers;
 using API.Problems.NPComplete.NPC_BINPACKING.Verifiers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_BINPACKING;
 
-class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisualization> {
+class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, BinPackingVisualization> {
 
     // ── Human-readable metadata shown in the Redux UI 
 
@@ -76,9 +76,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
     public BinPackingBruteForce defaultSolver { get; } = new BinPackingBruteForce();
     public BinPackingVerifier defaultVerifier { get; } = new BinPackingVerifier();
 
-    // No custom visualization — we reuse the shared DummyVisualization,
-    // Dummy visualization is an approach also used by KNAPSACK and JOBSEQ.
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public BinPackingVisualization defaultVisualization { get; } = new BinPackingVisualization();
 
     // Declared, not derived. BINPACKING is NP-complete (Garey & Johnson, 1979, problem SR1).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;

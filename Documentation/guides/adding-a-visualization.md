@@ -344,7 +344,7 @@ The solvers and their steps (`Placement`: one container index per item, by posit
 | Bin Packing Brute Force | yes | An `Accept` per item put in a bin ("Put 4 in bin 1: 4 of 10 used."), a `Reject` when an item has nowhere to go, a `Backtrack` per placement taken back, `Done` |
 | Bin Packing First Fit Decreasing | yes | A `Try` with the sorted order, an `Accept` per item put in the first bin with room, a `Reject` for the item that would need a bin past K, `Done` |
 
-Subset Sum, Knapsack and Bin Packing have their own visualizations for the picture (`SubsetSumVisualization`, `KnapsackVisualization`, `BinPackingVisualization`). Their list format draws the items as a set (`SetD3`). The problems' default visualization is still `DummyVisualization`, so their /info is unchanged.
+Subset Sum, Knapsack and Bin Packing have their own visualizations for the picture (`SubsetSumVisualization`, `KnapsackVisualization`, `BinPackingVisualization`). Their list format draws the items as a set (`SetD3`). They are the problems' default visualizations.
 
 To add a packing problem or another packing solver:
 

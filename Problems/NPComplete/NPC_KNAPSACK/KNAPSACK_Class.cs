@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_KNAPSACK.Visualizations;
 using API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 using API.Problems.NPComplete.NPC_KNAPSACK.Verifiers;
 using SPADE;
@@ -8,7 +8,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_KNAPSACK;
 
-class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualization> {
+class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, KnapsackVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Knapsack (Binary)";
@@ -50,7 +50,7 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
 
     public KnapsackBruteForce defaultSolver { get; } = new KnapsackBruteForce();
     public KnapsackVerifier defaultVerifier { get; } = new KnapsackVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public KnapsackVisualization defaultVisualization { get; } = new KnapsackVisualization();
     // Declared, not derived. KNAPSACK is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.MathematicalProgramming;

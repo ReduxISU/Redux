@@ -1,0 +1,204 @@
+{
+  "reductionName": "Partition Reduction",
+  "reductionDefinition": "Karp\u0027s Reduction from Subset Sum to Partition",
+  "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/ReduceTo/NPC_PARTITION/SubsetSumToPartitionReduction.cs",
+  "contributors": [
+    "Andrija Sevaljevic"
+  ],
+  "visualization": {
+    "visualizationName": "Partition Visualization",
+    "visualizationDefinition": "This is a default visualization for Partition",
+    "visualizationType": "SetD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Partition Brute Force",
+      "solverDefinition": "This is a brute force solver for the Partition problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_PARTITION/Solvers/PartitionBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "n^2 * 2^n",
+        "Description": ", n = |S|",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [],
+  "reductionFrom": {
+    "problemName": "Subset Sum",
+    "formalDefinition": "Subset Sum = \u003CS, T\u003E | S is a set of positive integers and there exists a subset of S, K where the sum of K\u0027s elements equals T",
+    "problemDefinition": "The problem is to determine whether there exists a sum of elements that totals to the number T.",
+    "inputDescription": "S, a set of integers, and T, a target sum",
+    "outputDescription": "True or False, whether some subset of S sums to T",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "({1,7,12,15},28)",
+    "instance": "({1,7,12,15},28)",
+    "instanceFormat": "Format: {(S,T) | S subset int, T is int} Example: ({1,7,12,15},28)",
+    "certificateFormat": "Format: {K | K is set} Example: {1,12,15}",
+    "complexityClass": "NPComplete",
+    "problemType": "SetsAndPartitions",
+    "contributors": [
+      "Garret Stouffer",
+      "Caleb Eardley"
+    ],
+    "defaultSolver": {
+      "solverName": "Subset Sum Brute Force",
+      "solverDefinition": "This is a brute force solver for Subset Sum",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley",
+        "Garret Stouffer"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "n * 2^n",
+        "Description": ", n = |S|",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Subset Sum Verifier",
+      "verifierDefinition": "This is a verifier for Subset Sum",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Garret Stouffer"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Subset Sum Visualization",
+      "visualizationDefinition": "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.",
+      "visualizationType": "SetD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs",
+      "contributors": [
+        "Michael Trosper"
+      ],
+      "solver": {
+        "solverName": "Subset Sum Brute Force",
+        "solverDefinition": "This is a brute force solver for Subset Sum",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley",
+          "Garret Stouffer"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "n * 2^n",
+          "Description": ", n = |S|",
+          "VariableNames": [
+            "n"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Partition",
+    "formalDefinition": "Partition = \u003CS, I\u003E | S is a set of positive integers and there exists a subset of S, I where the sum of I\u0027s elements equals the sum of elements not in set I",
+    "problemDefinition": "The partition problem is the task of deciding whether a given multiset S of positive integers can be partitioned into two subsets S1 and S2 such that the sum of the numbers in S1 equals the sum of the numbers in S2",
+    "inputDescription": "S, a multiset of positive integers",
+    "outputDescription": "True or False, whether S can be partitioned into two subsets with equal sum",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_PARTITION/PARTITION_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "{1,7,12,15,33,12,11,5,6,9,21,18}",
+    "instance": "{1,7,12,15,29,8}",
+    "instanceFormat": "Format: {N | N subset int} (a set of positive integers S; duplicate values in the input collapse to one) Example: {1,7,12,15,33,12,11,5,6,9,21,18}",
+    "certificateFormat": "Format: (S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2) Example: (33,21,15),(1,7,12,11,5,6,9,18)",
+    "complexityClass": "NPComplete",
+    "problemType": "SetsAndPartitions",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Partition Brute Force",
+      "solverDefinition": "This is a brute force solver for the Partition problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_PARTITION/Solvers/PartitionBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "n^2 * 2^n",
+        "Description": ", n = |S|",
+        "VariableNames": [
+          "n"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Partition Verifier",
+      "verifierDefinition": "This is a verifier for the Partition problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_PARTITION/Verifiers/PartitionVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Partition Visualization",
+      "visualizationDefinition": "This is a default visualization for Partition",
+      "visualizationType": "SetD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Partition Brute Force",
+        "solverDefinition": "This is a brute force solver for the Partition problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_PARTITION/Solvers/PartitionBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "n^2 * 2^n",
+          "Description": ", n = |S|",
+          "VariableNames": [
+            "n"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Linear",
+  "reductionType": "Restriction",
+  "complexityBucket": "Linear"
+}

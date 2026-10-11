@@ -1,0 +1,64 @@
+[
+  {
+    "kind": "set",
+    "data": {
+      "isOrdered": false,
+      "isValue": false,
+      "id": "r",
+      "list": [
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-21",
+          "value": "21",
+          "color": "Background"
+        },
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-20",
+          "value": "20",
+          "color": "Background"
+        },
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-65",
+          "value": "65",
+          "color": "Background"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "set",
+    "data": {
+      "isOrdered": false,
+      "isValue": false,
+      "id": "r",
+      "list": [
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-21",
+          "value": "21",
+          "color": "Background"
+        },
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-20",
+          "value": "20",
+          "color": "Background"
+        },
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-65",
+          "value": "65",
+          "color": "Background"
+        }
+      ]
+    }
+  }
+]

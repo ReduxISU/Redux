@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_SUBSETSUM.Visualizations;
 /// <summary>
 /// Subset Sum as the Packing picture (format=frames): the numbers as items and the chosen ones in one container with the
 /// target line T, step by step for the selected solver. The list format draws the set of numbers, the chosen ones marked
-/// Solution. The problem's default visualization is still <c>DummyVisualization</c>.
+/// Solution. It is the problem's default visualization.
 /// </summary>
 class SubsetSumVisualization : IVisualization<SUBSETSUM, API_SET>, IPackingVisualization<SUBSETSUM> {
     public string visualizationName { get; } = "Subset Sum Visualization";
