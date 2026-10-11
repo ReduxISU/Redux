@@ -6,10 +6,11 @@ using API.Interfaces.JSON_Objects;
 using SPADE;
 using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_ARCSET.Solvers;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 
-class ArcSetDefaultVisualization : IVisualization<ARCSET, API_GraphJSON> {
+class ArcSetDefaultVisualization : IVisualization<ARCSET, API_GraphJSON>, ILayeredVisualization<ARCSET> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Arc Set Visualization";
@@ -20,6 +21,16 @@ class ArcSetDefaultVisualization : IVisualization<ARCSET, API_GraphJSON> {
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
 
     public ISolver solver { get; } = new ArcSetBruteForce();
+
+    // The Layered Graph picture (format=frames only; /info keeps GraphD3). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(EdgeSet);
+    LayeredSpec ILayeredVisualization<ARCSET>.Describe(ARCSET problem) => Spec(problem);
+
+    /// <summary>The instance as the Layered Graph picture describes it.</summary>
+    internal static LayeredSpec Spec(ARCSET problem) => new(
+        problem.graph.Nodes.ToList().Select(n => n.ToString()).ToList(),
+        problem.graph.Edges.ToList().Select(e => new LayeredEdgeInput(e[0].ToString(), e[1].ToString())).ToList(),
+        LayeredRule.FeedbackArcSet) { K = problem.K };
 
     // --- Methods Including Constructors ---
     public ArcSetDefaultVisualization() {

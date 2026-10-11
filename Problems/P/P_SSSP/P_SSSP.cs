@@ -100,7 +100,9 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
             parsedNodes,
             parsedEdges,
             resolvedSource,
-            graphParse.IsDirected,
+            // The directed weighted pattern also accepts an unordered pair ({1,2}) as an edge's ends, so the pattern that
+            // matched does not say whether the graph is directed; the edges do (#781).
+            graphParse.IsDirected && edgeCollection.ToList().All(EndsAreOrdered),
             graphParse.IsWeighted);
     }
 
@@ -157,6 +159,17 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         }).ToList();
     }
 
+    /// <summary>
+    /// The edges as the instance lists them, parallel edges included: (from, to, weight), the weight null in an unweighted
+    /// instance (the solver counts such an edge as 1). An undirected edge is listed once, in the order it is written.
+    /// A method, not a property, so it never appears in /info.
+    /// </summary>
+    internal List<(string From, string To, int? Weight)> ListedEdges() =>
+        graph.Edges.ToList().Select(rawEdge => {
+            ParsedEdge edge = ParseEdge(rawEdge);
+            return (edge.From, edge.To, isWeighted ? edge.Weight : (int?)null);
+        }).ToList();
+
     private static ParsedEdge ParseEdge(UtilCollection rawEdge) {
         // The unweighted/undirected grammar pattern binds a raw edge directly to an
         // unordered node-set (e.g. {1,2}), which cannot be indexed by position (only
@@ -177,6 +190,13 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
         }
 
         return new ParsedEdge(GetFrom(rawEdge), GetTo(rawEdge), 1);
+    }
+
+    // Whether an edge's ends are written as an ordered pair ((1,2) or ((1,2),w)), as opposed to a set ({1,2} or ({1,2},w)).
+    private static bool EndsAreOrdered(UtilCollection rawEdge) {
+        bool isWeighted = rawEdge.IsOrdered() && rawEdge.Count() == 2
+            && LooksLikeCollection(rawEdge[0]) && !LooksLikeCollection(rawEdge[1]);
+        return isWeighted ? rawEdge[0].IsOrdered() : rawEdge.IsOrdered();
     }
 
     private static bool LooksLikeCollection(UtilCollection value) {

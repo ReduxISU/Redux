@@ -206,6 +206,51 @@ sealed class TableCells : IEquatable<TableCells> {
         HashCode.Combine(ShapeUtil.HashOf(Reads), ShapeUtil.HashOf(Path), ShapeUtil.HashOf(Values.Select(p => $"{p.Key}={p.Value}")));
 }
 
+/// <summary>
+/// A shortest-path search so far (Dijkstra): the best distance known to each node reached from the source, the node each
+/// was reached from, and the nodes whose distance is settled for good. A node that has not been reached has no entry in
+/// <see cref="Dist"/> (its distance is ∞). The answer is the last one: the shortest-path tree is <see cref="Pred"/>.
+/// </summary>
+sealed class Distances : IEquatable<Distances> {
+    [JsonPropertyName("dist")] public IReadOnlyDictionary<string, int> Dist { get; }
+    [JsonPropertyName("pred")] public IReadOnlyDictionary<string, string> Pred { get; }
+    [JsonPropertyName("settled")] public string[] Settled { get; }
+    public Distances(IEnumerable<KeyValuePair<string, int>> dist, IEnumerable<KeyValuePair<string, string>> pred, IEnumerable<string> settled) {
+        Dist = dist.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value);
+        Pred = pred.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value);
+        Settled = ShapeUtil.SortedSet(settled);
+    }
+    public bool Equals(Distances? other) =>
+        other != null && Settled.SequenceEqual(other.Settled, StringComparer.Ordinal)
+            && Dist.Count == other.Dist.Count && Dist.All(p => other.Dist.TryGetValue(p.Key, out var d) && d == p.Value)
+            && Pred.Count == other.Pred.Count && Pred.All(p => other.Pred.TryGetValue(p.Key, out var u) && u == p.Value);
+    public override bool Equals(object? obj) => Equals(obj as Distances);
+    public override int GetHashCode() =>
+        HashCode.Combine(ShapeUtil.HashOf(Settled), ShapeUtil.HashOf(Dist.Select(p => $"{p.Key}={p.Value}")), ShapeUtil.HashOf(Pred.Select(p => $"{p.Key}={p.Value}")));
+}
+
+/// <summary>
+/// Strongly connected components found so far, with the depth-first bookkeeping that finds them (Kosaraju): node id to
+/// component index (0-based, in the order the components were found), the nodes visited by the first pass, and the order
+/// in which that pass finished them (the n-th finished node has finish number n).
+/// </summary>
+sealed class Components : IEquatable<Components> {
+    [JsonPropertyName("groups")] public IReadOnlyDictionary<string, int> Of { get; }
+    [JsonPropertyName("visited")] public string[] Visited { get; }
+    [JsonPropertyName("finished")] public string[] Finished { get; }
+    public Components(IEnumerable<KeyValuePair<string, int>> groups, IEnumerable<string> visited, IEnumerable<string> finished) {
+        Of = groups.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value);
+        Visited = ShapeUtil.SortedSet(visited);
+        Finished = finished.ToArray();
+    }
+    public bool Equals(Components? other) =>
+        other != null && Visited.SequenceEqual(other.Visited, StringComparer.Ordinal) && Finished.SequenceEqual(other.Finished, StringComparer.Ordinal)
+            && Of.Count == other.Of.Count && Of.All(p => other.Of.TryGetValue(p.Key, out var g) && g == p.Value);
+    public override bool Equals(object? obj) => Equals(obj as Components);
+    public override int GetHashCode() =>
+        HashCode.Combine(ShapeUtil.HashOf(Visited), ShapeUtil.HashOf(Finished), ShapeUtil.HashOf(Of.Select(p => $"{p.Key}={p.Value}")));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -222,5 +267,7 @@ static class Shapes {
         : shape == typeof(ChosenSets) ? new ChosenSets([])
         : shape == typeof(ChosenTriples) ? new ChosenTriples([])
         : shape == typeof(TableCells) ? new TableCells([], [], [])
+        : shape == typeof(Distances) ? new Distances([], [], [])
+        : shape == typeof(Components) ? new Components([], [], [])
         : null;
 }

@@ -1,10 +1,13 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using System.Numerics;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_NODESET.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Solvers;
 
-class NodeSetBruteForce : ISolver<NODESET> {
+class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Node Set Brute Force";
@@ -25,9 +28,10 @@ class NodeSetBruteForce : ISolver<NODESET> {
     public NodeSetBruteForce() {
 
     }
-    private long factorial(long x) {
-        long y = 1;
-        for (long i = 1; i <= x; i++) {
+    // BigInteger, not long: 21! no longer fits in a long, and an overflowed count skipped every combination (#783).
+    private BigInteger factorial(BigInteger x) {
+        BigInteger y = 1;
+        for (BigInteger i = 1; i <= x; i++) {
             y *= i;
         }
         return y;
@@ -55,25 +59,46 @@ class NodeSetBruteForce : ISolver<NODESET> {
         }
         return combination;
     }
-    public string solve(NODESET nodeSet) {
+    public string solve(NODESET nodeSet) => Solve(nodeSet, StepRecorder<NodeSet>.Off);
+
+    public string Solve(NODESET nodeSet, StepRecorder<NodeSet> rec) {
+        var cycle = LayeredFrames.SurvivingCycle(NodeSetDefaultVisualization.Spec(nodeSet));
+        int tried = 0;
+
+        // Removing nothing comes first: an acyclic graph needs no node removed (#789).
+        tried++;
+        if (nodeSet.defaultVerifier.verify(nodeSet, "{}")) {
+            rec.Accept(() => new NodeSet([]), () => "Try removing nothing. No cycle is left.");
+            rec.Done(new NodeSet([]), true, "The graph has no cycle, so removing nothing is enough. Found after 1 try.");
+            return "{}";
+        }
+        rec.Reject(() => new NodeSet([]), () => $"Try removing nothing: the cycle {cycle([], [])} is there.");
         for (int i = 0; i < nodeSet.K; i++) {
             List<int> combination = new List<int>();
             for (int j = 0; j <= i; j++) {
                 combination.Add(j);
             }
-            long reps = factorial(nodeSet.nodes.Count) / (factorial(i + 1) * factorial(nodeSet.nodes.Count - i - 1));
-            for (int k = 0; k < reps; k++) {
+            BigInteger reps = factorial(nodeSet.nodes.Count) / (factorial(i + 1) * factorial(nodeSet.nodes.Count - i - 1));
+            for (BigInteger k = 0; k < reps; k++) {
                 string certificate = indexListToCertificate(combination, nodeSet.nodes);
+                tried++;
+                string[] Candidate() => combination.Select(c => nodeSet.nodes[c]).ToArray();
+                string[] Ids() => Candidate().Select(LayeredFrames.NodeId).ToArray();
                 if (nodeSet.defaultVerifier.verify(nodeSet, certificate)) {
+                    rec.Accept(() => new NodeSet(Candidate()), () => $"Try removing {certificate}. No cycle is left.", Ids);
+                    rec.Done(new NodeSet(Candidate()), true, $"Removing {certificate} leaves no cycle, within K = {nodeSet.K}. Found after {tried} {(tried == 1 ? "try" : "tries")}.");
                     return certificate;
                 }
+                rec.Reject(() => new NodeSet(Candidate()), () => $"Try removing {certificate}: the cycle {cycle([], Candidate())} is still there.", Ids);
                 combination = nextComb(combination, nodeSet.nodes.Count);
 
             }
         }
+        // Removing nothing failed above, and so did every set of 1 to K nodes.
+        rec.Done(new NodeSet([]), false,
+            $"Checked every way to remove up to K = {nodeSet.K} {(nodeSet.K == 1 ? "node" : "nodes")} ({tried} {(tried == 1 ? "try" : "tries")}). A cycle always survives.");
         return "{}";
     }
-
 }
 
 

@@ -1,3 +1,4 @@
+using API.Interfaces.Steps;
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
@@ -18,6 +19,10 @@ class SPSPTableVisualization : IVisualization<SPSP> {
     public string[] contributors { get; } = { "Rajit Nilkar" };
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SPSPSolver();
+
+    // The run's steps are typed (Distances) since #667; this table makes its own from the solver, but must still be called
+    // with them. Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(Distances);
 
     public SPSPTableVisualization() { }
 

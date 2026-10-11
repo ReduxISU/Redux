@@ -2,11 +2,13 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Graphs.GraphParser;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_ARCSET.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_ARCSET.Solvers;
 
-class ArcSetBruteForce : ISolver<ARCSET> {
+class ArcSetBruteForce : ISolver<ARCSET, EdgeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Arc Set Brute Force";
@@ -35,13 +37,36 @@ class ArcSetBruteForce : ISolver<ARCSET> {
     * Returns the set of edges that if removed from arcset would turn it acyclic
     */
 
-    public string solve(ARCSET arc) {
+    public string solve(ARCSET arc) => Solve(arc, StepRecorder<EdgeSet>.Off);
+
+    public string Solve(ARCSET arc, StepRecorder<EdgeSet> rec) {
         UtilCollectionGraph graph = arc.graph;
+        var cycle = LayeredFrames.SurvivingCycle(ArcSetDefaultVisualization.Spec(arc));
+        int tried = 0;
+
+        // Removing nothing comes first: an acyclic graph needs no edge removed (#789).
+        tried++;
+        if (arc.defaultVerifier.verify(arc, "{}")) {
+            rec.Accept(() => new EdgeSet([]), () => "Try removing nothing. No cycle is left.");
+            rec.Done(new EdgeSet([]), true, "The graph has no cycle, so removing nothing is enough. Found after 1 try.");
+            return "{}";
+        }
+        rec.Reject(() => new EdgeSet([]), () => $"Try removing nothing: the cycle {cycle([], [])} is there.");
 
         foreach (UtilCollection potentialSolution in graph.Edges.ChooseUpTo(arc.K)) {
             string certificate = potentialSolution.ToString();
-            if (arc.defaultVerifier.verify(arc, certificate)) return certificate;
+            tried++;
+            string[] Ids() => potentialSolution.ToList().Select(e => LayeredFrames.ArcId(e[0].ToString(), e[1].ToString())).ToArray();
+            if (arc.defaultVerifier.verify(arc, certificate)) {
+                rec.Accept(() => new EdgeSet(Ids()), () => $"Try removing {certificate}. No cycle is left.", Ids);
+                rec.Done(new EdgeSet(Ids()), true, $"Removing {certificate} leaves no cycle, within K = {arc.K}. Found after {tried} {(tried == 1 ? "try" : "tries")}.");
+                return certificate;
+            }
+            rec.Reject(() => new EdgeSet(Ids()), () => $"Try removing {certificate}: the cycle {cycle(Ids(), [])} is still there.", Ids);
         }
+        // Removing nothing failed above, and so did every set of 1 to K edges.
+        rec.Done(new EdgeSet([]), false,
+            $"Checked every way to remove up to K = {arc.K} {(arc.K == 1 ? "edge" : "edges")} ({tried} {(tried == 1 ? "try" : "tries")}). A cycle always survives.");
         return "{}";
     }
 }

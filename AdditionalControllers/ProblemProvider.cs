@@ -483,8 +483,9 @@ public class ProblemProvider : ControllerBase {
             // left of the limit, so the whole request stays within it (#764).
             TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
             // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
-            // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
-            var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
+            // step shape for that hook only; its list methods keep getting the steps they always did: none of the typed ones,
+            // unless they were already drawing them (ListReadsTypedSteps).
+            var steps = run.StepsFor(vis is IFramesVisualization framesOnly && !framesOnly.ListReadsTypedSteps() ? null : vis.StepShape);
             var solution = run.Answer;
             return Content(asFrames
                 ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
