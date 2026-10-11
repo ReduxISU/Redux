@@ -111,7 +111,6 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
     {
         "ConvexHullVisualization",
         "SudokuVisualization",
-        "LosslessDataCompressionVisualization",
         "DummyVisualization",
     };
 

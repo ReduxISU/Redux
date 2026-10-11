@@ -12,6 +12,9 @@ namespace redux_tests;
 //   - the list format of LosslessDataCompressionVisualization (Snapshots/codetree_list_snapshots.tsv, captured before the
 //     picture existed),
 //   - /info for the problem, its solver, its verifier and its visualization (info.<name>.json, captured the same way).
+// The deliberate exception is the list format, which was empty (Unimplemented, answering []) and is now the code table
+// (DynamicTable): its rows in codetree_list_snapshots.tsv and info.losslessdatacompression.json /
+// info.losslessdatacompressionvisualization.json were retaken. See the "List" tests. The format=frames picture is unchanged.
 public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -63,7 +66,7 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     public static TheoryData<string> TouchedInterfaces => new([
-        "losslessdatacompression", "losslessdatacompressionsolver", "losslessdatacompressionverifier", "losslessdatacompressionvisualization",
+        "losslessdatacompressionsolver", "losslessdatacompressionverifier",
     ]);
 
     // ---- What old frontends read must not change. ----
@@ -87,6 +90,47 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Visualize($"visualization={vis}", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(expected, Compact(body));
+    }
+
+    // /info for the problem and its visualization, retaken after the list format became the code table: the only difference
+    // from the pre-change capture is the visualization's visualizationType (Unimplemented to DynamicTable) and its
+    // visualizationDefinition (was "TODO").
+    [Theory]
+    [InlineData("losslessdatacompression")]
+    [InlineData("losslessdatacompressionvisualization")]
+    public async Task List_Info_ReportsDynamicTable_AndNothingOfThePicture(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ReplaceLineEndings("\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        var root = JsonDocument.Parse(body).RootElement;
+        var vis = name == "losslessdatacompression" ? root.GetProperty("defaultVisualization") : root;
+        Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
+        Assert.DoesNotContain("\"CodeTree\"", body);
+        Assert.DoesNotContain("StepShape", body);
+    }
+
+    [Fact]
+    public async Task List_IsTheCodeTableBeforeAndAfter() {
+        var (status, body) = await Visualize("visualization=losslessdatacompressionvisualization", "abracadabra");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var list = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, list.Count);
+        Assert.All(list, t => Assert.Equal("table", t.GetProperty("kind").GetString()));
+        Assert.Equal(["Character", "Count", "Code", "Bits"], list[0].GetProperty("columns").EnumerateArray().Select(c => c.GetProperty("label").GetString()));
+        Assert.Equal("11 characters, 5 different", list[0].GetProperty("title").GetString());
+        var before = list[0].GetProperty("rows").EnumerateArray().ToList();
+        Assert.Equal(["a", "b", "c", "d", "r"], before.Select(r => r.GetProperty("cells").GetProperty("symbol").GetString()));
+        Assert.Equal(["5", "2", "1", "1", "2"], before.Select(r => r.GetProperty("cells").GetProperty("count").GetString()));
+        Assert.All(before, r => Assert.Equal("", r.GetProperty("cells").GetProperty("code").GetString()));
+        // After: every character has its code, and the bits add up to the title's total.
+        var after = list[1].GetProperty("rows").EnumerateArray().ToList();
+        Assert.All(after, r => Assert.Equal("Solution", r.GetProperty("color").GetString()));
+        Assert.All(after, r => Assert.Equal(int.Parse(r.GetProperty("cells").GetProperty("count").GetString()!) * r.GetProperty("cells").GetProperty("code").GetString()!.Length,
+            int.Parse(r.GetProperty("cells").GetProperty("bits").GetString()!)));
+        int total = after.Sum(r => int.Parse(r.GetProperty("cells").GetProperty("bits").GetString()!));
+        Assert.Equal($"11 characters, 5 different, encoded in {total} bits", list[1].GetProperty("title").GetString());
+        Assert.Equal("1", after[0].GetProperty("cells").GetProperty("code").GetString()!.Length.ToString());
     }
 
     // ---- The picture ----
