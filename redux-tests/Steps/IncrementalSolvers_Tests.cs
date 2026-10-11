@@ -51,10 +51,12 @@ public class IncrementalSolvers_Tests {
         // typed solver interface.
         ["satbruteforcesolver"] = false,
         ["sat3backtrackingsolver"] = true,
+        // ChosenTriples (Tripartite Matching picture)
+        ["threedimensionalmatchingbruteforce"] = false,
     };
 
-    // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment)];
+    // The answer shapes the Graph, Grouped Graph and Tripartite Matching pictures draw.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenTriples)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

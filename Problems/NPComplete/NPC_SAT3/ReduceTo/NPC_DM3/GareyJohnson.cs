@@ -124,6 +124,8 @@ class GareyJohnson : IReduction<SAT3, DM3> {
             Y.Add("y_garb_" + i.ToString());
         }
 
+        // A DM3 instance starts with its three sets, {X}{Y}{Z}, and then lists M's triples (#807).
+        instance = "{" + string.Join(",", X) + "}{" + string.Join(",", Y) + "}{" + string.Join(",", Z) + "}";
         foreach (var i in M) {
             instance += "{";
             foreach (var j in i) {
