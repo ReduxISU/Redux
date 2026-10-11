@@ -63,6 +63,9 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
         return combination;
     }
     public string solve(DM3 problem) {
+        // A matching needs |X| triples; with fewer in M there is none, and C(|M|, |X|) would take a factorial of a
+        // negative number (#745).
+        if (problem.M.Count < problem.X.Count) return "{}";
         List<int> combination = new List<int>();
         for (int i = 0; i < problem.X.Count(); i++) {
             combination.Add(i);
