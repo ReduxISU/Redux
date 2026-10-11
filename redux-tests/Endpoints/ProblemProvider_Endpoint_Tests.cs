@@ -148,29 +148,49 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // #755: a reduction into a problem with no picture (wired to DummyVisualization) answered 500, because the
     // stand-in visualization tried to parse the target instance into the IProblem interface. The picture is
-    // omitted instead: 200 with an empty list.
-    public static TheoryData<string> ReductionsIntoProblemsWithNoPicture() => new(ProblemProvider.Reductions
+    // omitted instead: 200 with an empty list. As problems get pictures this list shrinks, and it may run out; so it
+    // is walked in one test (a theory with no data fails), and DummyVisualization is also checked on its own below.
+    private static List<string> ReductionsIntoProblemsWithNoPicture() => ProblemProvider.Reductions
         .Where(r => r.Value.Assembly == typeof(ProblemProvider).Assembly)
         .Select(r => (r.Key, Reduction: TryCreate(r.Value)))
         .Where(r => r.Reduction?.reductionTo.defaultVisualization is API.DummyClasses.DummyVisualization)
         .Select(r => r.Key)
-        .OrderBy(k => k));
+        .OrderBy(k => k)
+        .ToList();
 
     private static API.Interfaces.IReduction? TryCreate(Type type) {
         try { return Activator.CreateInstance(type) as API.Interfaces.IReduction; } catch { return null; }
     }
 
-    [Theory]
-    [MemberData(nameof(ReductionsIntoProblemsWithNoPicture))]
-    public async Task VisualizeReduction_IntoAProblemWithNoPicture_Returns200WithNoPicture(string reduction) {
-        var red = TryCreate(ProblemProvider.Reductions[reduction])!;
-        string instance = red.reductionFrom.defaultInstance;
-        string solution = red.reductionFrom.defaultSolver.solve(instance);
-        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction={reduction}&solution={Uri.EscapeDataString(solution)}", content, TestContext.Current.CancellationToken);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.True(response.StatusCode == HttpStatusCode.OK, $"{(int)response.StatusCode}: {body}");
-        Assert.Equal(0, JsonDocument.Parse(body).RootElement.GetArrayLength());
+    [Fact]
+    public async Task VisualizeReduction_IntoAProblemWithNoPicture_Returns200WithNoPicture() {
+        foreach (string reduction in ReductionsIntoProblemsWithNoPicture()) {
+            var red = TryCreate(ProblemProvider.Reductions[reduction])!;
+            string instance = red.reductionFrom.defaultInstance;
+            string solution = red.reductionFrom.defaultSolver.solve(instance);
+            var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction={reduction}&solution={Uri.EscapeDataString(solution)}", content, TestContext.Current.CancellationToken);
+            var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            Assert.True(response.StatusCode == HttpStatusCode.OK, $"{reduction}: {(int)response.StatusCode}: {body}");
+            Assert.Equal(0, JsonDocument.Parse(body).RootElement.GetArrayLength());
+        }
+    }
+
+    // What visualizeReduction asks of a target's visualization, asked of DummyVisualization directly with the target
+    // instance of every reduction: it draws nothing and never tries to parse the instance.
+    [Fact]
+    public void DummyVisualization_DrawsNothing_ForAnyReductionsTargetInstance() {
+        API.Interfaces.IVisualization dummy = new API.DummyClasses.DummyVisualization();
+        var instances = ProblemProvider.Reductions.Values
+            .Where(t => t.Assembly == typeof(ProblemProvider).Assembly)
+            .Select(TryCreate).Where(r => r != null).Select(r => r!.reductionTo.defaultInstance)
+            .Append("not an instance of anything").Distinct().ToList();
+        Assert.NotEmpty(instances);
+        foreach (string instance in instances) {
+            Assert.IsType<API.Interfaces.JSON_Objects.API_empty>(dummy.visualize(instance));
+            Assert.IsType<API.Interfaces.JSON_Objects.API_empty>(dummy.SolvedVisualization(instance, "{}"));
+            Assert.Empty(dummy.StepsVisualization(instance, [new object()]));
+        }
     }
 
     // #760: Clique -> Vertex Cover sets K' = N - K, so a K outside 0..N used to build a Vertex Cover instance
