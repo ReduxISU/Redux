@@ -8,7 +8,7 @@ class WEIGHTEDCUTReduction : IReduction<PARTITION, WEIGHTEDCUT> {
 
     // --- Fields ---
     public string reductionName { get; } = "Weighted Cut Reduction";
-    public string reductionDefinition { get; } = "Karp's Reduction from Graph Coloring to Clique Cover";
+    public string reductionDefinition { get; } = "Karp's reduction from Partition to Weighted Cut: each number of S becomes a node, every two nodes are joined by an edge weighing the product of their two numbers, and K is a quarter of the square of the numbers' total. A split of S into two sides that add up to a and b cuts edges weighing a * b in all, which reaches K only when a = b, so S splits into two halves of equal sum exactly when the graph has a cut weighing at least K.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
