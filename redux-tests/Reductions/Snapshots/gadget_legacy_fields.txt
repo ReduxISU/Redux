@@ -44,6 +44,28 @@ ElementHighlight | 2>3 | 23-31
 ElementHighlight | 3>5 | 33-51
 ElementHighlight | 4>2 | 21-43
 ElementHighlight | 5>4 | 41-53
+# KarpGraphColorToExactCover
+ClauseHighlight | a | e:a,e:a_a_b_1,e:a_a_b_2,e:a_a_b_3,e:a_a_c_1,e:a_a_c_2,e:a_a_c_3,e:a_d_a_1,e:a_d_a_2,e:a_d_a_3,e:a_a_e_1,e:a_a_e_2,e:a_a_e_3,e:a_a_f_1,e:a_a_f_2,e:a_a_f_3,e:a_g_a_1,e:a_g_a_2,e:a_g_a_3,e:a_a_h_1,e:a_a_h_2,e:a_a_h_3,e:a_i_a_1,e:a_i_a_2,e:a_i_a_3,S1,S2,S3
+ClauseHighlight | b | e:b,e:b_a_b_1,e:b_a_b_2,e:b_a_b_3,e:b_b_c_1,e:b_b_c_2,e:b_b_c_3,S4,S5,S6
+ClauseHighlight | c | e:c,e:c_b_c_1,e:c_b_c_2,e:c_b_c_3,e:c_a_c_1,e:c_a_c_2,e:c_a_c_3,S7,S8,S9
+ClauseHighlight | d | e:d,e:d_d_a_1,e:d_d_a_2,e:d_d_a_3,e:d_d_e_1,e:d_d_e_2,e:d_d_e_3,S10,S11,S12
+ClauseHighlight | e | e:e,e:e_d_e_1,e:e_d_e_2,e:e_d_e_3,e:e_a_e_1,e:e_a_e_2,e:e_a_e_3,S13,S14,S15
+ClauseHighlight | f | e:f,e:f_a_f_1,e:f_a_f_2,e:f_a_f_3,e:f_f_g_1,e:f_f_g_2,e:f_f_g_3,S16,S17,S18
+ClauseHighlight | g | e:g,e:g_f_g_1,e:g_f_g_2,e:g_f_g_3,e:g_g_a_1,e:g_g_a_2,e:g_g_a_3,S19,S20,S21
+ClauseHighlight | h | e:h,e:h_a_h_1,e:h_a_h_2,e:h_a_h_3,e:h_h_i_1,e:h_h_i_2,e:h_h_i_3,S22,S23,S24
+ClauseHighlight | i | e:i,e:i_h_i_1,e:i_h_i_2,e:i_h_i_3,e:i_i_a_1,e:i_i_a_2,e:i_i_a_3,S25,S26,S27
+ClauseHighlight | a-b | e:a_b,S28,S29,S30,S31,S32,S33
+ClauseHighlight | b-c | e:b_c,S34,S35,S36,S37,S38,S39
+ClauseHighlight | a-c | e:a_c,S40,S41,S42,S43,S44,S45
+ClauseHighlight | a-d | e:d_a,S46,S47,S48,S49,S50,S51
+ClauseHighlight | d-e | e:d_e,S52,S53,S54,S55,S56,S57
+ClauseHighlight | a-e | e:a_e,S58,S59,S60,S61,S62,S63
+ClauseHighlight | a-f | e:a_f,S64,S65,S66,S67,S68,S69
+ClauseHighlight | f-g | e:f_g,S70,S71,S72,S73,S74,S75
+ClauseHighlight | a-g | e:g_a,S76,S77,S78,S79,S80,S81
+ClauseHighlight | a-h | e:a_h,S82,S83,S84,S85,S86,S87
+ClauseHighlight | h-i | e:h_i,S88,S89,S90,S91,S92,S93
+ClauseHighlight | a-i | e:i_a,S94,S95,S96,S97,S98,S99
 # KarpIntProgStandard
 ElementHighlight | 0-0,1-0,1-2,2-2 | c0,r0c0
 ElementHighlight | 0-1,2-0 | c1,r0c1

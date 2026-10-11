@@ -113,6 +113,7 @@ public class Gadget_Kinds_Tests {
         ["SipserReduceToSAT3"] = "Element x9, Group x3",
         ["KarpVertexCoverToSetCover"] = "Element x10, Bound x1",
         ["KarpDirectedHamiltonianToUndirectedHamiltonian"] = "Element x11",
+        ["KarpGraphColorToExactCover"] = "Group x21",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>
