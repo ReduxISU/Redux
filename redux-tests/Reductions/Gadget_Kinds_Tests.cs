@@ -106,8 +106,9 @@ public class Gadget_Kinds_Tests {
         ["KarpSATToSAT3"] = "Element x17, Group x3",
         ["KarpVertexCoverToNodeSet"] = "Element x5",
         ["LawlerKarp"] = "Element x5",
+        // #694: an edge rule per node that gets complement edges, and the bound.
         ["reduceToCLIQUE"] = "Element x7",
-        ["sipserReductionVertexCover"] = "Element x6",
+        ["sipserReductionVertexCover"] = "Element x6, EdgeRule x3, Bound x1",
         ["SipserReduceToCliqueStandard"] = "Element x9, Group x3",
     };
 

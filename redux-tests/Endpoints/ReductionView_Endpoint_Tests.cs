@@ -99,8 +99,11 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(red.gadgets.Count, gadgets.Count);
         Assert.All(gadgets, g => {
             Assert.True(Enum.TryParse<API.Interfaces.JSON_Objects.GadgetKind>(g.GetProperty("gadgetKind").GetString(), true, out _));
-            Assert.NotEmpty(g.GetProperty("sourceIds").EnumerateArray());
-            Assert.NotEmpty(g.GetProperty("targetIds").EnumerateArray());
+            // The bound (K) comes from no single piece of either side (#694).
+            if (g.GetProperty("gadgetKind").GetString() != "bound") {
+                Assert.NotEmpty(g.GetProperty("sourceIds").EnumerateArray());
+                Assert.NotEmpty(g.GetProperty("targetIds").EnumerateArray());
+            }
             // The legacy fields stay in /gadgets; the view's gadgets carry only the new ones.
             Assert.False(g.TryGetProperty("color", out _));
         });

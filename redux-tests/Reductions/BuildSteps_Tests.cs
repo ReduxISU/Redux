@@ -108,10 +108,11 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         ConstructionRun run = red.BuildRun(true)!;
         var announced = run.Steps.SelectMany(s => s.Partial.Gadgets).ToList();
         Assert.Equal(Enumerable.Range(0, run.Gadgets.Count), announced.Distinct().OrderBy(i => i));
-        // And the step's focus holds the target ids of the gadgets it announces.
+        // And the step's focus, or the edges it adds (an edge rule's targets, #694), holds the target ids of the gadgets it announces.
         foreach (var step in run.Steps.Where(s => s.Partial.Gadgets.Length > 0)) {
             var announcedTargets = step.Partial.Gadgets.SelectMany(i => run.Gadgets[i].targetIds);
-            Assert.All(announcedTargets, id => Assert.Contains(id, step.Focus));
+            var shown = step.Focus.Concat(step.Partial.Edges.Select(e => e.Id)).ToHashSet();
+            Assert.All(announcedTargets, id => Assert.Contains(id, shown));
         }
     }
 
