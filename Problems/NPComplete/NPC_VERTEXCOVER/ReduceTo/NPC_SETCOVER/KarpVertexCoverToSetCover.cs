@@ -89,8 +89,8 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
     /// </summary>
     public List<Gadget> gadgets { get; } = new();
 
-    // The node each set of the target was made from, by the set's index in the target's instance text (a node with no edges
-    // has no set there). Private, so it stays out of the JSON.
+    // The node each set of the target was made from (the first, when nodes touch the same edges), by the set's index among
+    // the sets Set Cover reads. Private, so it stays out of the JSON.
     private readonly List<string> _nodeOfSet = new();
 
     public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
@@ -158,18 +158,23 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
         reducedSetCover.K = reductionFrom.K;
         reducedSetCover.instance = instance;
 
-        // Gadgets, and the target's set index of each node: the instance text leaves out the empty sets.
+        // Gadgets, and the set of the target each node's set is. The instance text leaves out the empty sets, and Set Cover
+        // reads equal sets as one set (two nodes that touch the same edges), so a set's index is its place among the sets
+        // Set Cover reads.
+        var parsedSets = new SETCOVER(instance).subsets;
         var setOf = new Dictionary<int, int>();
         var nodeGadget = new Dictionary<int, int>();
         var edgeGadgets = new List<int>[reductionFrom.nodes.Count];
+        _nodeOfSet.AddRange(Enumerable.Repeat("", parsedSets.Count));
         for (int i = 0; i < reductionFrom.nodes.Count; i++) {
             string node = reductionFrom.nodes[i];
             edgeGadgets[i] = new List<int>();
             if (subsets[i].Count > 0) {
-                setOf[i] = _nodeOfSet.Count;
-                _nodeOfSet.Add(node);
+                int set = parsedSets.FindIndex(p => p.ToHashSet(StringComparer.Ordinal).SetEquals(subsets[i]));
+                setOf[i] = set;
+                if (_nodeOfSet[set] == "") _nodeOfSet[set] = node;
                 nodeGadget[i] = gadgets.Count;
-                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { BipartiteFrames.SetId(setOf[i]) }));
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { BipartiteFrames.SetId(set) }));
             }
             foreach (var (u, v, element) in firstTouched[i]) {
                 edgeGadgets[i].Add(gadgets.Count);
@@ -181,6 +186,7 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(), note: $"K stays {reductionFrom.K}"));
 
         if (rec.Enabled) {
+            var builtSets = new HashSet<int>();
             for (int i = 0; i < reductionFrom.nodes.Count; i++) {
                 string node = reductionFrom.nodes[i];
                 if (!setOf.TryGetValue(i, out int set)) {
@@ -191,15 +197,19 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
                 var mine = subsets[i];
                 var fresh = firstTouched[i];
                 string setId = BipartiteFrames.SetId(set);
-                string[] nodes = fresh.Select(f => BipartiteFrames.ElementId(f.Element)).Append(setId).ToArray();
-                BuildEdge[] memberships = mine.Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, set)).ToArray();
+                bool again = !builtSets.Add(set);
+                string[] nodes = again ? [] : fresh.Select(f => BipartiteFrames.ElementId(f.Element)).Append(setId).ToArray();
+                BuildEdge[] memberships = again ? [] : mine.Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, set)).ToArray();
                 int[] used = new[] { nodeGadget[i] }.Concat(edgeGadgets[i]).ToArray();
                 string[] focus = mine.Select(BipartiteFrames.ElementId).Append(setId).Distinct(StringComparer.Ordinal).ToArray();
                 string[] sourceFocus = new[] { node }.Concat(fresh.Select(f => f.U == f.V ? f.U : GraphSubsetFrames.EdgeId(f.U, f.V))).Distinct(StringComparer.Ordinal).ToArray();
+                string owner = _nodeOfSet[set];
                 rec.Accept(
                     () => new BuildDelta { SourceFocus = sourceFocus, Nodes = nodes, Edges = BuildEdge.Sorted(memberships), Gadgets = used },
-                    () => $"Node {node} becomes set {setId}, the edges it touches: {{{string.Join(",", mine)}}}."
-                        + (fresh.Count == 0 ? "" : $" {(fresh.Count == 1 ? "Edge" : "Edges")} {BuildCaptions.Names(fresh.Select(f => $"{{{f.U},{f.V}}}").ToList())} {(fresh.Count == 1 ? "is" : "are")} new, so {(fresh.Count == 1 ? "it joins" : "they join")} the elements to cover."),
+                    () => again
+                        ? $"Node {node} touches the same edges as {owner}, {{{string.Join(",", mine)}}}, so its set is {setId} too: Set Cover reads equal sets as one."
+                        : $"Node {node} becomes set {setId}, the edges it touches: {{{string.Join(",", mine)}}}."
+                            + (fresh.Count == 0 ? "" : $" {(fresh.Count == 1 ? "Edge" : "Edges")} {BuildCaptions.Names(fresh.Select(f => $"{{{f.U},{f.V}}}").ToList())} {(fresh.Count == 1 ? "is" : "are")} new, so {(fresh.Count == 1 ? "it joins" : "they join")} the elements to cover."),
                     focus);
             }
             int k = reductionFrom.K;
@@ -233,17 +243,15 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
 
     /// <summary>
     /// Backward map (#694): each set of the cover is the set of some node, the edges that touch it, so that node covers
-    /// those edges. The sets are named in the answer by their elements; each is the first set of the target with those
-    /// elements not taken yet (two nodes with the same edges have equal sets, and either covers them).
+    /// those edges. The sets are named in the answer by their elements (two nodes that touch the same edges have one set,
+    /// and either covers them: the first is taken).
     /// </summary>
     public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         var target = new SETCOVER(reductionTo.instance).subsets;
-        var taken = new bool[target.Count];
         var cover = new List<string>();
         foreach (var listed in ReadSets(problemToSolution)) {
-            int i = Enumerable.Range(0, target.Count).FirstOrDefault(j => !taken[j] && target[j].ToHashSet().SetEquals(listed), -1);
+            int i = target.FindIndex(set => set.ToHashSet(StringComparer.Ordinal).SetEquals(listed));
             if (i < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Set Cover instance");
-            taken[i] = true;
             string node = _nodeOfSet[i];
             bool known = cover.Contains(node);
             if (!known) cover.Add(node);

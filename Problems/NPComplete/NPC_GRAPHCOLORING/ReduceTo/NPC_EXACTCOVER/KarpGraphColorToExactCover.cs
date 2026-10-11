@@ -184,22 +184,35 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         reducedExactCover.X = universalSet;
         reducedExactCover.instance = instance;
 
-        RecordPieces(subsets, rec);
+        RecordPieces(subsets, instance, rec);
 
         reductionTo = reducedExactCover;
         return reducedExactCover;
     }
 
+    // Which set of reduce()'s list each set Exact Cover reads is (the first, when sets are equal). Private, so it stays out of
+    // the JSON.
+    private readonly List<int> _listedAs = new();
+
     // The gadgets, and the construction steps when recording: one step per node, then one per edge. reduce() lists K sets per
-    // node (color 1 first), then K * (K - 1) sets per edge, one per ordered pair of different colors, so a set's index says
-    // what it is.
-    private void RecordPieces(List<List<string>> subsets, StepRecorder<BuildDelta> rec) {
+    // node (color 1 first), then K * (K - 1) sets per edge, one per ordered pair of different colors, so a set's place in that
+    // list says what it is. Exact Cover reads equal sets as one (the K color sets of a node with no edges), so the picture's
+    // set ids are places among the sets it reads.
+    private void RecordPieces(List<List<string>> subsets, string instance, StepRecorder<BuildDelta> rec) {
         var nodes = reductionFrom.nodes;
         var edges = reductionFrom.edges;
         int k = reductionFrom.K;
+        var parsed = new EXACTCOVER(instance).S;
+        int[] read = subsets.Select(set => parsed.FindIndex(p => p.ToHashSet(StringComparer.Ordinal).SetEquals(set))).ToArray();
+        _listedAs.Clear();
+        _listedAs.AddRange(parsed.Select((_, p) => Array.IndexOf(read, p)));
         var built = new HashSet<string>(StringComparer.Ordinal);
-        BuildEdge[] Memberships(IEnumerable<int> sets) =>
-            sets.SelectMany(s => subsets[s].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s))).ToArray();
+        var builtSets = new HashSet<int>();
+        // The sets a step adds (each read set once) and their memberships.
+        (List<int> Sets, BuildEdge[] Edges) Sets(IEnumerable<int> listed) {
+            var sets = listed.Select(i => read[i]).Distinct().Where(builtSets.Add).ToList();
+            return (sets, sets.SelectMany(s => parsed[s].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s))).ToArray());
+        }
         List<string> Fresh(IEnumerable<string> elements) =>
             elements.Where(built.Add).Select(BipartiteFrames.ElementId).ToList();
 
@@ -208,18 +221,18 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             string node = nodes[u];
             var slots = edges.Where(e => e.Key == node || e.Value == node)
                 .SelectMany(e => Enumerable.Range(1, k).Select(j => SlotElement(node, e.Key, e.Value, j))).ToList();
-            var sets = Enumerable.Range(u * k, k).ToList();
+            var (sets, memberships) = Sets(Enumerable.Range(u * k, k));
             var pieces = Fresh(new[] { ElementName(node) }.Concat(slots)).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
-            nodeSteps.Add((node, gadgets.Count, pieces, Memberships(sets), slots.Distinct().Count()));
+            nodeSteps.Add((node, gadgets.Count, pieces, memberships, slots.Distinct().Count()));
             gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, pieces.ToList()));
         }
         var edgeSteps = new List<(string A, string B, int Gadget, string[] Pieces, BuildEdge[] Edges)>();
         int first = nodes.Count * k;
         for (int e = 0; e < edges.Count; e++) {
             var (a, b) = (edges[e].Key, edges[e].Value);
-            var sets = Enumerable.Range(first + e * k * (k - 1), k * (k - 1)).ToList();
+            var (sets, memberships) = Sets(Enumerable.Range(first + e * k * (k - 1), k * (k - 1)));
             var pieces = Fresh([EdgeElement(a, b)]).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
-            edgeSteps.Add((a, b, gadgets.Count, pieces, Memberships(sets)));
+            edgeSteps.Add((a, b, gadgets.Count, pieces, memberships));
             gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, pieces.ToList()));
         }
         if (!rec.Enabled) return;
@@ -251,29 +264,28 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
     // empty coloring.
 
     /// <summary>
-    /// Backward map (#694): each chosen set is named in the answer by its elements; it is the first set of the target with
-    /// those elements not taken yet. A node's set for color j gives the node color j. The edge sets only confirm that the
-    /// colors of an edge's ends differ, so they give nothing. A node with no color set chosen gets no color (a Reject), and
-    /// Graph Coloring's verifier decides.
+    /// Backward map (#694): each chosen set is named in the answer by its elements, and found among the sets Exact Cover
+    /// reads. A node's set for color j gives the node color j (a node with no edges has one set for every color, read as the
+    /// first). The edge sets only confirm that the colors of an edge's ends differ, so they give nothing. A node with no color
+    /// set chosen gets no color (a Reject), and Graph Coloring's verifier decides.
     /// </summary>
     public (string Answer, Groups Partial) MapBack(string problemToSolution, StepRecorder<Groups> rec) {
         var target = new EXACTCOVER(reductionTo.instance).S;
-        var taken = new bool[target.Count];
         int k = reductionFrom.K;
         var color = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var listed in ReadSets(problemToSolution)) {
-            int i = Enumerable.Range(0, target.Count).FirstOrDefault(j => !taken[j] && target[j].ToHashSet().SetEquals(listed), -1);
-            if (i < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Exact Cover instance");
-            taken[i] = true;
+            int p = target.FindIndex(set => set.ToHashSet(StringComparer.Ordinal).SetEquals(listed));
+            if (p < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Exact Cover instance");
+            int i = _listedAs[p];
             if (i >= reductionFrom.nodes.Count * k) continue;
-            string node = reductionFrom.nodes[i / k], setId = BipartiteFrames.SetId(i);
+            string node = reductionFrom.nodes[i / k], setId = BipartiteFrames.SetId(p);
             int c = i % k;
             if (color.TryGetValue(node, out int had)) {
                 rec.Reject(() => new Groups(color), () => $"Set {setId} gives {node} color {c + 1}, but {node} already has color {had + 1}, so it keeps that.", setId);
                 continue;
             }
             color[node] = c;
-            rec.Accept(() => new Groups(color), () => $"Set {setId} {{{string.Join(",", target[i])}}} is in the exact cover. It is {node}'s set for color {c + 1}, so {node} takes color {c + 1}.", setId);
+            rec.Accept(() => new Groups(color), () => $"Set {setId} {{{string.Join(",", target[p])}}} is in the exact cover. It is {node}'s set for color {c + 1}, so {node} takes color {c + 1}.", setId);
         }
         foreach (string node in reductionFrom.nodes.Where(n => !color.ContainsKey(n)))
             rec.Reject(() => new Groups(color), () => $"No set of the exact cover is one of {node}'s color sets, so {node} gets no color.", BipartiteFrames.ElementId(ElementName(node)));
