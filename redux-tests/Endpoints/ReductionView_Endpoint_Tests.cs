@@ -669,7 +669,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         // a reduction missing both says what it is missing first (the build), and the ones that have both answer 200: the three
         // of #692, the reductions out of 3SAT and SAT (#693), the graph reductions (#694) and the set and number reductions (#695).
         var both = ReductionsWhere(r => r.hasBuildSteps() && r.hasBackwardMap()).ToList();
-        Assert.Equal(new[] { Is, Sat, Vc, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT", "FengReduction", "SubsetSumToPartitionReduction", "WEIGHTEDCUTReduction" }.Select(n => n.ToLower()).Order(),
+        Assert.Equal(new[] { Is, Sat, Vc, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT", "FengReduction", "SubsetSumToPartitionReduction", "WEIGHTEDCUTReduction", "reduceToEXACTCOVER" }.Select(n => n.ToLower()).Order(),
             both.Select(n => n.ToLower()).Order());
         var missing = ReductionsWhere(r => r.hasBuildSteps() && !r.hasBackwardMap()).ToList();
         foreach (string name in missing) {

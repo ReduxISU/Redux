@@ -121,6 +121,8 @@ public class Gadget_Kinds_Tests {
         ["SubsetSumToPartitionReduction"] = "Element x4, Palette x2, Bound x1",
         // #695: one element per number, one edge rule per pair of numbers, and K.
         ["WEIGHTEDCUTReduction"] = "Element x11, EdgeRule x55, Bound x1",
+        // #695: one element per subset and one per item.
+        ["reduceToEXACTCOVER"] = "Element x7",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>

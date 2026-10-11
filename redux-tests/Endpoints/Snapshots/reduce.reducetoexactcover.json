@@ -38,7 +38,127 @@
       "complexityBucket": "Exponential"
     }
   },
-  "gadgets": [],
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "S1"
+      ],
+      "reductionToIds": [
+        "e:1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S1"
+      ],
+      "targetIds": [
+        "e:1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "S2"
+      ],
+      "reductionToIds": [
+        "e:2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S2"
+      ],
+      "targetIds": [
+        "e:2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "S3"
+      ],
+      "reductionToIds": [
+        "e:3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S3"
+      ],
+      "targetIds": [
+        "e:3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e:1"
+      ],
+      "reductionToIds": [
+        "S1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:1"
+      ],
+      "targetIds": [
+        "S1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e:2"
+      ],
+      "reductionToIds": [
+        "S2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:2"
+      ],
+      "targetIds": [
+        "S2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e:3"
+      ],
+      "reductionToIds": [
+        "S3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:3"
+      ],
+      "targetIds": [
+        "S3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e:4"
+      ],
+      "reductionToIds": [
+        "S4"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e:4"
+      ],
+      "targetIds": [
+        "S4"
+      ]
+    }
+  ],
   "reductionFrom": {
     "problemName": "Hitting Set",
     "formalDefinition": "Hitting set family of subsets {U_i} of a set {S_j} where there is a set W such that, for each i, |W union U_i| = 1.",

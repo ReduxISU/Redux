@@ -221,6 +221,14 @@ ElementHighlight | d | d-g
 ElementHighlight | e | e-g
 ElementHighlight | f | f-g
 ElementHighlight |  | 
+# reduceToEXACTCOVER
+ElementHighlight | S1 | e:1
+ElementHighlight | S2 | e:2
+ElementHighlight | S3 | e:3
+ElementHighlight | e:1 | S1
+ElementHighlight | e:2 | S2
+ElementHighlight | e:3 | S3
+ElementHighlight | e:4 | S4
 # SipserReduceToCliqueStandard
 ElementHighlight | 0-0 | x1_0
 ElementHighlight | 0-1 | !x2_0
