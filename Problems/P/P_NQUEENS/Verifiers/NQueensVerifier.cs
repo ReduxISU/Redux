@@ -44,10 +44,15 @@ class NQueensVerifier : IVerifier<NQUEENS> {
         List<(int r, int c)> queens = new List<(int, int)>();
 
         foreach (UtilCollection pair in solution) {
-            pair.assertPair();
-
-            int r = pair[0].parseInt();
-            int c = pair[1].parseInt();
+            // An entry that is not a (row,col) pair of integers is not a queen, so this is not a placement (#799).
+            int r, c;
+            try {
+                pair.assertPair();
+                r = pair[0].parseInt();
+                c = pair[1].parseInt();
+            } catch {
+                return false;
+            }
 
             if (r < 0 || r >= n || c < 0 || c >= n) return false;
 
