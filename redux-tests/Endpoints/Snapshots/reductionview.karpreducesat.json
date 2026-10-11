@@ -47,7 +47,7 @@
   },
   "target": {
     "problem": "SAT",
-    "instance": "(a0|a1)\u0026(!a0|!a1)\u0026(b0|b1)\u0026(!b0|!b1)\u0026(c0|c1)\u0026(!c0|!c1)\u0026(!a0|!b0)\u0026(!a1|!b1)\u0026(!b0|!c0)\u0026(!b1|!c1)",
+    "instance": "(v0_0|v0_1)\u0026(!v0_0|!v0_1)\u0026(v1_0|v1_1)\u0026(!v1_0|!v1_1)\u0026(v2_0|v2_1)\u0026(!v2_0|!v2_1)\u0026(!v0_0|!v1_0)\u0026(!v0_1|!v1_1)\u0026(!v1_0|!v2_0)\u0026(!v1_1|!v2_1)",
     "picture": {
       "type": "GroupedGraph",
       "payload": {
@@ -140,169 +140,169 @@
         "nodes": [
           {
             "id": "c0-0",
-            "label": "a0",
-            "variable": "v:a0",
+            "label": "v0_0",
+            "variable": "v:v0_0",
             "positive": true,
             "group": "c0"
           },
           {
             "id": "c0-1",
-            "label": "a1",
-            "variable": "v:a1",
+            "label": "v0_1",
+            "variable": "v:v0_1",
             "positive": true,
             "group": "c0"
           },
           {
             "id": "c1-0",
-            "label": "\u00ACa0",
-            "variable": "v:a0",
+            "label": "\u00ACv0_0",
+            "variable": "v:v0_0",
             "positive": false,
             "group": "c1"
           },
           {
             "id": "c1-1",
-            "label": "\u00ACa1",
-            "variable": "v:a1",
+            "label": "\u00ACv0_1",
+            "variable": "v:v0_1",
             "positive": false,
             "group": "c1"
           },
           {
             "id": "c2-0",
-            "label": "b0",
-            "variable": "v:b0",
+            "label": "v1_0",
+            "variable": "v:v1_0",
             "positive": true,
             "group": "c2"
           },
           {
             "id": "c2-1",
-            "label": "b1",
-            "variable": "v:b1",
+            "label": "v1_1",
+            "variable": "v:v1_1",
             "positive": true,
             "group": "c2"
           },
           {
             "id": "c3-0",
-            "label": "\u00ACb0",
-            "variable": "v:b0",
+            "label": "\u00ACv1_0",
+            "variable": "v:v1_0",
             "positive": false,
             "group": "c3"
           },
           {
             "id": "c3-1",
-            "label": "\u00ACb1",
-            "variable": "v:b1",
+            "label": "\u00ACv1_1",
+            "variable": "v:v1_1",
             "positive": false,
             "group": "c3"
           },
           {
             "id": "c4-0",
-            "label": "c0",
-            "variable": "v:c0",
+            "label": "v2_0",
+            "variable": "v:v2_0",
             "positive": true,
             "group": "c4"
           },
           {
             "id": "c4-1",
-            "label": "c1",
-            "variable": "v:c1",
+            "label": "v2_1",
+            "variable": "v:v2_1",
             "positive": true,
             "group": "c4"
           },
           {
             "id": "c5-0",
-            "label": "\u00ACc0",
-            "variable": "v:c0",
+            "label": "\u00ACv2_0",
+            "variable": "v:v2_0",
             "positive": false,
             "group": "c5"
           },
           {
             "id": "c5-1",
-            "label": "\u00ACc1",
-            "variable": "v:c1",
+            "label": "\u00ACv2_1",
+            "variable": "v:v2_1",
             "positive": false,
             "group": "c5"
           },
           {
             "id": "c6-0",
-            "label": "\u00ACa0",
-            "variable": "v:a0",
+            "label": "\u00ACv0_0",
+            "variable": "v:v0_0",
             "positive": false,
             "group": "c6"
           },
           {
             "id": "c6-1",
-            "label": "\u00ACb0",
-            "variable": "v:b0",
+            "label": "\u00ACv1_0",
+            "variable": "v:v1_0",
             "positive": false,
             "group": "c6"
           },
           {
             "id": "c7-0",
-            "label": "\u00ACa1",
-            "variable": "v:a1",
+            "label": "\u00ACv0_1",
+            "variable": "v:v0_1",
             "positive": false,
             "group": "c7"
           },
           {
             "id": "c7-1",
-            "label": "\u00ACb1",
-            "variable": "v:b1",
+            "label": "\u00ACv1_1",
+            "variable": "v:v1_1",
             "positive": false,
             "group": "c7"
           },
           {
             "id": "c8-0",
-            "label": "\u00ACb0",
-            "variable": "v:b0",
+            "label": "\u00ACv1_0",
+            "variable": "v:v1_0",
             "positive": false,
             "group": "c8"
           },
           {
             "id": "c8-1",
-            "label": "\u00ACc0",
-            "variable": "v:c0",
+            "label": "\u00ACv2_0",
+            "variable": "v:v2_0",
             "positive": false,
             "group": "c8"
           },
           {
             "id": "c9-0",
-            "label": "\u00ACb1",
-            "variable": "v:b1",
+            "label": "\u00ACv1_1",
+            "variable": "v:v1_1",
             "positive": false,
             "group": "c9"
           },
           {
             "id": "c9-1",
-            "label": "\u00ACc1",
-            "variable": "v:c1",
+            "label": "\u00ACv2_1",
+            "variable": "v:v2_1",
             "positive": false,
             "group": "c9"
           }
         ],
         "variables": [
           {
-            "id": "v:a0",
-            "label": "a0"
+            "id": "v:v0_0",
+            "label": "v0_0"
           },
           {
-            "id": "v:a1",
-            "label": "a1"
+            "id": "v:v0_1",
+            "label": "v0_1"
           },
           {
-            "id": "v:b0",
-            "label": "b0"
+            "id": "v:v1_0",
+            "label": "v1_0"
           },
           {
-            "id": "v:b1",
-            "label": "b1"
+            "id": "v:v1_1",
+            "label": "v1_1"
           },
           {
-            "id": "v:c0",
-            "label": "c0"
+            "id": "v:v2_0",
+            "label": "v2_0"
           },
           {
-            "id": "v:c1",
-            "label": "c1"
+            "id": "v:v2_1",
+            "label": "v2_1"
           }
         ],
         "edges": [
@@ -436,24 +436,24 @@
         "c0",
         "c0-0",
         "c0-1",
-        "v:a0",
-        "v:a1",
+        "v:v0_0",
+        "v:v0_1",
         "c1",
         "c1-0",
         "c1-1",
         "c2",
         "c2-0",
         "c2-1",
-        "v:b0",
-        "v:b1",
+        "v:v1_0",
+        "v:v1_1",
         "c3",
         "c3-0",
         "c3-1",
         "c4",
         "c4-0",
         "c4-1",
-        "v:c0",
-        "v:c1",
+        "v:v2_0",
+        "v:v2_1",
         "c5",
         "c5-0",
         "c5-1",
@@ -519,9 +519,9 @@
         "a"
       ],
       "targetIds": [
-        "v:a0"
+        "v:v0_0"
       ],
-      "note": "a0 is true when a takes color 0."
+      "note": "v0_0 is true when a takes color 0."
     },
     {
       "gadgetKind": "element",
@@ -529,9 +529,9 @@
         "a"
       ],
       "targetIds": [
-        "v:a1"
+        "v:v0_1"
       ],
-      "note": "a1 is true when a takes color 1."
+      "note": "v0_1 is true when a takes color 1."
     },
     {
       "gadgetKind": "group",
@@ -553,9 +553,9 @@
         "b"
       ],
       "targetIds": [
-        "v:b0"
+        "v:v1_0"
       ],
-      "note": "b0 is true when b takes color 0."
+      "note": "v1_0 is true when b takes color 0."
     },
     {
       "gadgetKind": "element",
@@ -563,9 +563,9 @@
         "b"
       ],
       "targetIds": [
-        "v:b1"
+        "v:v1_1"
       ],
-      "note": "b1 is true when b takes color 1."
+      "note": "v1_1 is true when b takes color 1."
     },
     {
       "gadgetKind": "group",
@@ -587,9 +587,9 @@
         "c"
       ],
       "targetIds": [
-        "v:c0"
+        "v:v2_0"
       ],
-      "note": "c0 is true when c takes color 0."
+      "note": "v2_0 is true when c takes color 0."
     },
     {
       "gadgetKind": "element",
@@ -597,9 +597,9 @@
         "c"
       ],
       "targetIds": [
-        "v:c1"
+        "v:v2_1"
       ],
-      "note": "c1 is true when c takes color 1."
+      "note": "v2_1 is true when c takes color 1."
     },
     {
       "gadgetKind": "group",
@@ -634,7 +634,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "Node a becomes the variables a0, a1, one per color, and 2 clauses: (a0 | a1) says a takes a color, and (!a0 | !a1) says it takes only one.",
+      "caption": "Node a becomes the variables v0_0, v0_1, one per color, and 2 clauses: (v0_0 | v0_1) says a takes a color, and (!v0_0 | !v0_1) says it takes only one.",
       "sourceFocus": [
         "a"
       ],
@@ -696,7 +696,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "Node b becomes the variables b0, b1, one per color, and 2 clauses: (b0 | b1) says b takes a color, and (!b0 | !b1) says it takes only one.",
+      "caption": "Node b becomes the variables v1_0, v1_1, one per color, and 2 clauses: (v1_0 | v1_1) says b takes a color, and (!v1_0 | !v1_1) says it takes only one.",
       "sourceFocus": [
         "b"
       ],
@@ -758,7 +758,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "Node c becomes the variables c0, c1, one per color, and 2 clauses: (c0 | c1) says c takes a color, and (!c0 | !c1) says it takes only one.",
+      "caption": "Node c becomes the variables v2_0, v2_1, one per color, and 2 clauses: (v2_0 | v2_1) says c takes a color, and (!v2_0 | !v2_1) says it takes only one.",
       "sourceFocus": [
         "c"
       ],
@@ -820,7 +820,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "Edge {a,b} becomes 2 clauses, (!a0 | !b0), (!a1 | !b1): a and b never take the same color.",
+      "caption": "Edge {a,b} becomes 2 clauses, (!v0_0 | !v1_0), (!v0_1 | !v1_1): a and b never take the same color.",
       "sourceFocus": [
         "a-b",
         "a",
@@ -891,7 +891,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "Edge {b,c} becomes 2 clauses, (!b0 | !c0), (!b1 | !c1): b and c never take the same color.",
+      "caption": "Edge {b,c} becomes 2 clauses, (!v1_0 | !v2_0), (!v1_1 | !v2_1): b and c never take the same color.",
       "sourceFocus": [
         "b-c",
         "b",
@@ -983,7 +983,7 @@
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1090,19 +1090,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1209,19 +1209,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1328,19 +1328,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": true,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": true,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1447,19 +1447,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": true,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": true,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1566,19 +1566,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": false,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": false,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1685,19 +1685,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1804,19 +1804,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": true,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": true,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1923,19 +1923,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": true,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": true,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2042,19 +2042,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2161,19 +2161,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2280,19 +2280,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": true,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": true,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2399,19 +2399,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": true,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": true,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2518,19 +2518,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": true,
-          "v:c0": false,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": true,
+          "v:v2_0": false,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2637,19 +2637,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": true,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": true,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2756,19 +2756,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": true,
-          "v:c0": true,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": true,
+          "v:v2_0": true,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2875,19 +2875,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": false,
-          "v:b0": true,
-          "v:b1": true,
-          "v:c0": true,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": false,
+          "v:v1_0": true,
+          "v:v1_1": true,
+          "v:v2_0": true,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = False, c1 = False: clause C3 (b0 | b1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = False: clause C3 (v1_0 | v1_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -2994,19 +2994,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = False, c1 = True: clause C3 (b0 | b1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = True: clause C3 (v1_0 | v1_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -3113,19 +3113,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = True, c1 = False: clause C3 (b0 | b1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = False: clause C3 (v1_0 | v1_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -3232,19 +3232,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": true,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": true,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = True, c1 = True: clause C3 (b0 | b1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = True: clause C3 (v1_0 | v1_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -3351,19 +3351,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": false,
-          "v:c0": true,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": false,
+          "v:v2_0": true,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = False, c1 = False: clause C5 (c0 | c1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = False: clause C5 (v2_0 | v2_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c4"
@@ -3470,19 +3470,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": false,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": false,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = False, c1 = True: clause C8 (!a1 | !b1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = True: clause C8 (!v0_1 | !v1_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c7"
@@ -3589,19 +3589,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = True, c1 = False: clause C8 (!a1 | !b1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = False: clause C8 (!v0_1 | !v1_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c7"
@@ -3708,19 +3708,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": true,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": true,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = True, c1 = True: clause C6 (!c0 | !c1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = True: clause C6 (!v2_0 | !v2_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c5"
@@ -3827,19 +3827,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": false,
-          "v:b1": true,
-          "v:c0": true,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": false,
+          "v:v1_1": true,
+          "v:v2_0": true,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try a0 = False, a1 = True, b0 = True, b1 = False, c0 = False, c1 = False: clause C5 (c0 | c1) has no true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = False: clause C5 (v2_0 | v2_1) has no true literal.",
       "sourceFocus": [],
       "targetFocus": [
         "c4"
@@ -3946,19 +3946,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": false
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": false
         }
       }
     },
     {
       "phase": "solve",
       "event": "Accept",
-      "caption": "Try a0 = False, a1 = True, b0 = True, b1 = False, c0 = False, c1 = True: every clause has a true literal.",
+      "caption": "Try v0_0 = False, v0_1 = True, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = True: every clause has a true literal.",
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -4063,19 +4063,19 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "solve",
       "event": "Done",
-      "caption": "The formula is satisfied by a0 = False, a1 = True, b0 = True, b1 = False, c0 = False, c1 = True.",
+      "caption": "The formula is satisfied by v0_0 = False, v0_1 = True, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = True.",
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
@@ -4181,24 +4181,24 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "map",
       "event": "Accept",
-      "caption": "a1 = True, so a takes color 1.",
+      "caption": "v0_1 = True, so node a takes color 1.",
       "sourceFocus": [
         "a"
       ],
       "targetFocus": [
-        "v:a1"
+        "v:v0_1"
       ],
       "source": {
         "nodes": {
@@ -4308,24 +4308,24 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "map",
       "event": "Accept",
-      "caption": "b0 = True, so b takes color 0.",
+      "caption": "v1_0 = True, so node b takes color 0.",
       "sourceFocus": [
         "b"
       ],
       "targetFocus": [
-        "v:b0"
+        "v:v1_0"
       ],
       "source": {
         "nodes": {
@@ -4436,24 +4436,24 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
     {
       "phase": "map",
       "event": "Accept",
-      "caption": "c1 = True, so c takes color 1.",
+      "caption": "v2_1 = True, so node c takes color 1.",
       "sourceFocus": [
         "c"
       ],
       "targetFocus": [
-        "v:c1"
+        "v:v2_1"
       ],
       "source": {
         "nodes": {
@@ -4565,12 +4565,12 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     },
@@ -4687,12 +4687,12 @@
           }
         },
         "assignment": {
-          "v:a0": false,
-          "v:a1": true,
-          "v:b0": true,
-          "v:b1": false,
-          "v:c0": false,
-          "v:c1": true
+          "v:v0_0": false,
+          "v:v0_1": true,
+          "v:v1_0": true,
+          "v:v1_1": false,
+          "v:v2_0": false,
+          "v:v2_1": true
         }
       }
     }
