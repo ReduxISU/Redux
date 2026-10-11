@@ -92,6 +92,63 @@ sealed class ActiveStates : IEquatable<ActiveStates> {
     public override int GetHashCode() => HashCode.Combine(ShapeUtil.HashOf(States), Position);
 }
 
+/// <summary>
+/// The order a one-machine scheduler runs its jobs in (Job Sequencing), as far as it has got. Jobs are named by position,
+/// <c>J{i+1}</c> for the job at 0-based index i (see <c>ScheduleFrames.JobId</c>), never by their numbers, so two jobs with
+/// the same time, deadline and penalty stay two jobs. <see cref="Order"/> lists job ids in the order they run, from time 0;
+/// a job not listed is not placed. The answer is the last one: every job, in the order the solver returns.
+/// </summary>
+sealed class JobOrder : IEquatable<JobOrder> {
+    [JsonPropertyName("order")] public string[] Order { get; }
+    public JobOrder(IEnumerable<string> order) { Order = order.ToArray(); }
+    public bool Equals(JobOrder? other) => other != null && Order.SequenceEqual(other.Order, StringComparer.Ordinal);
+    public override bool Equals(object? obj) => Equals(obj as JobOrder);
+    public override int GetHashCode() => ShapeUtil.HashOf(Order);
+}
+
+/// <summary>
+/// One hour of a dynamic program's forward pass over a tank (Pump Scheduling): after that hour, how many (tank level, pumps
+/// on) states it can still reach, the lowest and highest of their tank levels in gallons, and the best score among them (the
+/// cheapest cost so far for Cost Minimization, the most water stored so far, in gallon-hours, for Emergency Resilience).
+/// </summary>
+sealed record ReachedHour(
+    [property: JsonPropertyName("states")] int States,
+    [property: JsonPropertyName("low")] double Low,
+    [property: JsonPropertyName("high")] double High,
+    [property: JsonPropertyName("best")] double Best);
+
+/// <summary>
+/// A pump schedule as a dynamic program builds it (Pump Scheduling), as far as it has got. Pumps are named by position,
+/// <c>P{i+1}</c> (see <c>ScheduleFrames.PumpId</c>), never by their names, so two pumps with one name stay two pumps.
+/// <list type="bullet">
+/// <item><see cref="Reached"/>: one entry per hour the forward pass has finished, hour 0 first; it stops early at an hour
+/// no state survives.</item>
+/// <item><see cref="On"/>: the schedule committed so far: one entry per hour (24 once the trace back has run), each the ids
+/// of the pumps on that hour, in pump order. Empty until then.</item>
+/// <item><see cref="Budget"/>: the budget the schedule must fit (Emergency Resilience, once the solver has fixed it); null
+/// for Cost Minimization.</item>
+/// </list>
+/// The answer is the last one: the schedule the solver returns, and the forward pass that found it.
+/// </summary>
+sealed class PumpPlan : IEquatable<PumpPlan> {
+    [JsonPropertyName("reached")] public ReachedHour[] Reached { get; }
+    [JsonPropertyName("on")] public string[][] On { get; }
+    [JsonPropertyName("budget")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? Budget { get; }
+    public PumpPlan(IEnumerable<ReachedHour> reached, IEnumerable<IEnumerable<string>> on, double? budget) {
+        Reached = reached.ToArray();
+        On = on.Select(hour => hour.ToArray()).ToArray();
+        Budget = budget;
+    }
+    public bool Equals(PumpPlan? other) =>
+        other != null && Budget == other.Budget && Reached.SequenceEqual(other.Reached)
+            && On.Length == other.On.Length && On.Zip(other.On).All(p => p.First.SequenceEqual(p.Second, StringComparer.Ordinal));
+    public override bool Equals(object? obj) => Equals(obj as PumpPlan);
+    public override int GetHashCode() =>
+        HashCode.Combine(Budget, Reached.Length, ShapeUtil.HashOf(On.Select(hour => string.Join(",", hour))));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -106,5 +163,7 @@ static class Shapes {
         : shape == typeof(Tour) ? new Tour([])
         : shape == typeof(Assignment) ? new Assignment([])
         : shape == typeof(ChosenSets) ? new ChosenSets([])
+        : shape == typeof(JobOrder) ? new JobOrder([])
+        : shape == typeof(PumpPlan) ? new PumpPlan([], [], null)
         : null;
 }
