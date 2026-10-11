@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Verifiers;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
@@ -175,7 +175,8 @@ public class PUMPSCHEDULINGCM_Tests {
         PUMPSCHEDULINGCM p = new(instance);
         PumpSchedulingCMSolver solver = new();
         string cert = solver.solve(p);
-        Assert.Equal(string.Empty, cert);
+        // "{}" is "no answer" (#803).
+        Assert.Equal("{}", cert);
     }
 
     // ── Additional class parse-validation ────────────────────────────────────
@@ -250,7 +251,8 @@ public class PUMPSCHEDULINGCM_Tests {
         PumpSchedulingCMSolver solver = new();
         PumpSchedulingCMVisualization visualization = new();
 
-        var steps = solver.GetSteps(p);
+        // The solver's steps are typed now (the Schedule picture); the list format ignores them and draws the answer.
+        var steps = ((API.Interfaces.ISolver<PUMPSCHEDULINGCM>)solver).GetSteps(p);
         var frames = visualization.StepsVisualization(p, steps);
 
         Assert.Equal(24, frames.Count);
@@ -281,5 +283,11 @@ public class PUMPSCHEDULINGCM_Tests {
             var frame = Assert.IsType<API_PumpFrame>(frames[h]);
             Assert.Equal(h, frame.metrics.hour);
         }
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_CertificateExample_Verifies_Against_Default_Instance() {
+        PUMPSCHEDULINGCM p = new();
+        Assert.True(new PumpSchedulingCMVerifier().verify(p, PumpSchedulingCMVerifier.CertificateExample));
     }
 }

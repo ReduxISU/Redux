@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.Schedule;
+using API.Interfaces.Steps;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Solvers;
 using SPADE;
 
@@ -42,7 +44,13 @@ class API_EmPumpFrame : API_JSON {
 
 // --- Visualization ---
 
-class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM, API_empty> {
+/// <summary>
+/// The list format animates the chosen schedule hour by hour (unchanged). With <c>format=frames</c> the problem is drawn as the
+/// Schedule picture: the pumps on and off for 24 hours, the tank level against its minimum and capacity, and the cost of
+/// each hour against the budget, step by step for the selected solver (the budget, the forward pass, the trace back and
+/// the replay).
+/// </summary>
+class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM, API_empty>, IPumpScheduleVisualization<PUMPSCHEDULINGEM> {
     public string visualizationName { get; } =
         "Pump Scheduling Emergency Resilience — DAG Animation";
     public string visualizationDefinition { get; } =
@@ -54,6 +62,21 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM, API_empty
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingEMSolver();
+
+    // The Schedule picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(PumpPlan);
+    PumpScheduleSpec IPumpScheduleVisualization<PUMPSCHEDULINGEM>.Describe(PUMPSCHEDULINGEM problem) => Spec(problem);
+    PumpPlan IPumpScheduleVisualization<PUMPSCHEDULINGEM>.ParseAnswer(PUMPSCHEDULINGEM problem, string answer) =>
+        ScheduleFrames.ParsePumpPlan(problem.Pumps.Count, answer, withBudget: true);
+
+    /// <summary>The instance as the Schedule picture describes it: the tank with its minimum, the day's demand and tariffs, the
+    /// pumps in instance order, and the budget as the instance writes it (0: 1.5 times the cheapest schedule).</summary>
+    internal static PumpScheduleSpec Spec(PUMPSCHEDULINGEM problem) =>
+        new(ScheduleRule.EmergencyResilience, problem.TankCapacity, problem.TankCurrentLevel, problem.TankMinLevel, problem.DemandGph,
+            problem.PeakHours, problem.OnPeakCostPerKwh, problem.OffPeakCostPerKwh,
+            problem.Pumps.Select(p => new SchedulePump(p.Name, p.FlowRateGph, p.PowerKw, p.StartupCostDollars)).ToList()) {
+            Budget = problem.BudgetLimitDollars,
+        };
 
     public API_empty visualize(PUMPSCHEDULINGEM problem) => new API_empty();
     public API_JSON SolvedVisualization(PUMPSCHEDULINGEM problem, string solution) => new API_empty();

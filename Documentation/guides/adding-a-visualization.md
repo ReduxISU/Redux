@@ -54,6 +54,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `Packing` | not a list item: a `payload` plus `frames` of named states ([`PackingFrames`](../../Interfaces/Packing/PackingFrames.cs)) | none yet | Partition, Subset Sum, Knapsack, Bin Packing. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `SetD3` in /info and in the default list format. See "The Packing picture" below |
 | `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming; the DFA and NFA run tables, the SSSP and SPSP tables. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
 | `Board` | not a list item: a `payload` plus `frames` of named states ([`BoardFrames`](../../Interfaces/Board/BoardFrames.cs)) | none yet | Sudoku, N-Queens. Reported only as the `type` of `visualize?format=frames`; Sudoku's visualization still reports `Unimplemented` and N-Queens' reports `DynamicTable` in /info and in the default list format. See "The Board picture" below |
+| `Schedule` | not a list item: a `payload` plus `frames` of named states ([`ScheduleFrames`](../../Interfaces/Schedule/ScheduleFrames.cs)) | none yet | Job Sequencing, Pump Scheduling Cost Minimization and Emergency Resilience. Reported only as the `type` of `visualize?format=frames`; the pump visualizations still report `PumpSchedule` and Job Sequencing's reports `DynamicTable` in /info and in the default list format. See "The Schedule picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -498,6 +499,72 @@ To add a grid puzzle or another board solver:
 2. Return the spec from `Describe`, and read an answer string as a board in `ParseAnswer`. A static `Spec(problem)` next to it lets tests build the same description.
 3. Record a `BoardCells` per decision with the whole board, clues included, and the squares the step ruled out as conflicts. Build it only inside the recorder's lambdas, and pass the focus as a lambda too, so solving without steps costs nothing. Declare `IIncrementalSolver` when the solver fills squares one at a time.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/board_*.tsv`, `BoardFrames_Endpoint_Tests`, `BoardSolvers_Tests`, `BoardFrames_Tests`).
+
+### The Schedule picture (`format=frames`)
+
+Job Sequencing and both Pump Scheduling problems serve the shared `Schedule` picture: time runs left to right, drawn to scale. Job Sequencing puts each job's run on one machine as a bar with its deadline as a tick; Pump Scheduling gives each pump a row of 24 hours, with the tank level and the cost of each hour charted underneath. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the instance.
+
+The two kinds of instance hand over different things:
+
+- Job Sequencing: `JobScheduleSpec(jobs, k)`, with a `ScheduleJob(time, deadline, penalty)` per job in instance order.
+- Pump Scheduling: `PumpScheduleSpec(rule, capacity, level, minimum, demand, peakHours, onPeak, offPeak, pumps)`, with a `SchedulePump(name, flow, power, startupCost)` per pump in instance order, and `Budget` for Emergency Resilience (as the instance writes it; 0 means 1.5 times the cheapest schedule).
+
+The payload (sent once) has `kind: "schedule"` and a `rule`:
+
+- `jobSequencing`: `{ kind, rule, jobs: [{ id, label, time, deadline, penalty }], k, span }`. `label` numbers jobs from 0, as the certificate does (`Job 0`). `span` is the length of the time axis: every job back to back, or the latest deadline if that is later.
+- `costMinimization` and `emergencyResilience`: `{ kind, rule, hours: [{ id, label, demand, peak }], pumps: [{ id, name, flow, power, startupCost }], tank: { capacity, level, minimum }, rates: { onPeak, offPeak }, budget? }`. There are always 24 hours; `budget` is present for Emergency Resilience only.
+
+Ids are positions, never numbers or names: job `i` (0-based) is `J{i+1}`, pump `p` is `P{p+1}`, hour `h` is `t{h}`, and pump `p` in hour `h` is `P{p+1}t{h}`. Two equal jobs, or two pumps with one name, stay apart, and no id needs escaping. Build them with `ScheduleFrames.JobId`, `PumpId`, `HourId` and `CellId`.
+
+A Job Sequencing frame is `{ event, caption, focus, order, runs, jobs, penalty, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `order` | The job ids placed so far, in the order they run |
+| `runs` | `{ job, start, end, late }` for each, back to back from time 0. `late` means it ends after its deadline (the deadline tick turns red) |
+| `jobs` | Job id to `{ state }`, only for jobs that are not `Background` |
+| `penalty` | The penalties of the late jobs, added up |
+
+A Pump Scheduling frame is `{ event, caption, focus, reached, schedule, upTo, hours, cells, budget?, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `reached` | The dynamic program's forward pass so far, one `{ states, low, high, best }` per hour: how many (tank level, pumps on) states it can still reach, the band of their tank levels, and the best score (the cheapest cost so far, or the most water stored so far in gallon-hours) |
+| `schedule` | Once the solver has a schedule, 24 `{ hour, on, starts, inflow, level, energy, startup }`, simulated exactly as the verifiers do it: the pumps on, the pumps that start that hour (the startup mark), the water pumped in, the tank level at the end of the hour, and the hour's energy and startup cost. Empty before |
+| `upTo` | The last hour drawn so far: -1 with no schedule, the hour being replayed, else 23. Draw the tank line and the cost bars up to it |
+| `hours` | Hour id to `{ state }` |
+| `cells` | Pump-in-hour id to `{ state }`: the pumps on, as the `schedule` lists them |
+| `budget` | Emergency Resilience only: the budget the schedule must fit, once the solver has fixed it |
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`):
+
+| State | Jobs | Hours and pump cells |
+| --- | --- | --- |
+| `ElementHighlight` | Every placed job while a whole order is only tried (a `Try` or `Reject` of a solver that is not incremental, as the brute force is) | The focus: the hour the forward pass is filling, or the hour being replayed |
+| `Solution` | Every placed job in an `Accept` or a correct `Done` | Every pump on in the schedule (the pump solvers are incremental, so what they have committed is `Solution` in every step) |
+| `Rejected` | A placed job that ends after its deadline, in every frame: its penalty counts | An hour no state survives (the focus of a forward-pass `Reject`); an hour drawn so far whose tank level ends below the minimum or above the capacity |
+| `Covered`, `Blocked`, `Untraveled` | not used | not used |
+
+A run stopped by the time limit ends with a blank `Done` frame, `ok: false`: nothing placed, no forward pass, no schedule. Its answer string is never read. Long searches keep their first 150 steps, then the order that works and the `Done` frame; its caption says how many steps were not shown.
+
+The solvers and their steps:
+
+| Solver | Shape | Incremental | Steps |
+| --- | --- | --- | --- |
+| Job Sequencing Brute Force | `JobOrder` (`order`) | no | A `Reject` per order that fails, with its late jobs as the focus ("Try (0,1,2,5,3,4): jobs 2, 3 and 4 finish late, penalty 10 > K = 4."), an `Accept` for the first that fits ("... penalty 4, within K = 4. It works."), `Done` |
+| Pump Scheduling Cost Minimization Dynamic Programming | `PumpPlan` (`reached`, `on`, `budget?`) | yes | A `Try` per hour of the forward pass ("Forward pass, hour 0: 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, cheapest so far $0.00."), or a `Reject` at an hour no state survives and then `Done` with no answer; an `Accept` that commits the traced-back schedule; a `Try` per hour replaying it ("Hour 8 (peak): PumpA and PumpB on. In 550, out 1,000 gal, so the tank drops to 4,150 gal. Hour cost $1.62."); `Done` |
+| Pump Scheduling Emergency Resilience Longest Path | `PumpPlan` | yes | The same, after a first `Try` that fixes the budget when the instance's is 0 ("... That costs $37.24, so the budget is $55.86."); the replay also says how much of the budget has gone |
+
+The pump solvers' table works in whole gallons, so with fractional flows or demands their schedule can leave the tank's limits (#738). The picture simulates exactly, so such a schedule shows the hours it runs dry as `Rejected` and its `Done` has `ok: false`, as the verifier says.
+
+`PumpSchedulingCMVisualization` and `PumpSchedulingEMVisualization` got the picture; their list format is unchanged. Job Sequencing has a new `JobSeqVisualization`, whose list format is a table of the jobs and when they run (`DynamicTable`). Job Sequencing's default visualization is still `DummyVisualization`, so its /info is unchanged.
+
+To add a scheduling problem or solver:
+
+1. Implement `IJobScheduleVisualization<T>` or `IPumpScheduleVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(JobOrder)` (or `typeof(PumpPlan)`).
+2. Return the spec from `Describe`, and read an answer string in `ParseAnswer` (`ScheduleFrames.ParseJobOrder` and `ParsePumpPlan` read today's certificates). A static `Spec(problem)` next to it lets the solver and the tests build the same description.
+3. Record a `JobOrder` or `PumpPlan` per decision. Build it only inside the recorder's lambdas, so solving without steps costs nothing; `ScheduleFrames.ReplayCaption` and `ForwardCaption` write the pump captions. Declare `IIncrementalSolver` when the solver commits its answer piece by piece.
+4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/schedule_*.tsv`, `ScheduleFrames_Endpoint_Tests`, `ScheduleSolvers_Tests`, `ScheduleFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 

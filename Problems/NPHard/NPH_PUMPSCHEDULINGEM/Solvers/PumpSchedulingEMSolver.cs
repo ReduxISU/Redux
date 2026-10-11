@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using API.Interfaces;
+using API.Interfaces.Schedule;
+using API.Interfaces.Steps;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM;
+using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Solvers;
 
-class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
+// Incremental: the forward pass fills the table hour by hour, the trace back commits the schedule, and the replay walks
+// the committed schedule hour by hour.
+class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncrementalSolver {
     public string solverName { get; } = "Pump Scheduling Emergency Resilience Longest Path";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents\r\n" +
@@ -30,37 +35,82 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
     // two sequential passes don't change the asymptotic bound.
     public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
 
-    public List<object> GetSteps(PUMPSCHEDULINGEM _) => [true];
-
+    private const string NoSolution = "{}";
     private const int Hours = 24;
     private const double BudgetSlack = 1.5;
     private const double Inf = double.PositiveInfinity;
     private const double NegInf = double.NegativeInfinity;
 
-    public string solve(PUMPSCHEDULINGEM problem) {
-        double effectiveBudget = problem.BudgetLimitDollars;
+    public string solve(PUMPSCHEDULINGEM problem) => Solve(problem, StepRecorder<PumpPlan>.Off);
 
-        if (effectiveBudget <= 0) {
+    // Steps: when the budget is 0, one Try that fixes it from the cheapest schedule; the forward pass, one Try per hour
+    // with the band of tank levels still reachable (a Reject, and no answer, at an hour no state survives); the trace back,
+    // one Accept that commits the schedule; the replay, one Try per hour of it; then Done.
+    public string Solve(PUMPSCHEDULINGEM problem, StepRecorder<PumpPlan> rec) {
+        double effectiveBudget = problem.BudgetLimitDollars;
+        bool auto = effectiveBudget <= 0;
+
+        if (auto) {
             // Auto-compute: run cost-minimization solve first.
             double minCost = RunCostMinimization(problem);
             effectiveBudget = minCost * BudgetSlack;
+            double fixedBudget = Math.Round(effectiveBudget, 2);
+            rec.Try(() => new PumpPlan([], [], fixedBudget),
+                () => minCost > 0
+                    ? $"The budget is 0, which means 1.5 times the cheapest schedule that keeps the tank within its limits. That costs "
+                        + $"{ScheduleFrames.Money(minCost)}, so the budget is {ScheduleFrames.Money(fixedBudget)}."
+                    : "The budget is 0, which means 1.5 times the cheapest schedule that keeps the tank within its limits. That costs "
+                        + "nothing (or there is none), so the budget is $0.00.");
         }
+        // The budget as the certificate writes it.
+        double budget = Math.Round(effectiveBudget, 2);
 
-        int[]? schedMasks = RunEmergencyResilience(problem, effectiveBudget);
+        var reached = new List<ReachedHour>();
+        var (schedMasks, bestScore) = RunEmergencyResilience(problem, effectiveBudget, rec, reached, budget);
 
-        // Fallback: no feasible EM path — use all pumps every hour.
+        // No schedule fits the tank limits and the budget: report "no solution" ("{}", the repo's
+        // standard convention, see #605) rather than inventing an over-budget schedule.
         if (schedMasks == null) {
-            schedMasks = new int[Hours];
-            int fullMask = (1 << problem.Pumps.Count) - 1;
-            for (int h = 0; h < Hours; h++)
-                schedMasks[h] = fullMask;
+            rec.Done(new PumpPlan(reached, [], budget), false, timerHasExpired
+                ? "The solver's timer ran out, so there is no answer."
+                : $"No schedule keeps the tank between {ScheduleFrames.Gallons(problem.TankMinLevel)} and {ScheduleFrames.Gallons(problem.TankCapacity)} gal "
+                    + $"within the {ScheduleFrames.Money(budget)} budget for all 24 hours, so there is no answer.");
+            return timerHasExpired ? "timeout" : NoSolution;
         }
 
         double totalCost = ComputeTotalCost(problem, schedMasks);
 
-        return BuildCertificate(problem, schedMasks,
+        string certificate = BuildCertificate(problem, schedMasks,
             Math.Round(effectiveBudget, 2),
             Math.Round(totalCost, 2));
+
+        int n = problem.Pumps.Count;
+        var on = schedMasks.Select(m => (IReadOnlyCollection<string>)ScheduleFrames.OnFromMask(m, n)).ToList();
+        var plan = new PumpPlan(reached, on, budget);
+        rec.Accept(() => plan,
+            () => $"Trace back from the state that stores the most water by hour 24 ({ScheduleFrames.Gallons(bestScore)} gal·h), "
+                + "following each step's parent, to recover the schedule.");
+        for (int h = 0; h < Hours; h++) {
+            int hour = h;
+            rec.Try(() => plan, () => ScheduleFrames.ReplayCaption(PumpSchedulingEMVisualization.Spec(problem), on, hour, budget), ScheduleFrames.HourId(hour));
+        }
+        // The verifier simulates the schedule exactly; the table rounds the tank to whole gallons (#738), so it can disagree.
+        bool ok;
+        try { ok = problem.defaultVerifier.verify(problem, certificate); } catch { ok = false; }
+        rec.Done(plan, ok, DoneCaption(problem, on, ok, budget, auto));
+        return certificate;
+    }
+
+    private static string DoneCaption(PUMPSCHEDULINGEM problem, IReadOnlyList<IReadOnlyCollection<string>> on, bool ok, double budget, bool auto) {
+        var spec = PumpSchedulingEMVisualization.Spec(problem);
+        var (levels, cost) = ScheduleFrames.Exact(spec, on);
+        if (ok)
+            return $"Most water stored within the {ScheduleFrames.Money(budget)} budget{(auto ? " (1.5 times the cheapest schedule)" : "")}: "
+                + $"{ScheduleFrames.Gallons(levels.Sum())} gal·h, for {ScheduleFrames.Money(cost)}.";
+        return ScheduleFrames.FirstOutOfLimits(spec, on) is var (hour, level)
+            ? $"The schedule costs {ScheduleFrames.Money(cost)}, but the tank ends hour {hour} at {ScheduleFrames.Gallons(level)} gal, outside "
+                + $"{ScheduleFrames.Gallons(spec.Minimum)} to {ScheduleFrames.Gallons(spec.Capacity)} gal: the solver rounds the tank level to whole gallons, so it did not see this."
+            : $"The schedule costs {ScheduleFrames.Money(cost)}, which the verifier does not accept.";
     }
 
     // ── Cost-minimization sub-solve (shortest path) — returns total cost ──────
@@ -128,8 +178,41 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
         return minCost >= Inf ? 0.0 : minCost;
     }
 
+    // One DP label: a path to some (tank bucket, mask) state with its cumulative cost and score.
+    private sealed class Label {
+        public readonly double Cost;
+        public readonly double Score;
+        public readonly int Mask;
+        public readonly Label? Parent;
+        public Label(double cost, double score, int mask, Label? parent) {
+            Cost = cost; Score = score; Mask = mask; Parent = parent;
+        }
+    }
+
+    // Adds a label to a state's Pareto front (lower cost and higher score are better), discarding
+    // it if an existing label dominates it and evicting labels it dominates.
+    private static void AddToFront(List<Label>? front, Label cand, out List<Label> result) {
+        if (front == null) {
+            result = new List<Label> { cand };
+            return;
+        }
+        foreach (var l in front)
+            if (l.Cost <= cand.Cost && l.Score >= cand.Score) {
+                result = front;
+                return;
+            }
+        front.RemoveAll(l => cand.Cost <= l.Cost && cand.Score >= l.Score);
+        front.Add(cand);
+        result = front;
+    }
+
     // ── Emergency resilience solve (constrained longest path) ─────────────────
-    private int[]? RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit) {
+    // Each (tank bucket, previous mask) state keeps the Pareto front of (cost, score) labels instead
+    // of a single max-score path: a cheaper, lower-scoring path may be the only one that still fits
+    // the budget in later hours, so it must not be discarded.
+    // Returns the schedule (null when there is none) and the water it stores, as the table counts it.
+    private (int[]? Masks, double Score) RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit,
+        StepRecorder<PumpPlan> rec, List<ReachedHour> reached, double budget) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
         double cap = problem.TankCapacity;
@@ -143,107 +226,93 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
 
         double[] maskFlow = BuildMaskFlow(problem, n, nMasks);
 
-        // dp_cost[b, m]  = cumulative cost of the best path to (b, m)
-        //                  "best" = highest score path still within budget
-        // dp_score[b, m] = cumulative water stored along that path
-        double[,] dpCost = new double[stateB, nMasks];
-        double[,] dpScore = new double[stateB, nMasks];
-
-        // parent arrays indexed by hour (after transition), to allow backtracking
-        int[,,] parentB = new int[Hours + 1, stateB, nMasks];
-        int[,,] parentM = new int[Hours + 1, stateB, nMasks];
-
-        for (int b = 0; b < stateB; b++)
-            for (int m = 0; m < nMasks; m++) {
-                dpCost[b, m] = Inf;
-                dpScore[b, m] = NegInf;
-            }
-        for (int h = 0; h <= Hours; h++)
-            for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++) {
-                    parentB[h, b, m] = -1;
-                    parentM[h, b, m] = -1;
-                }
-
+        List<Label>?[,] dp = new List<Label>?[stateB, nMasks];
         int initB = ToBucket(problem.TankCurrentLevel);
-        dpCost[initB, 0] = 0.0;
-        dpScore[initB, 0] = 0.0;
+        dp[initB, 0] = new List<Label> { new Label(0.0, 0.0, 0, null) };
 
         for (int h = 0; h < Hours; h++) {
-            if (timerHasExpired) return null;
+            if (timerHasExpired) return (null, 0);
 
-            double[,] nextCost = new double[stateB, nMasks];
-            double[,] nextScore = new double[stateB, nMasks];
-            for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++) {
-                    nextCost[b, m] = Inf;
-                    nextScore[b, m] = NegInf;
-                }
-
+            List<Label>?[,] next = new List<Label>?[stateB, nMasks];
             double demand = problem.DemandGph[h];
 
             for (int b = 0; b < stateB; b++) {
                 double levelNow = ToLevel(b);
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
-                    double curCost = dpCost[b, prevMask];
-                    if (curCost >= Inf) continue;
-                    double curScore = dpScore[b, prevMask];
+                    var front = dp[b, prevMask];
+                    if (front == null) continue;
 
                     for (int mask = 0; mask < nMasks; mask++) {
                         double newLevel = levelNow - demand + maskFlow[mask];
                         if (newLevel < minLevel || newLevel > cap) continue;
 
                         double edgeCost = EdgeCost(problem, prevMask, mask, h, n, nMasks);
-                        double totalCost = curCost + edgeCost;
-
-                        // Prune paths that exceed the budget.
-                        if (totalCost > budgetLimit) continue;
-
-                        double edgeScore = newLevel; // water stored after this hour
-                        double totalScore = curScore + edgeScore;
-
                         int newB = ToBucket(newLevel);
 
-                        // Keep the path with the highest cumulative water score.
-                        if (totalScore > nextScore[newB, mask]) {
-                            nextCost[newB, mask] = totalCost;
-                            nextScore[newB, mask] = totalScore;
-                            parentB[h + 1, newB, mask] = b;
-                            parentM[h + 1, newB, mask] = prevMask;
+                        foreach (var label in front) {
+                            double totalCost = label.Cost + edgeCost;
+                            // Prune paths that exceed the budget.
+                            if (totalCost > budgetLimit) continue;
+
+                            // Score is the water stored after this hour.
+                            var cand = new Label(totalCost, label.Score + newLevel, mask, label);
+                            AddToFront(next[newB, mask], cand, out var updated);
+                            next[newB, mask] = updated;
                         }
                     }
                 }
             }
 
-            dpCost = nextCost;
-            dpScore = nextScore;
-        }
+            dp = next;
 
-        // Pick the terminal state with the highest cumulative water score.
-        double bestScore = NegInf;
-        int bestB = -1, bestM = -1;
-        for (int b = 0; b < stateB; b++)
-            for (int m = 0; m < nMasks; m++)
-                if (dpCost[b, m] < Inf && dpScore[b, m] > bestScore) {
-                    bestScore = dpScore[b, m];
-                    bestB = b;
-                    bestM = m;
+            // The states the table holds after hour h: how many, their tank levels and the most water stored so far.
+            int states = 0;
+            double low = Inf, high = NegInf, most = NegInf;
+            for (int b = 0; b < stateB; b++)
+                for (int m = 0; m < nMasks; m++) {
+                    var front = dp[b, m];
+                    if (front == null) continue;
+                    states++;
+                    low = Math.Min(low, ToLevel(b));
+                    high = Math.Max(high, ToLevel(b));
+                    foreach (var l in front) most = Math.Max(most, l.Score);
                 }
-
-        if (bestB == -1) return null;
-
-        // Backtrack to recover the per-hour masks.
-        int[] schedMasks = new int[Hours];
-        int curB = bestB, curM = bestM;
-        for (int h = Hours; h > 0; h--) {
-            schedMasks[h - 1] = curM;
-            int pb = parentB[h, curB, curM];
-            int pm = parentM[h, curB, curM];
-            curB = pb;
-            curM = pm;
+            int hour = h;
+            if (states == 0) {
+                // Nothing reaches this hour, so nothing reaches hour 24: the answer is already "no answer".
+                rec.Reject(() => new PumpPlan(reached, [], budget),
+                    () => $"Forward pass, hour {hour}: no state survives. Every pump mix either breaks the tank's limits or the budget.",
+                    ScheduleFrames.HourId(hour));
+                return (null, 0);
+            }
+            reached.Add(new ReachedHour(states, low, high, most));
+            rec.Try(() => new PumpPlan(reached, [], budget),
+                () => $"{ScheduleFrames.ForwardCaption(hour, states, low, high)}, most water stored so far {ScheduleFrames.Gallons(most)} gal·h.",
+                ScheduleFrames.HourId(hour));
         }
 
-        return schedMasks;
+        // Pick the terminal label with the highest cumulative water score.
+        Label? best = null;
+        for (int b = 0; b < stateB; b++)
+            for (int m = 0; m < nMasks; m++) {
+                var front = dp[b, m];
+                if (front == null) continue;
+                foreach (var l in front)
+                    if (best == null || l.Score > best.Score)
+                        best = l;
+            }
+
+        if (best == null) return (null, 0);
+
+        // Walk the parent chain to recover the per-hour masks.
+        int[] schedMasks = new int[Hours];
+        Label? cur = best;
+        for (int h = Hours; h > 0; h--) {
+            schedMasks[h - 1] = cur!.Mask;
+            cur = cur.Parent;
+        }
+
+        return (schedMasks, best.Score);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

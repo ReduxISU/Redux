@@ -83,10 +83,14 @@ public class IncrementalSolvers_Tests {
         ["sudokusolver"] = true,
         ["nqueensbacktracking"] = true,
         ["nqueensconstructive"] = true,
+        // JobOrder and PumpPlan (Schedule pictures)
+        ["jobseqbruteforce"] = false,
+        ["pumpschedulingcmsolver"] = true,
+        ["pumpschedulingemsolver"] = true,
     };
 
-    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table or Board picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells)];
+    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board or Schedule picture draws.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells), typeof(JobOrder), typeof(PumpPlan)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

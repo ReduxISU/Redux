@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.Packing;
 using API.Interfaces.Board;
+using API.Interfaces.Schedule;
 using API.Interfaces.Steps;
 using Xunit;
 
@@ -125,6 +126,15 @@ public class SolverReplay_Tests {
             var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
             return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
         }
+        if (lastPartial is JobOrder or PumpPlan) {
+            // Schedule answers are the problem's own certificate (an order of job indices, a cost and pump rows): the problem's
+            // Schedule visualization reads them. A plan's forward pass (Reached) is the solver's own, not in the answer; it is
+            // checked in ScheduleSolvers_Tests.
+            var hook = (lastPartial is JobOrder ? typeof(IJobScheduleVisualization<>) : typeof(IPumpScheduleVisualization<>)).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            object parsed = hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
+            return parsed is PumpPlan plan ? new PumpPlan(((PumpPlan)lastPartial).Reached, plan.On, plan.Budget) : parsed;
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
@@ -223,14 +233,20 @@ public class SolverReplay_Tests {
 
     [Fact]
     public void LegacySolver_RunKeepsUntypedSteps() {
-        // A solver that has not been converted reports no shape and keeps its untyped steps (SSSP was the example until #667 typed it).
-        var pumps = ProblemProvider.Solvers.Values.First(t => TypedInterface(t) == null && typeof(ISolver).IsAssignableFrom(t) && t.Name == "PumpSchedulingCMSolver");
-        var legacy = (ISolver)Activator.CreateInstance(pumps)!;
+        // A solver that has not been converted reports no shape (SSSP was the example until #667 typed it, then Pump Scheduling
+        // until #673 did).
+        var hull = ProblemProvider.Solvers.Values.First(t => TypedInterface(t) == null && typeof(ISolver).IsAssignableFrom(t) && t.Name == "ConvexHullSolver");
+        var legacy = (ISolver)Activator.CreateInstance(hull)!;
         var problem = (IProblem)Activator.CreateInstance(
-            pumps.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0])!;
+            hull.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0])!;
         var run = legacy.Run(problem.defaultInstance, true);
         Assert.Null(run.StepShape);
-        Assert.NotEmpty(run.Steps);
+        Assert.False(run.Incremental);
+        // The legacy run: the steps are what GetSteps returns, the answer what solve returns. No solver in Redux records untyped
+        // steps any more, so these are empty; StepsFor_DropsStepsOnShapeMismatch_KeepsThemOnMatch shows a legacy run's steps
+        // reaching a legacy visualization.
+        Assert.Equal(legacy.GetSteps(problem.defaultInstance), run.Steps);
+        Assert.Equal(legacy.solve(problem.defaultInstance), run.Answer);
     }
 
     [Fact]

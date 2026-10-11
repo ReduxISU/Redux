@@ -1,5 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
+using API.Interfaces.Schedule;
+using API.Interfaces.Steps;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
 using SPADE;
 
@@ -37,7 +39,12 @@ class API_PumpFrame : API_JSON {
 
 // --- Visualization ---
 
-class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM, API_empty> {
+/// <summary>
+/// The list format animates the cheapest schedule hour by hour (unchanged). With <c>format=frames</c> the problem is drawn as
+/// the Schedule picture: the pumps on and off for 24 hours, the tank level and the cost of each hour, step by step for the
+/// selected solver (the forward pass, the trace back and the replay).
+/// </summary>
+class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM, API_empty>, IPumpScheduleVisualization<PUMPSCHEDULINGCM> {
     public string visualizationName { get; } = "Pump Scheduling Cost Minimization — DAG Animation";
     public string visualizationDefinition { get; } =
         "Animates the 24-hour optimal pump schedule, showing per-hour pump states, " +
@@ -47,6 +54,19 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM, API_empty
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingCMSolver();
+
+    // The Schedule picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(PumpPlan);
+    PumpScheduleSpec IPumpScheduleVisualization<PUMPSCHEDULINGCM>.Describe(PUMPSCHEDULINGCM problem) => Spec(problem);
+    PumpPlan IPumpScheduleVisualization<PUMPSCHEDULINGCM>.ParseAnswer(PUMPSCHEDULINGCM problem, string answer) =>
+        ScheduleFrames.ParsePumpPlan(problem.Pumps.Count, answer, withBudget: false);
+
+    /// <summary>The instance as the Schedule picture describes it: the tank (no minimum), the day's demand and tariffs, and the
+    /// pumps in instance order.</summary>
+    internal static PumpScheduleSpec Spec(PUMPSCHEDULINGCM problem) =>
+        new(ScheduleRule.CostMinimization, problem.TankCapacity, problem.TankCurrentLevel, 0, problem.DemandGph, problem.PeakHours,
+            problem.OnPeakCostPerKwh, problem.OffPeakCostPerKwh,
+            problem.Pumps.Select(p => new SchedulePump(p.Name, p.FlowRateGph, p.PowerKw, p.StartupCostDollars)).ToList());
 
     public API_empty visualize(PUMPSCHEDULINGCM problem) => new API_empty();
 

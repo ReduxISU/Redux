@@ -99,4 +99,12 @@ public enum VisualizationType {
     /// response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type.
     /// </summary>
     Board,
+    /// <summary>
+    /// The Schedule picture (Job Sequencing, both Pump Scheduling problems): time runs left to right, drawn to scale. Jobs as
+    /// bars with deadline ticks on one machine, or pumps on and off for each of 24 hours with the tank level and the cost of
+    /// each hour; a static payload plus one frame of named states per solver step. Like <see cref="Graph"/> it is reported
+    /// only as the <c>type</c> of the <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps the
+    /// legacy type.
+    /// </summary>
+    Schedule,
 }
