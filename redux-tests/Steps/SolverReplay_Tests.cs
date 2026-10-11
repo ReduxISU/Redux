@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.CodeTree;
 using API.Interfaces.Steps;
 using Xunit;
 
@@ -38,7 +39,7 @@ public class SolverReplay_Tests {
     }
 
     // What the final Partial must equal, derived independently from the answer string.
-    private static object ExpectedFinalPartial(object lastPartial, string answer) {
+    private static object ExpectedFinalPartial(object lastPartial, string answer, IProblem problem) {
         if (lastPartial is ActiveStates last) {
             // The end states of the accepting run(s): the last state of each path line.
             var ends = answer.Split('\n')
@@ -49,6 +50,15 @@ public class SolverReplay_Tests {
         if (lastPartial is NodeSet) {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+        }
+        if (lastPartial is HuffmanForest forest) {
+            // Lossless Data Compression answers give each character's code ("({(97,0),(98,10)},010)"); the problem's Code Tree
+            // visualization reads them by leaf id. The merges are the solver's own, not in the answer; they are checked in
+            // CodeTreeSolvers_Tests.
+            var hook = typeof(ICodeTreeVisualization<>).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            var parsed = (HuffmanForest)hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
+            return new HuffmanForest(forest.Merges, parsed.Codes);
         }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
@@ -89,7 +99,7 @@ public class SolverReplay_Tests {
         Assert.Equal(StepEvent.Done, (StepEvent)last.Event);
         Assert.Equal(1, withSteps.Steps.Count(s => ((dynamic)s).Event == StepEvent.Done));
         object finalPartial = last.Partial;
-        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer), finalPartial);
+        Assert.Equal(ExpectedFinalPartial(finalPartial, withSteps.Answer, problem), finalPartial);
 
         // (c) Done.Ok agrees with the problem's own verifier on the returned answer.
         bool? ok = last.Ok;
