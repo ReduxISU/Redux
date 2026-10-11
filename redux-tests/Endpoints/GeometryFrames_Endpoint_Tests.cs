@@ -11,6 +11,9 @@ namespace redux_tests;
 // guards that keep everything old frontends read exactly as it was:
 //   - the list format of ConvexHullVisualization (Snapshots/geometry_list_snapshots.tsv, captured before the picture existed),
 //   - /info for the problem, its solver, its verifier and its visualization (info.<name>.json, captured the same way).
+// The deliberate exception is the list format, which was empty (Unimplemented, answering []) and is now a table of the points
+// (DynamicTable): its rows in geometry_list_snapshots.tsv and info.convexhull.json / info.convexhullvisualization.json were
+// retaken. See the "List" tests. The format=frames picture is unchanged.
 public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -61,7 +64,7 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         }
     }
 
-    public static TheoryData<string> TouchedInterfaces => new(["convexhull", "convexhullsolver", "convexhullverifier", "convexhullvisualization"]);
+    public static TheoryData<string> TouchedInterfaces => new(["convexhullsolver", "convexhullverifier"]);
 
     // ---- What old frontends read must not change. ----
 
@@ -85,6 +88,42 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Visualize($"visualization={vis}", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(expected, Compact(body));
+    }
+
+    // /info for Convex Hull and its visualization, retaken after the list format became a table: the only difference from
+    // the pre-change capture is the visualization's visualizationType (Unimplemented to DynamicTable) and its
+    // visualizationDefinition (was "TODO").
+    [Theory]
+    [InlineData("convexhull")]
+    [InlineData("convexhullvisualization")]
+    public async Task List_Info_ReportsDynamicTable_AndNothingOfThePicture(string name) {
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ReplaceLineEndings("\n");
+        Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
+        var root = JsonDocument.Parse(body).RootElement;
+        var vis = name == "convexhull" ? root.GetProperty("defaultVisualization") : root;
+        Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
+        Assert.DoesNotContain("\"Geometry\"", body);
+        Assert.DoesNotContain("StepShape", body);
+        Assert.DoesNotContain("ParseHull", body);
+    }
+
+    [Fact]
+    public async Task List_IsThePointsBeforeAndAfter_TheCornersNumberedCounterclockwise() {
+        var (status, body) = await Visualize("visualization=convexhullvisualization", "{(0,0),(2,0),(1,1),(2,2),(1,0),(0,2)}");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var list = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
+        Assert.Equal(2, list.Count);
+        Assert.All(list, t => Assert.Equal("table", t.GetProperty("kind").GetString()));
+        Assert.Equal("6 points", list[0].GetProperty("title").GetString());
+        Assert.Equal(["Point", "x", "y", "Hull corner"], list[0].GetProperty("columns").EnumerateArray().Select(c => c.GetProperty("label").GetString()));
+        Assert.All(list[0].GetProperty("rows").EnumerateArray(), r => Assert.Equal("", r.GetProperty("cells").GetProperty("corner").GetString()));
+        // The square's corners counterclockwise from (0,0); the centre and the point on the bottom edge are not corners.
+        var rows = list[1].GetProperty("rows").EnumerateArray().ToList();
+        Assert.Equal(["1", "2", "", "3", "", "4"], rows.Select(r => r.GetProperty("cells").GetProperty("corner").GetString()));
+        Assert.Equal(["Solution", "Solution", null, "Solution", null, "Solution"],
+            rows.Select(r => r.GetProperty("color").ValueKind == JsonValueKind.Null ? null : r.GetProperty("color").GetString()));
     }
 
     // ---- The picture ----
