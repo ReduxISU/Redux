@@ -52,6 +52,30 @@ public class UNSTRUCTUREDSEARCH_tests {
         Assert.Equal($"{certificate}", solvedString);
     }
 
+    // #811: "no solution" is the problem's own answer when nothing is marked; an index outside the table is just wrong.
+    [Theory]
+    [InlineData("(0,0,0,0)", "no solution", true)]
+    [InlineData("(0,1,0,0)", "no solution", false)]
+    [InlineData("(0,1,0,0)", "7", false)]
+    [InlineData("(0,1,0,0)", "4", false)]
+    [InlineData("(0,1,0,0)", "-1", false)]
+    public void UNSTRUCTUREDSEARCH_verifier_NoSolutionAndOutOfRange(string instance, string certificate, bool expected) {
+        Assert.Equal(expected, new UnstructuredSearchVerifier().verify(new UNSTRUCTUREDSEARCH(instance), certificate));
+    }
+
+    [Theory]
+    [InlineData("(0,0,0,0)")]
+    [InlineData("(0,0,1,0)")]
+    public void UNSTRUCTUREDSEARCH_solver_AnswerIsVerified(string instance) {
+        var problem = new UNSTRUCTUREDSEARCH(instance);
+        Assert.True(new UnstructuredSearchVerifier().verify(problem, new UnstructuredSearchSolver().solve(problem)));
+    }
+
+    [Fact]
+    public void UNSTRUCTUREDSEARCH_verifier_NotAnIndex_IsACertificateError() {
+        Assert.Throws<API.Interfaces.CertificateParseException>(() => ((API.Interfaces.IVerifier)new UnstructuredSearchVerifier()).verify("(0,1,0,0)", "one"));
+    }
+
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
