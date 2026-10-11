@@ -47,7 +47,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
 | `LayeredGraph` | not a list item: a `payload` plus `frames` of named states ([`LayeredFrames`](../../Interfaces/graphs/LayeredFrames.cs)) | none yet | Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components, SSSP, SPSP. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` (or `DynamicTable` for the tables, which are unchanged) in /info and in the default list format. See "The Layered Graph picture" below |
-| `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
+| `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming; the SSSP and SPSP tables. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -168,6 +168,25 @@ The solvers and their steps:
 `TableCells` holds the text of every cell filled so far (by cell id), the cells the latest fill read (the one it took first), and the trace-back's cells in order. It suits any dynamic-programming table.
 
 The two problems have their own visualizations for the picture (`EditDistanceVisualization`, `IntProgrammingVisualization`). Their list format is a `DynamicTable` before and after, built by `TableFrames.ToListTable`. The problems' default visualization is still `DummyVisualization`, so their /info is unchanged.
+
+#### Trace tables: SSSP and SPSP
+
+`SSSPTableVisualization` and `SPSPTableVisualization` are Dijkstra's tables, separate from the shortest-path graphs. Under `format=frames` they draw the Table picture's `trace` shape, read off the same `Distances` steps the Layered Graph picture draws ([`DistanceTraceTable`](../../Interfaces/Table/DistanceTraceTable.cs)). No solver changes for them.
+
+- There is one row per node, in instance order, in every frame. The payload's `title` names the source (and the target, for SPSP).
+- The columns are Node, Settled, Cost, Via and Path (keys `node`, `settled`, `cost`, `via`, `path`).
+  - Settled is `#k` (the order the node was settled in), `not yet`, or `unreachable` in `Done`. It is `yes` when the node was settled past the step cap, where the order is not known.
+  - Cost is `∞` until a route is found.
+  - Via and Path are `—` until a route is found.
+- The node a step settles (the source, at the start) is the focus. Its cost and via cells are marked changed when a step lowers them.
+- Dijkstra is incremental, so a settled node's row stays `Solution` in every step.
+- In `Done`:
+  - SSSP: every reached node's row is `Solution`.
+  - SPSP: the path's rows are `Solution`. A target that can't be reached is `Rejected`.
+  - A node that can't be reached is `Untraveled`.
+- A stopped run ends with the node names and nothing worked out, `ok: false`.
+
+Their list format and /info are unchanged. `ListReadsTypedSteps()` returns true, so their list methods keep getting the steps they always did.
 
 To add a table:
 
