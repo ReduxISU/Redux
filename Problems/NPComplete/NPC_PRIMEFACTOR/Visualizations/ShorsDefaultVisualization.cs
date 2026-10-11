@@ -1,11 +1,17 @@
 using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_PRIMEFACTOR;
 using API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 using API.Tools;
 using System.Text.Json;
 
-class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR, API_QUANTUMCIRCUIT> {
+/// <summary>
+/// The Quantum Circuit picture (format=frames) comes from the instance's circuit and the chosen solver's steps; the list
+/// format below is unchanged.
+/// </summary>
+class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<PRIMEFACTOR> {
     public string visualizationName { get; } = "Shor's Algorithm Quantum Visualization";
     public string visualizationDefinition { get; } = "Constructs a quantum circuit to represent Shor's algorithm for prime factorization and simulates the circuit to find the prime factors.";
     public string source { get; } = "https://arxiv.org/abs/quant-ph/9708016";
@@ -13,6 +19,10 @@ class ShorsDefaultVisualization : IVisualization<PRIMEFACTOR, API_QUANTUMCIRCUIT
     public string[] contributors { get; } = { "Grant Gardner", "Jason L. Wright", "George Lake" };
     public VisualizationType visualizationType { get; } = VisualizationType.QuantumCircuitQjs;
     public ISolver solver { get; } = new PrimeFactorSolver();
+
+    // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(QuantumProgress);
+    QuantumCircuitSpec IQuantumCircuitVisualization<PRIMEFACTOR>.Describe(PRIMEFACTOR problem) => QuantumCircuits.PrimeFactorization(problem.instance);
 
     // --- Methods Including Constructors ---
     public ShorsDefaultVisualization() {

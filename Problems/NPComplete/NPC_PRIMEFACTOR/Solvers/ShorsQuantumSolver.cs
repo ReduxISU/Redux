@@ -1,4 +1,6 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Tools;
 using System.Text.Json;
 
@@ -8,7 +10,8 @@ namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 /// Shor's algorithm solver that uses an external quantum computing API for prime factorization.
 /// Supports both ISU AWS server and local server configurations.
 /// </summary>
-class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
+// Incremental: the number is sent once and the answer read once.
+class ShorsQuantumSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
     // Solver metadata
@@ -43,7 +46,29 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
 
     // --- Methods ---
 
-    public string solve(PRIMEFACTOR problem) {
+    public string solve(PRIMEFACTOR problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
+
+    // Steps: a Try that sends the number to the quantum server, an Accept with the factors it returns (a Reject when it
+    // gives none), and Done with the verdict. The server picks its own base a and circuit, and reports neither, so the
+    // steps apply none of the circuit the picture draws for the number.
+    public string Solve(PRIMEFACTOR problem, StepRecorder<QuantumProgress> rec) {
+        string number = problem.instance.Trim();
+        rec.Try(() => new QuantumProgress(), () => $"Send {number} to the quantum server, which runs Shor's algorithm: a quantum circuit finds a period, and classical steps turn it into factors.");
+        string answer = Ask(problem);
+        if (QuantumSteps.Recording(rec)) {
+            bool factored = answer.StartsWith('(') && answer.EndsWith(')');
+            if (factored)
+                rec.Accept(() => new QuantumProgress(result: answer), () => $"The quantum server answered {answer}.");
+            else
+                rec.Reject(() => new QuantumProgress(), () => $"The quantum server gave no factors: {answer}");
+            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(result: answer),
+                ok => ok ? $"{number} = {string.Join(" × ", answer.Trim('(', ')').Split(','))}." : factored ? $"The answer {answer} is not correct." : "No answer: the quantum server did not give one.");
+        }
+        return answer;
+    }
+
+    // The server's answer, as solve has always returned it.
+    private static string Ask(PRIMEFACTOR problem) {
         try {
             // Parse the integer from the problem instance
             int numberToFactor = int.Parse(problem.instance);

@@ -452,6 +452,49 @@ sealed class HuffmanForest : IEquatable<HuffmanForest> {
     public override int GetHashCode() => HashCode.Combine(Merges.Length, ShapeUtil.HashOf(Codes.Select(p => $"{p.Key}={p.Value}")));
 }
 
+/// <summary>One classical call to an oracle: the input x (its bits, read as a number) and the output f(x).</summary>
+sealed record OracleQuery(
+    [property: JsonPropertyName("input")] int Input,
+    [property: JsonPropertyName("output")] long Output);
+
+/// <summary>
+/// How far a quantum-algorithm problem's run has got (Deutsch, Deutsch-Jozsa, Bernstein-Vazirani, Simon's Problem,
+/// Unstructured Search, Prime Factorization), as the Quantum Circuit picture draws it (see <c>QuantumCircuitFrames</c>).
+/// <list type="bullet">
+/// <item><see cref="Applied"/>: how many columns of the problem's circuit have been applied (0: none). A classical solver
+/// never applies any.</item>
+/// <item><see cref="Queries"/>: the classical oracle calls made so far, in order.</item>
+/// <item><see cref="Outcome"/>: the value read from the measured qubits (the first measured qubit is the most significant
+/// bit), once it is known; null before that, and when the answer does not say which value was read.</item>
+/// <item><see cref="Counts"/>: how often each outcome came up, when a quantum server reported it; empty otherwise.</item>
+/// <item><see cref="Result"/>: the answer as the solver has it so far (<c>balanced</c>, <c>(1,0,1)</c>, <c>(2,2)</c>);
+/// null until it has one. The last step's is the solver's answer.</item>
+/// </list>
+/// </summary>
+sealed class QuantumProgress : IEquatable<QuantumProgress> {
+    [JsonPropertyName("applied")] public int Applied { get; }
+    [JsonPropertyName("queries")] public OracleQuery[] Queries { get; }
+    [JsonPropertyName("outcome")] public long? Outcome { get; }
+    [JsonPropertyName("counts")] public IReadOnlyDictionary<string, long> Counts { get; }
+    [JsonPropertyName("result")] public string? Result { get; }
+
+    public QuantumProgress(int applied = 0, IEnumerable<OracleQuery>? queries = null, long? outcome = null,
+        IEnumerable<KeyValuePair<string, long>>? counts = null, string? result = null) {
+        Applied = applied;
+        Queries = (queries ?? []).ToArray();
+        Outcome = outcome;
+        Counts = (counts ?? []).OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+        Result = result;
+    }
+
+    public bool Equals(QuantumProgress? other) =>
+        other != null && Applied == other.Applied && Queries.SequenceEqual(other.Queries) && Outcome == other.Outcome
+            && Counts.Count == other.Counts.Count && Counts.All(p => other.Counts.TryGetValue(p.Key, out var v) && v == p.Value)
+            && Result == other.Result;
+    public override bool Equals(object? obj) => Equals(obj as QuantumProgress);
+    public override int GetHashCode() => HashCode.Combine(Applied, Queries.Length, Outcome, Counts.Count, Result);
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -477,5 +520,6 @@ static class Shapes {
         : shape == typeof(ChosenTriples) ? new ChosenTriples([])
         : shape == typeof(HullBuild) ? new HullBuild([], [], [], [], [])
         : shape == typeof(HuffmanForest) ? new HuffmanForest([], [])
+        : shape == typeof(QuantumProgress) ? new QuantumProgress()
         : null;
 }

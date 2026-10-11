@@ -14,6 +14,8 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
     public Visualize_Endpoint_Tests(AppFactory factory) {
+        // Before the client is made (its handler copies the setting), so the fake quantum server below reaches the request.
+        factory.Server.PreserveExecutionContext = true;
         _client = factory.CreateClient();
     }
 
@@ -30,6 +32,10 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         JsonSerializer.Serialize(e, new JsonSerializerOptions { WriteIndented = false });
 
     private async Task<(HttpStatusCode Status, string Body)> Visualize(string query, string instance) {
+        // The quantum cases call a quantum server. None was reachable when their snapshots were taken; a fake one that refuses
+        // every call (503) fails the same way on every machine, and quickly (#809).
+        using var fake = FakeQuantumServer.Install(out var server);
+        server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
         var response = await _client.PostAsync($"/ProblemProvider/visualize?{query}", content, TestContext.Current.CancellationToken);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
@@ -47,19 +53,21 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         ("independentsetdefaultvisualization", "independentsetbruteforce", "GraphD3"),
         ("dominatingsetdefaultvisualization", "dominatingsetforcedvertex", "GraphD3"),
         ("dfatablevisualization", "dfasolver", "DynamicTable"),
-        // A legacy type that is still the list reshaped, now that every other case here builds its own frames (#666, #671).
         ("deutschdefaultvisualization", "deutschclassicalsolver", "QuantumCircuitQjs"),
+        // A legacy type that is still the list reshaped, now that every other case here builds its own frames (#666, #671,
+        // #672: Deutsch draws the Quantum Circuit picture). SAT's Grover visualization is the last one without a picture.
+        ("satgrovervisualization", "satgroversolver", "QuantumCircuitQjs"),
     };
 
     // Visualizations that build their own frames (the Graph picture, the Grouped Graph picture) are checked in
     // GraphFrames_Endpoint_Tests, GraphEdgeFrames_Endpoint_Tests, GraphGroupFrames_Endpoint_Tests,
     // GraphTourFrames_Endpoint_Tests and GroupedGraphFrames_Endpoint_Tests; the Automaton picture in
-    // AutomatonFrames_Endpoint_Tests; the Table picture in TableAutomatonFrames_Endpoint_Tests;
-    // for the rest, format=frames is the list reshaped.
+    // AutomatonFrames_Endpoint_Tests; the Table picture in TableAutomatonFrames_Endpoint_Tests; the Quantum Circuit picture
+    // in QuantumCircuitFrames_Endpoint_Tests; for the rest, format=frames is the list reshaped.
     private static readonly string[] OwnFrames = {
         "cliquedefaultvisualization", "vertexcoverdefaultvisualization", "minimumvertexcoverdefaultvisualization",
         "independentsetdefaultvisualization", "dominatingsetdefaultvisualization", "minimumspanningtreevisualization",
-        "sat3defaultvisualization", "dfavisualization", "dfatablevisualization",
+        "sat3defaultvisualization", "dfavisualization", "dfatablevisualization", "deutschdefaultvisualization",
     };
 
     public static TheoryData<string> SnapshotNames => new(SnapshotCases.Select(c => c.Vis));

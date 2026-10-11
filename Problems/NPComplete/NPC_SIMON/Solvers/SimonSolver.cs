@@ -1,8 +1,11 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SIMON.Solvers;
 
-class SimonSolver : ISolver<SIMON> {
+// Incremental: each oracle call adds to what the solver knows about f, and none is taken back.
+class SimonSolver : ISolver<SIMON, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Simon Classical";
@@ -23,8 +26,23 @@ class SimonSolver : ISolver<SIMON> {
     // --- Methods Including Constructors ---
     public SimonSolver() { }
 
-    public string solve(SIMON problem) {
+    public string solve(SIMON problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
+
+    // Steps (the Quantum Circuit picture, which this solver never runs): a Try per oracle call, x = 0, 1, 2, ..., with the
+    // oracle as the focus and a note when an output repeats; then an Accept with s, or a Reject when f breaks the promise;
+    // and Done with the verifier's verdict.
+    public string Solve(SIMON problem, StepRecorder<QuantumProgress> rec) {
         int nbits = SIMON.PowerOfTwo(problem.funcValues.Length);
+        string? gate = QuantumSteps.Recording(rec) ? QuantumCircuits.Simon(problem.funcValues).OracleGateId : null;
+        string[] Focus() => gate == null ? [] : [gate];
+        string In(int x) => QuantumSteps.Input(x, nbits);
+        var queries = new List<OracleQuery>();
+        string Finish(string answer) {
+            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(queries: queries, result: answer),
+                ok => ok ? (answer.Length == 0 ? "s is empty: f has no input bits." : $"s = {answer}: f(x) = f(x ⊕ s) for every x.")
+                    : answer.StartsWith("invalid func") ? "No answer: f breaks Simon's promise." : $"The answer {answer} is not correct.");
+            return answer;
+        }
 
         var fmap = new Dictionary<int, HashSet<int>>();
         for (int s = 0; s < problem.funcValues.Length; s++) {
@@ -32,26 +50,43 @@ class SimonSolver : ISolver<SIMON> {
             if (!fmap.ContainsKey(y))
                 fmap[y] = new HashSet<int>();
             fmap[y].Add(s);
+            queries.Add(new OracleQuery(s, y));
+            int x = s, earlier = fmap[y].First();
+            rec.Try(() => new QuantumProgress(queries: queries), () => x == earlier
+                ? $"Call the oracle with x = {In(x)}: f({In(x)}) = {y}."
+                : $"Call the oracle with x = {In(x)}: f({In(x)}) = {y}, the same as f({In(earlier)}), so s could be {In(x ^ earlier)}.", Focus);
         }
 
         if (fmap.Count == problem.funcValues.Length) {
             // one to one mapping, secret is all zeros
-            return string.Concat(Enumerable.Repeat("0", nbits));
+            string zeros = string.Concat(Enumerable.Repeat("0", nbits));
+            rec.Accept(() => new QuantumProgress(queries: queries, result: zeros), () => nbits == 0
+                ? "f has a single input, so there is nothing to pair: s is empty."
+                : $"Every output appears once: f is one-to-one, so s = {zeros}. That took {QuantumCircuits.Count(queries.Count)} oracle calls.");
+            return Finish(zeros);
         }
 
         var candidates = new HashSet<int>();
-        foreach (var ys in fmap.Values) {
-            if (ys.Count != 2)
-                return "invalid func: not 2-to-1 mapping";
+        foreach (var (y, ys) in fmap) {
+            if (ys.Count != 2) {
+                rec.Reject(() => new QuantumProgress(queries: queries),
+                    () => $"The output {y} comes from {ys.Count} {(ys.Count == 1 ? "input" : "inputs")}, not 2: f is not 2-to-1, so no secret string fits.");
+                return Finish("invalid func: not 2-to-1 mapping");
+            }
             int candidate = 0;
             foreach (var c in ys)
                 candidate ^= c;
             candidates.Add(candidate);
         }
 
-        if (candidates.Count > 1)
-            return "invalid func: no secret string";
+        if (candidates.Count > 1) {
+            rec.Reject(() => new QuantumProgress(queries: queries), () => $"The pairs with equal outputs differ by {string.Join(", ", candidates.Order().Select(In))}: no single s fits them all.");
+            return Finish("invalid func: no secret string");
+        }
 
-        return Convert.ToString(candidates.First(), 2).PadLeft(nbits, '0');
+        string answer = Convert.ToString(candidates.First(), 2).PadLeft(nbits, '0');
+        rec.Accept(() => new QuantumProgress(queries: queries, result: answer),
+            () => $"Every output comes from exactly two inputs, and each pair differs by {answer}: s = {answer}. That took {QuantumCircuits.Count(queries.Count)} oracle calls.");
+        return Finish(answer);
     }
 }

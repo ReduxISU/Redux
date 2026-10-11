@@ -93,10 +93,22 @@ public class IncrementalSolvers_Tests {
         ["convexhullsolver"] = true,
         // HuffmanForest (Code Tree picture)
         ["losslessdatacompressionsolver"] = true,
+        // QuantumProgress (Quantum Circuit picture)
+        ["deutschclassicalsolver"] = true,
+        ["deutschquantumsolver"] = true,
+        ["deutschjozsaclassicalsolver"] = true,
+        ["deutschjozsaquantumsolver"] = true,
+        ["bernsteinvaziraniclassicalsolver"] = true,
+        ["bernsteinvaziraniquantumsolver"] = true,
+        ["simonsolver"] = true,
+        ["unstructuredsearchsolver"] = false,
+        ["unstructuredgroversolver"] = true,
+        ["primefactorsolver"] = true,
+        ["shorsquantumsolver"] = true,
     };
 
-    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board, Schedule, Tripartite Matching, Geometry or Code Tree picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells), typeof(JobOrder), typeof(PumpPlan), typeof(ChosenTriples), typeof(HullBuild), typeof(HuffmanForest)];
+    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board, Schedule, Tripartite Matching, Geometry, Code Tree or Quantum Circuit picture draws.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells), typeof(JobOrder), typeof(PumpPlan), typeof(ChosenTriples), typeof(HullBuild), typeof(HuffmanForest), typeof(QuantumProgress)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
@@ -112,6 +124,7 @@ public class IncrementalSolvers_Tests {
     [Theory]
     [MemberData(nameof(Classified))]
     public void Solver_DeclaresWhetherItIsIncremental_AndItsRunSaysSo(string solverName, bool incremental) {
+        using var quantum = FakeQuantumServer.Install(out _);   // the quantum solvers ask a server; never a real one here
         var type = ProblemProvider.Solvers[solverName];
         Assert.Equal(incremental, typeof(IIncrementalSolver).IsAssignableFrom(type));
         var solver = (ISolver)Activator.CreateInstance(type)!;

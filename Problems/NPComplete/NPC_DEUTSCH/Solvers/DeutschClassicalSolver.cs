@@ -1,8 +1,11 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 
-class DeutschClassicalSolver : ISolver<DEUTSCH> {
+// Incremental: each oracle call adds to what the solver knows about f, and none is taken back.
+class DeutschClassicalSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Deutsch Classical";
@@ -21,9 +24,29 @@ class DeutschClassicalSolver : ISolver<DEUTSCH> {
     // --- Methods Including Constructors ---
     public DeutschClassicalSolver() { }
 
-    public string solve(DEUTSCH problem) {
-        if (problem.Func(false) == problem.Func(true))
-            return "constant";
-        return "balanced";
+    public string solve(DEUTSCH problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
+
+    // Steps (the Quantum Circuit picture, which this solver never runs): a Try per oracle call, f(0) then f(1), with the
+    // oracle as the focus; an Accept with the answer; Done with the verifier's verdict.
+    public string Solve(DEUTSCH problem, StepRecorder<QuantumProgress> rec) {
+        string? oracle = QuantumSteps.Recording(rec) ? QuantumCircuits.Deutsch(problem.funcValues).OracleGateId : null;
+        string[] Focus() => oracle == null ? [] : [oracle];
+        var queries = new List<OracleQuery>();
+        bool f0 = problem.Func(false);
+        queries.Add(new OracleQuery(0, f0 ? 1 : 0));
+        rec.Try(() => new QuantumProgress(queries: queries), () => $"Call the oracle with x = 0: f(0) = {Bit(f0)}.", Focus);
+        bool f1 = problem.Func(true);
+        queries.Add(new OracleQuery(1, f1 ? 1 : 0));
+        rec.Try(() => new QuantumProgress(queries: queries), () => $"Call the oracle with x = 1: f(1) = {Bit(f1)}.", Focus);
+
+        string answer = f0 == f1 ? "constant" : "balanced";
+        rec.Accept(() => new QuantumProgress(queries: queries, result: answer), () => (f0 == f1
+            ? $"f(0) = f(1) = {Bit(f0)}, so f is constant."
+            : $"f(0) = {Bit(f0)} and f(1) = {Bit(f1)} differ, so f is balanced.") + " That took 2 oracle calls; Deutsch's algorithm needs 1.");
+        QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(queries: queries, result: answer),
+            ok => ok ? $"f is {answer}." : $"The answer {answer} is not correct.");
+        return answer;
     }
+
+    private static string Bit(bool b) => b ? "1" : "0";
 }

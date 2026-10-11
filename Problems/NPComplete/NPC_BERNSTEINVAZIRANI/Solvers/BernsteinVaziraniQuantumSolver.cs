@@ -1,4 +1,6 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 using API.Tools;
 using SPADE;
 using System.Text.Json;
@@ -9,7 +11,8 @@ namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 /// Bernstein-Vazirani solver that uses an external quantum computing API.
 /// Supports both ISU AWS server and local server configurations.
 /// </summary>
-class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
+// Incremental: the circuit is applied one column at a time, and then read.
+class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Bernstein-Vazirani Algorithm";
@@ -34,7 +37,36 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
 
     // --- Methods ---
 
-    public string solve(BERNSTEINVAZIRANI problem) {
+    public string solve(BERNSTEINVAZIRANI problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
+
+    // Steps: a Try per column of the Bernstein-Vazirani circuit (the one the server runs, drawn and simulated here, never
+    // asked of the server), then an Accept with what the server measured (a Reject when it gave no answer), and Done with
+    // the verdict.
+    public string Solve(BERNSTEINVAZIRANI problem, StepRecorder<QuantumProgress> rec) {
+        var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.BernsteinVazirani(problem.funcValues) : null;
+        if (spec != null) QuantumSteps.Columns(rec, spec);
+        var counts = new List<KeyValuePair<string, long>>();
+        string answer = Ask(problem, counts);
+        if (spec != null) {
+            int all = spec.Columns.Count, n = problem.NBits;
+            // The certificate lists s's bits, "(1,0,1)": they are what the server measured.
+            string bits = answer.Length >= 2 && answer[0] == '(' && answer[^1] == ')' ? answer[1..^1].Replace(",", "") : "";
+            long? outcome = n > 0 && bits.Length == n && n <= 62 && bits.All(c => c is '0' or '1') ? Convert.ToInt64(bits, 2) : null;
+            string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
+            if (outcome != null)
+                rec.Accept(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
+                    () => $"The quantum server measured {bits}{QuantumSteps.Shots(counts, bits)}, so s = {bits}. One oracle call.", read);
+            else
+                rec.Reject(() => new QuantumProgress(all, counts: counts), () => $"The quantum server gave no answer: {answer}");
+            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
+                ok => ok ? $"s = {bits}, found with one call to the oracle."
+                    : outcome == null ? "No answer: the quantum server did not give one." : $"s = {bits} does not fit every input: f is not s · x for any s.");
+        }
+        return answer;
+    }
+
+    // The server's answer, as solve has always returned it; its counts, when it sends them, go into counts.
+    private static string Ask(BERNSTEINVAZIRANI problem, List<KeyValuePair<string, long>> counts) {
         try {
             // Get the function values as a boolean array
             bool[] requestBody = problem.funcValues.ToArray();
@@ -49,6 +81,7 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
+            counts.AddRange(QuantumSteps.Counts(root));
             if (root.TryGetProperty("answer", out JsonElement answerElement)) {
                 string answer = answerElement.GetString() ?? "No answer found";
                 // Quantum server returns a bare bit string ("101"); translate to certificate format

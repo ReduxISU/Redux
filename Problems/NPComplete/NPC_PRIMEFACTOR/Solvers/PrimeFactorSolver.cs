@@ -1,9 +1,12 @@
 ﻿using System.Numerics;
 using API.Interfaces;
+using API.Interfaces.Quantum;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 
-class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
+// Incremental: each factor found is kept, and the number left only shrinks.
+class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Prime Factorization Trial Division";
@@ -28,10 +31,17 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
     // --- Methods Including Constructors ---
     public PrimeFactorSolver() { }
 
-    public string solve(PRIMEFACTOR problem) {
+    public string solve(PRIMEFACTOR problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
+
+    // Steps (the Quantum Circuit picture, which this solver never runs): a Reject for each trial divisor that does not
+    // divide what is left, an Accept for each division that does (the factors so far are the result), an Accept for a last
+    // prime factor, and Done with the verifier's verdict.
+    public string Solve(PRIMEFACTOR problem, StepRecorder<QuantumProgress> rec) {
         var numberToFactor = BigInteger.Parse(problem.instance);
+        var original = numberToFactor;
 
         var factors = new List<BigInteger>();
+        string Factors() => "(" + string.Join(",", factors) + ")";
 
         var i = new BigInteger(2);
         while (i * i <= numberToFactor) {
@@ -39,17 +49,37 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
                 return "TIMEOUT";
             }
 
+            if (numberToFactor % i != 0) {
+                var divisor = i;
+                var left = numberToFactor;
+                rec.Reject(() => new QuantumProgress(result: Factors()), () => $"{N(divisor)} does not divide {N(left)}.");
+            }
             while (numberToFactor % i == 0) {
+                var before = numberToFactor;
                 factors.Add(i);
                 numberToFactor /= i;
+                var divisor = i;
+                var after = numberToFactor;
+                rec.Accept(() => new QuantumProgress(result: Factors()), () => $"{N(before)} ÷ {N(divisor)} = {N(after)}, so {N(divisor)} is a prime factor.");
             }
             i++;
         }
 
         if (numberToFactor > 1) {
             factors.Add(numberToFactor);
+            var last = numberToFactor;
+            rec.Accept(() => new QuantumProgress(result: Factors()), () => factors.Count == 1
+                ? $"No number from 2 to √{N(last)} divides {N(last)}, so {N(last)} is prime."
+                : $"No number from 2 to √{N(last)} divides {N(last)}, so {N(last)} is prime: the last factor.");
         }
 
-        return "(" + string.Join(",", factors) + ")";
+        string answer = Factors();
+        QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(result: answer),
+            ok => ok ? (factors.Count == 0 ? $"{N(original)} is the empty product: it has no prime factors."
+                    : factors.Count == 1 ? $"{N(original)} is prime." : $"{N(original)} = {string.Join(" × ", factors.Select(N))}.")
+                : factors.Count == 0 ? $"No answer: {N(original)} has no prime factorization." : $"The answer {answer} is not correct.");
+        return answer;
     }
+
+    private static string N(BigInteger n) => n.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
 }

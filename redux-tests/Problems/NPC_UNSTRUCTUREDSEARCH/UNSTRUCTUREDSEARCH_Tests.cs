@@ -52,6 +52,30 @@ public class UNSTRUCTUREDSEARCH_tests {
         Assert.Equal($"{certificate}", solvedString);
     }
 
+    // #811: "no solution" is the problem's own answer when nothing is marked; an index outside the table is just wrong.
+    [Theory]
+    [InlineData("(0,0,0,0)", "no solution", true)]
+    [InlineData("(0,1,0,0)", "no solution", false)]
+    [InlineData("(0,1,0,0)", "7", false)]
+    [InlineData("(0,1,0,0)", "4", false)]
+    [InlineData("(0,1,0,0)", "-1", false)]
+    public void UNSTRUCTUREDSEARCH_verifier_NoSolutionAndOutOfRange(string instance, string certificate, bool expected) {
+        Assert.Equal(expected, new UnstructuredSearchVerifier().verify(new UNSTRUCTUREDSEARCH(instance), certificate));
+    }
+
+    [Theory]
+    [InlineData("(0,0,0,0)")]
+    [InlineData("(0,0,1,0)")]
+    public void UNSTRUCTUREDSEARCH_solver_AnswerIsVerified(string instance) {
+        var problem = new UNSTRUCTUREDSEARCH(instance);
+        Assert.True(new UnstructuredSearchVerifier().verify(problem, new UnstructuredSearchSolver().solve(problem)));
+    }
+
+    [Fact]
+    public void UNSTRUCTUREDSEARCH_verifier_NotAnIndex_IsACertificateError() {
+        Assert.Throws<API.Interfaces.CertificateParseException>(() => ((API.Interfaces.IVerifier)new UnstructuredSearchVerifier()).verify("(0,1,0,0)", "one"));
+    }
+
     // -------------------------------------------------------------------------
     // Format declarations
     // -------------------------------------------------------------------------
@@ -85,12 +109,13 @@ public class UNSTRUCTUREDSEARCH_tests {
     // UnstructuredGroverSolver
     //
     // solve() delegates to an external quantum-simulation HTTP service (QuantumServerAPI,
-    // reading QuantumSolverSettingsGlobal). These statics are only populated by the real
-    // app's Program.cs startup, so tests install a fake IHttpClientFactory directly
-    // (QuantumSolverSettingsGlobal's setters are `internal`, exposed to this test project
-    // via [assembly: InternalsVisibleTo("redux-tests")]) to exercise the solver's SAT-
-    // expression building and response handling deterministically, without any real
-    // network call.
+    // reading QuantumSolverSettingsGlobal). Those statics are populated by the real app's
+    // Program.cs startup, which every endpoint test class runs in parallel with this one,
+    // so tests install a fake IHttpClientFactory for their own async flow only
+    // (QuantumSolverSettingsGlobal.UseForThisFlow is `internal`, exposed to this test
+    // project via [assembly: InternalsVisibleTo("redux-tests")]) to exercise the solver's
+    // SAT-expression building and response handling deterministically, without any real
+    // network call and without leaking the fake into other tests (#809).
     // -------------------------------------------------------------------------
 
     [Theory]
@@ -120,7 +145,7 @@ public class UNSTRUCTUREDSEARCH_tests {
         // which ReverseString flips to "01" -> Convert.ToInt32(_, 2) = 1.
         var problem = new UNSTRUCTUREDSEARCH("(0, 1, 0, 0)");
         var handler = new FakeQuantumHandler("{\"qasm\":\"mock-circuit-xyz\",\"answer_bitstring\":\"10\"}");
-        InstallFakeQuantumServer(handler);
+        using var fake = InstallFakeQuantumServer(handler);
         var solver = new UnstructuredGroverSolver();
 
         string result = solver.solve(problem);
@@ -137,7 +162,7 @@ public class UNSTRUCTUREDSEARCH_tests {
         // keeps its default value ("").
         var problem = new UNSTRUCTUREDSEARCH("(0, 0, 1, 0)");
         var handler = new FakeQuantumHandler("{\"answer_bitstring\":\"01\"}");
-        InstallFakeQuantumServer(handler);
+        using var fake = InstallFakeQuantumServer(handler);
         var solver = new UnstructuredGroverSolver();
 
         string result = solver.solve(problem);
@@ -153,7 +178,7 @@ public class UNSTRUCTUREDSEARCH_tests {
         // String.Join(" | ", exprs) produces an empty boolexpr string.
         var problem = new UNSTRUCTUREDSEARCH("(0, 0, 0, 0)");
         var handler = new FakeQuantumHandler("{\"qasm\":\"c\",\"answer_bitstring\":\"00\"}");
-        InstallFakeQuantumServer(handler);
+        using var fake = InstallFakeQuantumServer(handler);
         var solver = new UnstructuredGroverSolver();
 
         solver.solve(problem);
@@ -169,21 +194,43 @@ public class UNSTRUCTUREDSEARCH_tests {
         // bitstring data (which used to throw a confusing FormatException).
         var problem = new UNSTRUCTUREDSEARCH("(0, 1, 0, 0)");
         var handler = new FakeQuantumHandler("{\"qasm\":\"c\"}");
-        InstallFakeQuantumServer(handler);
+        using var fake = InstallFakeQuantumServer(handler);
         var solver = new UnstructuredGroverSolver();
 
         var ex = Assert.Throws<InvalidOperationException>(() => solver.solve(problem));
         Assert.NotEmpty(ex.Message);
     }
 
+    [Fact]
+    public void UnstructuredGroverSolver_FakeServer_IsThisTestsOnly() {
+        // Regression test for #809. Test classes run in parallel, and the quantum settings were one process-wide pair that
+        // both this class's fake and every app an endpoint test starts (Program.cs) wrote: an app starting between installing
+        // the fake and solving took the fake away, and an endpoint test running meanwhile was answered by the fake. Code
+        // running outside this test (here, a thread that does not inherit its context) must not see the fake.
+        var handler = new FakeQuantumHandler("{\"answer_bitstring\":\"11\"}");
+        using var fake = InstallFakeQuantumServer(handler);
+        var mine = (QuantumSolverSettingsGlobal.QuantumSolver, QuantumSolverSettingsGlobal.HttpClientFactory);
+
+        (QuantumSolverSettings, IHttpClientFactory) elsewhere = default;
+        using (ExecutionContext.SuppressFlow()) {
+            var other = new Thread(() => elsewhere = (QuantumSolverSettingsGlobal.QuantumSolver, QuantumSolverSettingsGlobal.HttpClientFactory));
+            other.Start();
+            other.Join();
+        }
+
+        Assert.NotSame(mine.Item1, elsewhere.Item1);
+        Assert.NotSame(mine.Item2, elsewhere.Item2);
+        Assert.Equal("3", new UnstructuredGroverSolver().solve(new UNSTRUCTUREDSEARCH("(0, 0, 0, 1)")));
+        Assert.NotNull(handler.LastRequestBody);
+    }
+
     // -------------------------------------------------------------------------
     // Fakes for the quantum HTTP dependency
     // -------------------------------------------------------------------------
 
-    private static void InstallFakeQuantumServer(HttpMessageHandler handler) {
-        QuantumSolverSettingsGlobal.QuantumSolver = new QuantumSolverSettings { BaseURL = "http://fake-quantum-server" };
-        QuantumSolverSettingsGlobal.HttpClientFactory = new FakeHttpClientFactory(handler);
-    }
+    // The fake serves this test only, until disposed (see #809).
+    private static IDisposable InstallFakeQuantumServer(HttpMessageHandler handler) =>
+        QuantumSolverSettingsGlobal.UseForThisFlow(new QuantumSolverSettings { BaseURL = "http://fake-quantum-server" }, new FakeHttpClientFactory(handler));
 
     private sealed class FakeQuantumHandler : HttpMessageHandler {
         private readonly string _responseJson;

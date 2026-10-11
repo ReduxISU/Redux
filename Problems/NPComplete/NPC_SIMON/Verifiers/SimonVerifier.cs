@@ -33,7 +33,8 @@ class SimonVerifier : IVerifier<SIMON> {
 
         var vals = new HashSet<int>();
 
-        int s = Convert.ToInt32(certificate, 2);
+        // The format lets s = 0 be written as the empty string (a one-entry table has no bits at all).
+        int s = certificate.Length == 0 ? 0 : Convert.ToInt32(certificate, 2);
         for (int i = 0; i < problem.funcValues.Length; i++) {
             if (problem.Func(i) != problem.Func(i ^ s))
                 return false;
