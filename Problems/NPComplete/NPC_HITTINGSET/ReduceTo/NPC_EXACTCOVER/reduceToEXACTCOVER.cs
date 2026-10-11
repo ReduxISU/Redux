@@ -93,7 +93,28 @@ class reduceToEXACTCOVER : IReduction<HITTINGSET, EXACTCOVER> {
         return reductionTo;
     }
 
+    /// <summary>
+    /// Maps a Hitting Set answer to an Exact Cover answer (#828): each chosen item becomes its set, the numbers of the
+    /// subsets that hold it. An exact hitting set meets every subset once, so those sets hold every subset's number once.
+    /// An item U does not have is a 400.
+    /// </summary>
     public string mapSolutions(string problemFromSolution) {
-        return "";
+        string text = problemFromSolution.Trim();
+        List<UtilCollection> items;
+        try {
+            if (text.Length < 2 || text[0] != '{' || text[^1] != '}') throw new FormatException();
+            items = new UtilCollection(text).ToList();
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of items like {{1,2}}", ex);
+        }
+        var subsets = _reductionFrom.subSets.ToList();
+        var sets = new List<string>();
+        foreach (UtilCollection item in items) {
+            if (!_reductionFrom.universalSet.Contains(item))
+                throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{item}' is not an item of U");
+            var hit = Enumerable.Range(0, subsets.Count).Where(i => subsets[i].Contains(item)).Select(i => (i + 1).ToString());
+            sets.Add("{" + string.Join(",", hit) + "}");
+        }
+        return "{" + string.Join(",", sets) + "}";
     }
 }
