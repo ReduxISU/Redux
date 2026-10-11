@@ -35,10 +35,13 @@ public class IncrementalSolvers_Tests {
         ["kosarajusolver"] = true,
         ["ssspsolver"] = true,
         ["spspsolver"] = true,
+        // TableCells and Assignment (Table pictures)
+        ["editdistancedpsolver"] = true,
+        ["integerprogrammingbruteforce"] = false,
     };
 
     // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(Tour), typeof(EdgeSet), typeof(Components), typeof(Distances)];
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(Tour), typeof(EdgeSet), typeof(Components), typeof(Distances), typeof(TableCells), typeof(Assignment)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];

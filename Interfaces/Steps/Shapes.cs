@@ -137,6 +137,36 @@ sealed class Components : IEquatable<Components> {
         HashCode.Combine(ShapeUtil.HashOf(Visited), ShapeUtil.HashOf(Finished), ShapeUtil.HashOf(Of.Select(p => $"{p.Key}={p.Value}")));
 }
 
+/// <summary>
+/// A table a dynamic-programming solver fills (Edit Distance's grid), as far as it has got. Cells are named by position,
+/// <c>r{i}c{j}</c> for row i and column j (0-based, see <c>TableFrames.CellId</c>), never by their contents, so no id
+/// needs escaping.
+/// <list type="bullet">
+/// <item><see cref="Values"/>: the text of every cell filled so far; a cell with no entry is still empty.</item>
+/// <item><see cref="Reads"/>: the cells the latest fill read to work out its value, the one whose value it took first.
+/// Empty for a step that fills nothing, or that fills cells without reading others (a base row).</item>
+/// <item><see cref="Path"/>: the cells the trace-back has taken, in the order it took them (from the answer's cell back
+/// toward the start). Empty until the trace-back begins.</item>
+/// </list>
+/// The answer is the last one: the filled table and the path through it that spells out the answer.
+/// </summary>
+sealed class TableCells : IEquatable<TableCells> {
+    [JsonPropertyName("values")] public IReadOnlyDictionary<string, string> Values { get; }
+    [JsonPropertyName("reads")] public string[] Reads { get; }
+    [JsonPropertyName("path")] public string[] Path { get; }
+    public TableCells(IEnumerable<KeyValuePair<string, string>> values, IEnumerable<string> reads, IEnumerable<string> path) {
+        Values = values.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+        Reads = reads.ToArray();
+        Path = path.ToArray();
+    }
+    public bool Equals(TableCells? other) =>
+        other != null && Reads.SequenceEqual(other.Reads, StringComparer.Ordinal) && Path.SequenceEqual(other.Path, StringComparer.Ordinal)
+            && Values.Count == other.Values.Count && Values.All(p => other.Values.TryGetValue(p.Key, out var v) && v == p.Value);
+    public override bool Equals(object? obj) => Equals(obj as TableCells);
+    public override int GetHashCode() =>
+        HashCode.Combine(ShapeUtil.HashOf(Reads), ShapeUtil.HashOf(Path), ShapeUtil.HashOf(Values.Select(p => $"{p.Key}={p.Value}")));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -153,5 +183,6 @@ static class Shapes {
         : shape == typeof(ChosenSets) ? new ChosenSets([])
         : shape == typeof(Distances) ? new Distances([], [], [])
         : shape == typeof(Components) ? new Components([], [], [])
+        : shape == typeof(TableCells) ? new TableCells([], [], [])
         : null;
 }

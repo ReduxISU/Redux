@@ -38,6 +38,9 @@ class GenericVerifier01INTP : IVerifier<INTPROGRAMMING01> {
     //Takes an instance of the 0-1 integer linear programming problem and a certificate, and verifies if that certificate is a solution
     //c should be in the form of a vector of 1's and 0's separated by spaces. such as "(1 0 1 1 0)"
     public bool verify(INTPROGRAMMING01 problem, string certificate) {
+        // "{}" is how a solver says there is no answer; no assignment is never a solution (#797).
+        if (certificate.Trim() == "{}") { return false; }
+
         List<int> cert = parseCertificate(certificate);
 
         //checks that the certificate is the correct size

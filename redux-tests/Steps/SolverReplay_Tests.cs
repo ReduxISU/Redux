@@ -51,6 +51,18 @@ public class SolverReplay_Tests {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
         }
+        if (lastPartial is TableCells table) {
+            // A dynamic-programming answer is one cell of the table (Edit Distance: the corner), which the answer string
+            // gives; the table itself is checked in TableSolvers_Tests. The path must start at that cell.
+            Assert.Equal(answer, table.Values[table.Path[0]]);
+            return lastPartial;
+        }
+        if (lastPartial is Assignment && !answer.Contains(':')) {
+            // 0-1 ILP answers are "(0 1 0)": x1, x2, ... in order, with no names (SAT answers name theirs, "x1:True"); "{}" is
+            // no answer.
+            var bits = answer == "{}" ? [] : answer.Trim('(', ')').Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return new Assignment(bits.Select((b, j) => new KeyValuePair<string, string>($"x{j + 1}", b)));
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
