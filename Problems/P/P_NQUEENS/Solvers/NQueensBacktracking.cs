@@ -27,17 +27,23 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
 
     // Steps (the Board picture): a Try for every queen placed (with the squares skipped in its row, each linked to the queen
     // attacking it), a Reject when a row has no safe square left, then the answer.
+    // Each step also names its nodes of the search tree (SolverStep.Tree, for the Search Tree picture): under the root
+    // "start", each square considered in a row is a node "(row,col)" under the queen of the row above. A Try brings the squares
+    // skipped since the last queen in that row (pruned, "hit by (r,c)") and then the queen placed (explored; the last row's is
+    // the solution); a Reject brings the rest of the row's skipped squares and then the queen above that has to move (failed;
+    // the root when row 0 runs out). The Done step names the answer's path again, root first.
     public string Solve(NQUEENS problem, StepRecorder<BoardCells> rec) {
         int n = problem.n;
         int[] board = new int[n]; // board[row] = col
-        var search = new Search { Rec = rec };
+        var search = new Search { Rec = rec, RowIds = new int[n] };
 
         if (backtrack(0, board, n, search)) {
             string answer = formatCertificate(board);
             rec.Done(Queens(board, n, []), true, n == 0
                 ? "An empty board needs no queens, so the answer is {}."
                 : $"{(n == 1 ? "The one queen is placed" : $"All {n} queens are placed and none attacks another")}{(n <= 16 ? ": " + answer : "")}. "
-                    + $"Found after {Count(search.Placements, "placement")}.");
+                    + $"Found after {Count(search.Placements, "placement")}.",
+                n == 0 ? null : () => [Search.Root, .. Enumerable.Range(0, n).Select(r => search.Queen(board, r, r == n - 1 ? SearchNodeState.Solution : SearchNodeState.Explored))]);
             return answer;
         }
 
@@ -47,10 +53,20 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
         return "{}";
     }
 
-    // What the search carries besides the board: the recorder and how many queens it has placed.
+    // What the search carries besides the board: the recorder, how many queens it has placed, and the search tree's
+    // bookkeeping: the node id of each row's current queen and the next id (plain ints, so solving without steps allocates
+    // nothing for the tree; the nodes themselves are built only inside recorder lambdas).
     private sealed class Search {
         public required StepRecorder<BoardCells> Rec { get; init; }
         public int Placements;
+        public required int[] RowIds { get; init; }
+        public int NextNode = 1;
+
+        public static readonly SearchNode Root = new(0, null, "start", SearchNodeState.Explored);
+
+        // The node of the queen in row r (the root for r = -1), in the given state.
+        public SearchNode Queen(int[] board, int r, SearchNodeState state) =>
+            r < 0 ? Root with { State = state } : new(RowIds[r], r == 0 ? 0 : RowIds[r - 1], $"({r},{board[r]})", state);
     }
 
     private bool backtrack(int row, int[] board, int n, Search search) {
@@ -59,22 +75,30 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
         if (row == n) return true;
 
         var rec = search.Rec;
-        // The columns skipped since the last queen placed in this row, each with the row of the queen attacking it.
-        var skipped = new List<(int Col, int By)>();
+        // The columns skipped since the last queen placed in this row, each with the row of the queen attacking it and its
+        // node of the search tree.
+        var skipped = new List<(int Col, int By, int Node)>();
         bool resumed = false;
+        int parentId = row == 0 ? 0 : search.RowIds[row - 1];
+        SearchNode Cut((int Col, int By, int Node) x) =>
+            new(x.Node, parentId, $"({row},{x.Col})", SearchNodeState.Pruned) { Bound = $"hit by ({x.By},{board[x.By]})" };
         for (int col = 0; col < n; col++) {
             int by = attacker(row, col, board);
             if (by >= 0) {
-                skipped.Add((col, by));
+                skipped.Add((col, by, search.NextNode++));
                 continue;
             }
             board[row] = col;
             search.Placements++;
             var rejected = skipped.ToArray();
             bool again = resumed;
+            search.RowIds[row] = search.NextNode++;
+            bool first = search.Placements == 1;
             rec.Try(() => Queens(board, row + 1, rejected.Select(x => Conflict(row, x.Col, x.By, board))),
-                () => placeCaption(row, col, rejected, again, board),
-                () => [BoardFrames.CellId(row, col)]);
+                () => placeCaption(row, col, [.. rejected.Select(x => (x.Col, x.By))], again, board),
+                () => [BoardFrames.CellId(row, col)],
+                () => [.. first ? [Search.Root] : Array.Empty<SearchNode>(), .. rejected.Select(Cut),
+                    search.Queen(board, row, row == n - 1 ? SearchNodeState.Solution : SearchNodeState.Explored)]);
             skipped.Clear();
             resumed = true;
             if (backtrack(row + 1, board, n, search)) return true;
@@ -86,7 +110,8 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
             rec.Reject(() => Queens(board, row, rejectedAtEnd.Select(x => Conflict(row, x.Col, x.By, board))),
                 () => deadCaption(row, rejectedAtEnd.Length, again),
                 // The whole row failed, and so did the queen above it that has to move.
-                () => [.. Enumerable.Range(0, n).Select(c => BoardFrames.CellId(row, c)), .. row > 0 ? new[] { BoardFrames.CellId(row - 1, board[row - 1]) } : []]);
+                () => [.. Enumerable.Range(0, n).Select(c => BoardFrames.CellId(row, c)), .. row > 0 ? new[] { BoardFrames.CellId(row - 1, board[row - 1]) } : []],
+                () => [.. rejectedAtEnd.Select(Cut), search.Queen(board, row - 1, SearchNodeState.Failed)]);
         }
         return false;
     }
