@@ -35,4 +35,13 @@ public enum VisualizationType {
     /// type (<see cref="GraphD3"/>, <see cref="GraphLaTeX"/>) in /info so old frontends are unaffected.
     /// </summary>
     Graph,
+    /// <summary>
+    /// The Quantum Circuit picture (Deutsch, Deutsch-Jozsa, Bernstein-Vazirani, Simon's Problem, Unstructured Search, Prime
+    /// Factorization): one wire per qubit, gate columns in the order they run with the oracle as a box, the measured qubits,
+    /// and per step the column applied, the classical oracle calls and the outcome probabilities; a static payload plus one
+    /// frame of named states per solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the
+    /// <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type
+    /// (<see cref="QuantumCircuitD3"/>, <see cref="QuantumCircuitQjs"/>).
+    /// </summary>
+    QuantumCircuit,
 }
