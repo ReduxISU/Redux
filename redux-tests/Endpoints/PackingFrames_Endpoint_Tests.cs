@@ -125,8 +125,8 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // Before the rewire the target's visualization was DummyVisualization, so visualizeReduction answered an empty list
-    // (#755). Now it answers the target's list items. Neither reduction maps solutions yet (mapSolutions answers ""), so
-    // both items are the unsolved picture.
+    // (#755). Now it answers the target's list items: the unsolved picture, then the solved one, which colors the mapped answer
+    // (both reductions map answers forward since #828).
     [Theory]
     [InlineData("karpexactcovertosubsetsum", "{{2,3},{4,1}}", "({1,2,3,4},{{1,2,3},{2,3},{4,1}})")]
     [InlineData("fengreduction", "{1,12,15}", "({1,7,12,15},28)")]
