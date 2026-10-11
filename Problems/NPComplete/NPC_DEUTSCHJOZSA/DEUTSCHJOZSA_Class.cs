@@ -54,9 +54,11 @@ class DEUTSCHJOZSA : IProblem<DeutschJozsaClassicalSolver, DeutschJozsaVerifier,
         // Convert to C# list
         w = new List<int>();
         foreach (var bit in bitslist) {
-            if (int.TryParse(bit.ToString(), out int value)) {
-                w.Add(value);
-            }
+            // f's table holds bits: anything else is refused, not dropped or counted (#813).
+            string text = bit.ToString()?.Trim() ?? "";
+            if (text is not ("0" or "1"))
+                throw new ProblemParseException(problemName, input, $"'{text}' is not a bit; f's table holds 0s and 1s");
+            w.Add(text == "1" ? 1 : 0);
         }
 
         n = PowerOfTwo(w.Count);

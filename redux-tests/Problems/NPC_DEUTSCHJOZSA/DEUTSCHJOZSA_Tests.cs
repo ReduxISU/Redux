@@ -96,4 +96,24 @@ public class DEUTSCHJOZSA_tests {
         var verifier = new DeutschJozsaVerifier();
         Assert.True(verifier.verify(problem, DeutschJozsaVerifier.CertificateExample));
     }
+
+    // #813: the table holds bits; anything else is an instance parse error, not dropped or counted.
+    [Theory]
+    [InlineData("(0,0,2,2)")]
+    [InlineData("(1,a,1,1,1)")]
+    [InlineData("(1,1,-1,1)")]
+    [InlineData("(0,1,1,0,1,0,0,7)")]
+    public void DEUTSCHJOZSA_EntryThatIsNotABit_IsAParseError(string instance) {
+        Assert.Throws<API.Interfaces.ProblemParseException>(() => API.Interfaces.ParseGuard.CreateProblem<DEUTSCHJOZSA>(instance));
+    }
+
+    [Theory]
+    [InlineData("(1, 1, 1, 1)", 2)]
+    [InlineData("(0,1)", 1)]
+    [InlineData("( 0 , 1 , 1 , 0 )", 2)]
+    public void DEUTSCHJOZSA_BitTables_StillParse(string instance, int n) {
+        var problem = new DEUTSCHJOZSA(instance);
+        Assert.Equal(n, problem.n);
+        Assert.All(problem.w, v => Assert.InRange(v, 0, 1));
+    }
 }
