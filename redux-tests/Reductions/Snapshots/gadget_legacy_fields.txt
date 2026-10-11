@@ -86,6 +86,12 @@ ElementHighlight | b | b0,b1
 ElementHighlight | c | c0,c1
 ElementHighlight | d | d0,d1
 ElementHighlight | e | e0,e1
+ElementHighlight | a-b | a1>b0,b1>a0
+ElementHighlight | a-c | a1>c0,c1>a0
+ElementHighlight | a-e | a1>e0,e1>a0
+ElementHighlight | b-e | b1>e0,e1>b0
+ElementHighlight | c-d | c1>d0,d1>c0
+ElementHighlight |  | 
 # reduceToCLIQUE
 ElementHighlight | a | a
 ElementHighlight | b | b

@@ -105,7 +105,7 @@ public class Gadget_Kinds_Tests {
         // 11 for the literals and the padding, then (#693) one per variable and one per new variable of a split.
         ["KarpSATToSAT3"] = "Element x17, Group x3",
         ["KarpVertexCoverToNodeSet"] = "Element x5",
-        ["LawlerKarp"] = "Element x5",
+        ["LawlerKarp"] = "Element x10, Bound x1",
         // #694: an edge rule per node that gets complement edges, and the bound.
         ["reduceToCLIQUE"] = "Element x7, EdgeRule x6, Bound x1",
         ["sipserReductionVertexCover"] = "Element x6, EdgeRule x3, Bound x1",

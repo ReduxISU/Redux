@@ -57,7 +57,8 @@
       ],
       "targetIds": [
         "a0",
-        "a1"
+        "a1",
+        "a0\u003Ea1"
       ]
     },
     {
@@ -76,7 +77,8 @@
       ],
       "targetIds": [
         "b0",
-        "b1"
+        "b1",
+        "b0\u003Eb1"
       ]
     },
     {
@@ -95,7 +97,8 @@
       ],
       "targetIds": [
         "c0",
-        "c1"
+        "c1",
+        "c0\u003Ec1"
       ]
     },
     {
@@ -114,7 +117,8 @@
       ],
       "targetIds": [
         "d0",
-        "d1"
+        "d1",
+        "d0\u003Ed1"
       ]
     },
     {
@@ -133,8 +137,114 @@
       ],
       "targetIds": [
         "e0",
-        "e1"
+        "e1",
+        "e0\u003Ee1"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-b"
+      ],
+      "reductionToIds": [
+        "a1\u003Eb0",
+        "b1\u003Ea0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "a1\u003Eb0",
+        "b1\u003Ea0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-c"
+      ],
+      "reductionToIds": [
+        "a1\u003Ec0",
+        "c1\u003Ea0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-c"
+      ],
+      "targetIds": [
+        "a1\u003Ec0",
+        "c1\u003Ea0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-e"
+      ],
+      "reductionToIds": [
+        "a1\u003Ee0",
+        "e1\u003Ea0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-e"
+      ],
+      "targetIds": [
+        "a1\u003Ee0",
+        "e1\u003Ea0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b-e"
+      ],
+      "reductionToIds": [
+        "b1\u003Ee0",
+        "e1\u003Eb0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-e"
+      ],
+      "targetIds": [
+        "b1\u003Ee0",
+        "e1\u003Eb0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c-d"
+      ],
+      "reductionToIds": [
+        "c1\u003Ed0",
+        "d1\u003Ec0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c-d"
+      ],
+      "targetIds": [
+        "c1\u003Ed0",
+        "d1\u003Ec0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
     }
   ],
   "reductionFrom": {
