@@ -1,0 +1,954 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "KarpExactCoverToSubsetSum",
+  "reductionName": "Karp\u0027s Subset Sum Reduction",
+  "solver": "Subset Sum Brute Force",
+  "source": {
+    "problem": "Exact Cover",
+    "instance": "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "picture": {
+      "type": "BipartiteGraph",
+      "payload": {
+        "kind": "bipartiteGraph",
+        "layout": "columns",
+        "pickSide": "sets",
+        "rule": "exactlyOnce",
+        "elements": [
+          {
+            "id": "e:1",
+            "label": "1"
+          },
+          {
+            "id": "e:2",
+            "label": "2"
+          },
+          {
+            "id": "e:3",
+            "label": "3"
+          },
+          {
+            "id": "e:4",
+            "label": "4"
+          }
+        ],
+        "sets": [
+          {
+            "id": "S1",
+            "label": "S1",
+            "members": [
+              "e:1",
+              "e:2",
+              "e:3"
+            ]
+          },
+          {
+            "id": "S2",
+            "label": "S2",
+            "members": [
+              "e:2",
+              "e:3"
+            ]
+          },
+          {
+            "id": "S3",
+            "label": "S3",
+            "members": [
+              "e:4",
+              "e:1"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "id": "e:1~S1",
+            "a": "e:1",
+            "b": "S1"
+          },
+          {
+            "id": "e:2~S1",
+            "a": "e:2",
+            "b": "S1"
+          },
+          {
+            "id": "e:3~S1",
+            "a": "e:3",
+            "b": "S1"
+          },
+          {
+            "id": "e:2~S2",
+            "a": "e:2",
+            "b": "S2"
+          },
+          {
+            "id": "e:3~S2",
+            "a": "e:3",
+            "b": "S2"
+          },
+          {
+            "id": "e:4~S3",
+            "a": "e:4",
+            "b": "S3"
+          },
+          {
+            "id": "e:1~S3",
+            "a": "e:1",
+            "b": "S3"
+          }
+        ]
+      }
+    }
+  },
+  "target": {
+    "problem": "Subset Sum",
+    "instance": "({21,20,65},85)",
+    "picture": {
+      "type": "Packing",
+      "payload": {
+        "kind": "packing",
+        "rule": "subsetSum",
+        "items": [
+          {
+            "id": "I1",
+            "label": "21",
+            "size": 21
+          },
+          {
+            "id": "I2",
+            "label": "20",
+            "size": 20
+          },
+          {
+            "id": "I3",
+            "label": "65",
+            "size": 65
+          }
+        ],
+        "containers": [
+          {
+            "id": "C1",
+            "label": "Chosen",
+            "target": 85
+          }
+        ],
+        "total": 106
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "I1",
+        "I2",
+        "I3",
+        "C1"
+      ],
+      "edges": []
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S1"
+      ],
+      "targetIds": [
+        "I1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S2"
+      ],
+      "targetIds": [
+        "I2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "S3"
+      ],
+      "targetIds": [
+        "I3"
+      ]
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "e:1",
+        "e:2",
+        "e:3",
+        "e:4"
+      ],
+      "targetIds": [
+        "C1"
+      ],
+      "note": "T = 85, a 1 in each of the 4 digits"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Set S1 {1,2,3} becomes the number 21: 0111 in base 4, one digit per element of X (4, 3, 2, 1 from the left), a 1 where S1 holds that element.",
+      "sourceFocus": [
+        "S1"
+      ],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:2~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 1,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Set S2 {2,3} becomes the number 20: 0110 in base 4, one digit per element of X (4, 3, 2, 1 from the left), a 1 where S2 holds that element.",
+      "sourceFocus": [
+        "S2"
+      ],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "nodes": {
+          "S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:2~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 2,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Set S3 {4,1} becomes the number 65: 1001 in base 4, one digit per element of X (4, 3, 2, 1 from the left), a 1 where S3 holds that element.",
+      "sourceFocus": [
+        "S3"
+      ],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "nodes": {
+          "S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:1~S3": {
+            "state": "ElementHighlight"
+          },
+          "e:4~S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 3,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "The target T is 1111 in base 4 = 85: a 1 for every element of X. At most 3 sets add to any digit and 3 \u003C 4, so nothing carries, and numbers add up to T exactly when their sets hold every element once.",
+      "ok": true,
+      "sourceFocus": [
+        "e:1",
+        "e:2",
+        "e:3",
+        "e:4"
+      ],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "e:1": {
+            "state": "ElementHighlight"
+          },
+          "e:2": {
+            "state": "ElementHighlight"
+          },
+          "e:3": {
+            "state": "ElementHighlight"
+          },
+          "e:4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 4,
+        "builtEdges": 0
+      },
+      "bound": 85,
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {21}: 21, not 85.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 21
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {20}: 20, not 85.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 20
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {21,20}: 21 \u002B 20 = 41, not 85.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 41
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {65}: 65, not 85.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          0
+        ],
+        "totals": [
+          {
+            "size": 65
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {21,65}: 21 \u002B 65 = 86, not 85.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I3"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0
+        ],
+        "totals": [
+          {
+            "size": 86
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try {20,65}: 20 \u002B 65 = 85. That\u0027s T.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2",
+        "I3"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 85
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "{20,65} adds up to exactly 85, found after 6 subsets.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Untraveled"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 85
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Reject",
+      "caption": "Number 21 is not in the subset, so set S1 {1,2,3} is left out of the exact cover.",
+      "sourceFocus": [
+        "S1"
+      ],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "Rejected"
+          }
+        },
+        "edges": {
+          "e:1~S1": {
+            "state": "Rejected"
+          },
+          "e:2~S1": {
+            "state": "Rejected"
+          },
+          "e:3~S1": {
+            "state": "Rejected"
+          }
+        },
+        "hits": {}
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 85
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Number 20 is in the subset, so set S2 {2,3} is in the exact cover: 20 is S2 written in base 4.",
+      "sourceFocus": [
+        "S2"
+      ],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "Blocked"
+          },
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:2~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:3~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:2": 1,
+          "e:3": 1
+        }
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Untraveled"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 85
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Number 65 is in the subset, so set S3 {4,1} is in the exact cover: 65 is S3 written in base 4.",
+      "sourceFocus": [
+        "S3"
+      ],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "Blocked"
+          },
+          "S2": {
+            "state": "Solution"
+          },
+          "S3": {
+            "state": "ElementHighlight"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          },
+          "e:4": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S3": {
+            "state": "ElementHighlight"
+          },
+          "e:2~S2": {
+            "state": "Solution"
+          },
+          "e:3~S2": {
+            "state": "Solution"
+          },
+          "e:4~S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:2": 1,
+          "e:3": 1,
+          "e:4": 1
+        }
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Untraveled"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 85
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{{2,3},{4,1}} is a valid Exact Cover answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "S1": {
+            "state": "Blocked"
+          },
+          "S2": {
+            "state": "Solution"
+          },
+          "S3": {
+            "state": "Solution"
+          },
+          "e:1": {
+            "state": "Covered"
+          },
+          "e:2": {
+            "state": "Covered"
+          },
+          "e:3": {
+            "state": "Covered"
+          },
+          "e:4": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:1~S3": {
+            "state": "Solution"
+          },
+          "e:2~S2": {
+            "state": "Solution"
+          },
+          "e:3~S2": {
+            "state": "Solution"
+          },
+          "e:4~S3": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:1": 1,
+          "e:2": 1,
+          "e:3": 1,
+          "e:4": 1
+        }
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Untraveled"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 85
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1532 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "FengReduction",
+  "reductionName": "Feng\u0027s Knapsack Reduction",
+  "solver": "Knapsack Brute Force",
+  "source": {
+    "problem": "Subset Sum",
+    "instance": "({1,7,12,15},28)",
+    "picture": {
+      "type": "Packing",
+      "payload": {
+        "kind": "packing",
+        "rule": "subsetSum",
+        "items": [
+          {
+            "id": "I1",
+            "label": "1",
+            "size": 1
+          },
+          {
+            "id": "I2",
+            "label": "7",
+            "size": 7
+          },
+          {
+            "id": "I3",
+            "label": "12",
+            "size": 12
+          },
+          {
+            "id": "I4",
+            "label": "15",
+            "size": 15
+          }
+        ],
+        "containers": [
+          {
+            "id": "C1",
+            "label": "Chosen",
+            "target": 28
+          }
+        ],
+        "total": 35
+      }
+    }
+  },
+  "target": {
+    "problem": "Knapsack (Binary)",
+    "instance": "({(1,1),(7,7),(12,12),(15,15)},28,28)",
+    "picture": {
+      "type": "Packing",
+      "payload": {
+        "kind": "packing",
+        "rule": "knapsack",
+        "items": [
+          {
+            "id": "I1",
+            "label": "(1,1)",
+            "size": 1,
+            "value": 1
+          },
+          {
+            "id": "I2",
+            "label": "(7,7)",
+            "size": 7,
+            "value": 7
+          },
+          {
+            "id": "I3",
+            "label": "(12,12)",
+            "size": 12,
+            "value": 12
+          },
+          {
+            "id": "I4",
+            "label": "(15,15)",
+            "size": 15,
+            "value": 15
+          }
+        ],
+        "containers": [
+          {
+            "id": "C1",
+            "label": "Knapsack",
+            "limit": 28,
+            "atLeast": 28
+          }
+        ],
+        "total": 35
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "I1",
+        "I2",
+        "I3",
+        "I4",
+        "C1"
+      ],
+      "edges": []
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I1"
+      ],
+      "targetIds": [
+        "I1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I2"
+      ],
+      "targetIds": [
+        "I2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I3"
+      ],
+      "targetIds": [
+        "I3"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I4"
+      ],
+      "targetIds": [
+        "I4"
+      ]
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "C1"
+      ],
+      "targetIds": [
+        "C1"
+      ],
+      "note": "W = V = T = 28"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 1 becomes the item (1,1): weight 1 and value 1, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "sourceFocus": [
+        "I1"
+      ],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0,
+            "value": 0
+          }
+        ],
+        "builtNodes": 1,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 7 becomes the item (7,7): weight 7 and value 7, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "sourceFocus": [
+        "I2"
+      ],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0,
+            "value": 0
+          }
+        ],
+        "builtNodes": 2,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 12 becomes the item (12,12): weight 12 and value 12, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "sourceFocus": [
+        "I3"
+      ],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0,
+            "value": 0
+          }
+        ],
+        "builtNodes": 3,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 15 becomes the item (15,15): weight 15 and value 15, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "sourceFocus": [
+        "I4"
+      ],
+      "targetFocus": [
+        "I4"
+      ],
+      "source": {
+        "items": {
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0,
+            "value": 0
+          }
+        ],
+        "builtNodes": 4,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "The target T = 28 becomes both the weight limit W = 28 and the value goal V = 28. An item\u0027s weight equals its value, so items that weigh at most 28 and are worth at least 28 add up to exactly 28.",
+      "ok": true,
+      "sourceFocus": [
+        "C1"
+      ],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {
+          "C1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0,
+            "value": 0
+          }
+        ],
+        "builtNodes": 5,
+        "builtEdges": 0
+      },
+      "bound": 28,
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {}: weight 0, value 0, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0,
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(1,1)}: weight 1, value 1, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 1,
+            "value": 1
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(7,7)}: weight 7, value 7, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 7,
+            "value": 7
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(1,1),(7,7)}: weight 8, value 8, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 8,
+            "value": 8
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(12,12)}: weight 12, value 12, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 12,
+            "value": 12
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(1,1),(12,12)}: weight 13, value 13, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 13,
+            "value": 13
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(7,7),(12,12)}: weight 19, value 19, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2",
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 19,
+            "value": 19
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(1,1),(7,7),(12,12)}: weight 20, value 20, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2",
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 20,
+            "value": 20
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(15,15)}: weight 15, value 15, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          -1,
+          0
+        ],
+        "totals": [
+          {
+            "size": 15,
+            "value": 15
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(1,1),(15,15)}: weight 16, value 16, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          -1,
+          0
+        ],
+        "totals": [
+          {
+            "size": 16,
+            "value": 16
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(7,7),(15,15)}: weight 22, value 22, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          0,
+          -1,
+          0
+        ],
+        "totals": [
+          {
+            "size": 22,
+            "value": 22
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(1,1),(7,7),(15,15)}: weight 23, value 23, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          -1,
+          0
+        ],
+        "totals": [
+          {
+            "size": 23,
+            "value": 23
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {(12,12),(15,15)}: weight 27, value 27, short of 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I3",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 27,
+            "value": 27
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try {(1,1),(12,12),(15,15)}: weight 28, value 28. It works.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I3",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28,
+            "value": 28
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "{(1,1),(12,12),(15,15)} fits in 28 and is worth at least 28, found after 14 sets.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Untraveled"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28,
+            "value": 28
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Item (1,1) is in the knapsack, so 1 is in the subset.",
+      "sourceFocus": [
+        "I1"
+      ],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          0,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 1
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "Untraveled"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28,
+            "value": 28
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Reject",
+      "caption": "Item (7,7) is not in the knapsack, so 7 is left out of the subset.",
+      "sourceFocus": [
+        "I2"
+      ],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Rejected"
+          }
+        },
+        "containers": {},
+        "assign": [
+          0,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 1
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28,
+            "value": 28
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Item (12,12) is in the knapsack, so 12 is in the subset.",
+      "sourceFocus": [
+        "I3"
+      ],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          0,
+          -1,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 13
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Untraveled"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28,
+            "value": 28
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Item (15,15) is in the knapsack, so 15 is in the subset.",
+      "sourceFocus": [
+        "I4"
+      ],
+      "targetFocus": [
+        "I4"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Untraveled"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28,
+            "value": 28
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{1,12,15} is a valid Subset Sum answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Untraveled"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Untraveled"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28,
+            "value": 28
+          }
+        ]
+      }
+    }
+  ]
+}

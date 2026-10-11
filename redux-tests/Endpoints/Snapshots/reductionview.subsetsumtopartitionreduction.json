@@ -1,0 +1,2356 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "SubsetSumToPartitionReduction",
+  "reductionName": "Partition Reduction",
+  "solver": "Partition Brute Force",
+  "source": {
+    "problem": "Subset Sum",
+    "instance": "({1,7,12,15},28)",
+    "picture": {
+      "type": "Packing",
+      "payload": {
+        "kind": "packing",
+        "rule": "subsetSum",
+        "items": [
+          {
+            "id": "I1",
+            "label": "1",
+            "size": 1
+          },
+          {
+            "id": "I2",
+            "label": "7",
+            "size": 7
+          },
+          {
+            "id": "I3",
+            "label": "12",
+            "size": 12
+          },
+          {
+            "id": "I4",
+            "label": "15",
+            "size": 15
+          }
+        ],
+        "containers": [
+          {
+            "id": "C1",
+            "label": "Chosen",
+            "target": 28
+          }
+        ],
+        "total": 35
+      }
+    }
+  },
+  "target": {
+    "problem": "Partition",
+    "instance": "{1,7,12,15,29,8}",
+    "picture": {
+      "type": "Packing",
+      "payload": {
+        "kind": "packing",
+        "rule": "partition",
+        "items": [
+          {
+            "id": "I1",
+            "label": "1",
+            "size": 1
+          },
+          {
+            "id": "I2",
+            "label": "7",
+            "size": 7
+          },
+          {
+            "id": "I3",
+            "label": "12",
+            "size": 12
+          },
+          {
+            "id": "I4",
+            "label": "15",
+            "size": 15
+          },
+          {
+            "id": "I5",
+            "label": "29",
+            "size": 29
+          },
+          {
+            "id": "I6",
+            "label": "8",
+            "size": 8
+          }
+        ],
+        "containers": [
+          {
+            "id": "C1",
+            "label": "S1",
+            "target": 36
+          },
+          {
+            "id": "C2",
+            "label": "S2",
+            "target": 36
+          }
+        ],
+        "total": 72
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "I1",
+        "I2",
+        "I3",
+        "I4",
+        "I5",
+        "I6",
+        "C1",
+        "C2"
+      ],
+      "edges": []
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I1"
+      ],
+      "targetIds": [
+        "I1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I2"
+      ],
+      "targetIds": [
+        "I2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I3"
+      ],
+      "targetIds": [
+        "I3"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "I4"
+      ],
+      "targetIds": [
+        "I4"
+      ]
+    },
+    {
+      "gadgetKind": "palette",
+      "sourceIds": [
+        "C1"
+      ],
+      "targetIds": [
+        "I5"
+      ],
+      "note": "T \u002B 1 = 29"
+    },
+    {
+      "gadgetKind": "palette",
+      "sourceIds": [
+        "C1"
+      ],
+      "targetIds": [
+        "I6"
+      ],
+      "note": "sum - T \u002B 1 = 8"
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "C1"
+      ],
+      "targetIds": [
+        "C1",
+        "C2"
+      ],
+      "note": "each side holds sum \u002B 1 = 36"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 1 of S becomes the number 1 of Partition, unchanged.",
+      "sourceFocus": [
+        "I1"
+      ],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 1,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 7 of S becomes the number 7 of Partition, unchanged.",
+      "sourceFocus": [
+        "I2"
+      ],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 2,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 12 of S becomes the number 12 of Partition, unchanged.",
+      "sourceFocus": [
+        "I3"
+      ],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 3,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Number 15 of S becomes the number 15 of Partition, unchanged.",
+      "sourceFocus": [
+        "I4"
+      ],
+      "targetFocus": [
+        "I4"
+      ],
+      "source": {
+        "items": {
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 4,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Partition gets the number T \u002B 1 = 29. On its side it needs numbers of S adding up to (sum \u002B 1) - (T \u002B 1) = 7: the ones left out of a subset that adds up to T = 28.",
+      "sourceFocus": [
+        "C1"
+      ],
+      "targetFocus": [
+        "I5"
+      ],
+      "source": {
+        "items": {},
+        "containers": {
+          "C1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I5": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 5,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Partition gets the number sum - T \u002B 1 = 8. On its side it needs numbers of S adding up to (sum \u002B 1) - (sum - T \u002B 1) = 28: a subset that adds up to T.",
+      "sourceFocus": [
+        "C1"
+      ],
+      "targetFocus": [
+        "I6"
+      ],
+      "source": {
+        "items": {},
+        "containers": {
+          "C1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 6,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        5
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "Partition\u0027s numbers add up to 2 * 35 \u002B 2 = 72, so each side must hold 36. The two added numbers add up to 37, more than a side holds, so they always sit on different sides.",
+      "ok": true,
+      "sourceFocus": [
+        "C1"
+      ],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {
+          "C1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          },
+          {
+            "size": 0
+          }
+        ],
+        "builtNodes": 8,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        6
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {7}: 7 against 65, off by 58.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 7
+          },
+          {
+            "size": 65
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,7}: 8 against 64, off by 56.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          1,
+          1,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 8
+          },
+          {
+            "size": 64
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {12}: 12 against 60, off by 48.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          1,
+          0,
+          1,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 12
+          },
+          {
+            "size": 60
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,12}: 13 against 59, off by 46.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          1,
+          0,
+          1,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 13
+          },
+          {
+            "size": 59
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {7,12}: 19 against 53, off by 34.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2",
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          0,
+          1,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 19
+          },
+          {
+            "size": 53
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,7,12}: 20 against 52, off by 32.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2",
+        "I3"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 20
+          },
+          {
+            "size": 52
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {15}: 15 against 57, off by 42.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          1,
+          1,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 15
+          },
+          {
+            "size": 57
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,15}: 16 against 56, off by 40.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          1,
+          1,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 16
+          },
+          {
+            "size": 56
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {7,15}: 22 against 50, off by 28.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 22
+          },
+          {
+            "size": 50
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,7,15}: 23 against 49, off by 26.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          1,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 23
+          },
+          {
+            "size": 49
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {12,15}: 27 against 45, off by 18.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I3",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          1,
+          0,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 27
+          },
+          {
+            "size": 45
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,12,15}: 28 against 44, off by 16.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I3",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          1,
+          0,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 28
+          },
+          {
+            "size": 44
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {7,12,15}: 34 against 38, off by 4.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 34
+          },
+          {
+            "size": 38
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,7,12,15}: 35 against 37, off by 2.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I2",
+        "I3",
+        "I4"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          1
+        ],
+        "totals": [
+          {
+            "size": 35
+          },
+          {
+            "size": 37
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {29}: 29 against 43, off by 14.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I5"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          1,
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 29
+          },
+          {
+            "size": 43
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try S1 = {1,29}: 30 against 42, off by 12.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I1",
+        "I5"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Rejected"
+          },
+          "C2": {
+            "state": "Rejected"
+          }
+        },
+        "assign": [
+          0,
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 30
+          },
+          {
+            "size": 42
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try S1 = {7,29}: 36 against 36. Equal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "I2",
+        "I5"
+      ],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          },
+          "I5": {
+            "state": "ElementHighlight"
+          },
+          "I6": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "Both sides add up to 36, found after 17 splits.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {},
+        "containers": {},
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          },
+          "I5": {
+            "state": "Solution"
+          },
+          "I6": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Try",
+      "caption": "Number 8 (sum - T \u002B 1) is on side S2, so the numbers of S beside it add up to T: they are the subset.",
+      "sourceFocus": [
+        "C1"
+      ],
+      "targetFocus": [
+        "I6"
+      ],
+      "source": {
+        "items": {},
+        "containers": {
+          "C1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assign": [
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 0
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          },
+          "I5": {
+            "state": "Solution"
+          },
+          "I6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Number 1 is on side S2 with 8, so 1 is in the subset.",
+      "sourceFocus": [
+        "I1"
+      ],
+      "targetFocus": [
+        "I1"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          0,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 1
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "ElementHighlight"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          },
+          "I5": {
+            "state": "Solution"
+          },
+          "I6": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Reject",
+      "caption": "Number 7 is on side S1 with 29 (T \u002B 1), so 7 is left out of the subset.",
+      "sourceFocus": [
+        "I2"
+      ],
+      "targetFocus": [
+        "I2"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Rejected"
+          }
+        },
+        "containers": {},
+        "assign": [
+          0,
+          -1,
+          -1,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 1
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "ElementHighlight"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          },
+          "I5": {
+            "state": "Solution"
+          },
+          "I6": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Number 12 is on side S2 with 8, so 12 is in the subset.",
+      "sourceFocus": [
+        "I3"
+      ],
+      "targetFocus": [
+        "I3"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {},
+        "assign": [
+          0,
+          -1,
+          0,
+          -1
+        ],
+        "totals": [
+          {
+            "size": 13
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "ElementHighlight"
+          },
+          "I4": {
+            "state": "Solution"
+          },
+          "I5": {
+            "state": "Solution"
+          },
+          "I6": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Number 15 is on side S2 with 8, so 15 is in the subset.",
+      "sourceFocus": [
+        "I4"
+      ],
+      "targetFocus": [
+        "I4"
+      ],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "ElementHighlight"
+          },
+          "I5": {
+            "state": "Solution"
+          },
+          "I6": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{1,12,15} is a valid Subset Sum answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Untraveled"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          0,
+          -1,
+          0,
+          0
+        ],
+        "totals": [
+          {
+            "size": 28
+          }
+        ]
+      },
+      "target": {
+        "items": {
+          "I1": {
+            "state": "Solution"
+          },
+          "I2": {
+            "state": "Solution"
+          },
+          "I3": {
+            "state": "Solution"
+          },
+          "I4": {
+            "state": "Solution"
+          },
+          "I5": {
+            "state": "Solution"
+          },
+          "I6": {
+            "state": "Solution"
+          }
+        },
+        "containers": {
+          "C1": {
+            "state": "Covered"
+          },
+          "C2": {
+            "state": "Covered"
+          }
+        },
+        "assign": [
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "totals": [
+          {
+            "size": 36
+          },
+          {
+            "size": 36
+          }
+        ]
+      }
+    }
+  ]
+}
