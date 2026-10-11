@@ -84,4 +84,19 @@ public class SearchTreeSteps_Tests {
             () => throw new InvalidOperationException(), () => throw new InvalidOperationException());
         Assert.Empty(StepRecorder<NodeSet>.Off.Steps);
     }
+
+    [Fact]
+    public void Done_CanCarryTheAnswersPath_BuiltOnlyWhenRecording() {
+        var rec = new StepRecorder<NodeSet>(cap: 1);
+        rec.Try(() => new NodeSet([]), () => "kept", () => []);
+        rec.Accept(() => new NodeSet([]), () => "past the cap", () => []);
+        rec.Done(new NodeSet([]), true, "done", () => [new SearchNode(0, null, "start", SearchNodeState.Explored), new SearchNode(3, 0, "x", SearchNodeState.Solution)]);
+        var done = rec.Steps[^1];
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.Equal([0, 3], done.Tree!.Select(n => n.NodeId));
+        Assert.Equal([StepEvent.Try, StepEvent.Accept, StepEvent.Done], rec.Steps.Select(s => s.Event));
+
+        StepRecorder<NodeSet>.Off.Done(new NodeSet([]), true, "done", () => throw new InvalidOperationException());
+        Assert.Empty(StepRecorder<NodeSet>.Off.Steps);
+    }
 }
