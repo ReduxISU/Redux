@@ -46,19 +46,20 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         ("minimumvertexcoverdefaultvisualization", "bruteforceminimumvertexcover", "GraphD3"),
         ("independentsetdefaultvisualization", "independentsetbruteforce", "GraphD3"),
         ("dominatingsetdefaultvisualization", "dominatingsetforcedvertex", "GraphD3"),
-        // A legacy type that is still the list reshaped, now that every other case here builds its own frames (#666).
         ("dfatablevisualization", "dfasolver", "DynamicTable"),
+        // A legacy type that is still the list reshaped, now that every other case here builds its own frames (#666, #671).
+        ("deutschdefaultvisualization", "deutschclassicalsolver", "QuantumCircuitQjs"),
     };
 
     // Visualizations that build their own frames (the Graph picture, the Grouped Graph picture) are checked in
     // GraphFrames_Endpoint_Tests, GraphEdgeFrames_Endpoint_Tests, GraphGroupFrames_Endpoint_Tests,
     // GraphTourFrames_Endpoint_Tests and GroupedGraphFrames_Endpoint_Tests; the Automaton picture in
-    // AutomatonFrames_Endpoint_Tests;
+    // AutomatonFrames_Endpoint_Tests; the Table picture in TableAutomatonFrames_Endpoint_Tests;
     // for the rest, format=frames is the list reshaped.
     private static readonly string[] OwnFrames = {
         "cliquedefaultvisualization", "vertexcoverdefaultvisualization", "minimumvertexcoverdefaultvisualization",
         "independentsetdefaultvisualization", "dominatingsetdefaultvisualization", "minimumspanningtreevisualization",
-        "sat3defaultvisualization", "dfavisualization",
+        "sat3defaultvisualization", "dfavisualization", "dfatablevisualization",
     };
 
     public static TheoryData<string> SnapshotNames => new(SnapshotCases.Select(c => c.Vis));
