@@ -415,7 +415,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         foreach (var (name, type) in ProblemProvider.Reductions) {
             IReduction red;
             try { red = (IReduction)Activator.CreateInstance(type)!; } catch { continue; }
-            // The three of #691, and the reductions out of 3SAT and SAT (#693).
+            // The three of #691, the reductions out of 3SAT and SAT (#693), and the graph reductions (#694).
             bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT" }.Contains(type.Name);
             Assert.Equal(expected, red.hasBuildSteps());
             Assert.Equal(expected, red.BuildRun(true) != null);

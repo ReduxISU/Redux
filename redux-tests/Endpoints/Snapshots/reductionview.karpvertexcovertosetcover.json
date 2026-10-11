@@ -1,0 +1,574 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "KarpVertexCoverToSetCover",
+  "reductionName": "Karp\u0027s Set Cover Reduction",
+  "solver": "Set Cover Brute Force",
+  "source": {
+    "problem": "Vertex Cover",
+    "instance": "(({a,b,c},{{a,b},{b,c}}),1)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-b",
+            "a": "a",
+            "b": "b"
+          },
+          {
+            "id": "b-c",
+            "a": "b",
+            "b": "c"
+          }
+        ],
+        "shape": "subset",
+        "rule": "vertexCover",
+        "k": 1
+      }
+    }
+  },
+  "target": {
+    "problem": "Set Cover",
+    "instance": "({a_b,b_c},{{a_b},{a_b,b_c},{b_c}},1)",
+    "picture": {
+      "type": "BipartiteGraph",
+      "payload": {
+        "kind": "bipartiteGraph",
+        "layout": "columns",
+        "pickSide": "sets",
+        "rule": "atLeastOnce",
+        "elements": [
+          {
+            "id": "e:a_b",
+            "label": "a_b"
+          },
+          {
+            "id": "e:b_c",
+            "label": "b_c"
+          }
+        ],
+        "sets": [
+          {
+            "id": "S1",
+            "label": "S1",
+            "members": [
+              "e:a_b"
+            ]
+          },
+          {
+            "id": "S2",
+            "label": "S2",
+            "members": [
+              "e:a_b",
+              "e:b_c"
+            ]
+          },
+          {
+            "id": "S3",
+            "label": "S3",
+            "members": [
+              "e:b_c"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "id": "e:a_b~S1",
+            "a": "e:a_b",
+            "b": "S1"
+          },
+          {
+            "id": "e:a_b~S2",
+            "a": "e:a_b",
+            "b": "S2"
+          },
+          {
+            "id": "e:b_c~S2",
+            "a": "e:b_c",
+            "b": "S2"
+          },
+          {
+            "id": "e:b_c~S3",
+            "a": "e:b_c",
+            "b": "S3"
+          }
+        ],
+        "k": 1
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "e:a_b",
+        "S1",
+        "e:b_c",
+        "S2",
+        "S3"
+      ],
+      "edges": [
+        "e:a_b~S1",
+        "e:a_b~S2",
+        "e:b_c~S2",
+        "e:b_c~S3"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "S1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "e:a_b"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "S2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-c"
+      ],
+      "targetIds": [
+        "e:b_c"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "S3"
+      ]
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 1"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node a becomes set S1, the edges it touches: {a_b}. Edge {a,b} is new, so it joins the elements to cover.",
+      "sourceFocus": [
+        "a",
+        "a-b"
+      ],
+      "targetFocus": [
+        "e:a_b",
+        "S1",
+        "e:a_b~S1"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:a_b~S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 2,
+        "builtEdges": 1
+      },
+      "gadgets": [
+        0,
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node b becomes set S2, the edges it touches: {a_b,b_c}. Edge {b,c} is new, so it joins the elements to cover.",
+      "sourceFocus": [
+        "b",
+        "b-c"
+      ],
+      "targetFocus": [
+        "e:a_b",
+        "e:b_c",
+        "S2",
+        "e:a_b~S2",
+        "e:b_c~S2"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b-c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:a_b~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 4,
+        "builtEdges": 3
+      },
+      "gadgets": [
+        2,
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node c becomes set S3, the edges it touches: {b_c}.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "e:b_c",
+        "S3",
+        "e:b_c~S3"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S3": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:b_c~S3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 5,
+        "builtEdges": 4
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Done",
+      "caption": "K stays 1: at most 1 set can cover every element exactly when at most 1 node can touch every edge.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "hits": {},
+        "builtNodes": 5,
+        "builtEdges": 4
+      },
+      "bound": 1,
+      "gadgets": [
+        5
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {S1}: b_c isn\u0027t covered.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Rejected"
+          }
+        },
+        "edges": {
+          "e:a_b~S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a_b": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try {S2}. It covers every element.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_b~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a_b": 1,
+          "e:b_c": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Done",
+      "caption": "{S2} covers U with 1 set, found after 2 tries. Smaller combinations were tried first, so no cover uses fewer sets.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S2": {
+            "state": "Solution"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_b~S2": {
+            "state": "Solution"
+          },
+          "e:b_c~S2": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:a_b": 1,
+          "e:b_c": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Set S2 {a_b,b_c} is in the cover. It is node b\u0027s set, the edges that touch b, so b is in the vertex cover.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "S2"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Covered"
+          },
+          "b-c": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_b~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a_b": 1,
+          "e:b_c": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{b} is a valid Vertex Cover answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Covered"
+          },
+          "b-c": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "S2": {
+            "state": "Solution"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_b~S2": {
+            "state": "Solution"
+          },
+          "e:b_c~S2": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:a_b": 1,
+          "e:b_c": 1
+        }
+      }
+    }
+  ]
+}
