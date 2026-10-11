@@ -1,14 +1,22 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Tables;
+using API.Interfaces.Table;
 using API.Problems.P.P_NFA;
 using API.Problems.P.P_NFA.Solvers;
 using NFATableStep = API.Problems.P.P_NFA.Solvers.NFASolver.NFATableStep;
 
 namespace API.Problems.P.P_NFA.Visualizations;
 
-class NFATableVisualization : IVisualization<NFA, API_empty> {
+/// <summary>
+/// The NFA's run tables. The list format is one table per run, as it always was; under format=frames it is the Table
+/// picture's trace table (<see cref="AutomatonTraceTable"/>), a second view of the steps the Automaton picture draws: with
+/// NFA Backtracking (the default) the branch being explored, row by row; with NFA Subset Simulation one row per symbol with
+/// every active state. The NFA's default visualization is unchanged.
+/// </summary>
+class NFATableVisualization : IVisualization<NFA, API_empty>, ITableVisualization<NFA, ActiveStates> {
     public string visualizationName { get; } = "Non-Deterministic Finite Automata Table Visualization";
     public string visualizationDefinition { get; } = "Displays a table for one explored run of the NFA on the input string at a time, showing the symbol consumed, the state transition, and acceptance at each step of that run. Accepting runs are listed before rejected runs, so the default run shown is the first accepting run, or the first rejected run if none accept.";
     public string source { get; } = "";
@@ -21,6 +29,21 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
     // The table is still built from the solver's own run enumeration (GetTableSteps), not from the typed
     // steps, but it declares the shape its solver records so the steps are not dropped as a mismatch.
     Type? IVisualization.StepShape => typeof(ActiveStates);
+
+    // The list format only draws tables when it is given steps (see StepsVisualization), which it was before the Table
+    // picture existed, so it keeps getting them.
+    bool IFramesVisualization.ListReadsTypedSteps() => true;
+
+    // The Table picture (format=frames only). Implemented explicitly so it is not part of /info. A single state is written
+    // as its name, a set of them (subset simulation) in braces.
+    TableSpec ITableVisualization<NFA, ActiveStates>.Describe(NFA problem) => AutomatonTraceTable.Spec();
+    IReadOnlyList<TableDraft> ITableVisualization<NFA, ActiveStates>.Draw(NFA problem, IReadOnlyList<SolverStep<ActiveStates>> steps, bool incremental) {
+        // Sets of states (subset simulation) are written in braces once any of them has more than one state.
+        bool sets = steps.Any(s => s.Partial.States.Length > 1);
+        return AutomatonTraceTable.Drafts(steps, AutomatonFrames.InputSymbols(problem.inputString),
+            states => states.Count == 1 && !sets ? states[0] : AutomatonFrames.Braces(states), problem.acceptStates.Contains, AutomatonTraceTable.Dead, oneRun: false);
+    }
+    TableDraft ITableVisualization<NFA, ActiveStates>.Blank(NFA problem) => new();
 
     public NFATableVisualization() { }
 

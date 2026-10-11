@@ -1,13 +1,20 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Tables;
+using API.Interfaces.Table;
 using API.Problems.P.P_DFA;
 using API.Problems.P.P_DFA.Solvers;
 
 namespace API.Problems.P.P_DFA.Visualizations;
 
-class DFATableVisualization : IVisualization<DFA, API_empty> {
+/// <summary>
+/// The DFA's trace table. The list format is the step table it always was; under format=frames it is the Table picture's
+/// trace table (<see cref="AutomatonTraceTable"/>), a second view of the run the Automaton picture draws, one row per symbol
+/// read and a row into Garbage for a missing move. The DFA's default visualization is unchanged.
+/// </summary>
+class DFATableVisualization : IVisualization<DFA, API_empty>, ITableVisualization<DFA, ActiveStates> {
     public string visualizationName { get; } = "Deterministic Finite Automata Table Visualization";
     public string visualizationDefinition { get; } = "Displays a step-by-step table tracing the DFA's single deterministic path through the input string, showing the symbol consumed, the state transition, and whether the resulting state is accepting at each step.";
     public string source { get; } = "";
@@ -18,6 +25,16 @@ class DFATableVisualization : IVisualization<DFA, API_empty> {
 
     // Implemented explicitly so it is not a public member (and so not part of /info).
     Type? IVisualization.StepShape => typeof(ActiveStates);
+
+    // The list format already drew the typed steps before the Table picture existed, so it keeps getting them.
+    bool IFramesVisualization.ListReadsTypedSteps() => true;
+
+    // The Table picture (format=frames only). Implemented explicitly so it is not part of /info.
+    TableSpec ITableVisualization<DFA, ActiveStates>.Describe(DFA problem) => AutomatonTraceTable.Spec();
+    IReadOnlyList<TableDraft> ITableVisualization<DFA, ActiveStates>.Draw(DFA problem, IReadOnlyList<SolverStep<ActiveStates>> steps, bool incremental) =>
+        AutomatonTraceTable.Drafts(steps, AutomatonFrames.InputSymbols(problem.inputString),
+            states => states.Count == 1 ? states[0] : AutomatonFrames.Braces(states), problem.acceptStates.Contains, AutomatonTraceTable.Garbage, oneRun: true);
+    TableDraft ITableVisualization<DFA, ActiveStates>.Blank(DFA problem) => new();
 
     // One row of the trace table.
     private sealed class Row {
