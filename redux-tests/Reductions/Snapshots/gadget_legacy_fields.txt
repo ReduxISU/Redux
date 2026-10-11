@@ -86,6 +86,18 @@ ElementHighlight | a-e | a>e,e>a
 ElementHighlight | b-e | b>e,e>b
 ElementHighlight | c-d | c>d,d>c
 ElementHighlight |  | 
+# KarpVertexCoverToSetCover
+ElementHighlight | a | S1
+ElementHighlight | a-b | e:a_b
+ElementHighlight | a-c | e:a_c
+ElementHighlight | a-e | e:a_e
+ElementHighlight | b | S2
+ElementHighlight | b-e | e:b_e
+ElementHighlight | c | S3
+ElementHighlight | c-d | e:c_d
+ElementHighlight | d | S4
+ElementHighlight | e | S5
+ElementHighlight |  | 
 # LawlerKarp
 ElementHighlight | a | a0,a1
 ElementHighlight | b | b0,b1

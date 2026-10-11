@@ -416,7 +416,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
             IReduction red;
             try { red = (IReduction)Activator.CreateInstance(type)!; } catch { continue; }
             // The three of #691, and the reductions out of 3SAT and SAT (#693).
-            bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet" }.Contains(type.Name);
+            bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover" }.Contains(type.Name);
             Assert.Equal(expected, red.hasBuildSteps());
             Assert.Equal(expected, red.BuildRun(true) != null);
             checkedCount++;
@@ -489,7 +489,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         var (name, type) = ProblemProvider.Reductions
             .Where(kv => !new[] { Sat, Vc, Is }.Contains(kv.Value.Name))
             .Select(kv => (kv.Key, kv.Value))
-            .First(t => { try { return Activator.CreateInstance(t.Value) is IReduction; } catch { return false; } });
+            .First(t => { try { return Activator.CreateInstance(t.Value) is IReduction r && !r.hasBuildSteps(); } catch { return false; } });
         string instance = ((IReduction)Activator.CreateInstance(type)!).reductionFrom.defaultInstance;
         var response = await Post(name, instance);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
