@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Graphs.GraphParser;
 using API.Problems.NPComplete.NPC_SETCOVER;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_SETCOVER;
@@ -105,13 +106,26 @@ class KarpVertexCoverToSetCover : IReduction<VERTEXCOVER, SETCOVER> {
 
         reducedSetCover.universal = universal;
         reducedSetCover.subsets = subsets;
+        // The bound is A's K, as the instance text says; the object kept the default instance's K = 3 (#823).
+        reducedSetCover.K = reductionFrom.K;
         reducedSetCover.instance = instance;
 
         //return new THREE_DM();
         return reducedSetCover;
     }
 
+    // A vertex cover is a set cover of the target: node i's set holds the edges that touch it, so the chosen nodes' sets
+    // cover every edge. Each node of the cover gives its set; a node with no edges has an empty set, which the instance
+    // leaves out, so it gives nothing (#823).
     public string mapSolutions(string problemFromSolution) {
-        return "";
+        List<string> cover = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
+        var sets = new List<string>();
+        foreach (string node in cover) {
+            int i = reductionFrom.nodes.IndexOf(node);
+            if (i < 0)
+                throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{node}' is not a node of the graph");
+            if (reductionTo.subsets[i].Count > 0) sets.Add("{" + string.Join(",", reductionTo.subsets[i]) + "}");
+        }
+        return "{" + string.Join(",", sets) + "}";
     }
 }

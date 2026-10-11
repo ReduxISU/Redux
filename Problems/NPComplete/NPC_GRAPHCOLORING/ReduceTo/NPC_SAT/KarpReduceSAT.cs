@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo;
 using API.Problems.NPComplete.NPC_SAT;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_SAT;
@@ -167,8 +168,16 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
     }
 
+    // A K-coloring sets the variable of each node and its color True and the node's other color variables False: every
+    // node then has exactly one color (its clause and the at-most-one clauses hold), and no edge has both ends True for one
+    // color (#823).
     public string mapSolutions(string problemFromSolution) {
-        return "";
+        Dictionary<string, int> color = ColoringAnswer.Read(this, reductionFrom, problemFromSolution);
+        var values = new List<string>();
+        foreach (string node in reductionFrom.nodes)
+            for (int i = 0; i < reductionFrom.K; i++)
+                values.Add($"{node}{i}:{(color[node] == i ? "True" : "False")}");
+        return "(" + string.Join(",", values) + ")";
     }
     #endregion
 

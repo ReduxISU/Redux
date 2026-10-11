@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_HAMILTONIAN;
 
@@ -107,7 +108,15 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
         return UH;
     }
 
+    // A directed Hamiltonian cycle v, w, ... becomes the undirected one that walks each node's path v1, v2, v3 and leaves v3
+    // for the next node's w1 along the edge that stands for the arc (v, w). The directed certificate repeats its first node
+    // at the end; the undirected one does not (#823).
     public string mapSolutions(string problemFromSolution) {
-        return "";
+        List<string> tour = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
+        if (tour.Count > 1 && tour[0] == tour[^1]) tour.RemoveAt(tour.Count - 1);
+        foreach (string node in tour)
+            if (!reductionFrom.nodes.Contains(node))
+                throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{node}' is not a node of the graph");
+        return "{" + string.Join(",", tour.SelectMany(v => new[] { v + "1", v + "2", v + "3" })) + "}";
     }
 }

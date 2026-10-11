@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_NODESET;
 using API.Problems.NPComplete.NPC_VERTEXCOVER;
@@ -92,15 +93,17 @@ class KarpVertexCoverToNodeSet : IReduction<VERTEXCOVER, NODESET> {
 
         instance = instance.TrimEnd('(').TrimEnd(',') + "})," + reductionFrom.K.ToString() + ')';
 
-        reducedNODESET.K = reductionFrom.K;
-        reducedNODESET.nodes = reductionFrom.nodes;
-        reducedNODESET.instance = instance;
+        // Parsed from its own text, so its graph is this one and not the default instance's (#823).
+        reducedNODESET = new NODESET(instance);
 
         reductionTo = reducedNODESET;
         return reducedNODESET;
     }
 
+    // A vertex cover is a feedback node set of the target: every edge became a cycle of two arcs, which only removing one of
+    // its ends breaks, and the target has no other cycle. So the same nodes are the answer (#823).
     public string mapSolutions(string problemFromSolution) {
-        return "";
+        List<string> cover = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
+        return "{" + string.Join(",", cover) + "}";
     }
 }

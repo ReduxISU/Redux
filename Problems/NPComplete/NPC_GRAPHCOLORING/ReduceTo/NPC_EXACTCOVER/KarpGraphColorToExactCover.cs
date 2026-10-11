@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
 using API.Problems.NPComplete.NPC_EXACTCOVER;
 
@@ -151,8 +152,23 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
         return reducedExactCover;
     }
 
+    // A K-coloring picks, for each node u of color c, the set {u, u's slots for color c}, and for each edge {u,v}, the set
+    // for the pair (color of u, color of v): it covers the edge and the slots of u and v for every other color. Every slot is
+    // then covered once (by its node's set for its own color, by the edge's set for the rest), so the picked sets are an
+    // exact cover. The sets are read from the target by position: reduce() lists K sets per node, color 1 first, then
+    // K * (K - 1) sets per edge, one per ordered pair of different colors (#823).
     public string mapSolutions(string reductionFromSolution) {
-        return "";
+        Dictionary<string, int> color = ColoringAnswer.Read(this, reductionFrom, reductionFromSolution);
+        int k = reductionFrom.K;
+        var picked = new List<int>();
+        for (int u = 0; u < reductionFrom.nodes.Count; u++)
+            picked.Add(u * k + color[reductionFrom.nodes[u]]);
+        int edgeSets = reductionFrom.nodes.Count * k;
+        for (int e = 0; e < reductionFrom.edges.Count; e++) {
+            int f1 = color[reductionFrom.edges[e].Key], f2 = color[reductionFrom.edges[e].Value];
+            picked.Add(edgeSets + e * k * (k - 1) + f1 * (k - 1) + (f2 > f1 ? f2 - 1 : f2));
+        }
+        return "{" + string.Join(",", picked.Select(i => "{" + string.Join(",", reductionTo.S[i]) + "}")) + "}";
     }
 
 }
