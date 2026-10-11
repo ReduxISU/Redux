@@ -29,9 +29,13 @@ class ExactCoverVerifier : IVerifier<EXACTCOVER> {
     }
     private List<List<string>> parseCertificate(string certificate) {
         List<List<string>> parsedCertificate = new List<List<string>>();
-        List<string> SubsetStringList = certificate.Replace(" ", "").Split(":")[0].Split("},{").ToList();
+        string compact = certificate.Replace(" ", "").Split(":")[0];
+        // {} is the empty collection, which exactly covers an empty universe (#775).
+        if (compact == "{}") return parsedCertificate;
+        List<string> SubsetStringList = compact.Split("},{").ToList();
         foreach (string stringSet in SubsetStringList) {
-            List<string> subset = stringSet.Replace("{", "").Replace("}", "").Split(",").ToList();
+            string items = stringSet.Replace("{", "").Replace("}", "");
+            List<string> subset = items.Length == 0 ? new List<string>() : items.Split(",").ToList();
             parsedCertificate.Add(subset);
         }
 

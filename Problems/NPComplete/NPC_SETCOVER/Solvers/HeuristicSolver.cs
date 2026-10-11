@@ -1,9 +1,11 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 
-class HeuristicSolver : ISolver<SETCOVER> {
+class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Set Cover Algorithm X Bounded Search";
@@ -38,7 +40,11 @@ class HeuristicSolver : ISolver<SETCOVER> {
 
     }
 
-    public string solve(SETCOVER setCover) {
+    public string solve(SETCOVER setCover) => Solve(setCover, StepRecorder<ChosenSets>.Off);
+
+    // Steps: take a set for the uncovered element in the fewest sets, go over budget, undo a set. Recorder state lives only
+    // in this call.
+    public string Solve(SETCOVER setCover, StepRecorder<ChosenSets> rec) {
 
         Dictionary<string, List<string>> Y = new Dictionary<string, List<string>>();
         Dictionary<string, List<string>> X = new Dictionary<string, List<string>>();
@@ -62,31 +68,59 @@ class HeuristicSolver : ISolver<SETCOVER> {
         bool foundSolution = false;
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
-        iterate(Y, ref X, ref selectedSets, ref foundSolution, setCover.K);
+        iterate(Y, ref X, ref selectedSets, ref foundSolution, setCover.K, setCover, rec);
         stopwatch.Stop();
 
         Console.WriteLine(stopwatch.ElapsedMilliseconds);
 
         if (selectedSets.Any()) {
+            rec.Done(Picked(selectedSets), true,
+                $"{BipartiteFrames.Braces(Picked(selectedSets).Sets)} covers every element with {selectedSets.Count} {(selectedSets.Count == 1 ? "set" : "sets")}, within K = {setCover.K}.");
             return solutionToCertificate(selectedSets, setCover);
         }
 
+        // With nothing selected, a solution was found only when U is empty: then {} is the cover.
+        rec.Done(new ChosenSets([]), foundSolution,
+            foundSolution ? "U is empty, so no sets are needed." : $"Every branch was undone. No cover of at most K = {setCover.K} sets exists.");
         return "{}";
     }
 
-    private void iterate(Dictionary<string, List<string>> Y, ref Dictionary<string, List<string>> X, ref Stack<string> solution, ref bool foundSolution, int K) {
-        if (solution.Count() > K) return;
+    // The sets on the stack, by id (S1, S2, ...).
+    private static ChosenSets Picked(Stack<string> solution) => new(solution.Select(row => BipartiteFrames.SetId(int.Parse(row))));
+
+    private void iterate(Dictionary<string, List<string>> Y, ref Dictionary<string, List<string>> X, ref Stack<string> solution, ref bool foundSolution, int K,
+        SETCOVER setCover, StepRecorder<ChosenSets> rec) {
+        if (solution.Count() > K) {
+            var over = solution;
+            rec.Reject(() => Picked(over), () => $"That makes {over.Count} {(over.Count == 1 ? "set" : "sets")}, more than K = {K}, so undo it.",
+                () => over.Count > 0 ? [BipartiteFrames.SetId(int.Parse(over.Peek()))] : []);
+            return;
+        }
         if (!X.Keys.Any()) foundSolution = true;
         if (foundSolution == true) return;
         else {
             string minimumColumn = X.OrderBy(kv => kv.Value.Count).First().Key;
-            foreach (var row in X[minimumColumn].OrderByDescending(e => Y[e].Count)) {
+            var rows = X[minimumColumn].OrderByDescending(e => Y[e].Count).ToList();
+            var stack = solution;
+            if (rows.Count == 0)
+                rec.Reject(() => Picked(stack), () => $"No set contains {minimumColumn}, so no cover exists.", BipartiteFrames.ElementId(minimumColumn));
+            bool first = true;
+            foreach (var row in rows) {
                 solution.Push(row);
                 Stack<List<string>> columns = select(Y, ref X, row);
-                iterate(Y, ref X, ref solution, ref foundSolution, K);
+                int index = int.Parse(row);
+                bool isFirst = first;
+                first = false;
+                rec.Accept(() => Picked(stack),
+                    () => isFirst
+                        ? $"{minimumColumn} is the uncovered element in the fewest sets ({rows.Count}). Take {BipartiteFrames.SetText(setCover.subsets, index)}."
+                        : $"Take {BipartiteFrames.SetText(setCover.subsets, index)} for {minimumColumn} instead.",
+                    BipartiteFrames.SetId(index));
+                iterate(Y, ref X, ref solution, ref foundSolution, K, setCover, rec);
                 if (foundSolution == true) return;
                 deselect(Y, ref X, row, ref columns);
                 solution.Pop();
+                rec.Backtrack(() => Picked(stack), () => $"Undo {BipartiteFrames.SetId(index)}: no cover within K = {K} follows from it.", BipartiteFrames.SetId(index));
             }
         }
     }
@@ -109,7 +143,10 @@ class HeuristicSolver : ISolver<SETCOVER> {
         List<string> reversed = new List<string>(Y[row]);
         reversed.Reverse();
         foreach (var j in reversed) {
-            if (columns.Peek().Any()) X.Add(j, columns.Pop());
+            // Every column of the row was pushed, in order; an empty list stands for one that was already covered, so it
+            // stays out. Popping it too keeps the stack in step with the columns (#774).
+            List<string> column = columns.Pop();
+            if (column.Any()) X.Add(j, column);
         }
     }
 
