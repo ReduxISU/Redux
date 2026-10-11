@@ -74,40 +74,79 @@ class KarpExactCoverToSubsetSum : IReduction<EXACTCOVER, SUBSETSUM> {
         EXACTCOVER ExactCoverInstance = _reductionFrom;
         SUBSETSUM reducedSUBSETSUM = new SUBSETSUM();
 
+        // Each set is a number in base d with one digit per element of X: a 1 where the set holds that element. d = |S| + 1
+        // keeps the digits apart however many sets are added (a digit sum never reaches d, so nothing carries); with no sets
+        // any base does, and base 1 has no digits, so it is at least 2 (#829).
         int r = reductionFrom.S.Count;
-        int d = r + 1;
-        int[,] e = new int[reductionFrom.S.Count, reductionFrom.X.Count];
+        int d = Math.Max(r + 1, 2);
+        int digits = reductionFrom.X.Count;
 
-        for (int j = 0; j < reductionFrom.S.Count; j++) {
-            for (int i = 0; i < reductionFrom.X.Count; i++) {
-                if (reductionFrom.S[j].Contains(reductionFrom.X[i])) e[j, i] = 1;
-                else e[j, i] = 0;
+        // The numbers grow as d^|X|; Subset Sum holds ints. T, the sum of every digit's 1, is the largest number written and
+        // bounds every sum a solver or verifier adds up, so the instance is refused (400) when T does not fit (#829).
+        long K;
+        var place = new long[digits];
+        try {
+            long power = 1;
+            K = 0;
+            for (int i = 0; i < digits; i++) {
+                place[i] = power;
+                K = checked(K + power);
+                if (i < digits - 1) power = checked(power * d);
             }
+        } catch (OverflowException) {
+            throw TooBig(digits, d);
         }
+        if (K > int.MaxValue) throw TooBig(digits, d);
 
         List<string> subsetSumS = new List<string>();
-        double sum = 0;
         for (int j = 0; j < reductionFrom.S.Count; j++) {
+            long sum = 0;
             for (int i = 0; i < reductionFrom.X.Count; i++) {
-                sum += e[j, i] * Math.Pow(d, i);
+                if (reductionFrom.S[j].Contains(reductionFrom.X[i])) sum += place[i];
             }
             subsetSumS.Add(sum.ToString());
-            sum = 0;
         }
 
-        string K = ((Math.Pow(d, reductionFrom.X.Count) - 1) / (d - 1)).ToString();
         string instance = "({" + string.Join(",", subsetSumS) + "}," + K + ")";
 
         reducedSUBSETSUM.S = subsetSumS;
-        reducedSUBSETSUM.T = Int32.Parse(K);
+        reducedSUBSETSUM.T = (int)K;
         reducedSUBSETSUM.instance = instance;
 
         reductionTo = reducedSUBSETSUM;
         return reducedSUBSETSUM;
     }
 
+    private ReductionInputException TooBig(int digits, int d) =>
+        new(this, _reductionFrom.instance, _reductionFrom.instanceFormat,
+            $"the sets become numbers with {digits} digits in base {d} (one digit per element of X, base |S| + 1), and the target T = 11...1 in base {d} is past Subset Sum's largest integer ({int.MaxValue}); use fewer elements or sets");
+
+    /// <summary>
+    /// Maps an Exact Cover answer to a Subset Sum answer (#828): each chosen set becomes its number. The sets of an exact
+    /// cover hold every element once, so their numbers have a 1 in every digit and add up to T. A set S does not have is a 400.
+    /// </summary>
     public string mapSolutions(string reductionFromSolution) {
-        return "";
+        var used = new bool[reductionFrom.S.Count];
+        var numbers = new List<string>();
+        foreach (var listed in ReadSets(reductionFromSolution)) {
+            int j = Enumerable.Range(0, reductionFrom.S.Count).FirstOrDefault(k => !used[k] && reductionFrom.S[k].ToHashSet(StringComparer.Ordinal).SetEquals(listed), -1);
+            if (j < 0)
+                throw new ReductionInputException(this, reductionFromSolution, reductionFrom.certificateFormat, $"'{{{string.Join(",", listed)}}}' is not a set of S");
+            used[j] = true;
+            numbers.Add(reductionTo.S[j]);
+        }
+        return "{" + string.Join(",", numbers) + "}";
+    }
+
+    // An Exact Cover answer, {{2,3},{4,1}}: the chosen sets by their elements.
+    private List<HashSet<string>> ReadSets(string certificate) {
+        string text = certificate.Trim();
+        try {
+            if (text.Length < 2 || text[0] != '{' || text[^1] != '}') throw new FormatException();
+            return new SPADE.UtilCollection(text).ToList().Select(s => s.ToList().Select(e => e.ToString()).ToHashSet(StringComparer.Ordinal)).ToList();
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(this, certificate, reductionFrom.certificateFormat, $"'{certificate}' is not a set of sets like {{{{2,3}},{{4,1}}}}", ex);
+        }
     }
 
 }
