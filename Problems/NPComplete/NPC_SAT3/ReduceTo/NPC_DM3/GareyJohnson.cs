@@ -6,6 +6,7 @@ using API.Interfaces.Steps;
 using API.Interfaces.Tripartite;
 using API.Problems.NPComplete.NPC_DM3;
 using API.Problems.NPComplete.NPC_SAT;
+using API.Problems.NPComplete.NPC_DM3.Solvers;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_DM3;
 
@@ -253,6 +254,10 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
         string prefix = "z_" + literal + "_";
         return z.StartsWith(prefix, StringComparison.Ordinal) && z.Length > prefix.Length && z[prefix.Length..].All(char.IsAsciiDigit);
     }
+
+    // The Reduction View runs the backtracking solver on the target by default (#814): the default formula's matching picks 18 of 135 triples, past what the brute force (3-Dimensional Matching's default solver) finishes within the view's
+    // 10 s limit, and the backtracking solves it in milliseconds. /solve and the target's own default solver are unchanged.
+    public ISolver? ReductionViewSolver() => new ThreeDimensionalMatchingBacktracking();
 
     public string mapSolutions(string problemFromSolution) {
         //Parse out given solution

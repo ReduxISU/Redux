@@ -75,6 +75,13 @@ interface IReduction {
     // Builds the target again from reductionFrom, recording the steps when asked; null when this reduction
     // does not record them. The reduction itself is untouched: the build runs on a fresh copy.
     ConstructionRun? BuildRun(bool withSteps) => null;
+
+    // The solver the Reduction View runs on the target when the caller names none; null (the default) means the solver of
+    // the target's default visualization. A reduction whose target that solver cannot finish within the view's time limit,
+    // even on the reduction's own default instance, names a faster exact solver of the same target problem here (#814). It
+    // changes nothing else: /solve, /visualize and the target's default solver stay as they are. A method, not a property,
+    // for the same reason as the backward map above.
+    ISolver? ReductionViewSolver() => null;
 }
 
 /// <summary>

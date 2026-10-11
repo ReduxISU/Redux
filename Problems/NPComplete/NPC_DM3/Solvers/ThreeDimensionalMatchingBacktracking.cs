@@ -20,7 +20,7 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. At most C(m, n) sets of triples are reached, and choosing the next element scans every
     // element's triples, O(m) per level.
-    public string complexity { get; } = "O(C(m, n) * m), m = |M| (candidate triples), n = |X|";
+    public MathematicalFunction timeComplexity { get; } = new("C(m, n) * m", ", m = |M| (candidate triples), n = |X|");
 
     public ThreeDimensionalMatchingBacktracking() { }
 

@@ -19,7 +19,7 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. At most K choices per node over n levels; picking the next node scans every node and its
     // neighbours, O(n + m) per level.
-    public string complexity { get; } = "O(K^n * (n + m)), n = |nodes|, m = |edges|, K = number of colors";
+    public MathematicalFunction timeComplexity { get; } = new("K^n * (n + m)", ", n = |nodes|, m = |edges|, K = number of colors");
 
     public GraphColoringBacktracking() { }
 

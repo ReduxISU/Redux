@@ -638,7 +638,7 @@ public class ProblemProvider : ControllerBase {
     /// <c>no_backward_map</c>. See <c>Interfaces/Steps/ReductionView.cs</c> for the payload.
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
-    /// <param name="solver" example = "CliqueBruteForceSolver">Optional. The TARGET problem's solver for the solve phase. Defaults to the target's default solver. Must solve the target problem</param>
+    /// <param name="solver" example = "CliqueBruteForceSolver">Optional. The TARGET problem's solver for the solve phase. Defaults to the solver the reduction names for its view (3SAT to Graph Coloring and to 3-Dimensional Matching name their backtracking solvers), else the target's default solver. Must solve the target problem</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
     /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, source, target, gadgets, frames }</returns>
     [HttpPost("reductionView")]
@@ -657,7 +657,8 @@ public class ProblemProvider : ControllerBase {
             IVisualization targetVisualization = red.reductionTo.defaultVisualization;
             if (targetVisualization is not IFramesVisualization targetVis)
                 return BadRequest(new { error = "no_target_picture", reduction, problem = red.reductionTo.problemName });
-            ISolver chosen = targetVisualization.solver;
+            // A reduction may name the solver its view runs by default (IReduction.ReductionViewSolver, #814).
+            ISolver chosen = red.ReductionViewSolver() ?? targetVisualization.solver;
             if (!string.IsNullOrEmpty(solver)) {
                 if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
                     return BadRequest(new { error = "unknown_solver", received = solver });

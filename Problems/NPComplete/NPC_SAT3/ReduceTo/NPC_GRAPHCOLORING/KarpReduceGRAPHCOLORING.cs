@@ -4,6 +4,7 @@ using API.Interfaces.JSON_Objects;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
 using API.Problems.NPComplete.NPC_SAT;
+using API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_GRAPHCOLORING;
 
@@ -388,6 +389,10 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
 
 
     }
+
+    // The Reduction View runs the backtracking solver on the target by default (#814): the default formula's graph has 27 nodes and K = 3, past what the brute force (Graph Coloring's default solver) finishes within the view's
+    // 10 s limit, and the backtracking solves it in milliseconds. /solve and the target's own default solver are unchanged.
+    public ISolver? ReductionViewSolver() => new GraphColoringBacktracking();
 
     public string mapSolutions(string problemFromSolution) {
         //Check if the colution is correct
