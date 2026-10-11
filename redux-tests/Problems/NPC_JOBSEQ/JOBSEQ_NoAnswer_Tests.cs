@@ -22,9 +22,10 @@ public class JOBSEQ_NoAnswer_Tests {
     }
 
     [Fact]
-    public void JOBSEQ_No_Jobs_Still_Answers_The_Empty_Order() {
-        // The empty order is a real answer when there are no jobs: nothing is late.
-        var none = new JOBSEQ("((),(),(),4)");
-        Assert.Equal("()", new JobSeqBruteForce().solve(none));
+    public void JOBSEQ_An_Order_That_Fits_Is_Still_The_Answer() {
+        // One job, late (it takes 3 and is due at 2), but its penalty of 5 is within K = 5.
+        var one = new JOBSEQ("((3),(2),(5),5)");
+        Assert.Equal("(0)", new JobSeqBruteForce().solve(one));
+        Assert.True(new JobSeqVerifier().verify(one, "(0)"));
     }
 }
