@@ -61,6 +61,9 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
             foreach (UtilCollection entry in codeTable) {
                 entry.assertPair();
                 int ascii = entry[0].parseInt();
+                // A UTF-16 code, 0 to 65,535; (char) would wrap anything else round to some other character (#808).
+                if (ascii < char.MinValue || ascii > char.MaxValue)
+                    throw new Exception("Character code out of range");
                 string code = entry[1].ToString();
                 table[(char)ascii] = code;
             }
