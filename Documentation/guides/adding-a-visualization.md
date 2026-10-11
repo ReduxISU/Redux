@@ -131,6 +131,8 @@ The payload (sent once) is `{ kind: "tripartite", x, y, z, triples }`:
 
 Each frame is `{ event, caption, focus, chosen, repeats, elements, triples, ok? }`:
 
+| Field | Meaning |
+| --- | --- |
 | `chosen` | The ids of the triples chosen, in M's order |
 | `repeats` | Element id to how many chosen triples use it, for each element used more than once (the ×2 badge) |
 | `elements` | Element id to `{ state }`, only for elements that are not `Background` |
