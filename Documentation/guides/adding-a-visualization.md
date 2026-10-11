@@ -46,6 +46,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphD3` | [`API_GraphJSON`](../../Interfaces/JSON_Objects/Graphs/API_GraphJSON.cs) | [StandardGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardGraphSvgReact.js) | Independent Set, Max Cut, Vertex Cover |
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
+| `QuantumCircuit` | not a list item: a `payload` plus `frames` of named states ([`QuantumCircuitFrames`](../../Interfaces/Quantum/QuantumCircuitFrames.cs)) | none yet | Deutsch, Deutsch-Jozsa, Bernstein-Vazirani, Simon's Problem, Unstructured Search, Prime Factorization. Reported only as the `type` of `visualize?format=frames`; the quantum visualizations still report `QuantumCircuitD3` or `QuantumCircuitQjs` in /info and in the default list format. See "The Quantum Circuit picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -58,6 +59,74 @@ Two things that trip people up:
 
 - Every payload class carries a `kind` field (`"graph"`, `"sat"`, `"set"`, `"table"`, `"empty"`, ...). It tells a reader what the JSON is without guessing. You do not set it. The class does.
 - `Unimplemented` means "no renderer exists". The GUI shows an honest "not renderable" message instead of a broken picture. A few old classes use it, and a test (section 6) stops **new** classes from joining them.
+
+### The Quantum Circuit picture (`format=frames`)
+
+The six quantum-algorithm problems serve the `QuantumCircuit` picture: one wire per qubit, the gates in the order they run with the oracle drawn as a box, and bars underneath for how likely each outcome of the measured qubits is after the column just applied, colored by the sign of its amplitude. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the instance.
+
+The problem hands over a `QuantumCircuitSpec`, built by [`QuantumCircuits`](../../Interfaces/Quantum/QuantumCircuits.cs) from the instance alone: `Deutsch`, `DeutschJozsa`, `BernsteinVazirani` (phase kickback), `Simon`, `UnstructuredSearch` (Grover's rounds, ⌊π/4 · √(N/M)⌋ of them) and `PrimeFactorization` (Shor's period finding for the first part of the number that needs it, with the smallest base a that works). It is the textbook circuit, ported from the mockup: nothing asks a quantum server for it, and a server compiles its own. An instance with no circuit (a table that is not a power of two long, outputs that are not bits, a number the classical checks factor, a circuit over 24 qubits) has no qubits and no columns, and a `note` that says why.
+
+The payload (sent once) is `{ kind: "quantumCircuit", problem, qubits, columns, stages, measure, readout, inputBits, simulated, note?, number? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `problem` | `deutsch`, `deutschJozsa`, `bernsteinVazirani`, `simon`, `unstructuredSearch` or `primeFactorization` |
+| `qubits` | `{ id, name, role }`: `x0` `query`, `y` `helper`, `f0` `output`, `x0` `index`, `c0` `count`, `w0` `work` |
+| `columns` | `{ id, gates }`, in the order they run. A gate is `{ id, type, qubits, control?, label?, oracle? }`, `type` one of `h`, `x`, `z`, `cx`, `measure`, `box`; a box spans its `qubits`, and the oracle is a box with `oracle: true` |
+| `stages` | `{ label, from, to }`: "prepare", "query once", "interfere", "read", Grover's "round 1", ... |
+| `measure` | The qubits the answer is read from, the most significant first |
+| `readout` | `bits` (an outcome reads as a bit string) or `decimal` (Shor's counting register) |
+| `inputBits` | n, the number of input bits of the oracle f, to write a classical call's input as bits |
+| `simulated` | Whether frames carry `bars`: the circuit has at most 16 qubits. Shor's circuit is drawn, not simulated |
+| `note`, `number` | Why there is no circuit, or what to know about it; the number to factor |
+
+Each frame is `{ event, caption, focus, applied, queries, columns, gates, qubits, bars?, outcome?, counts?, result?, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `applied` | How many columns have run. Columns before it are done, columns from it on are still to come; a classical solver never runs any |
+| `queries` | The classical oracle calls so far: `{ input, output }` |
+| `columns`, `gates`, `qubits` | Id to `{ state }`, only for those that are not `Background` |
+| `bars` | Once a simulated circuit has run at least one column: `{ outcome, probability, sign }` per outcome of the measured qubits (`outcome` as a number, `sign` 1 or -1, 0 for complex amplitudes). With more than 5 measured qubits only outcomes above 0.4% are listed, at most 256 |
+| `outcome` | The value read from the measured qubits, once known |
+| `counts` | How often each outcome came up, when a quantum server said |
+| `result` | The answer as the solver has it so far; in the `Done` frame, the solver's answer |
+
+Ids are positions, never the instance's text: qubit k is `q{k}`, column c is `t{c}`, and a gate is `g{c}_{k}` for its column and its first qubit (a qubit carries at most one gate per column). Build them with `QuantumCircuits.QubitId`, `ColumnId` and `GateId`, or take a column's ids from `QuantumCircuitSpec.ColumnFocus`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`, with `Untraveled` only where nothing else applies):
+
+| State | Columns, gates and qubits |
+| --- | --- |
+| `ElementHighlight` | The focus: the column being applied and its gates, or the oracle while a classical solver calls it |
+| `Solution` | The measured qubits and their measure gates, in an `Accept` (the reading) and a `Done` whose answer is right |
+| `Rejected` | The measured qubits and gates in a `Done` whose answer is wrong; the focus of an incremental solver's `Reject` |
+| `Untraveled` | Every column, in the `Done` frame of a run that never ran the circuit (a classical solver, or Shor's server run) |
+| `Covered`, `Blocked` | not used |
+
+A run stopped by the time limit ends with a blank `Done` frame, `ok: false`: nothing applied, called or read. Its answer string is never read. A long run keeps its first 150 steps, then its last `Accept` and the `Done` frame; the caption says how many steps were not shown.
+
+The solvers and their steps (`QuantumProgress`: `applied`, `queries`, `outcome`, `counts` and `result`):
+
+| Solver | Incremental | Steps |
+| --- | --- | --- |
+| Deutsch Classical, Deutsch-Jozsa Classical, Bernstein-Vazirani Classical, Simon Classical | yes | A `Try` per oracle call, with the oracle as the focus ("Call the oracle with x = 010: f(010) = 5, the same as f(000), so s could be 010."), an `Accept` with the answer and how many calls it took, and `Done` with the verifier's verdict. Deutsch-Jozsa records a `Reject` when f breaks the promise, Simon's solver when f is not 2-to-1 |
+| Unstructured Search Brute Force | no | A `Reject` per item that is not marked, an `Accept` for the first marked one, `Done` ("No item of the 4 is marked: no solution." when none is) |
+| Prime Factorization Trial Division | yes | A `Reject` per divisor that fails ("3 does not divide 35."), an `Accept` per prime factor ("35 ÷ 5 = 7, so 5 is a prime factor."), and `Done` ("12 = 2 × 2 × 3.") |
+| Deutsch's, Deutsch-Jozsa, Bernstein-Vazirani and Grover's Algorithm | yes | A `Try` per column of the circuit, captioned from simulating it ("Apply H to the query qubits again. The signs interfere: 101 now has probability 100%."), then the server call: an `Accept` with what it measured ("The quantum server measured 101 in 1,024 of 1,024 runs, so s = 101. One oracle call.") or a `Reject` when it gave no answer, and `Done`. Grover's solver still throws when the server gives no answer (#538), so that request fails |
+| Shor's Algorithm | yes | A `Try` that sends the number, an `Accept` with the factors (or a `Reject`), `Done`. The server picks its own base and circuit and reports neither, so no column is applied |
+
+The solvers that call a server record the columns before asking, and nothing in the picture comes from the server but the reading: with no server, the circuit and its bars are still drawn, and the run ends with a `Reject` and `ok: false` (except Grover's, above). The server is asked exactly once, as before; a slow one keeps the request waiting (its client's timeout is 30 s), and the step after it ends a run that is past its budget.
+
+The eight quantum visualizations got the picture (both `D3` and `Q` views of Deutsch, Deutsch-Jozsa and Bernstein-Vazirani, Unstructured Search's and Shor's), and Simon's Problem got `SimonVisualization`, whose list format is the quantum circuit payload with an empty QASM string. Their list formats are unchanged, and no problem's default changed.
+
+Tests never reach a real server: `FakeQuantumServer` (in `redux-tests/Steps`) answers each endpoint as a noise-free server would, or with a canned reply, for the current test only (`QuantumSolverSettingsGlobal.UseForThisFlow`, #809). An endpoint test also sets `factory.Server.PreserveExecutionContext = true` before it makes its client, so the fake reaches the request.
+
+To add another quantum solver:
+
+1. Implement `ISolver<TProblem, QuantumProgress>`. Record oracle calls as `queries`, or the circuit's columns with `QuantumSteps.Columns`, and finish with `QuantumSteps.Done`. Build partials only inside the recorder's lambdas.
+2. Declare `IIncrementalSolver` unless each step judges a whole candidate on its own.
+3. Add it to `IncrementalSolvers_Tests.Classification` and to `QuantumSolvers_Tests.VisualizationOf`, and prove nothing changed for old clients: snapshot what it answers before touching code (`Endpoints/Snapshots/quantum_*.tsv`, `QuantumCircuitFrames_Endpoint_Tests`, `QuantumSolvers_Tests`, `QuantumCircuitFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 
