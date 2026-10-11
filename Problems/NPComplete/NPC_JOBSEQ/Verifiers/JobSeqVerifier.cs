@@ -40,6 +40,8 @@ class JobSeqVerifier : IVerifier<JOBSEQ> {
     }
 
     public bool verify(JOBSEQ problem, string certificate) {
+        // "{}" is the solver's "no answer" (#801): never an order of the jobs.
+        if (certificate.Trim() == "{}") return false;
         List<int> indices = certificate.TrimStart('(')
                                        .TrimEnd(')')
                                        .Split(',')

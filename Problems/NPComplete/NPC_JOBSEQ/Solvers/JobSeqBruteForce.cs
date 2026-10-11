@@ -84,7 +84,8 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
                 return permToCertificate(permutation);
             }
         }
-        return "()";
+        // No order keeps the penalty within K: "{}" is "no answer" (#801, #605).
+        return "{}";
     }
 
     /// <summary>
