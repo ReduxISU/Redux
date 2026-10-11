@@ -35,4 +35,12 @@ public enum VisualizationType {
     /// type (<see cref="GraphD3"/>, <see cref="GraphLaTeX"/>) in /info so old frontends are unaffected.
     /// </summary>
     Graph,
+    /// <summary>
+    /// The Table picture: rows and columns of text cells drawn in HTML, in one of three shapes: a dynamic-programming grid
+    /// (Edit Distance), a constraint matrix (0-1 Integer Linear Programming) or a trace table that gains a row per step (the
+    /// second views of DFA, NFA, SSSP and SPSP). A static payload plus one frame of values and named states per solver step.
+    /// Like <see cref="Graph"/> it is reported only as the <c>type</c> of the <c>format=frames</c> response of
+    /// <c>/ProblemProvider/visualize</c>; /info keeps the legacy type (<see cref="DynamicTable"/>).
+    /// </summary>
+    Table,
 }
