@@ -1,12 +1,12 @@
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_JOBSEQ.Visualizations;
 using API.Problems.NPComplete.NPC_JOBSEQ.Solvers;
 using API.Problems.NPComplete.NPC_JOBSEQ.Verifiers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_JOBSEQ;
 
-class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, DummyVisualization> {
+class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, JobSeqVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Job Sequencing";
@@ -37,7 +37,7 @@ class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, DummyVisualization> {
     public string wikiName { get; } = "";
     public JobSeqBruteForce defaultSolver { get; } = new JobSeqBruteForce();
     public JobSeqVerifier defaultVerifier { get; } = new JobSeqVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public JobSeqVisualization defaultVisualization { get; } = new JobSeqVisualization();
     // Declared, not derived. JOBSEQ is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.SequencingAndScheduling;
