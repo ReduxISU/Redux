@@ -173,7 +173,7 @@ static class GraphSubsetFrames {
         _ => 0,
     };
 
-    private static void Raise(Dictionary<string, PictureState> map, string id, PictureState state) {
+    internal static void Raise(Dictionary<string, PictureState> map, string id, PictureState state) {
         if (!map.TryGetValue(id, out var current) || Rank(state) > Rank(current)) map[id] = state;
     }
 
@@ -247,7 +247,7 @@ static class GraphSubsetFrames {
         return new GraphFrame(ev, caption, focus, ToRefs(nodes), ToRefs(edgeStates), phantoms) { Ok = ok };
     }
 
-    private static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
+    internal static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {
         var sorted = new SortedDictionary<string, StateRef>(StringComparer.Ordinal);
         foreach (var (id, state) in map)
             if (state != PictureState.Background) sorted[id] = new StateRef(state);

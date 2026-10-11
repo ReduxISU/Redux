@@ -35,4 +35,11 @@ public enum VisualizationType {
     /// type (<see cref="GraphD3"/>, <see cref="GraphLaTeX"/>) in /info so old frontends are unaffected.
     /// </summary>
     Graph,
+    /// <summary>
+    /// The Code Tree picture (Lossless Data Compression): a Huffman tree growing bottom-up from the characters, merge by
+    /// merge, its 0 and 1 edges, each character's code and the encoded bits; a static payload plus one frame of named states
+    /// per solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the <c>format=frames</c> response
+    /// of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type.
+    /// </summary>
+    CodeTree,
 }
