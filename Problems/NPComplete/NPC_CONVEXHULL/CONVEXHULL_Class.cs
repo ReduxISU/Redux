@@ -63,6 +63,9 @@ class CONVEXHULL : IProblem<ConvexHullSolver, ConvexHullVerifier, ConvexHullVisu
             point.assertPair();
             double x = double.Parse(point[0].ToString(), CultureInfo.InvariantCulture);
             double y = double.Parse(point[1].ToString(), CultureInfo.InvariantCulture);
+            // double.Parse also reads NaN, Infinity and numbers too large for a double (as infinity); none is a point (#806).
+            if (!double.IsFinite(x) || !double.IsFinite(y))
+                throw new ProblemParseException("CONVEXHULL", s, $"point ({point[0]},{point[1]}) must have finite numbers for x and y");
             return (x, y);
         }).ToList();
 
