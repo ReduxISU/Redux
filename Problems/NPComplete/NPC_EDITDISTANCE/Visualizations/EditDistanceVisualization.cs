@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_EDITDISTANCE.Visualizations;
 /// <summary>
 /// Edit Distance as the Table picture's grid (format=frames): x down the side, y across the top, each cell filled from
 /// the neighbors it compares, then the cheapest edit path traced back from the corner. The list format draws the empty
-/// grid and the solved one. The problem's default visualization is still <c>DummyVisualization</c>.
+/// grid and the solved one. It is the problem's default visualization.
 /// </summary>
 class EditDistanceVisualization : IVisualization<EDITDISTANCE, API_TableJSON>, ITableVisualization<EDITDISTANCE, TableCells> {
     public string visualizationName { get; } = "Edit Distance Table Visualization";
