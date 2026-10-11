@@ -42,4 +42,11 @@ public enum VisualizationType {
     /// <see cref="BooleanSatisfiability"/>.
     /// </summary>
     GroupedGraph,
+    /// <summary>
+    /// The Search Tree picture, a second view of a backtracking or branch-and-bound solver: the tree of choices it made,
+    /// growing step by step, with cut branches, backed-out branches and the answer's path; a static payload plus one frame
+    /// per solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the <c>format=frames</c> response
+    /// of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type.
+    /// </summary>
+    SearchTree,
 }
