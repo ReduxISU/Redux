@@ -38,7 +38,7 @@ public class GraphMapSolutions_Tests : IClassFixture<AppFactory> {
     [InlineData("GraphColoringToCliqueCover", "(({1,2,3,4},{{1,2},{2,3},{3,4},{4,1}}),2)", "{{1,3},{2,4}}", "{{1,3},{2,4}}")]
     [InlineData("KarpGraphColorToExactCover", "(({a,b,c},{{a,b},{b,c}}),2)", "{{a,c},{b}}", "{{a,a_a_b_1},{b,b_a_b_2,b_b_c_2},{c,c_b_c_1},{a_b,a_a_b_2,b_a_b_1},{b_c,b_b_c_1,c_b_c_2}}")]
     [InlineData("KarpGraphColorToExactCover", "(({a,b,c},{{a,b},{b,c},{a,c}}),3)", "{{a},{b},{c}}", null)]
-    [InlineData("KarpReduceSAT", "(({a,b,c},{{a,b},{b,c}}),2)", "{{a,c},{b}}", "(a0:True,a1:False,b0:False,b1:True,c0:True,c1:False)")]
+    [InlineData("KarpReduceSAT", "(({a,b,c},{{a,b},{b,c}}),2)", "{{a,c},{b}}", "(v0_0:True,v0_1:False,v1_0:False,v1_1:True,v2_0:True,v2_1:False)")]
     [InlineData("KarpReduceSAT", "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)", "{{a},{b,d,f,h},{c,e,g,i}}", null)]
     public void CorrectSourceAnswer_MapsToACorrectTargetAnswer(string reduction, string instance, string answer, string? expected) {
         IReduction red = Build(reduction, instance);

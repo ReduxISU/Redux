@@ -373,8 +373,10 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
     [InlineData(ColoringToCliqueCover, ColorYes, "map", "Node b is in clique 2 of the complement, so it takes color 2.")]
     [InlineData(ColoringToExactCover, ColorYes, "build", "Node a becomes the element a, 2 slots (one per edge at a and color) and 2 sets, one per color: the set for color j holds a and a's slots for color j. Exactly one of them covers a, so a gets one color.")]
     [InlineData(ColoringToExactCover, ColorYes, "map", "Set S1 {a,a_a_b_1} is in the exact cover. It is a's set for color 1, so a takes color 1.")]
-    [InlineData(ColoringToSat, ColorYes, "build", "Edge {a,b} becomes 2 clauses, (!a0 | !b0), (!a1 | !b1): a and b never take the same color.")]
-    [InlineData(ColoringToSat, ColorYes, "map", "b0 = True, so b takes color 0.")]
+    [InlineData(ColoringToSat, ColorYes, "build", "Edge {a,b} becomes 2 clauses, (!v0_0 | !v1_0), (!v0_1 | !v1_1): a and b never take the same color.")]
+    [InlineData(ColoringToSat, ColorYes, "map", "v1_0 = True, so node b takes color 0.")]
+    // #825: a node name that is not a SAT variable name still reduces; the variables are named by node position.
+    [InlineData(ColoringToSat, "(({a-b,c},{{a-b,c}}),2)", "build", "Node a-b becomes the variables v0_0, v0_1, one per color, and 2 clauses: (v0_0 | v0_1) says a-b takes a color, and (!v0_0 | !v0_1) says it takes only one.")]
     public async Task Captions_SayWhatHappened(string reduction, string instance, string phase, string caption) {
         var view = await View(reduction, instance);
         Assert.Contains(caption, Phase(view, phase).Select(f => f.GetProperty("caption").GetString()));
@@ -479,7 +481,7 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
     [InlineData(ColoringToCliqueCover, ColorYes, "{{a,zz}}")]
     [InlineData(ColoringToCliqueCover, ColorYes, "a,b")]
     [InlineData(ColoringToExactCover, ColorYes, "{{a,b}}")]
-    [InlineData(ColoringToSat, ColorYes, "(a0:maybe)")]
+    [InlineData(ColoringToSat, ColorYes, "(v0_0:maybe)")]
     [InlineData(ColoringToSat, ColorYes, "(q:True)")]
     public async Task MapSolutionBack_MalformedTargetAnswer_Is400(string reduction, string instance, string answer) {
         var (status, body) = await Post($"mapSolutionBack?reduction={reduction}&solution={Uri.EscapeDataString(answer)}", instance);

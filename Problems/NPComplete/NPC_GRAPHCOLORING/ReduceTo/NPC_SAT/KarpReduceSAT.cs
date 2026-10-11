@@ -89,6 +89,22 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
     #region Methods
 
     /// <summary>
+    /// The SAT variable that says the node at position nodeIndex (in the graph's node list) takes color color. The name
+    /// is built from the node's position, not its name, so every node name gives a valid SAT variable and no two
+    /// (node, color) pairs share one (#825): "a-b" is not a SAT variable name, and "a1" with color 0 and "a" with color
+    /// 10 would both write "a10".
+    /// </summary>
+    public static string VariableName(int nodeIndex, int color) => $"v{nodeIndex}_{color}";
+
+    // Each node's position in the graph's node list, by name; a repeated name keeps its first position.
+    private Dictionary<string, int> NodeIndexes() {
+        var index = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < _reductionFrom.nodes.Count; i++)
+            index.TryAdd(_reductionFrom.nodes[i], i);
+        return index;
+    }
+
+    /// <summary>
     /// The gadgets (#694): per node a group (the node to its clauses), per node and color an element (the node to the variable
     /// that says it takes that color), and per edge a group (the edge to its clauses). Ids are the Grouped Graph picture's.
     /// </summary>
@@ -102,13 +118,16 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
     public SAT reduce() => Build(StepRecorder<BuildDelta>.Off);
 
     // Construction steps (see IRecordedReduction): one per node (its variables and clauses), one per edge (its clauses), then
-    // Done. The clauses are written as they always have been; each is filed under the node or edge that wrote it.
+    // Done. Each clause is filed under the node or edge that wrote it; variables are named by node position (VariableName, #825).
     private SAT Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
         RequireNodesAndColors();
         var nodeClauses = new List<(string Node, int First, int Count)>();
         var edgeClauses = new List<(string A, string B, int First, int Count)>();
+
+        Dictionary<string, int> index = NodeIndexes();
+        string V(string node, int color) => VariableName(index[node], color);
 
         // List<string> reducedClauses = new List<string>();
         List<string> reducedNodeClauses = new List<string>();
@@ -124,7 +143,7 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             //foreach node create literals for each K - 1
             for (int i = 0; i < _reductionFrom.K - 1; i++) {
                 currentNode = $"{node}_{i}";
-                clause += $"{node}{i}|";
+                clause += $"{V(node, i)}|";
                 gadgetNodes.Add(currentNode);
             }
 
@@ -132,7 +151,7 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             // last K literals  
             currentNode = $"{node}_{_reductionFrom.K - 1}";
 
-            clause += $"{node}{_reductionFrom.K - 1})";
+            clause += $"{V(node, _reductionFrom.K - 1)})";
             reducedNodeClauses.Add(clause.Trim());
 
             // add to gadget dictionary 
@@ -141,9 +160,9 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             for (int i = 0; i < _reductionFrom.K; i++) {
                 for (int j = 0; j < _reductionFrom.K; j++) {
                     if (i != j) {
-                        string reverseClause = $"!({node}{j}&{node}{i})";
+                        string reverseClause = $"!({V(node, j)}&{V(node, i)})";
                         if (!reducedNodeClauses.Contains(reverseClause)) {
-                            clause = $"!({node}{i}&{node}{j})";
+                            clause = $"!({V(node, i)}&{V(node, j)})";
                             reducedNodeClauses.Add(clause.Trim());
                         }
                     }
@@ -164,9 +183,9 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
                 for (int j = 0; j < _reductionFrom.K; j++) {
                     if (i == j) {
 
-                        string reverseClause = $"!({edge.Value}{j}&{edge.Key}{i})";
+                        string reverseClause = $"!({V(edge.Value, j)}&{V(edge.Key, i)})";
                         if (!reducedEdgesClauses.Contains(reverseClause)) {
-                            string clauseEdge = $"!({edge.Key}{i}&{edge.Value}{j})";
+                            string clauseEdge = $"!({V(edge.Key, i)}&{V(edge.Value, j)})";
                             reducedEdgesClauses.Add(clauseEdge.Trim());
                         }
                     }
@@ -226,7 +245,8 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
         int k = _reductionFrom.K;
         List<string> ClauseIds(int first, int count) =>
             Enumerable.Range(first, count).SelectMany(c => CnfPieces.ClauseIds(c, clauses[c].Count)).ToList();
-        string Variable(string node, int color) => $"{node}{color}";
+        Dictionary<string, int> index = NodeIndexes();
+        string Variable(string node, int color) => VariableName(index[node], color);
 
         var nodeGadgets = new List<(string Node, int First, int Count, int[] Gadgets)>();
         _nodeClause.Clear();
@@ -312,15 +332,17 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
         var values = CnfPieces.ReadAssignment(problemToSolution, CnfPieces.Variables(clauses), "SAT");
         int k = _reductionFrom.K;
         var color = new Dictionary<string, int>(StringComparer.Ordinal);
+        Dictionary<string, int> index = NodeIndexes();
         foreach (string node in _reductionFrom.nodes) {
+            string Variable(int c) => VariableName(index[node], c);
             int own = _nodeClause[node];
-            int c = Enumerable.Range(0, k).FirstOrDefault(i => values.TryGetValue($"{node}{i}", out bool v) && v, -1);
+            int c = Enumerable.Range(0, k).FirstOrDefault(i => values.TryGetValue(Variable(i), out bool v) && v, -1);
             if (c < 0) {
                 rec.Reject(() => new Groups(color), () => $"No variable of {node} is true, so {node} gets no color.", GroupedGraphFrames.ClauseId(own));
                 continue;
             }
             color[node] = c;
-            rec.Accept(() => new Groups(color), () => $"{node}{c} = True, so {node} takes color {c}.", GroupedGraphFrames.VariableId($"{node}{c}"));
+            rec.Accept(() => new Groups(color), () => $"{Variable(c)} = True, so node {node} takes color {c}.", GroupedGraphFrames.VariableId(Variable(c)));
         }
         string answer = "{" + string.Join(",", Enumerable.Range(0, k)
             .Select(c => _reductionFrom.nodes.Where(n => color.TryGetValue(n, out int x) && x == c).ToList())
@@ -335,9 +357,10 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
     public string mapSolutions(string problemFromSolution) {
         Dictionary<string, int> color = ColoringAnswer.Read(this, reductionFrom, problemFromSolution);
         var values = new List<string>();
+        Dictionary<string, int> index = NodeIndexes();
         foreach (string node in reductionFrom.nodes)
             for (int i = 0; i < reductionFrom.K; i++)
-                values.Add($"{node}{i}:{(color[node] == i ? "True" : "False")}");
+                values.Add($"{VariableName(index[node], i)}:{(color[node] == i ? "True" : "False")}");
         return "(" + string.Join(",", values) + ")";
     }
     #endregion
