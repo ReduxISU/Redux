@@ -1,10 +1,15 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01;
+using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Solvers;
+using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_INTPROGRAMMING01;
 
-class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
+class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignment>, IRecordedReduction<SAT3, INTPROGRAMMING01> {
 
     // --- Fields ---
     public string reductionName { get; } = "Karp's 0-1 Integer Linear Programming Reduction";
@@ -58,14 +63,43 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
     }
 
     // --- Methods Including Constructors ---
-    public KarpIntProgStandard(SAT3 from) {
-        _reductionFrom = from;
-        _reductionTo = reduce();
+    public KarpIntProgStandard(SAT3 from) : this(from, StepRecorder<BuildDelta>.Off) { }
 
+    // The one place the target is built; rec is Off except when the construction steps are asked for.
+    private KarpIntProgStandard(SAT3 from, StepRecorder<BuildDelta> rec) {
+        _reductionFrom = from;
+        _reductionTo = Build(rec);
     }
     public KarpIntProgStandard(string instance) : this(new SAT3(instance)) { }
+    // Builds from the instance with rec recording the construction as it goes (IRecordedReduction).
+    public KarpIntProgStandard(string instance, StepRecorder<BuildDelta> rec) : this(new SAT3(instance), rec) { }
     public KarpIntProgStandard() : this(new SAT3()) { }
-    public INTPROGRAMMING01 reduce() {
+
+    /// <summary>
+    /// The gadgets (#693), in the 0-1 program's Table picture: each variable becomes a 0-1 variable (its column and its cell in
+    /// the row <c>x =</c>); each clause becomes a constraint row (an OR gadget: the row holds exactly when one of its literals
+    /// is true), each literal its coefficient cell, and the clause's bound its bound cell.
+    /// </summary>
+    public List<Gadget> gadgets { get; } = new();
+
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new KarpIntProgStandard(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
+    }
+
+    public INTPROGRAMMING01 reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // The Table picture's ids (IntProgrammingVisualization): row 0 is the assignment "x =", row r + 1 is constraint r; columns
+    // 0..n-1 are the variables, then Total, Bound and Holds.
+    private static string Row(int row) => API.Interfaces.Table.TableFrames.RowId(row);
+    private static string Column(int column) => API.Interfaces.Table.TableFrames.ColumnId(column);
+    private static string Cell(int row, int column) => API.Interfaces.Table.TableFrames.CellId(row, column);
+
+    // Construction steps (see IRecordedReduction): the table's frame, one step per variable (its column), one per clause (its
+    // row), then Done. They are recorded from the decisions below, so what is recorded is what is built.
+    private INTPROGRAMMING01 Build(StepRecorder<BuildDelta> rec) {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
         SAT3 SAT3Instance = _reductionFrom;
         INTPROGRAMMING01 reduced01INT = new INTPROGRAMMING01();
 
@@ -79,6 +113,28 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
             if (!variables.Contains(l.Replace("!", string.Empty))) {
                 variables.Add(l.Replace("!", string.Empty));
             }
+        }
+        int n = variables.Count;
+        string[] totals = [Column(n), Column(n + 1), Column(n + 2)];
+        rec.Accept(
+            () => new BuildDelta { Nodes = new[] { Row(0) }.Concat(totals).ToArray() },
+            () => $"The 0-1 program is a table: the row x = holds one 0-1 value per variable, and each constraint row gets its total, its bound and whether it holds.",
+            Row(0));
+
+        for (int j = 0; j < n; j++) {
+            int column = j, index = gadgets.Count;
+            string variableId = GroupedGraphFrames.VariableId(variables[j]);
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(SAT3Instance.clauses, variables[j])).ToList(),
+                new List<string> { Column(column), Cell(0, column) }));
+            rec.Accept(
+                () => new BuildDelta { SourceFocus = [variableId], Nodes = [Column(column)], Gadgets = [index] },
+                () => {
+                    string x = IntegerProgrammingBruteForce.Variable(column);
+                    return x == variables[column]
+                        ? $"Variable {x} becomes the 0-1 variable {x}: 1 means {x} is True, 0 means False."
+                        : $"Variable {variables[column]} becomes the 0-1 variable {x}: {x} = 1 means {variables[column]} is True, 0 means False.";
+                },
+                Cell(0, column));
         }
 
         //Creates the rows or ineqlalities of the matrix C, for each clause in SAT3
@@ -97,6 +153,27 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
                 }
             }
             Cmatrix.Add(row);
+
+            int clause = i, tableRow = i + 1, firstGadget = gadgets.Count;
+            List<string> literals = SAT3Instance.clauses[clause];
+            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(CnfPieces.ClauseIds(clause, literals.Count)), new List<string> { Row(tableRow) }));
+            for (int j = 0; j < literals.Count; j++)
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.LiteralId(clause, j) },
+                    new List<string> { Cell(tableRow, variables.IndexOf(CnfPieces.VariableOf(literals[j]))) }));
+            gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { GroupedGraphFrames.ClauseId(clause) }, new List<string> { Cell(tableRow, n + 1) },
+                note: $"Bound {dVector[clause]}: the number of negated literals minus 1."));
+            if (rec.Enabled) {
+                int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
+                List<int> coefficients = row;
+                int bound = dVector[clause];
+                bool cancels = literals.Any(l => !l.StartsWith('!') && literals.Contains("!" + l));
+                rec.Accept(
+                    () => new BuildDelta { SourceFocus = CnfPieces.ClauseIds(clause, literals.Count), Nodes = [Row(tableRow)], Gadgets = gadgetIdx },
+                    () => $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes row {tableRow}: {Inequality(coefficients, bound)}. "
+                        + "Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true."
+                        + (cancels ? " A variable written both ways cancels out, so this row always holds." : ""),
+                    Row(tableRow));
+            }
         }
         // Single-space-separated within each row/vector, matching INTPROGRAMMING01's own
         // parser (getMatrixC/getVectorD both do a naive Split(" ") -- double spaces here
@@ -113,13 +190,31 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
         //K is the number of clauses
 
         reductionTo = reduced01INT;
+        rec.Done(new BuildDelta(), true,
+            $"The 0-1 program has {BuildCaptions.Count(Cmatrix.Count, "constraint")} and {BuildCaptions.Count(n, "variable")}: some 0-1 assignment meets them all exactly when the formula can be satisfied.");
+        // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
+        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, SAT3Instance.clauses);
         return reduced01INT;
+    }
+
+    // "−x1 + x2 − x3 ≤ 0", in the 0-1 program's own variable names.
+    private static string Inequality(IReadOnlyList<int> coefficients, int bound) {
+        var terms = new List<string>();
+        for (int j = 0; j < coefficients.Count; j++) {
+            int c = coefficients[j];
+            if (c == 0) continue;
+            string x = IntegerProgrammingBruteForce.Variable(j);
+            string magnitude = Math.Abs(c) == 1 ? x : $"{Math.Abs(c)}{x}";
+            terms.Add(terms.Count == 0 ? (c < 0 ? "−" : "") + magnitude : (c < 0 ? "− " : "+ ") + magnitude);
+        }
+        return $"{(terms.Count == 0 ? "0" : string.Join(" ", terms))} ≤ {(bound < 0 ? "−" + -bound : bound.ToString())}";
     }
 
     public string mapSolutions(string problemFromSolution) {
         // Check if the colution is correct
         if (!reductionFrom.defaultVerifier.verify(reductionFrom, problemFromSolution)) {
-            return "Solution is inccorect";
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat,
+                "the assignment does not satisfy the 3SAT formula, so there is no 0-1 assignment to map it to");
         }
 
         //Parse problemFromSolution into a list of nodes
@@ -154,5 +249,43 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
             problemToSolution += num + ' ';
         }
         return '(' + problemToSolution.TrimEnd(' ') + ')';
+    }
+
+    public Assignment EmptyAnswer() => new Assignment([]);
+
+    // "{}" is how a 0-1 program says it has no answer (#797): never an assignment, so it keeps the default. A's answer is an
+    // assignment, never "{}".
+
+    /// <summary>
+    /// Backward map (#693): a 0-1 assignment to a truth assignment. The j-th 0-1 variable is the j-th variable of the formula
+    /// (in the order reduce() numbered them), and 1 means True. A value other than 0 or 1 says nothing: the variable is set to
+    /// False and the step is a Reject; the Done step then reports what 3SAT's verifier says.
+    /// </summary>
+    public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
+        var variables = new List<string>();
+        foreach (var l in reductionFrom.literals)
+            if (!variables.Contains(l.Replace("!", string.Empty))) variables.Add(l.Replace("!", string.Empty));
+
+        List<int> x;
+        try {
+            x = new GenericVerifier01INTP().parseCertificate(problemToSolution.Trim());
+        } catch (FormatException) {
+            throw new FormatException($"'{problemToSolution}' is not a 0-1 assignment like (1 0 1)");
+        }
+        if (x.Count != variables.Count)
+            throw new FormatException($"'{problemToSolution}' gives {x.Count} values, but the 0-1 program has {variables.Count} variables");
+
+        var values = new Dictionary<string, bool>();
+        for (int j = 0; j < variables.Count; j++) {
+            string variable = variables[j], name = IntegerProgrammingBruteForce.Variable(j);
+            int value = x[j];
+            values[variable] = value == 1;
+            string of = name == variable ? "" : $" (the 0-1 variable for {variable})";
+            if (value is 0 or 1)
+                rec.Accept(() => CnfPieces.Snapshot(values), () => $"{name} = {value}{of}, so {variable} = {CnfPieces.Word(value == 1)}.", Cell(0, j));
+            else
+                rec.Reject(() => CnfPieces.Snapshot(values), () => $"{name} = {value}{of} is not 0 or 1, so it says nothing about {variable}: {variable} = False.", Cell(0, j));
+        }
+        return (CnfPieces.Certificate(variables, values), CnfPieces.Snapshot(values));
     }
 }

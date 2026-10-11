@@ -414,7 +414,8 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         foreach (var (name, type) in ProblemProvider.Reductions) {
             IReduction red;
             try { red = (IReduction)Activator.CreateInstance(type)!; } catch { continue; }
-            bool expected = new[] { Sat, Vc, Is }.Contains(type.Name);
+            // The three of #691, and the reductions out of 3SAT and SAT (#693).
+            bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3" }.Contains(type.Name);
             Assert.Equal(expected, red.hasBuildSteps());
             Assert.Equal(expected, red.BuildRun(true) != null);
             checkedCount++;

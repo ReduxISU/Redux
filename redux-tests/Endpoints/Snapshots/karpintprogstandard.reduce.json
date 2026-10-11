@@ -37,7 +37,356 @@
       "complexityBucket": "Exponential"
     }
   },
-  "gadgets": [],
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0",
+        "1-0",
+        "1-2",
+        "2-2"
+      ],
+      "reductionToIds": [
+        "c0",
+        "r0c0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "v:x1",
+        "c0-0",
+        "c1-0",
+        "c1-2",
+        "c2-2"
+      ],
+      "targetIds": [
+        "c0",
+        "r0c0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1",
+        "2-0"
+      ],
+      "reductionToIds": [
+        "c1",
+        "r0c1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "v:x2",
+        "c0-1",
+        "c2-0"
+      ],
+      "targetIds": [
+        "c1",
+        "r0c1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-2",
+        "1-1",
+        "2-1"
+      ],
+      "reductionToIds": [
+        "c2",
+        "r0c2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "v:x3",
+        "c0-2",
+        "c1-1",
+        "c2-1"
+      ],
+      "targetIds": [
+        "c2",
+        "r0c2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0",
+        "0-0",
+        "0-1",
+        "0-2"
+      ],
+      "reductionToIds": [
+        "r1"
+      ],
+      "gadgetKind": "orGadget",
+      "sourceIds": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c0-2"
+      ],
+      "targetIds": [
+        "r1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-0"
+      ],
+      "reductionToIds": [
+        "r1c0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "r1c0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-1"
+      ],
+      "reductionToIds": [
+        "r1c1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-1"
+      ],
+      "targetIds": [
+        "r1c1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0-2"
+      ],
+      "reductionToIds": [
+        "r1c2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-2"
+      ],
+      "targetIds": [
+        "r1c2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "0"
+      ],
+      "reductionToIds": [
+        "r1c4"
+      ],
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "r1c4"
+      ],
+      "note": "Bound 0: the number of negated literals minus 1."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1",
+        "1-0",
+        "1-1",
+        "1-2"
+      ],
+      "reductionToIds": [
+        "r2"
+      ],
+      "gadgetKind": "orGadget",
+      "sourceIds": [
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c1-2"
+      ],
+      "targetIds": [
+        "r2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-0"
+      ],
+      "reductionToIds": [
+        "r2c0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
+        "r2c0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-1"
+      ],
+      "reductionToIds": [
+        "r2c2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-1"
+      ],
+      "targetIds": [
+        "r2c2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1-2"
+      ],
+      "reductionToIds": [
+        "r2c0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-2"
+      ],
+      "targetIds": [
+        "r2c0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "r2c4"
+      ],
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "r2c4"
+      ],
+      "note": "Bound 0: the number of negated literals minus 1."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2",
+        "2-0",
+        "2-1",
+        "2-2"
+      ],
+      "reductionToIds": [
+        "r3"
+      ],
+      "gadgetKind": "orGadget",
+      "sourceIds": [
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c2-2"
+      ],
+      "targetIds": [
+        "r3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-0"
+      ],
+      "reductionToIds": [
+        "r3c1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-0"
+      ],
+      "targetIds": [
+        "r3c1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-1"
+      ],
+      "reductionToIds": [
+        "r3c2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
+        "r3c2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2-2"
+      ],
+      "reductionToIds": [
+        "r3c0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-2"
+      ],
+      "targetIds": [
+        "r3c0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "r3c4"
+      ],
+      "gadgetKind": "bound",
+      "sourceIds": [
+        "c2"
+      ],
+      "targetIds": [
+        "r3c4"
+      ],
+      "note": "Bound 1: the number of negated literals minus 1."
+    }
+  ],
   "reductionFrom": {
     "problemName": "3SAT",
     "formalDefinition": "3SAT = {\u03A6 | \u03A6 is a satisfiable Boolean formula in 3CNF}",

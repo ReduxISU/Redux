@@ -1,10 +1,13 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING;
 using API.Problems.NPComplete.NPC_SAT;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_GRAPHCOLORING;
 
-class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
+class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assignment>, IRecordedReduction<SAT3, GRAPHCOLORING> {
 
 
     #region Fields
@@ -74,23 +77,51 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
     #endregion
 
     #region Constructors
-    public KarpReduceGRAPHCOLORING(SAT3 from) {
-        _reductionFrom = from;
-        _reductionTo = reduce();
+    public KarpReduceGRAPHCOLORING(SAT3 from) : this(from, StepRecorder<BuildDelta>.Off) { }
 
+    // The one place the target is built; rec is Off except when the construction steps are asked for.
+    private KarpReduceGRAPHCOLORING(SAT3 from, StepRecorder<BuildDelta> rec) {
+        _reductionFrom = from;
+        _reductionTo = Build(rec);
     }
     public KarpReduceGRAPHCOLORING(string instance) : this(new SAT3(instance)) { }
+    // Builds from the instance with rec recording the construction as it goes (IRecordedReduction).
+    public KarpReduceGRAPHCOLORING(string instance, StepRecorder<BuildDelta> rec) : this(new SAT3(instance), rec) { }
     public KarpReduceGRAPHCOLORING() : this(new SAT3()) { }
 
     # endregion
 
     # region Methods
 
+    /// <summary>
+    /// The gadgets (#693): the palette triangle F, T, B; one element per variable (its literal nodes, built from the variable
+    /// and every occurrence of it); one OR gadget per clause (its six nodes C{i}N0..N5); and the bound, K = 3.
+    /// </summary>
+    public List<Gadget> gadgets { get; } = new();
+
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new KarpReduceGRAPHCOLORING(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
+    }
+
+    public GRAPHCOLORING reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // The nodes one gadget brings and the edges it adds, in the order reduce() adds them.
+    private sealed class Piece {
+        public readonly List<string> Nodes = new();
+        public readonly List<BuildEdge> Edges = new();
+    }
 
     //The below code is reducing the SAT3 instance to a GRAPHCOLORING instance.
-    public GRAPHCOLORING reduce() {
+    // Construction steps (see IRecordedReduction): the palette, one step per variable (its literal nodes and their edges),
+    // one per clause (its OR gadget and the edges that wire it in), then K = 3. The edges are added in the order the
+    // instance has always listed them, and each one is filed under the gadget that adds it, so what is recorded is what is
+    // built.
+    private GRAPHCOLORING Build(StepRecorder<BuildDelta> rec) {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
 
-        // color palette 
+        // color palette
         // 0 : False, 1 : True,  2 : Base
 
         string[] palette = { "F", "T", "B" };
@@ -98,6 +129,17 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         SAT3 SAT3Instance = _reductionFrom;
         GRAPHCOLORING reducedGRAPHCOLORING = new GRAPHCOLORING();
         Dictionary<string, string> coloring = new Dictionary<string, string>();
+
+        var paletteEdges = new Piece();
+        var variableNames = CnfPieces.Variables(SAT3Instance.clauses);
+        var byVariable = variableNames.ToDictionary(v => v, _ => new Piece(), StringComparer.Ordinal);
+        var byClause = SAT3Instance.clauses.Select(_ => new Piece()).ToList();
+        // Adds the edge as reduce() always has, and files it under the gadget that adds it when it is new.
+        void Link(string x, string y, List<KeyValuePair<string, string>> all, List<string> instanceEdges, Piece piece) {
+            int before = all.Count;
+            addEdge(x, y, all, instanceEdges);
+            if (all.Count > before) piece.Edges.Add(new BuildEdge(x, y));
+        }
 
 
         // ------- Add nodes -------
@@ -113,9 +155,10 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         for (int i = 0; i < variables.Count; i++) {
             nodes.Add(variables[i]);
             coloring.Add(variables[i], "-1");
+            byVariable[CnfPieces.VariableOf(variables[i])].Nodes.Add(variables[i]);
         }
 
-        // Create clause nodes 
+        // Create clause nodes
         List<List<string>> clauses = new List<List<string>>();
         for (int i = 0; i < SAT3Instance.clauses.Count; i++) {
 
@@ -126,8 +169,9 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
                 coloring.Add("C" + i + "N" + j, "-1");
             }
 
-            // Add clause-nodes to list of clauses 
+            // Add clause-nodes to list of clauses
             clauses.Add(tempClause);
+            byClause[i].Nodes.AddRange(tempClause);
 
             // Add clause to node list
             nodes.AddRange(tempClause);
@@ -140,24 +184,24 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         // -------------  Add edges -----------------------
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
-        // holds edges for parsing problem instance 
+        // holds edges for parsing problem instance
         List<string> instanceEdges = new List<string>();
 
 
-        // Connect palette edges 
+        // Connect palette edges
         for (int i = 0; i < palette.Length; i++) {
             for (int j = 0; j < palette.Length; j++) {
                 if (i != j) {
-                    addEdge(palette[i], palette[j], edges, instanceEdges);
+                    Link(palette[i], palette[j], edges, instanceEdges, paletteEdges);
                 }
             }
         }
 
 
-        // Connect variable edges to palette color blue 
-        // Can only be colored True or false can't be base 
+        // Connect variable edges to palette color blue
+        // Can only be colored True or false can't be base
         for (int i = 0; i < variables.Count; i++) {
-            addEdge(variables[i], palette[2], edges, instanceEdges);
+            Link(variables[i], palette[2], edges, instanceEdges, byVariable[CnfPieces.VariableOf(variables[i])]);
 
         }
 
@@ -166,18 +210,18 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         for (int i = 0; i < variables.Count; i++) {
             for (int j = 0; j < variables.Count; j++) {
                 if (variables[i].Replace("!", "") == variables[j].Replace("!", "") && variables[i] != variables[j]) {
-                    addEdge(variables[i], variables[j], edges, instanceEdges);
+                    Link(variables[i], variables[j], edges, instanceEdges, byVariable[CnfPieces.VariableOf(variables[i])]);
                 }
             }
         }
 
         // Create clause gadget
-        // Each clause contains 6 nodes 
+        // Each clause contains 6 nodes
         for (int i = 0; i < clauses.Count; i++) {
-            // Connect   (a V b ) 
+            // Connect   (a V b )
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 3; k++) {
-                    if (k != j) { addEdge(clauses[i][j], clauses[i][k], edges, instanceEdges); }
+                    if (k != j) { Link(clauses[i][j], clauses[i][k], edges, instanceEdges, byClause[i]); }
                 }
 
             }
@@ -185,7 +229,7 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
             // Connect  ((a V b) V c )
             for (int j = 3; j < clauses[i].Count; j++) {
                 for (int k = 3; k < clauses[i].Count; k++) {
-                    if (k != j) { addEdge(clauses[i][j], clauses[i][k], edges, instanceEdges); }
+                    if (k != j) { Link(clauses[i][j], clauses[i][k], edges, instanceEdges, byClause[i]); }
                 }
             }
 
@@ -195,76 +239,115 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
 
                 for (int k = 2; k < 4; k++) {
 
-                    if (k != j) { addEdge(clauses[i][j], clauses[i][k], edges, instanceEdges); }
+                    if (k != j) { Link(clauses[i][j], clauses[i][k], edges, instanceEdges, byClause[i]); }
                 }
             }
 
         }
 
 
-        // Combine clause, variable and palette  
+        // Combine clause, variable and palette
 
         for (int i = 0; i < clauses.Count; i++) {
 
 
             // Connect variables to clause gadgets
             List<string> clauseLiterals = PaddedClause(SAT3Instance.clauses[i]);
-            addEdge(clauseLiterals[0], clauses[i][0], edges, instanceEdges);
-            addEdge(clauseLiterals[1], clauses[i][1], edges, instanceEdges);
-            addEdge(clauseLiterals[2], clauses[i][4], edges, instanceEdges);
+            Link(clauseLiterals[0], clauses[i][0], edges, instanceEdges, byClause[i]);
+            Link(clauseLiterals[1], clauses[i][1], edges, instanceEdges, byClause[i]);
+            Link(clauseLiterals[2], clauses[i][4], edges, instanceEdges, byClause[i]);
 
 
 
-            addEdge(clauses[i][0], clauseLiterals[0], edges, instanceEdges);
-            addEdge(clauses[i][1], clauseLiterals[1], edges, instanceEdges);
-            addEdge(clauses[i][4], clauseLiterals[2], edges, instanceEdges);
+            Link(clauses[i][0], clauseLiterals[0], edges, instanceEdges, byClause[i]);
+            Link(clauses[i][1], clauseLiterals[1], edges, instanceEdges, byClause[i]);
+            Link(clauses[i][4], clauseLiterals[2], edges, instanceEdges, byClause[i]);
 
 
             // Connect palette base node to (a V b)
-            addEdge(clauses[i][2], palette[2], edges, instanceEdges);
-            addEdge(palette[2], clauses[i][2], edges, instanceEdges);
+            Link(clauses[i][2], palette[2], edges, instanceEdges, byClause[i]);
+            Link(palette[2], clauses[i][2], edges, instanceEdges, byClause[i]);
 
             // Connect palette nodes to clauses ((a V b) V c )
 
-            // palette : False  
-            addEdge(clauses[i][5], palette[0], edges, instanceEdges);
-            addEdge(palette[0], clauses[i][5], edges, instanceEdges);
+            // palette : False
+            Link(clauses[i][5], palette[0], edges, instanceEdges, byClause[i]);
+            Link(palette[0], clauses[i][5], edges, instanceEdges, byClause[i]);
 
 
-            //  palette : Base  
-            addEdge(clauses[i][5], palette[2], edges, instanceEdges);
-            addEdge(palette[2], clauses[i][5], edges, instanceEdges);
+            //  palette : Base
+            Link(clauses[i][5], palette[2], edges, instanceEdges, byClause[i]);
+            Link(palette[2], clauses[i][5], edges, instanceEdges, byClause[i]);
 
         }
 
-
-
-        // for (int i = 0; i < edges.Count; i++){
-        //     for (int j = 0; j < edges.Count; j++){
-        //         if (edges[i].Key == edges[j].Value && edges[i].Value == edges[j].Key){
-        //             edges.Remove(new KeyValuePair<string,string>(edges[j].Key, edges[j].Value));
-        //         }
-        //     }
-        // }
-
         // The list of KVP(edges) need to have {a,b} && {b, a} for the GC problem
-        // because we wont know if b is connected to a in the solver && verifier with out that in the list 
+        // because we wont know if b is connected to a in the solver && verifier with out that in the list
         // we might need to make an adjustment to how undirected graphs are parsed out.
         // if an instance has {a,b} then the KVP list should have {a,b} && {b, a}
 
 
 
 
-        // Set GRAPHCOLORING edges 
+        // Set GRAPHCOLORING edges
         reducedGRAPHCOLORING.edges = edges;
 
-        //Set NodeColoring 
+        //Set NodeColoring
         reducedGRAPHCOLORING.nodeColoring = coloring;
 
 
         //The number of colors that satisfy the problem
-        reducedGRAPHCOLORING.K = 3; //ALEX NOTE: This is a hardcoded magic number. Beware. 
+        reducedGRAPHCOLORING.K = 3; //ALEX NOTE: This is a hardcoded magic number. Beware.
         reducedGRAPHCOLORING.parseProblem();
+
+        // ------- Gadgets, and the steps that build them (one step per gadget) -------
+        var sourceClauses = SAT3Instance.clauses;
+        gadgets.Add(new Gadget(GadgetKind.Palette, new List<string>(), new List<string>(palette),
+            note: "F, T and B form a triangle, so they take three different colors: false, true and base."));
+        rec.Accept(
+            () => new BuildDelta { Nodes = palette.ToArray(), Edges = BuildEdge.Sorted(paletteEdges.Edges), Gadgets = [0] },
+            () => "Palette: nodes F, T and B, joined in a triangle. In any 3-coloring they take three different colors; call them false, true and base.",
+            palette);
+
+        foreach (string variable in variableNames) {
+            Piece piece = byVariable[variable];
+            int index = gadgets.Count;
+            string variableId = GroupedGraphFrames.VariableId(variable);
+            gadgets.Add(new Gadget(GadgetKind.Element,
+                new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(sourceClauses, variable)).ToList(), new List<string>(piece.Nodes)));
+            if (rec.Enabled) {
+                string[] literalNodes = piece.Nodes.ToArray();
+                rec.Accept(
+                    () => new BuildDelta { SourceFocus = [variableId], Nodes = literalNodes, Edges = BuildEdge.Sorted(piece.Edges), Gadgets = [index] },
+                    () => literalNodes.Length == 2
+                        ? $"Variable {variable}: nodes {literalNodes[0]} and {literalNodes[1]}, each joined to B and to each other. B takes the base color, so one of them takes the true color and the other the false color."
+                        : $"Variable {variable} only appears as {literalNodes[0]}: one node {literalNodes[0]}, joined to B, so it takes the true color or the false color.",
+                    literalNodes);
+            }
+        }
+
+        for (int i = 0; i < clauses.Count; i++) {
+            int clause = i, index = gadgets.Count;
+            Piece piece = byClause[i];
+            string[] sourceIds = CnfPieces.ClauseIds(clause, sourceClauses[clause].Count);
+            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), new List<string>(piece.Nodes)));
+            if (rec.Enabled) {
+                string[] gadgetNodes = piece.Nodes.ToArray();
+                List<string> wired = PaddedClause(sourceClauses[clause]).Distinct().ToList();
+                rec.Accept(
+                    () => new BuildDelta { SourceFocus = sourceIds, Nodes = gadgetNodes, Edges = BuildEdge.Sorted(piece.Edges), Gadgets = [index] },
+                    () => $"Clause C{clause + 1} {CnfPieces.ClauseText(sourceClauses[clause])} becomes a 6-node OR gadget, {gadgetNodes[0]} to {gadgetNodes[5]}, wired to {GraphGroupFrames.And(wired)}. "
+                        + $"Its output {gadgetNodes[5]} is joined to F and B, so it must take the true color, and that only works if one of those literals takes it too.",
+                    gadgetNodes);
+            }
+        }
+
+        int bound = gadgets.Count;
+        gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(), note: "K = 3, always."));
+        rec.Done(new BuildDelta { Bound = 3, Gadgets = [bound] }, true,
+            "K = 3 colors: the graph can be colored with 3 colors exactly when the formula can be satisfied.");
+        // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
+        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, sourceClauses);
 
         return reducedGRAPHCOLORING;
     }
@@ -309,7 +392,8 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
     public string mapSolutions(string problemFromSolution) {
         //Check if the colution is correct
         if (!reductionFrom.defaultVerifier.verify(reductionFrom, problemFromSolution)) {
-            return "Solution is inccorect";
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat,
+                "the assignment does not satisfy the 3SAT formula, so there is no coloring to map it to");
         }
 
         //Parse problemFromSolution into a list of nodes
@@ -388,8 +472,60 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
         }
         return "{" + string.Join(",", colorGroups) + "}";
     }
+
+    public Assignment EmptyAnswer() => new Assignment([]);
+
+    // "{}" as B's answer is not a coloring of this graph (it has nodes), so it keeps the default: no answer. A's answer is an
+    // assignment, never "{}".
+
+    /// <summary>
+    /// Backward map (#693): a coloring of the graph to an assignment. The palette's T takes the true color, so a variable is
+    /// True when its plain literal node shares T's color, and False when it shares F's. A variable that only appears negated
+    /// is read from that node the other way round. Variables are read in the order the formula first mentions them. A literal
+    /// node with neither T's nor F's color (B's, or a fourth color) does not say a value: the variable is set to False and the
+    /// step is a Reject; the Done step then reports what 3SAT's verifier says.
+    /// </summary>
+    public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
+        Groups coloring = ReadColoring(problemToSolution);
+        int? trueColor = coloring.Of.TryGetValue("T", out int t) ? t : null;
+        int? falseColor = coloring.Of.TryGetValue("F", out int f) ? f : null;
+
+        var values = new Dictionary<string, bool>();
+        var order = CnfPieces.Variables(reductionFrom.clauses);
+        var literalNodes = new HashSet<string>(reductionTo.nodes, StringComparer.Ordinal);
+        foreach (string variable in order) {
+            bool positive = literalNodes.Contains(variable);
+            string node = positive ? variable : "!" + variable;
+            int? color = coloring.Of.TryGetValue(node, out int c) ? c : null;
+            string? says = color == null ? null : color == trueColor ? "T's" : color == falseColor ? "F's" : null;
+            if (says == null) {
+                values[variable] = false;
+                string why = color == null ? $"{node} has no color" : $"{node} has neither T's nor F's color";
+                rec.Reject(() => CnfPieces.Snapshot(values), () => $"{why}, so it says nothing about {variable}: {variable} = False.", node);
+                continue;
+            }
+            bool nodeTrue = says == "T's";
+            values[variable] = positive ? nodeTrue : !nodeTrue;
+            rec.Accept(() => CnfPieces.Snapshot(values),
+                () => $"{node} has {says} color, so {node} is {(nodeTrue ? "true" : "false")}: {variable} = {CnfPieces.Word(values[variable])}.",
+                node);
+        }
+        return (CnfPieces.Certificate(order, values), CnfPieces.Snapshot(values));
+    }
+
+    // A coloring as Graph Coloring writes it, {{F,x1},{T,!x1},{B}}: the n-th class is color n. Every node it names must be a
+    // node of the graph; malformed text throws FormatException, which the endpoint reports as a 400.
+    private Groups ReadColoring(string certificate) {
+        string text = certificate.Trim();
+        if (text.Length < 2 || text[0] != '{' || text[^1] != '}')
+            throw new FormatException($"'{certificate}' is not a coloring in braces like {{{{F,x1}},{{T,!x1}},{{B}}}}");
+        Groups coloring = GraphGroupFrames.ParseClasses(text);
+        var known = new HashSet<string>(reductionTo.nodes, StringComparer.Ordinal);
+        foreach (string node in coloring.Of.Keys)
+            if (!known.Contains(node))
+                throw new FormatException($"'{node}' is not a node of the graph");
+        return coloring;
+    }
 }
 
 #endregion
-
-

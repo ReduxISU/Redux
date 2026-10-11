@@ -1,6 +1,7 @@
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 
-// Sipser's 3SAT -> Clique names each node '<literal>_<clauseIdx>' (e.g. "!x2_0"). Both directions of
+// Sipser's 3SAT -> Clique names each node '<literal>_<clauseIdx>' (e.g. "!x2_0"; a literal repeated in its clause gets
+// an apostrophe per earlier occurrence, "x1'_0"). Both directions of
 // that construction read those names: SipserReduceToSAT3 (clique -> formula) and the backward map of
 // SipserReduceToCliqueStandard (clique answer -> assignment) share this parser.
 static class SipserNodes {
@@ -13,7 +14,9 @@ static class SipserNodes {
         if (!int.TryParse(node.Substring(u + 1), out int idx))
             throw new ArgumentException(
                 $"Node '{node}' is not Sipser-formatted: clause index '{node.Substring(u + 1)}' is not an integer");
-        return (node.Substring(0, u), idx);
+        // SipserReduceToCliqueStandard marks repeated literals within a clause with trailing apostrophes (x1, x1', ...);
+        // they are the same literal. Variable names never contain an apostrophe (see CnfParser), so this cannot clip one.
+        return (node.Substring(0, u).TrimEnd('\''), idx);
     }
 
     /// <summary>The variable a node's literal mentions and whether the node makes it True (a plain literal) or False ("!x").</summary>
