@@ -55,8 +55,8 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming; the DFA and NFA run tables, the SSSP and SPSP tables. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
 | `Board` | not a list item: a `payload` plus `frames` of named states ([`BoardFrames`](../../Interfaces/Board/BoardFrames.cs)) | none yet | Sudoku, N-Queens. Reported only as the `type` of `visualize?format=frames`; Sudoku's visualization still reports `Unimplemented` and N-Queens' reports `DynamicTable` in /info and in the default list format. See "The Board picture" below |
 | `Schedule` | not a list item: a `payload` plus `frames` of named states ([`ScheduleFrames`](../../Interfaces/Schedule/ScheduleFrames.cs)) | none yet | Job Sequencing, Pump Scheduling Cost Minimization and Emergency Resilience. Reported only as the `type` of `visualize?format=frames`; the pump visualizations still report `PumpSchedule` and Job Sequencing's reports `DynamicTable` in /info and in the default list format. See "The Schedule picture" below |
-| `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
 | `TripartiteMatching` | not a list item: a `payload` plus `frames` of named states ([`TripartiteFrames`](../../Interfaces/Tripartite/TripartiteFrames.cs)) | none yet | 3-Dimensional Matching. Reported only as the `type` of `visualize?format=frames`; its `DM3Visualization` reports `DynamicTable` in /info and in the default list format. See "The Tripartite Matching picture" below |
+| `Geometry` | not a list item: a `payload` plus `frames` of named states ([`GeometryFrames`](../../Interfaces/Geometry/GeometryFrames.cs)) | none yet | Convex Hull. Reported only as the `type` of `visualize?format=frames`; `ConvexHullVisualization` still reports `Unimplemented` in /info and in the default list format. See "The Geometry picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -567,33 +567,100 @@ To add a scheduling problem or solver:
 2. Return the spec from `Describe`, and read an answer string in `ParseAnswer` (`ScheduleFrames.ParseJobOrder` and `ParsePumpPlan` read today's certificates). A static `Spec(problem)` next to it lets the solver and the tests build the same description.
 3. Record a `JobOrder` or `PumpPlan` per decision. Build it only inside the recorder's lambdas, so solving without steps costs nothing; `ScheduleFrames.ReplayCaption` and `ForwardCaption` write the pump captions. Declare `IIncrementalSolver` when the solver commits its answer piece by piece.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/schedule_*.tsv`, `ScheduleFrames_Endpoint_Tests`, `ScheduleSolvers_Tests`, `ScheduleFrames_Tests`).
+
 ### The Tripartite Matching picture (`format=frames`)
+
 3-Dimensional Matching serves the `TripartiteMatching` picture: X, Y and Z as three columns, each triple of M a line through one element of each, the triples a solver chooses, and the elements they use once or more than once. Like the Graph picture it is additive: the problem's default visualization (`DummyVisualization`) is unchanged, and the picture comes from a new `DM3Visualization`.
+
 The problem hands over `TripartiteSpec(X, Y, Z, Triples)`: the names in each set in instance order, and each triple of M as `TripartiteTriple(x, y, z)`, the positions of its names in X, Y and Z.
+
 The payload (sent once) is `{ kind: "tripartite", x, y, z, triples }`:
+
 - `x`, `y` and `z` list `{ id, name }` for each element, in instance order.
 - A triple is `{ id, x, y, z }`, where `x`, `y` and `z` are element ids.
+
 Each frame is `{ event, caption, focus, chosen, repeats, elements, triples, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
 | `chosen` | The ids of the triples chosen, in M's order |
 | `repeats` | Element id to how many chosen triples use it, for each element used more than once (the ×2 badge) |
 | `elements` | Element id to `{ state }`, only for elements that are not `Background` |
 | `triples` | Triple id to `{ state }`, only for triples that are not `Background` |
+
 Ids are positions, never names: the i-th element (from 1) of X, Y and Z is `x{i}`, `y{i}` and `z{i}`, and the i-th triple of M is `T{i}`. A name in more than one set, a triple listed twice and names with separators in them all stay distinct, and no id needs escaping. Build them with `TripartiteFrames.XId`, `YId`, `ZId` and `TripleId`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`):
+
 | State | Elements | Triples |
+| --- | --- | --- |
 | `ElementHighlight` | The focus | A chosen triple while a whole set is only tried (a `Try` or `Reject` of a solver that is not incremental); the focus |
 | `Solution` | | A chosen triple in an `Accept` and a correct `Done`, and in every step of an incremental solver (what it has committed) |
 | `Covered` | Used by exactly one chosen triple | |
 | `Blocked` | | Not chosen, but shares an element with a chosen triple: choosing it too would use that element twice |
 | `Rejected` | Used by more than one chosen triple | A chosen triple that shares an element with another; every chosen triple in a `Done` whose answer is wrong; the focus of an incremental solver's `Reject` |
 | `Untraveled` | not used | not used |
+
 A run stopped by the time limit ends with a blank `Done` frame, `ok: false`: nothing chosen, no states. Its answer string is never read. Long searches keep their first 150 steps, then the `Accept` that found the matching and the `Done` frame; its caption says how many steps were not shown.
+
 The solver and its steps (`ChosenTriples`: `triples`, the ids of the triples chosen, as a set):
+
+| Solver | Incremental | Steps |
+| --- | --- | --- |
 | 3-Dimensional Matching Brute Force | no | A `Reject` per set of \|X\| triples the verifier refuses, focused on the elements it uses more than once ("Try T1, T2 and T3: Paul and Chloe are used twice."), then an `Accept` ("Try T2, T4 and T6: every element of X, Y and Z is used exactly once, so the verifier accepts it.") and `Done` ("T2 (Paul, Austin, Jake), T4 (Sally, Madison, Frank) and T6 (Dave, Bob, Chloe) use every element of X, Y and Z exactly once. Found after 15 tries."). With fewer triples than X there is only a `Done` step. A name in more than one set is captioned with its set ("1 in X") |
+
 `DM3Visualization`'s list format is a table with one row per triple and, once solved, whether it is in the matching (`DynamicTable`).
+
 To add another matching solver (the mockup's backtracking one, for example):
+
 1. Record a `ChosenTriples` per decision, built only inside the recorder's lambdas (`TripartiteFrames.Chosen(indices)`). Pass the focus as a lambda too: the elements that repeat, or the triple under test.
 2. Declare `IIncrementalSolver` when it picks triples one at a time. Then the committed triples stay `Solution`, and only the focus is highlighted, or `Rejected` in a `Reject` ("T5 shares Chloe with a chosen triple, so skip it.").
 3. Add it to `IncrementalSolvers_Tests.Classification` and prove nothing changed for old clients: snapshot `/info` and what it answers before touching code (`Endpoints/Snapshots/tripartite_solver_answers.tsv`, `TripartiteFrames_Endpoint_Tests`, `TripartiteSolvers_Tests`, `TripartiteFrames_Tests`).
+
+### The Geometry picture (`format=frames`)
+
+Convex Hull serves the `Geometry` picture: the points drawn to scale on real axes, the small hulls a divide-and-conquer solver builds and merges, the chain each merge walks, the points it drops and, at the end, the hull's corners in order. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the instance.
+
+The problem hands over `GeometrySpec(points)`: its points in instance order, as `(x, y)` pairs.
+
+The payload (sent once) is `{ kind: "geometry", points }`, where each point is `{ id, x, y }`.
+
+Each frame is `{ event, caption, focus, pieces, chain, hull, points, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `pieces` | The hulls on the table, each `{ points, role }` with its corners counterclockwise. `role` is `left` or `right` for the two being merged (drawn in two group colors) and `piece` for a finished hull waiting to be merged. A role is an annotation, not a state |
+| `chain` | The corners a merge has walked so far, in order (the bottom edge left to right, then the top edge back), drawn as a line. Empty outside a merge |
+| `hull` | The answer's corners in output order, for the order badges. Empty until the `Done` frame |
+| `points` | Point id to `{ state }`, only for points that are not `Background` |
+
+Ids are positions, never coordinates: the i-th point (from 1) is `P{i}`. Build them with `GeometryFrames.PointId`. A solver works with distinct points, so if a problem ever lets a point repeat, steps name it by its first copy and every copy is drawn the same (`GeometryFrames.FirstOf`). Today the instance parser already merges repeated points.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`):
+
+| State | Points |
+| --- | --- |
+| `ElementHighlight` | The focus: the corner just pushed onto the chain, the corners of a piece just made or merged. Also every corner on the table while a whole candidate is only tried (a solver that is not incremental; today's is) |
+| `Solution` | Corners of the hulls on the table and points on the chain: what the incremental solver has committed. In the `Done` frame, the hull's corners |
+| `Covered` | In the `Done` frame, every point that is not a corner: inside the hull or on an edge |
+| `Rejected` | The focus of a `Reject`: the corner popped off the chain. A point dropped so far (inside a merged hull, or in the middle of an edge). In a `Done` frame whose answer is wrong, its corners |
+| `Blocked`, `Untraveled` | not used |
+
+A run stopped by the time limit ends with a blank `Done` frame, `ok: false`: no hulls, no states. Its answer string is never read. Long runs keep their first 150 steps, then the `Accept` with the whole hull and the `Done` frame; its caption says how many steps were not shown.
+
+The solver and its steps (`HullBuild`: `pieces`, `left`, `right`, `chain` and `dropped`, as above):
+
+| Solver | Incremental | Steps |
+| --- | --- | --- |
+| Convex Hull Divide and Conquer | yes | A `Try` for the sort ("Sort the 10 points by x, then y: P3, P4, ... Then split the list in half, again and again, until each piece has at most 3 points."), a `Try` per smallest piece ("Smallest piece: P1, P9 and P5. Its hull is the triangle they make."), and per merge: a `Try` to start it, a `Try` per corner pushed ("Add P9 to the bottom edge."), a `Reject` per corner popped ("The turn at P4 (from P3 to P1) is clockwise, so pop P4 from the bottom edge."; "P1, P2 and P3 are on one line, so pop P2 ..."), and a `Try` with the merged hull ("The merged hull is P3, P5, P9 and P4. P1 is now inside it (or on an edge), so it is dropped."). Then an `Accept` with the whole hull and `Done` with the verifier's verdict |
+
+`ConvexHullVisualization` got the picture; its list format is unchanged (still empty), and it is still Convex Hull's default. The solver asks the verifier for the `Done` step only while it records steps: the verifier checks every point against every edge, which would make a plain solve of a large hull quadratic.
+
+To add another hull solver (the mockup's monotone chain, for example):
+
+1. Record a `HullBuild` per decision, built only inside the recorder's lambdas, with the focus as a lambda too. A one-pass solver leaves `pieces`, `left` and `right` empty and builds only the `chain`.
+2. Declare `IIncrementalSolver`: the committed corners stay `Solution`, and only the point under test is highlighted, or `Rejected` when it is popped.
+3. Add it to `IncrementalSolvers_Tests.Classification` and prove nothing changed for old clients: snapshot the list format, `/info` and what it answers before touching code (`Endpoints/Snapshots/geometry_*.tsv`, `GeometryFrames_Endpoint_Tests`, `GeometrySolvers_Tests`, `GeometryFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 

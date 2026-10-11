@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Packing;
 using API.Interfaces.Board;
 using API.Interfaces.Schedule;
+using API.Interfaces.Geometry;
 using API.Interfaces.Steps;
 using API.Interfaces.Tripartite;
 using Xunit;
@@ -143,6 +144,13 @@ public class SolverReplay_Tests {
             var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
             return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
         }
+        if (lastPartial is HullBuild) {
+            // Convex Hull answers list the hull's corners by their coordinates ("((0,0), (4,0), (4,4))"); the problem's Geometry
+            // visualization reads them as the hull, every other point dropped.
+            var hook = typeof(IGeometryVisualization<>).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
@@ -241,20 +249,31 @@ public class SolverReplay_Tests {
 
     [Fact]
     public void LegacySolver_RunKeepsUntypedSteps() {
-        // A solver that has not been converted reports no shape (SSSP was the example until #667 typed it, then Pump Scheduling
-        // until #673 did).
-        var hull = ProblemProvider.Solvers.Values.First(t => TypedInterface(t) == null && typeof(ISolver).IsAssignableFrom(t) && t.Name == "ConvexHullSolver");
-        var legacy = (ISolver)Activator.CreateInstance(hull)!;
-        var problem = (IProblem)Activator.CreateInstance(
-            hull.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0])!;
-        var run = legacy.Run(problem.defaultInstance, true);
+        // A solver that has not been converted reports no shape and keeps the untyped steps its GetSteps returns. Redux has no
+        // such solver left (SSSP was the example until #667 typed it, then Pump Scheduling until #673, then Convex Hull until
+        // #674), so this one is made up for the test.
+        var legacy = (ISolver)new LegacyStepsSolver();
+        string instance = new API.Problems.NPComplete.NPC_CLIQUE.CLIQUE().defaultInstance;
+        var run = legacy.Run(instance, true);
         Assert.Null(run.StepShape);
         Assert.False(run.Incremental);
-        // The legacy run: the steps are what GetSteps returns, the answer what solve returns. No solver in Redux records untyped
-        // steps any more, so these are empty; StepsFor_DropsStepsOnShapeMismatch_KeepsThemOnMatch shows a legacy run's steps
-        // reaching a legacy visualization.
-        Assert.Equal(legacy.GetSteps(problem.defaultInstance), run.Steps);
-        Assert.Equal(legacy.solve(problem.defaultInstance), run.Answer);
+        Assert.Equal(["looked at a", "looked at b"], run.Steps);
+        Assert.Equal("{a,b}", run.Answer);
+        Assert.Empty(legacy.Run(instance, false).Steps);
+    }
+
+    // A solver written before typed steps: it implements only ISolver<T>, and GetSteps returns whatever objects it likes. A
+    // struct, not a class, so that ProblemProvider (which registers every class implementing ISolver in every loaded assembly)
+    // does not list it among Redux's solvers.
+    private struct LegacyStepsSolver : ISolver<API.Problems.NPComplete.NPC_CLIQUE.CLIQUE> {
+        public string solverName => "Legacy steps";
+        public string solverDefinition => "Answers {a,b} and records two untyped steps.";
+        public string source => "";
+        public string sourceFile => "";
+        public string[] contributors => [];
+        public bool timerHasExpired { get; set; }
+        public string solve(API.Problems.NPComplete.NPC_CLIQUE.CLIQUE problem) => "{a,b}";
+        public List<object> GetSteps(API.Problems.NPComplete.NPC_CLIQUE.CLIQUE problem) => ["looked at a", "looked at b"];
     }
 
     [Fact]

@@ -381,6 +381,42 @@ sealed class ChosenTriples : IEquatable<ChosenTriples> {
     public override int GetHashCode() => ShapeUtil.HashOf(Triples);
 }
 
+/// <summary>
+/// A convex hull as a divide-and-conquer solver builds it (Convex Hull), as far as it has got. Points are named by position,
+/// <c>P{i+1}</c> for the point at 0-based index i of the instance (see <c>GeometryFrames.PointId</c>); a point listed twice is
+/// named after its first copy. Every hull lists its corners counterclockwise.
+/// <list type="bullet">
+/// <item><see cref="Pieces"/>: the finished hulls waiting to be merged, left to right (not the two being merged).</item>
+/// <item><see cref="Left"/> and <see cref="Right"/>: the two hulls being merged now; empty when no merge is under way.</item>
+/// <item><see cref="Chain"/>: the chain of corners the merge has built so far, in the order it walked them (the bottom
+/// edge left to right, then the top edge back); empty when no merge is under way.</item>
+/// <item><see cref="Dropped"/>: the points found not to be corners so far (inside a hull, or in the middle of an edge). A
+/// set.</item>
+/// </list>
+/// The answer is the last one: the hull as the only piece, and every other point dropped.
+/// </summary>
+sealed class HullBuild : IEquatable<HullBuild> {
+    [JsonPropertyName("pieces")] public string[][] Pieces { get; }
+    [JsonPropertyName("left")] public string[] Left { get; }
+    [JsonPropertyName("right")] public string[] Right { get; }
+    [JsonPropertyName("chain")] public string[] Chain { get; }
+    [JsonPropertyName("dropped")] public string[] Dropped { get; }
+    public HullBuild(IEnumerable<IEnumerable<string>> pieces, IEnumerable<string> left, IEnumerable<string> right, IEnumerable<string> chain, IEnumerable<string> dropped) {
+        Pieces = pieces.Select(p => p.ToArray()).ToArray();
+        Left = left.ToArray();
+        Right = right.ToArray();
+        Chain = chain.ToArray();
+        Dropped = ShapeUtil.SortedSet(dropped);
+    }
+    public bool Equals(HullBuild? other) =>
+        other != null && Pieces.Length == other.Pieces.Length && Pieces.Zip(other.Pieces).All(p => p.First.SequenceEqual(p.Second, StringComparer.Ordinal))
+            && Left.SequenceEqual(other.Left, StringComparer.Ordinal) && Right.SequenceEqual(other.Right, StringComparer.Ordinal)
+            && Chain.SequenceEqual(other.Chain, StringComparer.Ordinal) && Dropped.SequenceEqual(other.Dropped, StringComparer.Ordinal);
+    public override bool Equals(object? obj) => Equals(obj as HullBuild);
+    public override int GetHashCode() =>
+        HashCode.Combine(ShapeUtil.HashOf(Pieces.Select(p => string.Join(",", p))), ShapeUtil.HashOf(Chain), ShapeUtil.HashOf(Dropped));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -404,5 +440,6 @@ static class Shapes {
         : shape == typeof(JobOrder) ? new JobOrder([])
         : shape == typeof(PumpPlan) ? new PumpPlan([], [], null)
         : shape == typeof(ChosenTriples) ? new ChosenTriples([])
+        : shape == typeof(HullBuild) ? new HullBuild([], [], [], [], [])
         : null;
 }
