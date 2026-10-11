@@ -10,8 +10,7 @@ namespace API.Problems.NPComplete.NPC_DM3.Visualizations;
 /// <summary>
 /// 3-Dimensional Matching as the Tripartite Matching picture (format=frames): X, Y and Z in three columns, each triple of M a
 /// line through its three elements, set by set as the selected solver tries them. The list format is a table with one row
-/// per triple and, once solved, whether it is in the matching. The problem's default visualization is still
-/// <c>DummyVisualization</c>.
+/// per triple and, once solved, whether it is in the matching. It is the problem's default visualization.
 /// </summary>
 class DM3Visualization : IVisualization<DM3, API_TableJSON>, ITripartiteVisualization<DM3> {
     public string visualizationName { get; } = "3-Dimensional Matching Tripartite Visualization";

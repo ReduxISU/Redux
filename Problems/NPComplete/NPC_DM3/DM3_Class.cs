@@ -1,5 +1,5 @@
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_DM3.Visualizations;
 using API.Problems.NPComplete.NPC_DM3.Solvers;
 using API.Problems.NPComplete.NPC_DM3.Verifiers;
 using SPADE;
@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace API.Problems.NPComplete.NPC_DM3;
 
-class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, DummyVisualization> {
+class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, DM3Visualization> {
 
     // --- Fields ---
     public string problemName { get; } = "3-Dimensional Matching";
@@ -35,7 +35,7 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, Dum
     private List<List<string>> _M;
     public ThreeDimensionalMatchingBruteForce defaultSolver { get; } = new ThreeDimensionalMatchingBruteForce();
     public GenericVerifierDM3 defaultVerifier { get; } = new GenericVerifierDM3();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public DM3Visualization defaultVisualization { get; } = new DM3Visualization();
     // Declared, not derived. DM3 (3-Dimensional Matching) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
