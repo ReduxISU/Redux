@@ -3,7 +3,7 @@ using API.Interfaces;
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Verifiers;
 
 class UnstructuredSearchVerifier : IVerifier<UNSTRUCTUREDSEARCH> {
-    public const string CertificateGrammar = "i | integer index such that f(i) != 0";
+    public const string CertificateGrammar = "i | integer index such that f(i) != 0, or 'no solution' when f(i) = 0 for every i";
     public const string CertificateExample = "1";
 
     // --- Fields ---
@@ -25,8 +25,11 @@ class UnstructuredSearchVerifier : IVerifier<UNSTRUCTUREDSEARCH> {
     }
 
     public bool verify(UNSTRUCTUREDSEARCH problem, string certificate) {
+        // "no solution" is the problem's answer when nothing is marked (#811).
+        if (certificate.Trim() == "no solution")
+            return problem.funcValues.All(v => v == 0);
         int i = Convert.ToInt32(certificate);
-        // All we need to do is see if funcValues[certificate] is non-zero
-        return problem.funcValues[i] != 0;
+        // All we need to do is see if funcValues[certificate] is non-zero; an index outside the table is simply wrong.
+        return i >= 0 && i < problem.funcValues.Count && problem.funcValues[i] != 0;
     }
 }
