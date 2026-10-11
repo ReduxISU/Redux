@@ -71,20 +71,26 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
         SUBSETSUM SUBSETSUMInstance = _reductionFrom;
         PARTITION reducedPARTITION = new PARTITION();
 
-        int sum = 0;
-        string instance = "{";
-        List<string> partitionNumbers = new List<string>();
+        // The two added numbers, T + 1 and sum - T + 1, worked out in long so a large S or T cannot wrap around.
+        long sum = SUBSETSUMInstance.S.Sum(x => (long)int.Parse(x));
+        long withT = (long)SUBSETSUMInstance.T + 1, withRest = sum - SUBSETSUMInstance.T + 1;
+        if (withT > int.MaxValue || withT < int.MinValue || withRest > int.MaxValue || withRest < int.MinValue)
+            throw new ReductionInputException(this, SUBSETSUMInstance.instance, SUBSETSUMInstance.instanceFormat,
+                $"the added numbers T + 1 = {withT} and sum - T + 1 = {withRest} must fit Partition's integers (at most {int.MaxValue})");
+        // Partition reads its numbers as a set, so a number written twice is read once (#628) and the Partition would not be
+        // the one built here: its answer could differ from Subset Sum's (#831). Until Partition keeps repeated numbers, such
+        // an instance is refused rather than reduced to a different question.
+        var numbers = SUBSETSUMInstance.S.Select(int.Parse).ToList();
+        string? repeat = numbers.Contains((int)withT) ? $"T + 1 = {withT} is already a number of S"
+            : numbers.Contains((int)withRest) ? $"sum - T + 1 = {withRest} is already a number of S"
+            : withT == withRest ? $"T + 1 and sum - T + 1 are both {withT}"
+            : null;
+        if (repeat != null)
+            throw new ReductionInputException(this, SUBSETSUMInstance.instance, SUBSETSUMInstance.instanceFormat,
+                $"{repeat}, and Partition reads a repeated number once (#628), so the Partition would not have the same answer as this Subset Sum");
 
-        foreach (var i in SUBSETSUMInstance.S) {
-            partitionNumbers.Add(i);
-            instance += i + ",";
-            sum += int.Parse(i);
-        }
-
-        partitionNumbers.Add((SUBSETSUMInstance.T + 1).ToString());
-        instance += (SUBSETSUMInstance.T + 1).ToString() + ",";
-        partitionNumbers.Add((sum - SUBSETSUMInstance.T + 1).ToString());
-        instance += (sum - SUBSETSUMInstance.T + 1).ToString() + "}";
+        List<string> partitionNumbers = new List<string>(SUBSETSUMInstance.S) { withT.ToString(), withRest.ToString() };
+        string instance = "{" + string.Join(",", partitionNumbers) + "}";
 
         reducedPARTITION.S = partitionNumbers;
         reducedPARTITION.instance = instance;
@@ -93,7 +99,30 @@ class SubsetSumToPartitionReduction : IReduction<SUBSETSUM, PARTITION> {
         return reducedPARTITION;
     }
 
+    /// <summary>
+    /// Maps a Subset Sum answer to a Partition answer (#817): the chosen numbers, which add up to T, go on one side with
+    /// sum - T + 1, and the rest of S, which adds up to sum - T, goes on the other with T + 1, so both sides add up to sum + 1.
+    /// A number S does not have (or has fewer times than the answer uses it) is a 400.
+    /// </summary>
     public string mapSolutions(string problemFromSolution) {
-        return reductionTo.S[0];
+        string text = problemFromSolution.Trim();
+        if (text.Length < 2 || text[0] != '{' || text[^1] != '}')
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}");
+        List<string> chosen;
+        try {
+            chosen = new SPADE.UtilCollection(text).ToList().Select(x => x.ToString()).ToList();
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}", ex);
+        }
+        var rest = new List<string>(reductionFrom.S);
+        foreach (string number in chosen) {
+            if (!rest.Remove(number))
+                throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{number}' is not a number of S");
+        }
+        int count = reductionTo.S.Count;
+        chosen.Add(reductionTo.S[count - 1]);
+        rest.Add(reductionTo.S[count - 2]);
+        // Written as Partition Brute Force writes its answers, which both Partition's verifier and its visualization read.
+        return "{(" + string.Join(",", chosen) + "),(" + string.Join(",", rest) + ")}";
     }
 }
