@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_CLIQUECOVER;
 using SPADE;
@@ -88,16 +89,19 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
 
         instance = instance.TrimEnd('{').TrimEnd(',') + "})," + reductionFrom.K.ToString() + ')';
 
-        reducedCLIQUECOVER.K = reductionFrom.K;
-        reducedCLIQUECOVER.nodes = reductionFrom.nodes;
-        reducedCLIQUECOVER.instance = instance;
+        // Parsed from its own text, so its graph is this one and not the default instance's (#823).
+        reducedCLIQUECOVER = new CLIQUECOVER(instance);
 
         reductionTo = reducedCLIQUECOVER;
         return reducedCLIQUECOVER;
     }
 
+    // A K-coloring is a cover of the complement by K cliques: a color class has no edge in G, so every two of its nodes are
+    // joined in the complement. Each color class is one clique (#823).
     public string mapSolutions(string problemFromSolution) {
-        return "";
+        Dictionary<string, int> color = ColoringAnswer.Read(this, reductionFrom, problemFromSolution);
+        var cliques = color.GroupBy(p => p.Value).OrderBy(g => g.Key).Select(g => "{" + string.Join(",", g.Select(p => p.Key)) + "}");
+        return "{" + string.Join(",", cliques) + "}";
     }
 }
 // return an instance of what you are reducing to
