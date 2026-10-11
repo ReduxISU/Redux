@@ -46,6 +46,8 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphD3` | [`API_GraphJSON`](../../Interfaces/JSON_Objects/Graphs/API_GraphJSON.cs) | [StandardGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardGraphSvgReact.js) | Independent Set, Max Cut, Vertex Cover |
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs), [`GraphEdgeFrames`](../../Interfaces/graphs/GraphEdgeFrames.cs), [`GraphGroupFrames`](../../Interfaces/graphs/GraphGroupFrames.cs), [`GraphTourFrames`](../../Interfaces/graphs/GraphTourFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set; Minimum Spanning Tree, Steiner Tree; Cut, Weighted Cut, Max Cut, Minimum Cut; Graph Coloring, Clique Cover; Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format. See "The Graph picture" below |
+| `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
+| `SearchTree` | not a list item: a `payload` plus `frames` of named states ([`SearchTreeFrames`](../../Interfaces/SearchTree/SearchTreeFrames.cs)) | none yet | A second view of a solver that branches and backs up (see "The Search Tree picture" below). Reported only as the `type` of `visualize?format=frames`; each search-tree visualization reports its problem's legacy type in /info and serves that picture's list format |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -80,6 +82,64 @@ To add a problem to a shape:
 3. If the solver's answer string is not the usual form, override `ParseAnswer`. The edge shapes read `{{a,b},...}` and `{({a,b},w),...}` by default, the cut shape recovers a split from a list of cut edges (Max Cut's answer is the S side itself, so it overrides), and the groups shape reads the classes of `{{a,d},{b},{c}}` (the n-th class is group n). The answer string is only used for the last frame when the steps do not end in a `Done` step: a solver that records no steps, or one that returns without calling `Done` (as the converted solvers do when `timerHasExpired`). A solver that records steps normally ends with a `Done` step carrying its own partial answer. A run stopped by the step time limit (`SolveRun.TimedOut`) is different: its answer string is never read, and it ends with a `Done` frame with `ok: false`, the stopped caption, and every element `Background` (the cut and groups shapes keep an empty `groups`, the tour shape an empty `order`).
 4. Make the solver implement `ISolver<T, EdgeSet>` (or `Groups`) and record decisions with captions in the problem's words ("Edge 2-5 joins two trees, so add it (weight 3)."). Pass lambdas, so nothing is built when recording is off, and keep the answer identical. Cut solvers record the *split* and let the base draw the crossing edges. Groups solvers record the grouping so far (a brute force records each candidate, leaving out nodes it gave no group; a greedy records one node per step) and use `GraphGroupFrames.Why` and `Classes` for captions. Tour solvers record the path so far: a backtracking search uses `Try` (start), `Accept` (walk an edge), `Reject` (no such edge: put the node tried at the end of the partial so the missing edge is drawn) and `Backtrack`; a permutation solver records one step per complete permutation and lets the recorder's cap of 150 hide the rest; a best-first search says "queued" for a branch it has not followed yet. Use `GraphTourFrames.Arrows` for captions.
 5. Prove nothing changed for old clients: snapshot the list-format output and `/info` before touching code, and snapshot what the solver answers on seeded instances (`Endpoints/Snapshots/`, `GraphFrames_Endpoint_Tests`, `GraphEdgeFrames_Endpoint_Tests`, `GraphGroupFrames_Endpoint_Tests`, `GraphTourFrames_Endpoint_Tests`, `EdgeSetSolvers_Tests`, `GroupSolvers_Tests`, `TourSolvers_Tests`).
+
+### The Search Tree picture (`format=frames`)
+
+The `SearchTree` picture is a **second view** of a backtracking or branch-and-bound solver: the tree of choices it made, growing step by step. It is drawn from the steps the solver already records, so it never changes a problem's own picture. Each problem that has one gets a separate, selectable visualization class (`Sat3SearchTreeVisualization`, for example). Its list format, /info type and solver come from the problem's existing picture, and no problem's `defaultVisualization` changes.
+
+**What a solver hands over.** Each step may name its nodes of the tree: `SolverStep.Tree`, a list of `SearchNode` patches. A patch whose id is new creates the node under its parent; a patch for a node that exists changes its state (and bound). The last patch is the node the step is about. A step without `Tree` still works in every other picture, and its JSON is exactly what it was (`tree` is omitted when null).
+
+| `SearchNode` field | Meaning |
+| --- | --- |
+| `nodeId` | Unique within the run; a counter the solver keeps |
+| `parentId` | The node it branched from; `null` for the root |
+| `label` | The choice, short: `x2=F`, `(1,3)`, `Denver`; `start` for a root |
+| `state` | `queued`, `explored`, `pruned` (cut without exploring), `failed` (explored, then backed out of), `solution`, `skipped` (game trees) |
+| `bound` | Optional note on the bound or cost that decided it: `lb 28 ≥ 27`, `tour 27`, `hit by (0,0)`, `C3 false` |
+
+Record patches with the recorder overloads that take a fourth lambda (`rec.Try(partial, caption, focus, () => [node])`, and the same for `Accept`, `Reject` and `Backtrack`). Like the rest of a step they are built only for kept steps. `rec.Done(answer, ok, caption, () => path)` names the answer's path, root first: past the 150-step cap only the last `Accept` is kept, and it need not be the step that found the answer, so a solver that branches names the path again there.
+
+The payload (sent once) is `{ kind: "searchTree", problem, instance, maxLeaves }`. Each frame is `{ event, caption, focus, nodes, total, cut, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `focus` | The id of the node the step is about; empty in `Done` and in steps without patches |
+| `nodes` | The drawn tree, parents before children, children in the order they were made: `{ id, parent, label, kind, state, bound?, order?, hidden? }` |
+| `total` | Nodes the search has made so far, folded ones included |
+| `cut` | How many of them it cut without exploring |
+
+`kind` is the node's search state (`queued` ... `skipped`), or `more` / `cut` for a fold, or `hidden` for a stand-in for a parent whose own step was not kept. `pruned` and `cut` are drawn dashed, `failed` solid. `order` is when a best-first solver took the node off its queue (1 for the first): a node that leaves `queued`, or gets a child while queued, gets the next number, so depth-first solvers get none. `hidden` is how many nodes a fold stands for.
+
+Ids are `n{nodeId}`, so the same node has the same id in every frame. A fold's id comes from its node: `n{id}.more` for a finished subtree folded away ("+7 more"), `n{id}.cut` for that node's cut-off children ("3 cut").
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Background`):
+
+| State | Nodes |
+| --- | --- |
+| `ElementHighlight` | The node the step is about (`Rejected` instead in a `Reject`) |
+| `Solution` | The path from the root to the latest solution node, only in the `Accept` that reaches it and in a `Done` with `ok: true` |
+| `Covered` | Explored nodes, and solution nodes everywhere else (a later, better solution demotes the earlier one to `explored`) |
+| `Rejected` | Pruned and failed nodes, and `cut` folds |
+| `Untraveled` | Queued and skipped nodes |
+| `Background` | `more` folds and `hidden` stand-ins |
+
+**Folding.** Past 12 leaves, two or more cut-off leaves under one node share one `n{id}.cut` node. While there are still more than 12 leaves, the finished subtree with the most leaves folds into one `n{id}.more` node. A subtree that holds the node in focus, a queued node or the answer's path is never folded.
+
+A run stopped by the time limit ends with the tree so far in a `Done` frame, `ok: false`, with no focus and no answer path; its answer string is never read. A solver that records no tree (a brute force, picked with `&solver=`) gets frames with empty `nodes`.
+
+Solvers that record a search tree:
+
+| Problem | Solver | Visualization | Search |
+| --- | --- | --- | --- |
+| Traveling Salesperson | Traveling Salesperson Branch and Bound | `TSPSearchTreeVisualization` (its own solver is the branch and bound; the list format is `TSPDefaultVisualization`'s for that solver) | Best first. The root is the start city, queued with its lower bound (`lb 27`); a path taken off the queue is explored, or pruned when the best tour has caught up (`lb 28 ≥ 27`); each extension is a node, queued or pruned (`no edge`, or a bound no better); a complete tour is the solution, the best so far (`tour 27`), or failed. The `Done` step names the best tour's path, unless the greedy tour it started from was never beaten |
+
+Not covered, because nothing in Redux branches for them: Knapsack (`KnapsackBruteForce` enumerates every set of items in a flat loop and `KnapsackDP` fills a table) and Graph Coloring (`GraphColoringBruteForce` counts through every coloring and `GraphColoringGreedy` never backs up). SAT has only its brute force and Grover's solver; 3SAT's PPZ, Schöning and WalkSAT are randomized local searches. TSP's brute force and greedy solvers don't branch either.
+
+To add a search tree to another solver:
+
+1. Give every node an id from a counter (the root is 0) and keep, for each state you may come back to, its `SearchNode`. Build the patches only inside the recorder's lambdas, and keep the steps otherwise exactly as they were.
+2. Add a visualization class next to the problem's own picture that implements `ISearchTreeVisualization<TProblem, TPartial>` (`TPartial` is the solver's step shape), declares `Type? IVisualization.StepShape => typeof(TPartial)`, and passes `visualize` and `SolvedVisualization` to the problem's picture.
+3. Snapshot the solver's steps before touching it (`Endpoints/Snapshots/searchtree_*_steps.tsv`: a hash of each step's JSON) and test that the steps without `tree` still hash the same, the tree links themselves (`SearchTree*_Tests`), and the endpoint output with `SearchTreeJson` (`SearchTree*_Endpoint_Tests`).
 
 ## 3. How Redux finds your visualization
 
