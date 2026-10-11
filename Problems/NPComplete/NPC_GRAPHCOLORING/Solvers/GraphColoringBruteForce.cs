@@ -100,6 +100,24 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING, Groups> {
             return colors;
         }
 
+        // The verifier accepts a candidate only if every node has a color (no digit is numColors, the odometer's extra
+        // value) and no edge joins two different nodes of the same color. Checking that on the digits first, and building
+        // and verifying the certificate only for a candidate that passes, skips the string work for every other candidate
+        // without changing which candidates are tried or which one is returned (#816).
+        var nodeIndex = new Dictionary<string, int>();
+        for (int i = 0; i < gColor.nodes.Count; i++) nodeIndex.TryAdd(gColor.nodes[i], i);
+        var clashes = gColor.edges
+            .Where(e => !e.Key.Equals(e.Value) && nodeIndex.ContainsKey(e.Key) && nodeIndex.ContainsKey(e.Value))
+            .Select(e => (nodeIndex[e.Key], nodeIndex[e.Value]))
+            .ToArray();
+        bool MightBeAColoring() {
+            for (int i = 0; i < binary.Count; i++)
+                if (binary[i] >= numColors) return false;
+            foreach (var (u, v) in clashes)
+                if (binary[u] == binary[v]) return false;
+            return true;
+        }
+
         // Use a do-while so the initial all-zero candidate is always evaluated at least
         // once. With a while-loop that checks the exit condition first, when
         // numColors == 1 the condition (all digits already equal numColors - 1, i.e. 0)
@@ -108,12 +126,14 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING, Groups> {
         // guaranteed false on the initial all-zero binary (no digit can equal
         // numColors - 1 >= 1 yet), so this restructuring does not change behavior there.
         do {
-            string certificate = BinaryToCertificate(binary, gColor.nodes, numColors);
             tried++;
-            if (gColor.defaultVerifier.verify(gColor, certificate)) {
-                rec.Accept(() => new Groups(Candidate()), () => $"Try {GraphGroupFrames.Classes(Candidate(), numColors)}. No two neighbours share a color.", Array.Empty<string>());
-                rec.Done(new Groups(Candidate()), true, $"{GraphGroupFrames.Classes(Candidate(), numColors)} is a coloring with at most {numColors} colors, found after {tried} tries.");
-                return certificate;
+            if (MightBeAColoring()) {
+                string certificate = BinaryToCertificate(binary, gColor.nodes, numColors);
+                if (gColor.defaultVerifier.verify(gColor, certificate)) {
+                    rec.Accept(() => new Groups(Candidate()), () => $"Try {GraphGroupFrames.Classes(Candidate(), numColors)}. No two neighbours share a color.", Array.Empty<string>());
+                    rec.Done(new Groups(Candidate()), true, $"{GraphGroupFrames.Classes(Candidate(), numColors)} is a coloring with at most {numColors} colors, found after {tried} tries.");
+                    return certificate;
+                }
             }
             rec.Reject(() => new Groups(Candidate()),
                 () => $"Try {GraphGroupFrames.Classes(Candidate(), numColors)}: {GraphGroupFrames.Why(GroupRule.Coloring, gColor.nodes, gColor.edges, Candidate())?.Reason ?? "the verifier rejects it"}.",
