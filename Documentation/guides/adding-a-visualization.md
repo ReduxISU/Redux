@@ -47,6 +47,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GraphLaTeX` | `API_GraphJSON` | [LaTeXGraphSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/LaTeXGraphSvgReact.js) | DFA |
 | `Graph` | not a list item: a `payload` plus `frames` of named states ([`GraphSubsetFrames`](../../Interfaces/graphs/GraphSubsetFrames.cs)) | none yet | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` in /info and in the default list format |
 | `Automaton` | not a list item: a `payload` plus `frames` of named states ([`AutomatonFrames`](../../Interfaces/graphs/AutomatonFrames.cs)) | none yet | DFA, NFA. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphLaTeX` in /info and in the default list format. See "The Automaton picture" below |
+| `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -100,6 +101,73 @@ To add an automaton problem:
 2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets tests build the same description.
 3. If the list format already drew the typed steps before the picture existed, also return `true` from `IFramesVisualization.ListReadsTypedSteps()`, so the list keeps getting them. It is a method, not a property, so it never shows in `/info`.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/automaton_*.tsv`, `AutomatonFrames_Endpoint_Tests`, `AutomatonSolvers_Tests`, `AutomatonFrames_Tests`).
+
+### The Table picture (`format=frames`)
+
+Edit Distance and 0-1 Integer Linear Programming serve the shared `Table` picture: rows and columns of text cells, drawn in HTML. It comes in three shapes that share one renderer:
+
+| Shape | Problems | How it reads |
+| --- | --- | --- |
+| `grid` | Edit Distance | A dynamic-programming grid. The cell being filled is the focus, with arrows from the cells it compared. The trace-back's cells are the answer |
+| `matrix` | 0-1 Integer Linear Programming | The assignment on top, then one row per constraint with its total against its bound |
+| `trace` | the second views of DFA, NFA, SSSP and SPSP | One row per step, added as the run reaches it. Cells that changed this step are marked |
+
+Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface.
+
+The problem hands over a `TableSpec(shape, columns)`. A column is `TableColumnSpec(label, key?)`: the header as written, and an optional camelCase name a frontend can key on. When the rows are fixed (a grid's letters, a matrix's constraints), `RowLabels` gives their headers. A trace table leaves `RowLabels` null, and its rows are whatever its frames reach. `Title`, `RowAxis` and `ColumnAxis` are optional captions (the grid's `source x` and `target y`).
+
+The payload (sent once) is `{ kind: "table", shape, columns, rows, title?, rowAxis?, columnAxis? }`:
+
+- A column is `{ id, label, key? }`.
+- A row is `{ id, label? }`. A trace table lists as many rows as its longest frame shows, without labels.
+
+Each frame is `{ event, caption, focus, values, rows, cells, changed, arrows?, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `values` | The text of every cell shown, row by row: `values[i][j]` is cell `r{i}c{j}`. A cell that is still empty is `null`. There is one entry per row shown, the first rows of the payload. Grids and matrices show every row in every frame. A trace table shows more rows as the run goes on |
+| `rows`, `cells` | Map a row id or a cell id to `{ state }` (absent means `Background`). A cell's own state shows over its row's |
+| `changed` | The cells whose value changed at this step, drawn underlined. An annotation, not a state |
+| `arrows` | Grid only: `{ from, to, best }`, from each cell the fill read to the cell it filled. `best` marks the one whose value it took |
+
+Ids are positions, never contents: row `i` is `r{i}`, column `j` is `c{j}` and their cell is `r{i}c{j}` (0-based). Repeated letters, labels that look like ids and labels with separators stay distinct, and no id needs escaping. Build them with `TableFrames.RowId`, `ColumnId` and `CellId`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`, with `Untraveled` only where nothing else applies). The visualization sets them in the problem's own terms, and the base adds the focus:
+
+| State | Grid (Edit Distance) | Matrix (0-1 ILP) |
+| --- | --- | --- |
+| `ElementHighlight` | The cell being filled, and the trace-back's newest cell (the focus) | The assignment's cells while it is only tried (a `Try` or `Reject` of the brute force) |
+| `Solution` | The trace-back's cells, in every step once it starts (the solver is incremental) and in `Done` | The assignment and every row in an `Accept` and in a correct `Done` |
+| `Covered` | not used | A row that holds while the assignment is only tried |
+| `Rejected` | not used | A row over its bound, in every frame |
+
+`Solution` is only for an `Accept` and for the answer. While Edit Distance fills its table nothing is the answer yet, so filled cells have no state.
+
+A run stopped by the time limit ends with a `Done` frame, `ok: false`. It shows the instance with nothing worked out (an empty grid, or the matrix with every `x` a `?` and no totals), every element `Background`, nothing changed and no arrows. Its answer string is never read.
+
+The solvers and their steps:
+
+| Solver | Shape | Incremental | Steps |
+| --- | --- | --- | --- |
+| Edit Distance Dynamic Programming | `TableCells` | yes | A `Try` that fills row 0 and column 0, a `Try` per cell ("Cell (1,1): 'h' ≠ 'r'. Replace 'h' with 'r': 1 + 0. Delete 'h': 1 + 1. Insert 'r': 1 + 1. The cheapest is replace, so 1."), then an `Accept` per cell of the trace-back ("(5,3) came from (4,3): delete 'e'."), `Done`. If the cells, the trace-back and the first and last steps would not fit in the 150-step cap, the table is filled one row per step instead, so the whole fill stays visible |
+| 0-1 ILP Brute Force | `Assignment` (`x1` ... `xn` to `0` or `1`) | no | A `Reject` per assignment in the counter's order, naming the rows over their bounds ("Try (1 1 0 0): row 2 adds up to 2, over its bound 1."), the `Accept` of the first that holds, `Done` |
+
+`TableCells` holds the text of every cell filled so far (by cell id), the cells the latest fill read (the one it took first), and the trace-back's cells in order. It suits any dynamic-programming table.
+
+The two problems have their own visualizations for the picture (`EditDistanceVisualization`, `IntProgrammingVisualization`). Their list format is a `DynamicTable` before and after, built by `TableFrames.ToListTable`. The problems' default visualization is still `DummyVisualization`, so their /info is unchanged.
+
+To add a table:
+
+1. Implement `ITableVisualization<TProblem, TPartial>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(TPartial)`.
+2. Return the spec from `Describe`. In `Draw`, turn each step into a `TableDraft` and return one draft per step:
+   - add its rows (`AddRow`);
+   - mark rows and cells (`MarkRow`, `MarkCell`, `MarkChanged`);
+   - name the focus (`FocusCell`, `FocusRow`);
+   - for a grid, add arrows.
+
+   `Blank` is the instance with nothing worked out. `Solved` (optional) draws an answer when the steps cannot be drawn. A static `Spec(problem)` next to it lets tests build the same description.
+3. A table that is a second view of a problem that already has another frames picture (an automaton's run, Dijkstra's distances) is its own visualization. It draws the same solver's steps, so the solver is not changed, and the problem's other pictures and default stay as they are.
+4. Prove nothing changed for old clients: snapshot `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/table_solver_answers.tsv`, `TableFrames_Endpoint_Tests`, `TableSolvers_Tests`, `TableFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 

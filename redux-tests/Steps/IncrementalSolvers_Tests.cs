@@ -28,10 +28,13 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        // TableCells and Assignment (Table pictures)
+        ["editdistancedpsolver"] = true,
+        ["integerprogrammingbruteforce"] = false,
     };
 
     // The answer shapes a Graph picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet)];
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(TableCells), typeof(Assignment)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
