@@ -40,7 +40,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     // queued, each value tried is a node ("x2=F") under the state it decides, queued (with its priority), pruned (with the
     // clause it makes false) or the solution, and a Backtrack takes the node it goes back to off the queue.
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
-        Dictionary<string, bool>? solution = findSolution(sat3, rec);
+        Dictionary<string, bool>? solution = Search(sat3, rec, out SearchNode[]? answerPath);
 
         if (solution == null) {
             rec.Done(new Assignment([]), false, "Every branch was rejected, so there is no solution.");
@@ -62,7 +62,9 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         }
         solutionString = solutionString.TrimEnd(',');
         solutionString += ")";
-        rec.Done(ToAssignment(solution), true, $"Every clause has a true literal under {GroupedGraphFrames.Assigned(solution)}.");
+        // The answer's path in the search tree, root first: past the cap, its ancestors' steps may not have been kept.
+        rec.Done(ToAssignment(solution), true, $"Every clause has a true literal under {GroupedGraphFrames.Assigned(solution)}.",
+            answerPath is null ? null : () => answerPath);
         return solutionString;
     }
 
@@ -72,7 +74,11 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     // Return type varies
     public Dictionary<string, bool>? findSolution(SAT3 sat3) => findSolution(sat3, StepRecorder<Assignment>.Off);
 
-    public Dictionary<string, bool>? findSolution(SAT3 sat3, StepRecorder<Assignment> rec) {
+    public Dictionary<string, bool>? findSolution(SAT3 sat3, StepRecorder<Assignment> rec) => Search(sat3, rec, out _);
+
+    // The search; answerPath is the solution's nodes in the search tree, root first (null when there is no solution).
+    private Dictionary<string, bool>? Search(SAT3 sat3, StepRecorder<Assignment> rec, out SearchNode[]? answerPath) {
+        answerPath = null;
         ////O(n!)
         // while(!solutionFound && !satQueue.isEmpty()):
         // 	var = varQueue.pop() //O(1)
@@ -121,6 +127,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
             [curSat] = new SearchNode(0, null, "start", SearchNodeState.Queued),
         };
         int nextNode = 1;
+        var byId = new Dictionary<int, SearchNode> { [0] = nodes[curSat] };   // the root and every queued node, to walk up from the answer
         while (!solutionFound && satPQ.Count > 0) {
             curSat = satPQ.Dequeue();
             // Console.WriteLine("curSat's nextVar is : " + curSat.nextVar);
@@ -164,6 +171,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
                         satPQ.Enqueue(childSAT, childSAT.getPQWeight());
                         justQueued.Add(childSAT);
                         nodes[childSAT] = child with { State = SearchNodeState.Queued };
+                        byId[child.NodeId] = child;
                         SAT3PQObject queued = childSAT;
                         rec.Accept(Partial, () => $"Keep {decided.nextVar} = {tried}: no clause has every literal false yet, so this branch is queued.", () => focus,
                             () => Node(SearchNodeState.Queued, $"priority {queued.getPQWeight()}"));
@@ -172,6 +180,10 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
                         //WRITE ASSIGNMENTS OF VARIABLES
                         solutionFound = true;
                         solution = childSAT.varStates;
+                        var path = new List<SearchNode> { child with { State = SearchNodeState.Solution } };
+                        for (int? up = child.ParentId; up is int id; up = byId[id].ParentId)
+                            path.Insert(0, byId[id] with { State = SearchNodeState.Explored, Bound = null });
+                        answerPath = [.. path];
                         rec.Accept(Partial, () => $"Keep {decided.nextVar} = {tried}: every clause now has a true literal.", () => focus,
                             () => Node(SearchNodeState.Solution));
                         break; //SOLUTION FOUND EXIT FOR EACH

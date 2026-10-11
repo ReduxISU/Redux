@@ -91,8 +91,8 @@ public class SearchTreeSat3_Endpoint_Tests : IClassFixture<AppFactory> {
             frames.Select(f => (f.GetProperty("event").GetString(), f.GetProperty("caption").GetString())));
         Assert.All(frames.SkipLast(1), f => Assert.Single(f.GetProperty("focus").EnumerateArray()));
 
-        // Done: ok when there is an answer, and then the path from the root to it is green and spells it (when its steps
-        // were all kept).
+        // Done: ok when there is an answer, and then the path from the root to it is green and spells it (past the cap too:
+        // the Done step names the path).
         bool satisfiable = clauseFrames[^1].GetProperty("ok").GetBoolean();
         Assert.Equal(satisfiable, done.GetProperty("ok").GetBoolean());
         var green = SearchTreeJson.GreenPath(done);
@@ -101,7 +101,6 @@ public class SearchTreeSat3_Endpoint_Tests : IClassFixture<AppFactory> {
             return;
         }
         Assert.Equal("solution", SearchTreeJson.Kind(green[^1]));
-        if (green.Any(n => SearchTreeJson.Kind(n) == "hidden")) return;
         var assignment = clauseFrames[^1].GetProperty("assignment").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetBoolean());
         foreach (var n in green.Skip(1)) {
             var label = n.GetProperty("label").GetString()!.Split('=');

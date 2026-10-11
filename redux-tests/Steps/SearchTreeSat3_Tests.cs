@@ -48,10 +48,7 @@ public class SearchTreeSat3_Tests {
         bool pastCap = steps.Count > StepRecorder<Assignment>.DefaultCap + 1;
         for (int i = 0; i < steps.Count; i++) {
             var step = steps[i];
-            if (step.Event == StepEvent.Done) {
-                Assert.Null(step.Tree);
-                continue;
-            }
+            if (step.Event == StepEvent.Done) continue;
             var tree = Assert.IsAssignableFrom<IReadOnlyList<SearchNode>>(step.Tree);
             var node = tree[^1];
             if (i == 0) {
@@ -107,14 +104,21 @@ public class SearchTreeSat3_Tests {
 
     [Theory]
     [MemberData(nameof(Snapshot))]
-    public void TheSolutionsPath_SpellsTheAssignmentItFound(string solver, string instance, string _) {
+    public void TheDoneStep_NamesTheSolutionsPath_WhichSpellsTheAssignmentItFound(string solver, string instance, string _) {
         var steps = Steps(solver, instance);
-        if (steps[^1].Ok != true || steps.Count > StepRecorder<Assignment>.DefaultCap + 1) return;
-        var nodes = steps.Where(s => s.Tree != null).SelectMany(s => s.Tree!).GroupBy(n => n.NodeId).ToDictionary(g => g.Key, g => g.First());
+        var done = steps[^1];
+        if (done.Ok != true) {
+            Assert.Null(done.Tree);
+            return;
+        }
+        var path = done.Tree!;
+        Assert.Equal(new SearchNode(0, null, "start", SearchNodeState.Explored), path[0]);
+        for (int i = 1; i < path.Count; i++) Assert.Equal(path[i - 1].NodeId, path[i].ParentId);
+        Assert.All(path.Skip(1).SkipLast(1), n => Assert.Equal(SearchNodeState.Explored, n.State));
+        Assert.Equal(SearchNodeState.Solution, path[^1].State);
+        // The solution's node is the one the last Accept named, and the path spells the assignment it found.
         var answer = steps.Last(s => s.Event == StepEvent.Accept);
-        var path = new List<string>();
-        for (SearchNode? n = answer.Tree![^1]; n != null; n = n.ParentId is int p ? nodes[p] : null) path.Add(n.Label);
-        Assert.Equal("start", path[^1]);
-        Assert.Equal(answer.Partial.Values.Select(v => $"{v.Key}={(v.Value == "True" ? "T" : "F")}").Order(), path.SkipLast(1).Order());
+        Assert.Equal(answer.Tree![^1], path[^1]);
+        Assert.Equal(answer.Partial.Values.Select(v => $"{v.Key}={(v.Value == "True" ? "T" : "F")}").Order(), path.Skip(1).Select(n => n.Label).Order());
     }
 }
