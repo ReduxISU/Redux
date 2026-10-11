@@ -12,6 +12,8 @@ namespace redux_tests;
 //   - the list format of Sudoku's visualization (Snapshots/board_list_snapshots.tsv, captured before the picture existed),
 //   - /info for the two problems, their three solvers, their verifiers and Sudoku's visualization (info.<name>.json, captured
 //     the same way).
+// The deliberate exception is N-Queens' default visualization, which moved off DummyVisualization to NQueensVisualization:
+// see the "rewire" test.
 public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -62,7 +64,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     public static TheoryData<string> TouchedInterfaces => new([
-        "sudoku", "sudokusolver", "sudokuverifier", "sudokuvisualization", "nqueens", "nqueensbacktracking", "nqueensconstructive", "nqueensverifier",
+        "sudoku", "sudokusolver", "sudokuverifier", "sudokuvisualization", "nqueensbacktracking", "nqueensconstructive", "nqueensverifier",
     ]);
 
     // ---- What old frontends read must not change. ----
@@ -78,6 +80,25 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
+    }
+
+    // N-Queens' default visualization moved off DummyVisualization to NQueensVisualization. Its /info snapshot was retaken
+    // after the rewire; the diff against the pre-change capture is only that nested object. No reduction goes into or out
+    // of N-Queens, so nothing else embeds it.
+    [Fact]
+    public async Task Rewire_NQueensInfo_ShowsNQueensVisualization_AndNothingElse() {
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=nqueens", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
+        Assert.Equal(ReadSnapshot("info.nqueens.json"), body);
+        Assert.DoesNotContain("DummyVisualization", body);
+        Assert.DoesNotContain("\"Board\"", body);
+        var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
+        Assert.Equal("N-Queens Board Visualization", vis.GetProperty("visualizationName").GetString());
+        Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
+        Assert.Equal("N-Queens Backtracking", vis.GetProperty("solver").GetProperty("solverName").GetString());
+        var own = await _client.GetAsync("/ProblemProvider/info?interface=nqueensvisualization", TestContext.Current.CancellationToken);
+        Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(vis.GetRawText()));
     }
 
     [Theory]

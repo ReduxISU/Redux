@@ -1,11 +1,11 @@
 using API.Interfaces;
-using API.DummyClasses;
+using API.Problems.P.P_NQUEENS.Visualizations;
 using API.Problems.P.P_NQUEENS.Solvers;
 using API.Problems.P.P_NQUEENS.Verifiers;
 
 namespace API.Problems.P.P_NQUEENS;
 
-class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualization> {
+class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, NQueensVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "N-Queens";
@@ -55,7 +55,7 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
 
     public NQueensConstructive defaultSolver { get; } = new NQueensConstructive();
     public NQueensVerifier defaultVerifier { get; } = new NQueensVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public NQueensVisualization defaultVisualization { get; } = new NQueensVisualization();
 
     // --- Constructors ---
     public NQUEENS() : this(_defaultInstance) { }
