@@ -110,6 +110,7 @@ public class Gadget_Kinds_Tests {
         ["reduceToCLIQUE"] = "Element x7, EdgeRule x6, Bound x1",
         ["sipserReductionVertexCover"] = "Element x6, EdgeRule x3, Bound x1",
         ["SipserReduceToCliqueStandard"] = "Element x9, Group x3",
+        ["SipserReduceToSAT3"] = "Element x9, Group x3",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>

@@ -38,7 +38,242 @@
       "complexityBucket": "Exponential"
     }
   },
-  "gadgets": [],
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
+      ],
+      "reductionToIds": [
+        "0",
+        "0-0",
+        "0-1",
+        "0-2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
+      ],
+      "targetIds": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c0-2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "x1_0"
+      ],
+      "reductionToIds": [
+        "0-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x1_0"
+      ],
+      "targetIds": [
+        "c0-0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "!x2_0"
+      ],
+      "reductionToIds": [
+        "0-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x2_0"
+      ],
+      "targetIds": [
+        "c0-1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "x3_0"
+      ],
+      "reductionToIds": [
+        "0-2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x3_0"
+      ],
+      "targetIds": [
+        "c0-2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
+      ],
+      "reductionToIds": [
+        "1",
+        "1-0",
+        "1-1",
+        "1-2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
+      ],
+      "targetIds": [
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c1-2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "!x1_1"
+      ],
+      "reductionToIds": [
+        "1-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x1_1"
+      ],
+      "targetIds": [
+        "c1-0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "x3_1"
+      ],
+      "reductionToIds": [
+        "1-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x3_1"
+      ],
+      "targetIds": [
+        "c1-1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "x1_1"
+      ],
+      "reductionToIds": [
+        "1-2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x1_1"
+      ],
+      "targetIds": [
+        "c1-2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ],
+      "reductionToIds": [
+        "2",
+        "2-0",
+        "2-1",
+        "2-2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ],
+      "targetIds": [
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c2-2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "x2_2"
+      ],
+      "reductionToIds": [
+        "2-0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x2_2"
+      ],
+      "targetIds": [
+        "c2-0"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "!x3_2"
+      ],
+      "reductionToIds": [
+        "2-1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x3_2"
+      ],
+      "targetIds": [
+        "c2-1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "!x1_2"
+      ],
+      "reductionToIds": [
+        "2-2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x1_2"
+      ],
+      "targetIds": [
+        "c2-2"
+      ]
+    }
+  ],
   "reductionFrom": {
     "problemName": "Clique",
     "formalDefinition": "Clique = {\u003CG, k\u003E | G is an graph that has a set of k mutually adjacent nodes}",

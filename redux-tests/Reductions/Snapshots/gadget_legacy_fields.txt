@@ -114,6 +114,19 @@ ElementHighlight | 2-0 | x2_2
 ElementHighlight | 2-1 | !x3_2
 ElementHighlight | 2-2 | !x1_2
 ClauseHighlight | 2 | x2_2,!x3_2,!x1_2
+# SipserReduceToSAT3
+ClauseHighlight | x1_0,!x2_0,x3_0 | 0,0-0,0-1,0-2
+ElementHighlight | x1_0 | 0-0
+ElementHighlight | !x2_0 | 0-1
+ElementHighlight | x3_0 | 0-2
+ClauseHighlight | !x1_1,x3_1,x1_1 | 1,1-0,1-1,1-2
+ElementHighlight | !x1_1 | 1-0
+ElementHighlight | x3_1 | 1-1
+ElementHighlight | x1_1 | 1-2
+ClauseHighlight | x2_2,!x3_2,!x1_2 | 2,2-0,2-1,2-2
+ElementHighlight | x2_2 | 2-0
+ElementHighlight | !x3_2 | 2-1
+ElementHighlight | !x1_2 | 2-2
 # sipserReductionVertexCover
 ElementHighlight | 1 | 1
 ElementHighlight | 2 | 2
