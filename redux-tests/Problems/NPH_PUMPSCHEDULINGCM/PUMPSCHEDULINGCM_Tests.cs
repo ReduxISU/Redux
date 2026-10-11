@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Verifiers;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers;
@@ -281,5 +281,11 @@ public class PUMPSCHEDULINGCM_Tests {
             var frame = Assert.IsType<API_PumpFrame>(frames[h]);
             Assert.Equal(h, frame.metrics.hour);
         }
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGCM_CertificateExample_Verifies_Against_Default_Instance() {
+        PUMPSCHEDULINGCM p = new();
+        Assert.True(new PumpSchedulingCMVerifier().verify(p, PumpSchedulingCMVerifier.CertificateExample));
     }
 }

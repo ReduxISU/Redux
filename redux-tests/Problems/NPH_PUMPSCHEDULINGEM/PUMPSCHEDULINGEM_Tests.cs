@@ -1,3 +1,4 @@
+﻿using System.Linq;
 using Xunit;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM.Verifiers;
@@ -291,38 +292,58 @@ public class PUMPSCHEDULINGEM_Tests {
 
     // ── Infeasible-path fallback ──────────────────────────────────────────────
 
+    private const string OverBudgetInstance =
+        "((1000,500,400)," +
+        "((200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200)," +
+        "()," +
+        "(1.0,1.0))," +
+        "((PumpA,250,100.0,1000.0))," +
+        "0.5)";
+
     [Fact]
-    public void PUMPSCHEDULINGEM_Solver_FallsBackTo_AllPumpsOn_When_NoFeasiblePathWithinBudget() {
-        // Tank must stay >= minLevel (400) while demand (200/hr) alone would drain it
-        // below that floor, so every hour requires the pump on. But the budget (0.5) is
-        // far smaller than even a single hour's running cost (100 energy + 1000 startup
-        // on the first activation), so every path that keeps the tank in-range is pruned
-        // by the budget constraint. RunEmergencyResilience finds no feasible terminal
-        // state, so solve() takes the documented fallback: run all pumps every hour,
-        // regardless of budget or tank overflow, then reports whatever that costs.
+    public void PUMPSCHEDULINGEM_Solver_ReturnsNoSolution_When_NoFeasiblePathWithinBudget() {
+        // Tank must stay >= minLevel (400) while demand (200/hr) alone would drain it below
+        // that floor, so the pump must run. But the budget (0.5) is far below even the first
+        // startup (1000), so every in-range path is pruned. The solver reports the repo's
+        // no-solution value "{}" instead of an invented all-pumps-on schedule.
+        PUMPSCHEDULINGEM p = new(OverBudgetInstance);
+        Assert.Equal("{}", new PumpSchedulingEMSolver().solve(p));
+        Assert.False(new PumpSchedulingEMVerifier().verify(p, "{}"));
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGEM_Verifier_Rejects_AllOn_Schedule_When_OverBudget() {
+        PUMPSCHEDULINGEM p = new(OverBudgetInstance);
+        string allOn = "(0.5,0.0,((PumpA,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)))";
+        PumpSchedulingEMVerifier v = new();
+        Assert.False(v.verify(p, allOn));
+        // Even with the true cost reported, the schedule busts the instance budget.
+        int[] masks = Enumerable.Repeat(1, 24).ToArray();
+        double cost = PumpSchedulingEMSolver.ComputeTotalCost(p, masks);
+        string honest = $"(0.5,{cost.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)},((PumpA,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)))";
+        Assert.False(v.verify(p, honest));
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGEM_Solver_Keeps_Cheaper_Path_That_Is_The_Only_One_Within_Budget() {
+        // Tank is pinned to [400,600] with +/-100 per hour, so the running balance (on-hours minus
+        // off-hours) must stay in [-1,1] and exactly 12 of 24 hours are on. Each separate run of
+        // "on" costs a 100 startup (+1/hour energy); runs can be at most 2 hours long, so the
+        // cheapest schedule has 6 runs: 6*100 + 12 = 612. Higher-scoring schedules use more runs.
+        // A DP that keeps only the max-score path per state follows the expensive runs, busts the
+        // 612 budget later, and loses the one schedule that fits.
         string instance =
-            "((1000,500,400)," +
-            "((200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200)," +
+            "((600,500,400)," +
+            "((100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100)," +
             "()," +
             "(1.0,1.0))," +
-            "((PumpA,250,100.0,1000.0))," +
-            "0.5)";
+            "((PumpA,200,1.0,100.0))," +
+            "612.0)";
         PUMPSCHEDULINGEM p = new(instance);
-        PumpSchedulingEMSolver solver = new();
-        PumpSchedulingEMVerifier verifier = new();
-
-        string cert = solver.solve(p);
-
-        // The fallback always produces a non-empty certificate — solve() never throws
-        // or returns empty for this problem, even when no budget-feasible path exists.
-        Assert.False(string.IsNullOrEmpty(cert));
-
-        // Document actual behavior rather than assume it: the fallback schedule (all
-        // pumps on every hour) is not budget-constrained and, on this instance, also
-        // overflows the tank (500 starting level + net +50 gph every hour eventually
-        // exceeds the 1000 capacity), so the verifier is expected to reject it.
-        bool verified = verifier.verify(p, cert);
-        Assert.False(verified);
+        string cert = new PumpSchedulingEMSolver().solve(p);
+        Assert.NotEqual("{}", cert);
+        Assert.True(new PumpSchedulingEMVerifier().verify(p, cert));
+        Assert.StartsWith("(612.00,612.00,", cert);
     }
 
     // ── Verifier — additional rejection cases ────────────────────────────────
@@ -443,5 +464,11 @@ public class PUMPSCHEDULINGEM_Tests {
             Assert.Equal(h, frame.metrics.hour);
             Assert.True(frame.metrics.budgetRemaining >= 0.0);
         }
+    }
+
+    [Fact]
+    public void PUMPSCHEDULINGEM_CertificateExample_Verifies_Against_Default_Instance() {
+        PUMPSCHEDULINGEM p = new();
+        Assert.True(new PumpSchedulingEMVerifier().verify(p, PumpSchedulingEMVerifier.CertificateExample));
     }
 }

@@ -20,7 +20,7 @@ class CutBruteForce : ISolver<CUT, Groups> {
     // Declared, not derived. Enumerates the S sides of size 1..n/2 (every split of the
     // nodes, up to swapping the sides); each candidate costs O(n^2) to build
     // (certificateToEdges) plus O(m) to verify.
-    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
 
     public CutBruteForce() {
 

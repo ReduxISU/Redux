@@ -219,6 +219,48 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
+    public void TimeComplexity_IsExposedThroughISolverAsEvaluableFunction() {
+        var solverType = ProblemProvider.Solvers["knapsackdp"];
+        var solver = Assert.IsAssignableFrom<ISolver>(Activator.CreateInstance(solverType));
+
+        var timeComplexity = Assert.IsType<MathematicalFunction>(solver.timeComplexity);
+        Assert.Equal("n * W", timeComplexity.Function);
+        Assert.Equal(24, timeComplexity.Evaluate(("n", 6), ("W", 4)));
+    }
+
+    [Fact]
+    public void TimeComplexity_EvaluatesForEverySolverThatDeclaresIt() {
+        var failures = new List<string>();
+        int checkedCount = 0;
+
+        foreach (var (className, type) in ProblemProvider.Solvers.OrderBy(kv => kv.Key, StringComparer.Ordinal)) {
+            try {
+                if (Activator.CreateInstance(type) is not ISolver solver || solver.timeComplexity is not { } timeComplexity)
+                    continue;
+
+                var variableValues = timeComplexity.VariableNames
+                    .ToDictionary(name => name, _ => 2.0, StringComparer.Ordinal);
+                _ = timeComplexity.Evaluate(variableValues);
+                checkedCount++;
+            } catch (Exception ex) {
+                failures.Add($"{className}: {ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        Assert.True(checkedCount > 0, "Found no solver timeComplexity functions to evaluate.");
+        Assert.True(failures.Count == 0,
+            "Solver timeComplexity functions that failed to parse or evaluate:\n" + string.Join("\n", failures));
+    }
+
+    [Fact]
+    public void TimeComplexity_DefaultsToNullWhenSolverDoesNotDeclareIt() {
+        var solverType = ProblemProvider.Solvers["dummysolver"];
+        var solver = Assert.IsAssignableFrom<ISolver>(Activator.CreateInstance(solverType));
+
+        Assert.Null(solver.timeComplexity);
+    }
+
+    [Fact]
     public void NoNewUndeclaredComplexity() {
         var actual = ActualComplexityUndeclared();
         var allowlist = new HashSet<string>(ComplexityUnclassifiedAllowlist, StringComparer.OrdinalIgnoreCase);

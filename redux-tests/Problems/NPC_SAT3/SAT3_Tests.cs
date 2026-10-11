@@ -1,3 +1,4 @@
+using API.Interfaces;
 using System.Diagnostics;
 using System.Linq;
 using Xunit;
@@ -672,5 +673,30 @@ public class SAT3_Tests {
 
         Assert.Equal("{}", schoning.solve(sat3));
         Assert.Equal("{}", ppz.solve(sat3));
+    }
+
+    // -------------------------------------------------------------------------
+    // Instance parsing (shared CnfParser)
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("(x1 | x2", "expected '|' or ')'")]
+    [InlineData("x1 | x2 & x3", "must be parenthesized")]
+    [InlineData("((x1 | x2) & x3)", "nested parentheses")]
+    [InlineData("(x1\t| x-2)", "unexpected character '-'")]
+    [InlineData("(x1 | x2 | x3 | x4)", "has 4 literals; 3-CNF allows 1-3")]
+    [InlineData("  ", "instance is empty")]
+    public void SAT3_Rejects_Malformed_Instance(string instance, string messageFragment) {
+        var ex = Assert.Throws<ProblemParseException>(() => new SAT3(instance));
+        Assert.Equal("3SAT", ex.ProblemName);
+        Assert.Contains(messageFragment, ex.Message);
+    }
+
+    [Fact]
+    public void SAT3_Clauses_Are_Canonical_Literal_Strings() {
+        SAT3 sat3 = new SAT3("( x1 |\t! x2 )\n& x3");
+        Assert.Equal(new List<List<string>> { new() { "x1", "!x2" }, new() { "x3" } }, sat3.clauses);
+        Assert.Equal(new[] { "x1", "!x2", "x3" }, sat3.literals);
+        Assert.Equal(new[] { "x1", "x2", "x3" }, sat3.formula.Variables);
     }
 }
