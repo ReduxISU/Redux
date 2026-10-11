@@ -143,7 +143,7 @@ public class NamingConvention_Tests {
     // this exercising exactly what /Navigation/Reductions advertises to callers, rather than
     // every IReduction<,> implementation the raw type scan happens to find (e.g.
     // SipserReduceToSAT3 is a solution-mapping companion class that isn't a graph edge and
-    // can't be constructed from a plain default instance — see
+    // can't be constructed from CLIQUE's plain default instance — see
     // ProblemProvider_Endpoint_Tests.MapSolution_NonSipserInstance_Returns400WithParseError).
     public static IEnumerable<object[]> AllReductions() {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
