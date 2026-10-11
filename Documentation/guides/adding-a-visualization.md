@@ -115,6 +115,7 @@ Solvers that record a search tree:
 | Problem | Solver | Visualization | Search |
 | --- | --- | --- | --- |
 | Graph Coloring | Graph Coloring Backtracking | `GraphColoringSearchTreeVisualization` | Depth first. Each level colors the uncolored node with the fewest colors left (then the most neighbours); a node is `a=1`. A color a neighbour already uses is pruned (`b has 1`), a color whose subtree fails is failed when it is taken back (a `Backtrack`), and no node takes a color more than one past the highest used so far. The `Done` step names the solution's path |
+| 3-Dimensional Matching | 3-Dimensional Matching Backtracking | `DM3SearchTreeVisualization` | Depth first. Each level chooses a triple (`T2`) for the element not yet used with the fewest triples left that use no element twice. A triple that would use an element twice is pruned (`Chloe used by T1`), a triple whose subtree fails is failed when it is taken back (a `Backtrack`). The `Done` step names the solution's path |
 
 Not covered, because nothing in Redux branches for it: Knapsack (`KnapsackBruteForce` enumerates every set of items in a flat loop and `KnapsackDP` fills a table). SAT has only its brute force and Grover's solver; 3SAT's PPZ, Schöning and WalkSAT are randomized local searches. TSP's brute force and greedy solvers don't branch either.
 

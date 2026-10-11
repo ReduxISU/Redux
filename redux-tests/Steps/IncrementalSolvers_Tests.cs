@@ -80,6 +80,7 @@ public class IncrementalSolvers_Tests {
         ["knapsackdp"] = true,
         ["binpackingbruteforce"] = true,
         ["binpackingffd"] = true,
+        ["threedimensionalmatchingbacktracking"] = true,
     };
 
     // The answer shapes the Graph, Grouped Graph, Tripartite Matching, Table, Layered Graph, Bipartite Graph and Packing pictures draw.
