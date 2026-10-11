@@ -78,7 +78,26 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
     #region Methods
 
+    /// <summary>
+    /// The SAT variable that says the node at position nodeIndex (in the graph's node list) takes color color. The name
+    /// is built from the node's position, not its name, so every node name gives a valid SAT variable and no two
+    /// (node, color) pairs share one (#825): "a-b" is not a SAT variable name, and "a1" with color 0 and "a" with color
+    /// 10 would both write "a10".
+    /// </summary>
+    public static string VariableName(int nodeIndex, int color) => $"v{nodeIndex}_{color}";
+
+    // Each node's position in the graph's node list, by name; a repeated name keeps its first position.
+    private Dictionary<string, int> NodeIndexes() {
+        var index = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < _reductionFrom.nodes.Count; i++)
+            index.TryAdd(_reductionFrom.nodes[i], i);
+        return index;
+    }
+
     public SAT reduce() {
+
+        Dictionary<string, int> index = NodeIndexes();
+        string V(string node, int color) => VariableName(index[node], color);
 
         // List<string> reducedClauses = new List<string>();
         List<string> reducedNodeClauses = new List<string>();
@@ -93,7 +112,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
             //foreach node create literals for each K - 1
             for (int i = 0; i < _reductionFrom.K - 1; i++) {
                 currentNode = $"{node}_{i}";
-                clause += $"{node}{i}|";
+                clause += $"{V(node, i)}|";
                 gadgetNodes.Add(currentNode);
             }
 
@@ -101,7 +120,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
             // last K literals  
             currentNode = $"{node}_{_reductionFrom.K - 1}";
 
-            clause += $"{node}{_reductionFrom.K - 1})";
+            clause += $"{V(node, _reductionFrom.K - 1)})";
             reducedNodeClauses.Add(clause.Trim());
 
             // add to gadget dictionary 
@@ -110,9 +129,9 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
             for (int i = 0; i < _reductionFrom.K; i++) {
                 for (int j = 0; j < _reductionFrom.K; j++) {
                     if (i != j) {
-                        string reverseClause = $"!({node}{j}&{node}{i})";
+                        string reverseClause = $"!({V(node, j)}&{V(node, i)})";
                         if (!reducedNodeClauses.Contains(reverseClause)) {
-                            clause = $"!({node}{i}&{node}{j})";
+                            clause = $"!({V(node, i)}&{V(node, j)})";
                             reducedNodeClauses.Add(clause.Trim());
                         }
                     }
@@ -131,9 +150,9 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
                 for (int j = 0; j < _reductionFrom.K; j++) {
                     if (i == j) {
 
-                        string reverseClause = $"!({edge.Value}{j}&{edge.Key}{i})";
+                        string reverseClause = $"!({V(edge.Value, j)}&{V(edge.Key, i)})";
                         if (!reducedEdgesClauses.Contains(reverseClause)) {
-                            string clauseEdge = $"!({edge.Key}{i}&{edge.Value}{j})";
+                            string clauseEdge = $"!({V(edge.Key, i)}&{V(edge.Value, j)})";
                             reducedEdgesClauses.Add(clauseEdge.Trim());
                         }
                     }
