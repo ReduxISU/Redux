@@ -34,6 +34,8 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
         public double[,]? matrix;
         public double bound;
         public bool[]? visited;
+        // Its node of the search tree (read only to record steps): the root is 0, every extension considered gets the next id.
+        public SearchNode node = new(0, null, "", SearchNodeState.Queued);
     }
 
     private readonly struct PQPriority : IComparable<PQPriority> {
@@ -71,6 +73,10 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
     // dropped because the best tour so far has improved since it was queued; and for a complete tour, an Accept if it beats
     // the best so far or a Reject if not. The greedy tour the search starts from is the first step. Its own steps are not
     // recorded (the greedy solver runs with recording off). Recorder state lives only in this call.
+    // Each step also names its node of the search tree (SolverStep.Tree, for the Search Tree picture): the root, the start
+    // city, comes queued with the first step; a path taken off the queue is explored, or pruned if the best tour has caught up
+    // with its bound; each extension is a node under its path, queued with its lower bound or pruned (no such edge, or its
+    // bound is no better); a complete tour is the solution (the best so far) or failed.
     public string Solve(TSP problem, StepRecorder<Tour> rec) {
         if (timerHasExpired) {
             rec.Done(new Tour([]), false, "Ran out of time before the search finished.");
@@ -100,14 +106,18 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
         // Get initial BSSF using greedy solver
         List<int>? bestPath = GetInitialBSSF(problem, nodes);
         double bestCost = bestPath is null ? INF : ComputeTourCost(bestPath, originalMatrix);
+        var rootNode = new SearchNode(0, null, nodes[0], SearchNodeState.Queued) { Bound = $"lb {TSPTourSteps.Num(initialLowerBound)}" };
+        int nextNode = 1;
         if (bestPath is not null) {
             var greedy = bestPath;
             double greedyCost = bestCost;
             rec.Accept(() => new Tour(Names(greedy, close: true)),
                 () => $"Start from the greedy tour {GraphTourFrames.Arrows(Names(greedy, close: true))}: total {TSPTourSteps.Num(greedyCost)}, the best so far.",
-                () => TSPTourSteps.EdgeIds(problem, Names(greedy, close: true)));
+                () => TSPTourSteps.EdgeIds(problem, Names(greedy, close: true)),
+                () => [rootNode]);
         } else {
-            rec.Try(() => new Tour([nodes[0]]), () => $"The greedy solver found no tour to start from, so there is no best so far. Start at {nodes[0]}.", nodes[0]);
+            rec.Try(() => new Tour([nodes[0]]), () => $"The greedy solver found no tour to start from, so there is no best so far. Start at {nodes[0]}.",
+                () => [nodes[0]], () => [rootNode]);
         }
 
         bool[] rootVisited = new bool[n];
@@ -117,7 +127,8 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
             path = new List<int> { 0 },
             matrix = initialMatrix,
             bound = initialLowerBound,
-            visited = rootVisited
+            visited = rootVisited,
+            node = rootNode,
         };
 
         var pq = new PriorityQueue<SearchState, PQPriority>();
@@ -133,7 +144,8 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
             if (current.bound >= bestCost) {
                 rec.Reject(() => new Tour(Names(current.path!)),
                     () => $"Drop the path {GraphTourFrames.Arrows(Names(current.path!))}: its lower bound {TSPTourSteps.Num(current.bound)} is no better than the best tour so far ({TSPTourSteps.Num(bestNow)}).",
-                    nodes[current.path![^1]]);
+                    () => [nodes[current.path![^1]]],
+                    () => [current.node with { State = SearchNodeState.Pruned, Bound = $"lb {TSPTourSteps.Num(current.bound)} ≥ {TSPTourSteps.Num(bestNow)}" }]);
                 continue; // Prune
             }
             if (current.path!.Count == n) {  // Complete tour
@@ -144,7 +156,8 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
                     bestPath = new List<int>(current.path);
                     rec.Accept(() => new Tour(Names(current.path, close: true)),
                         () => $"Close the tour {nodes[current.path[^1]]} → {nodes[current.path[0]]}: total {TSPTourSteps.Num(tourCost)}, the best so far{(double.IsPositiveInfinity(previousBest) ? "" : $" (it beats {TSPTourSteps.Num(previousBest)})")}.",
-                        nodes[current.path[^1]], nodes[current.path[0]]);
+                        () => [nodes[current.path[^1]], nodes[current.path[0]]],
+                        () => [current.node with { State = SearchNodeState.Solution, Bound = $"tour {TSPTourSteps.Num(tourCost)}" }]);
                 } else {
                     rec.Reject(() => new Tour(Names(current.path, close: true)),
                         () => double.IsPositiveInfinity(tourCost)
@@ -153,24 +166,30 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
                         // The path was built hop by hop, so what failed is the closing hop, not the whole tour.
                         () => double.IsPositiveInfinity(tourCost)
                             ? new[] { nodes[current.path[^1]], nodes[current.path[0]] }
-                            : new[] { nodes[current.path[^1]], nodes[current.path[0]], GraphTourFrames.EdgeId(false, nodes[current.path[^1]], nodes[current.path[0]]) });
+                            : new[] { nodes[current.path[^1]], nodes[current.path[0]], GraphTourFrames.EdgeId(false, nodes[current.path[^1]], nodes[current.path[0]]) },
+                        () => [current.node with { State = SearchNodeState.Failed, Bound = double.IsPositiveInfinity(tourCost) ? "no way back" : $"tour {TSPTourSteps.Num(tourCost)}" }]);
                 }
                 continue;
             }
             int lastNode = current.path[^1];
             rec.Try(() => new Tour(Names(current.path)),
                 () => $"Expand the path {GraphTourFrames.Arrows(Names(current.path))}: lower bound {TSPTourSteps.Num(current.bound)}.",
-                nodes[lastNode]);
+                () => [nodes[lastNode]],
+                () => [current.node with { State = SearchNodeState.Explored, Bound = null }]);
             for (int next = 0; next < n; next++) {
                 if (current.visited![next])
                     continue;
 
                 double edgeCost = current.matrix![lastNode, next];
+                // This extension's node of the search tree, under the path it extends.
+                var childNode = new SearchNode(nextNode++, current.node.NodeId, nodes[next], SearchNodeState.Queued);
                 if (double.IsPositiveInfinity(edgeCost)) {
                     int missingNext = next;
+                    var missingNode = childNode with { State = SearchNodeState.Pruned, Bound = "no edge" };
                     rec.Reject(() => new Tour(Names(current.path).Append(nodes[missingNext])),
                         () => $"There is no edge between {nodes[lastNode]} and {nodes[missingNext]}.",
-                        nodes[missingNext]);
+                        () => [nodes[missingNext]],
+                        () => [missingNode]);
                     continue;
                 }
 
@@ -197,7 +216,8 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
                     double boundNow = bestCost;
                     rec.Reject(() => new Tour(Names(current.path).Append(nodes[skipped])),
                         () => $"Skip {nodes[skipped]} after {nodes[lastNode]}: the lower bound {TSPTourSteps.Num(childBound)} is no better than the best tour so far ({TSPTourSteps.Num(boundNow)}).",
-                        nodes[skipped], GraphTourFrames.EdgeId(false, nodes[lastNode], nodes[skipped]));
+                        () => [nodes[skipped], GraphTourFrames.EdgeId(false, nodes[lastNode], nodes[skipped])],
+                        () => [childNode with { State = SearchNodeState.Pruned, Bound = $"lb {TSPTourSteps.Num(childBound)} ≥ {TSPTourSteps.Num(boundNow)}" }]);
                     continue;   //Prune
                 }
 
@@ -206,16 +226,19 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
                 childVisited[next] = true;
 
                 int queued = next;
+                var queuedNode = childNode with { Bound = $"lb {TSPTourSteps.Num(childBound)}" };
                 rec.Accept(() => new Tour(Names(childPath)),
                     () => $"Branch {nodes[lastNode]} → {nodes[queued]} (weight {TSPTourSteps.Num(originalMatrix[lastNode, queued])}, path cost {TSPTourSteps.Num(PathCost(childPath, originalMatrix))}): lower bound {TSPTourSteps.Num(childBound)}, queued.",
-                    nodes[queued], GraphTourFrames.EdgeId(false, nodes[lastNode], nodes[queued]));
+                    () => [nodes[queued], GraphTourFrames.EdgeId(false, nodes[lastNode], nodes[queued])],
+                    () => [queuedNode]);
 
                 // Create child state and enqueue
                 SearchState child = new SearchState {
                     path = childPath,
                     visited = childVisited,
                     matrix = childMatrix,
-                    bound = childBound
+                    bound = childBound,
+                    node = queuedNode,
                 };
                 Enqueue(pq, child);
             }
