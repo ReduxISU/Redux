@@ -93,7 +93,9 @@ class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, DummyVisualization> {
         _P = jobSeq["P"].ToList().Select(node => Int32.Parse(node.ToString())).ToList();
         _K = int.Parse(jobSeq["K"].ToString());
 
-        // T, D and P give one number per job (#800).
+        // T, D and P give one number per job, and there is at least one job (#800).
+        if (_T.Count == 0)
+            throw new ProblemParseException(problemName, input, "There must be at least one job.");
         if (_D.Count != _T.Count || _P.Count != _T.Count)
             throw new ProblemParseException(problemName, input,
                 $"T, D and P must have one entry per job; got {_T.Count} times, {_D.Count} deadlines and {_P.Count} penalties.");
