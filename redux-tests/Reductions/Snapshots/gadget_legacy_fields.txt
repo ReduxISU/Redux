@@ -1,3 +1,9 @@
+# FengReduction
+ElementHighlight | I1 | I1
+ElementHighlight | I2 | I2
+ElementHighlight | I3 | I3
+ElementHighlight | I4 | I4
+ElementHighlight | C1 | C1
 # GareyJohnson
 ClauseHighlight | 0-0,1-0,1-2,2-2 | x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4,z5,z6,z7,z8,T1,T2,T3,T4,T5,T6,T7,T8
 ClauseHighlight | 0-1,2-0 | x5,x6,y5,y6,z9,z10,z11,z12,T9,T10,T11,T12

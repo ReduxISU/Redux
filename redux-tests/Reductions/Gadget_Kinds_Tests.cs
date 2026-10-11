@@ -115,6 +115,8 @@ public class Gadget_Kinds_Tests {
         ["KarpDirectedHamiltonianToUndirectedHamiltonian"] = "Element x11",
         ["KarpGraphColorToExactCover"] = "Group x21",
         ["KarpReduceSAT"] = "Element x27, Group x21",
+        // #695: one element per number, and the bound (the container on both sides).
+        ["FengReduction"] = "Element x4, Bound x1",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>
