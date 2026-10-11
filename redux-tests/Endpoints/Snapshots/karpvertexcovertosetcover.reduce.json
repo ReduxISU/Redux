@@ -25,7 +25,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^m * u^2), m = |subsets|, u = |universal|",
+      "timeComplexity": {
+        "Function": "2^m * u^2",
+        "Description": ", m = |subsets|, u = |universal|",
+        "VariableNames": [
+          "m",
+          "u"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -59,7 +67,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -92,7 +108,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n * (n \u002B m)), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -125,7 +149,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^m * u^2), m = |subsets|, u = |universal|",
+      "timeComplexity": {
+        "Function": "2^m * u^2",
+        "Description": ", m = |subsets|, u = |universal|",
+        "VariableNames": [
+          "m",
+          "u"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -157,7 +189,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^m * u^2), m = |subsets|, u = |universal|",
+        "timeComplexity": {
+          "Function": "2^m * u^2",
+          "Description": ", m = |subsets|, u = |universal|",
+          "VariableNames": [
+            "m",
+            "u"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
