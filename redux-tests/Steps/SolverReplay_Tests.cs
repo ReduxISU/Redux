@@ -3,6 +3,7 @@ using API.Interfaces.Packing;
 using API.Interfaces.Board;
 using API.Interfaces.Schedule;
 using API.Interfaces.Geometry;
+using API.Interfaces.CodeTree;
 using API.Interfaces.Steps;
 using API.Interfaces.Tripartite;
 using Xunit;
@@ -151,6 +152,15 @@ public class SolverReplay_Tests {
             var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
             return hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
         }
+        if (lastPartial is HuffmanForest forest) {
+            // Lossless Data Compression answers give each character's code ("({(97,0),(98,10)},010)"); the problem's Code Tree
+            // visualization reads them by leaf id. The merges are the solver's own, not in the answer; they are checked in
+            // CodeTreeSolvers_Tests.
+            var hook = typeof(ICodeTreeVisualization<>).MakeGenericType(problem.GetType());
+            var vis = ProblemProvider.Visualizers.Values.First(hook.IsAssignableFrom);
+            var parsed = (HuffmanForest)hook.GetMethod("ParseAnswer")!.Invoke(Activator.CreateInstance(vis), [problem, answer])!;
+            return new HuffmanForest(forest.Merges, parsed.Codes);
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
@@ -249,9 +259,9 @@ public class SolverReplay_Tests {
 
     [Fact]
     public void LegacySolver_RunKeepsUntypedSteps() {
-        // A solver that has not been converted reports no shape and keeps the untyped steps its GetSteps returns. Redux has no
-        // such solver left (SSSP was the example until #667 typed it, then Pump Scheduling until #673, then Convex Hull until
-        // #674), so this one is made up for the test.
+        // A solver that has not been converted reports no shape and keeps the untyped steps its GetSteps returns. The untyped
+        // solvers left in Redux (the quantum ones, WalkSAT, ...) record no steps, and the last untyped example used here was
+        // typed (SSSP by #667, Pump Scheduling by #673, Convex Hull by #674), so this one is made up for the test.
         var legacy = (ISolver)new LegacyStepsSolver();
         string instance = new API.Problems.NPComplete.NPC_CLIQUE.CLIQUE().defaultInstance;
         var run = legacy.Run(instance, true);

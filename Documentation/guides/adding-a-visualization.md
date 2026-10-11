@@ -57,6 +57,7 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `Schedule` | not a list item: a `payload` plus `frames` of named states ([`ScheduleFrames`](../../Interfaces/Schedule/ScheduleFrames.cs)) | none yet | Job Sequencing, Pump Scheduling Cost Minimization and Emergency Resilience. Reported only as the `type` of `visualize?format=frames`; the pump visualizations still report `PumpSchedule` and Job Sequencing's reports `DynamicTable` in /info and in the default list format. See "The Schedule picture" below |
 | `TripartiteMatching` | not a list item: a `payload` plus `frames` of named states ([`TripartiteFrames`](../../Interfaces/Tripartite/TripartiteFrames.cs)) | none yet | 3-Dimensional Matching. Reported only as the `type` of `visualize?format=frames`; its `DM3Visualization` reports `DynamicTable` in /info and in the default list format. See "The Tripartite Matching picture" below |
 | `Geometry` | not a list item: a `payload` plus `frames` of named states ([`GeometryFrames`](../../Interfaces/Geometry/GeometryFrames.cs)) | none yet | Convex Hull. Reported only as the `type` of `visualize?format=frames`; `ConvexHullVisualization` still reports `Unimplemented` in /info and in the default list format. See "The Geometry picture" below |
+| `CodeTree` | not a list item: a `payload` plus `frames` of named states ([`CodeTreeFrames`](../../Interfaces/CodeTree/CodeTreeFrames.cs)) | none yet | Lossless Data Compression. Reported only as the `type` of `visualize?format=frames`; `LosslessDataCompressionVisualization` still reports `Unimplemented` in /info and in the default list format. See "The Code Tree picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -661,6 +662,55 @@ To add another hull solver (the mockup's monotone chain, for example):
 1. Record a `HullBuild` per decision, built only inside the recorder's lambdas, with the focus as a lambda too. A one-pass solver leaves `pieces`, `left` and `right` empty and builds only the `chain`.
 2. Declare `IIncrementalSolver`: the committed corners stay `Solution`, and only the point under test is highlighted, or `Rejected` when it is popped.
 3. Add it to `IncrementalSolvers_Tests.Classification` and prove nothing changed for old clients: snapshot the list format, `/info` and what it answers before touching code (`Endpoints/Snapshots/geometry_*.tsv`, `GeometryFrames_Endpoint_Tests`, `GeometrySolvers_Tests`, `GeometryFrames_Tests`).
+
+### The Code Tree picture (`format=frames`)
+
+Lossless Data Compression serves the `CodeTree` picture: a Huffman tree growing bottom-up from the text's characters, merge by merge, with its 0 and 1 edges, each character's code under it and the encoded bits underneath. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the instance.
+
+The problem hands over `CodeTreeSpec(text)`: the text as the solver reads it. The base counts its characters (UTF-16 code units, as the solver and the certificate do).
+
+The payload (sent once) is `{ kind: "codeTree", text, symbols }`. Each symbol, in character order, is `{ id, code, label, count }`:
+
+- `code` is the character's UTF-16 code, as the certificate writes it (97 for `a`). It is a number because half of a surrogate pair (an emoji is two) cannot travel as a JSON string on its own.
+- `label` is safe to draw: `␣` for a space, `↵` for a line break, `⇥` for a tab, `U+XXXX` for any other control character or lone surrogate, else the character itself.
+
+Each frame is `{ event, caption, focus, merged, roots, codes, nodes, edges, bits?, ok? }`:
+
+| Field | Meaning |
+| --- | --- |
+| `merged` | The merged nodes built so far, in order: `{ id, weight, left, right }`, the left child under bit 0 and the right under bit 1 |
+| `roots` | The trees not merged yet, in the order the solver picks them: lightest first, then the tree holding the earliest character, then the oldest |
+| `codes` | Character id to its code, once the tree is read; empty until then |
+| `bits` | The length of the encoded text, once every character has a code; absent before |
+| `nodes` | Leaf or merged node id to `{ state }`, only for nodes that are not `Background` |
+| `edges` | Edge id to `{ state }`, only for edges that are not `Background` |
+
+Ids are positions, never characters: the i-th character in character order (from 1) is the leaf `c{i}`, the k-th merge makes `n{k}`, and its edges are `n{k}.0` and `n{k}.1`. No id needs escaping, whatever the text holds. Build them with `CodeTreeFrames.LeafId`, `NodeId` and `EdgeId`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`):
+
+| State | Nodes and edges |
+| --- | --- |
+| `ElementHighlight` | The focus: the two trees being merged and their new parent, and the parent's two edges |
+| `Solution` | Every merged node, its children and its edges: what the incremental solver has committed. Once the codes are known, every leaf that has one (a one-character text has no merge) |
+| `Rejected` | Everything drawn in a `Done` frame whose answer is wrong; the focus of an incremental solver's `Reject` (none today) |
+| `Covered`, `Blocked`, `Untraveled` | not used. Leaves no merge has used yet are `Background` |
+
+A run stopped by the time limit ends with a blank `Done` frame, `ok: false`: no tree, no codes, no `bits`. Its answer string is never read. A text with more than 150 different characters keeps its first 150 steps, then the `Accept` with the codes and the `Done` frame; its caption says how many steps were not shown.
+
+The solver and its steps (`HuffmanForest`: `merges`, each `{ node, left, right, weight }`, and `codes`, by leaf id):
+
+| Solver | Incremental | Steps |
+| --- | --- | --- |
+| Huffman's Algorithm | yes | A `Try` for the count ("Count each character: 70 characters, 19 different. ..."), a `Try` per merge with the two trees and their parent as the focus ("Merge f (5) and e (9), the two lightest trees left, into a node of weight 14."; "Merge p (2) and the tree of weight 2 (r and x), ... (A tie: the tree holding the earliest character goes first.)"), an `Accept` once the codes are read off the tree ("Read each code from the top: going left adds 0, going right adds 1. ..."), and `Done` ("Encoded: 279 bits, versus 560 bits at 8 bits per character, 50% smaller. ...") with the verifier's verdict. An empty text is a single `Done` step. Merges are `Try`, not `Accept`: the recorder builds every `Accept` past its cap |
+
+`LosslessDataCompressionVisualization` got the picture; its list format is unchanged (still empty), and it is still the problem's default. The solver asks the verifier for the `Done` step only while it records steps.
+
+To add another code-building solver:
+
+1. Record a `HuffmanForest` per merge, built only inside the recorder's lambdas, with the merged trees and their parent as a lambda focus. Name leaves and nodes with `CodeTreeFrames.LeafId` and `NodeId`.
+2. Declare `IIncrementalSolver` if it never undoes a merge: what is merged stays `Solution`, and only the focus is highlighted.
+3. Add it to `IncrementalSolvers_Tests.Classification` and prove nothing changed for old clients: snapshot the list format, `/info` and what it answers before touching code (`Endpoints/Snapshots/codetree_*.tsv`, `CodeTreeFrames_Endpoint_Tests`, `CodeTreeSolvers_Tests`, `CodeTreeFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 

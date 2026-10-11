@@ -1,9 +1,12 @@
 ﻿using API.Interfaces;
+using API.Interfaces.CodeTree;
+using API.Interfaces.Steps;
 using System.Text;
 
 namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Solvers;
 
-class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
+// Incremental: Huffman's algorithm builds the tree one merge at a time and never undoes one.
+class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION, HuffmanForest>, IIncrementalSolver {
 
     // --- Fields ---
 
@@ -38,7 +41,11 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
 
     //  Main solver method 
 
-    public string solve(LOSSLESSDATACOMPRESSION problem) {
+    public string solve(LOSSLESSDATACOMPRESSION problem) => Solve(problem, StepRecorder<HuffmanForest>.Off);
+
+    // Steps: a Try for the count, a Try per merge (the two lightest trees and their new parent as the focus), an Accept once
+    // the codes are read off the tree, and Done with the verifier's verdict.
+    public string Solve(LOSSLESSDATACOMPRESSION problem, StepRecorder<HuffmanForest> rec) {
 
         // always check the timer first.
         if (timerHasExpired) {
@@ -59,6 +66,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         // character to build a (asciiCode,code) pair from.
         if (input.Length == 0) {
             problem.solution = "()";
+            Done(problem, rec, new HuffmanForest([], []), "The text is empty, so there is nothing to encode.");
             return problem.solution;
         }
 
@@ -70,7 +78,11 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         }
 
         // second: build the Huffman tree from the frequencies.
-        HuffmanNode root = BuildHuffmanTree(frequencies);
+        var merges = new List<HuffmanMerge>();
+        rec.Try(() => new HuffmanForest([], []), () => frequencies.Count == 1
+            ? $"Count each character: {Plural(input.Length, "character")}, all {CodeTreeFrames.Label(input[0])}. A single tree needs no merging."
+            : $"Count each character: {Plural(input.Length, "character")}, {frequencies.Count} different. Each starts as its own one-node tree, weighted by how often it appears.");
+        HuffmanNode root = BuildHuffmanTree(frequencies, merges, rec);
 
         if (timerHasExpired) {
             return "timeout";
@@ -84,6 +96,16 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
             return "timeout";
         }
 
+        // The codes by leaf id: characters in character order are c1, c2, ...
+        HuffmanForest Forest() {
+            var sorted = new List<char>(codes.Keys);
+            sorted.Sort();
+            return new HuffmanForest(merges, sorted.Select((c, i) => new KeyValuePair<string, string>(CodeTreeFrames.LeafId(i), codes[c])));
+        }
+        rec.Accept(Forest, () => frequencies.Count == 1
+            ? "Only one character, so its code is just 0."
+            : "Read each code from the top: going left adds 0, going right adds 1. The most frequent characters sit near the top and get the shortest codes.");
+
         // fourth: encodes the original input using the code table.
         string encodedText = EncodeInput(input, codes);
 
@@ -95,8 +117,20 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
 
         problem.solution = FormatSolution(codes, encodedText);
 
+        long fixedBits = 8L * input.Length;
+        Done(problem, rec, Forest(), $"Encoded: {Plural(encodedText.Length, "bit")}, versus {fixedBits:N0} bits at 8 bits per character, "
+            + $"{Math.Round((1 - (double)encodedText.Length / fixedBits) * 100)}% smaller. No code is the start of another, so the bits decode back to exactly the text.");
+
         return problem.solution;
     }
+
+    // The Done step, with the verifier's verdict, only when recording: a plain solve has no steps, and needs no second check.
+    private static void Done(LOSSLESSDATACOMPRESSION problem, StepRecorder<HuffmanForest> rec, HuffmanForest answer, string caption) {
+        if (ReferenceEquals(rec, StepRecorder<HuffmanForest>.Off)) return;
+        rec.Done(answer, problem.defaultVerifier.verify(problem, problem.solution), caption);
+    }
+
+    private static string Plural(long n, string one) => $"{n:N0} {(n == 1 ? one : one + "s")}";
 
     //  Huffman helper methods :)
 
@@ -114,7 +148,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
         return frequencies;
     }
 
-    private HuffmanNode BuildHuffmanTree(Dictionary<char, int> frequencies) {
+    private HuffmanNode BuildHuffmanTree(Dictionary<char, int> frequencies, List<HuffmanMerge> merges, StepRecorder<HuffmanForest> rec) {
         List<HuffmanNode> nodes = new List<HuffmanNode>();
 
         // sorting the characters makes the result deterministics.
@@ -130,6 +164,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
             node.Frequency = frequencies[currentCharacter];
             node.LowestCharacterValue = (int)currentCharacter;
             node.SerialNumber = serialNumber++;
+            node.Id = CodeTreeFrames.LeafId(node.SerialNumber);
 
             nodes.Add(node);
         }
@@ -151,11 +186,38 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
             parent.Right = right;
             parent.LowestCharacterValue = Math.Min(left.LowestCharacterValue, right.LowestCharacterValue);
             parent.SerialNumber = serialNumber++;
+            parent.Id = CodeTreeFrames.NodeId(merges.Count + 1);
+
+            // A tie: a tree left weighs as much as the heavier of the two, and lost on the earliest character.
+            bool tie = nodes.Count > 0 && nodes.Min(n => n.Frequency) == right.Frequency;
+            merges.Add(new HuffmanMerge(parent.Id, left.Id, right.Id, parent.Frequency));
+            int made = merges.Count;
+            rec.Try(() => new HuffmanForest(merges.Take(made), []),
+                () => $"Merge {Describe(left)} and {Describe(right)}, the two lightest trees left, into a node of weight {parent.Frequency}."
+                    + (tie ? " (A tie: the tree holding the earliest character goes first.)" : ""),
+                () => [left.Id, right.Id, parent.Id]);
 
             nodes.Add(parent);
         }
 
         return nodes[0];
+    }
+
+    // "e (5)" for a character, "the tree of weight 14 (e and f)" for a merged tree.
+    private static string Describe(HuffmanNode node) {
+        if (node.Character is char c) return $"{CodeTreeFrames.Label(c)} ({node.Frequency})";
+        var chars = new List<string>();
+        void Walk(HuffmanNode? n) {
+            if (n == null || chars.Count > 4) return;
+            if (n.Character is char leaf) chars.Add(CodeTreeFrames.Label(leaf));
+            Walk(n.Left);
+            Walk(n.Right);
+        }
+        Walk(node);
+        string which = chars.Count > 4 ? $"{node.Leaves} characters"
+            : chars.Count == 2 ? $"{chars[0]} and {chars[1]}"
+            : string.Join(", ", chars.Take(chars.Count - 1)) + " and " + chars[^1];
+        return $"the tree of weight {node.Frequency} ({which})";
     }
 
     private void SortNodes(List<HuffmanNode> nodes) {
@@ -247,12 +309,16 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION> {
     //  small helper class for the Huffman tree 
 
     private class HuffmanNode {
+        // The node's id in the Code Tree picture: c1, c2, ... for characters in character order, n1, n2, ... for merges.
+        public string Id { get; set; } = "";
         public char? Character { get; set; }
         public int Frequency { get; set; }
         public int LowestCharacterValue { get; set; }
         public int SerialNumber { get; set; }
         public HuffmanNode? Left { get; set; }
         public HuffmanNode? Right { get; set; }
+
+        public int Leaves => Character.HasValue ? 1 : (Left?.Leaves ?? 0) + (Right?.Leaves ?? 0);
 
         public bool IsLeaf() {
             return Left == null && Right == null;

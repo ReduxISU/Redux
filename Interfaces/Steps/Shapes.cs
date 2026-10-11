@@ -417,6 +417,41 @@ sealed class HullBuild : IEquatable<HullBuild> {
         HashCode.Combine(ShapeUtil.HashOf(Pieces.Select(p => string.Join(",", p))), ShapeUtil.HashOf(Chain), ShapeUtil.HashOf(Dropped));
 }
 
+/// <summary>
+/// One merge of Huffman's algorithm: the new node, the two trees it joins (left gets bit 0, right bit 1) and its weight. Leaves
+/// are characters by position, <c>c{i+1}</c> for the i-th distinct character in character order; merged nodes are
+/// <c>n{k}</c>, the k-th merge (see <c>CodeTreeFrames</c>).
+/// </summary>
+sealed record HuffmanMerge(
+    [property: JsonPropertyName("node")] string Node,
+    [property: JsonPropertyName("left")] string Left,
+    [property: JsonPropertyName("right")] string Right,
+    [property: JsonPropertyName("weight")] int Weight);
+
+/// <summary>
+/// A Huffman code as the greedy builds it (Lossless Data Compression), as far as it has got.
+/// <list type="bullet">
+/// <item><see cref="Merges"/>: the merges made so far, in order. The trees left are the characters and merged nodes that no
+/// merge has used yet.</item>
+/// <item><see cref="Codes"/>: each character's code (by its leaf id), once the tree is finished and read; empty until
+/// then.</item>
+/// </list>
+/// The answer is the last one: every merge, and every character's code.
+/// </summary>
+sealed class HuffmanForest : IEquatable<HuffmanForest> {
+    [JsonPropertyName("merges")] public HuffmanMerge[] Merges { get; }
+    [JsonPropertyName("codes")] public IReadOnlyDictionary<string, string> Codes { get; }
+    public HuffmanForest(IEnumerable<HuffmanMerge> merges, IEnumerable<KeyValuePair<string, string>> codes) {
+        Merges = merges.ToArray();
+        Codes = codes.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+    }
+    public bool Equals(HuffmanForest? other) =>
+        other != null && Merges.SequenceEqual(other.Merges)
+            && Codes.Count == other.Codes.Count && Codes.All(p => other.Codes.TryGetValue(p.Key, out var v) && v == p.Value);
+    public override bool Equals(object? obj) => Equals(obj as HuffmanForest);
+    public override int GetHashCode() => HashCode.Combine(Merges.Length, ShapeUtil.HashOf(Codes.Select(p => $"{p.Key}={p.Value}")));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -441,5 +476,6 @@ static class Shapes {
         : shape == typeof(PumpPlan) ? new PumpPlan([], [], null)
         : shape == typeof(ChosenTriples) ? new ChosenTriples([])
         : shape == typeof(HullBuild) ? new HullBuild([], [], [], [], [])
+        : shape == typeof(HuffmanForest) ? new HuffmanForest([], [])
         : null;
 }

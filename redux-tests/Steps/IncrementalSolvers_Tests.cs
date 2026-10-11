@@ -91,10 +91,12 @@ public class IncrementalSolvers_Tests {
         ["threedimensionalmatchingbruteforce"] = false,
         // HullBuild (Geometry picture)
         ["convexhullsolver"] = true,
+        // HuffmanForest (Code Tree picture)
+        ["losslessdatacompressionsolver"] = true,
     };
 
-    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board, Schedule, Tripartite Matching or Geometry picture draws.
-    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells), typeof(JobOrder), typeof(PumpPlan), typeof(ChosenTriples), typeof(HullBuild)];
+    // The answer shapes a Graph, Grouped Graph, Bipartite, Layered Graph, Flow Network, Packing, Table, Board, Schedule, Tripartite Matching, Geometry or Code Tree picture draws.
+    private static readonly Type[] GraphShapes = [typeof(NodeSet), typeof(EdgeSet), typeof(Groups), typeof(Tour), typeof(Assignment), typeof(ChosenSets), typeof(Components), typeof(Distances), typeof(NetworkFlow), typeof(Placement), typeof(TableCells), typeof(BoardCells), typeof(JobOrder), typeof(PumpPlan), typeof(ChosenTriples), typeof(HullBuild), typeof(HuffmanForest)];
 
     private static Type? StepShapeOf(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
