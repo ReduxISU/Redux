@@ -38,7 +38,7 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// <b>Build.</b> One frame per construction step (<see cref="BuildDelta"/>). The source pane highlights the source ids the step
 /// was built from. The target pane highlights the target nodes and edges the step added. Both panes are drawn at rest (nothing
 /// chosen, nothing judged), so no element is Solution or Rejected while the target is being built. Target elements not yet built are
-/// hidden by position, not by a state: <c>target.buildOrder</c> lists every target node and edge in the order the steps add them, and
+/// hidden by position, not by a state: <c>target.buildOrder</c> lists every target node and edge (the picture's pieces: see <see cref="BuildDelta"/>) in the order the steps add them, and
 /// a build frame's <c>target.builtNodes</c> / <c>target.builtEdges</c> say how many of each are on screen (the first n). That is
 /// stateless, so a frame renders on its own when scrubbed to, and it costs one number per frame where a list of the built ids
 /// would repeat a quadratic edge list in every frame. The steps announce the whole target (past the cap the rest are folded into

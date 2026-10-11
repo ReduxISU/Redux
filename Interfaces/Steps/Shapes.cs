@@ -103,6 +103,14 @@ sealed class ActiveStates : IEquatable<ActiveStates> {
 /// "s:"/"t:" prefix. Source ids are the stable ids of the Gadget payload (graph node names; formulas "c{i}",
 /// "c{i}-{j}", "v:{name}"). Target nodes are named as the target's picture names them; target edges are
 /// <see cref="BuildEdge"/>s, which carry their two ends, so no client ever splits an id.
+/// <para>
+/// "Nodes" are the target picture's pieces that stand on their own, "edges" the pieces drawn between two of them. What they
+/// are depends on the target's picture: a Graph's nodes and edges; a Grouped Graph's clauses (<c>c{i}</c>), literals
+/// (<c>c{i}-{j}</c>) and variables (<c>v:{name}</c>) as nodes, and its complement and clause edges (<c>a~b</c>) as edges; a
+/// Tripartite Matching's elements (<c>x{i}</c>, <c>y{i}</c>, <c>z{i}</c>) and triples (<c>T{i}</c>) as nodes, since a triple
+/// runs through three elements the payload already names; a Table's rows (<c>r{i}</c>) and columns (<c>c{j}</c>) as nodes,
+/// whose cells appear with them. Whatever the picture, every piece of its payload is added by exactly one step.
+/// </para>
 /// </summary>
 sealed record BuildDelta {
     /// <summary>Source ids this step was built from.</summary>
@@ -138,6 +146,16 @@ sealed record BuildEdge {
     public BuildEdge(string u, string v) {
         (A, B) = string.CompareOrdinal(u, v) <= 0 ? (u, v) : (v, u);
         Id = API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(A, B);
+    }
+
+    /// <summary>
+    /// An edge of a picture that writes its edge ids its own way (the Grouped Graph's <c>c0-1~c2-0</c>): the id and the two
+    /// ends exactly as that picture gives them.
+    /// </summary>
+    public BuildEdge(string id, string a, string b) {
+        Id = id;
+        A = a;
+        B = b;
     }
 
     /// <summary>Edges sorted by id, so a step lists them the same way every time.</summary>

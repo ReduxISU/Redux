@@ -82,8 +82,12 @@ class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJS
                 draft.MarkRow(r + 1, !holds ? PictureState.Rejected : picked == PictureState.Solution ? PictureState.Solution : PictureState.Covered);
             }
         }
-        foreach (var id in focus)
-            if (id.Length > 1 && id[0] == 'r' && int.TryParse(id.AsSpan(1), out int row) && row < draft.RowCount) draft.FocusRow(row);
+        // The focus names rows (a solver's constraint) or cells (the Reduction View's variable or coefficient, #693).
+        foreach (var id in focus) {
+            if (TableFrames.ParseCellId(id) is (int cellRow, int column)) {
+                if (cellRow < draft.RowCount && column < Variables(problem) + 3) draft.FocusCell(cellRow, column);
+            } else if (id.Length > 1 && id[0] == 'r' && int.TryParse(id.AsSpan(1), out int row) && row < draft.RowCount) draft.FocusRow(row);
+        }
         return draft;
     }
 

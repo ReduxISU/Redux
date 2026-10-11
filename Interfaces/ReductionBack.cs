@@ -8,9 +8,13 @@ static class ReductionBack {
     /// <summary>
     /// True when <paramref name="certificate"/> is the text "{}". That is the "no solution" answer, but for a
     /// set-valued problem it is also the empty set, which can be a real answer (see
-    /// <see cref="IReversibleReduction{T, U, TPartial}.TargetAcceptsEmpty"/>).
+    /// <see cref="IReversibleReduction{T, U, TPartial}.TargetAcceptsEmpty"/>). The CNF solvers say it in words instead
+    /// ("No Solution", "No solution exists"), which no assignment can be, so those count too (#693).
     /// </summary>
-    public static bool IsNoAnswer(string certificate) => certificate.Trim() == NoAnswer;
+    public static bool IsNoAnswer(string certificate) {
+        string text = certificate.Trim();
+        return text == NoAnswer || text.StartsWith("No solution", StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>
     /// Whether <paramref name="problem"/>'s default verifier accepts <paramref name="certificate"/>. A verifier
