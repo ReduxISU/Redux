@@ -56,17 +56,58 @@ class CONVEXHULL : IProblem<ConvexHullSolver, ConvexHullVerifier, ConvexHullVisu
         // SPADE's tokenizer doesn't tolerate whitespace between elements, so
         // insignificant spacing is stripped before handing the structure
         // (the set of (x,y) tuples) to UtilCollection to parse.
-        UtilCollection collection = new UtilCollection(s.Replace(" ", ""));
-        collection.assertUnordered();
+        string compact = s.Replace(" ", "");
 
-        List<(double x, double y)> pointsList = collection.ToList().Select(point => {
-            point.assertPair();
-            double x = double.Parse(point[0].ToString(), CultureInfo.InvariantCulture);
-            double y = double.Parse(point[1].ToString(), CultureInfo.InvariantCulture);
+        List<(double x, double y)> pointsList = (ScanPointSet(compact) ?? SpadePoints(compact)).Select(point => {
+            double x = double.Parse(point.x, CultureInfo.InvariantCulture);
+            double y = double.Parse(point.y, CultureInfo.InvariantCulture);
             return (x, y);
         }).ToList();
 
         this.points = pointsList;
         return pointsList;
+    }
+
+    // The points as SPADE reads them: the set's elements in first-seen order, a repeated one dropped, each checked to be a
+    // pair just before its numbers are read. SPADE takes time quadratic in the length of the instance (#815), so this is
+    // only the fallback for what ScanPointSet does not read itself.
+    private static IEnumerable<(string x, string y)> SpadePoints(string compact) {
+        UtilCollection collection = new UtilCollection(compact);
+        collection.assertUnordered();
+        return collection.ToList().Select(point => {
+            point.assertPair();
+            return (point[0].ToString(), point[1].ToString());
+        });
+    }
+
+    // The plain shape of an instance, {(x,y),(x,y),...} with every x and y made only of digits, signs, dots and exponent
+    // marks, read in one pass (#815). It gives exactly what SPADE gives for that shape: the pairs' texts in first-seen
+    // order, a pair whose two texts repeat an earlier one dropped. For anything else (other characters, nesting, a missing
+    // or extra separator) it answers null, and SpadePoints reads the instance as before, errors included.
+    internal static List<(string x, string y)>? ScanPointSet(string compact) {
+        if (compact.Length < 2 || compact[0] != '{' || compact[^1] != '}') return null;
+        var pairs = new List<(string x, string y)>();
+        if (compact.Length == 2) return pairs;
+        var seen = new HashSet<(string x, string y)>();
+        int i = 1, end = compact.Length - 1;
+        while (true) {
+            if (compact[i] != '(') return null;
+            string? x = ScanNumber(compact, i + 1, end, out i);
+            if (x == null || i >= end || compact[i] != ',') return null;
+            string? y = ScanNumber(compact, i + 1, end, out i);
+            if (y == null || i >= end || compact[i] != ')') return null;
+            if (seen.Add((x, y))) pairs.Add((x, y));
+            i++;
+            if (i == end) return pairs;
+            if (compact[i] != ',' || ++i >= end) return null;
+        }
+    }
+
+    // A non-empty run of digits, signs, dots and exponent marks starting at start, or null; next is where the run stops.
+    private static string? ScanNumber(string s, int start, int end, out int next) {
+        int i = start;
+        while (i < end && (char.IsAsciiDigit(s[i]) || s[i] is '+' or '-' or '.' or 'e' or 'E')) i++;
+        next = i;
+        return i > start ? s[start..i] : null;
     }
 }
