@@ -80,16 +80,20 @@ public class GraphColoringBruteForceSpeed_Tests {
     public void KnownInstances_AnswerExactlyAsBefore(string instance) =>
         Assert.Equal(OldSolve(new GRAPHCOLORING(instance)), new GraphColoringBruteForce().solve(new GRAPHCOLORING(instance)));
 
-    // Nine nodes holding a K4, so no 3-coloring: the search runs to the end. The old solver took about 5 s here on an idle
-    // machine; checking the digits first takes about 0.1 to 0.3 s. The bound is generous so a busy machine does not make
-    // it flaky.
-    [Fact]
-    public void ANineNodeGraphWithNoColoring_IsSearchedToTheEndInUnderThreeSeconds() {
-        var problem = new GRAPHCOLORING("(({a,b,c,d,e,f,g,h,i},{{a,b},{a,c},{a,d},{b,c},{b,d},{c,d},{e,f},{g,h},{h,i}}),3)");
-        var stopwatch = Stopwatch.StartNew();
-        string answer = new GraphColoringBruteForce().solve(problem);
-        stopwatch.Stop();
-        Assert.Equal("{}", answer);
-        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(3), $"the search took {stopwatch.ElapsedMilliseconds} ms");
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        // Nine nodes holding a K4, so no 3-coloring: the search runs to the end. The old solver took about 5 s here on an idle
+        // machine; checking the digits first takes about 0.1 to 0.3 s. The bound is generous so a busy machine does not make
+        // it flaky.
+        [Fact]
+        public void ANineNodeGraphWithNoColoring_IsSearchedToTheEndInUnderThreeSeconds() {
+            var problem = new GRAPHCOLORING("(({a,b,c,d,e,f,g,h,i},{{a,b},{a,c},{a,d},{b,c},{b,d},{c,d},{e,f},{g,h},{h,i}}),3)");
+            var stopwatch = Stopwatch.StartNew();
+            string answer = new GraphColoringBruteForce().solve(problem);
+            stopwatch.Stop();
+            Assert.Equal("{}", answer);
+            Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(3), $"the search took {stopwatch.ElapsedMilliseconds} ms");
+        }
     }
 }
