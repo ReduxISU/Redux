@@ -471,7 +471,8 @@ const TableView = (() => {
         else if (src.has(i + "," + j)) cls += best && best[0] === i && best[1] === j ? " src best" : " src";
         const g = mk("g", { class: cls }, svg);
         mk("rect", { x: ox + j * C + 1, y: oy + i * C + 1, width: C - 2, height: C - 2, rx: 6 }, g);
-        mk("text", { x: cx(j), y: cy(i) }, g).textContent = run.dp[i][j];
+        // Viewer hook (local/viz-viewer): a frame may carry the table's values (the backend's), else the mockup's own DP.
+        mk("text", { x: cx(j), y: cy(i) }, g).textContent = (f && f.values ? (f.values[i] || [])[j] : run.dp && run.dp[i] ? run.dp[i][j] : "") ?? "";
       }
       const arrow = (a, b, cls, mark) => {
         const [i1, j1] = a, [i2, j2] = b, x1 = cx(j1), y1 = cy(i1), x2 = cx(j2), y2 = cy(i2);
@@ -641,6 +642,9 @@ const TableView = (() => {
         frame = null; draw();
         return { frames: run.frames, ok: run.ok };
       },
+      // Viewer hook (local/viz-viewer): parse the instance and show frames supplied by the caller (in this module's own
+      // frame format) instead of running a mockup solver.
+      loadFrames(str, k, fr) { key = k; kind = PROBLEMS[k].kind; I = parse(str, k); run = { frames: fr, dp: null, rows: [], runs: [] }; frame = null; return { frames: fr, I }; },
       show(i) { frame = i === null ? null : run.frames[i]; draw(); return frame; },
       checks(i) { return checks(i === null ? null : run.frames[i]); },
       chosen(i) { return chosen(i === null ? null : run.frames[i]); },

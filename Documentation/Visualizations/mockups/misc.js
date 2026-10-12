@@ -786,13 +786,14 @@ const MiscView = (() => {
       ] },
   };
 
-  function create({ svg }) {
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("ms-style")) {
       const st = document.createElement("style"); st.id = "ms-style"; st.textContent = css; document.head.appendChild(st);
     }
     svg.classList.add("ms-svg");
     let impl = null, model = null, frames = [], frame = null, hover = null, els = null;
-    const paint = () => { if (impl) impl.paint(els, model, frame, hover); };
+    // Viewer hook (local/viz-viewer): afterPaint(els, frame, hover) runs after every paint, so a caller can restyle with states it was given.
+    const paint = () => { if (impl) { impl.paint(els, model, frame, hover); if (afterPaint) afterPaint(els, frame, hover); } };
     const api = { set: h => { hover = h; paint(); }, get: () => hover };
     return {
       load(str, key, solver) {
@@ -806,6 +807,9 @@ const MiscView = (() => {
         paint();
         return { frames, ok: frames[frames.length - 1].ok };
       },
+      // Viewer hook (local/viz-viewer): draw a model built elsewhere (the shape IMPL[key].parse returns, plus what solve adds)
+      // with frames supplied by the caller instead of running a mockup solver.
+      loadModel(key, m, fr) { impl = IMPL[key]; model = m; frames = fr; frame = null; hover = null; els = impl.draw(svg, model, api); paint(); return { frames, els }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return impl.checks(model, i === null ? null : frames[i]); },
       chosen(i) { return impl.chosen(model, i === null ? null : frames[i]); },

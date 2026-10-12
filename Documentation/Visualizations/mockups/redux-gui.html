@@ -1343,18 +1343,20 @@ const AutomatonView = (() => {
           if (active.has(s)) st = f.accepted ? (A.accept.has(s) ? "Solution" : "Background") : "Rejected";
           else if (!f.visited.has(s)) st = "Untraveled";
         } else if (f && active.has(s)) st = "Active";
+        if (f && f.ev) st = f.ev.nodes.get(s) || "Background"; // Viewer hook (local/viz-viewer): states evaluated elsewhere
         let cls = "au-node " + st;
         if (hover) cls += s === hover ? " trace" : targets.has(s) ? "" : " faint";
         nodeEls[s].setAttribute("class", cls);
       });
       if (A.garbage) {
         let cls = "au-garbage";
-        if (active.has(A.garbage)) cls += done ? " Rejected" : " Active";
+        if (f && f.ev) { const gs = f.ev.nodes.get(A.garbage); if (gs) cls += " " + gs; } // Viewer hook (local/viz-viewer)
+        else if (active.has(A.garbage)) cls += done ? " Rejected" : " Active";
         if (hover) cls += " faint";
         nodeEls[A.garbage].setAttribute("class", cls);
       }
       for (const g of groups.values()) {
-        let state = taken.has(g.key) ? "hot" : "";
+        let state = f && f.ev ? f.ev.edges.get(g.key) || "" : taken.has(g.key) ? "hot" : ""; // Viewer hook (local/viz-viewer)
         if (hover) state = g.from === hover ? "trace" : "faint";
         g.path.setAttribute("class", "au-edge" + (g.syms.every(x => x === "ε") ? " eps" : "") + (state ? " " + state : ""));
         g.path.setAttribute("marker-end", `url(#au-arrow-${state === "hot" ? "hot" : state === "trace" ? "trace" : "def"})`);
@@ -1386,6 +1388,10 @@ const AutomatonView = (() => {
         return { frames: sim.frames, accepted: sim.accepted, states: A.states, accept: A.accept, start: A.start, garbage: A.garbage,
           paths: paths.map(p => ({ label: p.label, accepted: p.accepted })), pathLimitHit: paths.length >= PATH_LIMIT };
       },
+      // Viewer hook (local/viz-viewer): draw an automaton built elsewhere (the shape parse() returns) with frames supplied by
+      // the caller instead of simulating it. Frames may carry `ev` ({nodes: Map state → class, edges: Map from+SEP+to → class}).
+      loadModel(model, fr) { A = model; sim = { frames: fr, accepted: false }; cur = fr; paths = []; frame = null; hover = null; draw(); paint(); return { frames: fr }; },
+      SEP,
       // null = all branches at once; otherwise follow paths[i] alone.
       usePath(i) {
         const p = i === null ? null : paths[i];
@@ -1874,7 +1880,8 @@ const TableView = (() => {
         else if (src.has(i + "," + j)) cls += best && best[0] === i && best[1] === j ? " src best" : " src";
         const g = mk("g", { class: cls }, svg);
         mk("rect", { x: ox + j * C + 1, y: oy + i * C + 1, width: C - 2, height: C - 2, rx: 6 }, g);
-        mk("text", { x: cx(j), y: cy(i) }, g).textContent = run.dp[i][j];
+        // Viewer hook (local/viz-viewer): a frame may carry the table's values (the backend's), else the mockup's own DP.
+        mk("text", { x: cx(j), y: cy(i) }, g).textContent = (f && f.values ? (f.values[i] || [])[j] : run.dp && run.dp[i] ? run.dp[i][j] : "") ?? "";
       }
       const arrow = (a, b, cls, mark) => {
         const [i1, j1] = a, [i2, j2] = b, x1 = cx(j1), y1 = cy(i1), x2 = cx(j2), y2 = cy(i2);
@@ -2044,6 +2051,9 @@ const TableView = (() => {
         frame = null; draw();
         return { frames: run.frames, ok: run.ok };
       },
+      // Viewer hook (local/viz-viewer): parse the instance and show frames supplied by the caller (in this module's own
+      // frame format) instead of running a mockup solver.
+      loadFrames(str, k, fr) { key = k; kind = PROBLEMS[k].kind; I = parse(str, k); run = { frames: fr, dp: null, rows: [], runs: [] }; frame = null; return { frames: fr, I }; },
       show(i) { frame = i === null ? null : run.frames[i]; draw(); return frame; },
       checks(i) { return checks(i === null ? null : run.frames[i]); },
       chosen(i) { return chosen(i === null ? null : run.frames[i]); },
@@ -2699,6 +2709,8 @@ const QuantumView = (() => {
         draw(); paint();
         return { frames: run.frames, ok: run.last.ok };
       },
+      // Viewer hook (local/viz-viewer): keep the circuit and simulation from load() but show frames supplied by the caller.
+      useFrames(fr) { run.frames = fr; frame = null; paint(); return { frames: fr, B: run.B }; },
       show(i) { frame = i === null ? null : run.frames[i]; paint(); return frame; },
       checks(i) {
         const f = i === null ? null : run.frames[i];
@@ -2990,7 +3002,9 @@ const BipartiteView = (() => {
       for (const [id, n] of nodes) {
         let st = "Background";
         const isCand = M.hits.has(id);
-        if (f) {
+        // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+        if (f && f.ev) st = f.ev.nodes.get(id) || "Background";
+        else if (f) {
           if (isCand) {
             if ((id === f.trying || (f.trial && chosen.has(id))) && !f.done) st = "Active";
             else if (chosen.has(id)) st = "Solution";
@@ -3005,7 +3019,7 @@ const BipartiteView = (() => {
         if (f && id === f.focus && !f.done) cls += " focus";
         if (hover) cls += id === hover ? " trace" : neighbors.has(id) ? "" : " faint";
         n.g.setAttribute("class", cls);
-        const k = hitCount.get(id);
+        const k = f && f.ev ? f.ev.hits.get(id) || 0 : hitCount.get(id);
         const showBadge = f && !isCand && k > 1;
         n.badge.setAttribute("visibility", showBadge ? "visible" : "hidden");
         if (showBadge) n.bt.textContent = "×" + k;
@@ -3014,6 +3028,7 @@ const BipartiteView = (() => {
         const p = M.pickSets ? e.set : e.el;
         let cls = "bp-edge";
         if (hover) cls += e.el === hover || e.set === hover ? " trace" : " faint";
+        else if (f && f.ev) cls += f.ev.edges.get(e.id) ? " " + f.ev.edges.get(e.id) : "";
         else if (f && !f.done && (p === f.trying || (f.trial && chosen.has(p)))) cls += " hot";
         else if (f && chosen.has(p)) cls += " sol";
         else if (f) cls += " dim";
@@ -3051,6 +3066,9 @@ const BipartiteView = (() => {
         draw(); paint();
         return { frames: run.frames, ok: run.ok, solution: run.solution ? run.solution.map(M.name) : null, K: I.K };
       },
+      // Viewer hook (local/viz-viewer): draw a model built elsewhere (the shape model() returns, edges may carry an `id`)
+      // with frames supplied by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, inst, fr) { I = inst; M = model; run = { frames: fr }; frame = null; hover = null; draw(); paint(); return { frames: fr }; },
       show(i) { frame = i === null ? null : run.frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : run.frames[i]); },
       chosenLabels(i) { return i === null ? [] : run.frames[i].chosen.map(M.name); },
@@ -3140,6 +3158,7 @@ const BipartiteView = (() => {
         const v = i + 1, a = asg[v];
         let st = a === undefined ? "Background" : a ? "Solution" : "False";
         if (f && f.tried === v && !f.done) st = "Active";
+        if (f && f.ev) st = f.ev.nodes.get("v" + v) || "Background"; // Viewer hook (local/viz-viewer)
         let cls = "bp-node el " + st;
         if (hover) cls += hv === v ? " trace" : nearV.has(v) ? "" : " faint";
         o.g.setAttribute("class", cls);
@@ -3150,13 +3169,15 @@ const BipartiteView = (() => {
         let st = "Background";
         if (f && j === f.failed) st = "Rejected";
         else if (C[j].some(l => val(l) === true)) st = "Covered";
+        if (f && f.ev) st = f.ev.nodes.get("c" + j) || "Background"; // Viewer hook (local/viz-viewer)
         let cls = "bp-node set " + st;
         if (hover) cls += hc === j ? " trace" : nearC.has(j) ? "" : " faint";
         g.setAttribute("class", cls);
       });
-      edgeEls.forEach(e => {
+      edgeEls.forEach((e, ei) => {
         let cls = "bp-edge" + (e.lit < 0 ? " neg" : "");
         if (hover) cls += hv === e.v || hc === e.j ? " trace" : " faint";
+        else if (f && f.ev) cls += f.ev.edges[ei] ? " " + f.ev.edges[ei] : ""; // Viewer hook (local/viz-viewer)
         else if (f && f.tried === e.v && !f.done) cls += " hot";
         else if (val(e.lit) === true) cls += " sol";
         else if (val(e.lit) === false) cls += " dim";
@@ -3204,6 +3225,7 @@ const GraphView = (() => {
 .gb-node.badnode .body { stroke: var(--av-rej); stroke-width: 3.5; }
 .gb-node.trace .body, .gb-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .gb-node.faint { filter: grayscale(1); } .gb-node.faint .body { stroke-dasharray: 3 3; }
+.gb-svg .gb-node .gb-order text { fill: var(--av-surface); } /* the order badge keeps its own text color when the node is Rejected or Solution */
 .gb-term { fill: none; stroke: var(--av-ink); stroke-width: 1.6; pointer-events: none; }
 .gb-order circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .gb-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
@@ -3917,7 +3939,8 @@ const GraphView = (() => {
     }
 
     function paint() {
-      const ev = evaluate(G, rule, frame);
+      // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+      const ev = frame && frame.ev ? frame.ev : evaluate(G, rule, frame);
       const nb = hover ? G.adj.get(hover) : null;
       for (const [n, o] of els.nodes) {
         const s = ev.nodes.get(n) || {};
@@ -3961,6 +3984,9 @@ const GraphView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: last.ok, K: G.K };
       },
+      // Viewer hook (local/viz-viewer): draw a graph built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, P, fr) { G = model; rule = P.rule; if (P.layout) mode = P.layout; frames = fr; frame = null; hover = null; draw(); paint(); return { frames, K: G.K }; },
       setLayout(m) { mode = m; if (G) { draw(); paint(); } },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return evaluate(G, rule, i === null ? null : frames[i]).checks; },
@@ -4459,6 +4485,7 @@ const ScheduleView = (() => {
         if (r.late) st = "Rejected";
         else if (f.done) st = f.ok ? "Solution" : "Covered";
         if (j === f.trying || (f.trial && !r.late && !f.done)) st = r.late ? "Rejected" : "Active";
+        if (f.states && f.states[j]) st = f.states[j]; // Viewer hook (local/viz-viewer): states evaluated by the caller (the backend's)
         mk("rect", { x: X(r.s), y: y + 7, width: Math.max(2, X(r.f) - X(r.s)), height: rowH - 14, rx: 4, class: "sc-bar " + st }, g);
         if (r.late) { const from = Math.max(I.D[j], r.s); mk("rect", { x: X(from), y: y + 7, width: Math.max(0, X(r.f) - X(from)), height: rowH - 14, rx: 4, class: "sc-over" }, g); }
       } else if (f && aside.has(j)) {
@@ -4644,6 +4671,8 @@ const ScheduleView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): parse the instance and show frames supplied by the caller instead of running a mockup solver.
+      loadFrames(str, key, fr) { I = key === "JOBSEQ" ? parseJob(str) : parsePump(str, key === "PUMPEM"); frames = fr; frame = null; hover = null; return { frames, I }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { const f = i === null ? null : frames[i]; return I.kind === "job" ? jobChecks(I, f) : pumpChecks(I, f); },
       chosen(i) {
@@ -5113,6 +5142,8 @@ const PackingView = (() => {
 
     function itemState(f, i) {
       if (!f) return "";
+      // Viewer hook (local/viz-viewer): a frame may carry each item's state already decided (`itemStates`), e.g. from the backend.
+      if (f.itemStates) return f.itemStates[i] || "";
       if (i === f.bad) return "Rejected";
       const a = f.assign[i];
       if (i === f.trying && !f.done) return "Active";
@@ -5218,6 +5249,9 @@ const PackingView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw an instance built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller ({assign, itemStates?, ...}) instead of running a mockup solver.
+      loadModel(model, prob, fr) { P = prob; I = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : frames[i]); },
       chosen(i) { return chosen(i === null ? null : frames[i]); },
@@ -5736,7 +5770,8 @@ const LayeredView = (() => {
 
     function draw() {
       svg.innerHTML = "";
-      L = layout(G);
+      // Viewer hook (local/viz-viewer): a model may bring its own positions (`fixedLayout`, the shape layout() returns).
+      L = G.fixedLayout || layout(G);
       svg.setAttribute("viewBox", `0 0 ${L.W} ${L.H}`);
       const defs = mk("defs", {}, svg);
       for (const k of ["def", "sol", "rej", "hot", "trace"]) {
@@ -5784,7 +5819,8 @@ const LayeredView = (() => {
     }
 
     function paint() {
-      const ev = evaluate(G, rule, frame);
+      // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+      const ev = frame && frame.ev ? frame.ev : evaluate(G, rule, frame);
       const touches = new Set();
       if (hover) G.edges.forEach(e => { if (e.u === hover || e.v === hover) { touches.add(e.u); touches.add(e.v); } });
       for (const [n, o] of els.nodes) {
@@ -5833,6 +5869,9 @@ const LayeredView = (() => {
         const last = frames.at(-1);
         return { frames, ok: last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a graph built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, P, fr) { G = model; rule = P.rule; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return evaluate(G, rule, i === null ? null : frames[i]).checks; },
       chosen(i) {
@@ -6127,7 +6166,8 @@ const FlowView = (() => {
 
     function draw() {
       svg.innerHTML = "";
-      const W = 700, { P, H } = layout(G, W);
+      // Viewer hook (local/viz-viewer): a model may bring its own positions (`fixedLayout(W)` returns what layout() does).
+      const W = 700, { P, H } = G.fixedLayout ? G.fixedLayout(W) : layout(G, W);
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const defs = mk("defs", {}, svg);
       for (const k of ["def", "flow", "sat", "hot", "sol", "trace", "back"]) {
@@ -6223,6 +6263,9 @@ const FlowView = (() => {
         draw(); paint();
         return { frames, ok: true };
       },
+      // Viewer hook (local/viz-viewer): draw a network built elsewhere (the shape parse() returns) with frames in this
+      // module's own terms supplied by the caller, instead of running the mockup solver.
+      loadModel(model, fr) { G = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       setResidual(on) { residual = !!on; if (G) paint(); },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : frames[i]); },
@@ -6509,7 +6552,8 @@ const BoardView = (() => {
   };
 
   /* ---------- the view ---------- */
-  function create({ svg }) {
+  // Viewer hook (local/viz-viewer): `afterPaint(frame, svg)` runs after every paint, so a caller can restyle cells from its own states.
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("bd-style")) {
       const st = document.createElement("style"); st.id = "bd-style"; st.textContent = css; document.head.appendChild(st);
     }
@@ -6665,7 +6709,7 @@ const BoardView = (() => {
       }
     }
 
-    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); }
+    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); if (afterPaint) afterPaint(frame, svg); }
 
     function checksFor(f) {
       if (G.kind === "sudoku") {
@@ -6696,6 +6740,8 @@ const BoardView = (() => {
         const last = frames.at(-1);
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a board built elsewhere (the shape parse() returns) with frames supplied by the caller.
+      loadModel(model, Pk, fr) { P = Pk; G = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       setHints(on) { hints = !!on; if (G) paint(); },
       checks(i) { return checksFor(i === null ? null : frames[i]); },
@@ -7735,13 +7781,14 @@ const MiscView = (() => {
       ] },
   };
 
-  function create({ svg }) {
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("ms-style")) {
       const st = document.createElement("style"); st.id = "ms-style"; st.textContent = css; document.head.appendChild(st);
     }
     svg.classList.add("ms-svg");
     let impl = null, model = null, frames = [], frame = null, hover = null, els = null;
-    const paint = () => { if (impl) impl.paint(els, model, frame, hover); };
+    // Viewer hook (local/viz-viewer): afterPaint(els, frame, hover) runs after every paint, so a caller can restyle with states it was given.
+    const paint = () => { if (impl) { impl.paint(els, model, frame, hover); if (afterPaint) afterPaint(els, frame, hover); } };
     const api = { set: h => { hover = h; paint(); }, get: () => hover };
     return {
       load(str, key, solver) {
@@ -7755,6 +7802,9 @@ const MiscView = (() => {
         paint();
         return { frames, ok: frames[frames.length - 1].ok };
       },
+      // Viewer hook (local/viz-viewer): draw a model built elsewhere (the shape IMPL[key].parse returns, plus what solve adds)
+      // with frames supplied by the caller instead of running a mockup solver.
+      loadModel(key, m, fr) { impl = IMPL[key]; model = m; frames = fr; frame = null; hover = null; els = impl.draw(svg, model, api); paint(); return { frames, els }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return impl.checks(model, i === null ? null : frames[i]); },
       chosen(i) { return impl.chosen(model, i === null ? null : frames[i]); },
@@ -10471,6 +10521,13 @@ const SearchTreeView = (() => {
     return nodes;
   }
 
+  // Viewer hook (local/viz-viewer): a node list (parents before children not required) → the Map snapshot() builds.
+  function treeMap(list) {
+    const nodes = new Map(list.map(e => [e.id, { ...e, parent: e.parent ?? null, kids: [] }]));
+    for (const n of nodes.values()) if (n.parent !== null && nodes.has(n.parent)) nodes.get(n.parent).kids.push(n);
+    return nodes;
+  }
+
   function create({ svg }) {
     if (!document.getElementById("st-style")) {
       const st = document.createElement("style"); st.id = "st-style"; st.textContent = css; document.head.appendChild(st);
@@ -10488,7 +10545,8 @@ const SearchTreeView = (() => {
     function draw() {
       svg.innerHTML = "";
       const f = frame;
-      const nodes = f ? snapshot(out.R.ev, f.upto) : new Map();
+      // Viewer hook (local/viz-viewer): a frame may carry its whole tree (`tree`: [{id, parent, label, st, note, val, order}]).
+      const nodes = f ? (f.tree ? treeMap(f.tree) : snapshot(out.R.ev, f.upto)) : new Map();
       const root = [...nodes.values()].find(n => n.parent === null);
       const W0 = 680;
       if (!root) {
@@ -10645,6 +10703,8 @@ const SearchTreeView = (() => {
         draw();
         return { frames, ok: out.ok };
       },
+      // Viewer hook (local/viz-viewer): frames supplied by the caller, each carrying `tree` (see draw), plus cur / done / ok.
+      loadModel(p, fr) { P = p; inst = null; out = { R: { ev: [] }, ok: fr.length ? fr[fr.length - 1].ok : null }; frames = fr; frame = null; hover = null; draw(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; draw(); return frame; },
       checks(i) {
         if (i === null) return [{ label: "Tree not grown yet", ok: null }];

@@ -642,6 +642,8 @@ const QuantumView = (() => {
         draw(); paint();
         return { frames: run.frames, ok: run.last.ok };
       },
+      // Viewer hook (local/viz-viewer): keep the circuit and simulation from load() but show frames supplied by the caller.
+      useFrames(fr) { run.frames = fr; frame = null; paint(); return { frames: fr, B: run.B }; },
       show(i) { frame = i === null ? null : run.frames[i]; paint(); return frame; },
       checks(i) {
         const f = i === null ? null : run.frames[i];

@@ -252,7 +252,8 @@ const BoardView = (() => {
   };
 
   /* ---------- the view ---------- */
-  function create({ svg }) {
+  // Viewer hook (local/viz-viewer): `afterPaint(frame, svg)` runs after every paint, so a caller can restyle cells from its own states.
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("bd-style")) {
       const st = document.createElement("style"); st.id = "bd-style"; st.textContent = css; document.head.appendChild(st);
     }
@@ -408,7 +409,7 @@ const BoardView = (() => {
       }
     }
 
-    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); }
+    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); if (afterPaint) afterPaint(frame, svg); }
 
     function checksFor(f) {
       if (G.kind === "sudoku") {
@@ -439,6 +440,8 @@ const BoardView = (() => {
         const last = frames.at(-1);
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a board built elsewhere (the shape parse() returns) with frames supplied by the caller.
+      loadModel(model, Pk, fr) { P = Pk; G = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       setHints(on) { hints = !!on; if (G) paint(); },
       checks(i) { return checksFor(i === null ? null : frames[i]); },

@@ -404,6 +404,8 @@ const PackingView = (() => {
 
     function itemState(f, i) {
       if (!f) return "";
+      // Viewer hook (local/viz-viewer): a frame may carry each item's state already decided (`itemStates`), e.g. from the backend.
+      if (f.itemStates) return f.itemStates[i] || "";
       if (i === f.bad) return "Rejected";
       const a = f.assign[i];
       if (i === f.trying && !f.done) return "Active";
@@ -509,6 +511,9 @@ const PackingView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw an instance built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller ({assign, itemStates?, ...}) instead of running a mockup solver.
+      loadModel(model, prob, fr) { P = prob; I = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : frames[i]); },
       chosen(i) { return chosen(i === null ? null : frames[i]); },

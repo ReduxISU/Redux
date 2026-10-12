@@ -270,7 +270,9 @@ const BipartiteView = (() => {
       for (const [id, n] of nodes) {
         let st = "Background";
         const isCand = M.hits.has(id);
-        if (f) {
+        // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+        if (f && f.ev) st = f.ev.nodes.get(id) || "Background";
+        else if (f) {
           if (isCand) {
             if ((id === f.trying || (f.trial && chosen.has(id))) && !f.done) st = "Active";
             else if (chosen.has(id)) st = "Solution";
@@ -285,7 +287,7 @@ const BipartiteView = (() => {
         if (f && id === f.focus && !f.done) cls += " focus";
         if (hover) cls += id === hover ? " trace" : neighbors.has(id) ? "" : " faint";
         n.g.setAttribute("class", cls);
-        const k = hitCount.get(id);
+        const k = f && f.ev ? f.ev.hits.get(id) || 0 : hitCount.get(id);
         const showBadge = f && !isCand && k > 1;
         n.badge.setAttribute("visibility", showBadge ? "visible" : "hidden");
         if (showBadge) n.bt.textContent = "×" + k;
@@ -294,6 +296,7 @@ const BipartiteView = (() => {
         const p = M.pickSets ? e.set : e.el;
         let cls = "bp-edge";
         if (hover) cls += e.el === hover || e.set === hover ? " trace" : " faint";
+        else if (f && f.ev) cls += f.ev.edges.get(e.id) ? " " + f.ev.edges.get(e.id) : "";
         else if (f && !f.done && (p === f.trying || (f.trial && chosen.has(p)))) cls += " hot";
         else if (f && chosen.has(p)) cls += " sol";
         else if (f) cls += " dim";
@@ -331,6 +334,9 @@ const BipartiteView = (() => {
         draw(); paint();
         return { frames: run.frames, ok: run.ok, solution: run.solution ? run.solution.map(M.name) : null, K: I.K };
       },
+      // Viewer hook (local/viz-viewer): draw a model built elsewhere (the shape model() returns, edges may carry an `id`)
+      // with frames supplied by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, inst, fr) { I = inst; M = model; run = { frames: fr }; frame = null; hover = null; draw(); paint(); return { frames: fr }; },
       show(i) { frame = i === null ? null : run.frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : run.frames[i]); },
       chosenLabels(i) { return i === null ? [] : run.frames[i].chosen.map(M.name); },
@@ -420,6 +426,7 @@ const BipartiteView = (() => {
         const v = i + 1, a = asg[v];
         let st = a === undefined ? "Background" : a ? "Solution" : "False";
         if (f && f.tried === v && !f.done) st = "Active";
+        if (f && f.ev) st = f.ev.nodes.get("v" + v) || "Background"; // Viewer hook (local/viz-viewer)
         let cls = "bp-node el " + st;
         if (hover) cls += hv === v ? " trace" : nearV.has(v) ? "" : " faint";
         o.g.setAttribute("class", cls);
@@ -430,13 +437,15 @@ const BipartiteView = (() => {
         let st = "Background";
         if (f && j === f.failed) st = "Rejected";
         else if (C[j].some(l => val(l) === true)) st = "Covered";
+        if (f && f.ev) st = f.ev.nodes.get("c" + j) || "Background"; // Viewer hook (local/viz-viewer)
         let cls = "bp-node set " + st;
         if (hover) cls += hc === j ? " trace" : nearC.has(j) ? "" : " faint";
         g.setAttribute("class", cls);
       });
-      edgeEls.forEach(e => {
+      edgeEls.forEach((e, ei) => {
         let cls = "bp-edge" + (e.lit < 0 ? " neg" : "");
         if (hover) cls += hv === e.v || hc === e.j ? " trace" : " faint";
+        else if (f && f.ev) cls += f.ev.edges[ei] ? " " + f.ev.edges[ei] : ""; // Viewer hook (local/viz-viewer)
         else if (f && f.tried === e.v && !f.done) cls += " hot";
         else if (val(e.lit) === true) cls += " sol";
         else if (val(e.lit) === false) cls += " dim";

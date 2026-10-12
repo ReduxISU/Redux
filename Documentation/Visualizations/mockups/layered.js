@@ -473,7 +473,8 @@ const LayeredView = (() => {
 
     function draw() {
       svg.innerHTML = "";
-      L = layout(G);
+      // Viewer hook (local/viz-viewer): a model may bring its own positions (`fixedLayout`, the shape layout() returns).
+      L = G.fixedLayout || layout(G);
       svg.setAttribute("viewBox", `0 0 ${L.W} ${L.H}`);
       const defs = mk("defs", {}, svg);
       for (const k of ["def", "sol", "rej", "hot", "trace"]) {
@@ -521,7 +522,8 @@ const LayeredView = (() => {
     }
 
     function paint() {
-      const ev = evaluate(G, rule, frame);
+      // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+      const ev = frame && frame.ev ? frame.ev : evaluate(G, rule, frame);
       const touches = new Set();
       if (hover) G.edges.forEach(e => { if (e.u === hover || e.v === hover) { touches.add(e.u); touches.add(e.v); } });
       for (const [n, o] of els.nodes) {
@@ -570,6 +572,9 @@ const LayeredView = (() => {
         const last = frames.at(-1);
         return { frames, ok: last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a graph built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, P, fr) { G = model; rule = P.rule; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return evaluate(G, rule, i === null ? null : frames[i]).checks; },
       chosen(i) {
