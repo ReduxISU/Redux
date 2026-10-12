@@ -70,20 +70,25 @@
       },
     }));
     view.loadModel(M, { kind, K: payload.k ?? null, U: els.map(e => e.label), sets: sets.map(s => s.items) }, frames);
-    // bipartite.js caps the set box at 260 px but not the member list in it: long lists (long backend ids) run past the box
-    // and onto the background. Clip them with an ellipsis and keep the full text in a <title>.
+    // bipartite.js wraps a long member list onto more lines inside the set box (by character count). Check the drawn
+    // widths, and clip any line that still runs past the box (full list in a <title>).
     let clipped = 0;
     ctx.host.querySelectorAll("g.bp-node.set").forEach(g => {
-      const body = g.querySelector("rect.body"), sub = g.querySelector("text.sub");
-      if (!body || !sub || !sub.getComputedTextLength) return;
-      const room = +body.getAttribute("x") + +body.getAttribute("width") - +sub.getAttribute("x") - 8, full = sub.textContent;
-      if (sub.getComputedTextLength() <= room) return;
-      let t = full;
-      while (t.length > 1 && sub.getComputedTextLength() > room) { t = t.slice(0, -1); sub.textContent = t + "…"; }
-      Viewer.mk("title", {}, g).textContent = full;
-      clipped++;
+      const body = g.querySelector("rect.body");
+      if (!body) return;
+      let cut = false;
+      const full = [...g.querySelectorAll("text.sub")].map(t => t.textContent).join("");
+      g.querySelectorAll("text.sub").forEach(sub => {
+        if (!sub.getComputedTextLength) return;
+        const room = +body.getAttribute("x") + +body.getAttribute("width") - +sub.getAttribute("x") - 8;
+        if (sub.getComputedTextLength() <= room) return;
+        let t = sub.textContent;
+        while (t.length > 1 && sub.getComputedTextLength() > room) { t = t.slice(0, -1); sub.textContent = t + "…"; }
+        cut = true;
+      });
+      if (cut) { if (!g.querySelector("title")) Viewer.mk("title", {}, g).textContent = full; clipped++; }
     });
-    if (clipped) note(`${clipped} set member lists are wider than the 260 px set box in bipartite.js; clipped with … (full list on hover).`);
+    if (clipped) note(`${clipped} set member lists still run past their box after wrapping; clipped with … (full list on hover).`);
     const known = new Set(["event", "caption", "focus", "nodes", "edges", "hits", "ok", "phase", "builtNodes", "builtEdges", "skipped"]);
     const extra = [...new Set(ctx.frames.flatMap(f => Object.keys(f)))].filter(k => !known.has(k));
     if (extra.length) note(`Frame fields the Bipartite adapter ignores: ${extra.join(", ")}`, false);

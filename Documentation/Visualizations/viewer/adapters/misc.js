@@ -63,7 +63,7 @@
       const names = cols.map(([, list]) => list.map(e => e.name ?? e.id));
       const triples = payload.triples || [];
       const D = { X: names[0], Y: names[1], Z: names[2], M: triples.map(t => ({ id: t.id, x: nameOf.get(t.x), y: nameOf.get(t.y), z: nameOf.get(t.z) })) };
-      if (triples.length > 30 || names.some(n => n.length > 10)) note(`${triples.length} triples and ${names.map(n => n.length).join("/")} elements: misc.js's parser caps the picture at 10 names per set and 30 triples (the viewer builds the model from the payload, so it still draws, crowded).`, false);
+      if (triples.length > 30 || names.some(n => n.length > 10)) note(`${triples.length} triples and ${names.map(n => n.length).join("/")} elements: past misc.js's parser caps (10 names per set, 30 triples), so the viewer builds the model from the payload; a long triple list wraps into columns under the picture.`, false);
       const tIdx = new Map(triples.map((t, i) => [t.id, i]));
       const frames = ctx.frames.map(f => {
         const chosen = (f.chosen || []).map(id => tIdx.get(id)).filter(i => i !== undefined);

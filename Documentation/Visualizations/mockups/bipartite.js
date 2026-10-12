@@ -207,28 +207,46 @@ path.bp-edge { fill: none; }
       const pos = new Map(M.els.map((e, i) => [e.id, i]));
       const bary = s => (s.items.length ? s.items.reduce((a, x) => a + pos.get("e:" + x), 0) / s.items.length : 1e9);
       const setOrder = M.sets.slice().sort((a, b) => bary(a) - bary(b));
-      const setW = Math.min(260, Math.max(...M.sets.map(s => (s.label.length + fmtSet(s.items).length) * 7.6 + 34), 96));
-      const rows = Math.max(M.els.length, M.sets.length);
-      const W = Math.max(640, 200 + setW + 300), H = rows * ROW + 80;
+      // Boxes fit their list up to 260 px; when some list is longer, boxes widen to 380 px and the rest wraps (below).
+      const want = Math.max(...M.sets.map(s => (s.label.length + fmtSet(s.items).length) * 7.6 + 34), 96);
+      const setW = Math.min(want > 260 ? 380 : 260, want);
+      // A member list too long for the box wraps onto more lines (at commas) and the box grows; set rows space out to fit.
+      const room = s => Math.max(6, Math.floor((setW - (14 + s.label.length * 8.5) - 10) / 7.4));
+      const lines = new Map(M.sets.map(s => {
+        const full = fmtSet(s.items), n = room(s);
+        if (full.length <= n) return [s.id, [full]];
+        const out = [];
+        let cur = "";
+        full.split(/(?<=,)/).forEach(part => { if (cur && (cur + part).length > n) { out.push(cur); cur = ""; } cur += part; });
+        if (cur) out.push(cur);
+        return [s.id, out];
+      }));
+      const maxLines = Math.max(1, ...[...lines.values()].map(l => l.length)), LH = 15;
+      const setRow = Math.max(ROW, 34 + (maxLines - 1) * LH + 12);
+      // An element label longer than fits in the circle gets a pill instead, as wide as its label.
+      const halfW = e => (String(e.label).length > 3 ? Math.max(ER, (String(e.label).length * 8.6 + 18) / 2) : ER);
+      const elHalf = Math.max(ER, ...M.els.map(halfW));
+      const H = Math.max(M.els.length * ROW, M.sets.length * setRow) + 80;
+      const W = Math.max(640, 200 + (elHalf - ER) + setW + 300);
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      const ex = 90, sx = W - 50 - setW;
-      const top = (count) => 70 + ((rows - count) * ROW) / 2 + ROW / 2;
+      const ex = 90 + (elHalf - ER), sx = W - 50 - setW;
+      const top = (count, rowH) => 70 + (H - 80 - count * rowH) / 2 + rowH / 2;
       const P = new Map();
-      M.els.forEach((e, i) => P.set(e.id, { x: ex, y: top(M.els.length) + i * ROW }));
-      setOrder.forEach((s, i) => P.set(s.id, { x: sx, y: top(M.sets.length) + i * ROW }));
+      M.els.forEach((e, i) => P.set(e.id, { x: ex, y: top(M.els.length, ROW) + i * ROW, hw: halfW(e) }));
+      setOrder.forEach((s, i) => P.set(s.id, { x: sx, y: top(M.sets.length, setRow) + i * setRow }));
 
       const head = (x, text, pick, anchor) => {
         const t = mk("text", { x, y: 28, class: "bp-head", "text-anchor": anchor }, svg);
         t.textContent = text;
         if (pick) { const ts = mk("tspan", { class: "pick" }, t); ts.textContent = "  ● PICKED"; }
       };
-      head(ex - ER, "ELEMENTS · U", !M.pickSets, "start");
+      head(ex - elHalf, "ELEMENTS · U", !M.pickSets, "start");
       head(sx, "SETS · S", M.pickSets, "start");
 
       const gE = mk("g", {}, svg), gN = mk("g", {}, svg);
       edgeEls = M.edges.map(e => {
         const a = P.get(e.el), b = P.get(e.set);
-        return { ...e, el2: mk("line", { x1: a.x + ER, y1: a.y, x2: b.x, y2: b.y, class: "bp-edge" }, gE) };
+        return { ...e, el2: mk("line", { x1: a.x + a.hw, y1: a.y, x2: b.x, y2: b.y, class: "bp-edge" }, gE) };
       });
       nodes = new Map();
       const hookup = (g, id) => {
@@ -240,22 +258,25 @@ path.bp-edge { fill: none; }
       M.els.forEach(e => {
         const p = P.get(e.id);
         const g = mk("g", { class: "bp-node el", tabindex: "0", role: "button", "aria-label": `Element ${e.label}` }, gN);
-        mk("circle", { cx: p.x, cy: p.y, r: ER, class: "body" }, g);
+        if (p.hw > ER) mk("rect", { x: p.x - p.hw, y: p.y - ER, width: 2 * p.hw, height: 2 * ER, rx: ER, class: "body" }, g);
+        else mk("circle", { cx: p.x, cy: p.y, r: ER, class: "body" }, g);
         mk("text", { x: p.x, y: p.y }, g).textContent = e.label;
         const badge = mk("g", { visibility: "hidden" }, g);
-        mk("circle", { cx: p.x - ER - 4, cy: p.y - ER + 4, r: 8, class: "bp-count-bg" }, badge);
-        const bt = mk("text", { x: p.x - ER - 4, y: p.y - ER + 4, class: "bp-count bp-count-t" }, badge);
+        mk("circle", { cx: p.x - p.hw - 4, cy: p.y - ER + 4, r: 8, class: "bp-count-bg" }, badge);
+        const bt = mk("text", { x: p.x - p.hw - 4, y: p.y - ER + 4, class: "bp-count bp-count-t" }, badge);
         nodes.set(e.id, { g, badge, bt }); hookup(g, e.id);
       });
       M.sets.forEach(s => {
         const p = P.get(s.id);
         const g = mk("g", { class: "bp-node set", tabindex: "0", role: "button", "aria-label": `Set ${s.label} ${fmtSet(s.items)}` }, gN);
-        mk("rect", { x: p.x, y: p.y - 17, width: setW, height: 34, rx: 8, class: "body" }, g);
-        mk("text", { x: p.x + 12, y: p.y, class: "lbl" }, g).textContent = s.label;
-        mk("text", { x: p.x + 14 + s.label.length * 8.5, y: p.y, class: "sub" }, g).textContent = fmtSet(s.items);
+        const ls = lines.get(s.id), hh = 17 + (ls.length - 1) * LH / 2;
+        mk("rect", { x: p.x, y: p.y - hh, width: setW, height: 2 * hh, rx: 8, class: "body" }, g);
+        mk("text", { x: p.x + 12, y: p.y - (ls.length - 1) * LH / 2, class: "lbl" }, g).textContent = s.label;
+        ls.forEach((t, k) => { mk("text", { x: p.x + 14 + s.label.length * 8.5, y: p.y - (ls.length - 1) * LH / 2 + k * LH, class: "sub" }, g).textContent = t; });
+        if (ls.length > 1) mk("title", {}, g).textContent = `${s.label} ${fmtSet(s.items)}`;
         const badge = mk("g", { visibility: "hidden" }, g);
-        mk("circle", { cx: p.x + setW + 2, cy: p.y - 15, r: 8, class: "bp-count-bg" }, badge);
-        const bt = mk("text", { x: p.x + setW + 2, y: p.y - 15, class: "bp-count bp-count-t" }, badge);
+        mk("circle", { cx: p.x + setW + 2, cy: p.y - hh + 2, r: 8, class: "bp-count-bg" }, badge);
+        const bt = mk("text", { x: p.x + setW + 2, y: p.y - hh + 2, class: "bp-count bp-count-t" }, badge);
         nodes.set(s.id, { g, badge, bt }); hookup(g, s.id);
       });
     }

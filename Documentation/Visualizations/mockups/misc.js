@@ -471,8 +471,18 @@ const MiscView = (() => {
       const widths = cols.map(c => Math.max(48, ...c.map(v => v.length * 7.6 + 22)));
       const ROW = 46, TROW = 22, top = 64;
       const rows = Math.max(...cols.map(c => c.length));
-      const H = Math.max(rows * ROW, D.M.length * TROW) + top + 22;
-      const listX = 560, W = 790;
+      // The triple list: each row wide enough for its id and its three names. A list much longer than the elements
+      // column (e.g. a reduction's 135 triples) wraps into columns under the picture instead of running far below it.
+      const idW = Math.max(30, ...D.M.map(t => String(t.id).length * 7.4 + 8));
+      const colW = idW + Math.max(0, ...D.M.map(t => `${t.x} · ${t.y} · ${t.z}`.length)) * 7.3 + 16;
+      const wrap = D.M.length > 30 && D.M.length * TROW > rows * ROW * 1.3;
+      let W = 790, listX = 560;
+      if (!wrap) W = Math.max(790, listX + colW + 4);
+      const nCols = wrap ? Math.max(1, Math.floor((W - 20) / colW)) : 1, perCol = Math.ceil(D.M.length / nCols);
+      const listTop = wrap ? top + rows * ROW + 46 : top;
+      if (wrap) listX = 20;
+      const rowW = wrap ? colW - 8 : Math.max(W - listX - 4, colW);
+      const H = wrap ? listTop + perCol * TROW + 22 : Math.max(rows * ROW, D.M.length * TROW) + top + 22;
       const cx = [80, 270, 460];
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const pos = new Map();
@@ -481,7 +491,7 @@ const MiscView = (() => {
         c.forEach((v, i) => pos.set(pre[k] + v, { x: cx[k], y: y0 + i * ROW, w: widths[k] }));
       });
       heads.forEach((h, k) => mk("text", { x: cx[k], y: 28, class: "ms-colhead", "text-anchor": "middle" }, svg).textContent = h);
-      mk("text", { x: listX, y: 28, class: "ms-colhead" }, svg).textContent = "TRIPLES · M";
+      mk("text", { x: listX, y: wrap ? listTop - 22 : 28, class: "ms-colhead" }, svg).textContent = "TRIPLES · M";
       const gT = mk("g", {}, svg), gN = mk("g", {}, svg), gR = mk("g", {}, svg);
       const m = D.M.length, lane = Math.min(3, 18 / Math.max(1, m));
       const tris = D.M.map((t, i) => {
@@ -489,10 +499,10 @@ const MiscView = (() => {
         const d = `M${a.x + a.w / 2},${a.y + o} L${b.x - b.w / 2},${b.y + o} M${b.x + b.w / 2},${b.y + o} L${c.x - c.w / 2},${c.y + o}`;
         const path = mk("path", { d, class: "ms-tri" }, gT);
         const g = mk("g", { class: "ms-trow", tabindex: "0", role: "button", "aria-label": tri(t) }, gR);
-        const y = top + 4 + i * TROW;
-        mk("rect", { x: listX - 6, y: y - 9, width: W - listX - 4, height: 18, rx: 5 }, g);
-        mk("text", { x: listX, y, class: "tid" }, g).textContent = t.id;
-        mk("text", { x: listX + 30, y }, g).textContent = `${t.x} · ${t.y} · ${t.z}`;
+        const col = Math.floor(i / perCol), lx = listX + col * colW, y = listTop + 4 + (i - col * perCol) * TROW;
+        mk("rect", { x: lx - 6, y: y - 9, width: rowW, height: 18, rx: 5 }, g);
+        mk("text", { x: lx, y, class: "tid" }, g).textContent = t.id;
+        mk("text", { x: lx + idW, y }, g).textContent = `${t.x} · ${t.y} · ${t.z}`;
         hook(g, "t:" + i, api);
         return { path, g };
       });
