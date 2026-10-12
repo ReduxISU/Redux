@@ -343,25 +343,35 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
 
     // ---- Solve and map ----
 
-    // 3SAT to Graph Coloring and to 3-Dimensional Matching name their backtracking solvers for the view (#814): on the default
-    // formula, which the brute forces cannot finish in the 10 s limit, the view solves the target and maps the answer back to
-    // an assignment 3SAT's verifier accepts. 5 s leaves room for a busy test run; alone each takes well under a second.
-    [Theory]
-    [InlineData(Coloring, "Graph Coloring Backtracking")]
-    [InlineData(Matching, "3-Dimensional Matching Backtracking")]
-    public async Task DefaultFormula_SolvesWithTheBacktracking_AndMapsBack(string reduction, string solverName) {
-        string instance = DefaultInstance(reduction);
-        var clock = System.Diagnostics.Stopwatch.StartNew();
-        var view = await View(reduction, instance);
-        clock.Stop();
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"{reduction}: the view took {clock.Elapsed}");
-        Assert.Equal(solverName, view.GetProperty("solver").GetString());
-        Assert.True(Phase(view, "solve")[^1].GetProperty("ok").GetBoolean(), Phase(view, "solve")[^1].GetProperty("caption").GetString());
-        var map = Phase(view, "map");
-        Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
-        IReduction red = Build(reduction, instance);
-        string assignment = ShownAssignment(view, map[^1]);
-        Assert.True(Verifies(red.reductionFrom, instance, assignment), assignment);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing : IClassFixture<AppFactory> {
+        private readonly ReductionView_Sat3_Tests _outer;
+
+        public Timing(AppFactory factory) {
+            _outer = new ReductionView_Sat3_Tests(factory);
+        }
+
+        // 3SAT to Graph Coloring and to 3-Dimensional Matching name their backtracking solvers for the view (#814): on the default
+        // formula, which the brute forces cannot finish in the 10 s limit, the view solves the target and maps the answer back to
+        // an assignment 3SAT's verifier accepts. 5 s leaves room for a busy test run; alone each takes well under a second.
+        [Theory]
+        [InlineData(Coloring, "Graph Coloring Backtracking")]
+        [InlineData(Matching, "3-Dimensional Matching Backtracking")]
+        public async Task DefaultFormula_SolvesWithTheBacktracking_AndMapsBack(string reduction, string solverName) {
+            string instance = DefaultInstance(reduction);
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var view = await _outer.View(reduction, instance);
+            clock.Stop();
+            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"{reduction}: the view took {clock.Elapsed}");
+            Assert.Equal(solverName, view.GetProperty("solver").GetString());
+            Assert.True(Phase(view, "solve")[^1].GetProperty("ok").GetBoolean(), Phase(view, "solve")[^1].GetProperty("caption").GetString());
+            var map = Phase(view, "map");
+            Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
+            IReduction red = Build(reduction, instance);
+            string assignment = ShownAssignment(view, map[^1]);
+            Assert.True(Verifies(red.reductionFrom, instance, assignment), assignment);
+        }
     }
 
     // The solver a reduction names for its view solves the target the view draws (the same check as ?solver=), and only
