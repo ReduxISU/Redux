@@ -36,7 +36,9 @@ class SubsetSumVerifier : IVerifier<SUBSETSUM> {
             parser.parse(certificate);
             // Materialize inside the try: SPADE may parse a scalar (e.g. "101")
             // without error and only fail when the result is enumerated.
-            elements = parser["K"].ToList();
+            // SPADE checks the certificate; its numbers are then read from the text with every repeat kept, so {7,7} is
+            // two 7s (#628). TODO(#628): once SPADE releases "is multiset", use "{K | K is multiset}" instead.
+            elements = RepeatedElements.KeepRepeats(certificate, parser["K"]);
         } catch (Exception ex) {
             throw new CertificateParseException(problem, certificate, ex.Message);
         }
@@ -44,11 +46,14 @@ class SubsetSumVerifier : IVerifier<SUBSETSUM> {
         // Multiset of S (value -> remaining count): each element may be used at
         // most as many times as it occurs in S, so a certificate that reuses an
         // element is rejected. Using a count map keeps membership checks O(1).
-        Dictionary<string, int> available = new Dictionary<string, int>();
-        foreach (string s in problem.S)
-            available[s] = available.GetValueOrDefault(s) + 1;
+        // Numbers are compared by value, so " 7" in S and "7" in the certificate are the same number.
+        Dictionary<int, int> available = new Dictionary<int, int>();
+        foreach (string s in problem.S) {
+            int number = int.Parse(s);
+            available[number] = available.GetValueOrDefault(number) + 1;
+        }
 
-        int sum = 0;
+        long sum = 0;
 
         foreach (UtilCollection element in elements) {
             string a = element.ToString();
@@ -57,10 +62,10 @@ class SubsetSumVerifier : IVerifier<SUBSETSUM> {
                     $"'{a}' is not a valid integer");
 
             // Not a member of S, or every copy of it has already been used.
-            if (available.GetValueOrDefault(a) == 0)
+            if (available.GetValueOrDefault(value) == 0)
                 return false;
 
-            available[a]--;
+            available[value]--;
             sum += value;
         }
 

@@ -80,17 +80,19 @@ class FengReduction : IReduction<SUBSETSUM, KNAPSACK> {
         };
 
         // We reduce the set of integers to a set of items by having each integer n equal (n,n) as an item. 
+        // One item per number, repeats included (#628): a number S has twice becomes two identical items, so the items are
+        // kept in a list (Knapsack's items are an ordered collection), not added to a SPADE set, which would keep one.
         List<string> integers = SUBSETSUMInstance.S;
-        UtilCollection items = new UtilCollection("{}");
+        List<UtilCollection> items = new List<UtilCollection>();
         for (int i = 0; i < SUBSETSUMInstance.S.Count; i++) {
             UtilCollection item = new UtilCollection($"({integers[i]},{integers[i]})");
             items.Add(item);
             _gadgetMap[integers[i]] = integers[i];
         }
 
-        reducedKNAPSACK.items = items;
+        reducedKNAPSACK.items = new UtilCollection(items);
 
-        reducedKNAPSACK.instance = $"({items},{reducedKNAPSACK.W},{reducedKNAPSACK.V})";
+        reducedKNAPSACK.instance = $"({{{string.Join(",", items)}}},{reducedKNAPSACK.W},{reducedKNAPSACK.V})";
 
         reductionTo = reducedKNAPSACK;
         return reducedKNAPSACK;
