@@ -291,14 +291,21 @@ static class PackingFrames {
     /// <summary>
     /// The groups of an answer written as a collection of collections (<c>{(1,2),(3)}</c>, <c>((4,6),(7,3))</c>), each member
     /// as SPADE writes it; or, when <paramref name="nested"/> is false, the one group of a flat collection (<c>{1,12,15}</c>,
-    /// <c>{(20,100),(30,120)}</c>). Anything unreadable is no groups.
+    /// <c>{(20,100),(30,120)}</c>). Anything unreadable is no groups. Repeats are kept (#628): <c>{7,7}</c> is a group with
+    /// two 7s and <c>{(3),(3)}</c> two groups, though SPADE's sets would keep one, so <see cref="FromGroups"/> places two
+    /// equal items.
     /// </summary>
     public static List<List<string>> Groups(string answer, bool nested) {
         try {
             var top = new UtilCollection(answer);
             if (top.IsValue()) return [];
-            if (!nested) return [top.ToList().Select(Key).ToList()];
-            return top.ToList().Select(g => g.IsValue() ? new List<string> { Key(g) } : g.ToList().Select(Key).ToList()).ToList();
+            List<string>? written = RepeatedElements.CollectionElements(answer);
+            if (written == null) {
+                if (!nested) return [top.ToList().Select(Key).ToList()];
+                return top.ToList().Select(g => g.IsValue() ? new List<string> { Key(g) } : g.ToList().Select(Key).ToList()).ToList();
+            }
+            if (!nested) return [written.Select(Key).ToList()];
+            return written.Select(g => RepeatedElements.CollectionElements(g) is { } members ? members.Select(Key).ToList() : new List<string> { Key(g) }).ToList();
         } catch {
             return [];
         }

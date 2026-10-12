@@ -58,17 +58,32 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
         yield return (PartitionToCut, "{4}", false);
         yield return (PartitionToCut, "{1,5,6}", true);
         yield return (PartitionToCut, "{2,4,8}", false);
+        // Repeated numbers are separate numbers (#628): 3 + 2 against 3 + 2; 3 against 3; three 2s have an odd total.
+        yield return (PartitionToCut, "{3,3,2,2}", true);
+        yield return (PartitionToCut, "{3,3}", true);
+        yield return (PartitionToCut, "{2,2,2}", false);
         // 1 + 12 + 15 = 28; 3 + 5 = 8; nothing adds to 4; T = 0 is the empty subset.
         yield return (SsToKnapsack, "({1,7,12,15},28)", true);
         yield return (SsToKnapsack, "({3,5,9},8)", true);
         yield return (SsToKnapsack, "({3,5,9},4)", false);
         yield return (SsToKnapsack, "({5},0)", true);
+        // 7 + 7 = 14 uses both 7s (#628); with one 7, nothing adds to 14.
+        yield return (SsToKnapsack, "({7,7,1},14)", true);
+        yield return (SsToKnapsack, "({7,1},14)", false);
         // 1 + 12 + 15 = 28; 2 + 9 = 11; nothing adds to 10; T = 0; T past the sum (sum - T + 1 is negative).
         yield return (SsToPartition, "({1,7,12,15},28)", true);
         yield return (SsToPartition, "({2,5,9},11)", true);
         yield return (SsToPartition, "({2,5,9},10)", false);
         yield return (SsToPartition, "({4,6},0)", true);
         yield return (SsToPartition, "({3,5},20)", false);
+        // An added number repeats a number of S, or the two added numbers are equal (T = sum / 2), which Partition keeps as two
+        // numbers (#628, #831): T + 1 = 4 is in S and 3 = T; T + 1 = sum - T + 1 = 10 and 3 + 6 = 9; sum - T + 1 = 3 is in S and
+        // nothing adds to 5; T + 1 = sum - T + 1 = 4 is in S and nothing adds to 3; and 7 + 7 = 14 uses both 7s.
+        yield return (SsToPartition, "({3,4},3)", true);
+        yield return (SsToPartition, "({3,4,5,6},9)", true);
+        yield return (SsToPartition, "({3,4},5)", false);
+        yield return (SsToPartition, "({2,4},3)", false);
+        yield return (SsToPartition, "({7,7,1},14)", true);
     }
 
     public static TheoryData<string, string> CaseData() {
@@ -424,6 +439,14 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
     [InlineData(SsToKnapsack, "({5},0)", "{}")]
     [InlineData(SsToPartition, "({1,7,12,15},28)", "{1,12,15}")]
     [InlineData(SsToPartition, "({4,6},0)", "{}")]
+    // Repeated numbers (#628).
+    [InlineData(PartitionToCut, "{3,3,2,2}", "{(3,2),(3,2)}")]
+    [InlineData(PartitionToCut, "{3,3}", "{(3),(3)}")]
+    [InlineData(SsToKnapsack, "({7,7,1},14)", "{7,7}")]
+    [InlineData(SsToPartition, "({3,4},3)", "{3}")]
+    [InlineData(SsToPartition, "({3,4,5,6},9)", "{3,6}")]
+    [InlineData(SsToPartition, "({3,4,5,6},9)", "{4,5}")]
+    [InlineData(SsToPartition, "({7,7,1},14)", "{7,7}")]
     public async Task MapSolutionBack_OfTheForwardMap_IsAcceptedBySourceVerifier(string reduction, string instance, string answer) {
         IReduction red = Build(reduction, instance);
         Assert.True(Verifies(red.reductionFrom, instance, answer), answer);
@@ -448,6 +471,8 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
     [InlineData(SsToKnapsack, "({1,7,12,15},28)", "{(1,1)")]
     [InlineData(SsToPartition, "({1,7,12,15},28)", "{(1,7),(12,15)}")]
     [InlineData(SsToPartition, "({1,7,12,15},28)", "nonsense")]
+    // An item the Knapsack has once, taken twice (#628).
+    [InlineData(SsToKnapsack, "({7,1},14)", "{(7,7),(7,7)}")]
     public async Task MapSolutionBack_MalformedTargetAnswer_Is400(string reduction, string instance, string answer) {
         var (status, body) = await Post($"mapSolutionBack?reduction={reduction}&solution={Uri.EscapeDataString(answer)}", instance);
         Assert.True(status == HttpStatusCode.BadRequest, body);
@@ -466,8 +491,6 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
     // Knapsack's weights are sizes and cannot be negative (#793), so a negative number has no item to become.
     [InlineData(SsToKnapsack, "({-1,2},1)")]
     [InlineData(SsToPartition, "({1,2}")]
-    // T + 1 = 4 repeats a number of S, which Partition would read once (#831).
-    [InlineData(SsToPartition, "({3,4},3)")]
     public async Task BadSourceInstance_Is400(string reduction, string instance) {
         var (status, body) = await Post($"reductionView?reduction={reduction}", instance);
         Assert.True(status == HttpStatusCode.BadRequest, body);

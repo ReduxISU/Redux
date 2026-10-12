@@ -37,14 +37,20 @@ class KnapsackVisualization : IVisualization<KNAPSACK, API_SET>, IPackingVisuali
 
     public KnapsackVisualization() { }
 
-    public API_SET visualize(KNAPSACK problem) => new(problem.items);
+    // Every item, in order, repeats included (#628): drawn as the set of items, a later copy of an item gets its position in
+    // its id (r-(1,2)-1).
+    public API_SET visualize(KNAPSACK problem) => API_SET.KeepingRepeats(problem.items.ToList().Select(i => i.ToString()).ToList());
 
+    // The chosen items by position (#628): {(1,2)} for two (1,2) items marks the first only, {(1,2),(1,2)} both.
     public API_JSON SolvedVisualization(KNAPSACK problem, string solution) {
         API_SET set = visualize(problem);
-        var chosen = PackingFrames.Groups(solution, nested: false).SelectMany(g => g).ToHashSet();
-        foreach (var item in set.data.list ?? [])
-            if (chosen.Contains(PackingFrames.Key(item.id.Substring(2))))
-                foreach (var number in item.list ?? []) number.color = "Solution";
+        var keys = problem.items.ToList().Select(PackingFrames.Key).ToList();
+        Placement chosen = PackingFrames.FromGroups(keys, PackingFrames.Groups(solution, nested: false));
+        var list = set.data.list ?? [];
+        if (list.Count != keys.Count) return set;
+        for (int i = 0; i < list.Count; i++)
+            if (chosen.Of(i) == 0)
+                foreach (var number in list[i].list ?? []) number.color = "Solution";
         return set;
     }
 }

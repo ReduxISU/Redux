@@ -4,6 +4,7 @@ using API.Interfaces.JSON_Objects;
 using API.Interfaces.Packing;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_PARTITION;
+using API.Problems.NPComplete.NPC_PARTITION.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_PARTITION;
 
@@ -103,17 +104,9 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
         if (withT > int.MaxValue || withT < int.MinValue || withRest > int.MaxValue || withRest < int.MinValue)
             throw new ReductionInputException(this, SUBSETSUMInstance.instance, SUBSETSUMInstance.instanceFormat,
                 $"the added numbers T + 1 = {withT} and sum - T + 1 = {withRest} must fit Partition's integers (at most {int.MaxValue})");
-        // Partition reads its numbers as a set, so a number written twice is read once (#628) and the Partition would not be
-        // the one built here: its answer could differ from Subset Sum's (#831). Until Partition keeps repeated numbers, such
-        // an instance is refused rather than reduced to a different question.
-        var numbers = SUBSETSUMInstance.S.Select(int.Parse).ToList();
-        string? repeat = numbers.Contains((int)withT) ? $"T + 1 = {withT} is already a number of S"
-            : numbers.Contains((int)withRest) ? $"sum - T + 1 = {withRest} is already a number of S"
-            : withT == withRest ? $"T + 1 and sum - T + 1 are both {withT}"
-            : null;
-        if (repeat != null)
-            throw new ReductionInputException(this, SUBSETSUMInstance.instance, SUBSETSUMInstance.instanceFormat,
-                $"{repeat}, and Partition reads a repeated number once (#628), so the Partition would not have the same answer as this Subset Sum");
+        // T + 1 or sum - T + 1 can be a number S already has, or both can be the same number (T = sum / 2): Partition keeps
+        // every copy of a repeated number (#628), so such a Partition is still the one built here and has the same answer
+        // (#831), and nothing is refused.
 
         List<string> partitionNumbers = new List<string>(SUBSETSUMInstance.S) { withT.ToString(), withRest.ToString() };
         string instance = "{" + string.Join(",", partitionNumbers) + "}";
@@ -165,14 +158,19 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
             throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}");
         List<string> chosen;
         try {
-            chosen = new SPADE.UtilCollection(text).ToList().Select(x => x.ToString()).ToList();
+            // Repeats kept (#628): {7,7} chooses two 7s.
+            chosen = RepeatedElements.Parse(text).Select(x => x.ToString()).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}", ex);
         }
+        // Each chosen number takes a copy of it in S not yet taken, by value, so a number can be chosen as many times as S has
+        // it and no more.
         var rest = new List<string>(reductionFrom.S);
         foreach (string number in chosen) {
-            if (!rest.Remove(number))
+            int at = int.TryParse(number, out int value) ? rest.FindIndex(x => int.Parse(x) == value) : -1;
+            if (at < 0)
                 throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{number}' is not a number of S");
+            rest.RemoveAt(at);
         }
         int count = reductionTo.S.Count;
         chosen.Add(reductionTo.S[count - 1]);
@@ -221,19 +219,11 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
 
     // A Partition answer: two sides, "{(1,12,15,8),(7,29)}" or "(1,12,15,8),(7,29)", as Partition's verifier reads them.
     // Malformed text throws FormatException, which the endpoint reports as a 400.
+    // Read as Partition's verifier reads it, repeats included (#628): {(10,4,5),(10,3,6)} has a 10 on each side.
     private static List<List<string>> ReadSides(string certificate) {
-        SPADE.UtilCollection pair;
-        try {
-            try {
-                pair = new SPADE.UtilCollection(certificate.Trim());
-                pair.assertCount(2);
-            } catch {
-                pair = new SPADE.UtilCollection("(" + certificate.Trim() + ")");
-                pair.assertCount(2);
-            }
-            return pair.ToList().Select(side => side.ToList().Select(PackingFrames.Key).ToList()).ToList();
-        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
-            throw new FormatException($"'{certificate}' is not two sides like {{(1,12,15,8),(7,29)}}", ex);
-        }
+        List<List<string>>? sides = PartitionVerifier.ReadSides(certificate.Trim());
+        if (sides == null)
+            throw new FormatException($"'{certificate}' is not two sides like {{(1,12,15,8),(7,29)}}");
+        return sides.Select(side => side.Select(PackingFrames.Key).ToList()).ToList();
     }
 }

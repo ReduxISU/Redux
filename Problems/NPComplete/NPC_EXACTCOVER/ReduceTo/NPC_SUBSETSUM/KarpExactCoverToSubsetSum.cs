@@ -226,7 +226,8 @@ class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, Ch
         if (text.Length < 2 || text[0] != '{' || text[^1] != '}')
             throw new FormatException($"'{certificate}' is not a set of numbers in braces like {{21,65}}");
         try {
-            return new SPADE.UtilCollection(text).ToList().Select(PackingFrames.Key).ToList();
+            // Repeats kept (#628): two sets of S can be the same number.
+            return RepeatedElements.Parse(text).Select(PackingFrames.Key).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new FormatException($"'{certificate}' is not a set of numbers like {{21,65}}", ex);
         }

@@ -28,9 +28,20 @@ internal static class RepeatedElements {
     /// ever refused or read differently here.
     /// </summary>
     public static List<UtilCollection> KeepRepeats(string text, UtilCollection parsedSet) {
+        return Match(FirstSetElements(text), parsedSet);
+    }
+
+    /// <summary>
+    /// The elements of the collection <paramref name="text"/> is (an answer such as <c>{7,7}</c> or <c>{(1,2),(1,2)}</c>),
+    /// read as <c>new UtilCollection(text)</c> reads it but with every repeat kept, in written order. Throws what
+    /// <c>new UtilCollection(text)</c> throws, so text it refuses is still refused.
+    /// </summary>
+    public static List<UtilCollection> Parse(string text) => Match(CollectionElements(text), new UtilCollection(text));
+
+    // The elements of parsedSet, one per written text, when the written texts match its elements; else its elements as they are.
+    private static List<UtilCollection> Match(List<string>? written, UtilCollection parsedSet) {
         // A copy: UtilCollection.ToList() hands back the collection's own list.
         List<UtilCollection> distinct = new List<UtilCollection>(parsedSet.ToList());
-        List<string>? written = FirstSetElements(text);
         if (written == null) return distinct;
 
         // SPADE keeps the first copy of each element text, so the distinct texts written must be exactly its elements.

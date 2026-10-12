@@ -292,7 +292,7 @@ public class PackingSolvers_Tests {
 
     [Fact]
     public void Specs_DescribeEachProblemsItemsAndLines() {
-        Assert.Equal(11, PartitionDefaultVisualization.Spec(new PARTITION()).Items.Count); // the second 12 collapses (#628)
+        Assert.Equal(12, PartitionDefaultVisualization.Spec(new PARTITION()).Items.Count); // both 12s are items (#628)
         var sum = SubsetSumVisualization.Spec(new SUBSETSUM());
         Assert.Equal((PackingRule.SubsetSum, 28, 4), (sum.Rule, sum.Target, sum.Items.Count));
         var knapsack = KnapsackVisualization.Spec(new KNAPSACK());

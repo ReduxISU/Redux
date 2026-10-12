@@ -120,7 +120,7 @@ public class Gadget_Kinds_Tests {
         // #695: one element per number, the two added numbers, and the two sides.
         ["SubsetSumToPartitionReduction"] = "Element x4, Palette x2, Bound x1",
         // #695: one element per number, one edge rule per pair of numbers, and K.
-        ["WEIGHTEDCUTReduction"] = "Element x11, EdgeRule x55, Bound x1",
+        ["WEIGHTEDCUTReduction"] = "Element x12, EdgeRule x66, Bound x1",
         // #695: one element per subset and one per item.
         ["reduceToEXACTCOVER"] = "Element x7",
         // #695: one element per set, and the bound (T, from every element of X).

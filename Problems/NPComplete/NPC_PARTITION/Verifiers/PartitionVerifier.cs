@@ -35,7 +35,9 @@ class PartitionVerifier : IVerifier<PARTITION> {
     // The sides are read from the text, not with SPADE's sets, so a number written twice stays twice (#628): S is a
     // multiset, and "{(3),(3)}" for {3,3} is two sides, not one. TODO(#628): once SPADE releases "is multiset", this can
     // read the sides with SPADE again.
-    private static List<List<string>>? ParseCertificate(string certificate) {
+    // Public so the reductions that read a Partition answer (Subset Sum to Partition, Partition to Weighted Cut) read it the
+    // same way, repeats included.
+    public static List<List<string>>? ReadSides(string certificate) {
         foreach (string text in new[] { certificate, "(" + certificate + ")" }) {
             List<string>? sides = RepeatedElements.CollectionElements(text);
             if (sides == null || sides.Count != 2) continue;
@@ -53,7 +55,7 @@ class PartitionVerifier : IVerifier<PARTITION> {
     /// positions. Null when the certificate is not two sides of numbers of S, or does not place every number of S once.
     /// </summary>
     public static int[]? SidesByPosition(PARTITION problem, string certificate) {
-        List<List<string>>? groups = ParseCertificate(certificate);
+        List<List<string>>? groups = ReadSides(certificate);
         if (groups == null) return null;
         List<int> numbers = problem.S.Select(int.Parse).ToList();
         int[] side = Enumerable.Repeat(-1, numbers.Count).ToArray();
@@ -69,7 +71,7 @@ class PartitionVerifier : IVerifier<PARTITION> {
     }
 
     public bool verify(PARTITION problem, string certificate) {
-        List<List<string>>? groups = ParseCertificate(certificate);
+        List<List<string>>? groups = ReadSides(certificate);
         if (groups == null) return false;
 
         // S as a multiset (number -> copies not yet placed): the two sides must use every number of S exactly as many times

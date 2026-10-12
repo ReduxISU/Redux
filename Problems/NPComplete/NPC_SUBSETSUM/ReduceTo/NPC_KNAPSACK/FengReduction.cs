@@ -146,13 +146,20 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         List<string> chosen;
         try {
             if (text.Length < 2 || text[0] != '{' || text[^1] != '}') throw new FormatException();
-            chosen = new UtilCollection(text).ToList().Select(x => x.ToString()).ToList();
+            // Repeats kept (#628): {7,7} chooses two 7s.
+            chosen = RepeatedElements.Parse(text).Select(x => x.ToString()).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}", ex);
         }
-        foreach (string number in chosen)
-            if (!reductionFrom.S.Contains(number))
+        // Each chosen number takes a copy of it in S not yet taken, by value, so a number can be chosen as many times as S has
+        // it and no more.
+        var unchosen = new List<string>(reductionFrom.S);
+        foreach (string number in chosen) {
+            int at = int.TryParse(number, out int value) ? unchosen.FindIndex(x => int.Parse(x) == value) : -1;
+            if (at < 0)
                 throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{number}' is not a number of S");
+            unchosen.RemoveAt(at);
+        }
         return "{" + string.Join(",", chosen.Select(n => $"({n},{n})")) + "}";
     }
 
@@ -194,7 +201,8 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         if (text.Length < 2 || text[0] != '{' || text[^1] != '}')
             throw new FormatException($"'{certificate}' is not a set of items in braces like {{(1,1),(12,12)}}");
         try {
-            var items = new UtilCollection(text).ToList();
+            // Repeats kept (#628): {(7,7),(7,7)} is two items.
+            var items = RepeatedElements.Parse(text);
             foreach (var item in items) item.assertPair();
             return items.Select(PackingFrames.Key).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
