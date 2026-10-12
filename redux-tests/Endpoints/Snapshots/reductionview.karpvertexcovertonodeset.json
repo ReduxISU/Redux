@@ -350,9 +350,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "K stays 1: every cycle of the directed graph goes along some edge, so removing at most 1 node leaves no cycle exactly when they cover every edge.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -466,9 +465,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Removing {b} leaves no cycle, within K = 1. Found after 3 tries.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
