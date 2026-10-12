@@ -55,4 +55,13 @@ interface IFramesVisualization : IVisualization {
     /// <param name="instance">The problem instance string.</param>
     /// <param name="run">The solver's answer and steps (use <see cref="SolveRun.StepsFor"/> before reading steps).</param>
     FramesResponse BuildFrames(string instance, SolveRun run);
+
+    /// <summary>
+    /// The picture type this visualization serves under <c>format=frames</c>: the <c>type</c> of its frames response (a
+    /// <see cref="VisualizationType"/> name such as <c>"Graph"</c>). /info reports it as <c>pictureType</c> (#841), so a
+    /// client need not run the visualization to find out. The default reads it off a frames response for the problem's
+    /// default instance (see <see cref="PictureTypes"/>), so it always matches what <c>format=frames</c> returns. A method,
+    /// not a property, so it never appears in JSON on its own.
+    /// </summary>
+    string? PictureType() => PictureTypes.Probe(this);
 }

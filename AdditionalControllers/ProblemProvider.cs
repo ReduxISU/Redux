@@ -108,7 +108,11 @@ public class ProblemProvider : ControllerBase {
     /// public fields (e.g. <c>ARCSET.K</c>, the <c>UtilCollectionGraph.Nodes</c>/<c>Edges</c> fields) are emitted,
     /// matching the previous Newtonsoft.Json output which serialized public fields by default.
     /// </summary>
-    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
+    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() {
+        IncludeFields = true,
+        // Every visualization also says which picture type it serves under format=frames (#841).
+        TypeInfoResolver = PictureTypes.Resolver(),
+    };
 
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
