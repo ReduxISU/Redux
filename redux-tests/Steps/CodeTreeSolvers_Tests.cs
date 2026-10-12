@@ -162,13 +162,17 @@ public class CodeTreeSolvers_Tests {
         Assert.Equal(170, frames[^1].Codes.Count);
     }
 
-    [Fact]
-    public void ALongText_StaysWellWithinTheTimeBudget() {
-        var rnd = new Random(676);
-        string text = new string(Enumerable.Range(0, 200_000).Select(_ => (char)('a' + (int)Math.Sqrt(rnd.Next(26 * 26)))).ToArray());
-        var sw = Stopwatch.StartNew();
-        var frames = Frames(text);
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
-        Assert.True(frames[^1].Ok);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Fact]
+        public void ALongText_StaysWellWithinTheTimeBudget() {
+            var rnd = new Random(676);
+            string text = new string(Enumerable.Range(0, 200_000).Select(_ => (char)('a' + (int)Math.Sqrt(rnd.Next(26 * 26)))).ToArray());
+            var sw = Stopwatch.StartNew();
+            var frames = Frames(text);
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+            Assert.True(frames[^1].Ok);
+        }
     }
 }
