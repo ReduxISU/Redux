@@ -14,7 +14,8 @@ const ReductionView = (() => {
   const fmt = a => "{" + a.join(", ") + "}";
 
   /* One shared list of gadget kinds. Redux's Gadget.color today carries "ElementHighlight" / "ClauseHighlight";
-     those map to element / group. */
+     those map to element / group. The Reduction View sends each gadget as {gadgetKind, sourceIds, targetIds, note?};
+     this module's own mock reductions build {kind, from, to, note?} internally. */
   const GADGET_KINDS = {
     element: { name: "Element", def: "One piece of A becomes one piece of B", redux: "ElementHighlight" },
     group: { name: "Group", def: "One part of A becomes a group of pieces in B", redux: "ClauseHighlight" },

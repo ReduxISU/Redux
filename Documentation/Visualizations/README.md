@@ -108,7 +108,7 @@ For each approved picture type, write one base class that turns *instance + answ
 
 ### 3.5 Reductions
 
-- Reductions already send gadget data (`Interfaces/JSON_Objects/Gadget.cs`, `GadgetInterface.cs`, `POST ProblemProvider/gadgets`), but the gadget's kind travels in `Gadget.color`.
+- Reductions already send gadget data (`Interfaces/JSON_Objects/Gadget.cs`, `GadgetInterface.cs`, `POST ProblemProvider/gadgets`), but the gadget's kind travels in `Gadget.color`. The Reduction View (`POST ProblemProvider/reductionView`) sends each gadget as `{ gadgetKind, sourceIds, targetIds, note? }`.
 - Add a `kind` taken from one shared list (element, group, edgeRule, palette, orGadget, bound) and stable source/target ids.
 - Add construction steps and a **backward** answer map (B's answer back to A). `mapSolutions` only maps forward today.
 - See `reduction.js` for the exact frames for Sipser 3SAT → Clique, Sipser Clique → Vertex Cover and Karp 3SAT → Graph Coloring.

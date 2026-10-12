@@ -419,10 +419,11 @@
   }
 
   function checkGadgets(rv) {
+    // Gadgets: {gadgetKind, sourceIds, targetIds, note?} (the backend's public API name is gadgetKind).
     const g0 = rv.gadgets && rv.gadgets[0];
-    if (g0 && !("kind" in g0) && "gadgetKind" in g0) note("Reduction View gadgets carry their kind as \"gadgetKind\"; the README/mockup contract calls it \"kind\".", false);
+    if (g0 && !("gadgetKind" in g0)) note(`Reduction View gadgets have no "gadgetKind" field (keys: ${Object.keys(g0).join(", ")}).`);
     const kinds = new Set(Object.keys(ReductionView.GADGET_KINDS));
-    for (const g of rv.gadgets || []) { const k = g.kind ?? g.gadgetKind; if (!kinds.has(k)) note(`Gadget kind "${k}" is not in the shared list (${[...kinds].join(", ")}).`); }
+    for (const g of rv.gadgets || []) { const k = g.gadgetKind; if (!kinds.has(k)) note(`Gadget kind "${k}" is not in the shared list (${[...kinds].join(", ")}).`); }
   }
 
   /** The Reduction View has one Done, its last frame (the end of map back), and only that frame has ok (#840). */
@@ -454,7 +455,7 @@
     const box = $("gadgets"); box.innerHTML = "";
     (rv.gadgets || []).forEach((g, gi) => {
       const d = document.createElement("div"); d.className = "g"; d.dataset.gi = gi;
-      const kind = g.kind ?? g.gadgetKind;
+      const kind = g.gadgetKind;
       const name = (ReductionView.GADGET_KINDS[kind] || {}).name || kind;
       d.innerHTML = `<span class="k"></span><span class="ids"></span>`;
       d.children[0].textContent = name;

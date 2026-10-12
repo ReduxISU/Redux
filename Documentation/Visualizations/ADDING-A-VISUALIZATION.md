@@ -180,7 +180,7 @@ The caption is the only text that explains a step. Write it for a student watchi
 
 A reduction already builds the target instance. To animate it, it also records:
 
-1. **Gadgets.** Each gadget has a `kind` from the shared list (`element`, `group`, `edgeRule`, `palette`, `orGadget`, `bound`), the source ids it came from, and the target ids it made. Ids must match the ids each side's own picture uses; that is what makes hover-linking work across the two panes.
+1. **Gadgets.** Each gadget has a `gadgetKind` from the shared list (`element`, `group`, `edgeRule`, `palette`, `orGadget`, `bound`), the source ids it came from (`sourceIds`), and the target ids it made (`targetIds`). Ids must match the ids each side's own picture uses; that is what makes hover-linking work across the two panes.
 2. **Build steps.** One per gadget, in construction order: which nodes and edges it added, which pairs a rule deliberately left unjoined, and a caption in both problems' words ("Clause C2 becomes cluster 2: one node per literal.").
 3. **A backward map.** Given the target's answer, produce the source's answer, piece by piece, with a caption per piece ("x₂ is in the clique, so set x₂ = T"). Today `mapSolutions` maps forward only.
 
