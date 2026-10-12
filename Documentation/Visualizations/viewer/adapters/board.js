@@ -2,7 +2,7 @@
    frames {event, caption, focus, values{cellId:"digit"}, pieces[{id,r,c,kind}], cells{cellId:{state}},
    links[{from,to,state}], ok?}   (cell ids are "r<row>c<col>", 0-based)
    Drawn with BoardView (../mockups/board.js) through its loadModel + afterPaint hooks: the mockup draws the grid, the
-   digits (clues bold, placed digits green) and the queens from a neutral frame; the adapter then applies the
+   digits (clues bold, placed digits plain and muted) and the queens from a neutral frame; the adapter then applies the
    backend's cell states, its links and its piece states, after every paint (so hover still works). */
 (() => {
   const CELL_CLASS = { ElementHighlight: "Active", Rejected: "Rejected", Solution: "Solution" };
@@ -55,7 +55,7 @@
           if (!cls) { note(`Cell state "${st}" has no style in board.js (drawn as Background).`); continue; }
           cells[i].setAttribute("class", "bd-cell " + cls);
           if (cls !== "Solution" && !rings[i].classList.contains("trace")) rings[i].setAttribute("class", "bd-ring " + cls);
-          if (sudoku && digs[i] && clueGrid[+m[1]][+m[2]] === 0) digs[i].setAttribute("class", "bd-dig " + (cls === "Active" ? "try" : cls === "Rejected" ? "bad" : "placed"));
+          if (sudoku && digs[i] && clueGrid[+m[1]][+m[2]] === 0) digs[i].setAttribute("class", "bd-dig " + (cls === "Active" ? "try" : cls === "Rejected" ? "bad" : "placed sol"));
           if (sudoku && digs[i] && clueGrid[+m[1]][+m[2]] !== 0 && cls === "Rejected") digs[i].setAttribute("class", "bd-dig bad given");
         }
         // Queens: board.js appends them in row order; colour each by its square's state.

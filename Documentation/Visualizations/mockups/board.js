@@ -27,7 +27,10 @@ const BoardView = (() => {
 .bd-thick { stroke: var(--av-ink); stroke-width: 2.2; fill: none; }
 .bd-dig { text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-ink); }
 .bd-dig.given { font-weight: 700; }
-.bd-dig.placed { fill: var(--av-sol); font-weight: 500; }
+/* Solver-placed digits: plain (muted, regular weight, so they differ from bold clues) until the answer is confirmed;
+   green (.sol) only on a solved board or where the frame says the cell is Solution. */
+.bd-dig.placed { fill: var(--av-muted); font-weight: 500; }
+.bd-dig.placed.sol { fill: var(--av-sol-ink); font-weight: 600; }
 .bd-dig.try { fill: var(--av-ink); font-weight: 700; }
 .bd-dig.bad { fill: var(--av-rej); font-weight: 700; }
 .bd-mark { text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); pointer-events: none; font-family: var(--av-mono); }
@@ -347,7 +350,7 @@ const BoardView = (() => {
         els.cells[r][c].setAttribute("class", "bd-cell " + st);
         els.rings[r][c].setAttribute("class", "bd-ring " + ring);
         const d = els.digs[r][c];
-        let text = v ? String(v) : "", dcls = given ? "given" : "placed";
+        let text = v ? String(v) : "", dcls = given ? "given" : done && f.ok ? "placed sol" : "placed";
         if (here && f.kind === "clash") { text = String(f.value); dcls = "bad"; }
         else if (here && f.kind === "try") dcls = "try";
         else if (clashCells.has(id) && given) dcls = "bad given";
