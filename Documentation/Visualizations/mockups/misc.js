@@ -32,6 +32,7 @@ const MiscView = (() => {
 .ms-chain { fill: none; stroke: var(--av-hl); stroke-width: 2.6; }
 .ms-chain.sol { stroke: var(--av-sol); }
 .ms-cand { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.ms-pop { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 5 4; fill: none; }
 .ms-tip rect { fill: var(--av-surface); stroke: var(--av-line); }
 .ms-tip text { font-size: 11.5px; fill: var(--av-ink); dominant-baseline: central; }
 .ms-ord circle { fill: var(--av-ink); } .ms-ord text { fill: var(--av-surface); font-size: 10px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
@@ -314,6 +315,18 @@ const MiscView = (() => {
           if (f.cand) {
             mk("line", { x1: E.X(E.P[f.cand[0]].x), y1: E.Y(E.P[f.cand[0]].y), x2: E.X(E.P[f.cand[1]].x), y2: E.Y(E.P[f.cand[1]].y), class: "ms-cand" }, E.gL);
             f.cand.forEach(i => set(i, "ring"));
+          }
+          // Viewer hook (local/viz-viewer): a merge done as a chain walk over the left and right hulls (the backend's merge).
+          // f.walk = the chain built so far (point indices; the newest last, ringed); f.popped = the point just taken off it,
+          // drawn Rejected with a dashed red edge from the chain's end (the turn that failed).
+          if (f.walk && f.walk.length) {
+            mk("polyline", { points: poly(E, f.walk), class: "ms-chain" }, E.gL);
+            if (f.popped === undefined) set(f.walk[f.walk.length - 1], "ring");
+          }
+          if (f.popped !== undefined) {
+            const a = f.walk && f.walk.length ? f.walk[f.walk.length - 1] : null;
+            if (a !== null) mk("line", { x1: E.X(E.P[a].x), y1: E.Y(E.P[a].y), x2: E.X(E.P[f.popped].x), y2: E.Y(E.P[f.popped].y), class: "ms-pop" }, E.gL);
+            set(f.popped, "Rejected");
           }
         } else if (f.chain) {
           if (f.lowerDone) { mk("polyline", { points: poly(E, f.lowerDone), class: "ms-chain sol" }, E.gL); f.lowerDone.forEach(i => set(i, "Solution")); }

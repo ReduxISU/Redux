@@ -16,8 +16,9 @@
       const idx = new Map(pts.map((p, i) => [p.id, i]));
       pts.forEach((p, i) => { if (p.id !== "P" + (i + 1)) note(`Point ${i + 1} has id "${p.id}"; misc.js labels points P1, P2, … by position.`); });
       const toIdx = list => (list || []).map(id => idx.get(id)).filter(i => i !== undefined);
-      const roles = new Set(ctx.frames.flatMap(f => (f.pieces || []).map(p => p.role)));
-      if (roles.size) note(`Geometry pieces carry roles (${[...roles].join(", ")}); the merge is a chain walk over the left and right hulls, while misc.js's divide-and-conquer frames show upper/lower bridge candidates (cand, bridge). The viewer draws pieces as hulls (left/right in the two group colors) plus the chain.`, false);
+      // Pieces carry roles (piece, left, right): the backend merges by a chain walk over the left and right hulls. Pieces are
+      // drawn as hulls (left / right in the two group colours) and the walk with misc.js's walk / popped frame fields.
+      let prevChain = [];
       const frames = ctx.frames.map(f => {
         const done = f.event === "Done";
         if (done && f.hull && f.hull.length) return { done: true, hull: toIdx(f.hull), ok: f.ok, src: f };
@@ -26,7 +27,11 @@
         const lr = (f.pieces || []).map((p, k) => [p, k]).filter(([p]) => p.role === "left" || p.role === "right").map(([, k]) => hulls[k]);
         const focusSet = new Set(f.focus || []);
         const one = (f.pieces || []).map((p, k) => [p, k]).filter(([p]) => p.points.length && p.points.every(id => focusSet.has(id))).map(([, k]) => hulls[k]);
-        return { hulls, focus: lr.length ? lr : one.slice(0, 1), src: f };
+        const chain = f.chain || [];
+        // A step that shortens the chain by one pops its last point (the turn there went the wrong way).
+        const popped = chain.length === prevChain.length - 1 && chain.every((id, k) => prevChain[k] === id) ? idx.get(prevChain[prevChain.length - 1]) : undefined;
+        prevChain = chain;
+        return { hulls, focus: lr.length ? lr : one.slice(0, 1), walk: toIdx(chain), popped, src: f };
       });
       const svg = Viewer.svgIn(ctx.host, `${ctx.problem} points`);
       let E = null;
@@ -35,10 +40,6 @@
         afterPaint(els, fr) {
           if (!fr) return;
           const f = fr.src;
-          if (!fr.done && (f.chain || []).length) {
-            const poly = toIdx(f.chain).map(i => `${els.X(els.P[i].x)},${els.Y(els.P[i].y)}`).join(" ");
-            Viewer.mk("polyline", { points: poly, class: "ms-chain" }, els.gL);
-          }
           els.pts.forEach((o, i) => {
             const st = Viewer.stateOf(f.points, pts[i].id);
             if (st !== "Background" && !CLS[st]) note(`Point state "${st}" has no style in misc.js.`);
