@@ -311,6 +311,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 }
 
 // A stopped run, under the 0.05 s budget of TinyBudgetAppFactory.
+[Collection(TimingCollection.Name)]
 public class TableFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
