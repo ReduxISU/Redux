@@ -276,7 +276,8 @@
     if (f.phase) b.push(["hot", "phase: " + ({ build: "build", solve: "solve", map: "map back" }[f.phase] || f.phase)]);
     if (f.event) b.push([f.event === "Reject" ? "rej" : f.event === "Accept" ? "ok" : f.event === "Try" ? "hl" : "", "event: " + f.event]);
     if (f.ok === true) b.push(["ok", "ok: true"]);
-    if (f.ok === false) b.push(["rej", f.event === "Done" && (!f.caption || /^Stopped/.test(f.caption)) ? "ok: false · stopped (time limit)" : "ok: false"]);
+    // A stopped run's Done: the picture's own (blank or "Stopped after ..."), or a Reduction View's map Done after a stopped solve.
+    if (f.ok === false) b.push(["rej", f.event === "Done" && (!f.caption || /^Stopped|had not finished/.test(f.caption)) ? "ok: false · stopped (time limit)" : "ok: false"]);
     if (i === n - 1) {
       const last = f;
       if (last.event !== "Done") b.push(["rej", "last frame is not Done"]);
