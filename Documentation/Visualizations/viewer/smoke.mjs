@@ -42,7 +42,11 @@ const sample = (n, k = 12) => n <= k ? [...Array(n).keys()] : [...new Set([...Ar
       if (state !== "ready") errs.push("run failed: " + await page.evaluate(() => [...document.querySelectorAll(".err")].map(e => e.textContent).join(" ").slice(0, 400)));
       const n = await page.evaluate(() => +document.getElementById("scrub").max + 1);
       const drawn = await page.evaluate(() => [...document.querySelectorAll(".stage .host")].map(h => h.querySelectorAll("svg *, table td").length));
-      if (state === "ready" && drawn.some(x => x < 3)) errs.push("a pane drew (almost) nothing: " + drawn.join(","));
+      // A legacy visualization has no frames picture: the viewer must say so instead of drawing.
+      if (c.legacy) {
+        const told = await page.evaluate(() => /legacy visualization/.test(document.querySelector(".stage")?.textContent || ""));
+        if (state === "ready" && !told) errs.push("legacy visualization: the viewer doesn't show the legacy notice");
+      } else if (state === "ready" && drawn.some(x => x < 3)) errs.push("a pane drew (almost) nothing: " + drawn.join(","));
       for (const i of sample(n)) {
         await page.evaluate(i => { const s = document.getElementById("scrub"); s.value = i; s.dispatchEvent(new Event("input")); }, i);
       }
