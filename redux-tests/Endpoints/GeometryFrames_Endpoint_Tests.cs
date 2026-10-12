@@ -232,9 +232,10 @@ public class GeometryFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
 
     [Fact]
     public async Task Frames_Stopped_EndsBlank_NotOk() {
-        // 3,000 points on a parabola: every point is a corner, and recording the merges' pushes and pops takes far longer than
-        // 0.05 s.
-        string instance = "{" + string.Join(",", Enumerable.Range(0, 3000).Select(i => $"({i},{i * i})")) + "}";
+        // 40,000 points on a parabola: every point is a corner, and recording the merges' pushes and pops takes 0.4 to 0.8 s
+        // alone, far longer than 0.05 s. The clock is read only on a step, and the verdict after the last step is not one, so
+        // a run whose steps all fit in 0.05 s finishes; 3,000 points took only 0.05 to 0.1 s and sometimes did (#837).
+        string instance = "{" + string.Join(",", Enumerable.Range(0, 40000).Select(i => $"({i},{(long)i * i})")) + "}";
         var sw = Stopwatch.StartNew();
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=convexhullvisualization&format=frames", content, TestContext.Current.CancellationToken);
