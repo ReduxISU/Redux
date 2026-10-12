@@ -17,16 +17,16 @@ class PartitionBruteForce : ISolver<PARTITION> {
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates all 2^n binary partition vectors; each candidate's
-    // verify() call was O(n^2) (nested Count()/Contains() scans over S), dominating the O(n)
-    // certificate-building cost per candidate. Since #628 verify() counts S in a dictionary,
-    // which is O(n), so O(n^2 * 2^n) is now a loose upper bound; it is left as declared.
-    // The vectors run over positions of S, so two equal numbers are two separate items (#628).
+    // verify() call is O(n^2) (nested Count()/Contains() scans over S), dominating the O(n)
+    // certificate-building cost per candidate.
     public string complexity { get; } = "O(n^2 * 2^n), n = |S|";
 
     // --- Methods Including Constructors ---
     public PartitionBruteForce() {
 
     }
+    // The vectors run over positions of S, so two equal numbers are two separate items (#628). Since #628 verify() counts S
+    // in a dictionary, O(n) per candidate, so the declared O(n^2 * 2^n) above is now a loose upper bound; it is left as is.
     private string BinaryToCertificate(List<int> binary, List<string> S) {
         string certificate = "(";
         for (int i = 0; i < binary.Count; i++) {
