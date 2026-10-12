@@ -564,9 +564,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "The undirected graph has a Hamiltonian cycle exactly when the directed graph does: every node\u0027s path is walked from its in-end to its out-end, so the edges between paths are walked along their arcs.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -1101,9 +1100,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Found the Hamiltonian cycle 11 \u2192 12 \u2192 13 \u2192 21 \u2192 22 \u2192 23 \u2192 31 \u2192 32 \u2192 33 \u2192 11 after checking 1 complete tour.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

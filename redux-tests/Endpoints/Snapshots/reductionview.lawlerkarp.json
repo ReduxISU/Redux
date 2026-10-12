@@ -498,9 +498,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "K stays 1: removing at most 1 arc can leave no cycle exactly when at most 1 node can cover every edge.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -742,9 +741,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Removing {(b0,b1)} leaves no cycle, within K = 1. Found after 7 tries.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
