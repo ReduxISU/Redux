@@ -231,18 +231,22 @@ public class BoardSolvers_Tests {
         Assert.Empty(Assert.Single(frames).Cells);
     }
 
-    [Theory]
-    [InlineData("default")]
-    [InlineData("hard")]
-    [InlineData("empty")]
-    public void Sudoku_LargeSearches_FinishWellWithinTheDefaultBudget(string which) {
-        string instance = which switch { "default" => SudokuDefault, "hard" => HardSudoku, _ => Empty9 };
-        var budget = TimeSpan.FromSeconds(ProblemProvider.DefaultSolveTimeLimitSeconds);
-        var clock = Stopwatch.StartNew();
-        var run = ((ISolver)new API.Problems.NPComplete.NPC_SUDOKU.Solvers.SudokuSolver()).Run(instance, withSteps: true, budget);
-        Assert.False(run.TimedOut);
-        Assert.True(clock.Elapsed < budget / 4, $"took {clock.Elapsed}");
-        Assert.Equal(StepRecorder<BoardCells>.DefaultCap + 1, run.Steps.Count);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class SudokuTiming {
+        [Theory]
+        [InlineData("default")]
+        [InlineData("hard")]
+        [InlineData("empty")]
+        public void Sudoku_LargeSearches_FinishWellWithinTheDefaultBudget(string which) {
+            string instance = which switch { "default" => SudokuDefault, "hard" => HardSudoku, _ => Empty9 };
+            var budget = TimeSpan.FromSeconds(ProblemProvider.DefaultSolveTimeLimitSeconds);
+            var clock = Stopwatch.StartNew();
+            var run = ((ISolver)new API.Problems.NPComplete.NPC_SUDOKU.Solvers.SudokuSolver()).Run(instance, withSteps: true, budget);
+            Assert.False(run.TimedOut);
+            Assert.True(clock.Elapsed < budget / 4, $"took {clock.Elapsed}");
+            Assert.Equal(StepRecorder<BoardCells>.DefaultCap + 1, run.Steps.Count);
+        }
     }
 
     // ---- N-Queens ----
@@ -339,16 +343,20 @@ public class BoardSolvers_Tests {
     public void Constructive_NamesTheAdjustmentsItMakes(string n, string expected) =>
         Assert.Contains(expected, Steps("nqueensconstructive", n)[0].Caption);
 
-    [Fact]
-    public void Constructive_ALargeBoard_KeepsCaptionsShort_AndEndsWithEveryQueen() {
-        var clock = Stopwatch.StartNew();
-        var run = Run("nqueensconstructive", "100000");
-        var steps = run.Steps.Cast<SolverStep<BoardCells>>().ToList();
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"took {clock.Elapsed}");
-        Assert.Equal(StepRecorder<BoardCells>.DefaultCap + 1, steps.Count);
-        Assert.EndsWith(", … (100,000 in all). Row i gets the i-th number, minus 1.", steps[0].Caption);
-        Assert.Equal("All 100,000 queens placed in 100,000 steps, with no search. (99851 not shown)", steps[^1].Caption);
-        Assert.Equal(100000, steps[^1].Partial.Values.Count);
-        Assert.True(steps[^1].Ok);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class QueensTiming {
+        [Fact]
+        public void Constructive_ALargeBoard_KeepsCaptionsShort_AndEndsWithEveryQueen() {
+            var clock = Stopwatch.StartNew();
+            var run = Run("nqueensconstructive", "100000");
+            var steps = run.Steps.Cast<SolverStep<BoardCells>>().ToList();
+            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"took {clock.Elapsed}");
+            Assert.Equal(StepRecorder<BoardCells>.DefaultCap + 1, steps.Count);
+            Assert.EndsWith(", … (100,000 in all). Row i gets the i-th number, minus 1.", steps[0].Caption);
+            Assert.Equal("All 100,000 queens placed in 100,000 steps, with no search. (99851 not shown)", steps[^1].Caption);
+            Assert.Equal(100000, steps[^1].Partial.Values.Count);
+            Assert.True(steps[^1].Ok);
+        }
     }
 }
