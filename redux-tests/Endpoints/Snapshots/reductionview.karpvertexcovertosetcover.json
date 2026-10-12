@@ -335,9 +335,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "K stays 1: at most 1 set can cover every element exactly when at most 1 node can touch every edge.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -433,9 +432,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "{S2} covers U with 1 set, found after 2 tries. Smaller combinations were tried first, so no cover uses fewer sets.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
