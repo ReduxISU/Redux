@@ -372,9 +372,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "The target T = 28 becomes both the weight limit W = 28 and the value goal V = 28. An item\u0027s weight equals its value, so items that weigh at most 28 and are worth at least 28 add up to exactly 28.",
-      "ok": true,
       "sourceFocus": [
         "C1"
       ],
@@ -1133,9 +1132,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "{(1,1),(12,12),(15,15)} fits in 28 and is worth at least 28, found after 14 sets.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
