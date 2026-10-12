@@ -292,15 +292,19 @@ public class ScheduleSolvers_Tests {
         Assert.All(steps, s => Assert.Equal(5, s.Partial.Budget));
     }
 
-    [Theory]
-    [InlineData("pumpschedulingcmsolver", CmDefault)]
-    [InlineData("pumpschedulingemsolver", EmDefault)]
-    [InlineData("jobseqbruteforce", JobDefault)]
-    public void DefaultInstances_RecordWellWithinTheTimeBudget(string solver, string instance) {
-        var sw = Stopwatch.StartNew();
-        var run = Run(solver, instance);
-        Assert.False(run.TimedOut);
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(ProblemProvider.DefaultSolveTimeLimitSeconds / 2), $"took {sw.Elapsed}");
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Theory]
+        [InlineData("pumpschedulingcmsolver", CmDefault)]
+        [InlineData("pumpschedulingemsolver", EmDefault)]
+        [InlineData("jobseqbruteforce", JobDefault)]
+        public void DefaultInstances_RecordWellWithinTheTimeBudget(string solver, string instance) {
+            var sw = Stopwatch.StartNew();
+            var run = Run(solver, instance);
+            Assert.False(run.TimedOut);
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(ProblemProvider.DefaultSolveTimeLimitSeconds / 2), $"took {sw.Elapsed}");
+        }
     }
 
     [Fact]

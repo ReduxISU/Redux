@@ -248,14 +248,18 @@ public class AutomatonSolvers_Tests {
         Assert.Equal(new NFASolver().solve(new NFA(instance)), new NFASubsetSolver().solve(new NFA(instance)));
     }
 
-    [Fact]
-    public void NfaSubset_IsFastWhereTheBacktrackingSolverIsNot() {
-        // 2^40 runs for the backtracking solver; 40 steps for the subset simulation.
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        var run = ((ISolver)new NFASubsetSolver()).Run(StepTimeLimit_Tests.SlowNfa, withSteps: true, TimeSpan.FromSeconds(5));
-        Assert.False(run.TimedOut);
-        Assert.Equal("No Solution Exists: No run accepts the input", run.Answer);
-        Assert.Equal(43, run.Steps.Count); // start, 40 symbols, the closing Reject, Done
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5));
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Fact]
+        public void NfaSubset_IsFastWhereTheBacktrackingSolverIsNot() {
+            // 2^40 runs for the backtracking solver; 40 steps for the subset simulation.
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var run = ((ISolver)new NFASubsetSolver()).Run(StepTimeLimit_Tests.SlowNfa, withSteps: true, TimeSpan.FromSeconds(5));
+            Assert.False(run.TimedOut);
+            Assert.Equal("No Solution Exists: No run accepts the input", run.Answer);
+            Assert.Equal(43, run.Steps.Count); // start, 40 symbols, the closing Reject, Done
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5));
+        }
     }
 }

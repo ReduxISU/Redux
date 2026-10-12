@@ -161,19 +161,23 @@ public class SatSolvers_Tests {
         Assert.Contains("not shown", ((SolverStep<Assignment>)run.Steps[^1]).Caption);
     }
 
-    [Fact]
-    public void BruteForce_OwnRun_HonoursTheTimeLimit() {
-        // Unsatisfiable with 40 variables: 2^40 candidates, so only the time limit ends the recording run.
-        string instance = "(x1) & (!x1) & (" + string.Join(" | ", Enumerable.Range(2, 39).Select(i => $"x{i}")) + ")";
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        var run = Create("satbruteforcesolver").Run(instance, withSteps: true, TimeSpan.FromMilliseconds(50));
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
-        Assert.True(run.TimedOut);
-        Assert.Equal(SolveRun.TimedOutAnswer, run.Answer);
-        var done = (SolverStep<Assignment>)run.Steps[^1];
-        Assert.Equal(StepEvent.Done, done.Event);
-        Assert.False(done.Ok);
-        Assert.StartsWith("Stopped after 0.05 s", done.Caption);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Fact]
+        public void BruteForce_OwnRun_HonoursTheTimeLimit() {
+            // Unsatisfiable with 40 variables: 2^40 candidates, so only the time limit ends the recording run.
+            string instance = "(x1) & (!x1) & (" + string.Join(" | ", Enumerable.Range(2, 39).Select(i => $"x{i}")) + ")";
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var run = Create("satbruteforcesolver").Run(instance, withSteps: true, TimeSpan.FromMilliseconds(50));
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+            Assert.True(run.TimedOut);
+            Assert.Equal(SolveRun.TimedOutAnswer, run.Answer);
+            var done = (SolverStep<Assignment>)run.Steps[^1];
+            Assert.Equal(StepEvent.Done, done.Event);
+            Assert.False(done.Ok);
+            Assert.StartsWith("Stopped after 0.05 s", done.Caption);
+        }
     }
 
     [Fact]

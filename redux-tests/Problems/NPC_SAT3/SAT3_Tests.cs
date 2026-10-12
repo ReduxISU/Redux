@@ -631,34 +631,38 @@ public class SAT3_Tests {
         return string.Join(" & ", clauses);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(40)]
-    public void Schoning_UnsatisfiableInstance_TerminatesWithEmptySet(int extraVariables) {
-        SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
-        Stopwatch timer = Stopwatch.StartNew();
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Theory]
+        [InlineData(0)]
+        [InlineData(40)]
+        public void Schoning_UnsatisfiableInstance_TerminatesWithEmptySet(int extraVariables) {
+            SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
+            Stopwatch timer = Stopwatch.StartNew();
 
-        string result = new Schoning().solve(sat3);
+            string result = new Schoning().solve(sat3);
 
-        Assert.Equal("{}", result);
-        // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
-        // but 12-15 s when the full suite runs in parallel, so the bound is deliberately loose.
-        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(60), $"Schoning took {timer.Elapsed}");
-    }
+            Assert.Equal("{}", result);
+            // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
+            // but 12-15 s when the full suite runs in parallel, so the bound is deliberately loose.
+            Assert.True(timer.Elapsed < TimeSpan.FromSeconds(60), $"Schoning took {timer.Elapsed}");
+        }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(40)]
-    public void PPZ_UnsatisfiableInstance_TerminatesWithEmptySet(int extraVariables) {
-        SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
-        Stopwatch timer = Stopwatch.StartNew();
+        [Theory]
+        [InlineData(0)]
+        [InlineData(40)]
+        public void PPZ_UnsatisfiableInstance_TerminatesWithEmptySet(int extraVariables) {
+            SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
+            Stopwatch timer = Stopwatch.StartNew();
 
-        string result = new PPZ().solve(sat3);
+            string result = new PPZ().solve(sat3);
 
-        Assert.Equal("{}", result);
-        // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
-        // but 12-15 s when the full suite runs in parallel, so the bound is deliberately loose.
-        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(60), $"PPZ took {timer.Elapsed}");
+            Assert.Equal("{}", result);
+            // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
+            // but 12-15 s when the full suite runs in parallel, so the bound is deliberately loose.
+            Assert.True(timer.Elapsed < TimeSpan.FromSeconds(60), $"PPZ took {timer.Elapsed}");
+        }
     }
 
     [Fact]

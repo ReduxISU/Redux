@@ -185,16 +185,20 @@ public class TripartiteSolvers_Tests {
             frames[^1].Caption);
     }
 
-    [Fact]
-    public void ABiggerInstance_StaysWellWithinTheTimeBudget() {
-        // Six elements per set and 18 triples with no matching among the first: C(18, 6) = 18,564 sets in the worst case.
-        string x = "{a1,a2,a3,a4,a5,a6}{b1,b2,b3,b4,b5,b6}{c1,c2,c3,c4,c5,c6}";
-        var triples = new List<string>();
-        for (int i = 1; i <= 6; i++)
-            for (int k = 0; k < 3; k++) triples.Add($"{{a{i},b{(i + k - 1) % 6 + 1},c{(i + 2 * k - 1) % 6 + 1}}}");
-        var sw = Stopwatch.StartNew();
-        var frames = Frames(x + string.Concat(triples));
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
-        Assert.True(frames.Count <= StepRecorder<ChosenTriples>.DefaultCap + 2);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Fact]
+        public void ABiggerInstance_StaysWellWithinTheTimeBudget() {
+            // Six elements per set and 18 triples with no matching among the first: C(18, 6) = 18,564 sets in the worst case.
+            string x = "{a1,a2,a3,a4,a5,a6}{b1,b2,b3,b4,b5,b6}{c1,c2,c3,c4,c5,c6}";
+            var triples = new List<string>();
+            for (int i = 1; i <= 6; i++)
+                for (int k = 0; k < 3; k++) triples.Add($"{{a{i},b{(i + k - 1) % 6 + 1},c{(i + 2 * k - 1) % 6 + 1}}}");
+            var sw = Stopwatch.StartNew();
+            var frames = Frames(x + string.Concat(triples));
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+            Assert.True(frames.Count <= StepRecorder<ChosenTriples>.DefaultCap + 2);
+        }
     }
 }

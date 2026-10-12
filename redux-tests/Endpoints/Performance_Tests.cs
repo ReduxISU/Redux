@@ -49,6 +49,7 @@ internal static class PerfTiming {
 // IClassFixture<AppFactory>, specifically so the request under test really is
 // the first one the app ever serves (an IClassFixture instance is shared across
 // every [Fact] in its class, so a second test would see an already-warm app).
+[Collection(TimingCollection.Name)]
 public class ColdStart_Performance_Tests {
     [Fact]
     [Trait("Category", "Performance")]
@@ -98,6 +99,7 @@ public class ColdStart_Performance_Tests {
 // Shares one AppFactory/HttpClient across all tests (the app is already up), and
 // each test issues one throwaway warm-up request before timing, so these measure
 // steady-state per-request cost rather than JIT/first-call overhead.
+[Collection(TimingCollection.Name)]
 public class Endpoint_Performance_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -162,6 +164,7 @@ public class Endpoint_Performance_Tests : IClassFixture<AppFactory> {
 // same way: construct the FROM problem's defaultInstance, then construct the
 // reduction from it (which runs reduce() internally). Unlike ReductionSmoke_Tests
 // this is purely a timing guard -- it does not re-check correctness.
+[Collection(TimingCollection.Name)]
 public class ReductionReduce_Performance_Tests {
     [Theory]
     [Trait("Category", "Performance")]

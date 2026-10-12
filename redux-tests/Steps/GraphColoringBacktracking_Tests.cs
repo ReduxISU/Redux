@@ -167,15 +167,19 @@ public class GraphColoringBacktracking_Tests {
         Assert.Equal("{}", solver.solve(new GRAPHCOLORING()));
     }
 
-    // A graph whose brute force takes ages (12 nodes, K = 3: 4^12 candidates) is quick for the backtracking.
-    [Fact]
-    public void SolvesWhatTheBruteForceCannot_Quickly() {
-        string instance = "(({a,b,c,d,e,f,g,h,i,j,k,l},{{a,b},{b,c},{c,d},{d,e},{e,f},{f,g},{g,h},{h,i},{i,j},{j,k},{k,l},{l,a},{a,g},{c,i},{e,k}}),3)";
-        var g = new GRAPHCOLORING(instance);
-        var clock = System.Diagnostics.Stopwatch.StartNew();
-        string answer = new GraphColoringBacktracking().solve(g);
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(1), $"{clock.Elapsed}");
-        Assert.True(Verifies(g, answer), answer);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        // A graph whose brute force takes ages (12 nodes, K = 3: 4^12 candidates) is quick for the backtracking.
+        [Fact]
+        public void SolvesWhatTheBruteForceCannot_Quickly() {
+            string instance = "(({a,b,c,d,e,f,g,h,i,j,k,l},{{a,b},{b,c},{c,d},{d,e},{e,f},{f,g},{g,h},{h,i},{i,j},{j,k},{k,l},{l,a},{a,g},{c,i},{e,k}}),3)";
+            var g = new GRAPHCOLORING(instance);
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            string answer = new GraphColoringBacktracking().solve(g);
+            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(1), $"{clock.Elapsed}");
+            Assert.True(Verifies(g, answer), answer);
+        }
     }
 }
 

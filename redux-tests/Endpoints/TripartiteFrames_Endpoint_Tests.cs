@@ -285,6 +285,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 }
 
 // Stopped runs, under the 0.05 s budget of TinyBudgetAppFactory.
+[Collection(TimingCollection.Name)]
 public class TripartiteFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 

@@ -231,6 +231,7 @@ public class FlowFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 }
 
 // A stopped run, under the 0.05 s budget of TinyBudgetAppFactory.
+[Collection(TimingCollection.Name)]
 public class FlowFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 

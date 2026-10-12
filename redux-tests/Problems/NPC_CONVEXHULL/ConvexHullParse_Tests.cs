@@ -110,18 +110,22 @@ public class ConvexHullParse_Tests {
     [Fact]
     public void TheDefaultInstance_ParsesExactlyAsBefore() => AssertSameAsOld(new CONVEXHULL().defaultInstance);
 
-    // 10,000 random points used to take seconds; one pass takes milliseconds. The bound is generous so a busy machine does
-    // not make it flaky.
-    [Fact]
-    public void TenThousandPoints_ParseInUnderOneSecond() {
-        var rng = new Random(815);
-        string instance = "{" + string.Join(",", Enumerable.Range(0, 10_000).Select(_ =>
-            $"({(rng.NextDouble() * 2 - 1).ToString("R", CultureInfo.InvariantCulture)},{(rng.NextDouble() * 2 - 1).ToString("R", CultureInfo.InvariantCulture)})")) + "}";
-        _ = new CONVEXHULL("{(0,0),(1,1)}");
-        var stopwatch = Stopwatch.StartNew();
-        var problem = new CONVEXHULL(instance);
-        stopwatch.Stop();
-        Assert.Equal(10_000, problem.points.Count);
-        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(1), $"parsing 10,000 points took {stopwatch.ElapsedMilliseconds} ms");
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        // 10,000 random points used to take seconds; one pass takes milliseconds. The bound is generous so a busy machine does
+        // not make it flaky.
+        [Fact]
+        public void TenThousandPoints_ParseInUnderOneSecond() {
+            var rng = new Random(815);
+            string instance = "{" + string.Join(",", Enumerable.Range(0, 10_000).Select(_ =>
+                $"({(rng.NextDouble() * 2 - 1).ToString("R", CultureInfo.InvariantCulture)},{(rng.NextDouble() * 2 - 1).ToString("R", CultureInfo.InvariantCulture)})")) + "}";
+            _ = new CONVEXHULL("{(0,0),(1,1)}");
+            var stopwatch = Stopwatch.StartNew();
+            var problem = new CONVEXHULL(instance);
+            stopwatch.Stop();
+            Assert.Equal(10_000, problem.points.Count);
+            Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(1), $"parsing 10,000 points took {stopwatch.ElapsedMilliseconds} ms");
+        }
     }
 }
