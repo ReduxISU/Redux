@@ -829,9 +829,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "An exact cover takes one color set per node and one set per edge, which fits only when the edge\u0027s two ends have different colors: the sets have an exact cover exactly when the graph can be colored with 2 colors.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -1340,9 +1339,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Every element is covered by exactly one chosen set: {S1,S10,S4,S5,S7}.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

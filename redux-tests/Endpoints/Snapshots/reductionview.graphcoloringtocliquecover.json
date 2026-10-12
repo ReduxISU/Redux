@@ -304,9 +304,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "K stays 2. A color class has no edge in the graph, so its nodes are a clique in the complement: the graph can be colored with 2 colors exactly when the complement can be covered by 2 cliques.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -482,9 +481,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "{a,c},{b} covers the nodes with cliques, found after 4 tries.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

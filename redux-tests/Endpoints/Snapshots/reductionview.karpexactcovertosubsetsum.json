@@ -342,9 +342,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "The target T is 1111 in base 4 = 85: a 1 for every element of X. At most 3 sets add to any digit and 3 \u003C 4, so nothing carries, and numbers add up to T exactly when their sets hold every element once.",
-      "ok": true,
       "sourceFocus": [
         "e:1",
         "e:2",
@@ -621,9 +620,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "{20,65} adds up to exactly 85, found after 6 subsets.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

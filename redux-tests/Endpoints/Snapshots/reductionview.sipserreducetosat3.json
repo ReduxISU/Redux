@@ -717,9 +717,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "The formula has 3 clauses. Sipser\u0027s construction joins two nodes exactly when they come from different clauses and do not contradict, so a clique with a node from every clause picks literals that can all be true at once. The clique graph asks for K = 3.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -1003,9 +1002,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Every clause has a true literal under x1 = True, x2 = True, x3 = False.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

@@ -614,9 +614,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Exact Cover asks for sets that cover each of the 3 elements exactly once: items that hit each subset exactly once.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -734,9 +733,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Every element is covered by exactly one chosen set: {S1,S2}.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

@@ -133,11 +133,12 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
 
         var phases = view.GetProperty("frames").EnumerateArray().Select(f => f.GetProperty("phase").GetString()!).ToList();
         Assert.Equal(["build", "solve", "map"], phases.Distinct());
-        foreach (string phase in new[] { "build", "solve", "map" }) {
-            var frames = Phase(view, phase);
-            Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
-            Assert.DoesNotContain(frames.Take(frames.Count - 1), f => f.GetProperty("event").GetString() == "Done");
-        }
+        // One Done in the whole view, its last frame, and the only frame with ok (#840).
+        var all = view.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(all[^1], Assert.Single(all, f => f.GetProperty("event").GetString() == "Done"));
+        Assert.Equal("map", all[^1].GetProperty("phase").GetString());
+        Assert.DoesNotContain(all.SkipLast(1), f => f.TryGetProperty("ok", out _));
+        Assert.Equal("Accept", Phase(view, "build")[^1].GetProperty("event").GetString());
         Assert.All(view.GetProperty("frames").EnumerateArray(), f => Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString())));
     }
 
@@ -365,7 +366,7 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
             clock.Stop();
             Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"{reduction}: the view took {clock.Elapsed}");
             Assert.Equal(solverName, view.GetProperty("solver").GetString());
-            Assert.True(Phase(view, "solve")[^1].GetProperty("ok").GetBoolean(), Phase(view, "solve")[^1].GetProperty("caption").GetString());
+            Assert.True(ReductionView_Endpoint_Tests.SolvedOk(Phase(view, "solve")), Phase(view, "solve")[^1].GetProperty("caption").GetString());
             var map = Phase(view, "map");
             Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
             IReduction red = Build(reduction, instance);
@@ -411,9 +412,9 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
         bool ok = map[^1].GetProperty("ok").GetBoolean();
         Assert.Equal(Verifies(red.reductionFrom, instance, ShownAssignment(view, map[^1])), ok);
         // A correct target answer always maps back to a correct source answer.
-        if (Phase(view, "solve")[^1].GetProperty("ok").GetBoolean()) Assert.True(ok, map[^1].GetProperty("caption").GetString());
+        if (ReductionView_Endpoint_Tests.SolvedOk(Phase(view, "solve"))) Assert.True(ok, map[^1].GetProperty("caption").GetString());
         // The target has an answer exactly when the formula is satisfiable.
-        Assert.Equal(GareyJohnson_Soundness_Tests.Satisfiable(new API.Problems.NPComplete.NPC_SAT3.SAT3(CnfOf(red))), Phase(view, "solve")[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal(GareyJohnson_Soundness_Tests.Satisfiable(new API.Problems.NPComplete.NPC_SAT3.SAT3(CnfOf(red))), ReductionView_Endpoint_Tests.SolvedOk(Phase(view, "solve")));
     }
 
     // The source formula as 3SAT text: a SAT formula's clauses written out again (only for satisfiability).
@@ -472,7 +473,7 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
         var map = Phase(view, "map");
         bool ok = map[^1].GetProperty("ok").GetBoolean();
         Assert.Equal(Verifies(red.reductionFrom, instance, ShownAssignment(view, map[^1])), ok);
-        if (Phase(view, "solve")[^1].GetProperty("ok").GetBoolean()) Assert.True(ok, map[^1].GetProperty("caption").GetString());
+        if (ReductionView_Endpoint_Tests.SolvedOk(Phase(view, "solve"))) Assert.True(ok, map[^1].GetProperty("caption").GetString());
     }
 
     // ---- The backward map on its own endpoint ----
@@ -552,9 +553,12 @@ public class ReductionView_Sat3_TimeLimit_Tests : IClassFixture<TinyBudgetAppFac
         Assert.True(response.StatusCode == HttpStatusCode.OK, body);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
         var build = frames.Where(f => f.GetProperty("phase").GetString() == "build").ToList();
-        Assert.True(build[^1].GetProperty("ok").GetBoolean());
+        // The build ends on a plain "target built" frame and the stopped solve on a Reject, neither with ok (#840).
+        Assert.Equal("Accept", build[^1].GetProperty("event").GetString());
+        Assert.False(build[^1].TryGetProperty("ok", out _));
         var solve = frames.Where(f => f.GetProperty("phase").GetString() == "solve").ToList();
-        Assert.False(solve[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal("Reject", solve[^1].GetProperty("event").GetString());
+        Assert.False(solve[^1].TryGetProperty("ok", out _));
         Assert.StartsWith("Stopped after 0.05 s and ", solve[^1].GetProperty("caption").GetString());
         var map = Assert.Single(frames, f => f.GetProperty("phase").GetString() == "map");
         Assert.False(map.GetProperty("ok").GetBoolean());

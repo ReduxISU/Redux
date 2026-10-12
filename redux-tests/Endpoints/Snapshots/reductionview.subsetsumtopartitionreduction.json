@@ -540,9 +540,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Partition\u0027s numbers add up to 2 * 35 \u002B 2 = 72, so each side must hold 36. The two added numbers add up to 37, more than a side holds, so they always sit on different sides.",
-      "ok": true,
       "sourceFocus": [
         "C1"
       ],
@@ -1803,9 +1802,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "Both sides add up to 36, found after 17 splits.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

@@ -42,15 +42,17 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// a build frame's <c>target.builtNodes</c> / <c>target.builtEdges</c> say how many of each are on screen (the first n). That is
 /// stateless, so a frame renders on its own when scrubbed to, and it costs one number per frame where a list of the built ids
 /// would repeat a quadratic edge list in every frame. The steps announce the whole target (past the cap the rest are folded into
-/// one step), so the build ends showing all of it. Solve and map frames omit both: the target is complete. <c>target.skipped</c>
+/// one step), so the build ends showing all of it, on a plain "target built" frame: the construction's own Done step is drawn
+/// as an Accept without <c>ok</c>, since nothing has been solved yet (#840). Solve and map frames omit both: the target is complete. <c>target.skipped</c>
 /// lists the pairs the rule considered and left without an edge, as <c>{ id, a, b }</c>: they are not edges of the picture, so
 /// each gives its two ends (the id is the one the picture would give that edge, never something to split).
 /// </para>
 /// <para>
 /// <b>Solve.</b> The chosen solver runs on the target; each of its steps is drawn by the target's picture and the source pane
-/// stays neutral. The last frame's <c>ok</c> is the target problem's own verifier on the solver's answer ("{}" included: a
-/// set-valued problem's verifier reads it as the empty set, which can be a real answer). A solver stopped by the time limit ends
-/// the phase with its stopped Done frame (<c>ok</c> false).
+/// stays neutral. The phase does not end the view, so its last frame is not a Done and has no <c>ok</c> (#840): it is an Accept
+/// when the target problem's own verifier accepts the solver's answer ("{}" included: a set-valued problem's verifier reads it
+/// as the empty set, which can be a real answer) and a Reject otherwise. Its pane is the solver's closing picture, so a solver
+/// stopped by the time limit ends the phase with its blank stopped pane, as a Reject.
 /// </para>
 /// <para>
 /// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer as an incremental run (the
@@ -62,6 +64,10 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// map's own Done verdict: the source problem's verifier on the mapped-back answer. When the solver was stopped there is no
 /// answer, so the phase is a single Done frame (<c>ok</c> false) saying there is nothing to map back. When the backward map
 /// cannot read the solver's answer, <see cref="Create"/> throws <see cref="SolverAnswerUnmappableException"/>.
+/// </para>
+/// <para>
+/// <b>One verdict.</b> The view has exactly one Done frame, the last one (the end of the map phase), and it is the only frame
+/// with <c>ok</c>: a player shows a verdict only once the answer has been mapped back and checked on the source (#840).
 /// </para>
 /// </summary>
 static class ReductionView {
@@ -129,7 +135,9 @@ static class ReductionView {
             target["builtEdges"] = counts[i].Edges;
             if (step.Partial.Skipped.Length > 0)
                 target["skipped"] = new JsonArray(step.Partial.Skipped.Select(s => (JsonNode)new JsonObject { ["id"] = s.Id, ["a"] = s.A, ["b"] = s.B }).ToArray());
-            var frame = Frame(Build, step.Event, step.Caption, step.Ok, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
+            // The construction's Done only says the target is built: drawn as a plain Accept, and no build frame has a verdict.
+            var ev = step.Event == StepEvent.Done ? StepEvent.Accept : step.Event;
+            var frame = Frame(Build, ev, step.Caption, null, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
             if (step.Partial.Bound is int bound) frame["bound"] = bound;
             if (step.Partial.Gadgets.Length > 0) frame["gadgets"] = ToArray(step.Partial.Gadgets);
             frames.Add(frame);
@@ -143,12 +151,14 @@ static class ReductionView {
             solveSteps = [NewStep(targetShape, emptyTarget, StepEvent.Done, [], ReadStep(solved.Steps[^1]).Caption, false)];
         // A stopped run stays stopped when it is drawn, so the picture closes it with its blank stopped Done frame.
         var solveFrames = Render(targetVis, targetInstance, solveSteps, targetShape, solved.Answer, exact: false, timedOut: solved.TimedOut, incremental: solved.Incremental).Frames;
+        // The solved picture is judged by the problem's own verifier, whatever the solver reported; a stopped solve has no answer.
+        bool solvedOk = !solved.TimedOut && Verify(red.reductionTo, targetInstance, solved.Answer);
         for (int i = 0; i < solveFrames.Count; i++) {
             var f = solveFrames[i];
             bool last = i == solveFrames.Count - 1;
-            // The solved picture is judged by the problem's own verifier, whatever the solver reported; a stopped solve has no answer.
-            bool? ok = last ? !solved.TimedOut && Verify(red.reductionTo, targetInstance, solved.Answer) : f.Ok;
-            frames.Add(Frame(Solve, f.Event, f.Caption, ok, [], f.Focus, neutralSource.DeepClone().AsObject(), f.Pane));
+            // The map phase follows, so the solve does not end the view: its closing frame is an Accept or a Reject, not a Done.
+            var ev = last ? (solvedOk ? StepEvent.Accept : StepEvent.Reject) : f.Event == StepEvent.Done ? StepEvent.Accept : f.Event;
+            frames.Add(Frame(Solve, ev, f.Caption, null, [], f.Focus, neutralSource.DeepClone().AsObject(), f.Pane));
         }
         // What the target pane shows while the answer is mapped back: the solved picture. The solver's Done step holds the
         // answer in the picture's own shape; a solver that records no steps leaves only the last solve frame to reuse.
@@ -192,10 +202,13 @@ static class ReductionView {
         for (int i = 0; i < mapSteps.Count; i++) {
             var s = mapSteps[i];
             bool last = i == mapSteps.Count - 1;
-            // The backward map's Done step already carries the source verifier's verdict (MapBackRun).
-            bool? ok = last && s.Event != StepEvent.Done ? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : s.Ok;
+            // The backward map's Done step already carries the source verifier's verdict (MapBackRun). Only the view's last
+            // frame, a Done, has a verdict: a map that does not end in Done gets one added below.
+            bool closes = last && s.Event == StepEvent.Done;
+            bool? ok = closes ? s.Ok ?? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : null;
+            var ev = s.Event == StepEvent.Done && !closes ? StepEvent.Accept : s.Event;
             JsonObject target = mapTargetPanes != null ? mapTargetPanes[i].Pane : solvedPane.DeepClone().AsObject();
-            frames.Add(Frame(Map, s.Event, s.Caption, ok, sourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
+            frames.Add(Frame(Map, ev, s.Caption, ok, sourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
         }
 
         if (mapSteps.Count == 0 || mapSteps[^1].Event != StepEvent.Done)

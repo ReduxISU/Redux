@@ -53,6 +53,18 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
     private static List<JsonElement> Phase(JsonElement view, string phase) =>
         view.GetProperty("frames").EnumerateArray().Where(f => f.GetProperty("phase").GetString() == phase).ToList();
 
+    /// <summary>
+    /// The target verifier's verdict on the solve phase, which the view gives as the event of its closing frame (an Accept or a
+    /// Reject, never a Done and never with ok: the view's only verdict is its last frame, #840).
+    /// </summary>
+    internal static bool SolvedOk(List<JsonElement> solve) {
+        var last = solve[^1];
+        Assert.False(last.TryGetProperty("ok", out _), "the solve phase ends with ok");
+        string ev = last.GetProperty("event").GetString()!;
+        Assert.Contains(ev, new[] { "Accept", "Reject" });
+        return ev == "Accept";
+    }
+
     // Every id the picture payload names: nodes, groups (clauses), variables, and both edge lists.
     private static HashSet<string> PictureIds(JsonElement payload) {
         var ids = new HashSet<string>(StringComparer.Ordinal);
@@ -151,21 +163,25 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public async Task Phases_AppearInOrder_BuildThenSolveThenMap_EachEndingInDone(string reduction, string instance) {
+    public async Task Phases_AppearInOrder_BuildThenSolveThenMap_WithOneDone_AtTheEnd(string reduction, string instance) {
         var view = await View(reduction, instance);
-        var phases = view.GetProperty("frames").EnumerateArray().Select(f => f.GetProperty("phase").GetString()!).ToList();
+        var all = view.GetProperty("frames").EnumerateArray().ToList();
+        var phases = all.Select(f => f.GetProperty("phase").GetString()!).ToList();
         var order = new[] { "build", "solve", "map" };
         Assert.Equal(order, phases.Distinct());
         Assert.Equal(phases.OrderBy(p => Array.IndexOf(order, p)), phases);
-        foreach (string phase in order) {
-            var frames = Phase(view, phase);
-            Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
-            Assert.True(frames[^1].TryGetProperty("ok", out _), $"{phase} ends without ok");
-            // Done closes a phase and nothing else does.
-            Assert.DoesNotContain(frames.Take(frames.Count - 1), f => f.GetProperty("event").GetString() == "Done");
+        // Exactly one Done in the whole view, the last frame (the end of the map phase), and it is the only frame with ok (#840).
+        var done = Assert.Single(all, f => f.GetProperty("event").GetString() == "Done");
+        Assert.Equal(done, all[^1]);
+        Assert.Equal("map", done.GetProperty("phase").GetString());
+        Assert.True(done.TryGetProperty("ok", out _), "the view ends without ok");
+        Assert.DoesNotContain(all.SkipLast(1), f => f.TryGetProperty("ok", out _));
+        // The build ends on a plain "target built" frame; the solve on its verdict as an Accept or a Reject.
+        Assert.Equal("Accept", Phase(view, "build")[^1].GetProperty("event").GetString());
+        Assert.Contains(Phase(view, "solve")[^1].GetProperty("event").GetString(), new[] { "Accept", "Reject" });
+        foreach (string phase in order)
             // The recorders cap decisions at 150 and keep Done on top.
-            Assert.InRange(frames.Count, 1, StepRecorder<object>.DefaultCap + 2);
-        }
+            Assert.InRange(Phase(view, phase).Count, 1, StepRecorder<object>.DefaultCap + 2);
     }
 
     [Theory]
@@ -363,7 +379,9 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(steps.Count, build.Count);
         for (int i = 0; i < steps.Count; i++) {
             Assert.Equal(steps[i].Caption, build[i].GetProperty("caption").GetString());
-            Assert.Equal(steps[i].Event.ToString(), build[i].GetProperty("event").GetString());
+            // The construction's Done is drawn as a plain Accept: the view's only Done is its last frame (#840).
+            Assert.Equal((steps[i].Event == StepEvent.Done ? StepEvent.Accept : steps[i].Event).ToString(), build[i].GetProperty("event").GetString());
+            Assert.False(build[i].TryGetProperty("ok", out _));
             Assert.Equal(steps[i].Partial.SourceFocus, Strings(build[i].GetProperty("sourceFocus")));
             Assert.Equal(steps[i].Partial.Gadgets.Length > 0, build[i].TryGetProperty("gadgets", out _));
         }
@@ -371,7 +389,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public async Task Solve_DoneOk_MatchesTheTargetVerifier(string reduction, string instance) {
+    public async Task Solve_EndsOnTheTargetVerifiersVerdict(string reduction, string instance) {
         var view = await View(reduction, instance);
         IReduction red = Build(reduction, instance);
         string targetInstance = red.reductionTo.instance;
@@ -381,7 +399,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         bool expected = Verifies(red.reductionTo, targetInstance, answer);
 
         var solve = Phase(view, "solve");
-        Assert.Equal(expected, solve[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal(expected, SolvedOk(solve));
         // The source stays neutral while the target is solved.
         Assert.All(solve, f => Assert.Empty(f.GetProperty("sourceFocus").EnumerateArray()));
         Assert.All(solve, f => Assert.All(f.GetProperty("source").EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Object),
@@ -422,7 +440,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
 
         var view = await View(Vc, instance);
         var solve = Phase(view, "solve");
-        Assert.True(solve[^1].GetProperty("ok").GetBoolean(), solve[^1].GetProperty("caption").GetString());
+        Assert.True(SolvedOk(solve), solve[^1].GetProperty("caption").GetString());
         var map = Phase(view, "map");
         Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
     }
@@ -562,7 +580,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         var lastStep = run.Steps.LastOrDefault();
         bool endsInDone = lastStep != null && lastStep.GetType().GetProperty("Event")!.GetValue(lastStep) is StepEvent.Done;
         Assert.Equal(run.Steps.Count + (endsInDone ? 0 : 1), solve.Count);
-        Assert.Equal(Verifies(red.reductionTo, red.reductionTo.instance, run.Answer), solve[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal(Verifies(red.reductionTo, red.reductionTo.instance, run.Answer), SolvedOk(solve));
         // The build phase does not depend on the solver.
         Assert.Equal(Phase(byDefault, "build").Count, Phase(view, "build").Count);
     }
@@ -614,7 +632,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
             .Where(n => n.Value.GetProperty("state").GetString() == "Solution").Select(n => n.Name);
         string answer = "{" + string.Join(",", solved) + "}";
         bool solvedOk = Verifies(red.reductionTo, red.reductionTo.instance, answer);
-        Assert.Equal(solvedOk, Phase(view, "solve")[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal(solvedOk, SolvedOk(Phase(view, "solve")));
         var mapped = red.MapBackRun(answer, true)!;
         var done = mapped.Steps[^1];
         Assert.Equal((bool?)done.GetType().GetProperty("Ok")!.GetValue(done), Phase(view, "map")[^1].GetProperty("ok").GetBoolean());
@@ -717,8 +735,8 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 }
 
-// The Reduction View with a 50 ms solve budget: a solve that runs past it ends the solve phase with its stopped Done frame, and
-// the map phase is a single Done frame saying there is nothing to map back.
+// The Reduction View with a 50 ms solve budget: a solve that runs past it ends the solve phase with its blank stopped frame (a
+// Reject, no ok), and the map phase is a single Done frame (ok false) saying there is nothing to map back.
 [Collection(TimingCollection.Name)]
 public class ReductionView_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
@@ -745,10 +763,12 @@ public class ReductionView_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory>
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
         var solve = frames.Where(f => f.GetProperty("phase").GetString() == "solve").ToList();
         var map = frames.Where(f => f.GetProperty("phase").GetString() == "map").ToList();
-        Assert.Equal("Done", solve[^1].GetProperty("event").GetString());
-        Assert.False(solve[^1].GetProperty("ok").GetBoolean());
+        // The stopped solve closes its phase as a Reject without ok; the view's only Done is the map's (#840).
+        Assert.Equal("Reject", solve[^1].GetProperty("event").GetString());
+        Assert.False(solve[^1].TryGetProperty("ok", out _));
         Assert.StartsWith("Stopped after 0.05 s and ", solve[^1].GetProperty("caption").GetString());
-        Assert.Single(solve, f => f.GetProperty("event").GetString() == "Done");
+        Assert.DoesNotContain(solve, f => f.GetProperty("event").GetString() == "Done");
+        Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         var only = Assert.Single(map);
         Assert.Equal("Done", only.GetProperty("event").GetString());
         Assert.False(only.GetProperty("ok").GetBoolean());
@@ -774,7 +794,9 @@ public class ReductionView_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory>
         Assert.True(response.StatusCode == HttpStatusCode.OK, body);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
         var last = frames.Where(f => f.GetProperty("phase").GetString() == "solve").Last();
-        Assert.False(last.GetProperty("ok").GetBoolean());
+        Assert.Equal("Reject", last.GetProperty("event").GetString());
+        Assert.False(last.TryGetProperty("ok", out _));
+        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
         Assert.StartsWith("Stopped after 0.05 s and ", last.GetProperty("caption").GetString());
         var target = last.GetProperty("target");
         Assert.Empty(target.GetProperty("nodes").EnumerateObject());
