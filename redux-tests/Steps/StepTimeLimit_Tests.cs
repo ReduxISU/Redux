@@ -17,6 +17,7 @@ namespace redux_tests;
 // The time limit on solves that record steps (the visualize endpoint). Uses the NFA solver on an automaton whose
 // every state moves to every state on 'a' and which can never accept: it enumerates 2^n runs on a^n, so it is
 // slow enough to be stopped, and it records a step for every move.
+[Collection(TimingCollection.Name)]
 public class StepTimeLimit_Tests {
     // 2^40 runs: never finishes within a test's lifetime unless stopped.
     internal const string SlowNfa = "(({1,2,3},{a},{(1,a,1),(1,a,2),(2,a,1),(2,a,2)},1,{3}),aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa)";
@@ -109,6 +110,7 @@ public class TinyBudgetAppFactory : AppFactory {
     }
 }
 
+[Collection(TimingCollection.Name)]
 public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
