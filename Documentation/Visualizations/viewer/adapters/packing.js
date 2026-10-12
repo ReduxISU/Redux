@@ -2,10 +2,12 @@
    items[{id,label,size,value?}], containers[{id,label,target?|limit?,atLeast?}], total, maxBins?}
    frames {event, caption, focus, items{id:{state}}, containers{id:{state}}, assign[containerIndex|-1], totals[{size,value?}], ok?}
    Drawn with PackingView (../mockups/packing.js) through its loadModel hook: the instance is built from the payload,
-   `assign` is the mockup's own frame format, and each item's backend state is passed through as `itemStates`. */
+   `assign` is the mockup's own frame format, each item's backend state is passed through as `itemStates`, and each
+   container's state as `rowStates` (per drawn row: Knapsack's one container is both its Weight and Value rows). */
 (() => {
   const RULES = { partition: "partition", subsetSum: "sum", subsetProduct: "product", knapsack: "knapsack", binPacking: "binpacking" };
   const ITEM_CLASS = { ElementHighlight: "Active", Solution: "Solution", Rejected: "Rejected", Untraveled: "Unused" };
+  const ROW_CLASS = { ElementHighlight: "Active", Solution: "Solution", Rejected: "Rejected", Covered: "Covered" };
 
   function model(payload, rule, note) {
     const items = payload.items.map((t, i) => ({ i, w: t.size, v: t.value ?? null, label: String(t.size) }));
@@ -32,7 +34,6 @@
       const known = new Set(["event", "caption", "focus", "items", "containers", "assign", "totals", "ok", "phase", "builtNodes", "builtEdges"]);
       const extra = [...new Set(ctx.frames.flatMap(f => Object.keys(f)))].filter(k => !known.has(k));
       if (extra.length) note(`Frame fields the Packing adapter ignores: ${extra.join(", ")}`, false);
-      if (ctx.frames.some(f => Object.keys(f.containers || {}).length)) note("Container states (Covered / Rejected / ElementHighlight on a bin or side) have no style in packing.js; it shows a ✓/✗ total per row that it derives from the items instead.", false);
       const frames = ctx.frames.map((f, k) => {
         const assign = Array.isArray(f.assign) ? f.assign.slice() : ids.map(() => -1);
         if (!Array.isArray(f.assign)) note("A frame has no assign array; drawn with nothing placed.");
@@ -50,7 +51,17 @@
           const sum = I.items.filter((_, j) => assign[j] === src).reduce((a, it) => a + it.w, 0);
           if (t.size != null && t.size !== sum && rule !== "product") note(`Frame ${k + 1}: totals[${r}].size is ${t.size}, the items assigned there add up to ${sum}.`);
         });
-        return { assign, itemStates, caption: f.caption, done: f.event === "Done", ok: f.ok };
+        // Rows drawn by packing.js: one per container, except Knapsack (Weight and Value rows, one container).
+        const conts = payload.containers || [];
+        const rowConts = rule === "knapsack" ? [conts[0], conts[0]] : conts;
+        const rowStates = rowConts.map(c => {
+          const st = c ? Viewer.stateOf(f.containers, c.id) : "Background";
+          if (st === "Background") return "";
+          if (ROW_CLASS[st]) return ROW_CLASS[st];
+          note(`Container state "${st}" has no style in packing.js (drawn as Background).`);
+          return "";
+        });
+        return { assign, itemStates, rowStates, caption: f.caption, done: f.event === "Done", ok: f.ok };
       });
       view.loadModel(I, { rule }, frames);
 
