@@ -386,18 +386,29 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal((HttpStatusCode.OK, "\"False\""), (vStatus, vBody));
     }
 
-    // #802 on the real endpoint: the first order that fits comes back at once, however many orders there are.
-    [Fact]
-    public async Task Solve_TwelveJobsThatFitInOrder_AnswersAtOnce() {
-        string ones = string.Join(",", Enumerable.Repeat("1", 12));
-        var sw = Stopwatch.StartNew();
-        var (status, body) = await Post("solve?solver=jobseqbruteforce", JsonSerializer.Serialize($"(({ones}),({string.Join(",", Enumerable.Repeat("12", 12))}),({ones}),0)"));
-        Assert.Equal((HttpStatusCode.OK, "\"(0,1,2,3,4,5,6,7,8,9,10,11)\""), (status, body));
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing : IClassFixture<AppFactory> {
+        private readonly ScheduleFrames_Endpoint_Tests _outer;
+
+        public Timing(AppFactory factory) {
+            _outer = new ScheduleFrames_Endpoint_Tests(factory);
+        }
+
+        // #802 on the real endpoint: the first order that fits comes back at once, however many orders there are.
+        [Fact]
+        public async Task Solve_TwelveJobsThatFitInOrder_AnswersAtOnce() {
+            string ones = string.Join(",", Enumerable.Repeat("1", 12));
+            var sw = Stopwatch.StartNew();
+            var (status, body) = await _outer.Post("solve?solver=jobseqbruteforce", JsonSerializer.Serialize($"(({ones}),({string.Join(",", Enumerable.Repeat("12", 12))}),({ones}),0)"));
+            Assert.Equal((HttpStatusCode.OK, "\"(0,1,2,3,4,5,6,7,8,9,10,11)\""), (status, body));
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+        }
     }
 }
 
 // Stopped runs, under the 0.05 s budget of TinyBudgetAppFactory.
+[Collection(TimingCollection.Name)]
 public class ScheduleFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
