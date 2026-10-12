@@ -39,15 +39,23 @@ sealed class StepRecorder<TPartial> {
     private readonly TimeSpan? _timeLimit;
     // Environment.TickCount64 at which the time limit runs out; long.MaxValue when there is no limit.
     private readonly long _deadline;
+    // A test's clock in milliseconds, read instead of Environment.TickCount64; null outside tests.
+    private readonly Func<long>? _clock;
 
     public StepRecorder(int cap = DefaultCap, TimeSpan? timeLimit = null) : this(enabled: true, cap, timeLimit) { }
 
-    private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit) {
+    /// <summary>A recorder that reads the time from <paramref name="clock"/> (milliseconds), so a test decides when the limit passes.</summary>
+    internal StepRecorder(int cap, TimeSpan timeLimit, Func<long> clock) : this(enabled: true, cap, timeLimit, clock) { }
+
+    private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit, Func<long>? clock = null) {
         _enabled = enabled;
         _cap = cap;
         _timeLimit = timeLimit;
-        _deadline = timeLimit is { } limit ? Environment.TickCount64 + (long)Math.Ceiling(limit.TotalMilliseconds) : long.MaxValue;
+        _clock = clock;
+        _deadline = timeLimit is { } limit ? Now() + (long)Math.Ceiling(limit.TotalMilliseconds) : long.MaxValue;
     }
+
+    private long Now() => _clock == null ? Environment.TickCount64 : _clock();
 
     /// <summary>The kept steps, in order.</summary>
     public IReadOnlyList<SolverStep<TPartial>> Steps => _steps;
@@ -71,7 +79,7 @@ sealed class StepRecorder<TPartial> {
             _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus, caption());
         }
         // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
-        if (Environment.TickCount64 >= _deadline)
+        if (Now() >= _deadline)
             throw new StepBudgetExceededException(this);
     }
 
