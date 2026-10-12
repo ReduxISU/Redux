@@ -94,6 +94,8 @@ public class SearchTreeQueens_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(boardFrames.Select(f => (f.GetProperty("event").GetString(), f.GetProperty("caption").GetString())),
             frames.Select(f => (f.GetProperty("event").GetString(), f.GetProperty("caption").GetString())));
         Assert.All(frames.SkipLast(1), f => Assert.Single(f.GetProperty("focus").EnumerateArray()));
+        // As on the board (#839), nothing is Solution while the solver searches: the answer's path turns green only in the Done.
+        Assert.All(frames.SkipLast(1), f => Assert.DoesNotContain(f.GetProperty("nodes").EnumerateArray(), n => SearchTreeJson.State(n) == "Solution"));
         // Depth first: nothing is ever queued, so there are no order badges.
         Assert.DoesNotContain(frames.SelectMany(f => f.GetProperty("nodes").EnumerateArray()), n => SearchTreeJson.Kind(n) == "queued" || n.TryGetProperty("order", out _));
 
