@@ -74,7 +74,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
         Assert.DoesNotContain("ListReadsTypedSteps", body);
         Assert.DoesNotContain("ListedEdges", body);
-        Assert.DoesNotContain("LayeredGraph", body);
+        Assert.DoesNotContain("LayeredGraph", InfoJson.WithoutPictureType(body));
     }
 
     // Strongly Connected Components' default visualization moved off DummyVisualization to SCCVisualization. Its /info
@@ -86,7 +86,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot("info.stronglyconnectedcomponents.json"), body);
         Assert.DoesNotContain("DummyVisualization", body);
-        Assert.DoesNotContain("LayeredGraph", body);
+        Assert.DoesNotContain("LayeredGraph", InfoJson.WithoutPictureType(body));
         var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
         Assert.Equal("Strongly Connected Components Visualization", vis.GetProperty("visualizationName").GetString());
         Assert.Equal("GraphD3", vis.GetProperty("visualizationType").GetString());

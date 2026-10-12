@@ -60,7 +60,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("TripartiteMatching", body);
+        Assert.DoesNotContain("TripartiteMatching", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
@@ -82,7 +82,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ReplaceLineEndings("\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
         Assert.DoesNotContain("DummyVisualization", body);
-        Assert.DoesNotContain("TripartiteMatching", body);
+        Assert.DoesNotContain("TripartiteMatching", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
     }
 
@@ -123,11 +123,11 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync("/ProblemProvider/info?interface=dm3visualization", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             root.EnumerateObject().Select(p => p.Name));
         Assert.Equal("DynamicTable", root.GetProperty("visualizationType").GetString());
         Assert.Equal("3-Dimensional Matching Brute Force", root.GetProperty("solver").GetProperty("solverName").GetString());
-        Assert.DoesNotContain("TripartiteMatching", body);
+        Assert.DoesNotContain("TripartiteMatching", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("Describe", body);
     }
 

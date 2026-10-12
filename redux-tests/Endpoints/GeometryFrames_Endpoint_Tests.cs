@@ -75,7 +75,7 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("\"Geometry\"", body);
+        Assert.DoesNotContain("\"Geometry\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
@@ -104,7 +104,7 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var root = JsonDocument.Parse(body).RootElement;
         var vis = name == "convexhull" ? root.GetProperty("defaultVisualization") : root;
         Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
-        Assert.DoesNotContain("\"Geometry\"", body);
+        Assert.DoesNotContain("\"Geometry\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("ParseHull", body);
     }

@@ -71,7 +71,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("\"Packing\"", body);
+        Assert.DoesNotContain("\"Packing\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
@@ -94,7 +94,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
         Assert.DoesNotContain("DummyVisualization", body);
-        Assert.DoesNotContain("\"Packing\"", body);
+        Assert.DoesNotContain("\"Packing\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
     }
 
@@ -158,11 +158,11 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             root.EnumerateObject().Select(p => p.Name));
         Assert.Equal("SetD3", root.GetProperty("visualizationType").GetString());
         Assert.Equal(solver, root.GetProperty("solver").GetProperty("solverName").GetString());
-        Assert.DoesNotContain("\"Packing\"", body);
+        Assert.DoesNotContain("\"Packing\"", InfoJson.WithoutPictureType(body));
     }
 
     [Theory]

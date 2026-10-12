@@ -80,7 +80,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("\"Schedule\"", body);
+        Assert.DoesNotContain("\"Schedule\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
@@ -96,7 +96,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot("info.jobseq.json"), body.ReplaceLineEndings("\n"));
         Assert.DoesNotContain("DummyVisualization", body);
-        Assert.DoesNotContain("\"Schedule\"", body);
+        Assert.DoesNotContain("\"Schedule\"", InfoJson.WithoutPictureType(body));
         var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
         Assert.Equal("Job Sequencing Schedule Visualization", vis.GetProperty("visualizationName").GetString());
         Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
@@ -119,11 +119,11 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync("/ProblemProvider/info?interface=jobseqvisualization", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             root.EnumerateObject().Select(p => p.Name));
         Assert.Equal("DynamicTable", root.GetProperty("visualizationType").GetString());
         Assert.Equal("Job Sequencing Brute Force", root.GetProperty("solver").GetProperty("solverName").GetString());
-        Assert.DoesNotContain("\"Schedule\"", body);
+        Assert.DoesNotContain("\"Schedule\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("Describe", body);
     }
 

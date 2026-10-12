@@ -94,7 +94,7 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("\"QuantumCircuit\"", body);
+        Assert.DoesNotContain("\"QuantumCircuit\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
     }

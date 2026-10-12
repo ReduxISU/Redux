@@ -50,7 +50,7 @@ public class SearchTreeSat3_Endpoint_Tests : IClassFixture<AppFactory> {
     public async Task Info_IsUnchangedByTheSearchTree(string name) {
         var body = await _client.GetStringAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("SearchTree", body);
+        Assert.DoesNotContain("SearchTree", InfoJson.WithoutPictureType(body));
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class SearchTreeSat3_Endpoint_Tests : IClassFixture<AppFactory> {
         var json = JsonDocument.Parse(body).RootElement;
         Assert.Equal("3SAT Search Tree", json.GetProperty("visualizationName").GetString());
         Assert.Equal("BooleanSatisfiability", json.GetProperty("visualizationType").GetString());
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             json.EnumerateObject().Select(p => p.Name));
         Assert.Equal("3SAT Backtracking", json.GetProperty("solver").GetProperty("solverName").GetString());
     }

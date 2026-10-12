@@ -79,7 +79,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("\"Board\"", body);
+        Assert.DoesNotContain("\"Board\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
@@ -95,7 +95,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot("info.nqueens.json"), body);
         Assert.DoesNotContain("DummyVisualization", body);
-        Assert.DoesNotContain("\"Board\"", body);
+        Assert.DoesNotContain("\"Board\"", InfoJson.WithoutPictureType(body));
         var vis = JsonDocument.Parse(body).RootElement.GetProperty("defaultVisualization");
         Assert.Equal("N-Queens Board Visualization", vis.GetProperty("visualizationName").GetString());
         Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
@@ -127,7 +127,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var root = JsonDocument.Parse(body).RootElement;
         var vis = name == "sudoku" ? root.GetProperty("defaultVisualization") : root;
         Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
-        Assert.DoesNotContain("\"Board\"", body);
+        Assert.DoesNotContain("\"Board\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("ParseAnswer", body);
@@ -171,11 +171,11 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync("/ProblemProvider/info?interface=nqueensvisualization", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             root.EnumerateObject().Select(p => p.Name));
         Assert.Equal("DynamicTable", root.GetProperty("visualizationType").GetString());
         Assert.Equal("N-Queens Backtracking", root.GetProperty("solver").GetProperty("solverName").GetString());
-        Assert.DoesNotContain("\"Board\"", body);
+        Assert.DoesNotContain("\"Board\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("Describe", body);
     }
 

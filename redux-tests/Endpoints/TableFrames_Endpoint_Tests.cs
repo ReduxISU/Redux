@@ -58,7 +58,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
-        Assert.DoesNotContain("\"Table\"", body);
+        Assert.DoesNotContain("\"Table\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
     }
 
@@ -78,7 +78,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
-        Assert.DoesNotContain("\"Table\"", body);
+        Assert.DoesNotContain("\"Table\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("StepShape", body);
         Assert.DoesNotContain("DummyVisualization", body);
     }
@@ -128,11 +128,11 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             root.EnumerateObject().Select(p => p.Name));
         Assert.Equal("DynamicTable", root.GetProperty("visualizationType").GetString());
         Assert.Equal(solver, root.GetProperty("solver").GetProperty("solverName").GetString());
-        Assert.DoesNotContain("\"Table\"", body);
+        Assert.DoesNotContain("\"Table\"", InfoJson.WithoutPictureType(body));
         Assert.DoesNotContain("Describe", body);
         Assert.DoesNotContain("Blank", body);
     }

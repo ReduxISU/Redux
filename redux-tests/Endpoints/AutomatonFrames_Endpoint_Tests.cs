@@ -79,7 +79,7 @@ public class AutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
         Assert.DoesNotContain("ListReadsTypedSteps", body);
-        Assert.DoesNotContain("\"Automaton\"", body);
+        Assert.DoesNotContain("\"Automaton\"", InfoJson.WithoutPictureType(body));
     }
 
     [Theory]
