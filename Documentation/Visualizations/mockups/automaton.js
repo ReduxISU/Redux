@@ -343,7 +343,8 @@ const AutomatonView = (() => {
       },
       // Viewer hook (local/viz-viewer): draw an automaton built elsewhere (the shape parse() returns) with frames supplied by
       // the caller instead of simulating it. Frames may carry `ev` ({nodes: Map state → class, edges: Map from+SEP+to → class}).
-      loadModel(model, fr) { A = model; sim = { frames: fr, accepted: false }; cur = fr; paths = []; frame = null; hover = null; draw(); paint(); return { frames: fr }; },
+      // pathRuns (NFA): [{label, accepted, frames}] in the same frame shape, one per path, for usePath (the one-path picker).
+      loadModel(model, fr, pathRuns) { A = model; sim = { frames: fr, accepted: false }; cur = fr; paths = pathRuns || []; frame = null; hover = null; draw(); paint(); return { frames: fr, paths: paths.map(p => ({ label: p.label, accepted: p.accepted })) }; },
       SEP,
       // null = all branches at once; otherwise follow paths[i] alone.
       usePath(i) {

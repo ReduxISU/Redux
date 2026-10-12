@@ -1,7 +1,9 @@
 /* ---- Automaton (#666): payload {kind:"dfa"|"nfa", layout:"layered", states[{id,label,layer}], start, accepting[ids], alphabet,
    transitions[{id,a,b,label,symbols[],epsilon}], input[chars], garbage?{id,label,missing[{state,symbol}]}, paths?[{id,label,accepted,outcome,frames}], pathsTruncated?}
    frames {event, caption, focus, position, active[ids], nodes{id:{state}}, edges{id:{state}}, ok?}
-   Drawn with AutomatonView (../mockups/automaton.js) through its loadModel hook; states come from the backend as `ev`. */
+   Drawn with AutomatonView (../mockups/automaton.js) through its loadModel hook; states come from the backend as `ev`.
+   NFA: a Path picker above the picture (the approved design) switches between all branches (the default, the response's
+   own frames) and one path's run (payload.paths[i].frames, through usePath); the page's player then steps that run. */
 (() => {
   const NODE_CLASS = { ElementHighlight: "Active", Solution: "Solution", Rejected: "Rejected", Untraveled: "Untraveled" };
   const EDGE_CLASS = { ElementHighlight: "hot" };
@@ -29,11 +31,10 @@
         accept: new Set((payload.accepting || []).map(name)), input: payload.input || [], kind: payload.kind === "nfa" ? "NFA" : "DFA", garbage,
       };
       if (payload.garbage && payload.garbage.missing?.length) note(`Garbage state: the payload lists ${payload.garbage.missing.length} missing moves; the mockup draws the Garbage box with no edges into it (same as the design).`, false);
-      if (payload.paths) note(`NFA payload sends ${payload.paths.length} per-path runs${payload.pathsTruncated ? " (truncated)" : ""}; the viewer shows the all-branches frames only (the mockup's one-path picker would change the frame count).`, false);
+      if (payload.pathsTruncated) note(`NFA payload sends ${(payload.paths || []).length} per-path runs and says the list is truncated; the picker offers those.`, false);
       const SEP = view.SEP;
       const groupKey = new Map(payload.transitions.map(t => [t.id, name(t.a) + SEP + name(t.b)]));
-      let prevPos = 0;
-      const frames = ctx.frames.map((f, i) => {
+      const convert = list => { let prevPos = 0; return list.map(f => {
         const nodes = new Map(), edges = new Map();
         for (const id of Object.keys(f.nodes || {})) {
           const st = Viewer.stateOf(f.nodes, id);
@@ -51,8 +52,28 @@
         const done = f.event === "Done";
         return { active: (f.active || []).map(name), taken: [], visited: new Set(), pos, sym: moved ? A.input[pos - 1] : undefined,
           done, accepted: f.ok === true, caption: f.caption, ev: { nodes, edges } };
-      });
-      view.loadModel(A, frames);
+      }); };
+      const frames = convert(ctx.frames);
+      const runs = (payload.paths || []).filter(p => Array.isArray(p.frames) && p.frames.length);
+      view.loadModel(A, frames, runs.map(p => ({ label: p.label, accepted: p.accepted, frames: convert(p.frames) })));
+      // One-path picker: all branches (default) or one path. Picking a path replaces the frames the page steps through.
+      if (runs.length && ctx.setFrames) {
+        const wrap = document.createElement("label");
+        wrap.className = "f inline vv-path-pick";
+        wrap.textContent = "Path ";
+        const sel = document.createElement("select");
+        sel.setAttribute("aria-label", "Follow one path");
+        const opt = (v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); };
+        opt("", `All branches at once (${runs.length} paths)`);
+        runs.forEach((p, i) => opt(String(i), p.label || `Path ${i + 1}: ${p.accepted ? "accepts" : "rejects"}`));
+        wrap.appendChild(sel);
+        ctx.host.insertBefore(wrap, svg);
+        sel.addEventListener("change", () => {
+          const i = sel.value === "" ? null : +sel.value;
+          view.usePath(i);
+          ctx.setFrames(i === null ? ctx.frames : runs[i].frames);
+        });
+      }
       // Tag: states in payload order (+ garbage), edge paths per (from,to) group in first-appearance order.
       const nodeGs = [...svg.querySelectorAll("g.au-node")];
       nodeGs.forEach((g, i) => Viewer.tag(g, payload.states[i].id));

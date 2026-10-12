@@ -177,7 +177,7 @@
     return host;
   }
 
-  function mountPicture({ host, type, payload, frames, instance, problem, visualization, solver, pane, buildOrder = null }) {
+  function mountPicture({ host, type, payload, frames, instance, problem, visualization, solver, pane, buildOrder = null, setFrames = null }) {
     if (!NEW_TYPES.has(type)) {
       host.innerHTML = `<div class="empty">Picture type "${type}" is a legacy visualization: format=frames only wraps its old list output, so there is nothing for a frames renderer to draw. See the raw JSON.</div>`;
       note(`${visualization || problem}: type "${type}" is not a frames picture type (legacy list output wrapped as frames).`, false);
@@ -188,7 +188,7 @@
       return { show() {} };
     }
     try {
-      return Viewer.mount({ host, type, payload, frames, instance, problem, visualization, solver, pane, buildOrder, note: (t, w) => note(`[${pane === "main" ? type : pane + " · " + type}] ${t}`, w) });
+      return Viewer.mount({ host, type, payload, frames, instance, problem, visualization, solver, pane, buildOrder, setFrames, note: (t, w) => note(`[${pane === "main" ? type : pane + " · " + type}] ${t}`, w) });
     } catch (e) {
       console.error(e);
       host.innerHTML = ""; const d = document.createElement("div"); d.className = "err"; d.textContent = `Adapter for ${type} failed: ${e.message}`; host.appendChild(d);
@@ -235,7 +235,15 @@
       const frames = Array.isArray(resp.frames) ? resp.frames : [];
       const along = !$("st-wrap").hidden && $("st-along").checked;
       const host = stage(problem, resp.type, `${vis}${solver ? " · " + solver : ""} · ${frames.length} frames · ${ms} ms`);
-      handles.push({ frames, handle: mountPicture({ host, type: resp.type, payload: resp.payload, frames, instance, problem, visualization: vis, solver, pane: "main" }) });
+      // An adapter may switch the frames the page steps through (the NFA one-path picker): the player restarts on them.
+      const setFrames = fr => {
+        if (!S.run || S.run.resp !== resp) return;
+        stopPlay();
+        S.run.frames = fr; S.run.handles[0].frames = fr;
+        legend(S.run.handles.map(h => h.frames));
+        setupPlayer(fr.length, 0);
+      };
+      handles.push({ frames, handle: mountPicture({ host, type: resp.type, payload: resp.payload, frames, instance, problem, visualization: vis, solver, pane: "main", setFrames }) });
       let sideResp = treeFromSteps(frames, problem, instance), sideLabel = "steps' tree patches";
       if (!sideResp && along) {
         const st = searchTreeVis();

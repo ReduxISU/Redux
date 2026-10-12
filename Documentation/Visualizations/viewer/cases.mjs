@@ -38,7 +38,7 @@ export const CASES = [
   { name: "Bipartite-hittingset", type: "BipartiteGraph", q: { problem: "HITTINGSET", vis: "HittingSetDefaultVisualization" } },
   { name: "Bipartite-factor3sat", type: "BipartiteGraph", q: { problem: "SAT3", vis: "Sat3FactorGraphVisualization", solver: "Sat3BacktrackingSolver" } },
   { name: "Automaton-dfa", type: "Automaton", q: { problem: "DFA", vis: "DFAVisualization" } },
-  { name: "Automaton-nfa", type: "Automaton", q: { problem: "NFA", vis: "NFAVisualization" } },
+  { name: "Automaton-nfa", type: "Automaton", q: { problem: "NFA", vis: "NFAVisualization" }, expect: { paths: true } },
   { name: "Layered-topo", type: "LayeredGraph", q: { problem: "TOPOLOGICALSORT", vis: "TopologicalSortDefaultVisualization" } },
   { name: "Layered-sssp", type: "LayeredGraph", q: { problem: "SSSP", vis: "SSSPVisualization" } },
   { name: "Layered-scc", type: "LayeredGraph", q: { problem: "STRONGLYCONNECTEDCOMPONENTS", vis: "SCCVisualization" } },

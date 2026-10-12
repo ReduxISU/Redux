@@ -18,6 +18,8 @@
                     //   (not of the payload order). Hide the rest. Solve/map frames omit both (everything is built).
                     //   A build frame may also carry skipped: [{id,a,b}] pairs the rule considered and left without an edge.
      note(text, warn = true),  // record a mismatch between the backend JSON and the mockup (shown in the side panel; deduped)
+     setFrames(frames),  // picture mode, main pane only (else null): replace the frames the page steps through (e.g. the
+                         //   NFA one-path picker); the player restarts at 0 and show(i) then indexes the new list
    }
    show(i) draws frames[i] (0 <= i < frames.length).
 

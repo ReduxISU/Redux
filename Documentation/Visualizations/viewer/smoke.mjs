@@ -29,6 +29,8 @@ import { CASES } from "./cases.mjs";
  *   qubits: true     the last frame draws the measured qubits Solution (ok) or Rejected (ok:false), as the backend sent them.
  *   result: "..."    the last frame's result.
  *   browserBars: true   the chart says its bars are the browser's own simulation.
+ *   paths: true      (NFA) the Path picker offers every payload.paths run; picking one steps exactly that run's frames,
+ *                    drawing its states, and "All branches" goes back to the response's frames.
  */
 async function checkExpect(page, ex, n) {
   const out = [];
@@ -67,6 +69,31 @@ async function checkExpect(page, ex, n) {
     if (drawn.wires !== sent.filter(s => s === want).length) out.push(`expect qubits: ${sent.filter(s => s === want).length} ${want} qubits sent, ${drawn.wires} drawn`);
     if (!drawn.bar) out.push(`expect qubits: the measured outcome's bar is not drawn ${want === "Solution" ? "green" : "red"}`);
     if (drawn.other) out.push("expect qubits: the opposite verdict is drawn too");
+  }
+  if (ex.paths) {
+    const runs = await page.evaluate(() => (window.__viewer.run.resp.payload.paths || []).map(p => p.frames.length));
+    const opts = await page.evaluate(() => [...document.querySelectorAll(".stage .host .vv-path-pick select option")].map(o => o.value));
+    if (!runs.length) out.push("expect paths: the payload has no paths");
+    if (opts.length !== runs.length + 1) out.push(`expect paths: the picker offers ${opts.length - 1} paths, the payload has ${runs.length}`);
+    for (let k = 0; k < Math.min(runs.length, opts.length - 1); k++) {
+      await page.selectOption(".stage .host .vv-path-pick select", String(k));
+      const got = await page.evaluate(() => +document.getElementById("scrub").max + 1);
+      if (got !== runs[k]) out.push(`expect paths: path ${k + 1} has ${runs[k]} frames, the player steps ${got}`);
+      // Every frame of the run: the drawn automaton states carry as many state classes as the backend frame names.
+      for (let i = 0; i < got; i++) {
+        await go(i);
+        const [want, drawn] = await page.evaluate(([k, i]) => {
+          const f = window.__viewer.run.resp.payload.paths[k].frames[i];
+          const want = Object.values(f.nodes || {}).filter(v => (v.state || v) !== "Background").length;
+          const drawn = document.querySelectorAll(".stage .host g.au-node.Solution, .stage .host g.au-node.Rejected, .stage .host g.au-node.Active, .stage .host g.au-node.Untraveled").length;
+          return [want, drawn];
+        }, [k, i]);
+        if (want !== drawn) out.push(`expect paths: path ${k + 1} frame ${i + 1} names ${want} automaton states, ${drawn} drawn with a state`);
+      }
+    }
+    await page.selectOption(".stage .host .vv-path-pick select", "");
+    const back = await page.evaluate(() => +document.getElementById("scrub").max + 1);
+    if (back !== n) out.push(`expect paths: back on all branches the player steps ${back} frames, not ${n}`);
   }
   if (ex.browserBars) {
     const t = await page.evaluate(() => document.querySelector(".stage .host text.qc-src")?.textContent || "");
