@@ -114,10 +114,11 @@ sealed record BoardFrame(
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
-/// <item>A square the solver filled (a digit or a piece that is not a clue) is <c>ElementHighlight</c> while a whole
-/// candidate is only being tried (Try, Reject of a run that is not <see cref="SolveRun.Incremental"/>) and <c>Solution</c>
-/// otherwise: in every step of an incremental run (what it has committed), in an Accept and in a correct Done
-/// (<see cref="GraphSubsetFrames.Picked"/>). In a Done frame with ok = false it is <c>Rejected</c>.</item>
+/// <item>A square the solver filled (a digit or a piece that is not a clue) is <c>Solution</c> only in the Done frame with
+/// ok = true, once the board is confirmed as the answer (#839). Before that it is plain (<c>Background</c>): in every step of
+/// an incremental run (<see cref="SolveRun.Incremental"/>) and in an Accept or Backtrack, so Solution colour never shows
+/// while the solver is still searching. A whole candidate that is only being tried (Try, Reject of a run that is not
+/// incremental) is <c>ElementHighlight</c>. In a Done frame with ok = false it is <c>Rejected</c>.</item>
 /// <item>A clue is fixed: it is never <c>Solution</c>, and is <c>Rejected</c> only when a step names it.</item>
 /// <item>A square a step ruled out (a conflict's square) is <c>Rejected</c>, with a <c>Rejected</c> link to the square that
 /// rules it out.</item>
@@ -169,6 +170,17 @@ static class BoardFrames {
         ParseCellId(id) is var (r, c) && r < spec.Size && c < spec.Size;
 
     /// <summary>
+    /// The state of a square the solver filled: <c>Solution</c> only in a Done with ok = true (the confirmed answer),
+    /// <c>Rejected</c> in any other Done, <c>ElementHighlight</c> while a whole candidate is tried (Try, Reject of a run that
+    /// is not incremental), and plain otherwise: a placed piece is not the answer until the run ends on it (#839).
+    /// </summary>
+    public static PictureState Placed(StepEvent ev, bool? ok, bool incremental) => ev switch {
+        StepEvent.Done => ok == true ? PictureState.Solution : PictureState.Rejected,
+        StepEvent.Try or StepEvent.Reject when !incremental => PictureState.ElementHighlight,
+        _ => PictureState.Background,
+    };
+
+    /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
     /// (<see cref="SolveRun.Incremental"/>).
     /// </summary>
@@ -178,7 +190,7 @@ static class BoardFrames {
         var pieces = new List<BoardPieceDto>();
         var states = new Dictionary<string, PictureState>(StringComparer.Ordinal);
 
-        var picked = ev == StepEvent.Done && ok != true ? PictureState.Rejected : GraphSubsetFrames.Picked(ev, incremental);
+        var picked = Placed(ev, ok, incremental);
         foreach (var (id, value) in partial.Values) {
             if (clues.ContainsKey(id) || !OnBoard(spec, id)) continue;
             var (r, c) = ParseCellId(id)!.Value;
