@@ -366,7 +366,7 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
             clock.Stop();
             Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"{reduction}: the view took {clock.Elapsed}");
             Assert.Equal(solverName, view.GetProperty("solver").GetString());
-            Assert.True(Phase(view, "solve")[^1].GetProperty("ok").GetBoolean(), Phase(view, "solve")[^1].GetProperty("caption").GetString());
+            Assert.True(ReductionView_Endpoint_Tests.SolvedOk(Phase(view, "solve")), Phase(view, "solve")[^1].GetProperty("caption").GetString());
             var map = Phase(view, "map");
             Assert.True(map[^1].GetProperty("ok").GetBoolean(), map[^1].GetProperty("caption").GetString());
             IReduction red = Build(reduction, instance);
