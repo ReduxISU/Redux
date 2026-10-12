@@ -88,7 +88,7 @@ States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked >
 | State | Squares |
 | --- | --- |
 | `ElementHighlight` | The focus: the square being tried, the queen just placed. Also every placed square while a whole candidate is only tried (a `Try` or `Reject` of a solver that is not incremental; none of today's are) |
-| `Solution` | What the solver has put down: in every step of an incremental solver (what it has committed), in an `Accept`, and in a correct `Done`. Never a clue |
+| `Solution` | What the solver has put down, only in the `Done` frame with `ok: true`, once the board is confirmed as the answer. Before that a placed digit or queen is plain (`Background`), in every step of an incremental solver and in an `Accept`, so Solution colour never shows while the solver is still searching. Never a clue |
 | `Rejected` | The focus of an incremental solver's `Reject` (a square with no digit left, a row with no safe square and the queen above it that must move); a square a step ruled out (the start of a link); everything placed in a `Done` whose answer is wrong |
 | `Covered`, `Blocked`, `Untraveled` | not used. Squares a queen attacks are not marked: a frontend's Hints switch can shade them from the queens' positions |
 
