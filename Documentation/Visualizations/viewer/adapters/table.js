@@ -1,9 +1,12 @@
 /* ---- Table (#671): payload {kind:"table", shape:"grid"|"matrix"|"trace", columns[{id,label,key?}], rows[{id,label?}], rowAxis?, columnAxis?, title?}
    frames {event, caption, focus, values[row][col] (string|null), rows{id:{state}}, cells{"r<i>c<j>":{state}}, changed[cell ids], arrows?[{from,to,best}], ok?}
    Drawn with TableView (../mockups/table.js):
-     grid   (Edit Distance)  → the mockup's DP grid (drawED) through its loadFrames hook; values come from the backend frame.
-     matrix (0-1 ILP)        → the mockup's constraint table (drawIP) through loadFrames; the backend's row/cell states are
-                               then applied on top, and the drawn totals are checked against the backend's.
+     grid   (Edit Distance)  → the mockup's DP grid (drawED) through its loadFrames hook; values, axis names (rowAxis /
+                               columnAxis) and the backtrace steps (`back`: the traced cell and the path so far) come from
+                               the backend frame.
+     matrix (0-1 ILP)        → the mockup's constraint table (drawIP) through loadFrames, given the backend's values, so it
+                               draws the backend's columns (x…, Total, Bound, Holds) and leaves undecided cells blank / open;
+                               the backend's row/cell states are then applied on top.
      trace  (DFA/NFA/SSSP/SPSP trace tables) → drawn here with table.js's own CSS classes (tb-table, tr.cur/ok/bad, td.chg,
                                tb-pill). The mockup's trace drawers read its own solvers' run data (rows, runs, Dijkstra maps),
                                which the backend's generic columns/values trace does not map onto (NFA especially). */
@@ -81,8 +84,9 @@
       .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
     const out = { values: vals, filled, caption: f.caption };
     if (hl.length > 1) note("Edit Distance frame highlights more than one cell; the mockup's grid has one current cell.");
+    // A backtrace step: one highlighted cell (the one being traced) and no arrows; the Solution cells are the path so far.
     const backtrace = hl.length && !(f.arrows || []).length && f.event !== "Done";
-    if (backtrace) note("Edit Distance backtrace steps (a highlighted cell, no arrows) have no frame in the mockup grid, which jumps straight to the finished path; the viewer paints the backend's cell states onto the grid for them.", false);
+    if (backtrace) out.back = { cur: hl[0], path: sol };
     if (hl.length && f.event !== "Done" && !backtrace) {
       const [i, j] = hl[0];
       out.cur = [i, j];
@@ -117,13 +121,13 @@
     const row0 = (f.values && f.values[0]) || [];
     const x = Array.from({ length: n }, (_, j) => { const v = row0[j]; return v == null || v === "?" ? null : Number(v); });
     const cur = Object.keys(f.cells || {}).map(id => [id, parseCell(id)]).find(([id, p]) => p && p[0] === 0 && Viewer.stateOf(f.cells, id) === "ElementHighlight");
-    return { x, cur: cur ? cur[1][1] : undefined, done: f.event === "Done", ok: f.ok, caption: f.caption };
+    return { x, cur: cur ? cur[1][1] : undefined, done: f.event === "Done", ok: f.ok, caption: f.caption, values: f.values || [] };
   }
 
   function decorateMatrix(ctx, host, f, n, note) {
     const { payload } = ctx, hide = hiddenIds(ctx, f);
-    // drawIP's columns: "", x1..xn, Total, "≤", Bound, Row holds?  →  backend c0..c(n-1), c(n)=Total, c(n+1)=Bound, c(n+2)=Holds
-    const tdIndex = j => (j < n ? 1 + j : j === n ? 1 + n : j === n + 1 ? 3 + n : j === n + 2 ? 4 + n : -1);
+    // drawIP's columns with the backend's values: "", x1..xn, Total, Bound, Row holds?  →  backend c0..c(n+2), one to one.
+    const tdIndex = j => 1 + j;
     const ths = [...host.querySelectorAll("thead th")], trs = [...host.querySelectorAll("tbody tr")];
     payload.columns.forEach((c, j) => { const th = ths[tdIndex(j)]; if (th) Viewer.tag(th, c.id); });
     trs.forEach((tr, i) => {
@@ -142,15 +146,11 @@
         const span = td.querySelector(".tb-x");
         if (span) span.classList.toggle("cur", cs === "ElementHighlight");
         else if (CELL_CLASS[cs]) td.classList.add(CELL_CLASS[cs]);
-        // The drawn total and verdict are the mockup's own arithmetic; check them against the backend's values.
+        // drawIP writes the backend's own Total / Bound / Holds; check it did (null → blank Total, "open" Holds).
         const bv = (f.values[i] || [])[j];
-        if (bv == null && i > 0 && (j === n || j === n + 2) && !/^(—|)$/.test(td.textContent.trim()))
-          note(`0-1 ILP: while x is unset the backend sends no Total/Holds (null), but the mockup derives a verdict anyway from the coefficient ranges (open / yes / can't).`, false);
-        if (bv != null && i > 0 && j >= n) {
-          const drawn = td.textContent.trim().split(/\s/)[0];
-          const want = String(bv);
-          if (drawn !== want && !(drawn === "—" && want === "") && !(want === "yes" && drawn === "yes") && !(want === "no" && /^(no|can't)$/.test(drawn)))
-            note(`0-1 ILP ${id}: backend says "${want}", the mockup computes "${drawn}".`);
+        if (i > 0 && j >= n) {
+          const drawn = td.textContent.trim(), want = bv == null ? (j === n + 2 ? "open" : "") : String(bv);
+          if (drawn !== want) note(`0-1 ILP ${id}: backend says "${bv}", the table shows "${drawn}".`);
         }
       });
     });
@@ -159,7 +159,6 @@
       if (!hide.has(c.id)) return;
       const k = tdIndex(j);
       [ths[k], ...trs.map(tr => tr.children[k])].forEach(el => { if (el) el.style.display = "none"; });
-      if (j === n + 1) [ths[2 + n], ...trs.map(tr => tr.children[2 + n])].forEach(el => { if (el) el.style.display = "none"; });
     });
   }
 
@@ -182,18 +181,18 @@
           const labels = payload.rows.slice(1).map(r => r.label).join("") + "|" + payload.columns.slice(1).map(c => c.label).join("");
           if (labels !== I.x + "|" + I.y) note(`Edit Distance axis labels (${labels}) differ from the instance's strings (${I.x}|${I.y}).`);
           const frames = ctx.frames.map(f => gridFrame(f, I, note));
-          view.loadFrames(ctx.instance, "EDITDISTANCE", frames);
-          note("Edit Distance: the backend sends rowAxis/columnAxis names; the mockup grid hard-codes SOURCE x / TARGET y.", false);
+          view.loadFrames(ctx.instance, "EDITDISTANCE", frames, { axes: { row: payload.rowAxis, col: payload.columnAxis } });
           return {
             show(i) {
               view.show(i);
               const cells = [...host.querySelectorAll("g.tb-cell")], cols = payload.columns.length;
               cells.forEach((g, k) => Viewer.tag(g, cellId(Math.floor(k / cols), k % cols)));
-              // The backend's cell states on top (the backtrace steps need this; elsewhere it matches what the mockup derived).
+              // drawED draws the current cell (Active) and the Solution path from the frame; check it matches the backend.
               for (const id of Object.keys(ctx.frames[i].cells || {})) {
                 const s = Viewer.stateOf(ctx.frames[i].cells, id), g = cells.find(c => c.dataset.vid === id);
-                if (s === "ElementHighlight" || s === "Solution") { if (g) { g.classList.remove("src", "best", "empty", "Active", "Solution"); g.classList.add(s === "Solution" ? "Solution" : "Active"); } }
-                else note(`Edit Distance cell state "${s}" is not drawn by the mockup grid.`);
+                if (s !== "ElementHighlight" && s !== "Solution") { note(`Edit Distance cell state "${s}" is not drawn by the mockup grid.`); continue; }
+                const want = s === "Solution" ? "Solution" : "Active";
+                if (g && !g.classList.contains(want)) note(`Edit Distance ${id}: the backend says ${s}, the grid does not draw it ${want}.`);
               }
             },
           };
@@ -210,7 +209,6 @@
           const { I } = view.loadFrames(ctx.instance, "INTPROGRAMMING01", frames);
           if (I.n !== n) note(`0-1 ILP: the payload has ${n} variable columns, the instance ${I.n}.`);
           if (payload.columns.length !== n + 3) note("0-1 ILP: payload columns are not x1..xn, Total, Bound, Holds; mapping may be off.");
-          note("0-1 ILP: the mockup draws an extra \"≤\" column between Total and Bound; the backend has none.", false);
           return { show(i) { view.show(i); decorateMatrix(ctx, host, ctx.frames[i], n, note); } };
         } catch (e) {
           note(`0-1 ILP matrix could not use the mockup's drawing (${e.message}); drawn as a plain table.`);
