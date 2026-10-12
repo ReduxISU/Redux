@@ -24,8 +24,9 @@
       const extra = [...new Set(ctx.frames.flatMap(f => Object.keys(f)))].filter(k => !known.has(k));
       if (extra.length) note(`Frame fields the Board adapter ignores: ${extra.join(", ")}`, false);
 
-      if (sudoku && ctx.frames.some(f => f.event !== "Done" && Object.values(f.cells || {}).some(v => (v.state || v) === "Solution")))
-        note("Sudoku marks every digit placed so far as Solution on each step; board.js keeps placed digits plain (green digit, no fill) until the solved frame.", false);
+      // Placed digits and queens stay plain until the confirmed answer (#839): Solution only in the final Done with ok.
+      if (ctx.frames.some(f => f.event !== "Done" && Object.values(f.cells || {}).some(v => (v.state || v) === "Solution")))
+        note(`The ${sudoku ? "Sudoku" : "N-Queens"} frames mark placed pieces Solution before the final Done; they should stay plain until the answer (#839).`);
       // Neutral mockup frames: sudoku digits as a grid, queens as row → column. kind "show" makes board.js add no states of its own.
       const frames = ctx.frames.map((f, k) => {
         if (sudoku) {

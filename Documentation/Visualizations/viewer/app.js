@@ -112,16 +112,25 @@
     updateAlong();
   }
 
-  /** Label each visualization with the picture type it serves under format=frames (one default-instance run each, cached). */
+  /**
+   * Label each visualization with the picture type it serves under format=frames. /info names it in "pictureType" (#841): a
+   * picture type, or null for a visualization that only serves the older formats (format=frames then wraps its list output,
+   * typed with its legacy visualizationType). A backend without the field is probed instead: one default-instance run per
+   * visualization, cached.
+   */
   function probeVisualizations(p, viz, defInst) {
     for (const v of viz) {
       const k = S.backend + "|" + v;
-      if (!S.visProbe.has(k)) S.visProbe.set(k, postJson(`/ProblemProvider/visualize?visualization=${encodeURIComponent(v)}&format=frames`, defInst)
-        .then(d => d.type).catch(() => "error"));
-      S.visProbe.get(k).then(type => {
+      if (!S.visProbe.has(k)) S.visProbe.set(k, info(v).catch(() => null).then(inf => {
+        if (inf && "pictureType" in inf) return { type: inf.pictureType ?? inf.visualizationType ?? "legacy", from: "info" };
+        return postJson(`/ProblemProvider/visualize?visualization=${encodeURIComponent(v)}&format=frames`, defInst)
+          .then(d => ({ type: d.type, from: "probe" })).catch(() => ({ type: "error", from: "probe" }));
+      }));
+      S.visProbe.get(k).then(({ type, from }) => {
         const o = [...$("vis").options].find(x => x.value === v);
         if (!o) return;
         o.dataset.type = type;
+        o.dataset.typeFrom = from;
         o.textContent = `${v} · ${type}${NEW_TYPES.has(type) ? " (frames)" : type === "error" ? "" : " (legacy, list wrapped)"}`;
         updateAlong();
       });
@@ -271,7 +280,9 @@
     if (i === n - 1) {
       const last = f;
       if (last.event !== "Done") b.push(["rej", "last frame is not Done"]);
-    }
+    } else if (f.event === "Done") b.push(["rej", "Done before the last frame"]);
+    // Only the last frame carries the verdict; a Reduction View's build and solve phases end without one (#840).
+    if (i < n - 1 && f.ok !== undefined && S.run && S.run.kind === "reduction") b.push(["rej", "ok before the last frame"]);
     if (f.focus && f.focus.length) b.push(["", "focus: " + f.focus.slice(0, 6).join(", ") + (f.focus.length > 6 ? ` +${f.focus.length - 6}` : "")]);
     return b;
   }
@@ -377,6 +388,7 @@
       const hdr = { ...rv }; delete hdr.frames;
       $("raw-payload-pre").textContent = JSON.stringify(hdr, null, 2);
       checkGadgets(rv);
+      checkSingleDone(frames);
       buildPhases(frames);
       buildGadgets(rv);
       setupLinking(rv, handles);
@@ -398,6 +410,15 @@
     if (g0 && !("kind" in g0) && "gadgetKind" in g0) note("Reduction View gadgets carry their kind as \"gadgetKind\"; the README/mockup contract calls it \"kind\".", false);
     const kinds = new Set(Object.keys(ReductionView.GADGET_KINDS));
     for (const g of rv.gadgets || []) { const k = g.kind ?? g.gadgetKind; if (!kinds.has(k)) note(`Gadget kind "${k}" is not in the shared list (${[...kinds].join(", ")}).`); }
+  }
+
+  /** The Reduction View has one Done, its last frame (the end of map back), and only that frame has ok (#840). */
+  function checkSingleDone(frames) {
+    const dones = frames.map((f, i) => f.event === "Done" ? i : -1).filter(i => i >= 0);
+    if (dones.length !== 1 || dones[0] !== frames.length - 1)
+      note(`The Reduction View should have exactly one Done, its last frame; it has ${dones.length} (frames ${dones.map(i => i + 1).join(", ") || "none"}).`);
+    const early = frames.slice(0, -1).filter(f => f.ok !== undefined);
+    if (early.length) note(`${early.length} frames before the last carry ok (phases ${[...new Set(early.map(f => f.phase))].join(", ")}); only the final Done should.`);
   }
 
   function buildPhases(frames) {
