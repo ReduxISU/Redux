@@ -712,6 +712,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
 
 // The Reduction View with a 50 ms solve budget: a solve that runs past it ends the solve phase with its stopped Done frame, and
 // the map phase is a single Done frame saying there is nothing to map back.
+[Collection(TimingCollection.Name)]
 public class ReductionView_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
