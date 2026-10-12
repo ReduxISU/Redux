@@ -10,7 +10,7 @@
   const RULES = { topologicalSort: "topo", feedbackArcSet: "arcset", feedbackNodeSet: "nodeset", stronglyConnectedComponents: "scc",
     singleSourceShortestPath: "sssp", singlePairShortestPath: "spsp", directedHamiltonianCycle: "dirham", directedHamiltonian: "dirham" };
   const NODE_CLASS = { ElementHighlight: "Active", Solution: "Solution", Covered: "Covered", Rejected: "Rejected", Blocked: "Blocked", Untraveled: "Untraveled" };
-  const EDGE_CLASS = { ElementHighlight: "hot", Solution: "sol", Covered: "cov", Rejected: "rej", Untraveled: "dim" };
+  const EDGE_CLASS = { ElementHighlight: "hot", Solution: "sol", Covered: "cov", Rejected: "rej", Untraveled: "untr" };
 
   function model(payload) {
     const nodes = payload.nodes.map(n => n.id);
@@ -73,7 +73,6 @@
       const { G, idToKey } = model(payload);
       if (G.nodes.length > 14) note(`${G.nodes.length} nodes: the mockup parser caps layered graphs at 14 nodes (the viewer builds the graph from the payload, so it still draws).`, false);
       if (rule === "arcset") note("Feedback Arc Set marks removed edges as Solution; layered.js has a separate \"cut\" style (dashed green) for removed edges, which the adapter uses.", false);
-      if (ctx.frames.some(f => Object.values(f.edges || {}).some(v => (v.state || v) === "Untraveled"))) note("Edges in state Untraveled (removed with a node): layered.js has no Untraveled edge style; drawn as dim.", false);
       const known = new Set(["event", "caption", "focus", "nodes", "edges", "order", "groups", "finish", "dist", "pred", "phantoms", "ok", "phase", "builtNodes", "builtEdges"]);
       const extra = [...new Set(ctx.frames.flatMap(f => Object.keys(f)))].filter(k => !known.has(k));
       if (extra.length) note(`Frame fields the LayeredGraph adapter ignores: ${extra.join(", ")}`, false);
