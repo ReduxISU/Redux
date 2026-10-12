@@ -216,7 +216,8 @@
       (f.tree || []).forEach(n => nodes.set(n.id, { ...(nodes.get(n.id) || {}), ...n }));
       return { event: f.event, caption: f.caption, focus: f.focus, nodes: [...nodes.values()].map(n => ({ ...n })), ok: f.ok };
     });
-    return { type: "SearchTree", payload: { kind: "searchTree", problem, instance, maxLeaves: 12 }, frames: out };
+    // Not folded by the backend: searchtree.js folds it (clientFolds).
+    return { type: "SearchTree", payload: { kind: "searchTree", problem, instance, clientFolds: true }, frames: out };
   }
 
   async function runPicture() {

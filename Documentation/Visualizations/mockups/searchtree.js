@@ -643,8 +643,10 @@ const SearchTreeView = (() => {
       const size = new Map();
       const sz = n => { let s = 1; n.kids.forEach(k => (s += sz(k))); size.set(n.id, s); return s; };
       sz(root);
-      // keep the picture about MAX_LEAVES leaves wide: first group cut-off leaves, then fold finished subtrees
-      const folded = new Set();
+      // keep the picture about MAX_LEAVES leaves wide: first group cut-off leaves, then fold finished subtrees.
+      // Viewer hook (local/viz-viewer): P.serverFolds — the tree arrives already folded (the backend's "cut" and "more"
+      // nodes, payload.maxLeaves), so draw it as given instead of folding it a second time.
+      const folded = new Set(), clientFolds = !P.serverFolds;
       const cutKids = (n, on) => (on ? n.kids.filter(k => !k.kids.length && k.st === "pruned" && k.id !== cur) : []);
       const leaves = on => {
         let c = 0;
@@ -655,8 +657,8 @@ const SearchTreeView = (() => {
         };
         rec(root); return c;
       };
-      const groupCuts = leaves(false) > MAX_LEAVES;
-      while (leaves(groupCuts) > MAX_LEAVES) {
+      const groupCuts = clientFolds && leaves(false) > MAX_LEAVES;
+      while (clientFolds && leaves(groupCuts) > MAX_LEAVES) {
         let pick = null;
         for (const n of nodes.values()) {
           if (open.has(n.id) || folded.has(n.id) || n.kids.length === 0 || size.get(n.id) < 3) continue;

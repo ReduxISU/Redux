@@ -27,8 +27,9 @@
       const { note } = ctx;
       const svg = Viewer.svgIn(ctx.host, `${ctx.problem} search tree`);
       const view = SearchTreeView.create({ svg });
-      if (ctx.frames.some(f => (f.nodes || []).some(n => n.kind === "cut")))
-        note("The backend folds cut-off leaves itself (kind \"cut\" nodes with a hidden count, payload.maxLeaves); searchtree.js also folds finished subtrees client-side past 12 leaves, so both foldings can apply.", false);
+      // The backend folds the tree itself (kind "cut" / "more" nodes, payload.maxLeaves): searchtree.js then draws it as given.
+      // A tree built here from steps' tree patches (app.js, payload.clientFolds) is folded by searchtree.js instead.
+      const serverFolds = ctx.payload && ctx.payload.maxLeaves != null && !ctx.payload.clientFolds;
       if (ctx.frames.some(f => (f.nodes || []).some(n => n.bound !== undefined)))
         note("Node field names differ: backend {kind, state, bound} vs mockup patches {st, note}; mapped by the adapter (state wins over kind).", false);
       const frames = ctx.frames.map(f => {
@@ -46,7 +47,7 @@
         }
         return { tree: list, cur, done, ok: f.ok, caption: f.caption };
       });
-      view.loadModel({ kind: "viewer", game: false }, frames);
+      view.loadModel({ kind: "viewer", game: false, serverFolds }, frames);
       return { show(i) { view.show(i); } };
     },
   });
