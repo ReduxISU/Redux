@@ -62,7 +62,8 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
             return "{}";
         }
 
-        UtilCollection selectedItems = new UtilCollection("{}");
+        // A list, not a SPADE set, so two identical items the table took are both in the answer (#628).
+        List<string> selectedItems = new List<string>();
         int remainingCapacity = capacity;
         // The trace-back's items so far, by position: 0 (in the knapsack) or -1.
         int[] taken = Enumerable.Repeat(-1, n).ToArray();
@@ -72,7 +73,7 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
         for (int i = n; i > 0; i--) {
             if (dp[i, remainingCapacity] != dp[i - 1, remainingCapacity]) {
                 var item = itemValues[i - 1];
-                selectedItems.Add(item);
+                selectedItems.Add(item.ToString());
 
                 int itemWeight = int.Parse(item[0].ToString());
                 int before = remainingCapacity, at = i;
@@ -84,7 +85,7 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
             }
         }
 
-        string answer = selectedItems.ToString();
+        string answer = "{" + string.Join(",", selectedItems) + "}";
         if (rec != StepRecorder<Placement>.Off) {
             bool ok = knapsack.defaultVerifier.verify(knapsack, answer);
             int weightTaken = capacity - remainingCapacity;

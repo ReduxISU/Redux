@@ -48,11 +48,12 @@ class KnapsackBruteForce : ISolver<KNAPSACK, Placement> {
         List<UtilCollection> items = knapsack.items.ToList();
         int tried = 0;
         foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
-            UtilCollection certificate = new UtilCollection("{}");
-            for (int i = 0; i < knapsack.items.Count(); i++) {
-                if (possibleSolution[i] == 1) certificate.Add(items[i]);
+            // Written out by position, not added to a SPADE set, so two identical items can both be taken (#628).
+            List<string> chosen = new List<string>();
+            for (int i = 0; i < items.Count; i++) {
+                if (possibleSolution[i] == 1) chosen.Add(items[i].ToString());
             }
-            string strCertificate = certificate.ToString();
+            string strCertificate = "{" + string.Join(",", chosen) + "}";
             tried++;
             // Read only inside recorder lambdas (and for Done), so they cost nothing when recording is off.
             List<int> Members() => Enumerable.Range(0, items.Count).Where(i => possibleSolution[i] == 1).ToList();
