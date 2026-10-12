@@ -346,4 +346,16 @@ ElementHighlight | I7,I11 | 11-7
 ElementHighlight | I8,I11 | 11-8
 ElementHighlight | I9,I11 | 11-9
 ElementHighlight | I10,I11 | 10-11
+ElementHighlight | I12 | 12
+ElementHighlight | I1,I12 | 1-12
+ElementHighlight | I2,I12 | 12-2
+ElementHighlight | I3,I12 | 12-3
+ElementHighlight | I4,I12 | 12-4
+ElementHighlight | I5,I12 | 12-5
+ElementHighlight | I6,I12 | 12-6
+ElementHighlight | I7,I12 | 12-7
+ElementHighlight | I8,I12 | 12-8
+ElementHighlight | I9,I12 | 12-9
+ElementHighlight | I10,I12 | 10-12
+ElementHighlight | I11,I12 | 11-12
 ElementHighlight | C1,C2 | 

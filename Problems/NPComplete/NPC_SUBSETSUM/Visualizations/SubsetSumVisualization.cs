@@ -33,13 +33,17 @@ class SubsetSumVisualization : IVisualization<SUBSETSUM, API_SET>, IPackingVisua
 
     public SubsetSumVisualization() { }
 
-    public API_SET visualize(SUBSETSUM problem) => new(new UtilCollection("{" + string.Join(",", problem.S) + "}"));
+    // Every number of S, in order, repeats included (#628): a later copy gets its position in its id (r-7-1).
+    public API_SET visualize(SUBSETSUM problem) => API_SET.KeepingRepeats(problem.S);
 
+    // The chosen numbers by position (#628): {7} for S = {7,7,1} marks the first 7 only, {7,7} both.
     public API_JSON SolvedVisualization(SUBSETSUM problem, string solution) {
         API_SET set = visualize(problem);
-        var chosen = PackingFrames.Groups(solution, nested: false).SelectMany(g => g).ToHashSet();
-        foreach (var e in set.data.list ?? [])
-            if (e.value != null && chosen.Contains(PackingFrames.Key(e.value))) e.color = "Solution";
+        Placement chosen = PackingFrames.FromGroups(problem.S.Select(PackingFrames.Key).ToList(), PackingFrames.Groups(solution, nested: false));
+        var list = set.data.list ?? [];
+        if (list.Count != problem.S.Count) return set;
+        for (int i = 0; i < list.Count; i++)
+            if (chosen.Of(i) == 0) list[i].color = "Solution";
         return set;
     }
 }

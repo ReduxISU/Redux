@@ -24,7 +24,7 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     private static string _defaultInstance = "{1,7,12,15,33,12,11,5,6,9,21,18}";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } =
-        $"Format: {InstanceGrammar} (a set of positive integers S; duplicate values in the input collapse to one) Example: {_defaultInstance}";
+        $"Format: {InstanceGrammar} (a multiset of positive integers S; a number written twice counts twice) Example: {_defaultInstance}";
     public string certificateFormat { get; } =
         $"Format: {PartitionVerifier.CertificateGrammar} Example: {PartitionVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
@@ -55,7 +55,9 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
 
         StringParser partition = new(InstanceGrammar);
         partition.parse(instance);
-        S = partition["N"].ToList().Select(node => node.ToString()).ToList();
+        // SPADE checks the instance; the numbers are then read from the text with every repeat kept, since S is a multiset
+        // (#628). TODO(#628): once SPADE releases "is multiset", use "{N | N is multiset, N subset int}" instead.
+        S = RepeatedElements.KeepRepeats(instance, partition["N"]).Select(node => node.ToString()).ToList();
         if (S.Count == 0)
             throw new ProblemParseException("Partition", instance, "expected a non-empty set of integers");
         foreach (string element in S) {

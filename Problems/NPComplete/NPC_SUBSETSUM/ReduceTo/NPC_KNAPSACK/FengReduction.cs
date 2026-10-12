@@ -105,8 +105,10 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         };
 
         // We reduce the set of integers to a set of items by having each integer n equal (n,n) as an item.
+        // One item per number, repeats included (#628): a number S has twice becomes two identical items, so the items are
+        // kept in a list (Knapsack's items are an ordered collection), not added to a SPADE set, which would keep one.
         List<string> integers = SUBSETSUMInstance.S;
-        UtilCollection items = new UtilCollection("{}");
+        List<UtilCollection> items = new List<UtilCollection>();
         for (int i = 0; i < SUBSETSUMInstance.S.Count; i++) {
             UtilCollection item = new UtilCollection($"({integers[i]},{integers[i]})");
             items.Add(item);
@@ -123,9 +125,9 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         string container = PackingFrames.ContainerId(0);
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { container }, new List<string> { container }, note: $"W = V = T = {t}"));
 
-        reducedKNAPSACK.items = items;
+        reducedKNAPSACK.items = new UtilCollection(items);
 
-        reducedKNAPSACK.instance = $"({items},{reducedKNAPSACK.W},{reducedKNAPSACK.V})";
+        reducedKNAPSACK.instance = $"({{{string.Join(",", items)}}},{reducedKNAPSACK.W},{reducedKNAPSACK.V})";
 
         if (rec.Enabled)
             rec.Done(new BuildDelta { SourceFocus = [container], Nodes = [container], Gadgets = [bound], Bound = t }, true,
@@ -144,13 +146,20 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         List<string> chosen;
         try {
             if (text.Length < 2 || text[0] != '{' || text[^1] != '}') throw new FormatException();
-            chosen = new UtilCollection(text).ToList().Select(x => x.ToString()).ToList();
+            // Repeats kept (#628): {7,7} chooses two 7s.
+            chosen = RepeatedElements.Parse(text).Select(x => x.ToString()).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}", ex);
         }
-        foreach (string number in chosen)
-            if (!reductionFrom.S.Contains(number))
+        // Each chosen number takes a copy of it in S not yet taken, by value, so a number can be chosen as many times as S has
+        // it and no more.
+        var unchosen = new List<string>(reductionFrom.S);
+        foreach (string number in chosen) {
+            int at = int.TryParse(number, out int value) ? unchosen.FindIndex(x => int.Parse(x) == value) : -1;
+            if (at < 0)
                 throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{number}' is not a number of S");
+            unchosen.RemoveAt(at);
+        }
         return "{" + string.Join(",", chosen.Select(n => $"({n},{n})")) + "}";
     }
 
@@ -192,7 +201,8 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         if (text.Length < 2 || text[0] != '{' || text[^1] != '}')
             throw new FormatException($"'{certificate}' is not a set of items in braces like {{(1,1),(12,12)}}");
         try {
-            var items = new UtilCollection(text).ToList();
+            // Repeats kept (#628): {(7,7),(7,7)} is two items.
+            var items = RepeatedElements.Parse(text);
             foreach (var item in items) item.assertPair();
             return items.Select(PackingFrames.Key).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {

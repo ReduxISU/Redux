@@ -28,6 +28,8 @@ class PartitionBruteForce : ISolver<PARTITION, Placement> {
     public PartitionBruteForce() {
 
     }
+    // The vectors run over positions of S, so two equal numbers are two separate items (#628). Since #628 verify() counts S
+    // in a dictionary, O(n) per candidate, so the declared O(n^2 * 2^n) above is now a loose upper bound; it is left as is.
     private string BinaryToCertificate(List<int> binary, List<string> S) {
         string certificate = "(";
         for (int i = 0; i < binary.Count; i++) {

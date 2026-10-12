@@ -28,13 +28,14 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
 
     }
 
+    // Written out by position, not added to a SPADE set, so a number S has twice can be picked twice (#628): {7,7}.
     private static string SubsetToCertificate(bool[] picked, List<string> S) {
-        UtilCollection certificate = new UtilCollection("{}");
+        List<string> chosen = new List<string>();
         for (int i = 0; i < S.Count; i++) {
             if (picked[i])
-                certificate.Add(new UtilCollection(S[i]));
+                chosen.Add(S[i]);
         }
-        return certificate.ToString();
+        return "{" + string.Join(",", chosen) + "}";
     }
 
     // Moves to the next subset in mask order (bit i picks item i), like adding 1 to the mask. Returns false once every

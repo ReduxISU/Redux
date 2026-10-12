@@ -42,11 +42,12 @@ public class PartitionToWeightedCut_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public void DefaultInstance_KeepsItsTarget() {
-        // Partition reads the default's two 12s as one, so 11 numbers summing to 138: K = 138^2 / 4 = 4761, as before.
+        // Partition keeps both 12s of the default (#628), so 12 numbers summing to 150: K = 150^2 / 4 = 5625. (Before #628 the
+        // second 12 was dropped: 11 numbers, 138, K = 4761.)
         var red = new WEIGHTEDCUTReduction();
-        Assert.StartsWith("(({1,2,3,4,5,6,7,8,9,10,11},{({1,2},7),({1,3},12),", red.reductionTo.instance);
-        Assert.EndsWith(",({10,11},378)}),4761)", red.reductionTo.instance);
-        Assert.Equal(55, red.reductionTo.edges.Count);
+        Assert.StartsWith("(({1,2,3,4,5,6,7,8,9,10,11,12},{({1,2},7),({1,3},12),", red.reductionTo.instance);
+        Assert.EndsWith(",({11,12},378)}),5625)", red.reductionTo.instance);
+        Assert.Equal(66, red.reductionTo.edges.Count);
     }
 
     // #830: with an odd total no split is even, and K is one more than the best split's cut, so no cut reaches it.

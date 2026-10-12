@@ -4,6 +4,7 @@ using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.Packing;
 using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_PARTITION.Verifiers;
 using API.Problems.NPComplete.NPC_WEIGHTEDCUT;
 
 namespace API.Problems.NPComplete.NPC_PARTITION.ReduceTo.NPC_WEIGHTEDCUT;
@@ -191,24 +192,16 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
     /// of S once; anything else is a 400.
     /// </summary>
     public string mapSolutions(string reductionFromSolution) {
-        List<List<string>> sides;
-        try {
-            SPADE.UtilCollection pair;
-            try {
-                pair = new SPADE.UtilCollection(reductionFromSolution);
-                pair.assertCount(2);
-            } catch {
-                pair = new SPADE.UtilCollection("(" + reductionFromSolution + ")");
-                pair.assertCount(2);
-            }
-            sides = pair.ToList().Select(group => group.ToList().Select(x => x.ToString()).ToList()).ToList();
-        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
-            throw new ReductionInputException(this, reductionFromSolution, reductionFrom.certificateFormat, $"'{reductionFromSolution}' is not two sides like (1,7),(8)", ex);
-        }
+        // Read as Partition's verifier reads it, repeats included (#628): {(3),(3)} puts a 3 on each side.
+        List<List<string>> sides = PartitionVerifier.ReadSides(reductionFromSolution)
+            ?? throw new ReductionInputException(this, reductionFromSolution, reductionFrom.certificateFormat, $"'{reductionFromSolution}' is not two sides like (1,7),(8)");
         var side = new int?[reductionFrom.S.Count];
         for (int s = 0; s < 2; s++) {
             foreach (string number in sides[s]) {
-                int i = Enumerable.Range(0, reductionFrom.S.Count).FirstOrDefault(k => reductionFrom.S[k] == number && side[k] == null, -1);
+                // The first copy of the number (by value) not on a side yet, so two equal numbers are two nodes.
+                int i = int.TryParse(number, out int value)
+                    ? Enumerable.Range(0, reductionFrom.S.Count).FirstOrDefault(k => int.Parse(reductionFrom.S[k]) == value && side[k] == null, -1)
+                    : -1;
                 if (i < 0)
                     throw new ReductionInputException(this, reductionFromSolution, reductionFrom.certificateFormat, $"'{number}' is not a number of S, or is on the sides twice");
                 side[i] = s;
