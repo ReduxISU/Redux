@@ -1,9 +1,13 @@
 /* ---- Quantum circuit (#672): payload {kind:"quantumCircuit", problem, qubits[{id,name,role}], columns[{id, gates[{id,type,qubits[],label?,oracle?,control?}]}],
    stages[{label,from,to}], measure[], readout, inputBits, simulated, note?, number?}
-   frames {event, caption, focus, applied (columns applied so far), queries[{input,output}], columns{id:{state}}, gates{id:{state}}, qubits{id:{state}}, result?, ok?}
+   frames {event, caption, focus, applied (columns applied so far), queries[{input,output}], columns{id:{state}}, gates{id:{state}}, qubits{id:{state}},
+   bars?[{outcome,probability,sign}], outcome? (measured register value), counts? (shots per outcome), result?, ok?}
    Drawn with QuantumView (../mockups/quantum.js). "simulated": true means the frontend simulates the circuit, which the mockup does in the
    browser from the instance: load() builds the mockup's own circuit + statevector snapshots, useFrames() then shows the backend's frames
-   (applied → which columns are done, and that column's snapshot for the bars). The backend's column/gate states are applied on top. */
+   (applied → which columns are done, and that column's snapshot for the bars). The backend's column/gate states are applied on top.
+   The backend's own bars win when sent; with payload.simulated false the bars are the browser's simulation, labelled so on the page.
+   Qubit states (measured qubits Solution / Rejected), outcome and counts go to quantum.js (qubitStates, measured, outcome, counts).
+   A run that ended because the quantum server could not be reached reads "quantum server unavailable" (Viewer.quantumServerDown). */
 (() => {
   const KEYS = { BERNSTEINVAZIRANI: "BERNSTEINVAZIRANI", DEUTSCH: "DEUTSCH", DEUTSCHJOZSA: "DEUTSCHJOZSA", SIMON: "SIMON", UNSTRUCTUREDSEARCH: "UNSTRUCTUREDSEARCH", PRIMEFACTOR: "PRIMEFACTOR",
     bernsteinVazirani: "BERNSTEINVAZIRANI", deutsch: "DEUTSCH", deutschJozsa: "DEUTSCHJOZSA", simon: "SIMON", unstructuredSearch: "UNSTRUCTUREDSEARCH", primeFactorization: "PRIMEFACTOR" };
@@ -20,7 +24,8 @@
 .vv-queries span.q { border: 1.2px solid var(--av-stroke); border-radius: 6px; padding: 1px 7px; }
 .vv-queries span.q.last { border-color: var(--av-hl); box-shadow: 0 0 0 1.5px var(--av-hl); }
 .vv-queries .res { color: var(--av-sol-ink); font-weight: 600; }
-.vv-queries .res.bad { color: var(--av-rej-ink); }`;
+.vv-queries .res.bad { color: var(--av-rej-ink); }
+.vv-queries .res.down { color: var(--av-rej-ink); font-weight: 700; }`;
     document.head.appendChild(st);
   }
   const GATE_CLASS = { ElementHighlight: "vv-q-hl", Solution: "vv-q-sol", Covered: "vv-q-sol", Rejected: "vv-q-rej" };
@@ -71,16 +76,16 @@
       const circ = B.circ;
       const sameShape = compareCircuit(circ, payload, note);
       if (payload.note) note(`Payload note: ${payload.note}`, false);
-      if (payload.simulated === false && payload.columns.length) note("payload.simulated is false (the backend does not simulate this circuit), so the bars come from the mockup's in-browser simulation.", false);
+      const browserBars = payload.simulated === false && payload.columns.length > 0;
+      if (browserBars) note("payload.simulated is false (the backend does not simulate this circuit): the bars are the browser's own simulation of the whole circuit, labelled so above the chart.", false);
       // Snapshot (bars) per number of applied columns, from the mockup's simulation.
       const dist = new Map();
       for (const f of res.frames) if (f.dist && !f.classical && !dist.has(f.col)) dist.set(f.col, f.dist);
       const C = circ ? circ.columns.length : 0, nbits = circ ? circ.reg.length : 0;
-      const known = new Set(["event", "caption", "focus", "applied", "queries", "columns", "gates", "qubits", "result", "ok", "phase", "bars"]);
+      const known = new Set(["event", "caption", "focus", "applied", "queries", "columns", "gates", "qubits", "result", "ok", "phase", "bars", "outcome", "counts"]);
       const extra = [...new Set(ctx.frames.flatMap(f => Object.keys(f)))].filter(k => !known.has(k));
       if (extra.length) note(`Frame fields the Quantum adapter ignores: ${extra.join(", ")}`, false);
       if (ctx.frames.some(f => f.queries && f.queries.length)) note("Classical oracle queries (frame.queries) have no place in the mockup circuit; the viewer lists them under it.", false);
-      if (ctx.frames.some(f => Object.keys(f.qubits || {}).length)) note("Qubit states (frame.qubits) are not drawn by quantum.js.");
 
       if (ctx.frames.some(f => Array.isArray(f.bars))) note("Frames carry bars[{outcome,probability,sign}] (the backend's own simulation); the viewer draws those and checks them against the mockup's in-browser simulation.", false);
       /** Backend bars → the mockup's dist {probs, signs}; compared with the mockup's simulation of the same column. */
@@ -98,17 +103,32 @@
         }
         return { probs, signs: anySign ? signs : (sim ? sim.signs : null), r: sim ? sim.r : undefined };
       }
+      const QCLASS = { Solution: "Solution", Rejected: "Rejected", ElementHighlight: "Active" };
+      const regIds = circ ? circ.reg.map(k => payload.qubits[k] && payload.qubits[k].id) : [];
       const frames = ctx.frames.map(f => {
         const applied = f.applied ?? 0;
         const done = f.event === "Done";
         const sim = applied > 0 ? dist.get(Math.min(applied, C)) || null : null;
-        const out = { col: Math.min(applied, C), dist: Array.isArray(f.bars) && C ? barsDist(f.bars, nbits, sim, applied) : sim, classical: applied === 0, done, ok: f.ok, caption: f.caption, answer: f.result };
+        let bars = Array.isArray(f.bars) && C ? barsDist(f.bars, nbits, sim, applied) : sim;
+        // The backend does not simulate this circuit: show the browser's simulation of the whole circuit, marked as such.
+        if (!Array.isArray(f.bars) && browserBars && dist.get(C)) bars = { ...dist.get(C), browser: true };
+        const out = { col: Math.min(applied, C), dist: bars, classical: applied === 0, done, ok: f.ok, caption: f.caption, answer: f.result, counts: f.counts };
+        // Qubit states → one class per wire; the measured register's verdict (Solution / Rejected) colours the outcome bar.
+        out.qubitStates = payload.qubits.map(q => {
+          const st = Viewer.stateOf(f.qubits, q.id);
+          if (st !== "Background" && !QCLASS[st]) note(`Qubit state "${st}" has no style in quantum.js.`);
+          return QCLASS[st] || "";
+        });
+        const regStates = regIds.map(id => Viewer.stateOf(f.qubits, id)).filter(s => s === "Solution" || s === "Rejected");
+        out.measured = regStates.length ? QCLASS[Viewer.strongest(regStates)] : "";
         if (applied >= C && C) {
-          const o = outcomeOf(f.result, nbits);
+          const o = Number.isInteger(f.outcome) ? f.outcome : outcomeOf(f.result, nbits);
           out.outcome = o;
+          if (f.outcome != null && !Number.isInteger(f.outcome)) note(`outcome "${f.outcome}" is not a register value (an integer).`);
           if (done && f.result != null && o === null && f.ok !== false && key !== "SIMON" && key !== "DEUTSCH" && key !== "DEUTSCHJOZSA") note(`Result "${f.result}" is not a reading of the measured register, so no bits are written on the wires.`, false);
         }
-        if (done && f.ok === false && typeof f.result === "string" && /error/i.test(f.result)) note(`The run failed: result carries a raw error (${f.result.slice(0, 120)}…) and ok:false.`);
+        if (done && f.ok === false && Viewer.quantumServerDown(f)) note("The quantum server could not be reached: the run ends with ok:false and the server's error as its result (shown as \"quantum server unavailable\").", false);
+        else if (done && f.ok === false && typeof f.result === "string" && /error/i.test(f.result)) note(`The run failed: result carries a raw error (${f.result.slice(0, 120)}…) and ok:false.`);
         if (applied > C) note(`applied = ${applied} is past the ${C} columns.`);
         return out;
       });
@@ -141,7 +161,8 @@
         const qs = f.queries || [];
         const bitsIn = Math.max(1, payload.inputBits || 1);
         extraBox.innerHTML = (qs.length ? `<span class="lab">Oracle queries:</span>` + qs.map((q, j) => `<span class="q${j === qs.length - 1 && f.event !== "Done" ? " last" : ""}">f(${q.input.toString(2).padStart(bitsIn, "0")}) = ${esc(q.output)}</span>`).join("") : "")
-          + (f.result != null ? ` <span class="lab">result:</span> <span class="res${f.ok === false ? " bad" : ""}">${esc(String(f.result).slice(0, 80))}</span>` : "");
+          + (Viewer.quantumServerDown(f) ? ` <span class="lab">result:</span> <span class="res down" title="${esc(f.result ?? f.caption)}">quantum server unavailable</span>`
+            : f.result != null ? ` <span class="lab">result:</span> <span class="res${f.ok === false ? " bad" : ""}">${esc(String(f.result).slice(0, 80))}</span>` : "");
       }
       return { show(i) { view.show(i); decorate(i); } };
     },

@@ -81,3 +81,11 @@ node contrast.mjs                       # contrast audit, light and dark
 ```
 
 Stopped-run cases use `--stop-backend` (default http://localhost:27001). They are skipped when that backend is not running.
+
+A case can carry an `expect` (see `checkExpect` in `smoke.mjs`), which steps through every frame and fails the case if the picture does not show what the backend sent. The `QuantumRun-*` cases use it: they run the quantum solvers (`DeutschQuantumSolver`, `DeutschJozsaQuantumSolver`, `BernsteinVaziraniQuantumSolver` on the Default and D3 visualizations, `UnstructuredGroverSolver`, and `ShorsQuantumSolver` on 15), check that `applied` rises to the last column with the drawn circuit and bars following it, and check the final verdict and the measured qubits' Solution / Rejected drawing.
+
+- These cases need the quantum server the backend calls (http://localhost:27100). Without it the runs end with a Reject and an ok:false Done whose result is the call's error JSON; the viewer reads that as "quantum server unavailable", not as a wrong answer, and the `ok: true` expectations fail.
+- Grover's server answer is wrong about 3 runs in 4 (a known server bug: the iteration count), so `QuantumRun-grover` accepts ok:true or ok:false and checks only the animation and that the measured qubits are drawn with the verdict the backend sent. Before that fix it returned HTTP 500 when the quantum server was down (#838).
+- Shor's solver applies no columns (`payload.simulated` is false), so its bars are the browser's own simulation; the chart says so.
+
+Node tests (no browser): `node test-common.js` here, and `node ../mockups/test-*.js` for the renderers. `../mockups/dom-shim.js` is a tiny DOM that lets the `test-*-draw.js` tests draw a renderer and check what it drew.

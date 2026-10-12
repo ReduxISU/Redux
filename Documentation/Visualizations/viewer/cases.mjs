@@ -58,7 +58,20 @@ export const CASES = [
   { name: "Quantum-bv", type: "QuantumCircuit", q: { problem: "BERNSTEINVAZIRANI", vis: "BernsteinVaziraniDefaultVisualization" } },
   { name: "Quantum-simon", type: "QuantumCircuit", q: { problem: "SIMON", vis: "SimonVisualization" } },
   { name: "Quantum-grover", type: "QuantumCircuit", q: { problem: "UNSTRUCTUREDSEARCH", vis: "UnstructuredSearchVisualization" } },
-  { name: "Quantum-shor", type: "QuantumCircuit", q: { problem: "PRIMEFACTOR", vis: "ShorsDefaultVisualization", instance: "15" } },
+  { name: "Quantum-shor", type: "QuantumCircuit", q: { problem: "PRIMEFACTOR", vis: "ShorsDefaultVisualization", instance: "15" }, expect: { browserBars: true } },
+  // The quantum solvers run the circuit column by column (applied 1..5, the backend's bars on every frame), then send it to the
+  // quantum server (localhost:27100, which must be running). `expect` (smoke.mjs) fails a case whose circuit does not animate
+  // or whose final state is not drawn: applied rises to the last column and the drawing changes with it; the run ends with the
+  // given ok (or "any"); the measured qubits are drawn Solution on an ok Done and Rejected on an ok:false one.
+  ...[["deutsch", "DEUTSCH", "DeutschDefaultVisualization", "DeutschQuantumSolver"], ["deutsch-d3", "DEUTSCH", "DeutschD3Visualization", "DeutschQuantumSolver"],
+    ["deutschjozsa", "DEUTSCHJOZSA", "DeutschJozsaDefaultVisualization", "DeutschJozsaQuantumSolver"], ["deutschjozsa-d3", "DEUTSCHJOZSA", "DeutschJozsaD3Visualization", "DeutschJozsaQuantumSolver"],
+    ["bv", "BERNSTEINVAZIRANI", "BernsteinVaziraniDefaultVisualization", "BernsteinVaziraniQuantumSolver"], ["bv-d3", "BERNSTEINVAZIRANI", "BernsteinVaziraniD3Visualization", "BernsteinVaziraniQuantumSolver"]]
+    .map(([n, problem, vis, solver]) => ({ name: "QuantumRun-" + n, type: "QuantumCircuit", q: { problem, vis, solver }, expect: { applied: true, ok: true, qubits: true } })),
+  // Grover's server answer is wrong about 3 runs in 4 (a known server bug: wrong iteration count), so either verdict passes; the
+  // drawing must still animate and show the measured qubits as Solution (ok) or Rejected (ok:false).
+  { name: "QuantumRun-grover", type: "QuantumCircuit", q: { problem: "UNSTRUCTUREDSEARCH", vis: "UnstructuredSearchVisualization", solver: "UnstructuredGroverSolver" }, expect: { applied: true, ok: "any", qubits: true } },
+  // Shor's solver applies no columns (payload.simulated is false): the bars are the browser's simulation, labelled so.
+  { name: "QuantumRun-shor", type: "QuantumCircuit", q: { problem: "PRIMEFACTOR", vis: "ShorsDefaultVisualization", solver: "ShorsQuantumSolver", instance: "15" }, expect: { ok: true, result: "(3,5)", browserBars: true } },
   { name: "Schedule-jobseq", type: "Schedule", q: { problem: "JOBSEQ", vis: "JobSeqVisualization" } },
   { name: "Schedule-pumpcm", type: "Schedule", q: { problem: "PUMPSCHEDULINGCM", vis: "PumpSchedulingCMVisualization" } },
   { name: "Schedule-pumpem", type: "Schedule", q: { problem: "PUMPSCHEDULINGEM", vis: "PumpSchedulingEMVisualization" } },

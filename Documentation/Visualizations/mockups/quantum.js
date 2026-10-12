@@ -30,17 +30,25 @@ const QuantumView = (() => {
 .qc-line { stroke: var(--av-ink); stroke-width: 1.6; }
 .qc-plus { fill: var(--av-surface); stroke: var(--av-ink); stroke-width: 1.6; }
 .qc-arc { fill: none; stroke: var(--av-ink); stroke-width: 1.4; }
-.qc-out { font-size: 13px; font-weight: 700; dominant-baseline: central; fill: var(--av-sol); }
+.qc-out { font-size: 13px; font-weight: 700; dominant-baseline: central; fill: var(--av-ink); }
+.qc-out.Solution { fill: var(--av-sol-ink); } .qc-out.Rejected { fill: var(--av-rej-ink); }
+.qc-wire-g.Solution .qc-wire { stroke: var(--av-sol); stroke-width: 2.6; } .qc-wire-g.Solution .qc-wname { fill: var(--av-sol-ink); font-weight: 700; }
+.qc-wire-g.Rejected .qc-wire { stroke: var(--av-rej); stroke-width: 2.6; } .qc-wire-g.Rejected .qc-wname { fill: var(--av-rej-ink); font-weight: 700; }
+.qc-wire-g.Active .qc-wire { stroke: var(--av-hl); stroke-width: 2.6; } .qc-wire-g.Active .qc-wname { fill: var(--av-hl-ink); font-weight: 700; }
+.qc-count { font-size: 10.5px; fill: var(--av-ink); text-anchor: middle; }
+.qc-src { font-size: 11px; fill: var(--av-hl-ink); font-weight: 600; }
 .qc-axis { stroke: var(--av-stroke); stroke-width: 1; }
 .qc-grid { stroke: var(--av-line); stroke-width: 1; stroke-dasharray: 2 4; }
 .qc-tick { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }
 .qc-blabel { font-size: 11px; fill: var(--av-muted); text-anchor: middle; }
-.qc-blabel.win { fill: var(--av-sol); font-weight: 700; }
+.qc-blabel.win { fill: var(--av-sol-ink); font-weight: 700; }
+.qc-blabel.miss { fill: var(--av-rej-ink); font-weight: 700; }
 .qc-bar { transition: height .25s, y .25s, fill .2s; }
 .qc-bar.pos { fill: var(--av-g0s); }
 .qc-bar.neg { fill: var(--av-g1s); }
 .qc-bar.plain { fill: var(--av-stroke); }
 .qc-bar.win { fill: var(--av-sol); }
+.qc-bar.miss { fill: var(--av-rej); }
 .qc-btitle { font-size: 12px; fill: var(--av-ink); font-weight: 600; }
 .qc-note { font-size: 12px; fill: var(--av-ink); }
 .qc-note.muted { fill: var(--av-muted); }
@@ -587,34 +595,60 @@ const QuantumView = (() => {
       });
       els.barsG = mk("g", {}, gB);
       els.note = mk("text", { x: left, y: barTop + BARH + 46, class: "qc-note muted" }, gB);
+      els.src = mk("text", { x: left - 70, y: barTop - 8, class: "qc-src" }, gB);
+    }
+
+    /** Viewer hook (local/viz-viewer): measured shot counts, as {outcome: n} (outcome a bit string or a number) or
+        [{outcome, count}], → Map(register value → count). */
+    function countsOf(c, nb) {
+      if (!c) return null;
+      const m = new Map(), key = o => (typeof o === "string" && /^[01]+$/.test(o) && o.length === nb ? parseInt(o, 2) : Number(o));
+      if (Array.isArray(c)) c.forEach(e => { const k = key(e.outcome); if (Number.isInteger(k)) m.set(k, (m.get(k) || 0) + (+e.count || 0)); });
+      else for (const [o, n] of Object.entries(c)) { const k = key(o); if (Number.isInteger(k)) m.set(k, (m.get(k) || 0) + (+n || 0)); }
+      return m.size ? m : null;
     }
 
     function paintBars(f) {
       const circ = run.B.circ, { left, right, top, h } = els.chart;
       els.barsG.innerHTML = "";
       els.note.textContent = "";
-      const d = f ? f.dist : null;
+      els.src.textContent = "";
+      const counts = f ? countsOf(f.counts, circ.reg.length) : null;
+      let d = f ? f.dist : null;
+      // Shot counts with no probabilities: draw the measured frequencies as the bars.
+      if (!d && counts) {
+        const tot = [...counts.values()].reduce((a, b) => a + b, 0) || 1, probs = new Array(1 << circ.reg.length).fill(0);
+        counts.forEach((n, k) => { if (k >= 0 && k < probs.length) probs[k] = n / tot; });
+        d = { probs, signs: null };
+      }
       if (!d) { els.btitle.textContent = `Outcome probabilities on the ${circ.regName} appear once you step through.`; return; }
       els.btitle.textContent = circ.decimal ? `Probability of each reading of the ${circ.regName}` : `Probability of each outcome on ${circ.regName}`;
+      // Viewer hook (local/viz-viewer): say where the bars come from when it is not the backend.
+      if (d.browser) els.src.textContent = "Simulated in this browser: the backend sent no probabilities for this circuit.";
       let idx = d.probs.map((p, i) => i);
       const sparse = idx.length > 32;
-      if (sparse) idx = idx.filter(i => d.probs[i] > 0.004);
+      if (sparse) idx = idx.filter(i => d.probs[i] > 0.004 || (counts && counts.has(i)));
       if (sparse && !idx.length) { els.note.textContent = `Spread evenly over all ${d.probs.length} readings (each ${(100 / d.probs.length).toFixed(2)}%), too thin to draw.`; return; }
       const nBars = idx.length, slot = (right - left) / Math.max(nBars, 1), bw = Math.min(42, slot * 0.7);
       const win = f.done || f.outcome !== undefined && f.outcome !== null ? f.outcome : null;
+      // The measured outcome turns green (or red) only once the frame says so: Viewer hook (local/viz-viewer) `measured`
+      // ("Solution" / "Rejected" / "" from the backend's qubit states), else the mockup's own done/ok.
+      const verdict = f.measured !== undefined ? f.measured : f.done ? (f.ok === false ? "Rejected" : "Solution") : f.col === circ.columns.length ? "Solution" : "";
       idx.forEach((i, k) => {
         const p = d.probs[i], x = left + slot * k + (slot - bw) / 2, bh = Math.max(p * h, p > 1e-9 ? 1.5 : 0);
         let cls = "qc-bar " + (d.signs ? (d.signs[i] < 0 ? "neg" : "pos") : "plain");
-        if (win === i && (f.done || f.col === circ.columns.length)) cls = "qc-bar win";
+        if (win === i && verdict) cls = "qc-bar " + (verdict === "Rejected" ? "miss" : "win");
         mk("rect", { x, y: top + h - bh, width: bw, height: bh, rx: 2, class: cls }, els.barsG);
         const lab = circ.decimal ? String(i) : bin(i, circ.reg.length);
         if (nBars <= 16 || k % Math.ceil(nBars / 16) === 0) {
-          const t = mk("text", { x: x + bw / 2, y: top + h + 16, class: "qc-blabel" + (cls.includes("win") ? " win" : "") }, els.barsG);
+          const t = mk("text", { x: x + bw / 2, y: top + h + 16, class: "qc-blabel" + (cls.includes("win") ? " win" : cls.includes("miss") ? " miss" : "") }, els.barsG);
           t.textContent = lab;
+          if (counts) mk("text", { x: x + bw / 2, y: top + h + 30, class: "qc-count" }, els.barsG).textContent = "×" + (counts.get(i) || 0);
         }
         if (p > 0.02 && nBars <= 16) mk("text", { x: x + bw / 2, y: top + h - bh - 6, class: "qc-blabel" }, els.barsG).textContent = Math.round(p * 100) + "%";
       });
-      if (d.signs) els.note.textContent = "Blue: positive amplitude. Orange: negative. Height: probability.";
+      if (counts) els.note.textContent = `Measured ${[...counts.values()].reduce((a, b) => a + b, 0)} shots: ×n under each outcome is how often it came up.`;
+      else if (d.signs) els.note.textContent = "Blue: positive amplitude. Orange: negative. Height: probability.";
       else if (circ.decimal) els.note.textContent = `Only readings above 0.4% are drawn. Peaks sit near multiples of ${1 << run.B.quantum.t}/r.`;
     }
 
@@ -628,11 +662,16 @@ const QuantumView = (() => {
       });
       // measured values on the wires
       const measured = f && f.col === C && f.outcome !== undefined && f.outcome !== null;
+      // Viewer hook (local/viz-viewer): f.qubitStates[k] = "Solution" | "Rejected" | "Active" | "" per wire (the backend's
+      // qubit states); without it the measured bits turn green only on a done, ok frame.
+      const qs = k => (f && f.qubitStates ? f.qubitStates[k] || "" : "");
+      const outCls = k => (f && f.qubitStates ? qs(k) : f && f.done ? (f.ok === false ? "Rejected" : "Solution") : "");
       els.outs.forEach((t, k) => {
         const pos = circ.reg.indexOf(k);
         t.textContent = measured && pos >= 0 ? String((f.outcome >> (circ.reg.length - 1 - pos)) & 1) : "";
+        t.setAttribute("class", "qc-out" + (outCls(k) && outCls(k) !== "Active" ? " " + outCls(k) : ""));
       });
-      els.wires.forEach((g, k) => g.setAttribute("class", "qc-wire-g" + (hover !== null && hover !== k ? " faint" : "")));
+      els.wires.forEach((g, k) => g.setAttribute("class", "qc-wire-g" + (qs(k) ? " " + qs(k) : "") + (hover !== null && hover !== k ? " faint" : "")));
       paintBars(f);
     }
 

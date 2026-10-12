@@ -21,6 +21,60 @@ const THEMES = arg("themes", SHOTS ? "light,dark" : "light").split(",");
 
 import { CASES } from "./cases.mjs";
 
+/**
+ * Per-case expectations (cases.mjs `expect`), checked by stepping through every frame. Returns failure messages.
+ *   applied: true    frame.applied never falls, rises from its first value to the circuit's last column, and the drawing
+ *                    changes with it (a new picture for every new applied value, and bars on every frame past 0).
+ *   ok: true|false|"any"   the last frame's ok.
+ *   qubits: true     the last frame draws the measured qubits Solution (ok) or Rejected (ok:false), as the backend sent them.
+ *   result: "..."    the last frame's result.
+ *   browserBars: true   the chart says its bars are the browser's own simulation.
+ */
+async function checkExpect(page, ex, n) {
+  const out = [];
+  const go = i => page.evaluate(i => { const s = document.getElementById("scrub"); s.value = i; s.dispatchEvent(new Event("input")); }, i);
+  const info = await page.evaluate(() => { const r = window.__viewer.run; return { frames: r.frames.map(f => ({ applied: f.applied, ok: f.ok, result: f.result, qubits: f.qubits })), columns: (r.resp.payload.columns || []).length }; });
+  const last = info.frames[n - 1];
+  if (ex.applied) {
+    const ap = info.frames.map(f => f.applied ?? 0);
+    if (ap.some((a, i) => i && a < ap[i - 1])) out.push(`expect applied: falls somewhere (${ap.join(",")})`);
+    if (Math.max(...ap) !== info.columns || Math.max(...ap) <= Math.min(...ap)) out.push(`expect applied: does not rise to the ${info.columns} columns (${ap.join(",")})`);
+    const sigs = new Map();
+    for (let i = 0; i < n; i++) {
+      await go(i);
+      const sig = await page.evaluate(() => {
+        const h = document.querySelector(".stage .host");
+        return { done: [...h.querySelectorAll("g.qc-col")].filter(g => !g.classList.contains("future")).length,
+          bars: [...h.querySelectorAll("rect.qc-bar")].map(b => (+b.getAttribute("height")).toFixed(1)).join(",") };
+      });
+      if (sig.done !== ap[i]) out.push(`expect applied: frame ${i + 1} has applied ${ap[i]} but draws ${sig.done} columns as applied`);
+      if (ap[i] > 0 && !sig.bars) out.push(`expect applied: frame ${i + 1} (applied ${ap[i]}) draws no bars`);
+      if (!sigs.has(ap[i])) sigs.set(ap[i], sig.done + "#" + sig.bars);
+    }
+    const distinct = new Set(sigs.values());
+    if (distinct.size < sigs.size) out.push(`expect applied: ${sigs.size} applied values but only ${distinct.size} different drawings`);
+  }
+  if (ex.ok !== undefined && ex.ok !== "any" && last.ok !== ex.ok) out.push(`expect ok: ${ex.ok}, the last frame has ${last.ok}`);
+  if (ex.ok === "any" && typeof last.ok !== "boolean") out.push(`expect ok: a verdict, the last frame has ${last.ok}`);
+  if (ex.result !== undefined && last.result !== ex.result) out.push(`expect result: ${ex.result}, got ${last.result}`);
+  await go(n - 1);
+  if (ex.qubits) {
+    const want = last.ok === false ? "Rejected" : "Solution";
+    const sent = Object.values(last.qubits || {}).map(v => v.state || v);
+    if (!sent.includes(want)) out.push(`expect qubits: the last frame sends no ${want} qubit (${JSON.stringify(last.qubits)})`);
+    const drawn = await page.evaluate(w => ({ wires: document.querySelectorAll(`.stage .host g.qc-wire-g.${w}`).length, bar: document.querySelectorAll(`.stage .host rect.qc-bar.${w === "Solution" ? "win" : "miss"}`).length,
+      other: document.querySelectorAll(`.stage .host g.qc-wire-g.${w === "Solution" ? "Rejected" : "Solution"}`).length }), want);
+    if (drawn.wires !== sent.filter(s => s === want).length) out.push(`expect qubits: ${sent.filter(s => s === want).length} ${want} qubits sent, ${drawn.wires} drawn`);
+    if (!drawn.bar) out.push(`expect qubits: the measured outcome's bar is not drawn ${want === "Solution" ? "green" : "red"}`);
+    if (drawn.other) out.push("expect qubits: the opposite verdict is drawn too");
+  }
+  if (ex.browserBars) {
+    const t = await page.evaluate(() => document.querySelector(".stage .host text.qc-src")?.textContent || "");
+    if (!/Simulated in this browser/.test(t)) out.push("expect browserBars: the chart does not say the bars are the browser's simulation");
+  }
+  return out;
+}
+
 const sample = (n, k = 12) => n <= k ? [...Array(n).keys()] : [...new Set([...Array(k).keys()].map(i => Math.round(i * (n - 1) / (k - 1))))];
 
 (async () => {
@@ -74,6 +128,7 @@ const sample = (n, k = 12) => n <= k ? [...Array(n).keys()] : [...new Set([...Ar
           if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `${c.name}-${theme}-stopped.png`), fullPage: true });
         }
       }
+      if (c.expect && state === "ready") errs.push(...await checkExpect(page, c.expect, n));
       const notes = await page.evaluate(() => [...document.querySelectorAll("#notes li")].map(l => l.textContent));
       ran++;
       const line = `${errs.length ? "FAIL" : "ok  "} ${theme.padEnd(5)} ${c.name.padEnd(28)} frames=${n} drawn=${drawn.join("/")}${notes.length ? "  notes=" + notes.length : ""}`;

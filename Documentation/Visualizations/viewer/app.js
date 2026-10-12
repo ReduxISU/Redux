@@ -277,7 +277,10 @@
     if (f.event) b.push([f.event === "Reject" ? "rej" : f.event === "Accept" ? "ok" : f.event === "Try" ? "hl" : "", "event: " + f.event]);
     if (f.ok === true) b.push(["ok", "ok: true"]);
     // A stopped run's Done: the picture's own (blank or "Stopped after ..."), or a Reduction View's map Done after a stopped solve.
-    if (f.ok === false) b.push(["rej", f.event === "Done" && (!f.caption || /^Stopped|had not finished/.test(f.caption)) ? "ok: false · stopped (time limit)" : "ok: false"]);
+    // A quantum run whose server could not be reached ended without an answer; that is not a wrong answer.
+    const down = Viewer.quantumServerDown(f);
+    if (f.ok === false) b.push(["rej", down ? "ok: false · quantum server unavailable" : f.event === "Done" && (!f.caption || /^Stopped|had not finished/.test(f.caption)) ? "ok: false · stopped (time limit)" : "ok: false"]);
+    else if (down) b.push(["rej", "quantum server unavailable"]);
     if (i === n - 1) {
       const last = f;
       if (last.event !== "Done") b.push(["rej", "last frame is not Done"]);

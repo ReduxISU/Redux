@@ -57,6 +57,20 @@ const Viewer = (() => {
     return out;
   }
 
+  /**
+   * A quantum run that ended because the quantum server could not be reached (not a wrong answer): a Reject or an ok:false
+   * frame whose caption says the quantum server gave no answer, or whose result is the server call's error JSON.
+   */
+  function quantumServerDown(f) {
+    if (!f || !(f.event === "Reject" || f.ok === false)) return false;
+    const cap = String(f.caption || "");
+    if (/quantum server/i.test(cap) && /(gave no|did not give|no answer|unreachable|unavailable)/i.test(cap)) return true;
+    if (typeof f.result !== "string") return false;
+    let r = null;
+    try { r = JSON.parse(f.result); } catch { return false; }
+    return !!(r && typeof r === "object" && typeof r.error === "string" && /(failed to post|refused|unreachable|timed out|no connection)/i.test(r.error));
+  }
+
   /** Tag an element with a backend id for gadget linking. */
   const tag = (el, id) => { if (el && id != null) el.setAttribute("data-vid", String(id)); return el; };
 
@@ -68,7 +82,7 @@ const Viewer = (() => {
   }
 
   return {
-    adapters, STATES, PRECEDENCE, NS, mk, stateOf, strongest, statesIn, tag, svgIn,
+    adapters, STATES, PRECEDENCE, NS, mk, stateOf, strongest, statesIn, tag, svgIn, quantumServerDown,
     register(type, impl) { adapters[type] = impl; },
     has(type) { return !!adapters[type]; },
     mount(ctx) {
