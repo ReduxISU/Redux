@@ -68,6 +68,8 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `DynamicTable` | [`API_TableJSON`](../../Interfaces/JSON_Objects/Tables/API_TableJSON.cs) | [DynamicTableSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/DynamicTableSvgReact.js) | DFA table view, shortest paths |
 | `Unimplemented` | `API_empty` | nothing, on purpose | Only `DummyVisualization`, the stand-in for a problem with no picture yet |
 
+/info also gives every visualization a `pictureType`, right after `visualizationType`: the picture type it serves under `visualize?format=frames` (the `type` of that response, such as `Graph`), or `null` when it serves only the older formats. It comes from the frames hook (`IFramesVisualization.PictureType()`, which reads it off a frames response for the problem's default instance), so a new picture type needs nothing extra for it. Clients read it instead of running each visualization to find out.
+
 Two things that trip people up:
 
 - Every payload class carries a `kind` field (`"graph"`, `"sat"`, `"set"`, `"table"`, `"empty"`, ...). It tells a reader what the JSON is without guessing. You do not set it. The class does.

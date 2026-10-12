@@ -33,7 +33,9 @@ public class BatchController : ControllerBase {
     private static readonly JsonSerializerOptions ReflectedIndented = new() {
         WriteIndented = true,
         IncludeFields = true,
-        ReferenceHandler = ReferenceHandler.IgnoreCycles
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        // As in ProblemProvider.info: every visualization also names its format=frames picture type (#841).
+        TypeInfoResolver = API.Interfaces.Steps.PictureTypes.Resolver(),
     };
 
     // All top-level problem names, from the same reflected source as the singular
