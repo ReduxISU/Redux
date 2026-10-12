@@ -392,9 +392,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "K\u0027 = N - K = 4 - 3 = 1. The clique graph has a clique of size 3 exactly when the complement has a vertex cover of size 1.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -536,9 +535,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "{d} covers every edge, found after 4 tries.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
