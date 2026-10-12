@@ -90,28 +90,32 @@ public class GraphParser_Tests {
         Assert.NotEmpty(parser.getNodesFromNodeListString(input));
     }
 
-    [Theory]
-    [InlineData(5000, "!")]
-    [InlineData(5000, ",")]
-    [InlineData(5000, "!!")]
-    public void GetNodesFromNodeListString_PathologicalInput_RejectedQuickly(int length, string suffix) {
-        var parser = new GraphParser();
-        string input = new string('a', length) + suffix;
-        Stopwatch timer = Stopwatch.StartNew();
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Theory]
+        [InlineData(5000, "!")]
+        [InlineData(5000, ",")]
+        [InlineData(5000, "!!")]
+        public void GetNodesFromNodeListString_PathologicalInput_RejectedQuickly(int length, string suffix) {
+            var parser = new GraphParser();
+            string input = new string('a', length) + suffix;
+            Stopwatch timer = Stopwatch.StartNew();
 
-        Assert.Throws<ArgumentException>(() => parser.getNodesFromNodeListString(input));
+            Assert.Throws<ArgumentException>(() => parser.getNodesFromNodeListString(input));
 
-        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(1), $"took {timer.Elapsed}");
-    }
+            Assert.True(timer.Elapsed < TimeSpan.FromSeconds(1), $"took {timer.Elapsed}");
+        }
 
-    [Fact]
-    public void GetNodesFromNodeListString_ManyOpeningBraces_RejectedQuickly() {
-        var parser = new GraphParser();
-        string input = string.Concat(Enumerable.Repeat("{" + new string('a', 50), 200)) + "!";
-        Stopwatch timer = Stopwatch.StartNew();
+        [Fact]
+        public void GetNodesFromNodeListString_ManyOpeningBraces_RejectedQuickly() {
+            var parser = new GraphParser();
+            string input = string.Concat(Enumerable.Repeat("{" + new string('a', 50), 200)) + "!";
+            Stopwatch timer = Stopwatch.StartNew();
 
-        Assert.Throws<ArgumentException>(() => parser.getNodesFromNodeListString(input));
+            Assert.Throws<ArgumentException>(() => parser.getNodesFromNodeListString(input));
 
-        Assert.True(timer.Elapsed < TimeSpan.FromSeconds(1), $"took {timer.Elapsed}");
+            Assert.True(timer.Elapsed < TimeSpan.FromSeconds(1), $"took {timer.Elapsed}");
+        }
     }
 }

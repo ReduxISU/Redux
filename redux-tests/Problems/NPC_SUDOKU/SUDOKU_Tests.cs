@@ -402,20 +402,26 @@ public class SUDOKU_Tests {
         return string.Join(";", g.Select(row => string.Join(",", row)));
     }
 
-    [Theory]
-    [InlineData(0, 0, 5, 0, 8, 5)] // duplicate in row 0
-    [InlineData(0, 0, 5, 8, 0, 5)] // duplicate in column 0
-    [InlineData(0, 0, 5, 2, 2, 5)] // duplicate in the top-left box only
-    [InlineData(4, 4, 9, 3, 3, 9)] // duplicate in the centre box only
-    public void SudokuSolver_DuplicateClue_ReturnsNoSolution_Quickly(int r1, int c1, int v1, int r2, int c2, int v2) {
-        // With an otherwise empty grid the unvalidated search would take a long time to
-        // discover (or never discover) the conflict; validation rejects it immediately.
-        var problem = new SUDOKU(WithCells((r1, c1, v1), (r2, c2, v2)));
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        string result = _solver.solve(problem);
-        sw.Stop();
-        Assert.Equal("{}", result);
-        Assert.True(sw.ElapsedMilliseconds < 1000, $"took {sw.ElapsedMilliseconds} ms");
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        private readonly SudokuSolver _solver = new();
+
+        [Theory]
+        [InlineData(0, 0, 5, 0, 8, 5)] // duplicate in row 0
+        [InlineData(0, 0, 5, 8, 0, 5)] // duplicate in column 0
+        [InlineData(0, 0, 5, 2, 2, 5)] // duplicate in the top-left box only
+        [InlineData(4, 4, 9, 3, 3, 9)] // duplicate in the centre box only
+        public void SudokuSolver_DuplicateClue_ReturnsNoSolution_Quickly(int r1, int c1, int v1, int r2, int c2, int v2) {
+            // With an otherwise empty grid the unvalidated search would take a long time to
+            // discover (or never discover) the conflict; validation rejects it immediately.
+            var problem = new SUDOKU(WithCells((r1, c1, v1), (r2, c2, v2)));
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            string result = _solver.solve(problem);
+            sw.Stop();
+            Assert.Equal("{}", result);
+            Assert.True(sw.ElapsedMilliseconds < 1000, $"took {sw.ElapsedMilliseconds} ms");
+        }
     }
 
     [Fact]
