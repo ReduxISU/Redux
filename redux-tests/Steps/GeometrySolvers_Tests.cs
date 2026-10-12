@@ -157,13 +157,17 @@ public class GeometrySolvers_Tests {
         Assert.Equal(answer.Count(c => c == '('), frames[^1].Hull.Count + 1);
     }
 
-    [Fact]
-    public void ManyPoints_StayWellWithinTheTimeBudget() {
-        var rnd = new Random(674);
-        string instance = "{" + string.Join(",", Enumerable.Range(0, 2000).Select(_ => $"({rnd.Next(-100000, 100000)},{rnd.Next(-100000, 100000)})").Distinct()) + "}";
-        var sw = Stopwatch.StartNew();
-        var frames = Frames(instance);
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
-        Assert.True(frames[^1].Ok);
+    // Wall-clock assertions run alone, after the parallel tests (#837).
+    [Collection(TimingCollection.Name)]
+    public class Timing {
+        [Fact]
+        public void ManyPoints_StayWellWithinTheTimeBudget() {
+            var rnd = new Random(674);
+            string instance = "{" + string.Join(",", Enumerable.Range(0, 2000).Select(_ => $"({rnd.Next(-100000, 100000)},{rnd.Next(-100000, 100000)})").Distinct()) + "}";
+            var sw = Stopwatch.StartNew();
+            var frames = Frames(instance);
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+            Assert.True(frames[^1].Ok);
+        }
     }
 }
