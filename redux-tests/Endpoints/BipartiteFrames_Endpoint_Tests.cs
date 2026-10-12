@@ -320,6 +320,7 @@ public class BipartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 }
 
+[Collection(TimingCollection.Name)]
 public class BipartiteFrames_StoppedEndpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
