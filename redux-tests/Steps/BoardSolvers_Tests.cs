@@ -148,14 +148,15 @@ public class BoardSolvers_Tests {
     }
 
     [Fact]
-    public void Sudoku_Frames_KeepPlacedDigitsSolution_HighlightOnlyTheTriedSquare_AndNeverTheClues() {
+    public void Sudoku_Frames_KeepPlacedDigitsPlainUntilTheAnswer_HighlightOnlyTheTriedSquare_AndNeverTheClues() {
         var (payload, frames) = Picture("sudokusolver", SudokuDefault);
         Assert.Equal(("sudoku", 9, 3, 1, 30), (payload.Game, payload.Size, payload.Box, payload.LabelsFrom, payload.Clues.Count));
         Assert.Equal("r0c3 0 3 1", $"{payload.Clues[0].Id} {payload.Clues[0].R} {payload.Clues[0].C} {payload.Clues[0].Value}");
         var clues = payload.Clues.Select(c => c.Id).ToHashSet();
 
-        // Step 5 (index 4): four digits placed in row 1 (Solution) and R1C6 being tried.
-        Assert.Equal("r0c0:Solution r0c1:Solution r0c2:Solution r0c4:Solution r0c5:ElementHighlight", States(frames[4].Cells));
+        // Step 5 (index 4): four digits placed in row 1 (plain: not the answer yet, #839) and R1C6 being tried.
+        Assert.Equal("r0c5:ElementHighlight", States(frames[4].Cells));
+        Assert.Equal(["4", "5", "6", "7"], new[] { "r0c0", "r0c1", "r0c2", "r0c4" }.Select(id => frames[4].Values[id]).Order());
         Assert.Equal("8", frames[4].Values["r0c5"]);
         Assert.Equal("1", frames[4].Values["r0c3"]);
         Assert.Empty(frames[4].Pieces);
@@ -167,7 +168,10 @@ public class BoardSolvers_Tests {
             Assert.DoesNotContain(f.Cells.Keys, clues.Contains);
             Assert.Empty(f.Links);
             Assert.True(f.Cells.Count(c => c.Value.State != PictureState.Solution) <= 1);
+            // Solution colour means the answer: only the last frame, the confirmed Done, has any (#839).
+            if (f != frames[^1]) Assert.DoesNotContain(f.Cells.Values, c => c.State == PictureState.Solution);
         }
+        Assert.Equal((StepEvent.Done, true), (frames[^1].Event, frames[^1].Ok));
         // The capped run still ends on the finished board: every square filled, the 51 the solver filled Solution.
         Assert.Equal(81, frames[^1].Values.Count);
         Assert.Equal(51, frames[^1].Cells.Count);
@@ -284,16 +288,18 @@ public class BoardSolvers_Tests {
     }
 
     [Fact]
-    public void Backtracking_Four_Frames_KeepQueensSolution_AndMarkTheFailedRowRejected() {
+    public void Backtracking_Four_Frames_KeepQueensPlainUntilTheAnswer_AndMarkTheFailedRowRejected() {
         var (payload, frames) = Picture("nqueensbacktracking", "4");
         Assert.Equal(("queens", 4, (int?)null, 0), (payload.Game, payload.Size, payload.Box, payload.LabelsFrom));
         Assert.Empty(payload.Clues);
-        Assert.Equal("r0c0:Solution r1c0:Rejected r1c1:Rejected r1c2:ElementHighlight", States(frames[1].Cells));
+        Assert.Equal("r1c0:Rejected r1c1:Rejected r1c2:ElementHighlight", States(frames[1].Cells));
         Assert.Equal(["r0c0 queen", "r1c2 queen"], frames[1].Pieces.Select(p => $"{p.Id} {p.Kind}"));
         Assert.Equal(["r1c0>r0c0", "r1c1>r0c0"], frames[1].Links.Select(l => $"{l.From}>{l.To}"));
         Assert.Empty(frames[1].Values);
         // The dead row 2: all of it Rejected, and the queen in row 1 that has to move.
-        Assert.Equal("r0c0:Solution r1c2:Rejected r2c0:Rejected r2c1:Rejected r2c2:Rejected r2c3:Rejected", States(frames[2].Cells));
+        Assert.Equal("r1c2:Rejected r2c0:Rejected r2c1:Rejected r2c2:Rejected r2c3:Rejected", States(frames[2].Cells));
+        // Queens stay plain while the solver searches (#839); only the confirmed answer is Solution.
+        Assert.All(frames.SkipLast(1), f => Assert.DoesNotContain(f.Cells.Values, c => c.State == PictureState.Solution));
         var done = frames[^1];
         Assert.Equal("r0c1:Solution r1c3:Solution r2c0:Solution r3c2:Solution", States(done.Cells));
         Assert.Empty(done.Links);
@@ -334,7 +340,8 @@ public class BoardSolvers_Tests {
         Assert.Equal(["r0c1", "r1c3", "r2c5", "r3c7", "r4c2", "r5c0", "r6c6", "r7c4"], steps[8].Partial.Values.Keys.Order(StringComparer.Ordinal));
         Assert.Equal("All 8 queens placed in 8 steps, with no search: {(0,1),(1,3),(2,5),(3,7),(4,2),(5,0),(6,6),(7,4)}.", steps[^1].Caption);
         var (_, frames) = Picture("nqueensconstructive", "8");
-        Assert.Equal("r0c1:Solution r1c3:Solution r2c5:ElementHighlight", States(frames[3].Cells));
+        Assert.Equal("r2c5:ElementHighlight", States(frames[3].Cells));
+        Assert.Equal(["r0c1", "r1c3", "r2c5"], frames[3].Pieces.Select(p => p.Id));
     }
 
     [Theory]
