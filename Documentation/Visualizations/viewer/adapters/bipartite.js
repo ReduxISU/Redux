@@ -5,7 +5,7 @@
    Each frame carries the backend's states as `ev`, so the colors are the backend's, not the mockup's derivation. */
 (() => {
   const NODE_CLASS = { ElementHighlight: "Active", Solution: "Solution", Covered: "Covered", Rejected: "Rejected", Blocked: "Blocked", False: "False" };
-  const EDGE_CLASS = { ElementHighlight: "hot", Solution: "sol", False: "dim" };
+  const EDGE_CLASS = { ElementHighlight: "hot", Solution: "sol", Rejected: "rej", False: "dim" };
 
   function nodeEv(f, map, note, hasFalse) {
     const out = new Map();
@@ -89,7 +89,7 @@
     if (extra.length) note(`Frame fields the Bipartite adapter ignores: ${extra.join(", ")}`, false);
 
     // Tag: draw() appends lines in M.edges order, then element nodes, then set nodes.
-    const lines = [...svg.querySelectorAll("line.bp-edge")], nodeGs = [...svg.querySelectorAll("g.bp-node")];
+    const lines = [...svg.querySelectorAll(".bp-edge")], nodeGs = [...svg.querySelectorAll("g.bp-node")];
     const edgeEls = new Map(), nodeEls = new Map();
     lines.forEach((l, i) => { Viewer.tag(l, payload.edges[i].id); edgeEls.set(payload.edges[i].id, l); });
     nodeGs.forEach((g, i) => {
@@ -114,19 +114,21 @@
       if (e.positive === undefined) note("Factor-graph edge without \"positive\"; drawn as a positive literal.");
       return e.positive === false ? -v : v;
     }));
-    const dup = payload.sets.filter(s => new Set(s.members).size !== payload.edges.filter(e => e.b === s.id).length);
-    if (dup.length) note(`Clause ${dup[0].label} uses one variable twice (two literals): its "members" list has the variable once but there are two edges, drawn on top of each other.`, false);
-    view.load(C, names);
+    // A clause that uses one variable twice has two edges between the same nodes: createSat draws the repeat as a curve.
+    const withHits = ctx.frames.some(f => f.hits && Object.keys(f.hits).length);
+    view.load(C, names, { hits: withHits });
     const nodeKey = id => (vIdx.has(id) ? "v" + vIdx.get(id) : "c" + payload.sets.findIndex(s => s.id === id));
     const frames = ctx.frames.map(f => {
       const asg = {};
       for (const [k, v] of Object.entries(f.assignment || {})) if (vIdx.has(k)) asg[vIdx.get(k)] = v;
+      // hits: true literals per clause, shown as an "n true" badge on the clause.
+      const hits = new Map(Object.entries(f.hits || {}).map(([id, n]) => [nodeKey(id), +n]));
       return { asg, caption: f.caption, done: f.event === "Done",
-        ev: { nodes: nodeEv(f, nodeKey, note, true), edges: edgeOrder.map(id => edgeClass(f, id, note)) } };
+        ev: { nodes: nodeEv(f, nodeKey, note, true), edges: edgeOrder.map(id => edgeClass(f, id, note)), hits } };
     });
-    if (ctx.frames.some(f => Object.values(f.hits || {}).some(n => n > 1))) note("Factor graph: frames send hits counts (true literals per clause); the SAT factor view has no badge for them.", false);
-    // Tag: createSat draws edges (literal order), then per variable a node + its T/F label, then clause nodes.
-    const lines = [...svg.querySelectorAll("line.bp-edge")], vars = [...svg.querySelectorAll("g.bp-node.el")], cls = [...svg.querySelectorAll("g.bp-node.set")];
+    // Tag: createSat draws edges (literal order; a repeated variable's edge is a path), then per variable a node + its
+    // T/F label, then clause nodes.
+    const lines = [...svg.querySelectorAll(".bp-edge")], vars = [...svg.querySelectorAll("g.bp-node.el")], cls = [...svg.querySelectorAll("g.bp-node.set")];
     const edgeEls = new Map(), nodeEls = new Map();
     lines.forEach((l, i) => { Viewer.tag(l, edgeOrder[i]); edgeEls.set(edgeOrder[i], l); });
     vars.forEach((g, i) => { Viewer.tag(g, payload.elements[i].id); nodeEls.set(payload.elements[i].id, g); });

@@ -34,6 +34,8 @@ const BipartiteView = (() => {
 .bp-edge { stroke: var(--av-edge); stroke-width: 1.4; transition: opacity .2s, stroke .2s; }
 .bp-edge.sol { stroke: var(--av-sol); stroke-width: 2.6; }
 .bp-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
+.bp-edge.rej { stroke: var(--av-rej); stroke-width: 2.8; }
+path.bp-edge { fill: none; }
 .bp-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
 .bp-edge.dim { stroke: var(--av-edge-dim); }
 .bp-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
@@ -351,7 +353,9 @@ const BipartiteView = (() => {
 .bp-node.False .body { fill: var(--av-surface); stroke: var(--av-stroke); }
 .bp-node.False text { fill: var(--av-muted); }
 .bp-val { font-size: 12px; font-weight: 600; text-anchor: end; dominant-baseline: central; fill: var(--av-muted); }
-.bp-val.T { fill: var(--av-sol); }`;
+.bp-val.T { fill: var(--av-sol); }
+.bp-hits rect { fill: var(--av-surface); stroke: var(--av-sol); stroke-width: 1.4; }
+.bp-node text.bp-hits-t { font-size: 11px; font-weight: 600; text-anchor: middle; fill: var(--av-sol-ink); }`;
   const SUBS = "₀₁₂₃₄₅₆₇₈₉";
   const pretty = nm => { const m = /^([A-Za-z_]+)(\d+)$/.exec(nm); return m ? m[1] + m[2].split("").map(d => SUBS[d]).join("") : nm; };
 
@@ -363,7 +367,7 @@ const BipartiteView = (() => {
       const st = document.createElement("style"); st.id = "bp-sat-style"; st.textContent = satCss; document.head.appendChild(st);
     }
     svg.classList.add("bp-svg");
-    let C, names, varEls, clauseEls, edgeEls, frame = null, hover = null;
+    let C, names, varEls, clauseEls, edgeEls, frame = null, hover = null, withHits = false;
 
     function draw() {
       svg.innerHTML = "";
@@ -371,7 +375,8 @@ const BipartiteView = (() => {
       const litText = c => c.map(l => (l < 0 ? "¬" : "") + pretty(names[Math.abs(l) - 1])).join(" ∨ ");
       const bary = c => c.reduce((a, l) => a + Math.abs(l), 0) / c.length;
       const order = C.map((c, j) => j).sort((a, b) => bary(C[a]) - bary(C[b]));
-      const setW = Math.min(300, Math.max(...C.map((c, j) => (("C" + (j + 1)).length + litText(c).length) * 7.6 + 40), 120));
+      // Viewer hook (local/viz-viewer): room for the "n true" badge when frames carry hits counts.
+      const setW = Math.min(300, Math.max(...C.map((c, j) => (("C" + (j + 1)).length + litText(c).length) * 7.6 + 40), 120)) + (withHits ? 62 : 0);
       const rows = Math.max(n, m), W = Math.max(640, 220 + setW + 280), H = rows * ROW + 80;
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const vx = 110, cx = W - 50 - setW;
@@ -386,9 +391,18 @@ const BipartiteView = (() => {
       head(cx, "CLAUSES", false);
       const gE = mk("g", {}, svg), gN = mk("g", {}, svg);
       edgeEls = [];
-      C.forEach((c, j) => c.forEach(l => {
-        const i = Math.abs(l) - 1;
-        edgeEls.push({ v: i + 1, j, lit: l, el: mk("line", { x1: vx + ER, y1: vy(i), x2: cx, y2: cy.get(j), class: "bp-edge" + (l < 0 ? " neg" : "") }, gE) });
+      C.forEach((c, j) => c.forEach((l, k) => {
+        const i = Math.abs(l) - 1, x1 = vx + ER, y1 = vy(i), x2 = cx, y2 = cy.get(j);
+        // A clause that uses one variable twice (x and ¬x, or x twice) has two edges between the same two nodes: draw each
+        // repeat as a curve bowed to one side, so both literals stay visible.
+        const rep = c.slice(0, k).filter(m => Math.abs(m) === i + 1).length;
+        let el;
+        if (!rep) el = mk("line", { x1, y1, x2, y2, class: "bp-edge" + (l < 0 ? " neg" : "") }, gE);
+        else {
+          const L = Math.hypot(x2 - x1, y2 - y1) || 1, off = 22 * rep, mx = (x1 + x2) / 2 - ((y2 - y1) / L) * off, my = (y1 + y2) / 2 + ((x2 - x1) / L) * off;
+          el = mk("path", { d: `M${x1},${y1} Q${mx},${my} ${x2},${y2}`, class: "bp-edge" + (l < 0 ? " neg" : "") }, gE);
+        }
+        edgeEls.push({ v: i + 1, j, lit: l, el });
       }));
       const hookup = (g, key) => {
         const on = () => { hover = key; paint(); }, off = () => { hover = null; paint(); };
@@ -410,6 +424,12 @@ const BipartiteView = (() => {
         mk("rect", { x: cx, y: y - 17, width: setW, height: 34, rx: 8, class: "body" }, g);
         mk("text", { x: cx + 12, y, class: "lbl" }, g).textContent = "C" + (j + 1);
         mk("text", { x: cx + 18 + ("C" + (j + 1)).length * 8.5, y, class: "sub" }, g).textContent = litText(c);
+        if (withHits) {
+          const hb = mk("g", { class: "bp-hits", visibility: "hidden" }, g);
+          mk("rect", { x: cx + setW - 58, y: y - 10, width: 50, height: 20, rx: 10 }, hb);
+          g.hits = mk("text", { x: cx + setW - 33, y, class: "bp-hits-t" }, hb);
+          g.hitsBox = hb;
+        }
         hookup(g, "c" + j);
         return g;
       });
@@ -438,6 +458,12 @@ const BipartiteView = (() => {
         if (f && j === f.failed) st = "Rejected";
         else if (C[j].some(l => val(l) === true)) st = "Covered";
         if (f && f.ev) st = f.ev.nodes.get("c" + j) || "Background"; // Viewer hook (local/viz-viewer)
+        // Viewer hook (local/viz-viewer): f.ev.hits = Map("c" + j → number of true literals), drawn as an "n true" badge.
+        if (g.hitsBox) {
+          const n = f && f.ev && f.ev.hits ? f.ev.hits.get("c" + j) : undefined;
+          g.hitsBox.setAttribute("visibility", n !== undefined ? "visible" : "hidden");
+          g.hits.textContent = n !== undefined ? `${n} true` : "";
+        }
         let cls = "bp-node set " + st;
         if (hover) cls += hc === j ? " trace" : nearC.has(j) ? "" : " faint";
         g.setAttribute("class", cls);
@@ -454,7 +480,8 @@ const BipartiteView = (() => {
     }
 
     return {
-      load(clauses, varNames) { C = clauses; names = varNames; frame = null; hover = null; draw(); paint(); },
+      // opts.hits (viewer hook, local/viz-viewer): frames will carry per-clause true-literal counts; leave room for the badge.
+      load(clauses, varNames, opts = {}) { C = clauses; names = varNames; withHits = !!opts.hits; frame = null; hover = null; draw(); paint(); },
       show(f) { frame = f || null; paint(); },
       resetHover() { hover = null; paint(); },
     };
