@@ -338,9 +338,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "K = 6^2 / 4 = 9. A cut between sides whose numbers add up to a and b weighs a * b, which reaches 3 * 3 = 9 only when a = b = 3: an even split.",
-      "ok": true,
       "sourceFocus": [
         "C1",
         "C2"
@@ -508,9 +507,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "{3} against {1,2} cuts edges of total weight 9, found after 3 tries.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

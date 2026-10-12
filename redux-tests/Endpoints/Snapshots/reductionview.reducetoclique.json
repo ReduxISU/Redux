@@ -402,9 +402,8 @@
     },
     {
       "phase": "build",
-      "event": "Done",
+      "event": "Accept",
       "caption": "K stays 2. 2 nodes with no edge between them in the original graph are 2 nodes joined to each other in the complement.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -490,9 +489,8 @@
     },
     {
       "phase": "solve",
-      "event": "Done",
+      "event": "Accept",
       "caption": "{a,c} is a clique, found after 2 tries.",
-      "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {

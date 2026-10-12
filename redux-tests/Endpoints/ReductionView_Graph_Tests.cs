@@ -188,11 +188,12 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
 
         var phases = view.GetProperty("frames").EnumerateArray().Select(f => f.GetProperty("phase").GetString()!).ToList();
         Assert.Equal(["build", "solve", "map"], phases.Distinct());
-        foreach (string phase in new[] { "build", "solve", "map" }) {
-            var frames = Phase(view, phase);
-            Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
-            Assert.DoesNotContain(frames.Take(frames.Count - 1), f => f.GetProperty("event").GetString() == "Done");
-        }
+        // One Done in the whole view, its last frame, and the only frame with ok (#840).
+        var all = view.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(all[^1], Assert.Single(all, f => f.GetProperty("event").GetString() == "Done"));
+        Assert.Equal("map", all[^1].GetProperty("phase").GetString());
+        Assert.DoesNotContain(all.SkipLast(1), f => f.TryGetProperty("ok", out _));
+        Assert.Equal("Accept", Phase(view, "build")[^1].GetProperty("event").GetString());
         Assert.All(view.GetProperty("frames").EnumerateArray(), f => Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString())));
     }
 
@@ -399,7 +400,7 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
     public async Task YesMapsToYes_NoToNo_AndTheVerdictIsTheSourceVerifiers(string reduction, string instance, bool hasAnswer) {
         var view = await View(reduction, instance);
         IReduction red = Build(reduction, instance);
-        bool solved = Phase(view, "solve")[^1].GetProperty("ok").GetBoolean();
+        bool solved = ReductionView_Endpoint_Tests.SolvedOk(Phase(view, "solve"));
         Assert.Equal(hasAnswer, solved);
         var map = Phase(view, "map");
         bool ok = map[^1].GetProperty("ok").GetBoolean();
@@ -442,7 +443,7 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
         var map = Phase(view, "map");
         bool ok = map[^1].GetProperty("ok").GetBoolean();
         Assert.Equal(Verifies(red.reductionFrom, instance, ShownAnswer(map[^1].GetProperty("source"))), ok);
-        if (Phase(view, "solve")[^1].GetProperty("ok").GetBoolean()) Assert.True(ok, map[^1].GetProperty("caption").GetString());
+        if (ReductionView_Endpoint_Tests.SolvedOk(Phase(view, "solve"))) Assert.True(ok, map[^1].GetProperty("caption").GetString());
     }
 
     // ---- The backward map on its own endpoint ----
@@ -582,11 +583,14 @@ public class ReductionView_Graph_TimeLimit_Tests : IClassFixture<TinyBudgetAppFa
         Assert.True(response.StatusCode == HttpStatusCode.OK, body);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
         var build = frames.Where(f => f.GetProperty("phase").GetString() == "build").ToList();
-        Assert.True(build[^1].GetProperty("ok").GetBoolean());
+        // The build ends on a plain "target built" frame and the stopped solve on a Reject, neither with ok (#840).
+        Assert.Equal("Accept", build[^1].GetProperty("event").GetString());
+        Assert.False(build[^1].TryGetProperty("ok", out _));
         var solve = frames.Where(f => f.GetProperty("phase").GetString() == "solve").ToList();
-        Assert.False(solve[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal("Reject", solve[^1].GetProperty("event").GetString());
+        Assert.False(solve[^1].TryGetProperty("ok", out _));
         Assert.StartsWith("Stopped after 0.05 s and ", solve[^1].GetProperty("caption").GetString());
-        // The stopped Done frame is blank: nothing is drawn as an answer.
+        // The stopped frame is blank: nothing is drawn as an answer.
         Assert.Empty(ReductionView_Graph_Tests.States(solve[^1].GetProperty("target")));
         var map = Assert.Single(frames, f => f.GetProperty("phase").GetString() == "map");
         Assert.False(map.GetProperty("ok").GetBoolean());
