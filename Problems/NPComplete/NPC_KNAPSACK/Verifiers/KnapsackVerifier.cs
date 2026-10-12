@@ -39,7 +39,7 @@ class KnapsackVerifier : IVerifier<KNAPSACK> {
     }
 
     public bool verify(KNAPSACK problem, string certificate) {
-        UtilCollection solution;
+        List<UtilCollection> solution;
         try {
             solution = parseCertificate(problem, certificate);
         } catch {
@@ -58,11 +58,18 @@ class KnapsackVerifier : IVerifier<KNAPSACK> {
 
     }
 
-    private UtilCollection parseCertificate(KNAPSACK problem, string certificate) {
-        UtilCollection solution = new UtilCollection(certificate);
+    // The chosen items, with repeats kept (#628): two identical items in the certificate are two items, and each must be a
+    // separate item of the instance, so (1,2) can be chosen twice only when the instance has it twice.
+    // TODO(#628): once SPADE releases "is multiset", the certificate can be read as a SPADE multiset.
+    private List<UtilCollection> parseCertificate(KNAPSACK problem, string certificate) {
+        List<UtilCollection> solution = RepeatedElements.KeepRepeats(certificate, new UtilCollection(certificate));
+        // A copy: UtilCollection.ToList() hands back the collection's own list, which must not lose items here.
+        List<UtilCollection> unchosen = new List<UtilCollection>(problem.items.ToList());
         foreach (UtilCollection solItem in solution) {
             solItem.assertPair();
-            if (!problem.items.Contains(solItem)) throw new Exception();
+            int at = unchosen.FindIndex(item => item.Equals(solItem));
+            if (at < 0) throw new Exception();
+            unchosen.RemoveAt(at);
         }
         return solution;
     }

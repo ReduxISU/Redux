@@ -41,6 +41,11 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
 
     public string wikiName { get; } = "Knapsack";
 
+    /// <summary>
+    /// Every item, as a (weight, value) pair, in the order written and with repeats kept (#628): an ordered collection, so two
+    /// identical items are two entries. Built with <c>new UtilCollection(List&lt;UtilCollection&gt;)</c>, never as a SPADE set,
+    /// which would keep one copy.
+    /// </summary>
     public UtilCollection items { get; set; }
 
     private int _W = 0;
@@ -74,7 +79,10 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
         instance = HWVInput;
         StringParser parser = new(InstanceGrammar);
         parser.parse(HWVInput);
-        items = parser["i"];
+        // SPADE checks the instance; the items are then read from the text with every repeat kept, so two identical items
+        // stay two items (#628). TODO(#628): once SPADE releases "is multiset", use
+        // "{(i, w, v) | i is multiset, i subset int cross int, w is int, v is int}" instead.
+        items = new UtilCollection(RepeatedElements.KeepRepeats(HWVInput, parser["i"]));
         W = int.Parse(parser["w"].ToString());
         V = int.Parse(parser["v"].ToString());
     }

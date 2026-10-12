@@ -45,19 +45,20 @@ class KnapsackDP : ISolver<KNAPSACK> {
 
         if (dp[n, capacity] < knapsack.V) return "{}";
 
-        UtilCollection selectedItems = new UtilCollection("{}");
+        // A list, not a SPADE set, so two identical items the table took are both in the answer (#628).
+        List<string> selectedItems = new List<string>();
         int remainingCapacity = capacity;
 
         for (int i = n; i > 0 && remainingCapacity > 0; i--) {
             if (dp[i, remainingCapacity] != dp[i - 1, remainingCapacity]) {
                 var item = itemValues[i - 1];
-                selectedItems.Add(item);
+                selectedItems.Add(item.ToString());
 
                 int itemWeight = int.Parse(item[0].ToString());
                 remainingCapacity -= itemWeight;
             }
         }
 
-        return selectedItems.ToString();
+        return "{" + string.Join(",", selectedItems) + "}";
     }
 }

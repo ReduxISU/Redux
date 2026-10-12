@@ -70,7 +70,9 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualiz
             parser.parse(instance);
             // Materialize inside the try: SPADE may parse without error and only
             // fail when the result is enumerated or a missing key is accessed.
-            parsedS = parser["S"].ToList().Select(x => x.ToString()).ToList();
+            // SPADE checks the instance; S is then read from the text with every repeat kept, since S is a multiset (#628).
+            // TODO(#628): once SPADE releases "is multiset", use "{(S,T) | S is multiset, S subset int, T is int}" instead.
+            parsedS = RepeatedElements.KeepRepeats(instance, parser["S"]).Select(x => x.ToString()).ToList();
             tStr = parser["T"].ToString();
         } catch (Exception ex) {
             throw new ProblemParseException(problemName, instance, ex.Message);

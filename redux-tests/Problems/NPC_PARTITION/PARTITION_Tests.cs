@@ -32,8 +32,8 @@ public class PARTITION_Tests {
     public void PARTITION_Certificate_Format_Example_Is_Actually_Valid() {
         // The example quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
-        // (S is parsed as a set, so the duplicate "12" in defaultInstance collapses
-        // to one element; S actually has 11 distinct values, not 12.)
+        // (S is a multiset, so both 12s of defaultInstance are numbers of S and the
+        // example uses both, #628.)
         PARTITION problem = new PARTITION();
         PartitionVerifier verifier = new PartitionVerifier();
         Assert.True(verifier.verify(problem, PartitionVerifier.CertificateExample));
@@ -57,8 +57,7 @@ public class PARTITION_Tests {
 
     [Fact]
     public void PARTITION_BruteForce_Two_Distinct_Elements_Have_No_Solution() {
-        // PARTITION's instance grammar parses S with "is set" semantics (duplicates
-        // collapse), so two distinct positive integers can never balance into two
+        // Two distinct positive integers can never balance into two
         // equal-sum singleton groups. The solver must visit all 2^2 = 4 binary
         // assignments -- including nextBinary's double-carry rollover from [1,1] back to
         // [0,0] -- before exhausting the search and returning "{}".
