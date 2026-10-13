@@ -1,5 +1,6 @@
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.Xml;
+using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT;
@@ -12,22 +13,26 @@ class API_SAT : API_JSON {
     /// <summary>Discriminator so a client can tell payload shapes apart without duck-typing. See #524.</summary>
     public string kind { get; } = "sat";
 
+    /// <summary>
+    /// The clauses in formula order. Clause i has id <c>c{i}</c> and its j-th literal <c>c{i}-{j}</c>, the ids the Grouped Graph
+    /// picture and every gadget out of a SAT or 3SAT formula use, so a gadget's ids name pieces of this picture too.
+    /// </summary>
     public List<Clause> clauses { get; set; }
     public API_SAT(SAT3 instance) {
-        clauses = instance.clauses.Select((c, i) => new Clause(c, i.ToString())).ToList();
+        clauses = instance.clauses.Select((c, i) => new Clause(c, i)).ToList();
     }
 
     public API_SAT(SAT instance) {
-        clauses = instance.clauses.Select((c, i) => new Clause(c, i.ToString())).ToList();
+        clauses = instance.clauses.Select((c, i) => new Clause(c, i)).ToList();
     }
 
     public class Clause {
         public string id { get; set; }
         public List<Literal> literals { get; set; }
 
-        public Clause(List<string> _literals, string _id) {
-            id = _id;
-            literals = _literals.Select((s, i) => new Literal(s, id.ToString() + "-" + i.ToString())).ToList();
+        public Clause(List<string> _literals, int index) {
+            id = GroupedGraphFrames.ClauseId(index);
+            literals = _literals.Select((s, j) => new Literal(s, GroupedGraphFrames.LiteralId(index, j))).ToList();
         }
     }
 

@@ -134,12 +134,10 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
                 string nodeName = literal + new string(OccurrenceMarker, earlier) + "_" + i;
                 nodes.Add(new UtilCollection(nodeName));
 
-                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { "c" + i + "-" + j }, new List<string> { nodeName },
-                    legacyFromIds: new List<string>() { i + "-" + j }));
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { "c" + i + "-" + j }, new List<string> { nodeName }));
                 nodesInClause.Add(nodeName);
             }
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string>() { "c" + i }, nodesInClause,
-                legacyFromIds: new List<string>() { i.ToString() }));
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string>() { "c" + i }, nodesInClause));
 
             if (recording) {
                 int clause = i;

@@ -49,7 +49,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-0"
+        "c0-0"
       ],
       "reductionToIds": [
         "x1_0"
@@ -66,7 +66,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-1"
+        "c0-1"
       ],
       "reductionToIds": [
         "!x2_0"
@@ -83,7 +83,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-2"
+        "c0-2"
       ],
       "reductionToIds": [
         "x3_0"
@@ -100,7 +100,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "0"
+        "c0"
       ],
       "reductionToIds": [
         "x1_0",
@@ -121,7 +121,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-0"
+        "c1-0"
       ],
       "reductionToIds": [
         "!x1_1"
@@ -138,7 +138,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-1"
+        "c1-1"
       ],
       "reductionToIds": [
         "x3_1"
@@ -155,7 +155,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-2"
+        "c1-2"
       ],
       "reductionToIds": [
         "x1_1"
@@ -172,7 +172,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "1"
+        "c1"
       ],
       "reductionToIds": [
         "!x1_1",
@@ -193,7 +193,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-0"
+        "c2-0"
       ],
       "reductionToIds": [
         "x2_2"
@@ -210,7 +210,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-1"
+        "c2-1"
       ],
       "reductionToIds": [
         "!x3_2"
@@ -227,7 +227,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-2"
+        "c2-2"
       ],
       "reductionToIds": [
         "!x1_2"
@@ -244,7 +244,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "2"
+        "c2"
       ],
       "reductionToIds": [
         "x2_2",
@@ -442,7 +442,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-0"
+      "c0-0"
     ],
     "reductionToIds": [
       "x1_0"
@@ -459,7 +459,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-1"
+      "c0-1"
     ],
     "reductionToIds": [
       "!x2_0"
@@ -476,7 +476,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-2"
+      "c0-2"
     ],
     "reductionToIds": [
       "x3_0"
@@ -493,7 +493,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "0"
+      "c0"
     ],
     "reductionToIds": [
       "x1_0",
@@ -514,7 +514,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-0"
+      "c1-0"
     ],
     "reductionToIds": [
       "!x1_1"
@@ -531,7 +531,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-1"
+      "c1-1"
     ],
     "reductionToIds": [
       "x3_1"
@@ -548,7 +548,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-2"
+      "c1-2"
     ],
     "reductionToIds": [
       "x1_1"
@@ -565,7 +565,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "1"
+      "c1"
     ],
     "reductionToIds": [
       "!x1_1",
@@ -586,7 +586,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-0"
+      "c2-0"
     ],
     "reductionToIds": [
       "x2_2"
@@ -603,7 +603,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-1"
+      "c2-1"
     ],
     "reductionToIds": [
       "!x3_2"
@@ -620,7 +620,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-2"
+      "c2-2"
     ],
     "reductionToIds": [
       "!x1_2"
@@ -637,7 +637,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "2"
+      "c2"
     ],
     "reductionToIds": [
       "x2_2",
@@ -706,7 +706,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-0"
+        "c0-0"
       ],
       "reductionToIds": [
         "x1_0"
@@ -723,7 +723,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-1"
+        "c0-1"
       ],
       "reductionToIds": [
         "x2_0"
@@ -740,7 +740,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-2"
+        "c0-2"
       ],
       "reductionToIds": [
         "x3_0"
@@ -757,7 +757,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "0"
+        "c0"
       ],
       "reductionToIds": [
         "x1_0",
@@ -778,7 +778,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-0"
+        "c1-0"
       ],
       "reductionToIds": [
         "!x1_1"
@@ -795,7 +795,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-1"
+        "c1-1"
       ],
       "reductionToIds": [
         "!x2_1"
@@ -812,7 +812,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-2"
+        "c1-2"
       ],
       "reductionToIds": [
         "x3_1"
@@ -829,7 +829,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "1"
+        "c1"
       ],
       "reductionToIds": [
         "!x1_1",
@@ -850,7 +850,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-0"
+        "c2-0"
       ],
       "reductionToIds": [
         "x1_2"
@@ -867,7 +867,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-1"
+        "c2-1"
       ],
       "reductionToIds": [
         "!x3_2"
@@ -884,7 +884,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-2"
+        "c2-2"
       ],
       "reductionToIds": [
         "x2_2"
@@ -901,7 +901,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "2"
+        "c2"
       ],
       "reductionToIds": [
         "x1_2",
@@ -1099,7 +1099,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-0"
+      "c0-0"
     ],
     "reductionToIds": [
       "x1_0"
@@ -1116,7 +1116,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-1"
+      "c0-1"
     ],
     "reductionToIds": [
       "x2_0"
@@ -1133,7 +1133,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-2"
+      "c0-2"
     ],
     "reductionToIds": [
       "x3_0"
@@ -1150,7 +1150,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "0"
+      "c0"
     ],
     "reductionToIds": [
       "x1_0",
@@ -1171,7 +1171,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-0"
+      "c1-0"
     ],
     "reductionToIds": [
       "!x1_1"
@@ -1188,7 +1188,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-1"
+      "c1-1"
     ],
     "reductionToIds": [
       "!x2_1"
@@ -1205,7 +1205,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-2"
+      "c1-2"
     ],
     "reductionToIds": [
       "x3_1"
@@ -1222,7 +1222,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "1"
+      "c1"
     ],
     "reductionToIds": [
       "!x1_1",
@@ -1243,7 +1243,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-0"
+      "c2-0"
     ],
     "reductionToIds": [
       "x1_2"
@@ -1260,7 +1260,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-1"
+      "c2-1"
     ],
     "reductionToIds": [
       "!x3_2"
@@ -1277,7 +1277,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-2"
+      "c2-2"
     ],
     "reductionToIds": [
       "x2_2"
@@ -1294,7 +1294,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "2"
+      "c2"
     ],
     "reductionToIds": [
       "x1_2",
@@ -1363,7 +1363,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-0"
+        "c0-0"
       ],
       "reductionToIds": [
         "x1_0"
@@ -1380,7 +1380,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-1"
+        "c0-1"
       ],
       "reductionToIds": [
         "x2_0"
@@ -1397,7 +1397,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "0"
+        "c0"
       ],
       "reductionToIds": [
         "x1_0",
@@ -1416,7 +1416,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-0"
+        "c1-0"
       ],
       "reductionToIds": [
         "!x1_1"
@@ -1433,7 +1433,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-1"
+        "c1-1"
       ],
       "reductionToIds": [
         "x3_1"
@@ -1450,7 +1450,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "1"
+        "c1"
       ],
       "reductionToIds": [
         "!x1_1",
@@ -1469,7 +1469,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-0"
+        "c2-0"
       ],
       "reductionToIds": [
         "!x2_2"
@@ -1486,7 +1486,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-1"
+        "c2-1"
       ],
       "reductionToIds": [
         "!x3_2"
@@ -1503,7 +1503,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-2"
+        "c2-2"
       ],
       "reductionToIds": [
         "y_2"
@@ -1520,7 +1520,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "2"
+        "c2"
       ],
       "reductionToIds": [
         "!x2_2",
@@ -1718,7 +1718,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-0"
+      "c0-0"
     ],
     "reductionToIds": [
       "x1_0"
@@ -1735,7 +1735,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-1"
+      "c0-1"
     ],
     "reductionToIds": [
       "x2_0"
@@ -1752,7 +1752,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "0"
+      "c0"
     ],
     "reductionToIds": [
       "x1_0",
@@ -1771,7 +1771,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-0"
+      "c1-0"
     ],
     "reductionToIds": [
       "!x1_1"
@@ -1788,7 +1788,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-1"
+      "c1-1"
     ],
     "reductionToIds": [
       "x3_1"
@@ -1805,7 +1805,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "1"
+      "c1"
     ],
     "reductionToIds": [
       "!x1_1",
@@ -1824,7 +1824,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-0"
+      "c2-0"
     ],
     "reductionToIds": [
       "!x2_2"
@@ -1841,7 +1841,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-1"
+      "c2-1"
     ],
     "reductionToIds": [
       "!x3_2"
@@ -1858,7 +1858,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-2"
+      "c2-2"
     ],
     "reductionToIds": [
       "y_2"
@@ -1875,7 +1875,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "2"
+      "c2"
     ],
     "reductionToIds": [
       "!x2_2",
@@ -1944,7 +1944,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-0"
+        "c0-0"
       ],
       "reductionToIds": [
         "x1_0"
@@ -1961,7 +1961,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "0"
+        "c0"
       ],
       "reductionToIds": [
         "x1_0"
@@ -1978,7 +1978,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-0"
+        "c1-0"
       ],
       "reductionToIds": [
         "!x1_1"
@@ -1995,7 +1995,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "1"
+        "c1"
       ],
       "reductionToIds": [
         "!x1_1"
@@ -2189,7 +2189,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-0"
+      "c0-0"
     ],
     "reductionToIds": [
       "x1_0"
@@ -2206,7 +2206,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "0"
+      "c0"
     ],
     "reductionToIds": [
       "x1_0"
@@ -2223,7 +2223,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-0"
+      "c1-0"
     ],
     "reductionToIds": [
       "!x1_1"
@@ -2240,7 +2240,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "1"
+      "c1"
     ],
     "reductionToIds": [
       "!x1_1"
@@ -2305,7 +2305,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-0"
+        "c0-0"
       ],
       "reductionToIds": [
         "x1_0"
@@ -2322,7 +2322,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-1"
+        "c0-1"
       ],
       "reductionToIds": [
         "x1\u0027_0"
@@ -2339,7 +2339,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "0-2"
+        "c0-2"
       ],
       "reductionToIds": [
         "!x2_0"
@@ -2356,7 +2356,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "0"
+        "c0"
       ],
       "reductionToIds": [
         "x1_0",
@@ -2377,7 +2377,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-0"
+        "c1-0"
       ],
       "reductionToIds": [
         "x2_1"
@@ -2394,7 +2394,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-1"
+        "c1-1"
       ],
       "reductionToIds": [
         "x3_1"
@@ -2411,7 +2411,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "1-2"
+        "c1-2"
       ],
       "reductionToIds": [
         "x4_1"
@@ -2428,7 +2428,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "1"
+        "c1"
       ],
       "reductionToIds": [
         "x2_1",
@@ -2449,7 +2449,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-0"
+        "c2-0"
       ],
       "reductionToIds": [
         "!x4_2"
@@ -2466,7 +2466,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-1"
+        "c2-1"
       ],
       "reductionToIds": [
         "!x1_2"
@@ -2483,7 +2483,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "2-2"
+        "c2-2"
       ],
       "reductionToIds": [
         "x2_2"
@@ -2500,7 +2500,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "2"
+        "c2"
       ],
       "reductionToIds": [
         "!x4_2",
@@ -2521,7 +2521,7 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "3-0"
+        "c3-0"
       ],
       "reductionToIds": [
         "x3_3"
@@ -2538,7 +2538,7 @@
       "kind": "gadget",
       "color": "ClauseHighlight",
       "reductionFromIds": [
-        "3"
+        "c3"
       ],
       "reductionToIds": [
         "x3_3"
@@ -2732,7 +2732,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-0"
+      "c0-0"
     ],
     "reductionToIds": [
       "x1_0"
@@ -2749,7 +2749,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-1"
+      "c0-1"
     ],
     "reductionToIds": [
       "x1\u0027_0"
@@ -2766,7 +2766,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "0-2"
+      "c0-2"
     ],
     "reductionToIds": [
       "!x2_0"
@@ -2783,7 +2783,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "0"
+      "c0"
     ],
     "reductionToIds": [
       "x1_0",
@@ -2804,7 +2804,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-0"
+      "c1-0"
     ],
     "reductionToIds": [
       "x2_1"
@@ -2821,7 +2821,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-1"
+      "c1-1"
     ],
     "reductionToIds": [
       "x3_1"
@@ -2838,7 +2838,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "1-2"
+      "c1-2"
     ],
     "reductionToIds": [
       "x4_1"
@@ -2855,7 +2855,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "1"
+      "c1"
     ],
     "reductionToIds": [
       "x2_1",
@@ -2876,7 +2876,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-0"
+      "c2-0"
     ],
     "reductionToIds": [
       "!x4_2"
@@ -2893,7 +2893,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-1"
+      "c2-1"
     ],
     "reductionToIds": [
       "!x1_2"
@@ -2910,7 +2910,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "2-2"
+      "c2-2"
     ],
     "reductionToIds": [
       "x2_2"
@@ -2927,7 +2927,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "2"
+      "c2"
     ],
     "reductionToIds": [
       "!x4_2",
@@ -2948,7 +2948,7 @@
     "kind": "gadget",
     "color": "ElementHighlight",
     "reductionFromIds": [
-      "3-0"
+      "c3-0"
     ],
     "reductionToIds": [
       "x3_3"
@@ -2965,7 +2965,7 @@
     "kind": "gadget",
     "color": "ClauseHighlight",
     "reductionFromIds": [
-      "3"
+      "c3"
     ],
     "reductionToIds": [
       "x3_3"
