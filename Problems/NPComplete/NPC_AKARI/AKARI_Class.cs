@@ -8,12 +8,12 @@ namespace API.Problems.NPComplete.NPC_AKARI;
 class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Akari";
+    public string problemName {get;} = "Akari (Light Up)";
     public string problemLink {get;} = "https://en.wikipedia.org/wiki/Light_Up_(puzzle)";
     public string formalDefinition {get;} = "TODO";
-    public string problemDefinition {get;} = "TODO";
-    public string inputDescription {get;} = "TODO: short plain-English name for the input, e.g. 'Φ, a boolean formula'";
-    public string outputDescription {get;} = "TODO: short plain-English description of the output, e.g. 'True or False'";
+    public string problemDefinition {get;} = "An Akari (Light Up) puzzle is comprised of a rectangular m x n grid containing sets of white 'unlit' cells and black 'walls'. 'Light bulbs' can be placed in white cells that illuminate their row and column, until blocked by a wall. Black wall cells may optionally include a clue in the form of integer indicating the number of expected adjacent bulbs. A puzzle instance is considered solvable if there is an arangement of 'light bulbs' that satisifes the following conditions:\n1. Every white cell has line-of-sight to a light bulb.\n2. No light bulb illuminates another bulb.\n3. Walls with partial clue labeling are satisfied.";
+    public string inputDescription {get;} = "An array of characters or integers corresponding to each cell in the grid. White cells are represented by 'w' or 'W'. Black cells are indicated by either 'b', 'B', or a number (0-4) representing the clue.";
+    public string outputDescription {get;} = "A boolean indicating if the puzzle instance is solvable.";
     public string source {get;} = "TODO";
     public string sourceFile {get;} = SourceFile.Path();
     public string sourceLink {get;} = "TODO";
@@ -30,7 +30,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public AkariSolver defaultSolver {get;} = new AkariSolver();
     public AkariVerifier defaultVerifier {get;} = new AkariVerifier();
     public AkariVisualization defaultVisualization {get;} = new AkariVisualization();
-    public string[] contributors {get;} = { "TODO" };
+    public string[] contributors {get;} = { "Carter Luke", "Daniel Fawson" };
     // Declared, not derived — do NOT infer this from which Problems/<Folder>/ this file
     // lives under. The folder is a filing convention only and is wrong for a dozen-plus
     // existing problems; declaring it explicitly here is the only source of truth the
