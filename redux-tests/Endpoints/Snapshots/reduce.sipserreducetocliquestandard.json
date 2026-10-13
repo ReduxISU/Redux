@@ -31,7 +31,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     }
   },
@@ -192,7 +200,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "Backtracking",
-      "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+      "timeComplexity": {
+        "Function": "2^n * |phi|",
+        "Description": ", n = number of variables, |phi| = formula size",
+        "VariableNames": [
+          "n",
+          "phi"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -225,7 +241,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
-        "complexity": "O(2^n * |phi|), n = number of variables, |phi| = formula size",
+        "timeComplexity": {
+          "Function": "2^n * |phi|",
+          "Description": ", n = number of variables, |phi| = formula size",
+          "VariableNames": [
+            "n",
+            "phi"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
@@ -260,7 +284,15 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
-      "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+      "timeComplexity": {
+        "Function": "2^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
@@ -296,7 +328,15 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
-        "complexity": "O(2^n * n^2 * m), n = |nodes|, m = |edges|",
+        "timeComplexity": {
+          "Function": "2^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
     }
