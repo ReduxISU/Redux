@@ -51,7 +51,7 @@ public class RepeatedNumbersPictures_Tests {
         var vis = new SubsetSumVisualization();
         Assert.Equal([0, 0], ((IPackingVisualization<SUBSETSUM>)vis).ParseAnswer(problem, "{7,7}").Assign); // trailing -1s are dropped
         var list = ((API_SET)vis.SolvedVisualization(problem, "{7,7}")).data.list!;
-        Assert.Equal(["r-7", "r-7-1", "r-1"], list.Select(e => e.id));
+        Assert.Equal(["I1", "I2", "I3"], list.Select(e => e.id));
         Assert.Equal(["Solution", "Solution", "Background"], list.Select(e => e.color));
         // One 7 chosen marks the first copy only.
         list = ((API_SET)vis.SolvedVisualization(new SUBSETSUM("({7,7,1},8)"), "{7,1}")).data.list!;
@@ -59,9 +59,10 @@ public class RepeatedNumbersPictures_Tests {
     }
 
     [Fact]
-    public void SubsetSum_ListPicture_WithoutRepeats_IsUnchanged() {
+    public void SubsetSum_ListPicture_WithoutRepeats_IsTheNumbersInOrder_WithItemIds() {
         var list = new SubsetSumVisualization().visualize(new SUBSETSUM()).data.list!;
-        Assert.Equal(["r-1", "r-7", "r-12", "r-15"], list.Select(e => e.id));
+        Assert.Equal(["1", "7", "12", "15"], list.Select(e => e.value));
+        Assert.Equal(["I1", "I2", "I3", "I4"], list.Select(e => e.id));
     }
 
     [Fact]
@@ -71,15 +72,16 @@ public class RepeatedNumbersPictures_Tests {
         Assert.Equal([0, 0], ((IPackingVisualization<KNAPSACK>)vis).ParseAnswer(problem, "{(1,2),(1,2)}").Assign); // trailing -1s are dropped
         Assert.Equal(3, KnapsackVisualization.Spec(problem).Items.Count);
         var list = ((API_SET)vis.SolvedVisualization(problem, "{(1,2),(1,2)}")).data.list!;
-        Assert.Equal(["r-(1,2)", "r-(1,2)-1", "r-(5,5)"], list.Select(e => e.id));
+        Assert.Equal(["I1", "I2", "I3"], list.Select(e => e.id));
+        Assert.Equal(["I2-0", "I2-1"], list[1].list!.Select(e => e.id));
         Assert.Equal(["Solution", "Solution", "Background"], list.Select(e => e.list![0].color));
     }
 
     [Fact]
-    public void Knapsack_ListPicture_WithoutRepeats_IsUnchanged() {
+    public void Knapsack_ListPicture_WithoutRepeats_IsTheItemsInOrder_WithItemIds() {
         var list = new KnapsackVisualization().visualize(new KNAPSACK()).data.list!;
-        Assert.Equal(["r-(10,60)", "r-(20,100)", "r-(30,120)"], list.Select(e => e.id));
-        Assert.Equal("r-(10,60)-0", list[0].list![0].id);
+        Assert.Equal(["I1", "I2", "I3"], list.Select(e => e.id));
+        Assert.Equal("I1-0", list[0].list![0].id);
     }
 
     [Fact]

@@ -14,35 +14,35 @@
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-a_b",
+              "id": "e:a_b",
               "value": "a_b",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-a_c",
+              "id": "e:a_c",
               "value": "a_c",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-a_e",
+              "id": "e:a_e",
               "value": "a_e",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-b_e",
+              "id": "e:b_e",
               "value": "b_e",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-c_d",
+              "id": "e:c_d",
               "value": "c_d",
               "color": "Background"
             }
@@ -56,26 +56,26 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_b,a_c,a_e}",
+              "id": "S1",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,a_c,a_e}-a_b",
+                  "id": "e:a_b~S1",
                   "value": "a_b",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,a_c,a_e}-a_c",
+                  "id": "e:a_c~S1",
                   "value": "a_c",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,a_c,a_e}-a_e",
+                  "id": "e:a_e~S1",
                   "value": "a_e",
                   "color": "Background"
                 }
@@ -84,19 +84,19 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_b,b_e}",
+              "id": "S2",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,b_e}-a_b",
+                  "id": "e:a_b~S2",
                   "value": "a_b",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,b_e}-b_e",
+                  "id": "e:b_e~S2",
                   "value": "b_e",
                   "color": "Background"
                 }
@@ -105,19 +105,19 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_c,c_d}",
+              "id": "S3",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_c,c_d}-a_c",
+                  "id": "e:a_c~S3",
                   "value": "a_c",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_c,c_d}-c_d",
+                  "id": "e:c_d~S3",
                   "value": "c_d",
                   "color": "Background"
                 }
@@ -126,12 +126,12 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{c_d}",
+              "id": "S4",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{c_d}-c_d",
+                  "id": "e:c_d~S4",
                   "value": "c_d",
                   "color": "Background"
                 }
@@ -140,19 +140,19 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_e,b_e}",
+              "id": "S5",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_e,b_e}-a_e",
+                  "id": "e:a_e~S5",
                   "value": "a_e",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_e,b_e}-b_e",
+                  "id": "e:b_e~S5",
                   "value": "b_e",
                   "color": "Background"
                 }
@@ -185,35 +185,35 @@
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-a_b",
+              "id": "e:a_b",
               "value": "a_b",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-a_c",
+              "id": "e:a_c",
               "value": "a_c",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-a_e",
+              "id": "e:a_e",
               "value": "a_e",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-b_e",
+              "id": "e:b_e",
               "value": "b_e",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-0-c_d",
+              "id": "e:c_d",
               "value": "c_d",
               "color": "Background"
             }
@@ -227,26 +227,26 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_b,a_c,a_e}",
+              "id": "S1",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,a_c,a_e}-a_b",
+                  "id": "e:a_b~S1",
                   "value": "a_b",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,a_c,a_e}-a_c",
+                  "id": "e:a_c~S1",
                   "value": "a_c",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,a_c,a_e}-a_e",
+                  "id": "e:a_e~S1",
                   "value": "a_e",
                   "color": "Background"
                 }
@@ -255,19 +255,19 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_b,b_e}",
+              "id": "S2",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,b_e}-a_b",
+                  "id": "e:a_b~S2",
                   "value": "a_b",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_b,b_e}-b_e",
+                  "id": "e:b_e~S2",
                   "value": "b_e",
                   "color": "Background"
                 }
@@ -276,19 +276,19 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_c,c_d}",
+              "id": "S3",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_c,c_d}-a_c",
+                  "id": "e:a_c~S3",
                   "value": "a_c",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_c,c_d}-c_d",
+                  "id": "e:c_d~S3",
                   "value": "c_d",
                   "color": "Background"
                 }
@@ -297,12 +297,12 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{c_d}",
+              "id": "S4",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{c_d}-c_d",
+                  "id": "e:c_d~S4",
                   "value": "c_d",
                   "color": "Background"
                 }
@@ -311,19 +311,19 @@
             {
               "isOrdered": false,
               "isValue": false,
-              "id": "r-1-{a_e,b_e}",
+              "id": "S5",
               "list": [
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_e,b_e}-a_e",
+                  "id": "e:a_e~S5",
                   "value": "a_e",
                   "color": "Background"
                 },
                 {
                   "isOrdered": false,
                   "isValue": true,
-                  "id": "r-1-{a_e,b_e}-b_e",
+                  "id": "e:b_e~S5",
                   "value": "b_e",
                   "color": "Background"
                 }

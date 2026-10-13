@@ -9,19 +9,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(1,1)",
+          "id": "I1",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(1,1)-0",
+              "id": "I1-0",
               "value": "1",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(1,1)-1",
+              "id": "I1-1",
               "value": "1",
               "color": "Background"
             }
@@ -30,19 +30,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(7,7)",
+          "id": "I2",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(7,7)-0",
+              "id": "I2-0",
               "value": "7",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(7,7)-1",
+              "id": "I2-1",
               "value": "7",
               "color": "Background"
             }
@@ -51,19 +51,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(12,12)",
+          "id": "I3",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(12,12)-0",
+              "id": "I3-0",
               "value": "12",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(12,12)-1",
+              "id": "I3-1",
               "value": "12",
               "color": "Background"
             }
@@ -72,19 +72,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(15,15)",
+          "id": "I4",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(15,15)-0",
+              "id": "I4-0",
               "value": "15",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(15,15)-1",
+              "id": "I4-1",
               "value": "15",
               "color": "Background"
             }
@@ -103,19 +103,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(1,1)",
+          "id": "I1",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(1,1)-0",
+              "id": "I1-0",
               "value": "1",
               "color": "Solution"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(1,1)-1",
+              "id": "I1-1",
               "value": "1",
               "color": "Solution"
             }
@@ -124,19 +124,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(7,7)",
+          "id": "I2",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(7,7)-0",
+              "id": "I2-0",
               "value": "7",
               "color": "Background"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(7,7)-1",
+              "id": "I2-1",
               "value": "7",
               "color": "Background"
             }
@@ -145,19 +145,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(12,12)",
+          "id": "I3",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(12,12)-0",
+              "id": "I3-0",
               "value": "12",
               "color": "Solution"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(12,12)-1",
+              "id": "I3-1",
               "value": "12",
               "color": "Solution"
             }
@@ -166,19 +166,19 @@
         {
           "isOrdered": true,
           "isValue": false,
-          "id": "r-(15,15)",
+          "id": "I4",
           "list": [
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(15,15)-0",
+              "id": "I4-0",
               "value": "15",
               "color": "Solution"
             },
             {
               "isOrdered": false,
               "isValue": true,
-              "id": "r-(15,15)-1",
+              "id": "I4-1",
               "value": "15",
               "color": "Solution"
             }

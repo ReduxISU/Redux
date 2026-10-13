@@ -183,9 +183,10 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var (_, body) = await Visualize("visualization=knapsackvisualization", "({(10,60),(20,100),(30,120)},50,220)");
         var solved = JsonDocument.Parse(body).RootElement.EnumerateArray().Last().GetProperty("data").GetProperty("list").EnumerateArray()
             .ToDictionary(e => e.GetProperty("id").GetString()!, e => string.Join(",", e.GetProperty("list").EnumerateArray().Select(n => n.GetProperty("color").GetString())));
-        Assert.Equal("Background,Background", solved["r-(10,60)"]);
-        Assert.Equal("Solution,Solution", solved["r-(20,100)"]);
-        Assert.Equal("Solution,Solution", solved["r-(30,120)"]);
+        // Each item has the Packing picture's item id by position.
+        Assert.Equal("Background,Background", solved["I1"]);
+        Assert.Equal("Solution,Solution", solved["I2"]);
+        Assert.Equal("Solution,Solution", solved["I3"]);
     }
 
     // ---- The picture ----

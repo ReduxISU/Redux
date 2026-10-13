@@ -33,8 +33,9 @@ class SubsetSumVisualization : IVisualization<SUBSETSUM, API_SET>, IPackingVisua
 
     public SubsetSumVisualization() { }
 
-    // Every number of S, in order, repeats included (#628): a later copy gets its position in its id (r-7-1).
-    public API_SET visualize(SUBSETSUM problem) => API_SET.KeepingRepeats(problem.S);
+    // Every number of S, in order, repeats included (#628, API_SET.KeepingRepeats), each with the Packing picture's item id by
+    // position (I1, I2, ...), the ids the gadgets of Subset Sum's reductions name.
+    public API_SET visualize(SUBSETSUM problem) => API_SET.KeepingRepeats(problem.S).UseItemIds();
 
     // The chosen numbers by position (#628): {7} for S = {7,7,1} marks the first 7 only, {7,7} both.
     public API_JSON SolvedVisualization(SUBSETSUM problem, string solution) {
