@@ -9,7 +9,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
 
     // --- Fields ---
     public string problemName {get;} = "Akari";
-    public string problemLink {get;} = "TODO";
+    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Light_Up_(puzzle)";
     public string formalDefinition {get;} = "TODO";
     public string problemDefinition {get;} = "TODO";
     public string inputDescription {get;} = "TODO: short plain-English name for the input, e.g. 'Φ, a boolean formula'";
@@ -37,7 +37,8 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     // API trusts. Leave as Unclassified (the default — this line can simply be deleted)
     // until someone has actually checked the literature/argued the class. Getting this
     // wrong is a public correctness claim the API will serve to callers.
-    // public ComplexityClass complexityClass {get;} = ComplexityClass.TODO;
+    public ComplexityClass complexityClass {get;} = ComplexityClass.NPComplete;
+    public ProblemType problemType {get;} = ProblemType.GamesAndPuzzles;
 
     // --- Properties ---
 
