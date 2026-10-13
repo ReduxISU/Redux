@@ -33,6 +33,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
     // input in an accept state, Reject at a dead end, Backtrack when the search backs out of a move, and
     // Done with the end states of all accepting runs. Recorder state lives only in this call.
     public string Solve(NFA problem, StepRecorder<ActiveStates> rec) {
+        SolveProbe.Hit(GetType());
         // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
@@ -149,12 +150,8 @@ class NFASolver : ISolver<NFA, ActiveStates> {
     // every accepting run (same detection condition as `solve`) plus every rejected "dead end"
     // (a branch where no further epsilon/symbol transition applies). Rejected leaves are only
     // discovered here; `solve` already visits them, it just never recorded them.
-    public List<NFAPathRun> GetPathRuns(NFA problem) => GetPathRuns(problem, StepRecorder<ActiveStates>.Off);
-
-    // As above, recording a Try for every move it takes, the moves `Solve` records, so a recorder with a time limit
-    // stops it (with StepBudgetExceededException) just as it stops `Solve` (#764). The table needs every run, so
-    // NFATableVisualization passes a recorder that keeps no steps (cap 0) and only watches the clock.
-    public List<NFAPathRun> GetPathRuns(NFA problem, StepRecorder<ActiveStates> rec) {
+    public List<NFAPathRun> GetPathRuns(NFA problem) {
+        SolveProbe.Hit(GetType());
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
 
@@ -181,8 +178,6 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                 path.Add(e.To);
                 transitions.Add(new NFAPathTransition { from = state, symbol = "ε", to = e.To });
                 expanded = true;
-                rec.Try(() => new ActiveStates([e.To], pos),
-                    () => $"Take an ε-move from {state} to {e.To}.", state, e.To);
                 DFS(e.To, pos, path, transitions, visitedPerPath);
                 transitions.RemoveAt(transitions.Count - 1);
                 path.RemoveAt(path.Count - 1);
@@ -199,8 +194,6 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                     path.Add(e.To);
                     transitions.Add(new NFAPathTransition { from = state, symbol = need.ToString(), to = e.To });
                     expanded = true;
-                    rec.Try(() => new ActiveStates([e.To], pos + 1),
-                        () => $"Read '{need}': move from {state} to {e.To}.", state, e.To);
                     DFS(e.To, pos + 1, path, transitions, visitedPerPath);
                     transitions.RemoveAt(transitions.Count - 1);
                     path.RemoveAt(path.Count - 1);
@@ -245,12 +238,80 @@ class NFASolver : ISolver<NFA, ActiveStates> {
     // since NFA has no single run). Each table lists every transition in that run, in full, so it
     // can be shown at once in a scrollable table. Stepping through the existing step slider pages
     // between runs.
-    public List<Object> GetTableSteps(NFA problem) => GetTableSteps(problem, StepRecorder<ActiveStates>.Off);
+    // The run table now builds its tables from the typed run (TableStepsFrom); this second run is kept as the reference
+    // the tests compare against.
+    public List<Object> GetTableSteps(NFA problem) => TablesOf(problem, GetPathRuns(problem)).Cast<Object>().ToList();
 
-    // As above, under rec's time limit (see GetPathRuns).
-    public List<Object> GetTableSteps(NFA problem, StepRecorder<ActiveStates> rec) {
-        var runs = GetPathRuns(problem, rec);
-        var steps = new List<Object>();
+    /// <summary>
+    /// The runs the typed steps record, in the order <see cref="GetPathRuns"/> lists them (accepting runs first): the
+    /// steps walk the same search, a Try for each move (the first is the start), a Backtrack for each move undone, an
+    /// Accept or Reject where a run ends. An Accept counts only where the search is (and once there), so one kept out
+    /// of order past the step cap is not taken for another run. Also how many steps the recorder did not keep: when
+    /// that is more than zero, only the runs found within the kept steps are listed.
+    /// </summary>
+    internal static (List<NFAPathRun> Runs, int NotShown) RunsFromSteps(NFA problem, IEnumerable<object> steps) {
+        string rawInput = problem.inputString ?? "";
+        string input = rawInput == "ε" ? "" : rawInput;
+        var runs = new List<NFAPathRun>();
+        var states = new List<string>();
+        var positions = new List<int>();
+        var transitions = new List<NFAPathTransition>();
+        int notShown = 0;
+        SolverStep<ActiveStates>? previous = null;
+
+        NFAPathRun Snapshot(bool accepted, string fallbackState) => new NFAPathRun {
+            states = states.Count > 0 ? new List<string>(states) : new List<string> { fallbackState },
+            transitions = new List<NFAPathTransition>(transitions),
+            accepted = accepted
+        };
+
+        foreach (var step in steps.OfType<SolverStep<ActiveStates>>()) {
+            string state = step.Partial.States.FirstOrDefault() ?? problem.startState;
+            switch (step.Event) {
+                case StepEvent.Try when states.Count == 0:
+                    states.Add(state);
+                    positions.Add(step.Partial.Position);
+                    break;
+                case StepEvent.Try:
+                    int from = positions[^1];
+                    int to = step.Partial.Position;
+                    transitions.Add(new NFAPathTransition {
+                        from = states[^1],
+                        symbol = to > from && from < input.Length ? input[from].ToString() : "ε",
+                        to = state
+                    });
+                    states.Add(state);
+                    positions.Add(to);
+                    break;
+                case StepEvent.Backtrack when states.Count > 1:
+                    states.RemoveAt(states.Count - 1);
+                    positions.RemoveAt(positions.Count - 1);
+                    transitions.RemoveAt(transitions.Count - 1);
+                    break;
+                case StepEvent.Accept when states.Count > 0 && state == states[^1] && step.Partial.Position == positions[^1]
+                                           && !(previous is { Event: StepEvent.Accept } && previous.Partial.Equals(step.Partial)):
+                    runs.Add(Snapshot(accepted: true, state));
+                    break;
+                case StepEvent.Reject:
+                    runs.Add(Snapshot(accepted: false, state));
+                    break;
+                case StepEvent.Done:
+                    notShown = StepCaptions.NotShown(step.Caption);
+                    break;
+            }
+            previous = step;
+        }
+        return (runs.Where(r => r.accepted).Concat(runs.Where(r => !r.accepted)).ToList(), notShown);
+    }
+
+    /// <summary>One table per run, made from the typed steps (see <see cref="RunsFromSteps"/>), with no second run.</summary>
+    internal static (List<NFATableStep> Tables, int NotShown) TableStepsFrom(NFA problem, IEnumerable<object> steps) {
+        var (runs, notShown) = RunsFromSteps(problem, steps);
+        return (TablesOf(problem, runs), notShown);
+    }
+
+    private static List<NFATableStep> TablesOf(NFA problem, List<NFAPathRun> runs) {
+        var steps = new List<NFATableStep>();
 
         for (int i = 0; i < runs.Count; i++) {
             var run = runs[i];

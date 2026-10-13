@@ -33,6 +33,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
     // The run dies with a Reject; Done always closes the run with the states it stopped in.
     // Recorder state lives only in this call, so the solver object stays stateless.
     public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
+        SolveProbe.Hit(GetType());
         // Input String //
         string inputString = problem.inputString;
         // First Node To Be Analyzed //

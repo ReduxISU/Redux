@@ -92,6 +92,29 @@ sealed class ActiveStates : IEquatable<ActiveStates> {
     public override int GetHashCode() => HashCode.Combine(ShapeUtil.HashOf(States), Position);
 }
 
+/// <summary>
+/// A shortest-path search so far (Dijkstra): the best distance known to each node reached from the source, the node each
+/// was reached from, and the nodes whose distance is settled for good. A node that has not been reached has no entry in
+/// <see cref="Dist"/> (its distance is ∞). The answer is the last one: the shortest-path tree is <see cref="Pred"/>.
+/// </summary>
+sealed class Distances : IEquatable<Distances> {
+    [JsonPropertyName("dist")] public IReadOnlyDictionary<string, int> Dist { get; }
+    [JsonPropertyName("pred")] public IReadOnlyDictionary<string, string> Pred { get; }
+    [JsonPropertyName("settled")] public string[] Settled { get; }
+    public Distances(IEnumerable<KeyValuePair<string, int>> dist, IEnumerable<KeyValuePair<string, string>> pred, IEnumerable<string> settled) {
+        Dist = dist.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value);
+        Pred = pred.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value);
+        Settled = ShapeUtil.SortedSet(settled);
+    }
+    public bool Equals(Distances? other) =>
+        other != null && Settled.SequenceEqual(other.Settled, StringComparer.Ordinal)
+            && Dist.Count == other.Dist.Count && Dist.All(p => other.Dist.TryGetValue(p.Key, out var d) && d == p.Value)
+            && Pred.Count == other.Pred.Count && Pred.All(p => other.Pred.TryGetValue(p.Key, out var u) && u == p.Value);
+    public override bool Equals(object? obj) => Equals(obj as Distances);
+    public override int GetHashCode() =>
+        HashCode.Combine(ShapeUtil.HashOf(Settled), ShapeUtil.HashOf(Dist.Select(p => $"{p.Key}={p.Value}")), ShapeUtil.HashOf(Pred.Select(p => $"{p.Key}={p.Value}")));
+}
+
 /// <summary>Empty answers of each shape.</summary>
 static class Shapes {
     /// <summary>
@@ -106,5 +129,6 @@ static class Shapes {
         : shape == typeof(Tour) ? new Tour([])
         : shape == typeof(Assignment) ? new Assignment([])
         : shape == typeof(ChosenSets) ? new ChosenSets([])
+        : shape == typeof(Distances) ? new Distances([], [], [])
         : null;
 }

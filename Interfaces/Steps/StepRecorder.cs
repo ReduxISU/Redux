@@ -95,7 +95,7 @@ sealed class StepRecorder<TPartial> {
         }
         int hidden = Hidden;
         _total++;
-        if (hidden > 0) caption += $" ({hidden} not shown)";
+        if (hidden > 0) caption += StepCaptions.NotShownSuffix(hidden);
         _steps.Add(new SolverStep<TPartial>(answer, StepEvent.Done, Array.Empty<string>(), caption) { Ok = ok });
     }
 
@@ -115,7 +115,7 @@ sealed class StepRecorder<TPartial> {
             : default!;
         string seconds = (_timeLimit ?? TimeSpan.Zero).TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
         string steps = reported.ToString("N0", CultureInfo.InvariantCulture);
-        Done(last, false, $"Stopped after {seconds} s and {steps} {(reported == 1 ? "step" : "steps")}; the solver had not finished.");
+        Done(last, false, $"{StepCaptions.StoppedPrefix}{seconds} s and {steps} {(reported == 1 ? "step" : "steps")}; the solver had not finished.");
     }
 }
 
@@ -128,5 +128,25 @@ sealed class StepBudgetExceededException : Exception {
     public object Recorder { get; }
     public StepBudgetExceededException(object recorder) : base("The solver ran past the time limit for recording steps.") {
         Recorder = recorder;
+    }
+}
+
+/// <summary>What a Done caption says about steps the recorder did not keep, and about a run stopped by its time limit.</summary>
+static class StepCaptions {
+    private static readonly System.Text.RegularExpressions.Regex NotShownPattern = new(@" \((\d+) not shown\)$");
+
+    /// <summary>How the caption of a Done step for a run stopped by its time limit begins.</summary>
+    public const string StoppedPrefix = "Stopped after ";
+
+    /// <summary>Whether a Done caption is that of a run stopped by its time limit.</summary>
+    public static bool IsStopped(string caption) => caption.StartsWith(StoppedPrefix, StringComparison.Ordinal);
+
+    /// <summary>The note added to a Done caption when <paramref name="hidden"/> steps were not kept.</summary>
+    public static string NotShownSuffix(int hidden) => $" ({hidden} not shown)";
+
+    /// <summary>How many steps a Done caption says were not kept; 0 when it says nothing.</summary>
+    public static int NotShown(string caption) {
+        var match = NotShownPattern.Match(caption);
+        return match.Success ? int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) : 0;
     }
 }
