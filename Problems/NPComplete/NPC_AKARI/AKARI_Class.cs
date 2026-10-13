@@ -2,6 +2,8 @@ using API.Interfaces;
 using API.Problems.NPComplete.NPC_AKARI.Solvers;
 using API.Problems.NPComplete.NPC_AKARI.Verifiers;
 using API.Problems.NPComplete.NPC_AKARI.Visualizations;
+using Microsoft.Net.Http.Headers;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_AKARI;
 
@@ -60,19 +62,15 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         //   }
 
         // TODO: implement parsing of string instance of Akari. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
-        //
-        // StringParser parser = new("{(i, w, v) | i subset int cross int, w is int, v is int}");
-        // parser.parse(instance);
-        // items = parser["i"];
-        // W = int.Parse(parser["w"].ToString());
-        // V = int.Parse(parser["v"].ToString());
-        //
-        // Or a unidirected unweighted graph example using SPADE
-        // 
-        // StringParser parser = new("{(N,E) | N is set, E subset N unorderdcross N}");
-        // parser.parse(instance);
-        // edges = parser["E"];
-        // nodes = parser["N"];
+        
+        // Wall Set Version: The instance is comprised of the grid dimensions and the set of wall positions (and hints/clues).
+        StringParser parser = new("{ (m, n, B) | m is int, n is int, B is set }");
+        parser.parse(instance);
+        int m = int.Parse(parser["m"].ToString());
+        int n = int.Parse(parser["n"].ToString());
+        UtilCollection walls = parser["B"];
+
+        // Puzzle Grid Version: 2D list of characters associated with each cell.
 
     }
 }
