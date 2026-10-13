@@ -26,7 +26,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public string instanceFormat {get;} = "TODO: describe the instance string format with an embedded example, e.g. 'Boolean formula in 3-CNF, clauses joined by `&`. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)'";
     public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance {get;set;} = string.Empty;
-    public string wikiName {get;} = "";
+    public string wikiName {get;} = ""; // Depreciated, do not implement
     public AkariSolver defaultSolver {get;} = new AkariSolver();
     public AkariVerifier defaultVerifier {get;} = new AkariVerifier();
     public AkariVisualization defaultVisualization {get;} = new AkariVisualization();
