@@ -17,7 +17,7 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
     // oracle queries (n = number of bits) -- polynomial, contrast with the quantum solver's O(1).
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // solve() loops i from NBits-1 down to 0, making exactly one Func() oracle query per bit.
-    public string complexity { get; } = "O(n)";
+    public MathematicalFunction timeComplexity { get; } = new("n", "");
 
     // --- Methods Including Constructors ---
     public BernsteinVaziraniClassicalSolver() { }

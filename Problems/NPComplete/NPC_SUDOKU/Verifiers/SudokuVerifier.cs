@@ -32,8 +32,8 @@ class SudokuVerifier : IVerifier<SUDOKU> {
         // // All we need to do is see if funcValues[certificate] is non-zero
         // return problem.funcValues[i] != 0;
 
-        GRID_SIZE = problem.grid.Length;
-        BLOCK_SIZE = (int)Math.Sqrt(GRID_SIZE);
+        GRID_SIZE = SUDOKU.Size;
+        BLOCK_SIZE = 3;
 
         // Uses the helper function to determine if the certificate is a valid solution
         bool isValid = VerifyHelper(problem, certificate);
@@ -46,7 +46,12 @@ class SudokuVerifier : IVerifier<SUDOKU> {
     public bool VerifyHelper(SUDOKU problem, string certificate) {
         // Parses the problem instance and the certificate into 2D arrays
         int[][] problemGrid = ParseSudokuInput(problem.instance);
-        int[][] certificateGrid = ParseSudokuInput(certificate);
+        int[][]? certificateGrid = TryParseCertificate(certificate);
+
+        // A certificate that is not a 9x9 grid of integers cannot be a solution.
+        if (certificateGrid == null) {
+            return false;
+        }
 
         // Checks each cell to ensure it follows Sudoku rules and matches the initial clues from the problem instance
         for (int i = 0; i < problemGrid.Length; i++) {
@@ -91,6 +96,21 @@ class SudokuVerifier : IVerifier<SUDOKU> {
 
         // If all cells are valid, the certificate is a valid solution
         return true;
+    }
+
+    // Returns null (rather than throwing) when the certificate is not exactly 9 rows of 9 integers.
+    private static int[][]? TryParseCertificate(string certificate) {
+        try {
+            int[][] parsed = ParseSudokuInput(certificate ?? string.Empty);
+            if (parsed.Length != SUDOKU.Size || parsed.Any(row => row.Length != SUDOKU.Size)) {
+                return null;
+            }
+            return parsed;
+        } catch (FormatException) {
+            return null;
+        } catch (OverflowException) {
+            return null;
+        }
     }
 
     private static int[][] ParseSudokuInput(string input) {
