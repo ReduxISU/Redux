@@ -57,8 +57,9 @@ interface ISolver {
 
     /// <summary>
     /// Solves an instance, optionally recording steps, in one call. The default is the legacy behaviour:
-    /// <see cref="GetSteps(string)"/> and then <see cref="solve(string)"/> (two runs, untyped steps).
-    /// Solvers implementing <see cref="ISolver{T, TPartial}"/> override it to run once with typed steps.
+    /// <see cref="GetSteps(string)"/> and then <see cref="solve(string)"/>, untyped steps. That is one run only while
+    /// GetSteps does no solving of its own, so a solver that records steps implements <see cref="ISolver{T, TPartial}"/>
+    /// instead, which overrides this to run once with typed steps (SolveOnce_Tests checks both).
     /// </summary>
     SolveRun Run(string instance, bool withSteps) {
         var steps = withSteps ? GetSteps(instance).ToList() : new List<Object>();
