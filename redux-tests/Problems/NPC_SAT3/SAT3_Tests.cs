@@ -2,7 +2,6 @@ using API.Interfaces;
 using System.Diagnostics;
 using System.Linq;
 using Xunit;
-using API.Interfaces;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3.Solvers;
 using API.Problems.NPComplete.NPC_SAT3.Verifiers;
