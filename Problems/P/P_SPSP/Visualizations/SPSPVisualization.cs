@@ -78,14 +78,10 @@ class SPSPVisualization : IVisualization<SPSP, API_GraphJSON>, ILayeredVisualiza
     }
 
     public List<API_JSON> StepsVisualization(SPSP problem, List<Object> steps) {
-        // A typed run (format=list since #667) carries the Layered Graph picture's steps; this list draws the legacy ones.
-        if (steps.Any(step => step is SolverStep<Distances>))
-            steps = new SPSPSolver().GetSteps(problem);
         var result = new List<API_JSON>();
 
-        for (int s = 0; s < steps.Count; s++) {
-            string? step = steps[s].ToString();
-
+        // One frame per settled node (the path to it), made from the run's typed steps (no second run).
+        foreach (string step in SPSPSolver.PathSteps(problem, steps)) {
             if (string.IsNullOrWhiteSpace(step) || step.Trim() == "{}") {
                 result.Add(visualize(problem));
                 continue;

@@ -212,4 +212,48 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.BadRequest, status);
         Assert.Contains("instance_parse_error", body);
     }
+    // #733: a chosen solver whose problem cannot be told is rejected. SATBruteForceSolver used to implement only the
+    // non-generic ISolver, so it was let through for any visualization.
+    [Theory]
+    [InlineData("cliquedefaultvisualization", "satbruteforcesolver", "(({1,2,3},{{1,2},{2,3}}),2)")]
+    [InlineData("sat3defaultvisualization", "satbruteforcesolver", "(x1 | !x2 | x3)")]
+    public async Task Visualize_SatBruteForceOnAnotherProblem_Returns400SolverMismatch(string vis, string solver, string instance) {
+        var (status, body) = await Visualize($"visualization={vis}&solver={solver}", instance);
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        var json = JsonDocument.Parse(body).RootElement;
+        Assert.Equal("solver_mismatch", json.GetProperty("error").GetString());
+        Assert.Equal(solver, json.GetProperty("received").GetString());
+        Assert.Equal(vis, json.GetProperty("visualization").GetString());
+    }
+
+    [Fact]
+    public async Task Visualize_SatBruteForceOnSatVisualization_IsAccepted() {
+        var (status, _) = await Visualize("visualization=satdefaultvisualization&solver=satbruteforcesolver", "(x1 | !x2) & (x2)");
+        Assert.Equal(HttpStatusCode.OK, status);
+    }
+
+    [Fact]
+    public void SolverMatchesVisualization_RejectsSolverWithUnknownProblem() {
+        var vis = (API.Interfaces.IVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["sat3defaultvisualization"])!;
+        // A type with no ISolver<T> stands in for a solver whose problem cannot be determined. (A fake ISolver class
+        // here would be picked up by the solver registry, which scans every loaded assembly.)
+        Assert.False(ProblemProvider.SolverMatchesVisualization(typeof(object), vis));
+        Assert.True(ProblemProvider.SolverMatchesVisualization(vis.solver.GetType(), vis));
+    }
+
+    // Every registered solver must declare its problem through ISolver<T>, or be some visualization's own solver
+    // (which the endpoint always accepts for that visualization). Otherwise it could never be chosen.
+    [Fact]
+    public void EverySolver_IsGenericOrAVisualizationsOwnSolver() {
+        var ownSolvers = new HashSet<Type>();
+        foreach (var (_, visType) in ProblemProvider.Visualizers) {
+            if (Activator.CreateInstance(visType) is API.Interfaces.IVisualization vis)
+                ownSolvers.Add(vis.solver.GetType());
+        }
+        var untyped = ProblemProvider.Solvers.Values
+            .Where(t => ProblemProvider.ProblemTypeOf(t, typeof(API.Interfaces.ISolver<>)) == null && !ownSolvers.Contains(t))
+            .Select(t => t.Name)
+            .ToList();
+        Assert.Empty(untyped);
+    }
 }

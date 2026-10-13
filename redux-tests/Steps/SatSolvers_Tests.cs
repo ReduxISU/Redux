@@ -212,11 +212,12 @@ public class SatSolvers_Tests {
     }
 
     [Fact]
-    public void BruteForce_IsNotOfferedAsAGenericSolverForSat() {
-        // It records typed steps by overriding Run, not by implementing ISolver<SAT, Assignment>: that interface would add
-        // it to the navigation lists, which this change must not alter.
+    public void BruteForce_IsASolverForSat_ThatRecordsStepsThroughItsOwnRun() {
+        // It records typed steps by overriding Run, not by implementing ISolver<SAT, Assignment>. Since #733 it implements
+        // ISolver<SAT>, so the visualize endpoint can tell which problem it solves.
         var type = typeof(SATBruteForceSolver);
-        Assert.DoesNotContain(type.GetInterfaces(), i => i.IsGenericType);
+        Assert.Contains(typeof(ISolver<SAT>), type.GetInterfaces());
+        Assert.DoesNotContain(type.GetInterfaces(), i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>));
     }
 
     // ---- 3SAT backtracking ----

@@ -208,10 +208,12 @@ public class SolverReplay_Tests {
     }
 
     [Fact]
-    public void AtLeastDfaAndNfaAreDiscovered() {
+    public void AtLeastTheConvertedSolversAreDiscovered() {
         var names = TypedSolverNames.Select(d => d.Data).ToList();
         Assert.Contains("dfasolver", names);
         Assert.Contains("nfasolver", names);
+        Assert.Contains("ssspsolver", names);
+        Assert.Contains("spspsolver", names);
     }
 
     [Theory]

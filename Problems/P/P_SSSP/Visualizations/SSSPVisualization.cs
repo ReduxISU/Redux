@@ -85,18 +85,10 @@ class SSSPVisualization : IVisualization<SSSP, API_GraphJSON>, ILayeredVisualiza
     // StepsVisualization : takes a problem instance and a list of step objects,
     // and returns a step-by-step visualization with a highlighted path for the current node being processed and final path solution for reachable nodes
     public List<API_JSON> StepsVisualization(SSSP problem, List<Object> steps) {
-        // A typed run (format=list since #667) carries the Layered Graph picture's steps; this list draws the legacy ones.
-        if (steps.Any(step => step is SolverStep<Distances>))
-            steps = new SSSPSolver().GetSteps(problem);
         var result = new List<API_JSON>();
 
-        for (int s = 0; s < steps.Count; s++) {
-            var step = steps[s] as SSSPSolver.SSSPGraphStep;
-            if (step == null) {
-                result.Add(visualize(problem));
-                continue;
-            }
-
+        // One frame per settled node, made from the run's typed steps (no second run).
+        foreach (var step in SSSPSolver.GraphSteps(problem, steps)) {
             API_GraphJSON graph = problem.graph.ToAPIGraph();
             var knownNodes = new HashSet<string>(step.knownNodes);
 

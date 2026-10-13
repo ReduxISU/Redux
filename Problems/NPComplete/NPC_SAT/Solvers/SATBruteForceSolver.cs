@@ -7,8 +7,7 @@ using API.Problems.NPComplete.NPC_SAT;
 namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 #pragma warning disable CS1591
 
-// TODO: use generic `ISolver<SAT>` for type safety
-public class SATBruteForceSolver : ISolver {
+public class SATBruteForceSolver : ISolver<SAT> {
 
 
     #region Fields
@@ -19,9 +18,7 @@ public class SATBruteForceSolver : ISolver {
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public bool timerHasExpired { get; set; }
-    // Declared, not derived. Unpruned exhaustive enumeration. Implements non-generic ISolver directly
-    // (not ISolver<T>) -- included here so SolverTypeCatalog's `is ISolver` check (not `is ISolver<T>`)
-    // does not silently skip it.
+    // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates all 2^n truth assignments (n = distinct literals);
@@ -43,12 +40,15 @@ public class SATBruteForceSolver : ISolver {
 
     public string solve(string SATInstance) => Solve(CheckedFormula(SATInstance), StepRecorder<Assignment>.Off);
 
-    // This solver takes the raw string (it is not an ISolver<SAT>), so both entry points parse it as a SAT
-    // first, as ISolver<T> does: a malformed instance is a ProblemParseException (HTTP 400).
+    // The generic entry point; the visualize endpoint uses ISolver<SAT> to tell which problem this solver runs on.
+    string ISolver<SAT>.solve(SAT problem) => Solve(problem.formula, StepRecorder<Assignment>.Off);
+
+    // The string entry points parse the instance as a SAT first, as ISolver<T> does: a malformed instance is a
+    // ProblemParseException (HTTP 400).
     static CnfFormula CheckedFormula(string instance) => ParseGuard.CreateProblem<SAT>(instance).formula;
 
-    // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
-    // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
+    // Records typed steps through its own Run rather than ISolver<SAT, Assignment>, whose Solve(SAT, ...) would have
+    // to be public on this public class while SAT is internal.
     SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
         CnfFormula formula = CheckedFormula(instance);
         return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec));

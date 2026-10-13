@@ -35,6 +35,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
     // up in a state that does not accept, is a Reject on that state. Done closes the run with the state it ended in (none
     // for Garbage) and whether the DFA accepts. Recorder state lives only in this call, so the solver object stays stateless.
     public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
+        SolveProbe.Hit(GetType());
         // Input String (the empty input is written "ε", and reads no symbol) //
         string inputString = problem.inputString == "ε" ? "" : problem.inputString;
         // First Node To Be Analyzed //

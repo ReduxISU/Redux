@@ -23,8 +23,8 @@ class SSSPTableVisualization : IVisualization<SSSP>, ITableVisualization<SSSP, D
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SSSPSolver();
 
-    // The run's steps are typed (Distances) since #667; this table makes its own from the solver, but must still be called
-    // with them. Implemented explicitly so it is not part of /info.
+    // The run's steps are typed (Distances) since #667; the list format's tables are made from them (#734).
+    // Implemented explicitly so it is not part of /info.
     Type? IVisualization.StepShape => typeof(Distances);
 
     // The list methods were already given the typed steps (they need some to draw their tables), so they keep getting them.
@@ -38,22 +38,16 @@ class SSSPTableVisualization : IVisualization<SSSP>, ITableVisualization<SSSP, D
 
     public SSSPTableVisualization() { }
 
+    // The table before the search starts; it needs no run.
     public API_JSON visualize(SSSP problem) {
-        var solver = new SSSPSolver();
-        var steps = solver.GetTableSteps(problem);
-        return steps.Count > 0 ? TranslateToTableJSON((SSSPTableStep)steps[0]) : new API_empty();
+        var initial = SSSPSolver.InitialTableStep(problem);
+        return initial != null ? TranslateToTableJSON(initial) : new API_empty();
     }
 
-    public API_JSON SolvedVisualization(SSSP problem) {
-        var solver = new SSSPSolver();
-        var steps = solver.GetTableSteps(problem);
-        return steps.Count > 0 ? TranslateToTableJSON((SSSPTableStep)steps[steps.Count - 1]) : new API_empty();
-    }
-
+    // The tables are made from the run's typed steps (no second run). The solved table is the last of them, so
+    // SolvedVisualization keeps the interface default (no frame).
     public List<API_JSON> StepsVisualization(SSSP problem, List<Object> steps) {
-        var solver = new SSSPSolver();
-        var tableSteps = solver.GetTableSteps(problem);
-        return tableSteps.Select(s => (API_JSON)TranslateToTableJSON((SSSPTableStep)s)).ToList();
+        return SSSPSolver.TableSteps(problem, steps).Select(s => (API_JSON)TranslateToTableJSON(s)).ToList();
     }
 
     private static API_TableJSON TranslateToTableJSON(SSSPTableStep step) {

@@ -427,7 +427,7 @@ public class ProblemProvider : ControllerBase {
     }
 
     // The T of the first ISolver<T> (or IVisualization<U>'s U) a type implements, if any.
-    private static Type? ProblemTypeOf(Type type, Type openGeneric) =>
+    internal static Type? ProblemTypeOf(Type type, Type openGeneric) =>
         type.GetInterfaces()
             .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == openGeneric)
             ?.GetGenericArguments()[0];
@@ -442,17 +442,20 @@ public class ProblemProvider : ControllerBase {
     }
 
     /// <summary>
-    /// Whether a solver can run on the problem a visualization draws. If the problem types cannot be determined
-    /// from the generic interfaces, the solver is allowed. A solver that cannot run at all never matches.
+    /// Whether a solver can run on the problem a visualization draws. A solver that cannot run at all never matches.
+    /// Otherwise the visualization's own solver always matches, and any other solver must declare its problem through
+    /// ISolver&lt;T&gt;; if either problem type cannot be determined, the solver is rejected.
     /// </summary>
-    private static bool SolverMatchesVisualization(Type solverType, IVisualization vis) {
+    internal static bool SolverMatchesVisualization(Type solverType, IVisualization vis) {
         if (!SolverCanRun(solverType))
             return false;
+        if (solverType == vis.solver.GetType())
+            return true;
         Type? solverProblem = ProblemTypeOf(solverType, typeof(ISolver<>));
         Type? visProblem = ProblemTypeOf(vis.GetType(), typeof(IVisualization<>))
             ?? ProblemTypeOf(vis.solver.GetType(), typeof(ISolver<>));
         if (solverProblem == null || visProblem == null)
-            return true;
+            return false;
         return solverProblem == visProblem || solverProblem.IsAssignableFrom(visProblem);
     }
 
