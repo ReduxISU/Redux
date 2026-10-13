@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Verifiers;
 class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
 
     public const string CertificateGrammar = "{S | S subset E, S is exactly the set of edges crossing some partition of N into two sets, sum of edge weights in S = K}";
-    public const string CertificateExample = "{({2,1},5)}";
+    public const string CertificateExample = "{({2,4},4),({3,5},1)}";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Weighted Cut Verifier";

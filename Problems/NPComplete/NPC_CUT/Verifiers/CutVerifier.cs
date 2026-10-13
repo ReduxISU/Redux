@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_CUT.Verifiers;
 
 class CutVerifier : IVerifier<CUT> {
     public const string CertificateGrammar = "{S} subset E | S has no duplicate edges (either orientation), S is exactly the set of edges crossing some partition of N into two sets, |S| = K";
-    public const string CertificateExample = "{{2,1},{1,3},{2,3},{3,5},{2,4}}";
+    public const string CertificateExample = "{{2,1},{2,3},{3,5},{2,4},{4,5}}";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Cut Verifier";
