@@ -76,8 +76,9 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
     }
     public KarpSATToSAT3() : this(new SAT()) { }
-    // Legacy gadget ids are "i" (clause) and "i-j" (literal); the stable ids Gadget documents prefix a "c".
-    private static string StableId(string legacyId) => "c" + legacyId;
+    // Clause "i" is c{i} and literal "i-j" is c{i}-{j}, in the gadgets' stable and legacy ids alike: both SAT pictures (the
+    // list format's API_SAT and the Grouped Graph) use these ids.
+    private static string StableId(string index) => "c" + index;
 
     public SAT3 reduce() => Build(StepRecorder<BuildDelta>.Off);
 
@@ -95,21 +96,17 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         var padded = new Dictionary<int, int>();
 
         for (int clauseIndex = 0; clauseIndex < clauses.Count; clauseIndex++) {
-            string clauseId = clauseIndex.ToString();
+            string clauseId = StableId(clauseIndex.ToString());
             gadgets.Add(new Gadget(
                 GadgetKind.Group,
-                new List<string>() { StableId(clauseId) },
-                new List<string>() { StableId(clauseId) },
                 new List<string>() { clauseId },
                 new List<string>() { clauseId }
             ));
 
             for (int literalIndex = 0; literalIndex < clauses[clauseIndex].Count; literalIndex++) {
-                string literalId = clauseId + "-" + literalIndex.ToString();
+                string literalId = StableId(clauseIndex + "-" + literalIndex);
                 gadgets.Add(new Gadget(
                     GadgetKind.Element,
-                    new List<string>() { StableId(literalId) },
-                    new List<string>() { StableId(literalId) },
                     new List<string>() { literalId },
                     new List<string>() { literalId }
                 ));
@@ -140,16 +137,14 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             if (i.Count == 2) {
                 instance += " " + i[0] + " |";
                 i.Add(i[0]);
-                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { StableId(c + "-0") }, new List<string>() { StableId(c + "-2") },
-                    new List<string>() { c + "-0" }, new List<string>() { c + "-2" }));
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { StableId(c + "-0") }, new List<string>() { StableId(c + "-2") }));
             }
 
             if (i.Count == 1) {
                 instance += " " + i[0] + " |" + " " + i[0] + " |";
                 i.Add(i[0]);
                 i.Add(i[0]);
-                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { StableId(c + "-0") }, new List<string>() { StableId(c + "-2"), StableId(c + "-1") },
-                    new List<string>() { c + "-0" }, new List<string>() { c + "-2", c + "-1" }));
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { StableId(c + "-0") }, new List<string>() { StableId(c + "-2"), StableId(c + "-1") }));
             }
 
             instance = instance.TrimEnd('|') + ") & (";
@@ -190,31 +185,31 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         // original clause, and reduce() gave each original clause a group gadget before splitting.
         var existing = gadgets.First(g =>
             g.color == "ClauseHighlight" &&
-            g.reductionFromIds.FirstOrDefault() == index.ToString()
+            g.reductionFromIds.FirstOrDefault() == StableId(index.ToString())
         );
-        existing.reductionToIds.Add((clauses.Count - 1).ToString());
+        existing.reductionToIds.Add(StableId((clauses.Count - 1).ToString()));
         existing.targetIds.Add(StableId((clauses.Count - 1).ToString()));
 
         // Adding element highlighting gadget
         var literal1 = gadgets.FirstOrDefault(g =>
             g.color == "ElementHighlight" &&
-            g.reductionToIds.Contains(index1)
+            g.reductionToIds.Contains(StableId(index1))
         );
 
         var literal2 = gadgets.FirstOrDefault(g =>
             g.color == "ElementHighlight" &&
-            g.reductionToIds.Contains(index2)
+            g.reductionToIds.Contains(StableId(index2))
         );
 
         if (literal1 != null) {
-            literal1.reductionToIds.Remove(index1);
-            literal1.reductionToIds.Add((clauses.Count - 1).ToString() + "-0");
+            literal1.reductionToIds.Remove(StableId(index1));
+            literal1.reductionToIds.Add(StableId((clauses.Count - 1).ToString() + "-0"));
             literal1.targetIds.Remove(StableId(index1));
             literal1.targetIds.Add(StableId((clauses.Count - 1).ToString() + "-0"));
         }
         if (literal2 != null) {
-            literal2.reductionToIds.Remove(index2);
-            literal2.reductionToIds.Add((clauses.Count - 1).ToString() + "-1");
+            literal2.reductionToIds.Remove(StableId(index2));
+            literal2.reductionToIds.Add(StableId((clauses.Count - 1).ToString() + "-1"));
             literal2.targetIds.Remove(StableId(index2));
             literal2.targetIds.Add(StableId((clauses.Count - 1).ToString() + "-1"));
         }
@@ -301,7 +296,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         foreach (var (helper, origin) in helperOf) {
             variableGadget[helper] = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.ClauseId(origin) }, new List<string> { GroupedGraphFrames.VariableId(helper) },
-                legacyFromIds: [origin.ToString()], legacyToIds: CnfPieces.LegacyIds([GroupedGraphFrames.VariableId(helper)], target),
+                legacyToIds: CnfPieces.LegacyIds([GroupedGraphFrames.VariableId(helper)], target),
                 note: $"{helper} is new: it links the clauses that clause C{origin + 1} is split into."));
         }
         if (!rec.Enabled) return;

@@ -30,9 +30,10 @@ static class CnfPieces {
         new[] { GroupedGraphFrames.ClauseId(clause) }.Concat(Enumerable.Range(0, literals).Select(j => GroupedGraphFrames.LiteralId(clause, j))).ToArray();
 
     /// <summary>
-    /// The ids Redux_GUI reads for the same pieces (a gadget's legacy <c>reductionFromIds</c>/<c>reductionToIds</c>): clause
-    /// <c>c{i}</c> is <c>i</c>, literal <c>c{i}-{j}</c> is <c>i-j</c>, and a variable <c>v:{name}</c>, which the GUI does not
-    /// draw, is every occurrence of it. Other ids are kept as they are. Each id once, in order.
+    /// The ids Redux_GUI reads for the same pieces (a gadget's legacy <c>reductionFromIds</c>/<c>reductionToIds</c>), which it
+    /// matches against the list-format SAT picture (<see cref="API.Interfaces.JSON_Objects.API_SAT"/>). That picture gives
+    /// clauses and literals the same ids (<c>c{i}</c>, <c>c{i}-{j}</c>), so those are kept; a variable <c>v:{name}</c>, which it
+    /// does not draw, is every occurrence of it. Other ids are kept as they are. Each id once, in order.
     /// </summary>
     public static List<string> LegacyIds(IEnumerable<string> stableIds, IReadOnlyList<List<string>> clauses) {
         var result = new List<string>();
@@ -40,9 +41,7 @@ static class CnfPieces {
             if (id.StartsWith("v:", StringComparison.Ordinal)) {
                 for (int i = 0; i < clauses.Count; i++)
                     for (int j = 0; j < clauses[i].Count; j++)
-                        if (GroupedGraphFrames.VariableId(VariableOf(clauses[i][j])) == id) result.Add($"{i}-{j}");
-            } else if (System.Text.RegularExpressions.Regex.IsMatch(id, @"^c\d+(-\d+)?$")) {
-                result.Add(id[1..]);
+                        if (GroupedGraphFrames.VariableId(VariableOf(clauses[i][j])) == id) result.Add(GroupedGraphFrames.LiteralId(i, j));
             } else {
                 result.Add(id);
             }

@@ -299,7 +299,7 @@ public class ReductionView_Sat3_Tests : IClassFixture<AppFactory> {
         var sat = ((API.Problems.NPComplete.NPC_SAT.SAT)red.reductionFrom).clauses;
         var sat3 = ((API.Problems.NPComplete.NPC_SAT3.SAT3)red.reductionTo).clauses;
         List<string> Occurrences(List<List<string>> clauses, string variable) =>
-            clauses.SelectMany((c, i) => c.Select((l, j) => (l, id: $"{i}-{j}"))).Where(p => p.l.TrimStart('!') == variable).Select(p => p.id).ToList();
+            clauses.SelectMany((c, i) => c.Select((l, j) => (l, id: $"c{i}-{j}"))).Where(p => p.l.TrimStart('!') == variable).Select(p => p.id).ToList();
         var variables = sat.SelectMany(c => c).Select(l => l.TrimStart('!')).Distinct().ToList();
         foreach (string v in variables) {
             var g = Assert.Single(red.gadgets, g => g.sourceIds.SequenceEqual(["v:" + v]));

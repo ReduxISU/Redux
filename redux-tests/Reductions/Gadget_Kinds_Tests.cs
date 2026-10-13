@@ -35,7 +35,8 @@ public class Gadget_Kinds_Tests {
         Assert.Equal(JsonValueKind.Array, first.GetProperty("reductionToIds").ValueKind);
         Assert.Equal("element", first.GetProperty("gadgetKind").GetString());
         Assert.Equal("c0-0", first.GetProperty("sourceIds")[0].GetString());
-        Assert.Equal("0-0", first.GetProperty("reductionFromIds")[0].GetString());
+        // The list-format 3SAT picture gives literals the same ids, so the legacy ids equal the stable ones.
+        Assert.Equal("c0-0", first.GetProperty("reductionFromIds")[0].GetString());
         Assert.False(first.TryGetProperty("note", out _));
     }
 
@@ -146,13 +147,13 @@ public class Gadget_Kinds_Tests {
     }
 
     [Fact]
-    public void KarpSatToSat3_StableIdsFollowLegacyIds_AfterTheReductionEditsThem() {
+    public void KarpSatToSat3_StableIdsEqualLegacyIds_AfterTheReductionEditsThem() {
         // The clause and literal gadgets; the variable gadgets #693 added name variables, which Redux_GUI does not draw, so
         // their legacy ids are the variable's occurrences instead (see KarpSatToSat3_VariableGadgets_...).
         foreach (var (name, red) in ReductionsWithGadgets().Where(r => r.Name == "KarpSATToSAT3"))
             foreach (Gadget g in red.gadgets.Where(g => g.sourceIds.All(id => id.StartsWith('c')) && g.targetIds.All(id => id.StartsWith('c')))) {
-                Assert.Equal(g.reductionFromIds.Select(i => "c" + i), g.sourceIds);
-                Assert.Equal(g.reductionToIds.Select(i => "c" + i), g.targetIds);
+                Assert.Equal(g.reductionFromIds, g.sourceIds);
+                Assert.Equal(g.reductionToIds, g.targetIds);
             }
     }
 

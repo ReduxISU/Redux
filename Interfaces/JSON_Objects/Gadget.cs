@@ -7,8 +7,9 @@ class Gadget : API_JSON {
     /// <summary>Discriminator so a client can tell payload shapes apart without duck-typing. See #524.</summary>
     public string kind { get; } = "gadget";
 
-    // Legacy trio read by Redux_GUI (it checks color === "ElementHighlight"); keep these three
-    // byte-for-byte stable. New clients should read gadgetKind / sourceIds / targetIds instead.
+    // Legacy trio read by Redux_GUI (it checks color === "ElementHighlight"). It matches the two id lists against the ids of
+    // the list-format pictures (ProblemProvider/visualize and visualizeReduction), so they change only together with those
+    // pictures' ids. New clients should read gadgetKind / sourceIds / targetIds instead.
     public string color { get; set; }
     public List<string> reductionFromIds { get; set; }
     public List<string> reductionToIds { get; set; }

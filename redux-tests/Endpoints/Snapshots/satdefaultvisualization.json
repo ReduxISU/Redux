@@ -3,65 +3,65 @@
     "kind": "sat",
     "clauses": [
       {
-        "id": "0",
+        "id": "c0",
         "literals": [
           {
-            "id": "0-0",
+            "id": "c0-0",
             "literal": "!x3",
             "color": "Background"
           },
           {
-            "id": "0-1",
+            "id": "c0-1",
             "literal": "x4",
             "color": "Background"
           },
           {
-            "id": "0-2",
+            "id": "c0-2",
             "literal": "!x2",
             "color": "Background"
           },
           {
-            "id": "0-3",
+            "id": "c0-3",
             "literal": "x1",
             "color": "Background"
           },
           {
-            "id": "0-4",
+            "id": "c0-4",
             "literal": "x2",
             "color": "Background"
           }
         ]
       },
       {
-        "id": "1",
+        "id": "c1",
         "literals": [
           {
-            "id": "1-0",
+            "id": "c1-0",
             "literal": "!x4",
             "color": "Background"
           },
           {
-            "id": "1-1",
+            "id": "c1-1",
             "literal": "!x1",
             "color": "Background"
           }
         ]
       },
       {
-        "id": "2",
+        "id": "c2",
         "literals": [
           {
-            "id": "2-0",
+            "id": "c2-0",
             "literal": "x4",
             "color": "Background"
           },
           {
-            "id": "2-1",
+            "id": "c2-1",
             "literal": "x3",
             "color": "Background"
           },
           {
-            "id": "2-2",
+            "id": "c2-2",
             "literal": "!x1",
             "color": "Background"
           }
@@ -73,65 +73,65 @@
     "kind": "sat",
     "clauses": [
       {
-        "id": "0",
+        "id": "c0",
         "literals": [
           {
-            "id": "0-0",
+            "id": "c0-0",
             "literal": "!x3",
             "color": "Solution"
           },
           {
-            "id": "0-1",
+            "id": "c0-1",
             "literal": "x4",
             "color": "Background"
           },
           {
-            "id": "0-2",
+            "id": "c0-2",
             "literal": "!x2",
             "color": "Solution"
           },
           {
-            "id": "0-3",
+            "id": "c0-3",
             "literal": "x1",
             "color": "Background"
           },
           {
-            "id": "0-4",
+            "id": "c0-4",
             "literal": "x2",
             "color": "Background"
           }
         ]
       },
       {
-        "id": "1",
+        "id": "c1",
         "literals": [
           {
-            "id": "1-0",
+            "id": "c1-0",
             "literal": "!x4",
             "color": "Solution"
           },
           {
-            "id": "1-1",
+            "id": "c1-1",
             "literal": "!x1",
             "color": "Solution"
           }
         ]
       },
       {
-        "id": "2",
+        "id": "c2",
         "literals": [
           {
-            "id": "2-0",
+            "id": "c2-0",
             "literal": "x4",
             "color": "Background"
           },
           {
-            "id": "2-1",
+            "id": "c2-1",
             "literal": "x3",
             "color": "Background"
           },
           {
-            "id": "2-2",
+            "id": "c2-2",
             "literal": "!x1",
             "color": "Solution"
           }
