@@ -7,6 +7,7 @@ class ConstraintSatisfactionSolver : ISolver<CONSTRAINTSATISFACTION> {
     public string solverName {get;} = "Constraint Satisfaction Solver";
     public string solverDefinition {get;} = "TODO";
     public string source {get;} = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors {get;} = { "TODO" };
     // Declared, not derived — see API.Interfaces.SolverType and
     // API.Interfaces.SolverComplexityBucket. Leave these commented out (the

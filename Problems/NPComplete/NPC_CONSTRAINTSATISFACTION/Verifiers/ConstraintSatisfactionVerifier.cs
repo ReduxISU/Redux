@@ -9,6 +9,7 @@ class ConstraintSatisfactionVerifier : IVerifier<CONSTRAINTSATISFACTION> {
     public string verifierName {get;} = "Constraint Satisfaction Verifier";
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink {get;} = "TODO";
     public string[] contributors {get;} = { "TODO" };
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

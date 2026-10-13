@@ -23,14 +23,27 @@ class CONSTRAINTSATISFACTION
     public string source {get;} = "S. Russell and P. Norvig, “Constraint Satisfaction Problems,” in Artificial Intelligence: A Modern Approach, 3rd ed. New Jersey: Pearson, 2010, pp. 202–233.";
     public string sourceLink {get;} = "https://aima.eecs.berkeley.edu/3rd-ed/";
     public string sourceFile { get; } = SourceFile.Path();
-    private static readonly string _defaultInstance = "TODO";
+    private static readonly string _defaultInstance =
+    "({x,y},{(x,{1,2}),(y,{1,2})},{((x,y),{(1,2),(2,1)})})";
     public string defaultInstance {get;} = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat {get;} = "TODO: describe the instance string format with an embedded example, e.g. 'Boolean formula in 3-CNF, clauses joined by `&`. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)'";
-    public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
+    public string instanceFormat { get; } =
+        "Format: (X,D,C), where X is a set of variables, " +
+        "D is a set of (variable,domain) pairs, and " +
+        "C is a set of (scope,allowed values) pairs. " +
+        "Each domain is a nonempty set of possible values. " +
+        "Each constraint specifies the allowed value combinations " +
+        "for its variables. " +
+        $"Example: {_defaultInstance}";
+
+    public string certificateFormat { get; } =
+        "Format: a set of (variable,value) pairs. " +
+        "Each variable must be assigned exactly one value " +
+        "from its domain, and all constraints must be satisfied. " +
+        "Example: {(x,1),(y,2)}";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = "";
     public ConstraintSatisfactionSolver defaultSolver {get;} = new ConstraintSatisfactionSolver();
