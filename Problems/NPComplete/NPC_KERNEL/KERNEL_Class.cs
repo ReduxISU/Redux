@@ -37,6 +37,8 @@ class KERNEL : IGraphProblem<KernelBruteForce, KernelVerifier, KernelDefaultVisu
     public KernelVerifier defaultVerifier { get; } = new KernelVerifier();
     public KernelDefaultVisualization defaultVisualization { get; } = new KernelDefaultVisualization();
     public string[] contributors { get; } = {"Prashant Pant", "Bektur Akkabakov"};
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     public HashSet<int> vertices { get; set; }
     public List<(int u, int v)> edges { get; set; }
@@ -45,6 +47,9 @@ class KERNEL : IGraphProblem<KernelBruteForce, KernelVerifier, KernelDefaultVisu
     public KERNEL() : this(_defaultInstance) {
     }
     public KERNEL(string stringInstance) {
+        if (string.IsNullOrWhiteSpace(stringInstance)) {
+            throw new ProblemParseException("Kernel",stringInstance,"Instance is empty.");
+        }
         instance = stringInstance;
         UtilCollection graph = new UtilCollection(stringInstance.Replace(" ", ""));
         graph.assertPair();
@@ -70,7 +75,7 @@ class KERNEL : IGraphProblem<KernelBruteForce, KernelVerifier, KernelDefaultVisu
 
         // Validate edge endpoints.
         if (edges.Any(e => !vertices.Contains(e.u) || !vertices.Contains(e.v))) {
-            throw new ArgumentException("Every edge endpoint must belong to V.");
+            throw new ProblemParseException("Kernel",stringInstance,"Every edge endpoint must belong to V.");
         }
     }
 }
