@@ -126,9 +126,10 @@ public class RepeatedNumbers_Tests {
         var list = new PartitionDefaultVisualization().visualize(problem).data.list!;
         Assert.Equal(problem.S, list.Select(e => e.value));
         Assert.Equal(list.Count, list.Select(e => e.id).Distinct().Count());
-        Assert.Equal("r-12", list[2].id);      // the first 12 keeps the id it always had
-        Assert.Equal("r-12-5", list[5].id);    // the second, at position 5, adds its position
-        Assert.Equal("r-1", list[0].id);
+        // Each copy is the Packing picture's item at its position, the id the gadgets name.
+        Assert.Equal("I3", list[2].id);
+        Assert.Equal("I6", list[5].id);
+        Assert.Equal("I1", list[0].id);
     }
 
     [Fact]

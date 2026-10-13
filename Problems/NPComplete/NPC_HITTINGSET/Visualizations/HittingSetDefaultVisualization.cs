@@ -21,14 +21,12 @@ class HittingSetDefaultVisualization : IVisualization<HITTINGSET, API_SET>, IBip
     public HittingSetDefaultVisualization() {
 
     }
+    // The pieces get the Bipartite Graph picture's ids (e:{x}, S{j}), the ids the gadgets of Hitting Set's reductions name.
     public API_SET visualize(HITTINGSET hittingSet) {
-        return new API_SET(new UtilCollection(hittingSet.instance));
+        return new API_SET(new UtilCollection(hittingSet.instance)).UseBipartiteIds(Spec(hittingSet).Sets);
     }
     public API_JSON SolvedVisualization(HITTINGSET hittingSet, string solution) {
-        //return new API_SET(new UtilCollection(hittingSet.instance));
-        API_SET ec = new API_SET(new UtilCollection(hittingSet.instance));
-
-        return new API_SET(new UtilCollection(hittingSet.instance));
+        return visualize(hittingSet);
     }
 
     // --- Bipartite Graph picture (format=frames only; the list-format methods above are unchanged) ---

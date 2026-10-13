@@ -22,8 +22,9 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET>, IBip
     public ExactCoverDefaultVisualization() {
 
     }
+    // The pieces get the Bipartite Graph picture's ids (e:{x}, S{j}), the ids the gadgets of Exact Cover's reductions name.
     public API_SET visualize(EXACTCOVER exactCover) {
-        return new API_SET(new UtilCollection(exactCover.instance));
+        return new API_SET(new UtilCollection(exactCover.instance)).UseBipartiteIds(Spec(exactCover).Sets);
     }
     public API_JSON SolvedVisualization(EXACTCOVER exactCover, string solution) {
         API_SET ec = new API_SET(new UtilCollection(exactCover.instance));
@@ -32,7 +33,7 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET>, IBip
         // collection S, whose elements are the subsets we may colour.
         List<API_UtilCollection>? subsets = ec.data.list?[1].list;
         if (subsets is null) {
-            return ec;
+            return ec.UseBipartiteIds(Spec(exactCover).Sets);
         }
 
         // Each subset in S was given the id "r-1-" + uc.ToString() (see
@@ -51,7 +52,7 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET>, IBip
             }
         }
 
-        return ec;
+        return ec.UseBipartiteIds(Spec(exactCover).Sets);
     }
 
     // --- Bipartite Graph picture (format=frames only; the list-format methods above are unchanged) ---

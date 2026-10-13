@@ -9,21 +9,21 @@
         {
           "isOrdered": false,
           "isValue": true,
-          "id": "r-21",
+          "id": "I1",
           "value": "21",
           "color": "Background"
         },
         {
           "isOrdered": false,
           "isValue": true,
-          "id": "r-20",
+          "id": "I2",
           "value": "20",
           "color": "Background"
         },
         {
           "isOrdered": false,
           "isValue": true,
-          "id": "r-65",
+          "id": "I3",
           "value": "65",
           "color": "Background"
         }
@@ -40,21 +40,21 @@
         {
           "isOrdered": false,
           "isValue": true,
-          "id": "r-21",
+          "id": "I1",
           "value": "21",
           "color": "Background"
         },
         {
           "isOrdered": false,
           "isValue": true,
-          "id": "r-20",
+          "id": "I2",
           "value": "20",
           "color": "Solution"
         },
         {
           "isOrdered": false,
           "isValue": true,
-          "id": "r-65",
+          "id": "I3",
           "value": "65",
           "color": "Solution"
         }

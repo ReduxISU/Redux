@@ -37,9 +37,10 @@ class KnapsackVisualization : IVisualization<KNAPSACK, API_SET>, IPackingVisuali
 
     public KnapsackVisualization() { }
 
-    // Every item, in order, repeats included (#628): drawn as the set of items, a later copy of an item gets its position in
-    // its id (r-(1,2)-1).
-    public API_SET visualize(KNAPSACK problem) => API_SET.KeepingRepeats(problem.items.ToList().Select(i => i.ToString()).ToList());
+    // Every item, in order, repeats included (#628, API_SET.KeepingRepeats), drawn as the set of items, each with the Packing
+    // picture's item id by position (I1, I2, ...; its weight and value I1-0, I1-1), the ids the gadgets of reductions into
+    // Knapsack name.
+    public API_SET visualize(KNAPSACK problem) => API_SET.KeepingRepeats(problem.items.ToList().Select(i => i.ToString()).ToList()).UseItemIds();
 
     // The chosen items by position (#628): {(1,2)} for two (1,2) items marks the first only, {(1,2),(1,2)} both.
     public API_JSON SolvedVisualization(KNAPSACK problem, string solution) {

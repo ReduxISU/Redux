@@ -34,9 +34,9 @@ class PartitionDefaultVisualization : IVisualization<PARTITION, API_SET>, IPacki
     public PartitionDefaultVisualization() {
 
     }
-    // Every number of S, in order, repeats included (#628): a later copy of a number gets its position in its id ("r-12-5"
-    // for the 12 at position 5), see API_SET.KeepingRepeats.
-    public API_SET visualize(PARTITION partition) => API_SET.KeepingRepeats(partition.S);
+    // Every number of S, in order, repeats included (#628, API_SET.KeepingRepeats), each with the Packing picture's item id by
+    // position (I1, I2, ...), the ids the gadgets of Partition's reductions name.
+    public API_SET visualize(PARTITION partition) => API_SET.KeepingRepeats(partition.S).UseItemIds();
     public API_JSON SolvedVisualization(PARTITION partition, string solution) {
         API_SET ec = visualize(partition);
         // "{}" (no split exists) or anything else that is not two sides: there is no answer to draw (#796).
