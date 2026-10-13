@@ -22,7 +22,7 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
     public SolverType solverType { get; } = SolverType.Quantum;
     // The Bernstein-Vazirani algorithm recovers the full n-bit secret string with exactly
     // one query to the oracle (a single call to the external quantum endpoint here).
-    public string complexity { get; } = "O(1) oracle queries";
+    public MathematicalFunction timeComplexity { get; } = new("1", " oracle queries");
 
     // --- Constructors ---
 
