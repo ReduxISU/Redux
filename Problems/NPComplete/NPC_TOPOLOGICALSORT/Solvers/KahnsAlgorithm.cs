@@ -18,7 +18,7 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT> {
     // "foreach (var edge in problem.edges)" — a full linear scan of all E edges to find those
     // leaving `current` — instead of an O(1)-per-neighbor adjacency lookup. That's O(V * E),
     // not the textbook O(V + E).
-    public string complexity { get; } = "O(V * E)";
+    public MathematicalFunction timeComplexity { get; } = new("V * E", "");
 
     // --- Constructors ---
     public KahnsAlgorithm() { }
