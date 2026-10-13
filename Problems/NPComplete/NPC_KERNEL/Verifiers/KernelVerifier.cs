@@ -6,14 +6,17 @@ namespace API.Problems.NPComplete.NPC_KERNEL.Verifiers;
 class KernelVerifier : IVerifier<KERNEL> {
 
     // --- Fields ---
-    public string verifierName {get;} = "Kernel Verifier";
-    public string verifierDefinition {get;} = "TODO";
-    public string source {get;} = " ";
-    public string sourceLink {get;} = "TODO";
-    public string[] contributors {get;} = { "TODO" };
+    public const string CertificateGrammar = "TODO";
+    public const string CertificateExample = "TODO";
+    public string verifierName { get; } = "Kernel Verifier";
+    public string verifierDefinition { get; } = "TODO";
+    public string source { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
+    public string sourceLink { get; } = "TODO";
+    public string[] contributors { get; } = { "TODO" };
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
-    private string _certificate =  "";
+    private string _certificate = "";
 
     public string certificate {
         get {
@@ -23,10 +26,10 @@ class KernelVerifier : IVerifier<KERNEL> {
 
     // --- Methods Including Constructors ---
     public KernelVerifier() {
-        
+
     }
 
-    public bool verify(KERNEL problem, string certificate){
+    public bool verify(KERNEL problem, string certificate) {
         // On a malformed certificate, throw `CertificateParseException`
         // (see Interfaces/ParseExceptions.cs) rather than silently
         // returning false. The controller layer catches it and returns
@@ -40,7 +43,8 @@ class KernelVerifier : IVerifier<KERNEL> {
         // Return false only when the certificate parses successfully but
         // fails the verification predicate; return true when it satisfies it.
 
-        // TODO: implement Kernel Verifier for KERNEL
-        return true;
+        // TODO: implement {VERIFIER} for {PROBLEM}
+        // An unfinished verifier must fail loudly, not accept every certificate.
+        throw new NotImplementedException("TODO: implement {VERIFIER} for {PROBLEM}");
     }
 }
