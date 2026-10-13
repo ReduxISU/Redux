@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Solvers;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Verifiers;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Visualizations;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION;
 
@@ -21,6 +22,7 @@ class CONSTRAINTSATISFACTION
     public string outputDescription {get;} = "True or False, whether there exists an assignment of values to all variables that satisfies every constraint (consistent) and includes a value for every variable in X (complete).";
     public string source {get;} = "S. Russell and P. Norvig, “Constraint Satisfaction Problems,” in Artificial Intelligence: A Modern Approach, 3rd ed. New Jersey: Pearson, 2010, pp. 202–233.";
     public string sourceLink {get;} = "https://aima.eecs.berkeley.edu/3rd-ed/";
+    public string sourceFile { get; } = SourceFile.Path();
     private static readonly string _defaultInstance = "TODO";
     public string defaultInstance {get;} = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
@@ -45,14 +47,17 @@ class CONSTRAINTSATISFACTION
 
     // --- Properties ---
 
+    public const string InstanceGrammar = "{(X,D,C) | X is set, D is set, C is set}";
+    public UtilCollection X { get; }
+    public UtilCollection D { get; }
+    public UtilCollection C { get; }
+
     // --- Methods and Constructors ---
     public CONSTRAINTSATISFACTION() : this(_defaultInstance) {
 
     }
 
     public CONSTRAINTSATISFACTION(string stringInstance) {
-        instance = stringInstance;
-
         // On a malformed instance, throw `ProblemParseException` (see
         // Interfaces/ParseExceptions.cs). The controller layer catches it
         // and returns HTTP 400 with `instanceFormat` quoted back to the
@@ -61,6 +66,17 @@ class CONSTRAINTSATISFACTION
         //   if (string.IsNullOrWhiteSpace(stringInstance)) {
         //       throw new ProblemParseException("constraintsatisfaction", stringInstance, "instance is empty");
         //   }
+
+        if (string.IsNullOrWhiteSpace(stringInstance)) {
+            throw new ProblemParseException(problemName, stringInstance, "instance is empty");
+        }
+
+        instance = stringInstance;
+        StringParser parser = new(InstanceGrammar);
+        parser.parse(instance);
+        X = parser["X"];
+        D = parser["D"];
+        C = parser["C"];
 
         // TODO: implement parsing of string instance of constraintsatisfaction. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
         //
