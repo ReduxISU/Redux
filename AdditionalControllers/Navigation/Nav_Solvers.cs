@@ -7,7 +7,7 @@ using API.Interfaces;
 // ProblemProvider.Solvers, Activator.CreateInstance per-type try/catch, read the declared
 // property off the constructed ISolver. Deliberately checks `is ISolver` (the non-generic
 // interface), NOT `is ISolver<T>` like SolverNavigationData.Build() below does -- that generic
-// check silently skips SATBruteForceSolver, which implements non-generic ISolver directly. One
+// check would silently skip a solver that implements only non-generic ISolver. One
 // solver with a throwing/missing default constructor must not take down the whole catalog.
 internal static class SolverTypeCatalog {
     internal static readonly Lazy<Dictionary<string, string>> SolverTypeByClassName = new(BuildSolverType);
