@@ -24,7 +24,7 @@ class TwoApproximationVertexCover : ISolver<VERTEXCOVER, NodeSet> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(E), E = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("E", ", E = |edges|");
 
     // --- Methods Including Constructors ---
     // See TwoApproximationMinimumVertexCover: a seed makes the random edge choices reproducible.

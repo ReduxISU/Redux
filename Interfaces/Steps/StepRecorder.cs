@@ -67,7 +67,21 @@ sealed class StepRecorder<TPartial> {
         if (!_enabled) return;
         int hidden = Hidden;
         _total++;
-        if (hidden > 0) caption += $" ({hidden} not shown)";
+        if (hidden > 0) caption += StepCaptions.NotShownSuffix(hidden);
         _steps.Add(new SolverStep<TPartial>(answer, StepEvent.Done, Array.Empty<string>(), caption) { Ok = ok });
+    }
+}
+
+/// <summary>The note a Done caption carries about steps the recorder did not keep.</summary>
+static class StepCaptions {
+    private static readonly System.Text.RegularExpressions.Regex NotShownPattern = new(@" \((\d+) not shown\)$");
+
+    /// <summary>The note added to a Done caption when <paramref name="hidden"/> steps were not kept.</summary>
+    public static string NotShownSuffix(int hidden) => $" ({hidden} not shown)";
+
+    /// <summary>How many steps a Done caption says were not kept; 0 when it says nothing.</summary>
+    public static int NotShown(string caption) {
+        var match = NotShownPattern.Match(caption);
+        return match.Success ? int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) : 0;
     }
 }

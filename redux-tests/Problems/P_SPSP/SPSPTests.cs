@@ -1,3 +1,4 @@
+using API.Interfaces;
 using System;
 using System.Linq;
 using Xunit;
@@ -146,7 +147,7 @@ public class SPSP_Tests {
     public void SPSPSolver_GetSteps_Returns_Empty_When_No_Nodes() {
         SPSP problem = new SPSP("({},{})");
         SPSPSolver solver = new SPSPSolver();
-        var steps = solver.GetSteps(problem);
+        var steps = SPSPSolver.PathSteps(problem, ((ISolver<SPSP>)solver).GetSteps(problem));
         Assert.Empty(steps);
     }
 
@@ -158,7 +159,7 @@ public class SPSP_Tests {
         string instance = "(({1,2,3,4},{((1,2),1),((2,3),1),((3,4),1),((1,4),10)}),2,4)";
         SPSP problem = new SPSP(instance);
         SPSPSolver solver = new SPSPSolver();
-        var steps = solver.GetSteps(problem).Cast<string>().ToList();
+        var steps = SPSPSolver.PathSteps(problem, ((ISolver<SPSP>)solver).GetSteps(problem)).Cast<string>().ToList();
 
         Assert.Equal(new List<string> { "{2}", "{2,3}", "{2,3,4}" }, steps);
     }
@@ -168,7 +169,7 @@ public class SPSP_Tests {
         string instance = "(({1,2,3},{((2,3),1)}),1,3)";
         SPSP problem = new SPSP(instance);
         SPSPSolver solver = new SPSPSolver();
-        var steps = solver.GetSteps(problem).Cast<string>().ToList();
+        var steps = SPSPSolver.PathSteps(problem, ((ISolver<SPSP>)solver).GetSteps(problem)).Cast<string>().ToList();
 
         Assert.Equal(new List<string> { "{1}" }, steps);
     }
@@ -315,10 +316,11 @@ public class SPSP_Tests {
         SPSP problem = new SPSP(instance);
         SPSPVisualization visualization = new SPSPVisualization();
 
-        var steps = new List<object> { "{1,3,5}" };
+        // The steps are the solver's typed run; its last frame is the path to the target, {1,3,5}.
+        var steps = ((ISolver<SPSP>)new SPSPSolver()).GetSteps(problem);
         var frames = visualization.StepsVisualization(problem, steps);
 
-        var frame = Assert.IsType<API_GraphJSON>(frames[0]);
+        var frame = Assert.IsType<API_GraphJSON>(frames[^1]);
         Assert.Contains(frame.nodes, n => n.name == "1" && (n.color == "Solution" || n.color == "ElementHighlight"));
         Assert.Contains(frame.nodes, n => n.name == "5" && (n.color == "Solution" || n.color == "ElementHighlight"));
     }

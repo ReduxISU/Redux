@@ -21,7 +21,7 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> 
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(E), E = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("E", ", E = |edges|");
 
     // --- Methods Including Constructors ---
     // When set, the random choice of edges is reproducible (tests, replays). Unset keeps the original behaviour:

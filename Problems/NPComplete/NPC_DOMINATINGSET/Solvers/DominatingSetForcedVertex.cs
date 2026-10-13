@@ -27,9 +27,9 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet> {
     // Declared, not derived. Worst case (forced-vertex reduction never fires): recursion
     // depth is bounded by K, and SearchExact branches over closed[uPick], whose size is
     // bounded by n; each recursive call does O(n) work (AllDominated/forced-vertex scan/
-    // ApplyPick). That's O(n^K) leaves at O(n) work apiece. The forced-vertex pruning
-    // makes this far faster in practice -- this bound is worst-case only.
-    public string complexity { get; } = "O(n^(K+1)), n = |nodes|, K = target dominating-set size";
+    // ApplyPick). That's O(n^K) leaves at O(n) work apiece. The branch-and-reduce pruning
+    // (Akiba & Iwata) makes this far faster in practice -- this bound is worst-case only.
+    public MathematicalFunction timeComplexity { get; } = new("n^(K+1)", ", n = |nodes|, K = target dominating-set size");
 
     // --- Methods Including Constructors ---
     public DominatingSetForcedVertex() { }

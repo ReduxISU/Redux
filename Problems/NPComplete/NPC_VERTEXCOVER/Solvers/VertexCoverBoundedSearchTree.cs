@@ -22,7 +22,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } = "O(2^K * (n + m)), K = target cover size, n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^K * (n + m)", ", K = target cover size, n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public VertexCoverBoundedSearchTree() {

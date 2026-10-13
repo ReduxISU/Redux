@@ -24,7 +24,7 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Every vertex branches into include/exclude, giving 2^n leaves;
     // each leaf does an O(n + m) domination check.
-    public string complexity { get; } = "O(2^n * (n + m)), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * (n + m)", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public DominatingSetNaiveInclusionExclusion() { }

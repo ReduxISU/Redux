@@ -24,7 +24,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } = "O(K * (n + m) + 2^(2K) * m), K = target cover size, n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("K * (n + m) + 2^(2K) * m", ", K = target cover size, n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public VertexCoverBussKernelization() {
