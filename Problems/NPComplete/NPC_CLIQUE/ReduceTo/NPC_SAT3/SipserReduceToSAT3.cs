@@ -65,7 +65,7 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         try {
             _reductionTo = reduce();
         } catch (ArgumentException ex) {
-            // ParseSipserNode rejected one of the instance's node names.
+            // SipserNodes.Parse rejected one of the instance's node names.
             // The CLIQUE itself is well-formed; it's just not the
             // Sipser-formatted variety this reduction needs as input.
             throw new ReductionInputException(this, from.instance,

@@ -9,7 +9,7 @@ namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Verifiers;
 class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
     public const string CertificateGrammar = "{(cost,S) | cost is string, S is list}";
     public const string CertificateExample =
-        "(29.72,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
+        "(62.32,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
         "(PumpB,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)," +
         "(PumpC,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,1)))";
 

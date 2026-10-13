@@ -7,7 +7,7 @@ using API.Interfaces;
 // ProblemProvider.Solvers, Activator.CreateInstance per-type try/catch, read the declared
 // property off the constructed ISolver. Deliberately checks `is ISolver` (the non-generic
 // interface), NOT `is ISolver<T>` like SolverNavigationData.Build() below does -- that generic
-// check silently skips SATBruteForceSolver, which implements non-generic ISolver directly. One
+// check would silently skip a solver that implements only non-generic ISolver. One
 // solver with a throwing/missing default constructor must not take down the whole catalog.
 internal static class SolverTypeCatalog {
     internal static readonly Lazy<Dictionary<string, string>> SolverTypeByClassName = new(BuildSolverType);
@@ -46,8 +46,10 @@ internal static class SolverTypeCatalog {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (_, type) in ProblemProvider.Solvers) {
             try {
+                // The "O(...)" framing belongs here, not on MathematicalFunction itself —
+                // this dictionary is specifically a Big-O display, not the function's own string form.
                 if (Activator.CreateInstance(type) is ISolver instance)
-                    result[type.Name] = instance.complexity;
+                    result[type.Name] = instance.timeComplexity is { } c ? $"O({c.Function}){c.Description}" : "";
             } catch {
                 // Skip a solver that can't be default-constructed instead of failing the whole
                 // catalog. It falls back to "" (empty) at the call site.

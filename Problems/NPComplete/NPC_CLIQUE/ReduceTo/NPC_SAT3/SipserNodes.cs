@@ -13,7 +13,9 @@ static class SipserNodes {
         if (!int.TryParse(node.Substring(u + 1), out int idx))
             throw new ArgumentException(
                 $"Node '{node}' is not Sipser-formatted: clause index '{node.Substring(u + 1)}' is not an integer");
-        return (node.Substring(0, u), idx);
+        // SipserReduceToCliqueStandard marks repeated literals within a clause with trailing
+        // apostrophes (x1, x1', ...); they are the same literal.
+        return (node.Substring(0, u).TrimEnd('\''), idx);
     }
 
     /// <summary>The variable a node's literal mentions and whether the node makes it True (a plain literal) or False ("!x").</summary>
