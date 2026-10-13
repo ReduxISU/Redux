@@ -15,7 +15,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public string inputDescription {get;} = "TODO: short plain-English name for the input, e.g. 'Φ, a boolean formula'";
     public string outputDescription {get;} = "TODO: short plain-English description of the output, e.g. 'True or False'";
     public string source {get;} = "TODO";
-    public string sourceFile {get;} = SourceFile.Path();; 
+    public string sourceFile {get;} = SourceFile.Path();
     public string sourceLink {get;} = "TODO";
     private static readonly string _defaultInstance = "TODO";
     public string defaultInstance {get;} = _defaultInstance;
