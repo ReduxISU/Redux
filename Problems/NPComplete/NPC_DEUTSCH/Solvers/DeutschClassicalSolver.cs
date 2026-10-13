@@ -16,7 +16,7 @@ class DeutschClassicalSolver : ISolver<DEUTSCH> {
     // a trivial fixed 1-bit input, so even the classical solver is constant time.
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // solve() calls problem.Func() exactly twice (once for each of the two possible 1-bit inputs).
-    public string complexity { get; } = "O(1)";
+    public MathematicalFunction timeComplexity { get; } = new("1", "");
 
     // --- Methods Including Constructors ---
     public DeutschClassicalSolver() { }
