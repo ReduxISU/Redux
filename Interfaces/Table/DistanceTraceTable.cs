@@ -1,3 +1,4 @@
+using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 
 namespace API.Interfaces.Table;
@@ -9,7 +10,8 @@ namespace API.Interfaces.Table;
 /// <list type="bullet">
 /// <item>The node a step settles (or the source, at the start) is the focus (<c>ElementHighlight</c>). The cost and via
 /// cells that changed at the step are marked changed.</item>
-/// <item>Dijkstra is incremental: a settled node's row is <c>Solution</c> in every step, since its cost is final.</item>
+/// <item>Dijkstra is incremental: a settled node's row is <c>Committed</c> in every step, since its cost is final but the run
+/// is not over (#886); it becomes <c>Solution</c> in an Accept that ends the run.</item>
 /// <item>In Done: for SSSP every reached node's row is <c>Solution</c>; for SPSP the path's rows are, or the target's row is
 /// <c>Rejected</c> when it can't be reached. A node that can't be reached is <c>Untraveled</c>.</item>
 /// <item>Settled shows <c>#k</c>, the order the node was settled in, or <c>yes</c> when that step was past the recorder's cap
@@ -39,7 +41,7 @@ static class DistanceTraceTable {
         bool orderKnown = true;
         Distances? before = null;
         var drafts = new List<TableDraft>();
-        foreach (var step in steps) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(steps)) {
             var d = step.Partial;
             bool done = step.Event == StepEvent.Done;
             var settled = new HashSet<string>(d.Settled, StringComparer.Ordinal);
@@ -66,7 +68,7 @@ static class DistanceTraceTable {
                 }
 
                 if (!done) {
-                    if (settled.Contains(n)) draft.MarkRow(i, PictureState.Solution);
+                    if (settled.Contains(n)) draft.MarkRow(i, GraphSubsetFrames.Picked(step.Event, incremental: true, endsRun));
                 } else if (step.Ok == true) {
                     if (target == null ? reached : OnPath(d, source, target, n)) draft.MarkRow(i, PictureState.Solution);
                     else if (!reached) draft.MarkRow(i, PictureState.Untraveled);
