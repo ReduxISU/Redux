@@ -131,13 +131,14 @@ sealed record PackingFrame(
 /// values); Bin Packing one bin per item at most (and at most K), each with the limit C.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>,
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>,
 /// with <c>Untraveled</c> only where nothing else applies; see <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
 /// <item>An item in a container is <c>ElementHighlight</c> while a whole candidate is only being tried (Try, Reject of a
-/// run that is not <see cref="SolveRun.Incremental"/>) and <c>Solution</c> otherwise: in an Accept, after a Backtrack, in
-/// every step of an incremental run (what it has committed) and in Done (<see cref="GraphSubsetFrames.Picked"/>).</item>
+/// run that is not <see cref="SolveRun.Incremental"/>), <c>Committed</c> while it is kept but not confirmed (in an Accept the
+/// run goes on from, after a Backtrack, and in every step of an incremental run: what it has packed so far; #886), and
+/// <c>Solution</c> only in the confirmed answer: the Done, or an Accept that ends the run (<see cref="GraphSubsetFrames.Picked"/>).</item>
 /// <item>An item left out of a correct answer (a Done frame with ok = true) is <c>Untraveled</c>: not part of the
 /// answer.</item>
 /// <item>A container over its limit is <c>Rejected</c> in every frame. A container whose constraint is met is
@@ -209,9 +210,10 @@ static class PackingFrames {
 
     /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static PackingFrame Frame(PackingSpec spec, Placement partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static PackingFrame Frame(PackingSpec spec, Placement partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var containers = Containers(spec);
         int[] assign = AssignOf(spec, containers.Count, partial);
         var totals = containers.Select((_, c) => {
@@ -226,7 +228,7 @@ static class PackingFrames {
         bool inProgress = ev is StepEvent.Accept or StepEvent.Backtrack || (incremental && ev is StepEvent.Try or StepEvent.Reject);
         bool placedAny = assign.Any(c => c >= 0);
 
-        var picked = GraphSubsetFrames.Picked(ev, incremental);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         for (int i = 0; i < assign.Length; i++) {
             if (assign[i] >= 0) GraphSubsetFrames.Raise(items, ItemId(i), picked);
             else if (ev == StepEvent.Done && ok == true) GraphSubsetFrames.Raise(items, ItemId(i), PictureState.Untraveled);
@@ -327,10 +329,10 @@ static class PackingFrames {
     public static FramesResponse Build(PackingSpec spec, SolveRun run, Func<string, Placement> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<Placement>? last = null;
-        foreach (var step in run.StepsFor(typeof(Placement)).OfType<SolverStep<Placement>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(Placement)).OfType<SolverStep<Placement>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(spec, step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {
