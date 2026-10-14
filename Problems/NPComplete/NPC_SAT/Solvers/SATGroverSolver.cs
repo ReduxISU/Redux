@@ -1,6 +1,7 @@
 ﻿using API.Interfaces;
 using API.Tools;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 
@@ -42,7 +43,15 @@ class SATGroverSolver : ISolver<SAT> {
 
     // --- Methods ---
 
+    // No answer: not "No solution exists", which would say the formula has none.
+    private const string NoAnswer = "{}";
+
+    // The quantum service (ReduxISU/quantumsolver, sat_quantum.py) numbers the formula's variables by sorting their names
+    // (every run of letters, digits and '_', which are exactly SAT's variable names) in code-point order, and sends
+    // answer_bitstring with character i for variable i. That is read back as SAT's certificate, "(x1:True,x2:False)" (#832).
+    // With no bit string to read (the service could not be reached, or did not send one) there is no answer, "{}".
     public string solve(SAT problem) {
+        string response;
         try {
             var requestBody = new JSON_Sat_Problem(problem.instance);
 
@@ -50,26 +59,43 @@ class SATGroverSolver : ISolver<SAT> {
             var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
-            string response = client.PostAsync("/sat-quantum", requestBody).Result;
+            response = client.PostAsync("/sat-quantum", requestBody).Result;
+        } catch (Exception) {
+            return NoAnswer;
+        }
 
-            // Parse the JSON response and extract just the answer
+        try {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("qasm", out JsonElement circuitElement)) {
+            if (root.TryGetProperty("qasm", out JsonElement circuitElement) && circuitElement.ValueKind == JsonValueKind.String) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
-                return answerElement.GetString() ?? "No answer found";
+            if (root.TryGetProperty("answer_bitstring", out JsonElement bitsElement) && bitsElement.ValueKind == JsonValueKind.String) {
+                return Assignment(problem.instance, bitsElement.GetString() ?? "") ?? NoAnswer;
             }
-
-            // If no answer field, return the whole response
-            return response;
-        } catch (Exception ex) {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
+        } catch (JsonException) {
+            // Not JSON: no answer, as below.
         }
+        return NoAnswer;
+    }
+
+    /// <summary>
+    /// The variables of <paramref name="formula"/> in the quantum service's order: every distinct name, sorted by code point
+    /// (Python's <c>sorted(set(re.findall(r"[A-Za-z0-9_]+", expr)))</c>).
+    /// </summary>
+    public static List<string> ServiceVariableOrder(string formula) =>
+        Regex.Matches(formula, "[A-Za-z0-9_]+").Select(m => m.Value).Distinct().OrderBy(v => v, StringComparer.Ordinal).ToList();
+
+    /// <summary>
+    /// <paramref name="bits"/> (character i for variable i of <see cref="ServiceVariableOrder"/>) as SAT's certificate, or null
+    /// when it is not one bit per variable.
+    /// </summary>
+    public static string? Assignment(string formula, string bits) {
+        var variables = ServiceVariableOrder(formula);
+        if (variables.Count == 0 || bits.Length != variables.Count || bits.Any(c => c is not ('0' or '1'))) return null;
+        return "(" + string.Join(",", variables.Select((v, i) => $"{v}:{(bits[i] == '1' ? "True" : "False")}")) + ")";
     }
 
 }
