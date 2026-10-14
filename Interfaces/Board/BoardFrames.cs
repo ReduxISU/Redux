@@ -110,13 +110,14 @@ sealed record BoardFrame(
 /// contents, so equal digits stay distinct squares and no id needs escaping.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>; see
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>; see
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
-/// <item>A square the solver filled (a digit or a piece that is not a clue) is <c>Solution</c> only in the Done frame with
-/// ok = true, once the board is confirmed as the answer (#839). Before that it is plain (<c>Background</c>): in every step of
-/// an incremental run (<see cref="SolveRun.Incremental"/>) and in an Accept or Backtrack, so Solution colour never shows
+/// <item>A square the solver filled (a digit or a piece that is not a clue) is <c>Solution</c> only once the board is
+/// confirmed as the answer: in the Done frame with ok = true, or an Accept that ends the run (#839). Before that it is
+/// <c>Committed</c>, placed so far but not confirmed (#886): in every step of an incremental run
+/// (<see cref="SolveRun.Incremental"/>) and in an Accept or Backtrack the run goes on from, so Solution colour never shows
 /// while the solver is still searching. A whole candidate that is only being tried (Try, Reject of a run that is not
 /// incremental) is <c>ElementHighlight</c>. In a Done frame with ok = false it is <c>Rejected</c>.</item>
 /// <item>A clue is fixed: it is never <c>Solution</c>, and is <c>Rejected</c> only when a step names it.</item>
@@ -170,27 +171,28 @@ static class BoardFrames {
         ParseCellId(id) is var (r, c) && r < spec.Size && c < spec.Size;
 
     /// <summary>
-    /// The state of a square the solver filled: <c>Solution</c> only in a Done with ok = true (the confirmed answer),
-    /// <c>Rejected</c> in any other Done, <c>ElementHighlight</c> while a whole candidate is tried (Try, Reject of a run that
-    /// is not incremental), and plain otherwise: a placed piece is not the answer until the run ends on it (#839).
+    /// The state of a square the solver filled: <c>Solution</c> only in the confirmed answer (a Done with ok = true, or an
+    /// Accept that ends the run), <c>Rejected</c> in any other Done, <c>ElementHighlight</c> while a whole candidate is tried
+    /// (Try, Reject of a run that is not incremental), and <c>Committed</c> otherwise: a placed piece is kept so far, not the
+    /// answer until the run ends on it (#839, #886).
     /// </summary>
-    public static PictureState Placed(StepEvent ev, bool? ok, bool incremental) => ev switch {
+    public static PictureState Placed(StepEvent ev, bool? ok, bool incremental, bool endsRun = false) => ev switch {
         StepEvent.Done => ok == true ? PictureState.Solution : PictureState.Rejected,
-        StepEvent.Try or StepEvent.Reject when !incremental => PictureState.ElementHighlight,
-        _ => PictureState.Background,
+        _ => GraphSubsetFrames.Picked(ev, incremental, endsRun),
     };
 
     /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static BoardFrame Frame(BoardSpec spec, BoardCells partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static BoardFrame Frame(BoardSpec spec, BoardCells partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var clues = ClueValues(spec);
         var values = new SortedDictionary<string, string>(clues, StringComparer.Ordinal);
         var pieces = new List<BoardPieceDto>();
         var states = new Dictionary<string, PictureState>(StringComparer.Ordinal);
 
-        var picked = Placed(ev, ok, incremental);
+        var picked = Placed(ev, ok, incremental, endsRun);
         foreach (var (id, value) in partial.Values) {
             if (clues.ContainsKey(id) || !OnBoard(spec, id)) continue;
             var (r, c) = ParseCellId(id)!.Value;
@@ -234,10 +236,10 @@ static class BoardFrames {
     public static FramesResponse Build(BoardSpec spec, SolveRun run, Func<string, BoardCells> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<BoardCells>? last = null;
-        foreach (var step in run.StepsFor(typeof(BoardCells)).OfType<SolverStep<BoardCells>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(BoardCells)).OfType<SolverStep<BoardCells>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(spec, step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {

@@ -39,7 +39,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         JsonSerializer.Serialize(element, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     public static TheoryData<string, string, string> FramesCases {
@@ -264,8 +264,8 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 Assert.Equal("Rejected", l.GetProperty("state").GetString());
                 Assert.Equal("Rejected", cells[l.GetProperty("from").GetString()!]);
             }
-            // The solvers are incremental: what they have placed stays plain until the answer (#839), and only the square
-            // under test is highlighted.
+            // The solvers are incremental: what they have placed is Committed until the answer (#839, #886), and only the
+            // square under test is highlighted.
             if (ev == "Try") Assert.True(cells.Count(c => c.Value == "ElementHighlight") <= 1);
             if (ev != "Done") Assert.DoesNotContain(cells, c => c.Value == "Solution");
             Assert.DoesNotContain(cells, c => c.Value is "Untraveled" or "Covered" or "Blocked");
@@ -304,10 +304,11 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(30, payload.GetProperty("clues").GetArrayLength());
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(151, frames.Count);
-        // The mockup's frame 6: R1C6 being tried, the four digits before it plain (not the answer yet, #839), the clues only as values.
+        // The mockup's frame 6: R1C6 being tried, the four digits before it Committed (not the answer yet, #839, #886), the
+        // clues only as values.
         var f = frames[4];
         Assert.Equal("R1C6 can only hold 8. Try it.", f.GetProperty("caption").GetString());
-        Assert.Equal("{\"r0c5\":{\"state\":\"ElementHighlight\"}}",
+        Assert.Equal("{\"r0c0\":{\"state\":\"Committed\"},\"r0c1\":{\"state\":\"Committed\"},\"r0c2\":{\"state\":\"Committed\"},\"r0c4\":{\"state\":\"Committed\"},\"r0c5\":{\"state\":\"ElementHighlight\"}}",
             Readable(f.GetProperty("cells")));
         Assert.Equal(["6", "4", "5", "1", "7", "8", "2", null, "3"],
             Enumerable.Range(0, 9).Select(c => f.GetProperty("values").TryGetProperty($"r0c{c}", out var v) ? v.GetString() : null));
@@ -331,14 +332,14 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             "{\"event\":\"Try\",\"caption\":\"Row 1: columns 0 and 1 are attacked (0 along its column by the queen at (0,0)). Place the queen at column 2.\","
             + "\"focus\":[\"r1c2\"],\"values\":{},"
             + "\"pieces\":[{\"id\":\"r0c0\",\"r\":0,\"c\":0,\"kind\":\"queen\"},{\"id\":\"r1c2\",\"r\":1,\"c\":2,\"kind\":\"queen\"}],"
-            + "\"cells\":{\"r1c0\":{\"state\":\"Rejected\"},\"r1c1\":{\"state\":\"Rejected\"},\"r1c2\":{\"state\":\"ElementHighlight\"}},"
+            + "\"cells\":{\"r0c0\":{\"state\":\"Committed\"},\"r1c0\":{\"state\":\"Rejected\"},\"r1c1\":{\"state\":\"Rejected\"},\"r1c2\":{\"state\":\"ElementHighlight\"}},"
             + "\"links\":[{\"from\":\"r1c0\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r1c1\",\"to\":\"r0c0\",\"state\":\"Rejected\"}]}",
             Readable(frames[1]));
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"Row 2: every column is attacked, so back up and move the queen in row 1.\","
             + "\"focus\":[\"r2c0\",\"r2c1\",\"r2c2\",\"r2c3\",\"r1c2\"],\"values\":{},"
             + "\"pieces\":[{\"id\":\"r0c0\",\"r\":0,\"c\":0,\"kind\":\"queen\"},{\"id\":\"r1c2\",\"r\":1,\"c\":2,\"kind\":\"queen\"}],"
-            + "\"cells\":{\"r1c2\":{\"state\":\"Rejected\"},\"r2c0\":{\"state\":\"Rejected\"},\"r2c1\":{\"state\":\"Rejected\"},"
+            + "\"cells\":{\"r0c0\":{\"state\":\"Committed\"},\"r1c2\":{\"state\":\"Rejected\"},\"r2c0\":{\"state\":\"Rejected\"},\"r2c1\":{\"state\":\"Rejected\"},"
             + "\"r2c2\":{\"state\":\"Rejected\"},\"r2c3\":{\"state\":\"Rejected\"}},"
             + "\"links\":[{\"from\":\"r2c0\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r2c1\",\"to\":\"r1c2\",\"state\":\"Rejected\"},"
             + "{\"from\":\"r2c2\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r2c3\",\"to\":\"r1c2\",\"state\":\"Rejected\"}]}",
