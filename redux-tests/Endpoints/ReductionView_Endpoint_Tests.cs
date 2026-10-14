@@ -494,14 +494,16 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         var reject = Assert.Single(Phase(view, "map"), f => f.GetProperty("event").GetString() == "Reject");
         var nodes = reject.GetProperty("source").GetProperty("nodes");
         Assert.Equal("Rejected", nodes.GetProperty("d").GetProperty("state").GetString());
+        // What the map has kept so far is Committed until it ends on it (#886).
         foreach (string kept in new[] { "a", "b", "c" })
-            Assert.Equal("Solution", nodes.GetProperty(kept).GetProperty("state").GetString());
+            Assert.Equal("Committed", nodes.GetProperty(kept).GetProperty("state").GetString());
         foreach (string edge in new[] { "a-b", "a-c", "b-c" })
-            Assert.Equal("Solution", reject.GetProperty("source").GetProperty("edges").GetProperty(edge).GetProperty("state").GetString());
+            Assert.Equal("Committed", reject.GetProperty("source").GetProperty("edges").GetProperty(edge).GetProperty("state").GetString());
     }
 
-    // A literal the mapped-back assignment makes false is False on the 3SAT pane in every map frame; a true one is Solution (or
-    // highlighted while it is read); a literal of a variable not assigned yet is not drawn.
+    // A literal the mapped-back assignment makes false is False on the 3SAT pane in every map frame; a true one is Committed
+    // while the map goes on and Solution in its closing frame (#886), or highlighted while it is read; a literal of a variable
+    // not assigned yet is not drawn.
     [Theory]
     [MemberData(nameof(Cases))]
     public async Task Map_SatSource_FalseLiteralsAreFalse_TrueOnesSolution(string reduction, string instance) {
@@ -520,7 +522,8 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
                 if (!assignment.TryGetProperty(variable, out var value)) { Assert.Null(state); continue; }
                 if (value.GetBoolean() != positive) Assert.Contains(state, new[] { "False", "Rejected" });
                 // Read as itself, or as its variable (a step about a variable no clique node mentions, #692).
-                else Assert.Equal(focus.Contains(id) || focus.Contains(variable) ? "ElementHighlight" : "Solution", state);
+                else if (focus.Contains(id) || focus.Contains(variable)) Assert.Equal("ElementHighlight", state);
+                else Assert.Contains(state, frame.GetProperty("event").GetString() == "Done" ? new[] { "Solution" } : new[] { "Committed", "Solution" });
             }
         }
     }
@@ -564,11 +567,11 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(Phase(byDefault, "build").Count, Phase(view, "build").Count);
     }
 
-    // An incremental solver's solve phase is drawn the way its own picture draws it: the clique so far stays Solution in a
-    // step that skips a vertex, and only the skipped vertex is Rejected (IIncrementalSolver, SolveRun.Incremental).
+    // An incremental solver's solve phase is drawn the way its own picture draws it: the clique so far stays Committed (#886) in
+    // a step that skips a vertex, and only the skipped vertex is Rejected (IIncrementalSolver, SolveRun.Incremental).
     [Theory]
     [InlineData(Is, "carraghanpardalos")]
-    public async Task IncrementalSolver_SolvePhase_KeepsTheCommittedPartSolution_LikeItsOwnPicture(string reduction, string solver) {
+    public async Task IncrementalSolver_SolvePhase_KeepsTheCommittedPartCommitted_LikeItsOwnPicture(string reduction, string solver) {
         IReduction red = Build(reduction, ((IReduction)Activator.CreateInstance(ProblemProvider.Reductions[reduction.ToLower()])!).reductionFrom.defaultInstance);
         var view = await View(reduction, red.reductionFrom.defaultInstance, solver);
         var run = ((ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver])!).Run(red.reductionTo.instance, true);
@@ -580,7 +583,7 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         foreach (var (step, frame) in checkedSteps) {
             var nodes = frame.GetProperty("target").GetProperty("nodes");
             foreach (var node in step.Partial.Nodes.Except(step.Focus))
-                Assert.Equal("Solution", nodes.GetProperty(node).GetProperty("state").GetString());
+                Assert.Equal("Committed", nodes.GetProperty(node).GetProperty("state").GetString());
             string mark = step.Event == StepEvent.Reject ? "Rejected" : "ElementHighlight";
             foreach (var id in step.Focus)
                 Assert.Equal(mark, nodes.GetProperty(id).GetProperty("state").GetString());

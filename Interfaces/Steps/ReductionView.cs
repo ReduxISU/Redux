@@ -54,7 +54,8 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// </para>
 /// <para>
 /// <b>Map.</b> The backward map's steps, drawn by the source's picture applied to the partial answer as an incremental run (the
-/// part mapped so far stays Solution; only the element being read is highlighted, or Rejected when it is left out); the target pane keeps
+/// part mapped so far stays Committed until the map ends on it, #886; only the element being read is highlighted, or Rejected when
+/// it is left out); the target pane keeps
 /// the solution and highlights the element being read. Each step's <c>targetFocus</c> is the target element read, its
 /// <c>sourceFocus</c> the source ids of the smallest gadgets that element belongs to. A step about a source element no target
 /// element stands for (a variable no clique node mentions) focuses that source id itself (an id no gadget lists as a target id):
@@ -181,7 +182,8 @@ static class ReductionView {
         var sourceFocuses = mapSteps.Select((s, i) => SourceIdsOf(gadgets, mapTargetFocuses[i])
             .Concat(s.Focus.Where(id => !gadgetTargets.Contains(id))).Distinct(StringComparer.Ordinal).ToArray()).ToList();
         // The backward map builds A's answer one element at a time, so it is drawn as an incremental run: what it has mapped so
-        // far stays Solution in every step, and only the element being read is highlighted (Rejected when it is left out).
+        // far stays Committed in every step until the map ends on it (#886), and only the element being read is highlighted
+        // (Rejected when it is left out).
         var mapSourceFrames = Render(sourceVis, sourceInstance,
             mapSteps.Select((s, i) => NewStep(sourceShape, s.Partial, s.Event, sourceFocuses[i], s.Caption, s.Ok)).ToList(), sourceShape, mapped.Answer,
             incremental: true).Frames;
@@ -239,7 +241,8 @@ static class ReductionView {
     /// own frame builder, one pane per step in order. The builder closes a run that does not end in a Done step with a solved frame
     /// built from <paramref name="answer"/>; that frame is cut when <paramref name="exact"/> (so panes line up with steps) and
     /// kept otherwise (the solve phase wants it). <paramref name="incremental"/> is the solver's
-    /// <see cref="SolveRun.Incremental"/>, so the solve phase draws an incremental solver's committed part as the answer so far.
+    /// <see cref="SolveRun.Incremental"/>, so the solve phase draws an incremental solver's committed part as kept so far
+    /// (Committed, #886).
     /// </summary>
     private static (FramesResponse Response, List<Rendered> Frames) Render(
         IFramesVisualization vis, string instance, IReadOnlyList<object> steps, Type shape, string answer = "{}", bool exact = true, bool timedOut = false, bool incremental = false) {
