@@ -675,7 +675,7 @@
         },
         "edges": {
           "11-12": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "12-13": {
             "state": "ElementHighlight"
@@ -721,10 +721,10 @@
         },
         "edges": {
           "11-12": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "12-13": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "13-21": {
             "state": "ElementHighlight"
@@ -774,13 +774,13 @@
         },
         "edges": {
           "11-12": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "12-13": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "13-21": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "21-22": {
             "state": "ElementHighlight"
@@ -834,16 +834,16 @@
         },
         "edges": {
           "11-12": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "12-13": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "13-21": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "21-22": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "22-23": {
             "state": "ElementHighlight"
@@ -901,19 +901,19 @@
         },
         "edges": {
           "11-12": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "12-13": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "13-21": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "21-22": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "22-23": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "23-31": {
             "state": "ElementHighlight"
@@ -975,22 +975,22 @@
         },
         "edges": {
           "11-12": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "12-13": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "13-21": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "21-22": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "22-23": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "23-31": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "31-32": {
             "state": "ElementHighlight"
@@ -1030,25 +1030,25 @@
             "state": "ElementHighlight"
           },
           "12": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "13": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "21": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "22": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "23": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "31": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "32": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "33": {
             "state": "ElementHighlight"
@@ -1312,7 +1312,7 @@
         },
         "edges": {
           "1\u003E2": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "2\u003E3": {
             "state": "ElementHighlight"
@@ -1412,13 +1412,13 @@
       "source": {
         "nodes": {
           "1": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "2": {
-            "state": "Covered"
+            "state": "Solution"
           },
           "3": {
-            "state": "Covered"
+            "state": "Solution"
           }
         },
         "edges": {

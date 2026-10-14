@@ -608,7 +608,7 @@
       "source": {
         "nodes": {
           "b": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "c": {
             "state": "Rejected"

@@ -613,7 +613,7 @@
       "source": {
         "nodes": {
           "a": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "b": {
             "state": "ElementHighlight"
@@ -621,7 +621,7 @@
         },
         "edges": {
           "a-b": {
-            "state": "Solution"
+            "state": "Committed"
           }
         },
         "phantoms": []
@@ -659,10 +659,10 @@
       "source": {
         "nodes": {
           "a": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "b": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "c": {
             "state": "ElementHighlight"
@@ -670,13 +670,13 @@
         },
         "edges": {
           "a-b": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "a-c": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "b-c": {
-            "state": "Solution"
+            "state": "Committed"
           }
         },
         "phantoms": []
@@ -714,13 +714,13 @@
       "source": {
         "nodes": {
           "a": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "b": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "c": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "d": {
             "state": "Rejected"
@@ -728,13 +728,13 @@
         },
         "edges": {
           "a-b": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "a-c": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "b-c": {
-            "state": "Solution"
+            "state": "Committed"
           }
         },
         "phantoms": []

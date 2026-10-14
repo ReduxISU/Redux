@@ -612,7 +612,7 @@
       "source": {
         "items": {
           "I1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "I2": {
             "state": "ElementHighlight"

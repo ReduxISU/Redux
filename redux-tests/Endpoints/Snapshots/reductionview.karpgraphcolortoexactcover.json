@@ -910,7 +910,7 @@
       "target": {
         "nodes": {
           "S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "S2": {
             "state": "Blocked"
@@ -942,7 +942,7 @@
         },
         "edges": {
           "e:a_a_b_1~S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:a_a_b_2~S7": {
             "state": "ElementHighlight"
@@ -951,7 +951,7 @@
             "state": "ElementHighlight"
           },
           "e:a~S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:b_a_b_1~S7": {
             "state": "ElementHighlight"
@@ -983,7 +983,7 @@
       "target": {
         "nodes": {
           "S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "S2": {
             "state": "Blocked"
@@ -995,7 +995,7 @@
             "state": "ElementHighlight"
           },
           "S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "S8": {
             "state": "Blocked"
@@ -1030,19 +1030,19 @@
         },
         "edges": {
           "e:a_a_b_1~S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:a_a_b_2~S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:a_b~S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:a~S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:b_a_b_1~S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:b_a_b_2~S4": {
             "state": "ElementHighlight"
@@ -1083,7 +1083,7 @@
       "target": {
         "nodes": {
           "S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "S10": {
             "state": "ElementHighlight"
@@ -1095,13 +1095,13 @@
             "state": "Blocked"
           },
           "S4": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "S6": {
             "state": "Blocked"
           },
           "S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "S8": {
             "state": "Blocked"
@@ -1145,34 +1145,34 @@
         },
         "edges": {
           "e:a_a_b_1~S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:a_a_b_2~S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:a_b~S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:a~S1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:b_a_b_1~S7": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:b_a_b_2~S4": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:b_b_c_1~S10": {
             "state": "ElementHighlight"
           },
           "e:b_b_c_2~S4": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:b_c~S10": {
             "state": "ElementHighlight"
           },
           "e:b~S4": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "e:c_b_c_2~S10": {
             "state": "ElementHighlight"

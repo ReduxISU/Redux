@@ -1261,7 +1261,7 @@
       "source": {
         "items": {
           "I1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "I2": {
             "state": "Rejected"
@@ -1327,7 +1327,7 @@
       "source": {
         "items": {
           "I1": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "I3": {
             "state": "ElementHighlight"

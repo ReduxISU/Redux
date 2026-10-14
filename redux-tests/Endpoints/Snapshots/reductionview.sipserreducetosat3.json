@@ -914,7 +914,7 @@
       "target": {
         "nodes": {
           "c0-0": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "c0-1": {
             "state": "False"
@@ -923,7 +923,7 @@
             "state": "False"
           },
           "c1-2": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "c2-0": {
             "state": "ElementHighlight"
@@ -1139,7 +1139,7 @@
       "source": {
         "nodes": {
           "x1_0": {
-            "state": "Solution"
+            "state": "Committed"
           },
           "x1_1": {
             "state": "ElementHighlight"
@@ -1147,7 +1147,7 @@
         },
         "edges": {
           "x1_0-x1_1": {
-            "state": "Solution"
+            "state": "Committed"
           }
         },
         "phantoms": []
