@@ -49,6 +49,7 @@ public class SolverReplay_Tests {
         if (lastPartial is NodeSet) {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+        }
         if (lastPartial is Distances distances) {
             // The answer's paths (every innermost {...} group: SSSP lists one per node, SPSP is a single path) must
             // follow the final predecessors, and every node on them must have a distance.
