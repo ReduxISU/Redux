@@ -84,4 +84,49 @@ public class EDITDISTANCE_Tests {
         var verifier = new EditDistanceVerifier();
         Assert.True(verifier.verify(problem, EditDistanceVerifier.CertificateExample));
     }
+
+    // -------------------------------------------------------------------------
+    // Parsing (#706)
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("(horse, ros)", "horse", "ros")]
+    [InlineData("horse,ros", "horse", "ros")]
+    [InlineData("(horse, ros, 3)", "horse", "ros")]
+    [InlineData("( a ,  b )", "a", "b")]
+    [InlineData("(\"a,b\", c)", "a,b", "c")]
+    [InlineData("(a, \"x, y\")", "a", "x, y")]
+    [InlineData("(\"a,b\", \"c,d\", 2)", "a,b", "c,d")]
+    [InlineData("(\"say \\\"hi\\\"\", b)", "say \"hi\"", "b")]
+    [InlineData("(\"back\\\\slash\", b)", "back\\slash", "b")]
+    [InlineData("(\" padded \", b)", " padded ", "b")]
+    [InlineData("(, ros)", "", "ros")]
+    [InlineData("(\"\", ros)", "", "ros")]
+    public void EDITDISTANCE_Parses_Strings(string instance, string x, string y) {
+        var problem = new EDITDISTANCE(instance);
+        Assert.Equal(x, problem.sourceString);
+        Assert.Equal(y, problem.targetString);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("()")]
+    [InlineData("(horse)")]
+    [InlineData("horse")]
+    [InlineData("(a, b, c)")]           // unquoted comma-containing string: third field is not an integer
+    [InlineData("(a, b, 1, 2)")]
+    [InlineData("(\"a, b)")]            // unterminated quote
+    [InlineData("(\"a\"x, b)")]         // text after closing quote
+    [InlineData("(a\"b, c)")]           // quote inside an unquoted string
+    public void EDITDISTANCE_Rejects_Malformed_Instances(string instance) {
+        Assert.Throws<ProblemParseException>(() => new EDITDISTANCE(instance));
+    }
+
+    [Fact]
+    public void EDITDISTANCE_Solves_And_Verifies_String_With_Comma() {
+        var problem = new EDITDISTANCE("(\"a,b\", \"a;b\")");
+        Assert.Equal("1", new EditDistanceDPSolver().solve(problem));
+        Assert.True(new EditDistanceVerifier().verify(problem, "1"));
+        Assert.False(new EditDistanceVerifier().verify(problem, "2"));
+    }
 }

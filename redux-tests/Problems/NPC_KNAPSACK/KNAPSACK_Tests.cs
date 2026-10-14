@@ -188,4 +188,15 @@ public class KNAPSACK_Tests {
         string certificate = new KnapsackDP().solve(problem);
         Assert.True(new KnapsackVerifier().verify(problem, certificate), certificate);
     }
+
+    [Theory]
+    [InlineData("{(10,60),(10,60)}")]
+    [InlineData("{(10,60), (10,60)}")]
+    [InlineData("{(10,60),(20,100),(10,60)}")]
+    public void KNAPSACK_Verifier_Rejects_Item_Used_Twice(string certificate) {
+        // One (10,60) item cannot fill the knapsack twice: weight 20 / value 120 meets W=20, V=120
+        // only if the item is counted twice (#699).
+        KNAPSACK problem = new KNAPSACK("({(10,60),(20,100),(30,120)},20,120)");
+        Assert.False(new KnapsackVerifier().verify(problem, certificate));
+    }
 }
