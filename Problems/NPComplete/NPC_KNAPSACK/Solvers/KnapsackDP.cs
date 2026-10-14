@@ -20,7 +20,7 @@ class KnapsackDP : ISolver<KNAPSACK> {
     // nuance.
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(n * W)";
+    public MathematicalFunction timeComplexity { get; } = new("n * W", "");
 
     public string solve(KNAPSACK knapsack) {
         List<UtilCollection> itemValues = knapsack.items.ToList();

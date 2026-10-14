@@ -19,7 +19,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
     // Declared, not derived. Enumerates ALL subset sizes 0..n-1 regardless of K (unlike
     // CutBruteForce, this is never bounded by K); each candidate costs O(n^2 * m) to
     // build (certificateToEdges) plus O(m) to verify.
-    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
 
     public WeightedCutBruteForce() {
 
