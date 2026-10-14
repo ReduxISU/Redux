@@ -67,14 +67,14 @@ public class CodeTreeFrames_Tests {
     }
 
     [Fact]
-    public void Frame_AMerge_HighlightsTheTwoTreesAndTheirParent_AndKeepsEarlierMergesSolution() {
+    public void Frame_AMerge_HighlightsTheTwoTreesAndTheirParent_AndKeepsEarlierMergesCommitted() {
         var first = CodeTreeFrames.Frame(Abc, F([N1]), StepEvent.Try, ["c2", "c3", "n1"], "c", incremental: true);
         Assert.Equal("c2:ElementHighlight c3:ElementHighlight n1:ElementHighlight", States(first.Nodes));
         Assert.Equal("n1.0:ElementHighlight n1.1:ElementHighlight", States(first.Edges));
         Assert.Equal(["n1", "c1"], first.Roots);   // n1 (2) is lighter than a (3)
         var second = CodeTreeFrames.Frame(Abc, F([N1, N2]), StepEvent.Try, ["n1", "c1", "n2"], "c", incremental: true);
-        Assert.Equal("c1:ElementHighlight c2:Solution c3:Solution n1:ElementHighlight n2:ElementHighlight", States(second.Nodes));
-        Assert.Equal("n1.0:Solution n1.1:Solution n2.0:ElementHighlight n2.1:ElementHighlight", States(second.Edges));
+        Assert.Equal("c1:ElementHighlight c2:Committed c3:Committed n1:ElementHighlight n2:ElementHighlight", States(second.Nodes));
+        Assert.Equal("n1.0:Committed n1.1:Committed n2.0:ElementHighlight n2.1:ElementHighlight", States(second.Edges));
         Assert.Equal(["n2"], second.Roots);
         Assert.Null(second.Bits);
         Assert.Empty(second.Codes);
@@ -92,8 +92,11 @@ public class CodeTreeFrames_Tests {
     [Fact]
     public void Frame_WithCodes_IsTheWholeTreeSolution_WithTheEncodedLength() {
         var codes = F([N1, N2], ("c1", "1"), ("c2", "00"), ("c3", "01"));
-        var accepted = CodeTreeFrames.Frame(Abc, codes, StepEvent.Accept, [], "c", incremental: true);
+        // The Accept that ends the run is the confirmed tree; one the run goes on from is only kept so far (#886).
+        var accepted = CodeTreeFrames.Frame(Abc, codes, StepEvent.Accept, [], "c", incremental: true, endsRun: true);
         Assert.Equal("c1:Solution c2:Solution c3:Solution n1:Solution n2:Solution", States(accepted.Nodes));
+        Assert.Equal("c1:Committed c2:Committed c3:Committed n1:Committed n2:Committed",
+            States(CodeTreeFrames.Frame(Abc, codes, StepEvent.Accept, [], "c", incremental: true).Nodes));
         Assert.Equal(["c1=1", "c2=00", "c3=01"], accepted.Codes.Select(p => $"{p.Key}={p.Value}"));
         Assert.Equal(7, accepted.Bits);
         // A one-character text has no merge, only its leaf and its code.

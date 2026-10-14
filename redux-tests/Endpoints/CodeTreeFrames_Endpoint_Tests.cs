@@ -43,7 +43,7 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         map.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetProperty("state").GetString()!);
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     public static TheoryData<string, string, string> FramesCases {
@@ -161,7 +161,8 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(done, frames[^1]);
         Assert.All(frames, f => Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString())));
         Assert.All(frames.SkipLast(1), f => Assert.False(f.TryGetProperty("ok", out _)));
-        foreach (var f in frames) {
+        for (int i = 0; i < frames.Count; i++) {
+            var f = frames[i];
             bool hasBits = f.TryGetProperty("bits", out _);
             Assert.Equal(["event", "caption", "focus", "merged", "roots", "codes", "nodes", "edges", .. hasBits ? new[] { "bits" } : [], .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
@@ -176,14 +177,17 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             Assert.All(nodes, s => { Assert.Contains(s.Key, ids); Assert.Contains(s.Value, Vocabulary); });
             var edgeIds = merged.SelectMany(m => new[] { m.GetProperty("id").GetString() + ".0", m.GetProperty("id").GetString() + ".1" }).ToHashSet();
             Assert.Equal(edgeIds.Order(), edges.Keys.Order());
-            // Incremental: what is merged is Solution; only the two trees being merged, their parent and its edges are highlighted.
+            // Incremental: what is merged is Committed (#886), and Solution in the answer (the Done, or an Accept that ends the
+            // run); only the two trees being merged, their parent and its edges are highlighted.
             var focus = f.GetProperty("focus").EnumerateArray().Select(x => x.GetString()!).ToHashSet();
+            string ev = f.GetProperty("event").GetString()!;
+            string kept = ev == "Done" || ev == "Accept" && frames[i + 1].GetProperty("event").GetString() == "Done" ? "Solution" : "Committed";
             foreach (var m in merged) {
                 string id = m.GetProperty("id").GetString()!;
                 foreach (var n in new[] { id, m.GetProperty("left").GetString()!, m.GetProperty("right").GetString()! })
-                    Assert.Equal(focus.Contains(n) ? "ElementHighlight" : "Solution", nodes[n]);
-                Assert.Equal(focus.Contains(id) && focus.Contains(m.GetProperty("left").GetString()!) ? "ElementHighlight" : "Solution", edges[id + ".0"]);
-                Assert.Equal(focus.Contains(id) && focus.Contains(m.GetProperty("right").GetString()!) ? "ElementHighlight" : "Solution", edges[id + ".1"]);
+                    Assert.Equal(focus.Contains(n) ? "ElementHighlight" : kept, nodes[n]);
+                Assert.Equal(focus.Contains(id) && focus.Contains(m.GetProperty("left").GetString()!) ? "ElementHighlight" : kept, edges[id + ".0"]);
+                Assert.Equal(focus.Contains(id) && focus.Contains(m.GetProperty("right").GetString()!) ? "ElementHighlight" : kept, edges[id + ".1"]);
             }
             // The trees left: each leaf and merged node no merge has used yet, once.
             var used = merged.SelectMany(m => new[] { m.GetProperty("left").GetString()!, m.GetProperty("right").GetString()! }).ToHashSet();
@@ -218,8 +222,8 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             "{\"event\":\"Try\",\"caption\":\"Merge b (2) and the tree of weight 2 (c and d), the two lightest trees left, into a node of weight 4. (A tie: the tree holding the earliest character goes first.)\","
             + "\"focus\":[\"c2\",\"n1\",\"n2\"],\"merged\":[{\"id\":\"n1\",\"weight\":2,\"left\":\"c3\",\"right\":\"c4\"},{\"id\":\"n2\",\"weight\":4,\"left\":\"c2\",\"right\":\"n1\"}],"
             + "\"roots\":[\"c5\",\"n2\",\"c1\"],\"codes\":{},"
-            + "\"nodes\":{\"c2\":{\"state\":\"ElementHighlight\"},\"c3\":{\"state\":\"Solution\"},\"c4\":{\"state\":\"Solution\"},\"n1\":{\"state\":\"ElementHighlight\"},\"n2\":{\"state\":\"ElementHighlight\"}},"
-            + "\"edges\":{\"n1.0\":{\"state\":\"Solution\"},\"n1.1\":{\"state\":\"Solution\"},\"n2.0\":{\"state\":\"ElementHighlight\"},\"n2.1\":{\"state\":\"ElementHighlight\"}}}",
+            + "\"nodes\":{\"c2\":{\"state\":\"ElementHighlight\"},\"c3\":{\"state\":\"Committed\"},\"c4\":{\"state\":\"Committed\"},\"n1\":{\"state\":\"ElementHighlight\"},\"n2\":{\"state\":\"ElementHighlight\"}},"
+            + "\"edges\":{\"n1.0\":{\"state\":\"Committed\"},\"n1.1\":{\"state\":\"Committed\"},\"n2.0\":{\"state\":\"ElementHighlight\"},\"n2.1\":{\"state\":\"ElementHighlight\"}}}",
             Readable(frames[2]));
         // The mockup's solved view: a gets the 1-bit code, the encoded text is 23 bits instead of 88.
         var done = frames[^1];
