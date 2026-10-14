@@ -445,7 +445,7 @@ A grid of squares for puzzles that live on a board.
 <table><tr>
 <td><img src="images/board--sudoku-steps.png" alt="Sudoku, steps" width="420"></td>
 <td><img src="images/board--n-queens-solved.png" alt="N-Queens, solved" width="420"></td>
-</tr><tr><td>Sudoku, Steps (this screenshot predates #839: placed digits are now plain until the answer is confirmed)</td><td>N-Queens, Solved</td></tr></table>
+</tr><tr><td>Sudoku, Steps (this screenshot predates #839 and #886: placed digits are now Committed, a lighter dashed green, until the answer is confirmed)</td><td>N-Queens, Solved</td></tr></table>
 
 **Backend:** `IBoardVisualization`, spec `BoardSpec(BoardGame.Sudoku | Queens, Size) { Box, LabelsFrom, Clues, PieceKind }`; step shape `BoardCells` (cell values and conflicts). Cell ids are `r{row}c{column}`, from 0.
 
@@ -506,7 +506,7 @@ Three problems that aren't graphs, each with its own picture type, following the
 <table><tr>
 <td><img src="images/misc--convex-hull-steps.png" alt="Convex Hull, merge step" width="420"></td>
 <td><img src="images/misc--3-dimensional-matching-solved.png" alt="3-Dimensional Matching" width="420"></td>
-</tr><tr><td>Geometry: Convex Hull, merging two hulls (this screenshot predates #849 and #850: the right hull is now purple, the merge walks a chain, and hull corners stay plain until the answer is confirmed)</td><td>Tripartite Matching: 3-Dimensional Matching</td></tr></table>
+</tr><tr><td>Geometry: Convex Hull, merging two hulls (this screenshot predates #849 and #850: the right hull is now purple, the merge walks a chain, and finished sub-hull corners are Committed until the answer is confirmed)</td><td>Tripartite Matching: 3-Dimensional Matching</td></tr></table>
 
 **Tripartite Matching** (`TripartiteMatching`; `ITripartiteVisualization`, spec `TripartiteSpec(X, Y, Z, Triples)`, step shape `ChosenTriples`). Three columns X, Y and Z; each triple is a line through its three names. Chosen triples kept, green on the confirmed answer; names used once `Covered`, triples that share a name with a chosen one `Blocked`, names used twice `Rejected` with a ×2 badge.
 
