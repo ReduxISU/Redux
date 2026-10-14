@@ -82,7 +82,7 @@ class GraphColoringToCliqueCover : IReduction<GRAPHCOLORING, CLIQUECOVER> {
         }
 
         foreach (UtilCollection node in reductionFrom.graph.Nodes) {
-            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
         // --- Generate G string for new CLIQUE ---
 

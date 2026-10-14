@@ -96,7 +96,7 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
 
         //set up gadgets
         foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes) {
-            gadgets.Add(new Gadget("ElementHighlight", new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
 
         // --- Generate G string for new CLIQUE ---
