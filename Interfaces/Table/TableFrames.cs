@@ -175,11 +175,12 @@ sealed class TableDraft {
 /// distinct and no id needs escaping.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>,
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>,
 /// with <c>Untraveled</c> only where nothing else applies; see <see cref="GraphSubsetFrames.Raise"/>). The visualization
 /// gives rows and cells their states in its own terms (a constraint that holds is <c>Covered</c>, a trace-back cell
 /// <c>Solution</c>); the base adds the focus: <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject step of an incremental
-/// run (<see cref="GraphSubsetFrames.FocusMark"/>). <c>Solution</c> is for an Accept step and the answer only.
+/// run (<see cref="GraphSubsetFrames.FocusMark"/>). <c>Solution</c> is for the confirmed answer only (the Done, or an Accept
+/// that ends the run); what a solver has kept before then is <c>Committed</c> (<see cref="GraphSubsetFrames.Picked"/>, #886).
 /// </para>
 /// <para>
 /// A run stopped by its time limit ends with a Done frame, ok = false, that shows the instance with nothing worked out and
