@@ -62,7 +62,8 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         var settledOrder = new List<string>();
-        foreach (var f in frames) {
+        for (int i = 0; i < frames.Count; i++) {
+            var f = frames[i];
             Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             // Every node, every frame.
@@ -71,10 +72,12 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             Assert.All(f.GetProperty("changed").EnumerateArray(), id => Assert.Matches(@"^r\d+c[23]$", id.GetString()));
             string ev = f.GetProperty("event").GetString()!;
             if (ev == "Accept") {
-                // The settled node is the focus, and earlier settled rows stay Solution (Dijkstra is incremental).
+                // The settled node is the focus, and earlier settled rows stay Committed (Dijkstra is incremental; #886), or
+                // Solution in an Accept that ends the run.
+                string kept = frames[i + 1].GetProperty("event").GetString() == "Done" && frames[i + 1].GetProperty("ok").GetBoolean() ? "Solution" : "Committed";
                 var focus = Assert.Single(f.GetProperty("focus").EnumerateArray()).GetString()!;
                 Assert.Equal("ElementHighlight", f.GetProperty("rows").GetProperty(focus).GetProperty("state").GetString());
-                Assert.All(settledOrder, r => Assert.Equal("Solution", f.GetProperty("rows").GetProperty(r).GetProperty("state").GetString()));
+                Assert.All(settledOrder, r => Assert.Equal(kept, f.GetProperty("rows").GetProperty(r).GetProperty("state").GetString()));
                 Assert.Equal($"#{settledOrder.Count + 1}", f.GetProperty("values")[int.Parse(focus[1..])][1].GetString());
                 settledOrder.Add(focus);
             }
