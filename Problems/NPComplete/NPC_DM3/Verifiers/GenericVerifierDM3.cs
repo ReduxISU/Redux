@@ -57,8 +57,9 @@ class GenericVerifierDM3 : IVerifier<DM3> {
             if (!firstSet.Add(x) || !secondSet.Add(y) || !thirdSet.Add(z)) return false;
         }
 
-        // The triples must cover every element of X, Y and Z (a perfect matching).
-        return Problem.X.All(firstSet.Contains) && Problem.Y.All(secondSet.Contains) && Problem.Z.All(thirdSet.Contains);
+        // The triples must use exactly the elements of X, Y and Z (a perfect matching). Set
+        // equality also rejects triples whose coordinates fall outside X, Y or Z (#805).
+        return firstSet.SetEquals(Problem.X) && secondSet.SetEquals(Problem.Y) && thirdSet.SetEquals(Problem.Z);
     }
 }
 
