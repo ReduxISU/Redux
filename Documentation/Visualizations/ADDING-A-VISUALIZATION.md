@@ -3,304 +3,354 @@
 This guide is for contributors who want a Redux problem to draw a picture, and for solvers and reductions that want to animate one. It explains the model, then walks through DFA end to end.
 
 - To see what each picture type looks like and what it needs, read [PICTURE-TYPES.md](PICTURE-TYPES.md).
-- To port the mockups into the frontends, or to plan the backend work, read [README.md](README.md).
+- To port the mockups into the frontends, or to see what the backend has and what is still planned, read [README.md](README.md).
 
-> **Status: planned API.** The class and method names below (`AutomatonVisualization<T>`, `IStepSolver`, `StepRecorder`, `StepReplay`, `VisualizationJson`) are the design from backend PRs 2 and 3 (#657, #658). They don't exist in Redux yet. Until they land, use this guide for the *shape* of the work. When they land, the PR that adds them updates this guide to match the real names.
+> **Status.** The names below are the real ones on the integration branch. They reach `CSharpAPI` in small PRs (tracker #655): typed steps are merged (#734); most picture types, the Reduction View and the time limit are still in review or waiting. If a name isn't on your base branch yet, check the tracker.
 
 ---
 
 ## 1. The idea in four sentences
 
 1. A **problem** hands over its data: a graph, a list of clauses, a grid. It never draws anything.
-2. A **visualization** picks a *picture type* (Graph, Automaton, Board, …) and says how the problem's data fills it. The picture type's shared base does all the drawing decisions, including every color.
-3. A **solver** can record **steps** while it runs: what it tried, what it accepted, what it threw out. Those steps play back as an animation on *any* picture of that problem.
+2. A **visualization** picks a *picture type* (Graph, Automaton, Board, …) and describes the problem in that type's spec record. The picture type's shared frames builder makes every drawing decision, including every state.
+3. A **solver** records **steps** while it runs: what it tried, what it accepted, what it threw out. Those steps play back as an animation on *any* picture of that problem that draws the same answer shape.
 4. A **reduction** records how it builds the target instance, piece by piece, and how an answer to the target maps back to the source.
 
 Nothing in a problem, solver or reduction mentions colors, coordinates or SVG. The frontends own the look; the backend owns the meaning.
 
 ```
- Problem ──data──▶ Visualization ──payload──▶  ┐
-                  (picks a picture type)       ├──▶ frontend renderer for that picture type
- Solver ──steps──────────────────────frames──▶ ┘
+ Problem ──data──▶ Visualization.Describe ──spec──▶ frames builder ──{ type, payload, frames }──▶ frontend
+ Solver.Solve(problem, rec) ──SolverStep<TPartial>──────────┘
 ```
 
 ## 2. Words used in this guide
 
 | Word | Meaning |
 | --- | --- |
-| **Picture type** | A family of drawings with one renderer per frontend: Graph, Grouped Graph, Bipartite Graph, Automaton, Layered Graph, Flow Network, Packing, Schedule, Board, Table, Quantum Circuit, Geometry, Search Tree, Reduction, and the rest in [PICTURE-TYPES.md](PICTURE-TYPES.md). |
-| **Subtype** | A variant of a graph picture type that changes the layout, such as tour (circle layout) versus subset (force layout) in the Graph type. |
-| **Payload** | The JSON a picture type's base sends to the frontend. Each payload has a `type` field. |
-| **Answer shape** | What kind of thing the certificate is: a subset of nodes, a set of edges, a split into groups, a tour, an assignment, a set of chosen sets, a set of active states. Steps are typed by answer shape. |
-| **Rule** | What the answer must satisfy, such as `vertexCover` or `exactlyOnce`. The base uses it to decide which parts are Covered or Rejected. |
-| **Step** | One decision a solver made, with the answer-so-far and a one-sentence caption. |
-| **Frame** | One picture in the animation. The base turns each step into a frame. |
+| **Picture type** | A family of drawings with one renderer per frontend: Graph, Grouped Graph, Bipartite Graph, Automaton, Layered Graph, Flow Network, Packing, Schedule, Board, Table, Quantum Circuit, Tripartite Matching, Geometry, Code Tree, Search Tree and Reduction. See [PICTURE-TYPES.md](PICTURE-TYPES.md). It is the `type` of a frames response, and `pictureType` in `/info`. |
+| **Shape** | A variant within a picture type that changes how the answer reads, such as subset, edges, cut, groups or tour in the Graph type. |
+| **Spec** | The record a visualization returns from `Describe`: the problem's data in the picture type's terms, such as `GraphSubsetSpec`. |
+| **Payload** | The JSON a picture type sends once per response. It has a `kind` field. |
+| **Answer shape** | What kind of thing the answer is: `NodeSet`, `EdgeSet`, `Groups`, `Tour`, `Assignment`, `ChosenSets`, `ActiveStates`, and so on (`Interfaces/Steps/Shapes.cs`). Steps are typed by answer shape, as `SolverStep<TPartial>`. |
+| **Rule** | What the answer must satisfy, such as `SubsetRule.Clique` or `BipartiteRule.ExactlyOnce`. The builder uses it to decide which parts are Covered or Rejected. |
+| **Step** | One decision a solver made, with the answer so far, the ids it is looking at, and a one-sentence caption. |
+| **Frame** | One picture in the animation. The builder turns each step into a frame, and adds a solved frame if the run did not end in Done. |
 | **State** | The shared name for how an element looks in a frame (below). |
 
 ### The shared states
 
-Every frame labels elements with these names, never with colors. Each frontend maps them to its theme in one table.
+Every frame labels elements with these names (`PictureState`), never with colors. Each frontend maps them to its theme in one table. A frame lists only elements that are not `Background`.
 
 | State | Use it for |
 | --- | --- |
 | `Background` | Nothing has happened to it yet |
-| `ElementHighlight` | What the solver is looking at or trying right now |
-| `Solution` | Part of the answer, or a run that ended accepted |
-| `Rejected` | Failed: a falsified clause, a rejecting state, an uncovered or doubled element |
-| `Untraveled` | Never reached during this run |
+| `ElementHighlight` | What the solver is looking at or trying right now, including a whole candidate a brute force is testing |
+| `Solution` | Part of the answer: the confirmed answer, or a piece an incremental solver has committed |
+| `Rejected` | Failed: a falsified clause, a rejecting state, an uncovered or doubled element, a wrong final answer |
+| `Untraveled` | Never reached during this run, or not needed |
 | `Covered` | A constraint that is met: an element covered, a set hit, a clause satisfied |
 | `Blocked` | Can't be chosen without breaking a rule (exactly-once, independence) |
-| `False` | Assigned and false. Still under review; don't rely on it yet |
+| `False` | An assigned-false literal or variable. An unassigned one stays `Background` |
 
-Some marks are **annotations, not states**: the ×2 badge for "covered twice", order numbers on a tour, the red dashed "missing edge", group colors for color classes and cut sides, and the Garbage node in a DFA. The base adds them; you never set them by hand.
+Some marks are **annotations, not states**: the ×2 badge for "covered twice", order numbers on a tour, the dashed "missing edge" (sent as a `phantoms` entry), group colors for color classes and cut sides, and the Garbage node in a DFA. The builder adds them; you never set them by hand.
 
 ## 3. What you write, and what you don't
 
 | You write | The shared code does |
 | --- | --- |
-| Which picture type the problem uses | Layout (deterministic: the same instance always looks the same) |
-| How the problem's fields map to that type's inputs | Every state and color, from the answer plus the rule |
-| In a solver: one `rec.…` call per decision, with a caption | Turning steps into frames, capping long runs, the stepper UI |
-| A replay test and a JSON test (one line each) | Responsive layout, dark mode, the key, hover and tap |
+| Which picture type the problem uses (the interface you implement) | The payload, with ids and a deterministic layout hint |
+| `Describe`: how the problem's fields fill the spec | Every state, from the steps, the rule and the verifier |
+| `StepShape`: the answer shape your picture draws | Matching steps to the picture; a solver with another shape still gets the initial and solved frames |
+| In a solver: one `rec.…` call per decision, with a caption | Capping long runs, stopping at the time limit, the closing Done |
+| Endpoint tests for the JSON | Responsive layout, dark mode, the key, hover and tap (frontends) |
 
-If you find yourself writing `color = "green"` or looping over nodes to highlight them, stop: that belongs in the base, and the problem should only be declaring its answer shape and rule.
+If you find yourself writing `color = "green"` or looping over nodes to highlight them, stop: that belongs in the builder, and the visualization should only be describing the problem.
 
 ## 4. Adding a visualization to a problem
 
 ### 4.1 Pick the picture type
 
-Find your problem in the table in [PICTURE-TYPES.md](PICTURE-TYPES.md). If it's listed, use that type. If it isn't:
+Find your problem in the index of [PICTURE-TYPES.md](PICTURE-TYPES.md). If it's listed, use that type. If it isn't:
 
-- Does the answer pick nodes, edges, groups or an order on an undirected graph? **Graph**.
-- Directed, and direction matters to the answer (orders, cycles, shortest paths)? **Layered Graph**.
+- Does the answer pick nodes, edges, a split, groups or a tour on a graph? **Graph**.
+- Directed, and the answer is an order, a removed set, components or shortest paths? **Layered Graph**.
 - Two kinds of things and memberships between them? **Bipartite Graph**.
 - Numbers filling containers up to a line? **Packing**.
 - A grid of cells? **Board**.
-- A dynamic program or a constraint matrix? **Table**.
+- A dynamic program, a constraint matrix or a trace? **Table**.
 
 If none fits, open an issue under the tracker (#655) with a sketch before writing code. New picture types are mocked up and approved first ([README.md](README.md) §1).
 
-### 4.2 Subclass the base and map your fields
+### 4.2 Implement the picture's interface
 
-Each picture type has one base class. You override one method that maps your problem onto the base's input record. The base's `visualize`, `SolvedVisualization` and `StepsVisualization` are already written.
+Each picture type has one interface, `I<Type>Visualization<TProblem>`. Your visualization class keeps its legacy members (`visualize`, `visualizationType`, …) and adds two things:
+
+- `Type? IVisualization.StepShape`: the answer shape your picture draws.
+- `Describe`: your problem as the picture's spec.
+
+Implement both **explicitly**, so nothing new appears in `/info`. The interface's default `BuildFrames` does the rest. This is Clique's, in full:
 
 ```csharp
-class CliqueVisualization : GraphVisualization<CLIQUE> {
-    public override string visualizationName => "Graph";
-    protected override GraphInput Input(CLIQUE p) => new(
-        Nodes: p.nodes, Edges: p.edges.Select(e => new GraphEdge(e.source, e.target)),
-        K: p.K, Shape: AnswerShape.Subset, Rule: GraphRule.Clique);
+class CliqueDefaultVisualization : IVisualization<CLIQUE, API_GraphJSON>, IGraphSubsetVisualization<CLIQUE> {
+    // ... the legacy members, unchanged ...
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(NodeSet);
+
+    GraphSubsetSpec IGraphSubsetVisualization<CLIQUE>.Describe(CLIQUE clique) =>
+        new(clique.nodes, clique.edges, clique.K, SubsetRule.Clique);
 }
 ```
 
-That is the whole visualization. The Graph base knows that, for `Clique`, a pair of chosen nodes without an edge gets a missing-edge mark, chosen nodes are `Solution`, and edges between them are `Covered`.
+That is the whole change. The Graph builder knows that, for `Clique`, a pair of chosen nodes without an edge gets a missing-edge phantom, edges between chosen nodes are drawn with the chosen nodes, and a solver's Try of a whole candidate is `ElementHighlight`.
+
+Some interfaces have more members:
+
+- `ParseAnswer(problem, answer)` reads the solver's answer string into the answer shape, for the solved frame. Most have a default; override it when your problem's certificate looks different (Max Cut does).
+- `ITableVisualization<TProblem, TPartial>` asks for `Draw` (one `TableDraft` per step), `Blank` and optionally `Solved`, because a table's cells are problem-specific.
+- `ISearchTreeVisualization<TProblem, TPartial>` only needs `Describe`; the tree comes from the solver's `SolverStep.Tree` patches.
+
+Don't override `BuildFrames`, `ListReadsTypedSteps` or `PictureType` unless you know why. `ListReadsTypedSteps` returns true only for a visualization whose list format already drew typed steps (DFA).
 
 ### 4.3 Register it
 
-1. Add the visualization to the problem's list of visualizations as today.
+1. Add the visualization to the problem's list of visualizations as today. Nothing else: the visualize endpoint finds the frames hook, and `/info` reports `pictureType` by itself.
 2. If you added a new **picture type** (rare), add the `VisualizationType` value and the matching entry in `Documentation/visualization-types.json` in the same change; CI compares them. Redux_GUI keeps a vendored copy that needs the same entry.
 
 ### 4.4 Test the JSON
 
-```csharp
-[Fact] public void Clique_graph_payload() =>
-    VisualizationJson.Check<CliqueVisualization>(CLIQUE.Default, "Clique.graph.json");
-```
+Add your problem to the picture type's endpoint tests in `redux-tests/Endpoints/<Type>Frames_Endpoint_Tests.cs`. They post to `/ProblemProvider/visualize?format=frames` with every solver of the problem and check the payload and frames, and they check that the list format and `/info` are byte-for-byte unchanged against snapshots in `redux-tests/Endpoints/Snapshots/`.
 
-`VisualizationJson.Check` serializes with the API's real settings and compares to a checked-in file. A green build proves nothing about the JSON: `System.Text.Json` with `IncludeFields` leaks public fields and skips default interface members, so always look at the output.
+A green build proves nothing about the JSON: `System.Text.Json` with `IncludeFields` leaks public fields and skips default interface members, so always look at the output. The frames viewer (`viewer/`) draws it, which is the quickest way to see it.
 
 ## 5. Adding steps (animation) to a solver
 
-### 5.1 Choose the step type
+### 5.1 Choose the answer shape
 
-Steps are typed by **answer shape**, not by picture type. A subset solver records the subset so far whether the frontend draws it as a Graph, a Search Tree or a Table. So one recording drives every picture of that problem.
+Steps are typed by **answer shape**, not by picture type. A subset solver records the subset so far whether the frontend draws it as a Graph or a Search Tree. So one recording drives every picture of that problem that draws the same shape.
 
 ```csharp
-record SolverStep<TCert>(TCert Partial, StepEvent Event, string[] Focus, string Caption);
+record SolverStep<TPartial>(TPartial Partial, StepEvent Event, string[] Focus, string Caption) {
+    public bool? Ok { get; init; }                        // Done only
+    public IReadOnlyList<SearchNode>? Tree { get; init; } // search-tree patches, optional
+}
 enum StepEvent { Try, Accept, Reject, Backtrack, Done }
 ```
 
 | Event | Means | Typical frame |
 | --- | --- | --- |
 | `Try` | Considering a choice | The choice is `ElementHighlight` |
-| `Accept` | Kept the choice | It joins the answer-so-far |
-| `Reject` | Threw the choice out | It flashes `Rejected`, then leaves |
+| `Accept` | Kept the choice | It joins the answer so far |
+| `Reject` | Threw the choice out | It is `Rejected` (or, for a whole candidate, highlighted with its failures marked) |
 | `Backtrack` | Undid an earlier choice | The undone part leaves the answer |
-| `Done` | Finished, with the final verdict | Answer `Solution`, or the failure `Rejected` |
+| `Done` | Finished, with `ok` | The answer is `Solution`, or the failure `Rejected` |
 
-`Focus` names what the solver is looking at (node ids, a clause id, a cell). Use the same ids the payload uses, so the frontend can highlight them.
+`Focus` names what the solver is looking at (node ids, an edge id, a clause id, a cell). Use the ids the payload uses (`AutomatonFrames.StateId`, `GraphSubsetFrames.EdgeId`, …), so the frontend can highlight them.
 
 ### 5.2 Record inside the real algorithm
 
-Put the algorithm in a private `Run` method that takes a recorder. `solve` passes a recorder that ignores everything, so solving costs nothing extra; `GetSteps` passes a real one.
+Implement `ISolver<TProblem, TPartial>` and put the algorithm in `Solve(problem, rec)`. The plain `solve` runs it with `StepRecorder<TPartial>.Off`, so solving costs nothing extra; the visualize endpoint passes a real recorder.
 
 ```csharp
-class CliqueBruteForce : ISolver<CLIQUE>, IStepSolver<CLIQUE, NodeSet> {
-    public string solve(CLIQUE p) => Run(p, StepRecorder<NodeSet>.Ignore);
-    public IReadOnlyList<SolverStep<NodeSet>> GetSteps(CLIQUE p) {
-        var rec = new StepRecorder<NodeSet>(limit: 150);
-        Run(p, rec);
-        return rec.Steps;
+class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
+    public string solve(CLIQUE clique) => Solve(clique, StepRecorder<NodeSet>.Off);
+
+    public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
+        // ... for each candidate set:
+        if (clique.defaultVerifier.verify(clique, certificate)) {
+            rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. Every pair is joined.", Candidate);
+            rec.Done(new NodeSet(Candidate()), true, $"{GraphSubsetFrames.Braces(Candidate())} is a clique, found after {tried} tries.");
+            return certificate;
+        }
+        rec.Reject(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}: …", Candidate);
+        // ...
+        rec.Done(new NodeSet([]), false, $"Checked all {tried} candidate sets. None is a clique of size {clique.K}.");
+        return "{}";
     }
-    string Run(CLIQUE p, StepRecorder<NodeSet> rec) { … rec.Try(set, focus, "Try {a, b, c}."); … }
 }
 ```
 
+The partial, caption and (optionally) focus are lambdas, so nothing is built when recording is off or past the cap. When building the focus is costly, check `rec.Enabled` first.
+
 Never write a second copy of the algorithm just to produce steps. If the steps come from a copy, they can drift from what `solve` really does, and the animation lies.
 
-### 5.3 What to record
+### 5.3 Whole candidates or pieces: `IIncrementalSolver`
+
+How a picture draws your partial depends on what kind of solver you are:
+
+- **Whole candidates** (a brute force): each Try or Reject judges a complete candidate. The picture highlights it as `ElementHighlight` and never draws it green. Do nothing.
+- **Piece by piece** (greedy, backtracking, branch and bound, dynamic programming): also implement the marker `IIncrementalSolver`. Then:
+  - Accept and Backtrack: the partial is what you have committed after the move.
+  - Try and Reject: the partial is what you have committed, and may also hold the piece under test.
+  - The focus names the piece under test, and only that, never the whole partial.
+
+  The picture draws the committed part as `Solution` and only the focus as tried (`ElementHighlight`) or failed (`Rejected`).
+
+Some pictures keep green for the confirmed answer even in an incremental run: Board, Geometry and the Graph tour shape draw committed pieces plain until the final Done is `ok`. [PICTURE-TYPES.md](PICTURE-TYPES.md) says which.
+
+### 5.4 What to record
 
 - **Record decisions, not loop iterations.** Choose, reject, back out, finish. A step per inner-loop comparison makes an animation nobody can follow.
-- **Long runs get capped.** The recorder keeps the first `limit` steps plus the final `Done`, and the last frame says how many were skipped ("…and 3,407 more tries"). The mockups cap at 120 to 250.
-- **Always end with `Done`**, even when no answer exists. The last step's verdict must match `solve`.
+- **Long runs get capped.** The recorder keeps the first 150 decisions (`StepRecorder.DefaultCap`), plus the last Accept past the cap and the Done step. Done's caption gets "(n not shown)".
+- **Long runs get stopped.** The visualize endpoint gives the recorder a time limit (`Visualization:SolveTimeLimitSeconds`, default 10). Past it, the next recorded step throws `StepBudgetExceededException`, and the run comes back stopped. Don't catch it.
+- **Always end with `Done`**, even when no answer exists. Its `ok` and partial must match `solve`'s answer.
 - **Record the real tie-breaking.** If the C# solver uses a priority queue, the steps follow its order, even when it looks surprising. The animation is there to show what the solver does, not what a textbook does.
+- **Branching solvers** can also pass `SearchNode` patches (`nodeId`, `parentId`, `label`, `SearchNodeState`) through the recorder overloads that take a `tree` lambda. That feeds the Search Tree picture; every other picture ignores it.
 
-### 5.4 Writing captions
+### 5.5 Writing captions
 
 The caption is the only text that explains a step. Write it for a student watching the animation.
 
 | Do | Don't |
 | --- | --- |
-| "Read **b**: 1 → 3." | "Transition processed." |
+| "Read 'b': move from 1 to 3." | "Transition processed." |
 | "Switch to x₄ = F. C2 has no true literal left, so undo." | "Backtracking (depth 4)." |
 | "Pick S4 = {4, 5}: it covers 2 new elements." | "i = 3, j = 1, best = 2" |
 | One sentence, two at most | A paragraph |
 | The problem's own words (clause, set, tour) | Internal names (`nodePath`, `memo`) |
 
-### 5.5 Test the replay
+### 5.6 Test the replay
 
-```csharp
-[Fact] public void Clique_brute_force_replays() =>
-    StepReplay.Check(new CliqueBruteForce(), CLIQUE.Default);
-```
-
-`StepReplay.Check` runs `GetSteps` and `solve`, then checks that the last step is `Done`, that its `Partial` equals `solve`'s answer, and that every step has a caption. Add one line per solver.
+There is nothing to write per solver. `redux-tests/Steps/SolverReplay_Tests.cs` finds every typed solver by reflection, runs it on its problem's default instance, and checks that the last step is Done and that its partial matches the answer `solve` returns. If your answer string needs translating into the partial, add a case to `ExpectedFinalPartial` there. Add solver-specific checks to the matching `redux-tests/Steps/<Shape>Solvers_Tests.cs`.
 
 ## 6. Reductions
 
-A reduction already builds the target instance. To animate it, it also records:
+A reduction already builds the target instance. To appear in the Reduction View, it needs three more things.
 
-1. **Gadgets.** Each gadget has a `gadgetKind` from the shared list (`element`, `group`, `edgeRule`, `palette`, `orGadget`, `bound`), the source ids it came from (`sourceIds`), and the target ids it made (`targetIds`). Ids must match the ids each side's own picture uses; that is what makes hover-linking work across the two panes.
-2. **Build steps.** One per gadget, in construction order: which nodes and edges it added, which pairs a rule deliberately left unjoined, and a caption in both problems' words ("Clause C2 becomes cluster 2: one node per literal.").
-3. **A backward map.** Given the target's answer, produce the source's answer, piece by piece, with a caption per piece ("x₂ is in the clique, so set x₂ = T"). Today `mapSolutions` maps forward only.
+1. **Gadgets.** Each `Gadget` has a `gadgetKind` from `GadgetKind` (`Element`, `Group`, `EdgeRule`, `Palette`, `OrGadget`, `Bound`; JSON `element`, `group`, `edgeRule`, …), the source ids it came from (`sourceIds`) and the target ids it made (`targetIds`), and an optional `note`. Ids must match the ids each side's own picture uses; that is what links the two panes. Use the constructor `new Gadget(GadgetKind kind, sourceIds, targetIds, note: …)`.
+2. **Build steps.** Implement `IRecordedReduction<T, U>`. Build the target in one place that takes a `StepRecorder<BuildDelta>`, and record one step per gadget, in construction order, as you really build it. Each `BuildDelta` names the source ids (`SourceFocus`), the target `Nodes` and `Edges` (`BuildEdge`) it added, the pairs a rule deliberately left unjoined (`Skipped`), the gadget indices (`Gadgets`), and the target's `Bound` once fixed. Captions use both problems' words ("Clause C2 becomes cluster 2: one node per literal."). Then:
+   - `Rebuild(rec)` builds a fresh copy with that recorder and returns a `ConstructionRun`.
+   - Also give the class a public constructor `(string instance, StepRecorder<BuildDelta> rec)`, so the endpoints build once. A test checks every recorded reduction has it.
+3. **A backward map.** Implement `IReversibleReduction<T, U, TPartial>`, where `TPartial` is the SOURCE's answer shape:
+   - `MapBack(targetAnswer, rec)` returns the source's answer as text and as `TPartial`, recording one step per target element read ("x₂ is in the clique, so set x₂ = T"). Focus the target's ids. Don't record Done; the interface does, using the source's verifier.
+   - `EmptyAnswer()` returns the source's empty answer.
 
-The Reduction view then plays three phases: **Build**, **Solve** (the target's solver, any of them), and **Map back**. Both panes reuse the source and target problems' own picture types; a reduction never draws anything itself. See `reduction.js` in the mockups for complete examples.
+`reduceToCLIQUE` (Independent Set → Clique) is a short, complete example of all three.
+
+The Reduction View then plays three phases: **Build**, **Solve** (the target's solver, by default the reduction's `ReductionViewSolver()` or the target's default solver; `?solver=` overrides), and **Map back**. Both panes reuse the source and target problems' own frames pictures; a reduction never draws anything itself. Only the last frame carries a verdict (`ok`).
+
+If the target's default solver can't finish the reduction's own default instance within the time limit, override `ISolver? ReductionViewSolver()` to name a faster exact solver of the target.
 
 ## 7. Worked example: DFA
 
-This is the full set of changes for DFA Acceptance once PRs 2 and 3 land.
+This is DFA Acceptance on the integration branch.
 
 ![DFA in the Automaton picture type, mid-run](images/auto--dfa-ends-in-ab-input-abaab.png)
 
-### 7.1 What exists today
+### 7.1 The problem
 
-- `Problems/P/P_DFA/DFA_Class.cs` parses `((N,A,E,S,F),I)` into `nodes`, `alphabet`, `edges` (`DFAEdge(From, Symbol, To)`), `startState`, `acceptStates` and `inputString`. Nothing here changes.
-- `Visualizations/DFAVisualization.cs` uses the `GraphLaTeX` type (TikZ) and colors nodes `"green"` or `"white"` by hand, in three separate loops.
-- `Solvers/DFASolver.cs`'s `GetSteps` returns the visited state names as a `List<Object>` of strings. The visualization casts them back and hopes.
+`Problems/P/P_DFA/DFA_Class.cs` parses `((N,A,E,S,F),I)` into `nodes`, `alphabet` (`List<char>`), `edges` (`DFAEdge(From, Symbol, To)`), `startState`, `acceptStates` and `inputString`. Nothing here changed for the picture.
 
 ### 7.2 The visualization: one mapping
 
+`Visualizations/DFAVisualization.cs` keeps its legacy `GraphLaTeX` members and adds the Automaton picture:
+
 ```csharp
-class DFAVisualization : AutomatonVisualization<DFA> {
-    public override string visualizationName => "Automaton Graph";
-    protected override Automaton Machine(DFA p) => new(
-        Kind: AutomatonKind.Deterministic,
-        States: p.nodes,
-        Alphabet: p.alphabet.Select(c => c.ToString()),
-        Transitions: p.edges.Select(e => new Transition(e.From, e.Symbol.ToString(), e.To)),
-        Start: p.startState, Accept: p.acceptStates, Input: p.inputString);
+class DFAVisualization : IVisualization<DFA, API_GraphJSON>, IAutomatonVisualization<DFA> {
+    public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX; // /info is unchanged
+    public ISolver solver { get; } = new DFASolver();
+    // ... the other legacy members ...
+
+    Type? IVisualization.StepShape => typeof(ActiveStates);
+
+    AutomatonSpec IAutomatonVisualization<DFA>.Describe(DFA problem) => Spec(problem);
+
+    // The list format drew typed steps before the picture existed, so it keeps getting them.
+    bool IFramesVisualization.ListReadsTypedSteps() => true;
+
+    internal static AutomatonSpec Spec(DFA problem) => new(AutomatonKind.Dfa,
+        problem.nodes, problem.alphabet.Select(c => c.ToString()).ToList(),
+        problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
+        problem.startState, problem.acceptStates, problem.inputString);
 }
 ```
 
-The Automaton base does the rest:
+The Automaton builder (`Interfaces/graphs/AutomatonFrames.cs`) does the rest:
 
-- lays the states out left to right in breadth-first order from the start state;
+- gives each state a layer, its breadth-first distance from the start state;
 - merges parallel transitions into one arrow with a combined label (`a,b`);
-- draws the start arrow, double rings on accept states, and the input tape;
-- adds the isolated red **Garbage** state when a DFA is missing a transition, so a run that falls off the machine has somewhere visible to go.
+- sends the start state, accept states and input tape;
+- adds an isolated **Garbage** state (`garbage`) when a DFA is missing a transition, listing the missing moves, so a run that falls off the machine has somewhere visible to go.
 
 ### 7.3 The solver: record each symbol read
 
-The Automaton type's answer shape is *active states*. Its step type is shared by DFA and NFA:
+The Automaton type's answer shape is `ActiveStates(states, position)`: the states the run is in and how many symbols it has read. DFA and NFA share it. `Solvers/DFASolver.cs`, shortened:
 
 ```csharp
-record RunState(int Read, IReadOnlySet<string> Active, IReadOnlyList<Transition> Taken);
-```
+class DFASolver : ISolver<DFA, ActiveStates> {
+    public string solve(DFA problem) => Solve(problem, StepRecorder<ActiveStates>.Off);
 
-```csharp
-class DFASolver : ISolver<DFA>, IStepSolver<DFA, RunState> {
-    public string solve(DFA p) => Run(p, StepRecorder<RunState>.Ignore);
+    public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
+        string inputString = problem.inputString == "ε" ? "" : problem.inputString;
+        string currentNode = problem.startState;
+        int consumed = 0;
+        rec.Try(() => new ActiveStates([problem.startState], 0),
+            () => $"Start in {problem.startState}.", () => [AutomatonFrames.StateId(problem.startState)]);
 
-    public IReadOnlyList<SolverStep<RunState>> GetSteps(DFA p) {
-        var rec = new StepRecorder<RunState>();
-        Run(p, rec);
-        return rec.Steps;
-    }
-
-    string Run(DFA p, StepRecorder<RunState> rec) {
-        string at = p.startState;
-        rec.Try(new(0, Set(at), []), [at], $"Start in {at}.");
-        for (int i = 0; i < p.inputString.Length; i++) {
-            char c = p.inputString[i];
-            var edge = p.edges.FirstOrDefault(e => e.From == at && e.Symbol == c);
+        foreach (char character in inputString) {
+            var edge = problem.edges.FirstOrDefault(e => e.From == currentNode && e.Symbol == character);
             if (edge is null) {
-                rec.Reject(new(i + 1, Set(Garbage), []), [at],
-                    $"No move from {at} on {c}, so the run falls into Garbage.");
-                return rec.Done(new(p.inputString.Length, Set(Garbage), []), accepted: false,
-                    "Rejected: the input fell off the machine.");
+                rec.Reject(() => new ActiveStates([], consumed),
+                    () => $"{currentNode} has no move on '{character}', so the DFA falls into the Garbage state and stays there.",
+                    () => [AutomatonFrames.GarbageId]);
+                rec.Done(new ActiveStates([], consumed), false,
+                    $"Rejected: {currentNode} has no move on '{character}', so the run ends in the Garbage state.");
+                return "No Solution Exists: DFA cannot transition with this character";
             }
-            var t = new Transition(edge.From, c.ToString(), edge.To);
-            rec.Try(new(i + 1, Set(edge.To), [t]), [edge.To], $"Read {c}: {at} → {edge.To}.");
-            at = edge.To;
+            string from = currentNode;
+            currentNode = edge.To;
+            consumed++;
+            rec.Try(() => new ActiveStates([edge.To], consumed),
+                () => $"Read '{character}': move from {from} to {edge.To}.", () => [AutomatonFrames.TransitionId(from, edge.To)]);
         }
-        bool ok = p.acceptStates.Contains(at);
-        return rec.Done(new(p.inputString.Length, Set(at), []), accepted: ok,
-            ok ? $"Accepted: the input ends in {at}, an accept state."
-               : $"Rejected: the input ends in {at}, which isn't an accept state.");
+        bool ok = problem.acceptStates.Contains(currentNode);
+        if (!ok)
+            rec.Reject(() => new ActiveStates([currentNode], consumed),
+                () => $"The input is used up in {currentNode}, which is not an accept state.", () => [AutomatonFrames.StateId(currentNode)]);
+        rec.Done(new ActiveStates([currentNode], consumed), ok, ok
+            ? $"The input is used up in {currentNode}, an accept state, so the DFA accepts."
+            : $"Rejected: the run ended in {currentNode}, which is not an accept state.");
+        return ok ? "The sequence of states to accept is: …" : "No Solution Exists: The DFA ended in a non-accepting state";
     }
 }
 ```
+
+The real solver loops over the edges instead of `FirstOrDefault`, keeps the path for its answer text, and also handles a symbol outside the alphabet (a Reject on the current state, not Garbage). An empty set of states in a DFA step means the run is in Garbage.
 
 What the frontend draws from those steps, without any DFA-specific code:
 
 | Step | Picture |
 | --- | --- |
-| `Try` "Read b: 1 → 3." | State 3 and the arrow 1 → 3 are `ElementHighlight`; the tape shows two symbols read |
+| `Try` "Read 'b': move from 1 to 3." | State 3 and the arrow 1 → 3 are `ElementHighlight`; the tape shows two symbols read |
 | `Reject` into Garbage | Garbage turns `Rejected`; the missing move is named in the caption |
-| `Done`, accepted | The final state is `Solution`; states never reached are `Untraveled` |
-| `Done`, rejected | The final state is `Rejected` |
+| `Done`, `ok: true` | The final state is `Solution`; states never reached are `Untraveled` |
+| `Done`, `ok: false` | The final state is `Rejected`; states never reached are `Untraveled` |
 
-The same steps also drive the DFA **Trace Table** (one row per step), so `GetTableSteps` and its row classes go away.
+The same steps also drive the DFA **Trace Table** (`DFATableVisualization`, one row per step, built with `AutomatonTraceTable`).
 
-NFA uses the same `RunState`, with `Active` holding every live state at once. That gives the approved default view, all branches together; the "follow one path" dropdown is computed by the frontend from the same steps.
+NFA uses the same `ActiveStates`. `NFASolver` is a depth-first search that records each move and each backtrack; `NFASubsetSolver` records the whole active set per symbol. The Automaton builder also computes the NFA's runs itself (up to 40) and sends them as `paths`, which feed the "follow one path" picker.
 
 ### 7.4 The tests
 
-```csharp
-[Fact] public void DFA_automaton_payload() =>
-    VisualizationJson.Check<DFAVisualization>(new DFA(), "DFA.automaton.json");
+- `redux-tests/Endpoints/AutomatonFrames_Endpoint_Tests.cs`: the frames JSON for DFA and NFA with every solver, plus the list-format and `/info` snapshots.
+- `redux-tests/Steps/AutomatonSolvers_Tests.cs`: what the solvers record, including the Garbage case.
+- `SolverReplay_Tests` covers `DFASolver` automatically.
 
-[Fact] public void DFA_solver_replays() => StepReplay.Check(new DFASolver(), new DFA());
+### 7.5 What went away
 
-[Fact] public void DFA_missing_move_goes_to_garbage() =>
-    StepReplay.Check(new DFASolver(), new DFA("(({1,2},{a,b},{(1,a,2)},1,{2}),ab)"),
-        last: s => s.Partial.Active.Contains("Garbage"));
-```
-
-### 7.5 What got deleted
-
-- The three hand-written coloring loops in `DFAVisualization`.
-- The `"green"` / `"white"` strings.
-- The `List<Object>` cast.
-- The TikZ dependency for this problem (TikZ leaves Redux once every visualization is ported).
+- The hand-written coloring loops and the `"green"` / `"white"` strings, for the frames picture. The legacy list format keeps them until #732 removes it.
+- The `List<Object>` cast: steps are typed.
+- TikZ, once every frontend draws the Automaton picture (TikZ leaves Redux after every visualization is ported).
 
 ## 8. Checklist for a pull request
 
 - [ ] The problem uses a picture type from [PICTURE-TYPES.md](PICTURE-TYPES.md), and that type is Approved.
-- [ ] The visualization only maps fields; no colors, coordinates or highlight loops.
-- [ ] Each solver with steps records decisions through a recorder inside the real algorithm, ends with `Done`, and captions every step.
-- [ ] `StepReplay.Check` for every solver you touched, and `VisualizationJson.Check` for every visualization.
-- [ ] You looked at the actual JSON from the endpoint, not just the build.
+- [ ] The visualization only implements `StepShape` and `Describe` (and `ParseAnswer` if needed), explicitly; no colors, coordinates or highlight loops.
+- [ ] Each solver with steps implements `ISolver<T, TPartial>`, records decisions inside the real algorithm, ends with `Done`, and captions every step.
+- [ ] Solvers that build answers piece by piece implement `IIncrementalSolver`, and their focus names only the piece under test.
+- [ ] `SolverReplay_Tests` passes, and the picture's endpoint tests cover the problem.
+- [ ] You looked at the actual JSON from the endpoint (or in the frames viewer), not just the build.
+- [ ] The list format and `/info` are unchanged (the snapshot tests pass).
 - [ ] Any new `VisualizationType` value is also in `Documentation/visualization-types.json`.
 - [ ] Problem names and descriptions match what the code does.
 - [ ] The rbs report on the PR passes (read the report; the check can be green while it fails).
@@ -309,10 +359,12 @@ NFA uses the same `RunState`, with `Active` holding every live state at once. Th
 
 **Do I need to know D3 or React?** No. Backend contributors never touch the frontend. Frontend contributors write one renderer per picture type, not per problem.
 
-**My solver doesn't fit any step type.** It almost always does once you name its answer shape. If it truly doesn't, say so in an issue; a new answer shape is a design change, not a local fix.
+**My solver doesn't fit any answer shape.** It almost always does once you name what its answer is. If it truly doesn't, say so in an issue; a new answer shape is a design change, not a local fix.
 
-**Can two solvers for the same problem animate differently?** Yes, that's the point. Greedy and Brute Force for Set Cover record different steps on the same picture, so students can see why one overshoots.
+**Can two solvers for the same problem animate differently?** Yes, that's the point. Greedy and Brute Force for Set Cover record different steps on the same picture, so students can see why one overshoots. The user picks the solver, and `visualize` takes it as `solver=`.
 
-**What about very large instances?** The frontend switches large Graph and Layered Graph instances to a WebGL renderer (Sigma.js) on its own, using the same states. You don't do anything.
+**What if my solver's shape doesn't match the visualization's?** The response still has the initial and solved frames, just no steps in between.
+
+**What about very large instances?** Steps are capped and long solves are stopped, and both say so in the last caption. Very large drawings are a frontend concern.
 
 **What if my problem's checker disagrees with its description?** Fix the text or the checker first. The picture follows the code, and a picture that contradicts the definition confuses everyone.
