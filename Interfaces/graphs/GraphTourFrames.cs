@@ -38,12 +38,14 @@ sealed record GraphTourSpec(
 /// at the end, exactly like the certificate. The states, derived from <c>order</c> alone:
 /// </para>
 /// <list type="bullet">
-/// <item>every node on the path is <c>Covered</c>; once the run is over and correct (a <see cref="StepEvent.Done"/> frame
-/// with ok true) they are <c>Solution</c>, like the green nodes of the solved mockups;</item>
-/// <item>each hop of the path that is an edge of the graph (in the hop's direction, for a directed graph) is <c>Solution</c>;</item>
+/// <item>every node on the path is <c>Covered</c>; once the path is the confirmed answer (a <see cref="StepEvent.Done"/>
+/// frame with ok true, or an Accept that ends the run) they are <c>Solution</c>, like the green nodes of the solved
+/// mockups;</item>
+/// <item>each hop of the path that is an edge of the graph (in the hop's direction, for a directed graph) is <c>Solution</c>
+/// in the confirmed answer and <c>Committed</c> while the path is only kept so far (#886);</item>
 /// <item>in a step that only tries a whole tour (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/> of a run that is
 /// not <see cref="SolveRun.Incremental"/>) its nodes and hops are <c>ElementHighlight</c> instead (see
-/// <see cref="GraphSubsetFrames.Picked"/>); an incremental run's path is the path so far, so it keeps its states in every
+/// <see cref="GraphSubsetFrames.Picked"/>); an incremental run's path is the path so far, so it keeps its Committed hops in every
 /// step and only the focus (the next node, the hop to it, or the closing hop) is marked;</item>
 /// <item>a hop that is not an edge (a dead end the solver tried, or a closing edge the graph does not have) is a
 /// <c>Rejected</c> phantom between its two nodes, drawn as a dashed line;</item>
@@ -107,9 +109,10 @@ static class GraphTourFrames {
 
     /// <summary>
     /// The frame for a path at one step. <c>incremental</c> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <c>endsRun</c> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static GraphFrame Frame(GraphTourSpec spec, Tour partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static GraphFrame Frame(GraphTourSpec spec, Tour partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var nodeIds = new HashSet<string>(spec.Nodes, StringComparer.Ordinal);
         var edgeIds = new HashSet<string>(CanonicalEdges(spec).Select(e => e.Id), StringComparer.Ordinal);
         var order = partial.Order.Where(nodeIds.Contains).ToList();
@@ -119,11 +122,12 @@ static class GraphTourFrames {
         var phantoms = new List<GraphPhantom>();
 
         // A whole tour only being tried (Try, Reject) is highlighted, nodes and hops alike; otherwise (and always in an
-        // incremental run, whose path is the path so far) its hops are Solution and its nodes Covered, or Solution once the
-        // run is over and correct.
-        var picked = GraphSubsetFrames.Picked(ev, incremental);
+        // incremental run, whose path is the path so far) its hops are Committed and its nodes Covered, or both Solution once
+        // the path is the confirmed answer (#886).
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         var onPath = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight
-            : ev == StepEvent.Done && ok == true ? PictureState.Solution : PictureState.Covered;
+            : ev == StepEvent.Done ? (ok == true ? PictureState.Solution : PictureState.Covered)
+            : picked == PictureState.Solution ? PictureState.Solution : PictureState.Covered;
         foreach (var n in order) GraphSubsetFrames.Raise(nodes, n, onPath);
 
         var drawn = new HashSet<string>(StringComparer.Ordinal);
@@ -176,10 +180,10 @@ static class GraphTourFrames {
     public static FramesResponse Build(GraphTourSpec spec, SolveRun run, Func<string, Tour> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<Tour>? last = null;
-        foreach (var step in run.StepsFor(typeof(Tour)).OfType<SolverStep<Tour>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(Tour)).OfType<SolverStep<Tour>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {
