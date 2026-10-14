@@ -18,6 +18,8 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
     public ReductionView_Graph_Tests(AppFactory factory) {
+        // Before the client is made: its handler copies the setting, so a test's fake quantum server reaches the request.
+        factory.Server.PreserveExecutionContext = true;
         _client = factory.CreateClient();
     }
 
@@ -423,13 +425,14 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
 
     // Every solver of the target, on every case: 200, the map verdict is the source verifier's on what the source pane shows, and
     // a correct target answer maps back to a correct one. Some are approximations or randomized (Greedy Vertex Cover, WalkSAT),
-    // so the failing paths are covered too. Grover's SAT solver asks an outside quantum service that the tests do not run.
+    // so the failing paths are covered too. Grover's SAT solver asks a fake quantum service, which answers as the real one
+    // does (#832).
     public static TheoryData<string, string, string> EverySolverCases() {
         var data = new TheoryData<string, string, string>();
         foreach (var (reduction, instance, _) in Cases()) {
             Type target = Build(reduction, instance).reductionTo.GetType();
             foreach (var (key, type) in ProblemProvider.Solvers.OrderBy(p => p.Key, StringComparer.Ordinal))
-                if (!type.Name.Contains("Grover") && type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>) && i.GetGenericArguments()[0] == target))
+                if (type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>) && i.GetGenericArguments()[0] == target))
                     data.Add(reduction, instance, key);
         }
         return data;
@@ -438,6 +441,7 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
     [Theory]
     [MemberData(nameof(EverySolverCases))]
     public async Task EverySolverOfTheTarget_GivesAView_WhoseVerdictsAreTheVerifiers(string reduction, string instance, string solver) {
+        using var fake = FakeQuantumServer.Install(out _);
         var view = await View(reduction, instance, solver);
         IReduction red = Build(reduction, instance);
         var map = Phase(view, "map");

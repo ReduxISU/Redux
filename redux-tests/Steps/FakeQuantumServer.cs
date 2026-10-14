@@ -66,10 +66,18 @@ public sealed class FakeQuantumServer : HttpMessageHandler {
                     return Reply(s, s.Length == 0 ? null : s);
                 }
             case "/sat-quantum": {
-                    // The first term of "(x0 & !x1) | (...)" is a marked item; its bits in the server's order, x0 first.
+                    // The server's order (sat_quantum.py): the variable names sorted by code point, character i for variable i.
+                    // A noise-free Grover search lands on a satisfying assignment: the first one counting up, variable 0 the
+                    // low bit (for Unstructured Search's "(x0 & !x1) | (...)", the smallest marked item; #832).
                     string expr = JsonDocument.Parse(body).RootElement.GetProperty("boolexpr").GetString()!;
-                    string first = expr.Split('|')[0].Trim().Trim('(', ')');
-                    string bits = first.Length == 0 ? "0" : string.Concat(first.Split('&').Select(l => l.Trim().StartsWith('!') ? '0' : '1'));
+                    var names = System.Text.RegularExpressions.Regex.Matches(expr, "[A-Za-z0-9_]+").Select(m => m.Value).Distinct().OrderBy(v => v, StringComparer.Ordinal).ToList();
+                    long found = 0;
+                    for (long k = 0; names.Count > 0 && k < 1L << names.Count; k++)
+                        if (Evaluate(expr, names.Select((v, i) => (v, ((k >> i) & 1) == 1)).ToDictionary(p => p.v, p => p.Item2))) {
+                            found = k;
+                            break;
+                        }
+                    string bits = names.Count == 0 ? "0" : string.Concat(Enumerable.Range(0, names.Count).Select(i => ((found >> i) & 1) == 1 ? '1' : '0'));
                     return JsonSerializer.Serialize(new Dictionary<string, object> {
                         ["qasm"] = "OPENQASM 2.0;",
                         ["answer_bitstring"] = bits,
@@ -90,6 +98,37 @@ public sealed class FakeQuantumServer : HttpMessageHandler {
             default:
                 return "{}";
         }
+    }
+
+    // A boolean expression of names, '!', '&', '|' and parentheses ('&' binds tighter than '|'), as the server reads it.
+    private static bool Evaluate(string expr, IReadOnlyDictionary<string, bool> values) {
+        int at = 0;
+        void Skip() { while (at < expr.Length && char.IsWhiteSpace(expr[at])) at++; }
+        bool Or() {
+            bool v = And();
+            for (Skip(); at < expr.Length && expr[at] == '|'; Skip()) { at++; v |= And(); }
+            return v;
+        }
+        bool And() {
+            bool v = Not();
+            for (Skip(); at < expr.Length && expr[at] == '&'; Skip()) { at++; v &= Not(); }
+            return v;
+        }
+        bool Not() {
+            Skip();
+            if (expr[at] == '!') { at++; return !Not(); }
+            if (expr[at] == '(') {
+                at++;
+                bool v = Or();
+                Skip();
+                at++;
+                return v;
+            }
+            int start = at;
+            while (at < expr.Length && (char.IsLetterOrDigit(expr[at]) || expr[at] == '_')) at++;
+            return values[expr[start..at]];
+        }
+        return Or();
     }
 
     private sealed class Factory(HttpMessageHandler handler) : IHttpClientFactory {
