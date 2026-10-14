@@ -12,10 +12,10 @@ class STEINERTREE : IGraphProblem<SteinerTreeBruteForce, SteinerTreeVerifier, St
     // --- Fields ---
     public string problemName { get; } = "Steiner Tree";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Steiner_tree_problem";
-    public string formalDefinition { get; } = "Steiner = {<G,R,k> | G has a subtree of weight <= k containing the set of nodes in R}";
-    public string problemDefinition { get; } = "Steiner tree problem in graphs requires a tree of minimum weight that contains all terminals";
-    public string inputDescription { get; } = "G, a graph, R, a set of terminal nodes, and k, a weight bound";
-    public string outputDescription { get; } = "True or False, whether G has a subtree of weight at most k containing every node in R";
+    public string formalDefinition { get; } = "Steiner = {<G,R,k> | G has a subtree with at most k edges containing the set of nodes in R}";
+    public string problemDefinition { get; } = "Steiner tree problem in graphs requires a tree with the fewest edges that contains all terminals";
+    public string inputDescription { get; } = "G, a graph, R, a set of terminal nodes, and k, a bound on the number of edges";
+    public string outputDescription { get; } = "True or False, whether G has a tree with at most k edges containing every node in R";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
