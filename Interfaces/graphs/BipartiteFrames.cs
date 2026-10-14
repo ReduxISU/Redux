@@ -88,8 +88,9 @@ sealed record BipartiteFrame(
 /// <see cref="NodeSet"/> of element names when it picks elements.
 /// </para>
 /// <para>
-/// <b>States.</b> A picked node and its edges are <c>Solution</c> in a step that keeps the picks (Accept, Backtrack, Done,
-/// and every step of an incremental run) and <c>ElementHighlight</c> in a step that only tries a whole candidate (Try,
+/// <b>States.</b> A picked node and its edges are <c>Solution</c> in the confirmed answer (the Done, or an Accept that ends
+/// the run), <c>Committed</c> in another step that keeps the picks (an Accept mid-run, a Backtrack, and every step of an
+/// incremental run; #886) and <c>ElementHighlight</c> in a step that only tries a whole candidate (Try,
 /// Reject of a run that is not <see cref="SolveRun.Incremental"/>; see <see cref="GraphSubsetFrames.Picked"/>). A constraint
 /// hit by the picks is <c>Covered</c>; under the exactly-once rule a constraint hit more than once is <c>Rejected</c> in
 /// every event. A constraint that is not hit is <c>Rejected</c> only when a complete candidate is judged (Done, or a Try or
@@ -98,7 +99,7 @@ sealed record BipartiteFrame(
 /// would double up, so it is <c>Blocked</c>, except while a whole candidate is only being tried. The focus is
 /// <c>ElementHighlight</c>; in a Reject step of an incremental run it is what failed, so <c>Rejected</c>
 /// (<see cref="GraphSubsetFrames.FocusMark"/>). A pick in the focus marks its edges too. When several states apply to one
-/// element the order is <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>.
+/// element the order is <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>.
 /// </para>
 /// </summary>
 static class BipartiteFrames {
@@ -205,9 +206,10 @@ static class BipartiteFrames {
 
     /// <summary>
     /// The frame for the picked node ids (<see cref="PickIds"/>) at one step. <c>incremental</c> says whether the step comes
-    /// from an incremental run (<see cref="SolveRun.Incremental"/>).
+    /// from an incremental run (<see cref="SolveRun.Incremental"/>); <c>endsRun</c> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static BipartiteFrame Frame(BipartiteSpec spec, IEnumerable<string> picked, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static BipartiteFrame Frame(BipartiteSpec spec, IEnumerable<string> picked, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var m = new Model(spec);
         var picks = new HashSet<string>(m.Picks, StringComparer.Ordinal);
         var chosen = new HashSet<string>(picked.Where(picks.Contains), StringComparer.Ordinal);
@@ -217,7 +219,7 @@ static class BipartiteFrames {
 
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var pickedState = GraphSubsetFrames.Picked(ev, incremental);
+        var pickedState = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         foreach (var p in chosen) {
             GraphSubsetFrames.Raise(nodes, p, pickedState);
             foreach (var e in m.EdgesOf[p]) GraphSubsetFrames.Raise(edges, e, pickedState);
@@ -235,7 +237,7 @@ static class BipartiteFrames {
 
         // Under exactly-once, a pick that would double up on a covered constraint is blocked, unless a whole candidate is
         // only being tried (then nothing is taken, so nothing is blocked).
-        if (exact && pickedState == PictureState.Solution)
+        if (exact && pickedState != PictureState.ElementHighlight)
             foreach (var p in m.Picks)
                 if (!chosen.Contains(p) && m.Hits[p].Any(c => count[c] > 0)) GraphSubsetFrames.Raise(nodes, p, PictureState.Blocked);
 
@@ -364,15 +366,17 @@ static class BipartiteFrames {
     public static FramesResponse Build(BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         bool lastIsDone = false;
-        foreach (var step in run.StepsFor(StepShape(spec.Pick))) {
-            var (partial, ev, focus, caption, ok) = step switch {
-                SolverStep<ChosenSets> s => ((object)s.Partial, s.Event, s.Focus, s.Caption, s.Ok),
-                SolverStep<NodeSet> s => (s.Partial, s.Event, s.Focus, s.Caption, s.Ok),
-                _ => throw new InvalidOperationException($"A Bipartite picture cannot draw a step of type {step.GetType().Name}."),
-            };
+        var steps = run.StepsFor(StepShape(spec.Pick)).Select(step => step switch {
+            SolverStep<ChosenSets> s => ((object)s.Partial, s.Event, s.Focus, s.Caption, s.Ok),
+            SolverStep<NodeSet> s => (s.Partial, s.Event, s.Focus, s.Caption, s.Ok),
+            _ => throw new InvalidOperationException($"A Bipartite picture cannot draw a step of type {step.GetType().Name}."),
+        }).ToList();
+        for (int i = 0; i < steps.Count; i++) {
+            var (partial, ev, focus, caption, ok) = steps[i];
+            bool endsRun = i + 1 < steps.Count && GraphSubsetFrames.EndsRun(ev, steps[i + 1].Event, steps[i + 1].Ok);
             frames.Add(run.TimedOut && ev == StepEvent.Done
                 ? StoppedFrame(caption)
-                : Frame(spec, PickIds(partial), ev, focus, caption, ok, run.Incremental));
+                : Frame(spec, PickIds(partial), ev, focus, caption, ok, run.Incremental, endsRun));
             lastIsDone = ev == StepEvent.Done;
         }
         if (run.TimedOut) {

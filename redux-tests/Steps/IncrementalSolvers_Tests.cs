@@ -120,7 +120,7 @@ public class IncrementalSolvers_Tests {
     // Reaches an element no set can cover (Reject naming the element) and backs out.
     [InlineData("dancinglinks", "exactcoverdefaultvisualization", "({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})")]
     [InlineData("exactcoverrecursive", "exactcoverdefaultvisualization", "({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})")]
-    public void Bipartite_Steps_KeepTheCommittedSetsSolution_AndMarkOnlyTheFocus(string solverName, string visualizationName, string instance) {
+    public void Bipartite_Steps_KeepTheCommittedSetsCommitted_AndMarkOnlyTheFocus(string solverName, string visualizationName, string instance) {
         var solver = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solverName])!;
         var run = solver.Run(instance, withSteps: true);
         Assert.True(run.Incremental);
@@ -128,9 +128,13 @@ public class IncrementalSolvers_Tests {
         var frames = vis.BuildFrames(instance, run).Frames.Cast<BipartiteFrame>().ToList();
         var steps = run.Steps.Cast<SolverStep<ChosenSets>>().ToList();
         Assert.Contains(steps, s => s.Event == StepEvent.Reject);
-        foreach (var (step, frame) in steps.Zip(frames).Where(p => p.First.Event != StepEvent.Done)) {
+        for (int i = 0; i < steps.Count; i++) {
+            var (step, frame) = (steps[i], frames[i]);
+            if (step.Event == StepEvent.Done) continue;
+            // Kept so far until the run ends on it: only an Accept right before a correct Done is the answer (#886).
+            bool endsRun = step.Event == StepEvent.Accept && i + 1 < steps.Count && steps[i + 1] is { Event: StepEvent.Done, Ok: true };
             foreach (var set in step.Partial.Sets.Except(step.Focus))
-                Assert.Equal(PictureState.Solution, frame.Nodes[set].State);
+                Assert.Equal(endsRun ? PictureState.Solution : PictureState.Committed, frame.Nodes[set].State);
             var mark = step.Event == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
             foreach (var id in step.Focus)
                 Assert.Equal(mark, frame.Nodes[id].State);
