@@ -42,9 +42,11 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
         yield return (EcToSs, "({1,2,3},{{1,2},{2,3},{1,3}})", false);
         yield return (EcToSs, "({1,2,3},{{1,2},{2,3}})", false);
         yield return (EcToSs, "({a,b,c},{{a},{b,c},{a,b}})", true);
-        // ~ is a separator of the Bipartite Graph's ids, escaped there. (A name with ':' would be one too, but Exact Cover's verifier
-        // cuts a certificate at its first ':', #833.)
+        // ~ and : are separators of the Bipartite Graph's ids, escaped there (and Exact Cover's verifier once cut a certificate at
+        // its first ':', #833).
         yield return (EcToSs, "({a~b,c},{{a~b},{c}})", true);
+        yield return (EcToSs, "({a~b,c:d},{{a~b},{c:d}})", true);
+        yield return (EcToSs, "({a:b,c,d},{{a:b,c},{c,d}})", false);
         // 1 and 2 hit each subset of the default once; any items of {1,2,3} hit some pair twice or not at all; a and b are in
         // the same subsets (one set in Exact Cover) and d in none (the empty set); with no subsets the empty set hits them all.
         yield return (HsToEc, "({1,2,3,4},{{1,3},{2,3,4},{1,4}})", true);
