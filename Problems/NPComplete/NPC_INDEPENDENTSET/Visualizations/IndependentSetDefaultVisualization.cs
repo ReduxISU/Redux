@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Text.Json;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -7,7 +9,7 @@ using API.Problems.NPComplete.NPC_INDEPENDENTSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.Visualizations;
 
-class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET, API_GraphJSON> {
+class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET, API_GraphJSON>, IGraphSubsetVisualization<INDEPENDENTSET> {
 
     // --- Fields ---
     public string visualizationName { get; } = "Independent Set Visualization";
@@ -37,4 +39,10 @@ class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET, API_Gr
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(NodeSet);
+
+    GraphSubsetSpec IGraphSubsetVisualization<INDEPENDENTSET>.Describe(INDEPENDENTSET independentSet) =>
+        new(independentSet.nodes, independentSet.edges, independentSet.K, SubsetRule.IndependentSet);
 }

@@ -1,11 +1,13 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Linq;
 using API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER;
 using API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
-class GreedyVertexCover : ISolver<VERTEXCOVER> {
+class GreedyVertexCover : ISolver<VERTEXCOVER, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Max-Degree Greedy";
@@ -29,19 +31,19 @@ class GreedyVertexCover : ISolver<VERTEXCOVER> {
     public GreedyVertexCover() {
 
     }
-    public string solve(VERTEXCOVER G) {
-        var mvc = new MINIMUMVERTEXCOVER();
-        mvc.nodes = new List<string>(G.nodes);
-        mvc.edges = new List<KeyValuePair<string, string>>(G.edges);
+    public string solve(VERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
-        string certificate = new GreedyMinimumVertexCover().solve(mvc);
+    // Steps: the greedy picks (as in the Minimum Vertex Cover solver this wraps), then whether the cover fits in K.
+    public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
+        var cover = new GreedyMinimumVertexCover().Cover(G.edges, rec);
 
-        int size = certificate == "{}" ? 0 : certificate.Trim('{', '}').Split(',').Length;
-
-        if (size > G.K) {
+        if (cover.Count > G.K) {
+            rec.Done(new NodeSet([]), false,
+                $"Greedy's cover uses {cover.Count} nodes, more than K = {G.K}. Greedy doesn't always find the smallest cover.");
             return "{}";
         }
 
-        return certificate;
+        rec.Done(new NodeSet(cover), true, $"Every edge is covered with {cover.Count} nodes, within K = {G.K}.");
+        return "{" + string.Join(",", cover) + "}";
     }
 }

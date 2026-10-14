@@ -1,8 +1,10 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
-class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET> {
+class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet> {
     // --- Fields ---
     public string solverName { get; } = "Naive Inclusion-Exclusion Backtracking Dominating Set Solver";
     public string solverDefinition { get; } =
@@ -27,13 +29,19 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET> {
     // --- Methods Including Constructors ---
     public DominatingSetNaiveInclusionExclusion() { }
 
-    public string solve(DOMINATINGSET problem) {
+    public string solve(DOMINATINGSET problem) => Solve(problem, StepRecorder<NodeSet>.Off);
+
+    // Steps: include a vertex, back it out, leave it out, and the verdict on each complete subset. Recorder state
+    // lives only in this call.
+    public string Solve(DOMINATINGSET problem, StepRecorder<NodeSet> rec) {
         int n = problem.nodes.Count;
         int K = problem.K;
 
         if (n == 0) {
             const string emptyCert = "{}";
-            return problem.defaultVerifier.verify(problem, emptyCert) ? emptyCert : "{}";
+            bool emptyOk = problem.defaultVerifier.verify(problem, emptyCert);
+            rec.Done(new NodeSet([]), emptyOk, "There are no vertices.");
+            return emptyOk ? emptyCert : "{}";
         }
 
         var indexOf = new Dictionary<string, int>(n);
@@ -54,36 +62,52 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET> {
         var chosen = new List<int>();
         List<int> solution = new List<int>();
 
-        bool found = Branch(0, n, K, adj, chosen, ref solution);
+        bool found = Branch(0, n, K, adj, chosen, ref solution, problem, rec);
 
-        if (!found)
+        if (!found) {
+            rec.Done(new NodeSet([]), false, $"No dominating set of size {K} or less exists.");
             return "{}";
+        }
 
         string cert = "{" + string.Join(",", solution.Select(i => problem.nodes[i])) + "}";
-        return problem.defaultVerifier.verify(problem, cert) ? cert : "{}";
+        bool verified = problem.defaultVerifier.verify(problem, cert);
+        rec.Done(verified ? new NodeSet(solution.Select(i => problem.nodes[i])) : new NodeSet([]), verified,
+            verified ? $"{cert} dominates every vertex, with {solution.Count} of at most {K} allowed." : "The set found did not verify.");
+        return verified ? cert : "{}";
     }
 
     // Naive include/exclude recursion over vertex indices [i, n).
-    private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution) {
-        if (chosen.Count > K)
-            return false;
+    private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution,
+        DOMINATINGSET problem, StepRecorder<NodeSet> rec) {
+        string[] Names() => chosen.Select(c => problem.nodes[c]).ToArray();
 
-        if (i == n) {
-            if (Dominates(chosen, n, adj)) {
-                solution = new List<int>(chosen);
-                return true;
-            }
+        if (chosen.Count > K) {
+            rec.Reject(() => new NodeSet(Names()), () => $"{GraphSubsetFrames.Braces(Names())} has more than K = {K} vertices. Stop here.");
             return false;
         }
 
-        // Include vertex i
+        if (i == n) {
+            if (Dominates(chosen, n, adj)) {
+                rec.Accept(() => new NodeSet(Names()), () => $"Try {GraphSubsetFrames.Braces(Names())}. It dominates every vertex.", Names);
+                solution = new List<int>(chosen);
+                return true;
+            }
+            rec.Reject(() => new NodeSet(Names()),
+                () => $"Try {GraphSubsetFrames.Braces(Names())}: {GraphSubsetFrames.Why(SubsetRule.DominatingSet, problem.nodes, problem.edges, Names())}.",
+                Names);
+            return false;
+        }
+
+        string vertex = problem.nodes[i];
         chosen.Add(i);
-        if (Branch(i + 1, n, K, adj, chosen, ref solution))
+        rec.Accept(() => new NodeSet(Names()), () => $"Include {vertex}.", vertex);
+        if (Branch(i + 1, n, K, adj, chosen, ref solution, problem, rec))
             return true;
         chosen.RemoveAt(chosen.Count - 1);
+        rec.Backtrack(() => new NodeSet(Names()), () => $"Back out {vertex}.", vertex);
 
-        // Exclude vertex i
-        if (Branch(i + 1, n, K, adj, chosen, ref solution))
+        rec.Try(() => new NodeSet(Names()), () => $"Leave {vertex} out.", vertex);
+        if (Branch(i + 1, n, K, adj, chosen, ref solution, problem, rec))
             return true;
 
         return false;

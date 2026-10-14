@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 using System.Numerics;
@@ -6,7 +7,7 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
-class ChibaNishizeki : ISolver<CLIQUE> {
+class ChibaNishizeki : ISolver<CLIQUE, NodeSet> {
 
     // --- Fields ---
     public string solverName { get; } = "Chiba-Nishizeki k-Clique Listing Algorithm";
@@ -32,7 +33,11 @@ class ChibaNishizeki : ISolver<CLIQUE> {
 
     }
 
-    public string solve(CLIQUE clique) {
+    public string solve(CLIQUE clique) => Solve(clique, StepRecorder<NodeSet>.Off);
+
+    // Steps: start from a vertex, add a vertex to the growing clique, skip one the count rules out, back one out,
+    // and drop a start vertex once nothing grows from it. Recorder state lives only in this call.
+    public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
 
         Dictionary<string, HashSet<string>> adj = BuildAdjacency(clique.nodes, clique.edges);
 
@@ -48,21 +53,27 @@ class ChibaNishizeki : ISolver<CLIQUE> {
                 adj[v].Where(u => !removed.Contains(u) && positionOf[u] > positionOf[v])
             );
 
+            rec.Try(() => new NodeSet([v]),
+                () => $"Start from {v}: look for a clique of size {clique.K} among its {laterNeighbors.Count} later neighbors.", v);
             if (clique.K == 1) {
+                rec.Done(new NodeSet([v]), true, $"{{{v}}} is a clique of size 1.");
                 return "{" + v + "}";
             }
 
             List<string> partial = new List<string> { v };
-            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj);
+            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj, rec);
 
             if (found != null) {
+                rec.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.");
                 return "{" + string.Join(",", found) + "}";
             }
 
             // Remove v from further consideration to avoid rediscovering cliques already ruled out.
             removed.Add(v);
+            rec.Backtrack(() => new NodeSet([]), () => $"No clique of size {clique.K} contains {v}. Remove it and move on.", v);
         }
 
+        rec.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.");
         return "{}";
     }
 
@@ -81,7 +92,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
     // extending 'partial' with the result if found.
     private HashSet<string>? FindClique(
         HashSet<string> candidates, List<string> partial, int remaining,
-        Dictionary<string, HashSet<string>> adj) {
+        Dictionary<string, HashSet<string>> adj, StepRecorder<NodeSet> rec) {
 
         if (remaining == 0) {
             return new HashSet<string>(partial);
@@ -94,14 +105,21 @@ class ChibaNishizeki : ISolver<CLIQUE> {
             );
 
             // Prune: not enough remaining candidates to complete the clique.
-            if (nextCandidates.Count < remaining - 1) continue;
+            if (nextCandidates.Count < remaining - 1) {
+                rec.Reject(() => new NodeSet(partial),
+                    () => $"Skip {u}: only {nextCandidates.Count} vertices would be left to join it, but {remaining - 1} are needed.", u);
+                continue;
+            }
 
             partial.Add(u);
-            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj);
+            rec.Accept(() => new NodeSet(partial),
+                () => $"Add {u} to the clique. {nextCandidates.Count} vertices are joined to every member so far.", u);
+            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj, rec);
             if (result != null) {
                 return result;
             }
             partial.RemoveAt(partial.Count - 1);
+            rec.Backtrack(() => new NodeSet(partial), () => $"Back out {u}: the clique cannot be completed from here.", u);
         }
 
         return null;
