@@ -78,14 +78,15 @@ sealed record CodeTreeFrame(
 /// so no id needs escaping, whatever the text holds.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>; see
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>; see
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
-/// <item>A merged node, its children and its two edges are <c>Solution</c> in every step of an incremental run (what the
-/// solver has committed) and in an Accept or a correct Done, and <c>ElementHighlight</c> while a whole candidate is only tried
+/// <item>A merged node, its children and its two edges are <c>Committed</c> in every step of an incremental run (what the
+/// solver has committed so far) and in an Accept the run goes on from (#886), <c>Solution</c> only in the confirmed answer
+/// (a correct Done, or an Accept that ends the run), and <c>ElementHighlight</c> while a whole candidate is only tried
 /// (<see cref="GraphSubsetFrames.Picked"/>). Leaves no merge has used yet are <c>Background</c>.</item>
-/// <item>Once the codes are known, every leaf that has one is <c>Solution</c> too (a one-character text has no merge).</item>
+/// <item>Once the codes are known, every leaf that has one takes the same state (a one-character text has no merge).</item>
 /// <item>The focus (the two trees being merged and their new parent) is <c>ElementHighlight</c>, with the edges between focused
 /// nodes (the parent's two edges); in a Reject step of an incremental run it is <c>Rejected</c> (<see cref="GraphSubsetFrames.FocusMark"/>).</item>
 /// <item>In a Done frame with ok = false everything drawn is <c>Rejected</c>.</item>
@@ -157,9 +158,10 @@ static class CodeTreeFrames {
 
     /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static CodeTreeFrame Frame(CodeTreeSpec spec, HuffmanForest partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static CodeTreeFrame Frame(CodeTreeSpec spec, HuffmanForest partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var symbols = Symbols(spec);
         var leaves = new HashSet<string>(Enumerable.Range(0, symbols.Count).Select(LeafId), StringComparer.Ordinal);
         // Merges whose children are trees of this text, each used once.
@@ -181,7 +183,7 @@ static class CodeTreeFrames {
 
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = ev == StepEvent.Done && ok != true ? PictureState.Rejected : GraphSubsetFrames.Picked(ev, incremental);
+        var picked = ev == StepEvent.Done && ok != true ? PictureState.Rejected : GraphSubsetFrames.Picked(ev, incremental, endsRun);
         foreach (var m in merged) {
             foreach (var id in new[] { m.Id, m.Left, m.Right }) GraphSubsetFrames.Raise(nodes, id, picked);
             GraphSubsetFrames.Raise(edges, EdgeId(m.Id, '0'), picked);
@@ -242,10 +244,10 @@ static class CodeTreeFrames {
     public static FramesResponse Build(CodeTreeSpec spec, SolveRun run, Func<string, HuffmanForest> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<HuffmanForest>? last = null;
-        foreach (var step in run.StepsFor(typeof(HuffmanForest)).OfType<SolverStep<HuffmanForest>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(HuffmanForest)).OfType<SolverStep<HuffmanForest>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {
