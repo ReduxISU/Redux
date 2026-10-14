@@ -8,7 +8,7 @@ namespace redux_tests;
 // fields of every frame, a well-formed tree in each (unique ids, parents first, the shared states, the focus drawn, totals
 // that add up), and the answer's green path.
 public static class SearchTreeJson {
-    public static readonly HashSet<string> Vocabulary = ["Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked"];
+    public static readonly HashSet<string> Vocabulary = ["Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed"];
     public static readonly HashSet<string> Kinds = ["queued", "explored", "pruned", "failed", "solution", "skipped", "more", "cut", "hidden"];
 
     public static string Id(JsonElement node) => node.GetProperty("id").GetString()!;
@@ -59,7 +59,7 @@ public static class SearchTreeJson {
         // Past 12 leaves something must hold the tree open: a queued node, or the path to the focus or the answer.
         int leaves = nodes.Count(n => !nodes.Any(k => Parent(k) == Id(n)));
         if (leaves > 12)
-            Assert.Contains(nodes, n => Kind(n) == "queued" || (Kind(n) == "cut") || State(n) is "ElementHighlight" or "Solution");
+            Assert.Contains(nodes, n => Kind(n) == "queued" || (Kind(n) == "cut") || State(n) is "ElementHighlight" or "Solution" or "Committed");
         var focus = f.GetProperty("focus").EnumerateArray().Select(x => x.GetString()!).ToList();
         Assert.All(focus, id => Assert.Contains(id, ids));
         if (isDone) Assert.Empty(focus);
@@ -68,9 +68,13 @@ public static class SearchTreeJson {
             f.GetProperty("total").GetInt32());
     }
 
-    /// <summary>The Solution nodes of a frame, checked to be one chain from the root down to a solution node (or none).</summary>
+    /// <summary>
+    /// The answer path of a frame (Solution once confirmed, Committed while kept so far, #886), checked to be one chain from
+    /// the root down to a solution node (or none), in one state.
+    /// </summary>
     public static List<JsonElement> GreenPath(JsonElement frame) {
-        var green = frame.GetProperty("nodes").EnumerateArray().Where(n => State(n) is "Solution").ToList();
+        var green = frame.GetProperty("nodes").EnumerateArray().Where(n => State(n) is "Solution" or "Committed").ToList();
+        Assert.True(green.Select(State).Distinct().Count() <= 1, "an answer path is all Solution or all Committed");
         if (green.Count == 0) return green;
         Assert.Equal("n0", Id(green[0]));
         for (int i = 1; i < green.Count; i++) Assert.Equal(Id(green[i - 1]), Parent(green[i]));
