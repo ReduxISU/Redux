@@ -42,7 +42,7 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         map.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetProperty("state").GetString()!);
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     public static TheoryData<string, string, string> FramesCases {
@@ -151,7 +151,8 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(done, frames[^1]);
         Assert.All(frames, f => Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString())));
         Assert.All(frames.SkipLast(1), f => Assert.False(f.TryGetProperty("ok", out _)));
-        foreach (var f in frames) {
+        for (int i = 0; i < frames.Count; i++) {
+            var f = frames[i];
             Assert.Equal(["event", "caption", "focus", "pieces", "chain", "hull", "points", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             var states = StatesOf(f.GetProperty("points"));
@@ -162,15 +163,18 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 Assert.Equal(["points", "role"], p.EnumerateObject().Select(x => x.Name));
                 Assert.Contains(p.GetProperty("role").GetString(), new[] { "piece", "left", "right" });
             });
-            // Before the Done the hulls on the table and the chain are plain (#849), unless they are the point under test
-            // (highlighted) or popped (Rejected).
+            // Before the Done the hulls on the table and the chain are what the solver has kept so far: Committed (#849, #886),
+            // unless they are the point under test (highlighted) or popped (Rejected). The Accept that ends the run (the last
+            // merge, right before a correct Done) is the confirmed hull, so Solution.
             string ev = f.GetProperty("event").GetString()!;
             if (ev == "Done") continue;
+            bool endsRun = ev == "Accept" && frames[i + 1].GetProperty("event").GetString() == "Done";
+            string kept = endsRun ? "Solution" : "Committed";
             Assert.Empty(f.GetProperty("hull").EnumerateArray());
             var focus = f.GetProperty("focus").EnumerateArray().Select(x => x.GetString()!).ToHashSet();
             foreach (var id in pieces.SelectMany(p => p.GetProperty("points").EnumerateArray()).Concat(f.GetProperty("chain").EnumerateArray()).Select(x => x.GetString()!))
-                Assert.Equal(focus.Contains(id) ? (ev == "Reject" ? "Rejected" : "ElementHighlight") : null, states.GetValueOrDefault(id));
-            Assert.DoesNotContain("Solution", states.Values);
+                Assert.Equal(focus.Contains(id) ? (ev == "Reject" ? "Rejected" : "ElementHighlight") : kept, states[id]);
+            if (!endsRun) Assert.DoesNotContain("Solution", states.Values);
         }
         // The Done frame draws the answer's corners in order: Solution, every other point Covered.
         Assert.True(done.GetProperty("ok").GetBoolean());
@@ -195,12 +199,12 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             "{\"event\":\"Try\",\"caption\":\"Sort the 9 points by x, then y: P1, P4, P5, P9, P8, P6, P7, P2 and P3. Then split the list in half, again and again, until each piece has at most 3 points.\","
             + "\"focus\":[],\"pieces\":[],\"chain\":[],\"hull\":[],\"points\":{}}",
             Readable(frames[0]));
-        // A pop during the first merge: the corner under test is Rejected, the chain and both hulls stay plain (#849).
+        // A pop during the first merge: the corner under test is Rejected, the chain and both hulls stay Committed.
         var pop = frames.First(f => f.GetProperty("event").GetString() == "Reject");
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"The turn at P4 (from P1 to P5) is clockwise, so pop P4 from the bottom edge.\",\"focus\":[\"P4\"],"
             + "\"pieces\":[{\"points\":[\"P1\",\"P4\"],\"role\":\"left\"},{\"points\":[\"P5\",\"P9\"],\"role\":\"right\"}],\"chain\":[\"P1\"],\"hull\":[],"
-            + "\"points\":{\"P4\":{\"state\":\"Rejected\"}}}",
+            + "\"points\":{\"P1\":{\"state\":\"Committed\"},\"P4\":{\"state\":\"Rejected\"},\"P5\":{\"state\":\"Committed\"},\"P9\":{\"state\":\"Committed\"}}}",
             Readable(pop));
         // The mockup's solved view: the square's four corners in order, the five points inside Covered.
         Assert.Equal(
