@@ -108,22 +108,27 @@ public class BipartiteFrames_Tests {
 
     [Fact]
     public void WholeCandidate_Accept_IsSolution_UnderTheFocusHighlight() {
-        var f = BipartiteFrames.Frame(Cover(), ["S1", "S4"], StepEvent.Accept, [], "Try {S1,S4}. It covers U.");
+        // The Accept that ends the run is the confirmed answer.
+        var f = BipartiteFrames.Frame(Cover(), ["S1", "S4"], StepEvent.Accept, [], "Try {S1,S4}. It covers U.", endsRun: true);
         Assert.Equal(PictureState.Solution, State(f, "S1"));
         Assert.Equal(PictureState.Solution, EdgeState(f, "e:5~S4"));
         Assert.All(U, x => Assert.Equal(PictureState.Covered, State(f, "e:" + x)));
         // A brute force names the winning candidate as its focus, as Clique's does: the focus shows over Solution.
         var focused = BipartiteFrames.Frame(Cover(), ["S1", "S4"], StepEvent.Accept, ["S1", "S4"], "Try {S1,S4}. It covers U.");
         Assert.Equal(PictureState.ElementHighlight, State(focused, "S1"));
+        // An Accept the run goes on from is kept, not confirmed (#886).
+        var kept = BipartiteFrames.Frame(Cover(), ["S1", "S4"], StepEvent.Accept, [], "Try {S1,S4}. It covers U.");
+        Assert.Equal(PictureState.Committed, State(kept, "S1"));
+        Assert.Equal(PictureState.Committed, EdgeState(kept, "e:5~S4"));
     }
 
     // ---- incremental runs (greedy, Algorithm X) ----
 
     [Fact]
-    public void Incremental_TheCommittedPicksStaySolution_AndOnlyThePieceUnderTestIsHighlighted() {
+    public void Incremental_TheCommittedPicksStayCommitted_AndOnlyThePieceUnderTestIsHighlighted() {
         var f = BipartiteFrames.Frame(Exact(), ["S1", "S4"], StepEvent.Accept, ["S4"], "Try S4.", incremental: true);
-        Assert.Equal(PictureState.Solution, State(f, "S1"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "e:1~S1"));
+        Assert.Equal(PictureState.Committed, State(f, "S1"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "e:1~S1"));
         Assert.Equal(PictureState.ElementHighlight, State(f, "S4"));
         Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "e:5~S4"));
         // S2 = {2,4} and S3 = {3,4} would double up on covered elements.
@@ -143,7 +148,7 @@ public class BipartiteFrames_Tests {
         // Algorithm X: no set left can cover 5 without doubling up on 4.
         var f = BipartiteFrames.Frame(Exact(), ["S2"], StepEvent.Reject, ["e:5"], "No set left can cover 5.", incremental: true);
         Assert.Equal(PictureState.Rejected, State(f, "e:5"));
-        Assert.Equal(PictureState.Solution, State(f, "S2"));
+        Assert.Equal(PictureState.Committed, State(f, "S2"));
         Assert.Null(State(f, "e:1"));                  // not covered, but not failed: the search goes on
         Assert.Equal(PictureState.Blocked, State(f, "S4"));
 
@@ -151,19 +156,19 @@ public class BipartiteFrames_Tests {
         var over = BipartiteFrames.Frame(Cover(1), ["S1", "S2"], StepEvent.Reject, ["S2"], "That is 2 sets, more than K = 1.", incremental: true);
         Assert.Equal(PictureState.Rejected, State(over, "S2"));
         Assert.Equal(PictureState.Rejected, EdgeState(over, "e:4~S2"));
-        Assert.Equal(PictureState.Solution, State(over, "S1"));
+        Assert.Equal(PictureState.Committed, State(over, "S1"));
     }
 
     // ---- precedence ----
 
     [Fact]
-    public void Precedence_RejectedBeatsHighlight_HighlightBeatsSolutionAndCovered() {
+    public void Precedence_RejectedBeatsHighlight_HighlightBeatsCommittedAndCovered() {
         // e:3 is doubled (Rejected) and in the focus: it stays Rejected. e:1 is covered and in the focus: highlighted.
         var f = BipartiteFrames.Frame(Exact(), ["S1", "S3"], StepEvent.Accept, ["e:3", "e:1", "S1"], "...", incremental: true);
         Assert.Equal(PictureState.Rejected, State(f, "e:3"));
         Assert.Equal(PictureState.ElementHighlight, State(f, "e:1"));
         Assert.Equal(PictureState.ElementHighlight, State(f, "S1"));
-        Assert.Equal(PictureState.Solution, State(f, "S3"));
+        Assert.Equal(PictureState.Committed, State(f, "S3"));
     }
 
     // ---- the answer ----

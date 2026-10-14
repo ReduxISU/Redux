@@ -29,7 +29,7 @@ public class BipartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     // visualization, problem, pick side, rule, whether the instance has a K
@@ -320,6 +320,7 @@ public class BipartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 }
 
+[Collection(TimingCollection.Name)]
 public class BipartiteFrames_StoppedEndpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
