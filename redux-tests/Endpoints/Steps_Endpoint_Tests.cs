@@ -17,6 +17,9 @@ public class Steps_Endpoint_Tests : IClassFixture<AppFactory> {
         _client = factory.CreateClient();
     }
 
+    // DFA's default instance (its snapshot file was dropped with #733's snapshot tests).
+    private const string DfaDefaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
+
     private static string ReadSnapshot(string file) =>
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file)).Replace("\r\n", "\n");
 
@@ -72,7 +75,7 @@ public class Steps_Endpoint_Tests : IClassFixture<AppFactory> {
     [Fact]
     public async Task Visualize_DfaFramesFormat_HasOneFramePerStateEntered() {
         // Default instance: start state 1, then 2 -> two step frames plus the solved frame.
-        var (_, body) = await Visualize("visualization=dfavisualization&format=frames", ReadSnapshot("dfavisualization.instance.txt"));
+        var (_, body) = await Visualize("visualization=dfavisualization&format=frames", DfaDefaultInstance);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames");
         Assert.Equal(3, frames.GetArrayLength());
     }

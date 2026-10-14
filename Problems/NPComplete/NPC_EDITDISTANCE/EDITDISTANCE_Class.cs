@@ -24,7 +24,7 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public static string _defaultInstance { get; } = "(horse, ros)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    public const string InstanceGrammar = "(x, y) | x,y are strings";
+    public const string InstanceGrammar = "(x, y) | x,y are strings; a string containing a comma, quote, or leading/trailing space is written in double quotes with \\\" for a quote and \\ for a backslash, e.g. (\"a,b\", c); an optional third field k (an integer) is accepted and ignored";
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
     public string certificateFormat { get; } =
         $"Format: {EditDistanceVerifier.CertificateGrammar} Example: {EditDistanceVerifier.CertificateExample}";
@@ -47,10 +47,63 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public EDITDISTANCE(string instanceString) {
         instance = instanceString;
 
-        string trimmed = instanceString.Trim().TrimStart('(').TrimEnd(')');
-        string[] parts = trimmed.Split(',');
+        List<string> fields = splitFields(instanceString);
+        if (fields.Count is not (2 or 3))
+            throw new ProblemParseException("Edit Distance", instanceString,
+                $"expected (x, y) but found {fields.Count} comma-separated field(s)");
+        if (fields.Count == 3 && !int.TryParse(fields[2].Trim(), out _))
+            throw new ProblemParseException("Edit Distance", instanceString,
+                "a third field must be an integer k; put strings containing commas in double quotes");
 
-        sourceString = parts[0].Trim();
-        targetString = parts[1].Trim();
+        sourceString = fields[0];
+        targetString = fields[1];
+    }
+
+    // Splits "(x, y)" into its fields on commas that are outside double quotes. A quoted field keeps
+    // its contents verbatim (\" is a quote, \\ a backslash); an unquoted field is trimmed.
+    private static List<string> splitFields(string instanceString) {
+        string text = instanceString.Trim();
+        if (text.StartsWith('(') && text.EndsWith(')'))
+            text = text.Substring(1, text.Length - 2);
+
+        List<string> fields = new List<string>();
+        int pos = 0;
+        while (true) {
+            while (pos < text.Length && text[pos] == ' ') pos++;
+            string field;
+            if (pos < text.Length && text[pos] == '"') {
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                pos++;
+                bool closed = false;
+                while (pos < text.Length) {
+                    char c = text[pos++];
+                    if (c == '\\' && pos < text.Length && (text[pos] == '"' || text[pos] == '\\')) {
+                        sb.Append(text[pos++]);
+                    } else if (c == '"') {
+                        closed = true;
+                        break;
+                    } else {
+                        sb.Append(c);
+                    }
+                }
+                if (!closed)
+                    throw new ProblemParseException("Edit Distance", instanceString, "unterminated double quote");
+                while (pos < text.Length && text[pos] == ' ') pos++;
+                if (pos < text.Length && text[pos] != ',')
+                    throw new ProblemParseException("Edit Distance", instanceString, "unexpected text after a closing quote");
+                field = sb.ToString();
+            } else {
+                int end = text.IndexOf(',', pos);
+                if (end < 0) end = text.Length;
+                field = text.Substring(pos, end - pos).Trim();
+                if (field.Contains('"'))
+                    throw new ProblemParseException("Edit Distance", instanceString, "a double quote must start a quoted string");
+                pos = end;
+            }
+            fields.Add(field);
+            if (pos >= text.Length) break;
+            pos++; // the comma
+        }
+        return fields;
     }
 }

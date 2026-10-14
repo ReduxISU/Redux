@@ -22,7 +22,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
     // For each of the up-to-n input characters, solve() does "foreach (var edge in problem.edges)"
     // — a linear scan of all E edges to find the matching transition — instead of an O(1)
     // dictionary/table lookup, so this is O(n * E), not the ideal O(n).
-    public string complexity { get; } = "O(n * E)";
+    public MathematicalFunction timeComplexity { get; } = new("n * E", "");
 
     // Methods Including Constructors //
     public DFASolver() { }
@@ -33,6 +33,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
     // The run dies with a Reject; Done always closes the run with the states it stopped in.
     // Recorder state lives only in this call, so the solver object stays stateless.
     public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
+        SolveProbe.Hit(GetType());
         // Input String //
         string inputString = problem.inputString;
         // First Node To Be Analyzed //

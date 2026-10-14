@@ -37,15 +37,28 @@ public class SolverReplay_Tests {
                 .Select(l => l.Split(':')[1].Split(',').Last().Trim());
             return new ActiveStates(ends, last.Position);
         }
+        if (lastPartial is Distances distances) {
+            // The answer's paths (every innermost {...} group: SSSP lists one per node, SPSP is a single path) must
+            // follow the final predecessors, and every node on them must have a distance.
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(answer, @"\{([^{}()]*)\}")) {
+                var path = m.Groups[1].Value.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => n.Trim()).ToList();
+                Assert.All(path, n => Assert.True(distances.Dist.ContainsKey(n), $"{n} is on a path but has no distance"));
+                for (int i = 1; i < path.Count; i++)
+                    Assert.Equal(path[i - 1], distances.Pred[path[i]]);
+            }
+            return distances;
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
     }
 
     [Fact]
-    public void AtLeastDfaAndNfaAreDiscovered() {
+    public void AtLeastTheConvertedSolversAreDiscovered() {
         var names = TypedSolverNames.Select(d => d.Data).ToList();
         Assert.Contains("dfasolver", names);
         Assert.Contains("nfasolver", names);
+        Assert.Contains("ssspsolver", names);
+        Assert.Contains("spspsolver", names);
     }
 
     [Theory]
@@ -94,11 +107,12 @@ public class SolverReplay_Tests {
 
     [Fact]
     public void LegacySolver_RunKeepsUntypedSteps() {
-        // A solver that has not been converted reports no shape and keeps its untyped steps.
-        var sssp = ProblemProvider.Solvers.Values.First(t => TypedInterface(t) == null && typeof(ISolver).IsAssignableFrom(t) && t.Name == "SSSPSolver");
-        var legacy = (ISolver)Activator.CreateInstance(sssp)!;
+        // A solver that has not been converted reports no shape and keeps its untyped steps. The pump scheduling
+        // solver's GetSteps returns a marker step without solving.
+        var pump = ProblemProvider.Solvers.Values.First(t => TypedInterface(t) == null && typeof(ISolver).IsAssignableFrom(t) && t.Name == "PumpSchedulingCMSolver");
+        var legacy = (ISolver)Activator.CreateInstance(pump)!;
         var problem = (IProblem)Activator.CreateInstance(
-            sssp.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0])!;
+            pump.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<>)).GetGenericArguments()[0])!;
         var run = legacy.Run(problem.defaultInstance, true);
         Assert.Null(run.StepShape);
         Assert.NotEmpty(run.Steps);
