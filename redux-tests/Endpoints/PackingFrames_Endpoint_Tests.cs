@@ -35,7 +35,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         JsonSerializer.Serialize(element, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     public static TheoryData<string, string, string> FramesCases {
@@ -336,7 +336,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var reject = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().First(f => f.GetProperty("event").GetString() == "Reject");
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"No bin has room for 6, so take back the last choice.\",\"focus\":[\"I3\"],"
-            + "\"items\":{\"I1\":{\"state\":\"Solution\"},\"I2\":{\"state\":\"Solution\"},\"I3\":{\"state\":\"Rejected\"}},"
+            + "\"items\":{\"I1\":{\"state\":\"Committed\"},\"I2\":{\"state\":\"Committed\"},\"I3\":{\"state\":\"Rejected\"}},"
             + "\"containers\":{\"C1\":{\"state\":\"Covered\"},\"C2\":{\"state\":\"Covered\"}},\"assign\":[0,1,-1],\"totals\":[{\"size\":6},{\"size\":6}]}",
             Readable(reject));
     }

@@ -66,7 +66,7 @@ public class PackingFrames_Tests {
         var frame = PackingFrames.Frame(Sizes(PackingRule.BinPacking, 4, 4, 4) with { Limit = 8, Bins = 2 }, P(0, 1, 0), StepEvent.Accept, ["I3"], "c");
         Assert.Equal([0, 1, 0], frame.Assign);
         Assert.Equal([8, 4], frame.Totals.Select(t => t.Size));
-        Assert.Equal("I1:Solution I2:Solution I3:ElementHighlight", States(frame.Items));
+        Assert.Equal("I1:Committed I2:Committed I3:ElementHighlight", States(frame.Items));
     }
 
     [Fact]
@@ -155,17 +155,20 @@ public class PackingFrames_Tests {
     }
 
     [Fact]
-    public void IncrementalSteps_KeepWhatIsCommittedSolution_AndMarkOnlyTheFocus() {
+    public void IncrementalSteps_KeepWhatIsPackedCommitted_AndMarkOnlyTheFocus() {
         // Bin Packing brute force: 4 and 7 are placed, and no bin has room for 6 (C = 10, K = 2).
         var spec = Sizes(PackingRule.BinPacking, 4, 7, 6) with { Limit = 10, Bins = 2 };
         var reject = PackingFrames.Frame(spec, P(0, 1), StepEvent.Reject, ["I3"], "c", incremental: true);
-        Assert.Equal("I1:Solution I2:Solution I3:Rejected", States(reject.Items));
+        Assert.Equal("I1:Committed I2:Committed I3:Rejected", States(reject.Items));
         Assert.Equal("C1:Covered C2:Covered", States(reject.Containers));
         var accept = PackingFrames.Frame(spec, P(0, 1, 0), StepEvent.Accept, ["I3", "C1"], "c", incremental: true);
-        Assert.Equal("I1:Solution I2:Solution I3:ElementHighlight", States(accept.Items));
+        Assert.Equal("I1:Committed I2:Committed I3:ElementHighlight", States(accept.Items));
         Assert.Equal("C1:ElementHighlight C2:Covered", States(accept.Containers));
         var back = PackingFrames.Frame(spec, P(0), StepEvent.Backtrack, ["I2"], "c", incremental: true);
-        Assert.Equal("I1:Solution I2:ElementHighlight", States(back.Items));
+        Assert.Equal("I1:Committed I2:ElementHighlight", States(back.Items));
+        // The Accept that ends the run is the confirmed answer (#886).
+        var last = PackingFrames.Frame(spec, P(0, 1, 0), StepEvent.Accept, [], "c", incremental: true, endsRun: true);
+        Assert.Equal("I1:Solution I2:Solution I3:Solution", States(last.Items));
         // A whole candidate's Reject only highlights its focus.
         Assert.Equal("ElementHighlight", PackingFrames.Frame(spec, P(0, 1), StepEvent.Reject, ["I3"], "c").Items["I3"].State.ToString());
     }
@@ -176,7 +179,7 @@ public class PackingFrames_Tests {
         // Container 1 does not exist (one bin), and I9 and C7 are not ids of the picture.
         var frame = PackingFrames.Frame(spec, P(0, 1, 0), StepEvent.Accept, ["I9", "C7", "x"], "c", incremental: true);
         Assert.Equal([0, -1], frame.Assign);
-        Assert.Equal("I1:Solution", States(frame.Items));
+        Assert.Equal("I1:Committed", States(frame.Items));
         Assert.Equal("C1:Covered", States(frame.Containers));
     }
 

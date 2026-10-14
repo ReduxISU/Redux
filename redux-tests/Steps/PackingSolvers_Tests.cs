@@ -266,14 +266,14 @@ public class PackingSolvers_Tests {
     // ---- Frames from real runs ----
 
     [Fact]
-    public void IncrementalRun_KeepsWhatIsPlacedSolution_AndMarksTheItemWithNoBinRejected() {
+    public void IncrementalRun_KeepsWhatIsPlacedCommitted_AndMarksTheItemWithNoBinRejected() {
         string instance = "((4,7,3,6,2,8),10,3)";
         var run = ((ISolver)new API.Problems.NPComplete.NPC_BINPACKING.Solvers.BinPackingBruteForce()).Run(instance, withSteps: true);
         var frames = ((IFramesVisualization)new BinPackingVisualization()).BuildFrames(instance, run).Frames.Cast<PackingFrame>().ToList();
         var steps = run.Steps.Cast<SolverStep<Placement>>().ToList();
         int r = steps.FindIndex(s => s.Event == StepEvent.Reject);
         Assert.Equal("Rejected", frames[r].Items["I6"].State.ToString());
-        Assert.All(new[] { "I1", "I2", "I3", "I4", "I5" }, id => Assert.Equal("Solution", frames[r].Items[id].State.ToString()));
+        Assert.All(new[] { "I1", "I2", "I3", "I4", "I5" }, id => Assert.Equal("Committed", frames[r].Items[id].State.ToString()));
         Assert.All(frames.Take(frames.Count - 1), f => Assert.DoesNotContain(f.Containers.Values, s => s.State == PictureState.Rejected));
     }
 
