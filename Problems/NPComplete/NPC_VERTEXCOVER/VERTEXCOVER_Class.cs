@@ -83,6 +83,7 @@ class VERTEXCOVER : IGraphProblem<VertexCoverBruteForce, VCVerifier, VertexCover
         try {
             vertexCover.parse(instanceInput);
             nodes = vertexCover["N"].ToList().Select(node => node.ToString()).ToList();
+            UtilCollectionGraph.RefuseLoops(vertexCover["E"], problemName, instanceInput);
             edges = vertexCover["E"].ToList().Select(edge => {
                 List<UtilCollection> cast = edge.ToList();
                 return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());

@@ -117,11 +117,9 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
         StringParser graphcoloring = new(InstanceGrammar);
         graphcoloring.parse(GInput);
         nodes = graphcoloring["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(graphcoloring["E"], problemName, GInput);
         edges = graphcoloring["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
-            // SPADE reads the loop {a,a} as the one-node set {a} (#836).
-            if (cast.Count == 1)
-                throw new ProblemParseException(problemName, GInput, $"edge {{{cast[0]},{cast[0]}}} joins a node to itself; Graph Coloring has no loops");
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
         }).ToList();
         _K = int.Parse(graphcoloring["K"].ToString());

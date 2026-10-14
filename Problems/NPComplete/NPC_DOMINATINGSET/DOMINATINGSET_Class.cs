@@ -80,6 +80,7 @@ class DOMINATINGSET
         StringParser dominatingSetGraph = new(InstanceGrammar);
         dominatingSetGraph.parse(GInput);
         nodes = dominatingSetGraph["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(dominatingSetGraph["E"], problemName, GInput);
         edges = dominatingSetGraph["E"]
             .ToList()
             .Select(edge => {

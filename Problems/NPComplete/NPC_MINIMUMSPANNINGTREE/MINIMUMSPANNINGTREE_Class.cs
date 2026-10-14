@@ -68,6 +68,7 @@ class MINIMUMSPANNINGTREE : IGraphProblem<KruskalSolver, MinimumSpanningTreeVeri
         mstParser.parse(instanceString);
 
         nodes = mstParser["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(mstParser["E"], problemName, instanceString);
         listedEdges = ParallelEdges.Distinct(mstParser["E"].ToList().Select(edge => {
             List<UtilCollection> endpoints = edge[0].ToList();
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));

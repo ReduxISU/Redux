@@ -80,6 +80,7 @@ class CLIQUE : IGraphProblem<CliqueBruteForce, CliqueVerifier, CliqueDefaultVisu
         try {
             cliqueGraph.parse(GInput);
             nodes = cliqueGraph["N"].ToList().Select(node => node.ToString()).ToList();
+            UtilCollectionGraph.RefuseLoops(cliqueGraph["E"], problemName, GInput);
             edges = cliqueGraph["E"].ToList().Select(edge => {
                 List<UtilCollection> cast = edge.ToList();
                 return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());

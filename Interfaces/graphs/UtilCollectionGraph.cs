@@ -125,6 +125,18 @@ class UtilCollectionGraph : Graph {
         return graph;
     }
 
+    // Refuses an undirected edge from a node to itself (#836, #882). SPADE reads the loop {a,a} as the
+    // one-node set {a}, and ({a,a},w) as ({a},w), so reading the edge's second end failed with an index
+    // error. Call it on E before reading the edges.
+    public static void RefuseLoops(UtilCollection edges, string problemName, string received) {
+        foreach (UtilCollection edge in edges.ToList()) {
+            // A weighted edge is the pair (ends, weight); an unweighted one is the set of its ends.
+            List<UtilCollection> ends = (edge.IsOrdered() ? edge[0] : edge).ToList();
+            if (ends.Count == 1)
+                throw new ProblemParseException(problemName, received, $"edge {{{ends[0]},{ends[0]}}} joins a node to itself; {problemName} has no loops");
+        }
+    }
+
     public UtilCollectionGraph removeEdges(UtilCollection removedEdges) {
         HashSet<UtilCollection> edgeset = Edges.ToList().ToHashSet();
         edgeset.ExceptWith(removedEdges.ToList().ToHashSet());

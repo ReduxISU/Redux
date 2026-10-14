@@ -90,6 +90,7 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
         StringParser tsp = new(InstanceGrammar);
         tsp.parse(GInput);
         nodes = tsp["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(tsp["E"], problemName, GInput);
         listedEdges = ReadWeightedEdges(tsp["E"]);
         // A tour takes the cheapest way between two cities, so parallel edges merge into the lightest (#769).
         edges = ParallelEdges.Lightest(listedEdges);

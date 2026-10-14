@@ -92,6 +92,7 @@ class WEIGHTEDCUT : IGraphProblem<WeightedCutBruteForce, WeightedCutVerifier, We
         StringParser weightedCut = new(InstanceGrammar);
         weightedCut.parse(GInput);
         nodes = weightedCut["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(weightedCut["E"], problemName, GInput);
         listedEdges = ParallelEdges.Distinct(weightedCut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));

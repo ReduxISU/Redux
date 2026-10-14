@@ -66,6 +66,7 @@ class HAMILTONIAN : IGraphProblem<HamiltonianBruteForce, HamiltonianVerifier, Ha
         StringParser hamiltonian = new(InstanceGrammar);
         hamiltonian.parse(GInput);
         nodes = hamiltonian["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(hamiltonian["E"], problemName, GInput);
         edges = hamiltonian["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());

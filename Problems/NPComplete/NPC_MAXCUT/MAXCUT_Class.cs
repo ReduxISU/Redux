@@ -53,6 +53,7 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
         StringParser maxCut = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
         maxCut.parse(instance);
         nodes = maxCut["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(maxCut["E"], problemName, instanceString);
         listedEdges = ParallelEdges.Distinct(maxCut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));

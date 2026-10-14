@@ -83,6 +83,7 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
         StringParser cut = new(InstanceGrammar);
         cut.parse(GInput);
         nodes = cut["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(cut["E"], problemName, GInput);
         edges = cut["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());
