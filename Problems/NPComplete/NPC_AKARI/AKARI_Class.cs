@@ -71,6 +71,9 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         UtilCollection walls = parser["B"];
 
         // Puzzle Grid Version: 2D list of characters associated with each cell.
+        StringParser gridParser = new("{ (c) | c is list}");
+        gridParser.parse(instance);
+        UtilCollection columns = gridParser["c"]:
 
     }
 }
