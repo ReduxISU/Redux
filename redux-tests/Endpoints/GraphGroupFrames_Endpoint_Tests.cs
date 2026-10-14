@@ -28,7 +28,7 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     private const string ColoringVis = "graphcoloringdefaultvisualization";

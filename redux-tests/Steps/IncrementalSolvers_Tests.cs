@@ -7,7 +7,8 @@ namespace redux_tests;
 #pragma warning disable CS1591
 
 // Which typed solvers build their answer piece by piece (IIncrementalSolver), and what that does to their pictures: the
-// part they have committed stays Solution in every step, and only the piece under test (the focus) is highlighted or,
+// part they have committed stays Committed in every step until the run ends on it (#886), and only the piece under test
+// (the focus) is highlighted or,
 // in a Reject, Rejected. Solvers that judge whole candidates keep the candidate highlighted (see the frames tests).
 public class IncrementalSolvers_Tests {
     // Every typed solver whose steps a Graph picture draws, and whether it is incremental. Declared here on purpose: a new
@@ -107,13 +108,13 @@ public class IncrementalSolvers_Tests {
     // Leaves vertices out (Try) and rejects complete subsets that miss a vertex (Reject).
     [InlineData("dominatingsetnaiveinclusionexclusion", "dominatingsetdefaultvisualization", "(({a,b,c,d},{{a,b},{b,c},{c,d}}),1)")]
     [InlineData("dominatingsetforcedvertex", "dominatingsetdefaultvisualization", "(({a,b,c,d,e},{{a,b},{c,d}}),2)")]
-    public void Subset_TriedAndRejectedSteps_KeepTheCommittedSetSolution_AndMarkOnlyTheFocus(string solverName, string visualizationName, string instance) {
+    public void Subset_TriedAndRejectedSteps_KeepTheCommittedSetCommitted_AndMarkOnlyTheFocus(string solverName, string visualizationName, string instance) {
         var (steps, frames) = SubsetRun(solverName, visualizationName, instance);
         var checkedSteps = steps.Select((s, i) => (Step: s, Frame: frames[i])).Where(p => p.Step.Event is StepEvent.Try or StepEvent.Reject).ToList();
         Assert.Contains(checkedSteps, p => p.Step.Event == StepEvent.Reject);
         foreach (var (step, frame) in checkedSteps) {
             foreach (var node in step.Partial.Nodes.Except(step.Focus))
-                Assert.Equal(PictureState.Solution, frame.Nodes[node].State);
+                Assert.Equal(PictureState.Committed, frame.Nodes[node].State);
             var mark = step.Event == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
             foreach (var id in step.Focus)
                 Assert.Equal(mark, frame.Nodes[id].State);
@@ -126,7 +127,7 @@ public class IncrementalSolvers_Tests {
     // 1-3 would close a cycle once 1-2 and 2-3 are in the tree.
     [InlineData("({1,2,3,4},{({1,2},1),({2,3},1),({1,3},3),({3,4},5)})")]
     [InlineData("({a,b,c,d,e},{({a,b},1),({b,c},1),({a,c},1),({c,d},2),({b,d},2),({d,e},3),({a,e},4)})")]
-    public void Kruskal_ASkippedEdge_IsRejected_AndTheTreeSoFarStaysSolution(string instance) {
+    public void Kruskal_ASkippedEdge_IsRejected_AndTheTreeSoFarStaysCommitted(string instance) {
         var run = ((ISolver)new API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers.KruskalSolver()).Run(instance, withSteps: true);
         Assert.True(run.Incremental);
         var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["minimumspanningtreevisualization"])!;
@@ -136,7 +137,7 @@ public class IncrementalSolvers_Tests {
         Assert.NotEmpty(rejects);
         foreach (var (step, frame) in rejects) {
             Assert.NotEmpty(step.Partial.Edges);
-            foreach (var edge in step.Partial.Edges) Assert.Equal(PictureState.Solution, frame.Edges[edge].State);
+            foreach (var edge in step.Partial.Edges) Assert.Equal(PictureState.Committed, frame.Edges[edge].State);
             Assert.Equal(PictureState.Rejected, frame.Edges[Assert.Single(step.Focus)].State);
         }
     }
