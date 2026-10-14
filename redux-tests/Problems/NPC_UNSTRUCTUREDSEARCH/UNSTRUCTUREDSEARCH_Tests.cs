@@ -142,7 +142,7 @@ public class UNSTRUCTUREDSEARCH_tests {
     public void UnstructuredGroverSolver_Solve_Returns_Decoded_Index_From_Mocked_Server() {
         // funcValues = (0,1,0,0): only index 1 is non-zero, encoding to the 2-bit SAT
         // expression "(x0 & !x1)". The mocked quantum server answers with bitstring "10",
-        // which ReverseString flips to "01" -> Convert.ToInt32(_, 2) = 1.
+        // whose first character is x0 in the service's order -> item 1.
         var problem = new UNSTRUCTUREDSEARCH("(0, 1, 0, 0)");
         var handler = new FakeQuantumHandler("{\"qasm\":\"mock-circuit-xyz\",\"answer_bitstring\":\"10\"}");
         using var fake = InstallFakeQuantumServer(handler);
@@ -156,6 +156,44 @@ public class UNSTRUCTUREDSEARCH_tests {
         Assert.Contains("\"boolexpr\":\"(x0 \\u0026 !x1)\"", handler.LastRequestBody);
     }
 
+    // #883: the quantum service orders a formula's variables by sorting their names by code point, so from 11 variables
+    // up x10 comes before x2, and the bits it measures pair with the names in that order, not x0, x1, ...
+    [Fact]
+    public void UnstructuredGroverSolver_ServiceVariableOrder_SortsNamesByCodePoint() {
+        string formula = "(" + string.Join(" & ", Enumerable.Range(0, 12).Select(b => $"x{b}")) + ")";
+        Assert.Equal(new[] { "x0", "x1", "x10", "x11", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9" },
+            UnstructuredGroverSolver.ServiceVariableOrder(formula));
+    }
+
+    [Theory]
+    // 12 variables: character 2 is x10 and character 3 is x11, not x2 and x3.
+    [InlineData(12, "001000000000", 1024)]
+    [InlineData(12, "000100000000", 2048)]
+    [InlineData(12, "000010000000", 4)]
+    [InlineData(12, "111111111111", 4095)]
+    // 11 variables: item 1027 is x0, x1 and x10, the service's first three characters.
+    [InlineData(11, "11100000000", 1027)]
+    // Below 11 the service's order is x0, x1, ...: character i is bit i, as before.
+    [InlineData(4, "1010", 5)]
+    [InlineData(2, "10", 1)]
+    public void UnstructuredGroverSolver_Item_ReadsEachBitAsTheVariableTheServiceNamed(int variables, string bits, int item) {
+        string formula = "(" + string.Join(" & ", Enumerable.Range(0, variables).Select(b => $"x{b}")) + ")";
+        Assert.Equal(item, UnstructuredGroverSolver.Item(formula, bits));
+    }
+
+    [Fact]
+    public void UnstructuredGroverSolver_Solve_ElevenVariables_AnswersTheMarkedItem() {
+        // 2^11 items with only 1027 (x0, x1 and x10) marked. The fake answers in the service's order, x10 third, so
+        // reading the bits as x0, x1, x2, ... gave item 7.
+        var values = new int[2048];
+        values[1027] = 1;
+        var problem = new UNSTRUCTUREDSEARCH("(" + string.Join(",", values) + ")");
+        using var fake = FakeQuantumServer.Install(out var server);
+
+        Assert.Equal("1027", new UnstructuredGroverSolver().solve(problem));
+        Assert.True(problem.defaultVerifier.verify(problem, "1027"));
+    }
+
     [Fact]
     public void UnstructuredGroverSolver_Solve_Missing_Qasm_Field_Leaves_Circuit_Empty() {
         // When the response has no "qasm" field, problem.circuit is never assigned and
@@ -167,7 +205,7 @@ public class UNSTRUCTUREDSEARCH_tests {
 
         string result = solver.solve(problem);
 
-        // "01" reversed is "10" -> 2.
+        // "01": x1 is set -> 2.
         Assert.Equal("2", result);
         Assert.Equal("", problem.circuit);
     }
