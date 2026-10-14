@@ -68,10 +68,11 @@ sealed record GeometryFrame(
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
-/// <item>A corner of a hull on the table (a piece, or one of the two being merged) and a point on the chain are
-/// <c>Solution</c> in every step of an incremental run (what the solver has committed), and <c>ElementHighlight</c> while a
-/// whole candidate is only tried (Try, Reject of a run that is not <see cref="SolveRun.Incremental"/>;
-/// <see cref="GraphSubsetFrames.Picked"/>).</item>
+/// <item>A corner of a hull on the table (a piece, or one of the two being merged) and a point on the chain are plain
+/// (<c>Background</c>) before the Done frame: in every step of an incremental run (<see cref="SolveRun.Incremental"/>) and
+/// in an Accept or Backtrack, so Solution colour never shows while the solver is still working (#849, as #839 decided for
+/// the Board); the piece outlines and the chain show the progress. A whole candidate that is only being tried (Try, Reject
+/// of a run that is not incremental) is <c>ElementHighlight</c>.</item>
 /// <item>A dropped point (found inside a hull, or in the middle of an edge) is <c>Rejected</c>.</item>
 /// <item>The focus is <c>ElementHighlight</c>; in a Reject step of an incremental run it is what failed (a point popped from
 /// the chain), so <c>Rejected</c> (<see cref="GraphSubsetFrames.FocusMark"/>).</item>
@@ -136,8 +137,10 @@ static class GeometryFrames {
             pieces.AddRange(partial.Pieces.Select(p => new GeometryPieceDto(Known(p), "piece")));
             if (partial.Left.Length > 0) pieces.Add(new GeometryPieceDto(Known(partial.Left), "left"));
             if (partial.Right.Length > 0) pieces.Add(new GeometryPieceDto(Known(partial.Right), "right"));
-            var picked = GraphSubsetFrames.Picked(ev, incremental);
-            foreach (var id in pieces.SelectMany(p => p.Points).Concat(chain)) GraphSubsetFrames.Raise(states, id, picked);
+            // Mid-run a hull's corners are not the answer yet, so they stay plain (#849); only a whole candidate being tried
+            // shows.
+            if (!incremental && ev is StepEvent.Try or StepEvent.Reject)
+                foreach (var id in pieces.SelectMany(p => p.Points).Concat(chain)) GraphSubsetFrames.Raise(states, id, PictureState.ElementHighlight);
             foreach (var id in Known(partial.Dropped)) GraphSubsetFrames.Raise(states, id, PictureState.Rejected);
         }
 
