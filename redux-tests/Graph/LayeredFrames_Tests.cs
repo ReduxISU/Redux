@@ -99,14 +99,15 @@ public class LayeredFrames_Tests {
     // ---- Order ----
 
     [Fact]
-    public void Order_PlacedNodesAreSolution_ReadyNodesCovered_TheNodeJustPlacedHighlighted() {
+    public void Order_PlacedNodesAreCommitted_ReadyNodesCovered_TheNodeJustPlacedHighlighted() {
+        // Placed so far, not confirmed: Committed until the run ends on the order (#886).
         var f = LayeredFrames.Frame(Topo, new Tour(["1", "2"]), StepEvent.Accept, ["2"], "Place 2.", incremental: true);
         Assert.Equal(["1", "2"], f.Order);
-        Assert.Equal(PictureState.Solution, Node(f, "1"));
+        Assert.Equal(PictureState.Committed, Node(f, "1"));
         Assert.Equal(PictureState.ElementHighlight, Node(f, "2"));
         Assert.Equal(PictureState.Covered, Node(f, "3"));
         Assert.Null(Node(f, "4")); // still waits for 3
-        Assert.Equal(PictureState.Solution, Edge(f, "1>2"));
+        Assert.Equal(PictureState.Committed, Edge(f, "1>2"));
         Assert.Equal(PictureState.Covered, Edge(f, "1>3"));
         Assert.Equal(PictureState.Covered, Edge(f, "2>4"));
     }
@@ -143,10 +144,14 @@ public class LayeredFrames_Tests {
     [Fact]
     public void ArcSet_TheAnswerIsSolution_AndNoCycleIsLeft() {
         foreach (var ev in new[] { StepEvent.Accept, StepEvent.Done }) {
-            var f = LayeredFrames.Frame(Feedback(LayeredRule.FeedbackArcSet), new EdgeSet(["2>3"]), ev, [], "Found.", ev == StepEvent.Done ? true : null);
+            var f = LayeredFrames.Frame(Feedback(LayeredRule.FeedbackArcSet), new EdgeSet(["2>3"]), ev, [], "Found.", ev == StepEvent.Done ? true : null,
+                endsRun: ev == StepEvent.Accept);
             Assert.Equal(PictureState.Solution, Edge(f, "2>3"));
             Assert.Single(f.Edges);
         }
+        // An Accept the run goes on from is kept, not confirmed (#886).
+        var kept = LayeredFrames.Frame(Feedback(LayeredRule.FeedbackArcSet), new EdgeSet(["2>3"]), StepEvent.Accept, [], "Found.");
+        Assert.Equal(PictureState.Committed, Edge(kept, "2>3"));
     }
 
     [Fact]
@@ -174,6 +179,10 @@ public class LayeredFrames_Tests {
         Assert.Equal(PictureState.Covered, Node(pass1, "2"));
         Assert.Equal(["2"], pass1.Finish);
         Assert.Empty(pass1.Groups!);
+        // A component found mid-run is kept so far (Committed, #886).
+        var found = LayeredFrames.Frame(spec, new Components(new Dictionary<string, int> { ["4"] = 0, ["5"] = 0 }, ["1", "2", "3", "4", "5"], ["5", "4"]),
+            StepEvent.Accept, [], "Found {4,5}.", incremental: true);
+        Assert.Equal(PictureState.Committed, Edge(found, "4>5"));
 
         var groups = new Dictionary<string, int> { ["1"] = 0, ["2"] = 0, ["3"] = 0, ["4"] = 1, ["5"] = 1 };
         var done = LayeredFrames.Frame(spec, new Components(groups, groups.Keys, ["5", "4", "3", "2", "1"]), StepEvent.Done, [], "Done.", true, incremental: true);
@@ -196,6 +205,10 @@ public class LayeredFrames_Tests {
         Assert.Equal(PictureState.Covered, Node(f, "2"));
         Assert.Equal(PictureState.ElementHighlight, Edge(f, "1>2"));
         Assert.Null(Node(f, "4"));
+        // A settled node is kept so far until the run ends: Committed, not Solution (#886).
+        var later = LayeredFrames.Frame(Sssp, new Distances(d.Dist, d.Pred, ["1", "3"]), StepEvent.Accept, ["3"], "Settle 3.", incremental: true);
+        Assert.Equal(PictureState.Committed, Node(later, "1"));
+        Assert.Equal(PictureState.Committed, Edge(later, "1>3"));
         Assert.Equal(new Dictionary<string, int?> { ["1"] = 0, ["2"] = 4, ["3"] = 2, ["4"] = null }, f.Dist);
         Assert.Equal(new Dictionary<string, string> { ["2"] = "1", ["3"] = "1" }, f.Pred);
 

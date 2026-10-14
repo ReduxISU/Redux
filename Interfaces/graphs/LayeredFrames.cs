@@ -147,23 +147,26 @@ sealed record LayeredFrame(
 /// crosses it.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>,
-/// with <c>Untraveled</c> only where nothing else applies; see <see cref="GraphSubsetFrames.Raise"/>):
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>,
+/// with <c>Untraveled</c> only where nothing else applies; see <see cref="GraphSubsetFrames.Raise"/>). What a solver has
+/// kept is <c>Committed</c> until the run ends on it, and <c>Solution</c> only in the confirmed answer (the Done, or an Accept
+/// that ends the run; <see cref="GraphSubsetFrames.Picked"/>, #886):
 /// </para>
 /// <list type="bullet">
-/// <item><b>Order</b> (Topological Sort): placed nodes are <c>Solution</c> (an incremental solver's committed order), nodes
+/// <item><b>Order</b> (Topological Sort): placed nodes are <c>Committed</c> (an incremental solver's committed order), nodes
 /// ready to place (every edge into them comes from a placed node) <c>Covered</c>; an edge between two placed nodes is
-/// <c>Solution</c> when it points forward and <c>Rejected</c> when it points backward, an edge out of a placed node to one not
+/// <c>Committed</c> when it points forward and <c>Rejected</c> when it points backward, an edge out of a placed node to one not
 /// placed yet <c>Covered</c>. A Done that is not ok shows the nodes that can never be placed and one cycle among them
 /// <c>Rejected</c>.</item>
 /// <item><b>Removed set</b> (Feedback Arc Set, edges; Feedback Node Set, nodes): what the candidate removes is
-/// <c>ElementHighlight</c> while it is only tried (<see cref="GraphSubsetFrames.Picked"/>) and <c>Solution</c> in an Accept
-/// or the answer (the frontend draws a removed edge dashed); edges that go with a removed node are <c>Untraveled</c>; a cycle
+/// <c>ElementHighlight</c> while it is only tried (<see cref="GraphSubsetFrames.Picked"/>), <c>Committed</c> in an Accept the
+/// run goes on from, and <c>Solution</c> in the answer (the frontend draws a removed edge dashed); edges that go with a removed node are <c>Untraveled</c>; a cycle
 /// that survives the removal is <c>Rejected</c>.</item>
 /// <item><b>Groups</b> (Strongly Connected Components): <c>groups</c> colors the nodes, so a node in a component has no
 /// state of its own (as in the Graph picture's groups shape); a node the first pass has visited but no component holds yet is
-/// <c>Covered</c>; an edge inside a component is <c>Solution</c>.</item>
-/// <item><b>Distances</b> (SSSP, SPSP): settled nodes and the edges they were settled through are <c>Solution</c>; nodes
+/// <c>Covered</c>; an edge inside a component is <c>Committed</c>, and <c>Solution</c> in the answer.</item>
+/// <item><b>Distances</b> (SSSP, SPSP): settled nodes and the edges they were settled through are <c>Committed</c> (their
+/// cost is final, but the run is not over), and <c>Solution</c> in the answer; nodes
 /// reached but not settled, and the edges they were reached through, <c>Covered</c>. In the Done step nodes never reached
 /// are <c>Untraveled</c>; for a single pair only the path is <c>Solution</c> (other settled nodes are <c>Covered</c>), and an
 /// unreached target is <c>Rejected</c>.</item>
@@ -429,32 +432,35 @@ static class LayeredFrames {
     /// The frame for one step. <paramref name="partial"/> is the step's partial answer, of the rule's shape
     /// (<see cref="StepShape"/>): <see cref="Tour"/> of node names, <see cref="EdgeSet"/> of edge ids, <see cref="NodeSet"/>
     /// of node names, <see cref="Components"/> or <see cref="Distances"/> keyed by node name. <paramref name="incremental"/>
-    /// says whether the step comes from an incremental run (<see cref="SolveRun.Incremental"/>).
+    /// says whether the step comes from an incremental run (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/>
+    /// whether it is an Accept that ends the run (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static LayeredFrame Frame(LayeredSpec spec, object partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) =>
-        Frame(new Model(spec), partial, ev, focus, caption, ok, incremental);
+    public static LayeredFrame Frame(LayeredSpec spec, object partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) =>
+        Frame(new Model(spec), partial, ev, focus, caption, ok, incremental, endsRun);
 
-    private static LayeredFrame Frame(Model m, object partial, StepEvent ev, string[] focus, string caption, bool? ok, bool incremental) {
+    private static LayeredFrame Frame(Model m, object partial, StepEvent ev, string[] focus, string caption, bool? ok, bool incremental, bool endsRun) {
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var known = new HashSet<string>(m.Nodes, StringComparer.Ordinal);
+        // What the step keeps: Committed until the run ends on it, Solution in the answer (#886).
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         LayeredFrame frame;
 
         switch (partial) {
             case Tour tour:
-                frame = OrderFrame(m, tour.Order.Where(known.Contains).Distinct(StringComparer.Ordinal).ToList(), ev, ok, nodes, edges);
+                frame = OrderFrame(m, tour.Order.Where(known.Contains).Distinct(StringComparer.Ordinal).ToList(), ev, ok, picked, nodes, edges);
                 break;
             case EdgeSet removed:
-                frame = ArcSetFrame(m, removed, GraphSubsetFrames.Picked(ev, incremental), edges);
+                frame = ArcSetFrame(m, removed, picked, edges);
                 break;
             case NodeSet removed:
-                frame = NodeSetFrame(m, removed, GraphSubsetFrames.Picked(ev, incremental), known, nodes, edges);
+                frame = NodeSetFrame(m, removed, picked, known, nodes, edges);
                 break;
             case Components components:
-                frame = GroupsFrame(m, components, known, nodes, edges);
+                frame = GroupsFrame(m, components, picked, known, nodes, edges);
                 break;
             case Distances distances:
-                frame = DistancesFrame(m, distances, ev, ok, known, nodes, edges);
+                frame = DistancesFrame(m, distances, ev, ok, picked, known, nodes, edges);
                 break;
             default:
                 throw new ArgumentException($"A Layered Graph picture cannot draw a {partial.GetType().Name}.", nameof(partial));
@@ -500,7 +506,7 @@ static class LayeredFrames {
         return Blank(StepEvent.Try, "", []);
     }
 
-    private static LayeredFrame OrderFrame(Model m, List<string> placed, StepEvent ev, bool? ok,
+    private static LayeredFrame OrderFrame(Model m, List<string> placed, StepEvent ev, bool? ok, PictureState picked,
         Dictionary<string, PictureState> nodes, Dictionary<string, PictureState> edges) {
         if (ev == StepEvent.Done && ok != true && placed.Count < m.Nodes.Count) {
             // No order exists: the nodes Kahn's algorithm can never place, and one cycle among them.
@@ -512,7 +518,7 @@ static class LayeredFrames {
         }
         var position = new Dictionary<string, int>(StringComparer.Ordinal);
         for (int i = 0; i < placed.Count; i++) position[placed[i]] = i;
-        foreach (var n in placed) GraphSubsetFrames.Raise(nodes, NodeId(n), PictureState.Solution);
+        foreach (var n in placed) GraphSubsetFrames.Raise(nodes, NodeId(n), picked);
         // Ready to place: every edge into it comes from a placed node. A failed Done has nothing ready (it is stuck).
         if (!(ev == StepEvent.Done && ok != true))
             foreach (var n in m.Nodes)
@@ -520,13 +526,13 @@ static class LayeredFrames {
                     GraphSubsetFrames.Raise(nodes, NodeId(n), PictureState.Covered);
         foreach (var e in m.Edges) {
             bool a = position.TryGetValue(e.A, out int pa), b = position.TryGetValue(e.B, out int pb);
-            if (a && b) GraphSubsetFrames.Raise(edges, e.Id, pa < pb ? PictureState.Solution : PictureState.Rejected);
+            if (a && b) GraphSubsetFrames.Raise(edges, e.Id, pa < pb ? picked : PictureState.Rejected);
             else if (a) GraphSubsetFrames.Raise(edges, e.Id, PictureState.Covered);
         }
         return Blank(ev, "", []) with { Order = placed.Select(NodeId).ToList() };
     }
 
-    private static LayeredFrame GroupsFrame(Model m, Components c, HashSet<string> known,
+    private static LayeredFrame GroupsFrame(Model m, Components c, PictureState picked, HashSet<string> known,
         Dictionary<string, PictureState> nodes, Dictionary<string, PictureState> edges) {
         var groups = new SortedDictionary<string, int>(StringComparer.Ordinal);
         var of = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -539,14 +545,14 @@ static class LayeredFrames {
             if (known.Contains(n) && !of.ContainsKey(n)) GraphSubsetFrames.Raise(nodes, NodeId(n), PictureState.Covered);
         foreach (var e in m.Edges)
             if (of.TryGetValue(e.A, out int ga) && of.TryGetValue(e.B, out int gb) && ga == gb)
-                GraphSubsetFrames.Raise(edges, e.Id, PictureState.Solution);
+                GraphSubsetFrames.Raise(edges, e.Id, picked);
         return Blank(StepEvent.Try, "", []) with {
             Groups = groups,
             Finish = c.Finished.Where(known.Contains).Select(NodeId).ToList(),
         };
     }
 
-    private static LayeredFrame DistancesFrame(Model m, Distances d, StepEvent ev, bool? ok, HashSet<string> known,
+    private static LayeredFrame DistancesFrame(Model m, Distances d, StepEvent ev, bool? ok, PictureState picked, HashSet<string> known,
         Dictionary<string, PictureState> nodes, Dictionary<string, PictureState> edges) {
         bool directed = m.Spec.Directed;
         var settled = new HashSet<string>(d.Settled.Where(known.Contains), StringComparer.Ordinal);
@@ -576,7 +582,7 @@ static class LayeredFrames {
             foreach (var n in m.Nodes) {
                 bool reached = d.Dist.ContainsKey(n);
                 if (!reached) continue;
-                var state = settled.Contains(n) ? PictureState.Solution : PictureState.Covered;
+                var state = settled.Contains(n) ? picked : PictureState.Covered;
                 GraphSubsetFrames.Raise(nodes, NodeId(n), state);
                 if (TreeEdge(n) is { } id) GraphSubsetFrames.Raise(edges, id, state);
             }
@@ -682,11 +688,13 @@ static class LayeredFrames {
         var m = new Model(spec);
         var frames = new List<object>();
         StepEvent? last = null;
-        foreach (var step in run.StepsFor(StepShape(spec.Rule))) {
-            var (partial, ev, focus, caption, ok) = Read(step);
+        var steps = run.StepsFor(StepShape(spec.Rule)).Select(Read).ToList();
+        for (int i = 0; i < steps.Count; i++) {
+            var (partial, ev, focus, caption, ok) = steps[i];
+            bool endsRun = i + 1 < steps.Count && GraphSubsetFrames.EndsRun(ev, steps[i + 1].Event, steps[i + 1].Ok);
             frames.Add(run.TimedOut && ev == StepEvent.Done
                 ? StoppedFrame(spec, caption)
-                : Frame(m, partial, ev, focus, caption, ok, run.Incremental));
+                : Frame(m, partial, ev, focus, caption, ok, run.Incremental, endsRun));
             last = ev;
         }
         bool endsWithDone = last == StepEvent.Done;
@@ -694,7 +702,7 @@ static class LayeredFrames {
             if (!endsWithDone) frames.Add(StoppedFrame(spec, GraphSubsetFrames.StoppedCaption));
         } else if (!endsWithDone) {
             bool ok = verifyAnswer(run.Answer);
-            frames.Add(Frame(m, parseAnswer(run.Answer), StepEvent.Done, [], ok ? $"The answer is {run.Answer}." : "No answer was found.", ok, false));
+            frames.Add(Frame(m, parseAnswer(run.Answer), StepEvent.Done, [], ok ? $"The answer is {run.Answer}." : "No answer was found.", ok, false, false));
         }
         return new FramesResponse(nameof(VisualizationType.LayeredGraph), Payload(m), frames);
     }
