@@ -289,9 +289,10 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // Minimum Traveling Salesperson's brute force judges whole tours: a tour it only tries is highlighted, never drawn as
-    // Solution; a new best tour (Accept) and the answer (Done) are.
+    // Solution; a new best tour (Accept) is kept but not confirmed (Committed, #886) unless the run ends on it, and the
+    // answer (Done) is Solution.
     [Fact]
-    public async Task Frames_MinimumTsp_TriesAreHighlighted_OnlyAcceptsAndDoneAreSolution() {
+    public async Task Frames_MinimumTsp_TriesAreHighlighted_BestToursCommitted_OnlyTheAnswerIsSolution() {
         var (status, body) = await Visualize($"visualization={MinTspVis}&format=frames", DefaultInstance(MinTspVis));
         Assert.Equal(HttpStatusCode.OK, status);
         var root = JsonDocument.Parse(body).RootElement;
@@ -303,16 +304,18 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
         var frames = Frames(body);
         Assert.Equal(24 + 1, frames.Count);
-        foreach (var f in frames) {
+        for (int i = 0; i < frames.Count; i++) {
+            var f = frames[i];
             string ev = f.GetProperty("event").GetString()!;
             var nodes = States(f, "nodes");
             var edges = States(f, "edges");
             Assert.Equal(5, Order(f).Length - 1);   // every frame is a whole closed tour
             switch (ev) {
                 case "Accept":
+                    bool endsRun = frames[i + 1].GetProperty("event").GetString() == "Done";
                     Assert.Equal(5, edges.Count);
-                    Assert.All(edges.Values, s => Assert.Equal("Solution", s));
-                    Assert.All(nodes.Values, s => Assert.Equal("Covered", s));
+                    Assert.All(edges.Values, s => Assert.Equal(endsRun ? "Solution" : "Committed", s));
+                    Assert.All(nodes.Values, s => Assert.Equal(endsRun ? "Solution" : "Covered", s));
                     break;
                 case "Reject":
                     Assert.DoesNotContain("Solution", nodes.Values.Concat(edges.Values));
