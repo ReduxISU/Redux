@@ -72,13 +72,14 @@ sealed record TripartiteFrame(
 /// separators in them all stay distinct, and no id needs escaping.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>; see
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>; see
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
 /// <item>A chosen triple is <c>ElementHighlight</c> while a whole candidate is only being tried (Try, Reject of a run that is
-/// not <see cref="SolveRun.Incremental"/>) and <c>Solution</c> otherwise: in every step of an incremental run (what it has
-/// committed), in an Accept and in a correct Done (<see cref="GraphSubsetFrames.Picked"/>). In a Done frame with ok = false
+/// not <see cref="SolveRun.Incremental"/>), <c>Committed</c> while it is kept but not confirmed (in every step of an
+/// incremental run, what it has committed, and in an Accept the run goes on from; #886), and <c>Solution</c> only in the
+/// confirmed answer: a correct Done, or an Accept that ends the run (<see cref="GraphSubsetFrames.Picked"/>). In a Done frame with ok = false
 /// it is <c>Rejected</c>. A chosen triple that shares an element with another chosen triple is <c>Rejected</c>.</item>
 /// <item>An element the chosen triples use once is <c>Covered</c>; one they use more than once is <c>Rejected</c>, and is
 /// listed in <c>repeats</c>.</item>
@@ -136,9 +137,10 @@ static class TripartiteFrames {
 
     /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static TripartiteFrame Frame(TripartiteSpec spec, ChosenTriples partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static TripartiteFrame Frame(TripartiteSpec spec, ChosenTriples partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var chosen = Indices(spec, partial);
         var uses = Uses(spec, chosen);
         var elements = new Dictionary<string, PictureState>(StringComparer.Ordinal);
@@ -147,7 +149,7 @@ static class TripartiteFrames {
         foreach (var (id, n) in uses)
             GraphSubsetFrames.Raise(elements, id, n > 1 ? PictureState.Rejected : PictureState.Covered);
 
-        var picked = ev == StepEvent.Done && ok != true ? PictureState.Rejected : GraphSubsetFrames.Picked(ev, incremental);
+        var picked = ev == StepEvent.Done && ok != true ? PictureState.Rejected : GraphSubsetFrames.Picked(ev, incremental, endsRun);
         var isChosen = new HashSet<int>(chosen);
         for (int i = 0; i < spec.Triples.Count; i++) {
             var ids = ElementIds(spec.Triples[i]);
@@ -213,10 +215,10 @@ static class TripartiteFrames {
     public static FramesResponse Build(TripartiteSpec spec, SolveRun run, Func<string, ChosenTriples> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<ChosenTriples>? last = null;
-        foreach (var step in run.StepsFor(typeof(ChosenTriples)).OfType<SolverStep<ChosenTriples>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(ChosenTriples)).OfType<SolverStep<ChosenTriples>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {
