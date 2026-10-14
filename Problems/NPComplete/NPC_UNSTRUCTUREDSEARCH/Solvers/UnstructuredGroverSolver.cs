@@ -37,7 +37,8 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
 
     // Steps: a Try per column of Grover's circuit for the table (the textbook circuit, drawn and simulated here; the server
     // builds its own from the SAT expression and is never asked for these), then an Accept with the item the server
-    // measured, and Done with the verdict. A server that gives no answer throws, as solve always has.
+    // measured (a Reject when it gave no answer), and Done with the verdict. With no answer, the answer is the server's
+    // error, as the other quantum solvers give it (#838).
     public string Solve(UNSTRUCTUREDSEARCH problem, StepRecorder<QuantumProgress> rec) {
         // We have to convert the function values into a SAT problem
         int nbits = PowerOfTwo(problem.funcValues.Count);
@@ -62,7 +63,16 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
 
         var satproblem = String.Join(" | ", exprs);
         var counts = new List<KeyValuePair<string, long>>();
-        string measured = SolveAsSat(problem, satproblem, counts);
+        (string? measured, string error, bool reached) = SolveAsSat(problem, satproblem, counts);
+        if (measured == null) {
+            if (spec != null) {
+                int all = spec.Columns.Count;
+                rec.Reject(() => new QuantumProgress(all, counts: counts), () => $"The quantum server gave no answer: {error}");
+                QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, error), new QuantumProgress(all, counts: counts, result: error),
+                    _ => reached ? "No answer: the quantum server did not give one." : "No answer: the quantum service could not be reached.");
+            }
+            return error;
+        }
         var solution = ReverseString(measured);
         string answer = Convert.ToInt32(solution, 2).ToString();
         if (spec != null) {
@@ -92,7 +102,13 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
         }
     }
 
-    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, List<KeyValuePair<string, long>> counts) {
+    // Text inside the error's JSON string.
+    private static string Escape(string text) => JsonEncodedText.Encode(text, System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping).ToString();
+
+    // The bits the server measured, x0 first; or null, with the error to answer instead and whether the server was reached
+    // at all (it answered, but with no bit string).
+    private (string? Measured, string Error, bool Reached) SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, List<KeyValuePair<string, long>> counts) {
+        string response;
         try {
             var requestBody = new JSON_Sat_Problem(problemInstance);
 
@@ -100,8 +116,13 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
             var client = new QuantumServerAPI();
 
             // Make the API call to the quantum endpoint
-            string response = client.PostAsync("/sat-quantum", requestBody).Result;
+            response = client.PostAsync("/sat-quantum", requestBody).Result;
+        } catch (Exception ex) {
+            // Error information, as the other quantum solvers return it
+            return (null, $"{{\"error\": \"{Escape(ex.Message)}\"}}", false);
+        }
 
+        try {
             // Parse the JSON response and extract just the answer
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
@@ -110,23 +131,15 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
             if (root.TryGetProperty("qasm", out JsonElement circuitElement)) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
-            if (root.TryGetProperty("answer_bitstring", out JsonElement answerElement)) {
-                return answerElement.GetString() ?? "No answer found";
+            if (root.TryGetProperty("answer_bitstring", out JsonElement answerElement) && answerElement.ValueKind == JsonValueKind.String
+                && answerElement.GetString() is { Length: > 0 and <= 31 } bits && bits.All(c => c is '0' or '1')) {
+                return (bits, "", true);
             }
-
-            // The quantum service responded, but its JSON has no `answer_bitstring` field.
-            // Returning the raw response here would let the caller misinterpret it as
-            // bitstring data (solve() reverses it and parses it as a base-2 integer),
-            // producing a confusing FormatException instead of a clear error.
-            throw new InvalidOperationException(
-                $"Quantum service response is missing the expected 'answer_bitstring' field: {response}");
-        } catch (Exception ex) when (ex is not InvalidOperationException) {
-            // Wrap failures from the HTTP call/setup (network errors, timeouts, JSON parse
-            // failures, etc.) in the same descriptive exception type instead of swallowing
-            // them into an error-JSON string that would hit the same missing-field case above.
-            throw new InvalidOperationException(
-                $"Failed to obtain an answer from the quantum service: {ex.Message}", ex);
+        } catch (JsonException) {
+            // Not JSON: no answer, as below.
         }
+        // The quantum service responded, but with no bit string to read as an item.
+        return (null, $"{{\"error\": \"The quantum service gave no answer_bitstring: {Escape(response)}\"}}", true);
     }
 
 }

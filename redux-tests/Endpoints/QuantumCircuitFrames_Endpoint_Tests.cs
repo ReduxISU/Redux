@@ -267,6 +267,48 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Empty(frames[^1].GetProperty("qubits").EnumerateObject());
     }
 
+    // #838: Grover's solver threw when the quantum service was down, so solve and both visualize formats answered an empty 500.
+    // Now it ends like the other server solvers: a Reject, then Done not ok, with the server's error as its answer.
+    [Fact]
+    public async Task Frames_Grover_ServerDown_EndsNotOk_SayingTheServiceCouldNotBeReached() {
+        using var fake = FakeQuantumServer.Install(out var server);
+        server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
+        var (status, body) = await Visualize("visualization=unstructuredsearchvisualization&format=frames&solver=unstructuredgroversolver", "(0, 1, 0, 0)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal("Reject", frames[^2].GetProperty("event").GetString());
+        Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
+        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal("No answer: the quantum service could not be reached.", frames[^1].GetProperty("caption").GetString());
+        Assert.StartsWith("{\"error\":", frames[^1].GetProperty("result").GetString());
+        Assert.Empty(frames[^1].GetProperty("qubits").EnumerateObject());
+    }
+
+    [Fact]
+    public async Task Frames_Grover_NoBitString_EndsNotOk_SayingTheServerGaveNoAnswer() {
+        using var fake = FakeQuantumServer.Install(out var server);
+        server.Canned = (HttpStatusCode.OK, "{\"qasm\": \"OPENQASM 2.0;\"}");
+        var (status, body) = await Visualize("visualization=unstructuredsearchvisualization&format=frames&solver=unstructuredgroversolver", "(0, 1, 0, 0)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(["Reject", "Done"], frames.TakeLast(2).Select(f => f.GetProperty("event").GetString()));
+        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal("No answer: the quantum server did not give one.", frames[^1].GetProperty("caption").GetString());
+    }
+
+    [Fact]
+    public async Task Grover_ServerDown_SolveAndListVisualize_AnswerTheServersError() {
+        using var fake = FakeQuantumServer.Install(out var server);
+        server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
+        var content = new StringContent(JsonSerializer.Serialize("(0, 1, 0, 0)"), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=unstructuredgroversolver", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("error", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        var (status, body) = await Visualize("visualization=unstructuredsearchvisualization&solver=unstructuredgroversolver", "(0, 1, 0, 0)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.NotEmpty(body);
+    }
+
     [Theory]
     [InlineData("deutschjozsadefaultvisualization", "(1,1,1)")]
     [InlineData("simonvisualization", "(1,2,3)")]
