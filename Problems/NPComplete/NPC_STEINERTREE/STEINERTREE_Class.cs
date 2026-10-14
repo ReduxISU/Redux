@@ -85,6 +85,7 @@ class STEINERTREE : IGraphProblem<SteinerTreeBruteForce, SteinerTreeVerifier, St
         StringParser steinerTreeGraph = new(InstanceGrammar);
         steinerTreeGraph.parse(GInput);
         nodes = steinerTreeGraph["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(steinerTreeGraph["E"], problemName, GInput);
         edges = steinerTreeGraph["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());

@@ -84,6 +84,32 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("edge {a,a} joins a node to itself; Graph Coloring has no loops", doc.RootElement.GetProperty("detail").GetString());
     }
 
+    // #882: the other graph problems with undirected edges read the same loop the same way, weighted ones as ({a},w).
+    // The shared check refuses it in each, naming the edge and the problem.
+    [Theory]
+    [InlineData("CLIQUE", "(({a,b},{{a,b},{a,a}}),2)", "Clique")]
+    [InlineData("CLIQUECOVER", "(({a,b},{{a,b},{a,a}}),2)", "Clique Cover")]
+    [InlineData("CUT", "(({a,b},{{a,b},{a,a}}),2)", "Cut")]
+    [InlineData("DOMINATINGSET", "(({a,b},{{a,b},{a,a}}),2)", "Dominating Set")]
+    [InlineData("GRAPHCOLORING", "(({a,b},{{a,b},{a,a}}),2)", "Graph Coloring")]
+    [InlineData("HAMILTONIAN", "({a,b},{{a,b},{a,a}})", "Hamiltonian Cycle")]
+    [InlineData("INDEPENDENTSET", "(({a,b},{{a,b},{a,a}}),2)", "Independent Set")]
+    [InlineData("MAXCUT", "({a,b},{({a,b},1),({a,a},3)})", "Max Cut")]
+    [InlineData("MINCUT", "({a,b},{({a,b},1),({a,a},3)})", "Minimum Cut")]
+    [InlineData("MINIMUMSPANNINGTREE", "({a,b},{({a,b},1),({a,a},3)})", "Minimum Spanning Tree")]
+    [InlineData("MINIMUMVERTEXCOVER", "({a,b},{{a,b},{a,a}})", "Minimum Vertex Cover")]
+    [InlineData("STEINERTREE", "(({a,b},{{a,b},{a,a}}),{a,b},2)", "Steiner Tree")]
+    [InlineData("TSP", "(({a,b},{({a,b},1),({a,a},3)}),5)", "Traveling Salesperson")]
+    [InlineData("VERTEXCOVER", "(({a,b},{{a,b},{a,a}}),2)", "Vertex Cover")]
+    [InlineData("WEIGHTEDCUT", "(({a,b},{({a,b},1),({a,a},3)}),5)", "Weighted Cut")]
+    public async Task ProblemInstance_GraphLoop_Returns400NamingTheLoop(string problem, string instance, string name) {
+        var (status, body) = await PostAsync($"/ProblemProvider/problemInstance?problem={problem}", instance);
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        using JsonDocument doc = JsonDocument.Parse(body);
+        Assert.Equal("instance_parse_error", doc.RootElement.GetProperty("error").GetString());
+        Assert.Equal($"edge {{a,a}} joins a node to itself; {name} has no loops", doc.RootElement.GetProperty("detail").GetString());
+    }
+
     [Fact]
     public async Task ProblemInstance_ParseFailure_KeepsExistingResponseShape() {
         var (status, body) = await PostAsync("/ProblemProvider/problemInstance?problem=MINCUT", "garbage");

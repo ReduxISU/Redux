@@ -75,6 +75,7 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce, IndependentSetVer
         StringParser independentset = new(InstanceGrammar);
         independentset.parse(GInput);
         nodes = independentset["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(independentset["E"], problemName, GInput);
         edges = independentset["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge.ToList();
             return new KeyValuePair<string, string>(cast[0].ToString(), cast[1].ToString());

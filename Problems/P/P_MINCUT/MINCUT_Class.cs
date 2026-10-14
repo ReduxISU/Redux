@@ -46,6 +46,7 @@ class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualizat
         StringParser parser = new("{(N,E) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}}");
         parser.parse(instanceString);
         nodes = parser["N"].ToList().Select(n => n.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(parser["E"], problemName, instanceString);
         edges = parser["E"].ToList().Select(edge => {
             List<UtilCollection> endpoints = edge[0].ToList();
             return (endpoints[0].ToString(), endpoints[1].ToString(), int.Parse(edge[1].ToString()));

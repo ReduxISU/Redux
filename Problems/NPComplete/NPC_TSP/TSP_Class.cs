@@ -81,6 +81,7 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
         StringParser tsp = new(InstanceGrammar);
         tsp.parse(GInput);
         nodes = tsp["N"].ToList().Select(node => node.ToString()).ToList();
+        UtilCollectionGraph.RefuseLoops(tsp["E"], problemName, GInput);
         edges = tsp["E"].ToList().Select(edge => {
             List<UtilCollection> cast = edge[0].ToList();
             return (cast[0].ToString(), cast[1].ToString(), int.Parse(edge[1].ToString()));
