@@ -214,7 +214,7 @@ public class IncrementalSolvers_Tests {
     // ---- The clause picture, from a real run ----
 
     [Fact]
-    public void Sat3Backtracking_TheDecidedVariablesStaySolution_AndOnlyTheTriedOneIsHighlighted() {
+    public void Sat3Backtracking_TheDecidedVariablesStayCommitted_AndOnlyTheTriedOneIsHighlighted() {
         // Unsatisfiable, so the search tries and rejects values with earlier variables decided.
         const string instance = "(x1 | x2) & (!x1 | x2) & (x1 | !x2) & (!x1 | !x2)";
         var run = ((ISolver)new API.Problems.NPComplete.NPC_SAT3.Solvers.Sat3BacktrackingSolver()).Run(instance, withSteps: true);
@@ -236,7 +236,7 @@ public class IncrementalSolvers_Tests {
                 if (state?.State == PictureState.Rejected) continue;   // a literal of the clause that failed
                 if (!isTrue) Assert.Equal(PictureState.False, state?.State);
                 else if (node.Variable == tried) Assert.Equal(PictureState.ElementHighlight, state?.State);
-                else Assert.Equal(PictureState.Solution, state?.State);
+                else Assert.Equal(PictureState.Committed, state?.State);
             }
         }
     }
