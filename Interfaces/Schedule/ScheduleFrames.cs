@@ -40,8 +40,8 @@ sealed record PumpScheduleSpec(
 
 // ---- JSON shapes (explicit names so the contract does not depend on serializer naming options) ----
 
-/// <summary>A job: its id (<c>J1</c>, by position), its label (<c>Job 0</c>, numbered from 0 as the certificate counts), and
-/// its time, deadline and penalty.</summary>
+/// <summary>A job: its id (<c>J0</c>, by position) and its label (<c>Job 0</c>), both numbered from 0 as the certificate
+/// counts (#846), and its time, deadline and penalty.</summary>
 sealed record ScheduleJobDto(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("label")] string Label,
@@ -179,7 +179,7 @@ sealed record SchedulePumpsFrame(
 /// and a step's <see cref="JobOrder"/> or <see cref="PumpPlan"/>. Time runs left to right. Nothing here knows about a
 /// particular solver.
 /// <para>
-/// <b>Ids</b> are positions, never numbers or names: job <c>i</c> (0-based) is <c>J{i+1}</c>, pump <c>p</c> is <c>P{p+1}</c>,
+/// <b>Ids</b> are positions, never numbers or names: job <c>i</c> (0-based) is <c>J{i}</c>, pump <c>p</c> is <c>P{p+1}</c>,
 /// hour <c>h</c> is <c>t{h}</c>, and a pump in an hour is <c>P{p+1}t{h}</c>. Two equal jobs, or two pumps with one name, stay
 /// apart, and no id needs escaping.
 /// </para>
@@ -207,8 +207,9 @@ static class ScheduleFrames {
 
     // ---- Ids ----
 
-    /// <summary><c>J{i+1}</c> for the job at 0-based position <paramref name="index"/>.</summary>
-    public static string JobId(int index) => $"J{index + 1}";
+    /// <summary><c>J{i}</c> for the job at 0-based position <paramref name="index"/>, numbered from 0 as the certificate and the
+    /// captions count (#846).</summary>
+    public static string JobId(int index) => $"J{index}";
 
     /// <summary><c>P{p+1}</c> for the pump at 0-based position <paramref name="index"/>.</summary>
     public static string PumpId(int index) => $"P{index + 1}";

@@ -12,7 +12,7 @@ namespace redux_tests;
 // answers, the blank Done frame of a stopped run and the solved frame of a run whose steps cannot be drawn. The solvers'
 // steps and the endpoint are tested in ScheduleSolvers_Tests and ScheduleFrames_Endpoint_Tests.
 public class ScheduleFrames_Tests {
-    // Three jobs: J1 takes 4 and is due at 4, J2 takes 2 and is due at 3, J3 is J2 again (equal jobs stay two jobs).
+    // Three jobs: J0 takes 4 and is due at 4, J1 takes 2 and is due at 3, J2 is J1 again (equal jobs stay two jobs).
     private static readonly JobScheduleSpec Jobs3 = new([new(4, 4, 5), new(2, 3, 1), new(2, 3, 1)], 2);
 
     // Two pumps and a 200-gallon tank at 50; 10 gallons of demand an hour, hours 1 and 2 at the peak tariff.
@@ -33,7 +33,7 @@ public class ScheduleFrames_Tests {
 
     [Fact]
     public void Ids_ArePositions() {
-        Assert.Equal(["J1", "J10", "P1", "P3", "t0", "t23", "P1t0", "P2t23"],
+        Assert.Equal(["J0", "J9", "P1", "P3", "t0", "t23", "P1t0", "P2t23"],
             [ScheduleFrames.JobId(0), ScheduleFrames.JobId(9), ScheduleFrames.PumpId(0), ScheduleFrames.PumpId(2),
              ScheduleFrames.HourId(0), ScheduleFrames.HourId(23), ScheduleFrames.CellId(0, 0), ScheduleFrames.CellId(1, 23)]);
         Assert.Equal(["jobSequencing", "costMinimization", "emergencyResilience"],
@@ -45,8 +45,8 @@ public class ScheduleFrames_Tests {
     [Fact]
     public void JobsPayload_Json_HasTheContractFields_AndEqualJobsStayApart() {
         Assert.Equal(
-            "{\"kind\":\"schedule\",\"rule\":\"jobSequencing\",\"jobs\":[{\"id\":\"J1\",\"label\":\"Job 0\",\"time\":4,\"deadline\":4,\"penalty\":5},"
-            + "{\"id\":\"J2\",\"label\":\"Job 1\",\"time\":2,\"deadline\":3,\"penalty\":1},{\"id\":\"J3\",\"label\":\"Job 2\",\"time\":2,\"deadline\":3,\"penalty\":1}],"
+            "{\"kind\":\"schedule\",\"rule\":\"jobSequencing\",\"jobs\":[{\"id\":\"J0\",\"label\":\"Job 0\",\"time\":4,\"deadline\":4,\"penalty\":5},"
+            + "{\"id\":\"J1\",\"label\":\"Job 1\",\"time\":2,\"deadline\":3,\"penalty\":1},{\"id\":\"J2\",\"label\":\"Job 2\",\"time\":2,\"deadline\":3,\"penalty\":1}],"
             + "\"k\":2,\"span\":8}",
             JsonSerializer.Serialize(JsonDocument.Parse(Json(ScheduleFrames.JobsPayload(Jobs3))).RootElement));
         // The axis reaches the latest deadline when that is later than every job back to back; no jobs is an empty axis.
@@ -56,10 +56,10 @@ public class ScheduleFrames_Tests {
 
     [Fact]
     public void JobsFrame_Json_HasTheContractFieldsInOrder_AndOkOnlyOnDone() {
-        var frame = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0]), StepEvent.Reject, ["J1"], "Late.");
+        var frame = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0]), StepEvent.Reject, ["J0"], "Late.");
         using var doc = JsonDocument.Parse(Json(frame));
         Assert.Equal(["event", "caption", "focus", "order", "runs", "jobs", "penalty"], doc.RootElement.EnumerateObject().Select(p => p.Name));
-        Assert.Equal("[{\"job\":\"J2\",\"start\":0,\"end\":2,\"late\":false},{\"job\":\"J1\",\"start\":2,\"end\":6,\"late\":true}]",
+        Assert.Equal("[{\"job\":\"J1\",\"start\":0,\"end\":2,\"late\":false},{\"job\":\"J0\",\"start\":2,\"end\":6,\"late\":true}]",
             JsonSerializer.Serialize(doc.RootElement.GetProperty("runs")));
         var done = ScheduleFrames.JobsFrame(Jobs3, new JobOrder([]), StepEvent.Done, [], "None.", ok: false);
         Assert.False(JsonDocument.Parse(Json(done)).RootElement.GetProperty("ok").GetBoolean());
@@ -67,38 +67,38 @@ public class ScheduleFrames_Tests {
 
     [Fact]
     public void JobsFrame_AWholeOrderTried_IsHighlighted_AndItsLateJobsRejected() {
-        // J2 then J1 then J3: J1 ends at 6 (due 4) and J3 at 8 (due 3), so both are late: penalty 5 + 1.
-        var frame = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0, 2]), StepEvent.Reject, ["J1", "J3"], "Late.");
-        Assert.Equal("J1:Rejected J2:ElementHighlight J3:Rejected", States(frame.Jobs));
-        Assert.Equal(["J2", "J1", "J3"], frame.Order);
+        // J1 then J0 then J2: J0 ends at 6 (due 4) and J2 at 8 (due 3), so both are late: penalty 5 + 1.
+        var frame = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0, 2]), StepEvent.Reject, ["J0", "J2"], "Late.");
+        Assert.Equal("J0:Rejected J1:ElementHighlight J2:Rejected", States(frame.Jobs));
+        Assert.Equal(["J1", "J0", "J2"], frame.Order);
         Assert.Equal(6, frame.Penalty);
         Assert.Null(frame.Ok);
         // The same order accepted: on-time jobs are the answer; a late job is still Rejected (its penalty counts).
         var accepted = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0, 2]), StepEvent.Accept, [], "Fits.");
-        Assert.Equal("J1:Rejected J2:Solution J3:Rejected", States(accepted.Jobs));
+        Assert.Equal("J0:Rejected J1:Solution J2:Rejected", States(accepted.Jobs));
     }
 
     [Fact]
     public void JobsFrame_AnIncrementalRun_KeepsWhatItPlacedSolution_AndMarksOnlyTheFocus() {
-        var tried = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([2, 1]), StepEvent.Try, ["J3"], "Try J3.", incremental: true);
-        Assert.Equal("J2:Rejected J3:ElementHighlight", States(tried.Jobs));
+        var tried = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([2, 1]), StepEvent.Try, ["J2"], "Try J2.", incremental: true);
+        Assert.Equal("J1:Rejected J2:ElementHighlight", States(tried.Jobs));
         // A tried job that would end late shows Rejected: that outranks the highlight.
-        var late = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 2]), StepEvent.Try, ["J3"], "Try J3.", incremental: true);
-        Assert.Equal("J2:Solution J3:Rejected", States(late.Jobs));
-        var rejected = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1]), StepEvent.Reject, ["J1"], "No room.", incremental: true);
-        Assert.Equal("J1:Rejected J2:Solution", States(rejected.Jobs));
+        var late = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 2]), StepEvent.Try, ["J2"], "Try J2.", incremental: true);
+        Assert.Equal("J1:Solution J2:Rejected", States(late.Jobs));
+        var rejected = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1]), StepEvent.Reject, ["J0"], "No room.", incremental: true);
+        Assert.Equal("J0:Rejected J1:Solution", States(rejected.Jobs));
     }
 
     [Fact]
     public void JobsFrame_DropsIdsThatAreNotJobs_AndRepeats() {
-        var frame = ScheduleFrames.JobsFrame(Jobs3, new JobOrder(["J2", "J9", "J2", "x"]), StepEvent.Accept, ["J9"], "Odd.");
-        Assert.Equal(["J2"], frame.Order);
-        Assert.Equal("J2:Solution", States(frame.Jobs));
+        var frame = ScheduleFrames.JobsFrame(Jobs3, new JobOrder(["J1", "J8", "J1", "x"]), StepEvent.Accept, ["J8"], "Odd.");
+        Assert.Equal(["J1"], frame.Order);
+        Assert.Equal("J1:Solution", States(frame.Jobs));
     }
 
     [Theory]
-    [InlineData(3, "(1,0,2)", "J2 J1 J3")]
-    [InlineData(3, " ( 2 , 1 , 0 ) ", "J3 J2 J1")]
+    [InlineData(3, "(1,0,2)", "J1 J0 J2")]
+    [InlineData(3, " ( 2 , 1 , 0 ) ", "J2 J1 J0")]
     [InlineData(0, "()", "")]
     [InlineData(3, "{}", "")]
     [InlineData(3, "()", "")]
@@ -113,7 +113,7 @@ public class ScheduleFrames_Tests {
     [Fact]
     public void BuildJobs_AStoppedRun_EndsBlank_AndNeverReadsItsAnswer() {
         var steps = new List<object> {
-            new SolverStep<JobOrder>(ScheduleFrames.Order([0, 1, 2]), StepEvent.Reject, ["J1"], "Try (0,1,2)."),
+            new SolverStep<JobOrder>(ScheduleFrames.Order([0, 1, 2]), StepEvent.Reject, ["J0"], "Try (0,1,2)."),
             new SolverStep<JobOrder>(new JobOrder([]), StepEvent.Done, [], "Stopped after 0.05 s and 2 steps; the solver had not finished.") { Ok = false },
         };
         var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(JobOrder)) { TimedOut = true };
@@ -140,8 +140,8 @@ public class ScheduleFrames_Tests {
         var frames = ScheduleFrames.BuildJobs(Jobs3, legacy, a => ScheduleFrames.ParseJobOrder(3, a), _ => true).Frames;
         var done = (ScheduleJobsFrame)Assert.Single(frames);
         Assert.Equal((StepEvent.Done, true), (done.Event, done.Ok));
-        Assert.Equal(["J2", "J3", "J1"], done.Order);
-        Assert.Equal("J1:Rejected J2:Solution J3:Rejected", States(done.Jobs));
+        Assert.Equal(["J1", "J2", "J0"], done.Order);
+        Assert.Equal("J0:Rejected J1:Solution J2:Rejected", States(done.Jobs));
         // An answer the verifier refuses is drawn as no answer.
         var refused = (ScheduleJobsFrame)Assert.Single(ScheduleFrames.BuildJobs(Jobs3, new SolveRun("{}", [], null), a => ScheduleFrames.ParseJobOrder(3, a), _ => false).Frames);
         Assert.Equal((false, "No answer was found."), (refused.Ok!.Value, refused.Caption));
@@ -296,14 +296,14 @@ public class ScheduleFrames_Tests {
 
     [Fact]
     public void Shapes_CompareByValue_AndHaveEmptyAnswers() {
-        Assert.Equal(new JobOrder(["J2", "J1"]), new JobOrder(["J2", "J1"]));
-        Assert.NotEqual(new JobOrder(["J1", "J2"]), new JobOrder(["J2", "J1"]));
+        Assert.Equal(new JobOrder(["J1", "J0"]), new JobOrder(["J1", "J0"]));
+        Assert.NotEqual(new JobOrder(["J0", "J1"]), new JobOrder(["J1", "J0"]));
         Assert.Equal(new PumpPlan([new ReachedHour(1, 2, 3, 4)], [["P1"], []], 5), new PumpPlan([new ReachedHour(1, 2, 3, 4)], [["P1"], []], 5));
         Assert.NotEqual(new PumpPlan([], [["P1"]], null), new PumpPlan([], [["P2"]], null));
         Assert.NotEqual(new PumpPlan([], [], 1), new PumpPlan([], [], null));
         Assert.Equal(new JobOrder([]), Shapes.EmptyAnswer(typeof(JobOrder)));
         Assert.Equal(new PumpPlan([], [], null), Shapes.EmptyAnswer(typeof(PumpPlan)));
-        Assert.Equal("{\"order\":[\"J1\"]}", JsonSerializer.Serialize(new JobOrder(["J1"])));
+        Assert.Equal("{\"order\":[\"J0\"]}", JsonSerializer.Serialize(new JobOrder(["J0"])));
         Assert.Equal("{\"reached\":[],\"on\":[[\"P1\"]]}", JsonSerializer.Serialize(new PumpPlan([], [["P1"]], null)));
         Assert.Equal("{\"reached\":[],\"on\":[],\"budget\":2.5}", JsonSerializer.Serialize(new PumpPlan([], [], 2.5)));
     }

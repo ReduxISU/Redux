@@ -136,9 +136,9 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(
             "{\"kind\":\"table\",\"title\":\"3 jobs, at most 4 total penalty for late jobs\",\"columns\":[{\"key\":\"job\",\"label\":\"Job\"},{\"key\":\"time\",\"label\":\"Time\"},"
             + "{\"key\":\"deadline\",\"label\":\"Deadline\"},{\"key\":\"penalty\",\"label\":\"Penalty\"},{\"key\":\"runs\",\"label\":\"Runs\"},{\"key\":\"late\",\"label\":\"Late\"}],"
-            + "\"rows\":[{\"id\":\"J1\",\"color\":null,\"cells\":{\"job\":\"0\",\"time\":\"4\",\"deadline\":\"9\",\"penalty\":\"1\",\"runs\":\"\",\"late\":\"\"},\"cellColors\":null},"
-            + "{\"id\":\"J2\",\"color\":null,\"cells\":{\"job\":\"1\",\"time\":\"2\",\"deadline\":\"13\",\"penalty\":\"4\",\"runs\":\"\",\"late\":\"\"},\"cellColors\":null},"
-            + "{\"id\":\"J3\",\"color\":null,\"cells\":{\"job\":\"2\",\"time\":\"5\",\"deadline\":\"2\",\"penalty\":\"3\",\"runs\":\"\",\"late\":\"\"},\"cellColors\":null}]}",
+            + "\"rows\":[{\"id\":\"J0\",\"color\":null,\"cells\":{\"job\":\"0\",\"time\":\"4\",\"deadline\":\"9\",\"penalty\":\"1\",\"runs\":\"\",\"late\":\"\"},\"cellColors\":null},"
+            + "{\"id\":\"J1\",\"color\":null,\"cells\":{\"job\":\"1\",\"time\":\"2\",\"deadline\":\"13\",\"penalty\":\"4\",\"runs\":\"\",\"late\":\"\"},\"cellColors\":null},"
+            + "{\"id\":\"J2\",\"color\":null,\"cells\":{\"job\":\"2\",\"time\":\"5\",\"deadline\":\"2\",\"penalty\":\"3\",\"runs\":\"\",\"late\":\"\"},\"cellColors\":null}]}",
             Readable(list[0]));
         // (0,1,2): job 2 ends at 11, after its deadline of 2, and its penalty of 3 fits K = 4.
         Assert.Equal(["0 to 4 no Solution", "4 to 6 no Solution", "6 to 11 yes Rejected"], list[1].GetProperty("rows").EnumerateArray()
@@ -176,7 +176,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             var jobs = payload.GetProperty("jobs").EnumerateArray().ToList();
             Assert.All(jobs, (j, i) => {
                 Assert.Equal(["id", "label", "time", "deadline", "penalty"], j.EnumerateObject().Select(p => p.Name));
-                Assert.Equal(($"J{i + 1}", $"Job {i}"), (j.GetProperty("id").GetString(), j.GetProperty("label").GetString()));
+                Assert.Equal(($"J{i}", $"Job {i}"), (j.GetProperty("id").GetString(), j.GetProperty("label").GetString()));
             });
             var ids = jobs.Select(j => j.GetProperty("id").GetString()!).ToHashSet();
             var byId = jobs.ToDictionary(j => j.GetProperty("id").GetString()!);
@@ -207,7 +207,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 Assert.All(states.Where(s => s.Value != "Rejected"), s => Assert.Equal(placed, s.Value));
             }
             if (ok) {
-                Assert.Equal(answer, "(" + string.Join(",", done.GetProperty("order").EnumerateArray().Select(x => int.Parse(x.GetString()![1..]) - 1)) + ")");
+                Assert.Equal(answer, "(" + string.Join(",", done.GetProperty("order").EnumerateArray().Select(x => int.Parse(x.GetString()![1..]))) + ")");
                 Assert.True(done.GetProperty("penalty").GetInt32() <= payload.GetProperty("k").GetInt32());
             } else {
                 Assert.Equal("{}", answer);
@@ -278,30 +278,30 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var (_, body) = await Visualize("visualization=jobseqvisualization&format=frames", ScheduleSolvers_Tests.JobDefault);
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal(
-            "{\"kind\":\"schedule\",\"rule\":\"jobSequencing\",\"jobs\":[{\"id\":\"J1\",\"label\":\"Job 0\",\"time\":4,\"deadline\":9,\"penalty\":1},"
-            + "{\"id\":\"J2\",\"label\":\"Job 1\",\"time\":2,\"deadline\":13,\"penalty\":4},{\"id\":\"J3\",\"label\":\"Job 2\",\"time\":5,\"deadline\":2,\"penalty\":3},"
-            + "{\"id\":\"J4\",\"label\":\"Job 3\",\"time\":9,\"deadline\":17,\"penalty\":2},{\"id\":\"J5\",\"label\":\"Job 4\",\"time\":4,\"deadline\":21,\"penalty\":5},"
-            + "{\"id\":\"J6\",\"label\":\"Job 5\",\"time\":3,\"deadline\":16,\"penalty\":8}],\"k\":4,\"span\":27}",
+            "{\"kind\":\"schedule\",\"rule\":\"jobSequencing\",\"jobs\":[{\"id\":\"J0\",\"label\":\"Job 0\",\"time\":4,\"deadline\":9,\"penalty\":1},"
+            + "{\"id\":\"J1\",\"label\":\"Job 1\",\"time\":2,\"deadline\":13,\"penalty\":4},{\"id\":\"J2\",\"label\":\"Job 2\",\"time\":5,\"deadline\":2,\"penalty\":3},"
+            + "{\"id\":\"J3\",\"label\":\"Job 3\",\"time\":9,\"deadline\":17,\"penalty\":2},{\"id\":\"J4\",\"label\":\"Job 4\",\"time\":4,\"deadline\":21,\"penalty\":5},"
+            + "{\"id\":\"J5\",\"label\":\"Job 5\",\"time\":3,\"deadline\":16,\"penalty\":8}],\"k\":4,\"span\":27}",
             Readable(root.GetProperty("payload")));
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(152, frames.Count);
         // The mockup's step: (0,1,2,5,3,4), jobs 2, 3 and 4 late.
         Assert.Equal(
-            "{\"event\":\"Reject\",\"caption\":\"Try (0,1,2,5,3,4): jobs 2, 3 and 4 finish late, penalty 10 > K = 4.\",\"focus\":[\"J3\",\"J4\",\"J5\"],"
-            + "\"order\":[\"J1\",\"J2\",\"J3\",\"J6\",\"J4\",\"J5\"],"
-            + "\"runs\":[{\"job\":\"J1\",\"start\":0,\"end\":4,\"late\":false},{\"job\":\"J2\",\"start\":4,\"end\":6,\"late\":false},{\"job\":\"J3\",\"start\":6,\"end\":11,\"late\":true},"
-            + "{\"job\":\"J6\",\"start\":11,\"end\":14,\"late\":false},{\"job\":\"J4\",\"start\":14,\"end\":23,\"late\":true},{\"job\":\"J5\",\"start\":23,\"end\":27,\"late\":true}],"
-            + "\"jobs\":{\"J1\":{\"state\":\"ElementHighlight\"},\"J2\":{\"state\":\"ElementHighlight\"},\"J3\":{\"state\":\"Rejected\"},\"J4\":{\"state\":\"Rejected\"},"
-            + "\"J5\":{\"state\":\"Rejected\"},\"J6\":{\"state\":\"ElementHighlight\"}},\"penalty\":10}",
+            "{\"event\":\"Reject\",\"caption\":\"Try (0,1,2,5,3,4): jobs 2, 3 and 4 finish late, penalty 10 > K = 4.\",\"focus\":[\"J2\",\"J3\",\"J4\"],"
+            + "\"order\":[\"J0\",\"J1\",\"J2\",\"J5\",\"J3\",\"J4\"],"
+            + "\"runs\":[{\"job\":\"J0\",\"start\":0,\"end\":4,\"late\":false},{\"job\":\"J1\",\"start\":4,\"end\":6,\"late\":false},{\"job\":\"J2\",\"start\":6,\"end\":11,\"late\":true},"
+            + "{\"job\":\"J5\",\"start\":11,\"end\":14,\"late\":false},{\"job\":\"J3\",\"start\":14,\"end\":23,\"late\":true},{\"job\":\"J4\",\"start\":23,\"end\":27,\"late\":true}],"
+            + "\"jobs\":{\"J0\":{\"state\":\"ElementHighlight\"},\"J1\":{\"state\":\"ElementHighlight\"},\"J2\":{\"state\":\"Rejected\"},\"J3\":{\"state\":\"Rejected\"},"
+            + "\"J4\":{\"state\":\"Rejected\"},\"J5\":{\"state\":\"ElementHighlight\"}},\"penalty\":10}",
             Readable(frames[4]));
         // The mockup's solved view: (1,3,5,4,0,2), jobs 0 and 2 late, penalty 4.
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"(1,3,5,4,0,2) is the first order that keeps the late penalty within K = 4, found after 191 orders. (40 not shown)\",\"focus\":[],"
-            + "\"order\":[\"J2\",\"J4\",\"J6\",\"J5\",\"J1\",\"J3\"],"
-            + "\"runs\":[{\"job\":\"J2\",\"start\":0,\"end\":2,\"late\":false},{\"job\":\"J4\",\"start\":2,\"end\":11,\"late\":false},{\"job\":\"J6\",\"start\":11,\"end\":14,\"late\":false},"
-            + "{\"job\":\"J5\",\"start\":14,\"end\":18,\"late\":false},{\"job\":\"J1\",\"start\":18,\"end\":22,\"late\":true},{\"job\":\"J3\",\"start\":22,\"end\":27,\"late\":true}],"
-            + "\"jobs\":{\"J1\":{\"state\":\"Rejected\"},\"J2\":{\"state\":\"Solution\"},\"J3\":{\"state\":\"Rejected\"},\"J4\":{\"state\":\"Solution\"},"
-            + "\"J5\":{\"state\":\"Solution\"},\"J6\":{\"state\":\"Solution\"}},\"penalty\":4,\"ok\":true}",
+            + "\"order\":[\"J1\",\"J3\",\"J5\",\"J4\",\"J0\",\"J2\"],"
+            + "\"runs\":[{\"job\":\"J1\",\"start\":0,\"end\":2,\"late\":false},{\"job\":\"J3\",\"start\":2,\"end\":11,\"late\":false},{\"job\":\"J5\",\"start\":11,\"end\":14,\"late\":false},"
+            + "{\"job\":\"J4\",\"start\":14,\"end\":18,\"late\":false},{\"job\":\"J0\",\"start\":18,\"end\":22,\"late\":true},{\"job\":\"J2\",\"start\":22,\"end\":27,\"late\":true}],"
+            + "\"jobs\":{\"J0\":{\"state\":\"Rejected\"},\"J1\":{\"state\":\"Solution\"},\"J2\":{\"state\":\"Rejected\"},\"J3\":{\"state\":\"Solution\"},"
+            + "\"J4\":{\"state\":\"Solution\"},\"J5\":{\"state\":\"Solution\"}},\"penalty\":4,\"ok\":true}",
             Readable(frames[^1]));
     }
 

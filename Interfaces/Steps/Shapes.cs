@@ -330,7 +330,7 @@ sealed class BoardCells : IEquatable<BoardCells> {
 
 /// <summary>
 /// The order a one-machine scheduler runs its jobs in (Job Sequencing), as far as it has got. Jobs are named by position,
-/// <c>J{i+1}</c> for the job at 0-based index i (see <c>ScheduleFrames.JobId</c>), never by their numbers, so two jobs with
+/// <c>J{i}</c> for the job at 0-based index i (see <c>ScheduleFrames.JobId</c>), never by their numbers, so two jobs with
 /// the same time, deadline and penalty stay two jobs. <see cref="Order"/> lists job ids in the order they run, from time 0;
 /// a job not listed is not placed. The answer is the last one: every job, in the order the solver returns.
 /// </summary>
