@@ -72,6 +72,12 @@ public class MINIMUMTSP_Tests {
         Assert.Throws<ProblemParseException>(() => new MINIMUMTSP(instance));
     }
 
+    [Fact]
+    public void MINIMUMTSP_Refuses_A_Loop_And_Names_It() {
+        ProblemParseException e = Assert.Throws<ProblemParseException>(() => new MINIMUMTSP("({a,b},{({a,b},1),({a,a},3)})"));
+        Assert.Contains("edge {a,a} joins a node to itself; Minimum Traveling Salesperson has no loops", e.Message);
+    }
+
     // -------------------------------------------------------------------------
     // Verifier — validity only
     // -------------------------------------------------------------------------
