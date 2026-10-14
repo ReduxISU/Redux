@@ -296,6 +296,46 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("No answer: the quantum server did not give one.", frames[^1].GetProperty("caption").GetString());
     }
 
+    // #847: a measured item that is not marked is a Reject, its measured qubits and meters Rejected, never Solution. #848: the
+    // answer is read high bit first, so the outcome, the bars and the caption all name the item. The server measures x0
+    // first: "01" is x0 = 0, x1 = 1, item 2, which (0, 1, 0, 0) does not mark.
+    [Fact]
+    public async Task Frames_Grover_MissedMeasurement_IsAReject_AndTheOutcomeIsTheItem() {
+        using var fake = FakeQuantumServer.Install(out var server);
+        server.Canned = (HttpStatusCode.OK, "{\"qasm\": \"OPENQASM 2.0;\", \"answer_bitstring\": \"01\", \"counts\": {\"01\": 700, \"10\": 324}}");
+        var (status, body) = await Visualize("visualization=unstructuredsearchvisualization&format=frames&solver=unstructuredgroversolver", "(0, 1, 0, 0)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        Assert.Equal("[1,0]", Readable(root.GetProperty("payload").GetProperty("measure")));
+        var frames = root.GetProperty("frames").EnumerateArray().ToList();
+        var reject = frames[^2];
+        Assert.Equal("Reject", reject.GetProperty("event").GetString());
+        Assert.Equal("The quantum server measured item 2 (10) in 700 of 1,024 runs, which is not marked.", reject.GetProperty("caption").GetString());
+        Assert.Equal(2, reject.GetProperty("outcome").GetInt64());
+        Assert.All(StatesOf(reject.GetProperty("qubits")).Values, state => Assert.Equal("Rejected", state));
+        Assert.All(StatesOf(reject.GetProperty("gates")).Values, state => Assert.Equal("Rejected", state));
+        Assert.DoesNotContain(frames, f => f.GetProperty("event").GetString() == "Accept");
+        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal("2", frames[^1].GetProperty("result").GetString());
+        // The circuit marks item 1, and its bars say so: the bar for outcome 1 is certain.
+        var bars = frames[^1].GetProperty("bars").EnumerateArray().ToList();
+        Assert.Equal(1, Assert.Single(bars).GetProperty("outcome").GetInt64());
+    }
+
+    [Fact]
+    public async Task Frames_Grover_MarkedMeasurement_IsAnAccept_WithTheItemAsTheOutcome() {
+        using var fake = FakeQuantumServer.Install(out var server);
+        var (_, body) = await Visualize("visualization=unstructuredsearchvisualization&format=frames&solver=unstructuredgroversolver", "(0,0,0,0,0,0,1,0)");
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(["Accept", "Done"], frames.TakeLast(2).Select(f => f.GetProperty("event").GetString()));
+        Assert.Equal("The quantum server measured item 6 (110) in 1,024 of 1,024 runs.", frames[^2].GetProperty("caption").GetString());
+        Assert.All(StatesOf(frames[^2].GetProperty("qubits")).Values, state => Assert.Equal("Solution", state));
+        Assert.Equal(6, frames[^1].GetProperty("outcome").GetInt64());
+        Assert.True(frames[^1].GetProperty("ok").GetBoolean());
+        var top = frames[^1].GetProperty("bars").EnumerateArray().OrderByDescending(b => b.GetProperty("probability").GetDouble()).First();
+        Assert.Equal(6, top.GetProperty("outcome").GetInt64());
+    }
+
     [Fact]
     public async Task Grover_ServerDown_SolveAndListVisualize_AnswerTheServersError() {
         using var fake = FakeQuantumServer.Install(out var server);

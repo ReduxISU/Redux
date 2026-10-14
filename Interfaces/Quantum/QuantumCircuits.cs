@@ -259,6 +259,15 @@ static class QuantumCircuits {
         int M = marked.Length, rounds = GroverRounds(N, M);
         var data = Enumerable.Range(0, n).ToArray();
         var wires = data.Select(k => new QuantumWire($"x{k}", "index")).ToList();
+        // Qubit k holds x_k, bit k of the item (x0 the least significant), as the solver's SAT encoding numbers them. The
+        // state's index has qubit 0 as its most significant bit, so item i is the index with i's n bits reversed, and the
+        // answer is read high bit first (measure = x_{n-1}, ..., x0), so an outcome is the item number (#848).
+        long Item(long index) {
+            long item = 0;
+            for (int k = 0; k < n; k++) item |= ((index >> (n - 1 - k)) & 1) << k;
+            return item;
+        }
+        var highFirst = data.Reverse().ToArray();
         string items = Plural(M, "item", "items");
         double MarkedChance(QuantumDistribution d) => marked.Sum(i => d.Probabilities[i]);
         var columns = new List<QuantumColumn> {
@@ -269,7 +278,7 @@ static class QuantumCircuits {
         var markedSet = marked.ToHashSet();
         for (int t = 1; t <= rounds; t++) {
             int round = t;
-            columns.Add(new([new QuantumGate("box", data, Label: "Oracle", Oracle: true)], st => st.FlipSigns(i => markedSet.Contains((int)i)),
+            columns.Add(new([new QuantumGate("box", data, Label: "Oracle", Oracle: true)], st => st.FlipSigns(i => markedSet.Contains((int)Item(i))),
                 _ => $"Round {round}: the oracle flips the sign of the marked {items}. The probabilities stay the same; only the {Plural(M, "sign changes", "signs change")}."));
             columns.Add(new([new QuantumGate("box", data, Label: "Diffuse")], st => st.Diffuse(), d => d == null
                 ? $"Round {round}: reflect every amplitude about the average. The marked {items} {Plural(M, "grows", "grow")}, the rest shrink."
@@ -282,7 +291,7 @@ static class QuantumCircuits {
             return $"Measure: item {d.MostLikely} ({Bits(d.MostLikely, n)}) with probability {Percent(d.Probabilities[d.MostLikely])}.";
         }));
         stages.Add(new("read", columns.Count - 1, columns.Count - 1));
-        return new QuantumCircuitSpec("unstructuredSearch", wires, columns, stages, data, "bits", n);
+        return new QuantumCircuitSpec("unstructuredSearch", wires, columns, stages, highFirst, "bits", n);
     }
 
     // ---- Prime Factorization (Shor) ----

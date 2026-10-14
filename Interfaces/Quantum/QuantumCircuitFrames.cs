@@ -148,7 +148,8 @@ sealed record QuantumFrame(
 /// <c>ElementHighlight</c>; in a Reject step of an incremental run it is <c>Rejected</c>
 /// (<see cref="GraphSubsetFrames.FocusMark"/>).</item>
 /// <item>A measured outcome is the answer in an Accept and in a correct Done: then the measured qubits and their measure
-/// gates are <c>Solution</c>. In a Done with ok = false they are <c>Rejected</c>.</item>
+/// gates are <c>Solution</c>. In a Reject (an outcome that is not the answer) and in a Done with ok = false they are
+/// <c>Rejected</c>.</item>
 /// <item>In the Done frame of a run that applied no column (a classical solver), every column is <c>Untraveled</c>.</item>
 /// <item>A run stopped by its time limit ends with a blank Done frame, ok = false (<see cref="StoppedFrame"/>).</item>
 /// </list>
@@ -215,9 +216,9 @@ static class QuantumCircuitFrames {
         var gates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var qubits = new Dictionary<string, PictureState>(StringComparer.Ordinal);
 
-        // The measured outcome: the answer in an Accept and a correct Done, wrong in a Done that is not.
+        // The measured outcome: the answer in an Accept and a correct Done, wrong in a Reject and in a Done that is not.
         PictureState? read = ev == StepEvent.Done ? (ok == true ? PictureState.Solution : PictureState.Rejected)
-            : ev == StepEvent.Accept ? PictureState.Solution : null;
+            : ev == StepEvent.Accept ? PictureState.Solution : ev == StepEvent.Reject ? PictureState.Rejected : null;
         int readColumn = ReadColumn(spec);
         if (partial.Outcome != null && read is { } measured && readColumn >= 0) {
             foreach (int q in spec.Measure) GraphSubsetFrames.Raise(qubits, QuantumCircuits.QubitId(q), measured);
