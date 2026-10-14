@@ -88,6 +88,7 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
         try {
             minimumTsp.parse(instanceInput);
             nodes = minimumTsp["N"].ToList().Select(node => node.ToString()).ToList();
+            RefuseLoops(minimumTsp["E"], instanceInput);
             listedEdges = TSP.ReadWeightedEdges(minimumTsp["E"]);
             // A tour takes the cheapest way between two cities, so parallel edges merge into the lightest (#769).
             edges = ParallelEdges.Lightest(listedEdges);
@@ -97,15 +98,25 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
         }
 
         // Every edge joins two of the nodes (the grammar alone lets an edge name another city). Parallel edges are already
-        // merged, so each pair has one weight. A loop ({a,a},w) is kept in the graph but never walked by a tour.
+        // merged, so each pair has one weight. Loops were refused above.
         foreach (var (source, target, weight) in edges) {
             foreach (string end in new[] { source, target }) {
                 if (!nodes.Contains(end)) {
                     throw new ProblemParseException("MINIMUMTSP", instanceInput, $"an edge names {end}, which is not one of the nodes");
                 }
             }
-            if (source == target) continue;
             _weights[Key(source, target)] = weight;
+        }
+    }
+
+    // SPADE reads the loop ({a,a},w) as ({a},w), which TSP's edge reader would fail on with an index error. Refused with
+    // the same detail as TSP's (#882); this can use UtilCollectionGraph.RefuseLoops once both branches land.
+    private void RefuseLoops(UtilCollection edges, string instanceInput) {
+        foreach (UtilCollection edge in edges.ToList()) {
+            List<UtilCollection> ends = edge[0].ToList();
+            if (ends.Count == 1) {
+                throw new ProblemParseException("MINIMUMTSP", instanceInput, $"edge {{{ends[0]},{ends[0]}}} joins a node to itself; {problemName} has no loops");
+            }
         }
     }
 
