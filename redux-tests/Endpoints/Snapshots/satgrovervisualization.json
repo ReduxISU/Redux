@@ -1,7 +1,7 @@
 [
   {
     "kind": "quantumCircuit",
-    "solution": "{\u0022error\u0022: \u0022One or more errors occurred. (Failed to POST to http://fake-quantum-server/sat-quantum: Response status code does not indicate success: 503 (Service Unavailable).)\u0022}",
+    "solution": "{}",
     "format": 0,
     "qasm": "",
     "d3": null,
