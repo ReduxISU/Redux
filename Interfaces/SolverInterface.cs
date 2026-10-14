@@ -107,7 +107,8 @@ sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepSha
     /// <summary>
     /// True when the solver builds its answer piece by piece (it implements <see cref="IIncrementalSolver"/>), so every
     /// step's partial is what it has committed so far and the focus names the piece under test. A picture then draws the
-    /// partial as the answer so far in every event, and only the focus as tried or failed. False (the default) means each
+    /// partial as kept so far (<c>Committed</c>, #886) in every event until the run ends on it, and only the focus as tried
+    /// or failed. False (the default) means each
     /// Try and Reject judges a whole candidate, which a picture highlights as a candidate and never draws as the answer.
     /// Set by <see cref="ISolver{T, TPartial}"/>'s <c>Run</c>; a run built by hand says it itself.
     /// </summary>
@@ -201,8 +202,9 @@ interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
 /// built so far (a closing check, out of budget) names the piece that failed, or nothing.</item>
 /// </list>
 /// <para>
-/// A picture then draws the partial as the answer so far (Solution) in every event, the focus as
-/// <c>ElementHighlight</c> in a Try and <c>Rejected</c> in a Reject. A solver without this marker gets the whole-candidate
+/// A picture then draws the partial as kept so far (<c>Committed</c>) in every event, the focus as
+/// <c>ElementHighlight</c> in a Try and <c>Rejected</c> in a Reject; only the confirmed answer (the Done with ok = true, or
+/// an Accept that ends the run) is <c>Solution</c> (#886). A solver without this marker gets the whole-candidate
 /// reading: its Try and Reject partials are highlighted as a candidate, never drawn as the answer.
 /// </para>
 /// </summary>

@@ -58,7 +58,8 @@ sealed record FactorGraphFrame(
 /// edge gives its variable as <c>a</c> and its clause as <c>b</c>.
 /// </para>
 /// <para>
-/// <b>States.</b> An edge whose literal is true is <c>Solution</c> in a step that keeps the assignment and
+/// <b>States.</b> An edge whose literal is true is <c>Solution</c> in the confirmed answer (the Done, or an Accept that ends
+/// the run), <c>Committed</c> in another step that keeps the assignment (#886) and
 /// <c>ElementHighlight</c> in a step that only tries a whole assignment (<see cref="GraphSubsetFrames.Picked"/>); a variable
 /// assigned true is the same. An edge whose literal is false, and a variable assigned false, are <c>False</c>; anything
 /// unassigned is <c>Background</c>. A clause with a true literal is <c>Covered</c>; one whose literals are all assigned and
@@ -66,7 +67,7 @@ sealed record FactorGraphFrame(
 /// alone, whatever the event; a clause with an unassigned literal is not Rejected). The variable being tried (a <c>v:</c> id in the focus) is
 /// <c>ElementHighlight</c>, and so are its edges except false ones, which stay <c>False</c> as in the clause graph. A clause in
 /// the focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject step. Precedence:
-/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; False &gt; Background</c>.
+/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; False &gt; Background</c>.
 /// </para>
 /// </summary>
 static class FactorGraphFrames {
@@ -95,9 +96,10 @@ static class FactorGraphFrames {
 
     /// <summary>
     /// The frame for an assignment at one step. <c>incremental</c> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <c>endsRun</c> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static FactorGraphFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static FactorGraphFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var values = new Dictionary<int, bool>();
         var assignment = new SortedDictionary<string, bool>(StringComparer.Ordinal);
         for (int v = 1; v <= spec.Variables.Count; v++)
@@ -106,7 +108,7 @@ static class FactorGraphFrames {
                 assignment[GroupedGraphFrames.VariableId(spec.Variables[v - 1])] = value;
             }
 
-        var picked = GraphSubsetFrames.Picked(ev, incremental);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var hits = new SortedDictionary<string, int>(StringComparer.Ordinal);
@@ -193,10 +195,10 @@ static class FactorGraphFrames {
         bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), GroupedGraphFrames.SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
-        foreach (var step in run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>())) {
             frames.Add(stopped && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (stopped) {

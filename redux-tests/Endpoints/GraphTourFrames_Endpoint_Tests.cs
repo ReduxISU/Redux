@@ -28,7 +28,7 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     private const string HamiltonianVis = "hamiltoniandefaultvisualization";
@@ -276,22 +276,23 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Close the tour Miami → New York: total 6830, the best so far.", frames[5].GetProperty("caption").GetString());
         Assert.Equal(["New York", "Chicago", "Denver", "Los Angeles", "Miami", "New York"], Order(frames[5]));
         // A worse tour is rejected with the best so far named. The greedy built the route hop by hop, so the route stays the
-        // path so far (Solution) and only the closing hop that was tested is Rejected.
+        // path so far (Committed, #886) and only the closing hop that was tested is Rejected.
         var worse = frames.First(f => f.GetProperty("caption").GetString()!.StartsWith("Close the tour Los Angeles → Chicago"));
         Assert.Equal("Reject", worse.GetProperty("event").GetString());
         Assert.Contains("total 7160 is no better than the best so far (6830)", worse.GetProperty("caption").GetString());
         var worseEdges = States(worse, "edges");
         Assert.Equal(5, worseEdges.Count);
         Assert.Equal("Rejected", worseEdges["Chicago-Los Angeles"]);
-        Assert.All(worseEdges.Where(e => e.Key != "Chicago-Los Angeles"), e => Assert.Equal("Solution", e.Value));
+        Assert.All(worseEdges.Where(e => e.Key != "Chicago-Los Angeles"), e => Assert.Equal("Committed", e.Value));
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
         Assert.Equal(["New York", "Chicago", "Denver", "Los Angeles", "Miami", "New York"], Order(frames[^1]));
     }
 
     // Minimum Traveling Salesperson's brute force judges whole tours: a tour it only tries is highlighted, never drawn as
-    // Solution; a new best tour (Accept) and the answer (Done) are.
+    // Solution; a new best tour (Accept) is kept but not confirmed (Committed, #886) unless the run ends on it, and the
+    // answer (Done) is Solution.
     [Fact]
-    public async Task Frames_MinimumTsp_TriesAreHighlighted_OnlyAcceptsAndDoneAreSolution() {
+    public async Task Frames_MinimumTsp_TriesAreHighlighted_BestToursCommitted_OnlyTheAnswerIsSolution() {
         var (status, body) = await Visualize($"visualization={MinTspVis}&format=frames", DefaultInstance(MinTspVis));
         Assert.Equal(HttpStatusCode.OK, status);
         var root = JsonDocument.Parse(body).RootElement;
@@ -303,16 +304,18 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
         var frames = Frames(body);
         Assert.Equal(24 + 1, frames.Count);
-        foreach (var f in frames) {
+        for (int i = 0; i < frames.Count; i++) {
+            var f = frames[i];
             string ev = f.GetProperty("event").GetString()!;
             var nodes = States(f, "nodes");
             var edges = States(f, "edges");
             Assert.Equal(5, Order(f).Length - 1);   // every frame is a whole closed tour
             switch (ev) {
                 case "Accept":
+                    bool endsRun = frames[i + 1].GetProperty("event").GetString() == "Done";
                     Assert.Equal(5, edges.Count);
-                    Assert.All(edges.Values, s => Assert.Equal("Solution", s));
-                    Assert.All(nodes.Values, s => Assert.Equal("Covered", s));
+                    Assert.All(edges.Values, s => Assert.Equal(endsRun ? "Solution" : "Committed", s));
+                    Assert.All(nodes.Values, s => Assert.Equal(endsRun ? "Solution" : "Covered", s));
                     break;
                 case "Reject":
                     Assert.DoesNotContain("Solution", nodes.Values.Concat(edges.Values));

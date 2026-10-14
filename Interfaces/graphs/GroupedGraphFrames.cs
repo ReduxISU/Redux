@@ -95,11 +95,12 @@ sealed record GroupedGraphFrame(
 /// both lists.
 /// </para>
 /// <para>
-/// <b>States.</b> A true literal is <c>Solution</c> in a step that keeps the assignment (Accept, Backtrack, Done) and
+/// <b>States.</b> A true literal is <c>Solution</c> in the confirmed answer (the Done, or an Accept that ends the run),
+/// <c>Committed</c> in a step that keeps the assignment without confirming it (an Accept mid-run, a Backtrack; #886), and
 /// <c>ElementHighlight</c> in a step that only tries a whole assignment (Try, Reject of a run that is not
 /// <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); either way its clause is <c>Covered</c>.
 /// In an incremental run (the 3SAT backtracking) the assignment is the variables decided so far, so their true literals
-/// stay <c>Solution</c> in every step, and only the variable being tried (the focus) is highlighted; when that value fails,
+/// stay <c>Committed</c> in every step until the answer, and only the variable being tried (the focus) is highlighted; when that value fails,
 /// the clause it leaves with no true literal is what is <c>Rejected</c>. A literal that is false under the assignment is <c>False</c>; a literal whose variable
 /// is unassigned stays <c>Background</c> (nothing has been decided about it). A clause whose literals are all false is
 /// <c>Rejected</c>, and so are its literals. The variable being tried (a <c>v:</c> id in the step's focus) is
@@ -107,7 +108,7 @@ sealed record GroupedGraphFrame(
 /// false literals never look like its true ones (a literal id in the focus follows the same rule). A clause in the focus is
 /// <c>ElementHighlight</c>, or <c>Rejected</c> in a <see cref="StepEvent.Reject"/> step (the clause that just failed). When
 /// several states apply to one element the order is
-/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; False &gt; Background</c>
+/// <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; False &gt; Background</c>
 /// (<see cref="GraphSubsetFrames.Rank"/>), except that the focus highlight never covers <c>False</c> on a literal. Whether a clause is falsified is judged from the assignment alone, never from
 /// the event, so no event is treated as "still in progress".
 /// </para>
@@ -186,9 +187,10 @@ static class GroupedGraphFrames {
 
     /// <summary>
     /// The frame for an assignment at one step. <c>incremental</c> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <c>endsRun</c> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static GroupedGraphFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static GroupedGraphFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         // Variable index (1-based) to its value, for the variables this formula has.
         var values = new Dictionary<int, bool>();
         var assignment = new SortedDictionary<string, bool>(StringComparer.Ordinal);
@@ -199,8 +201,8 @@ static class GroupedGraphFrames {
             }
 
         // A true literal of a whole candidate that is only being tried is highlighted, not drawn as the answer; in an
-        // incremental run the variables decided so far are the answer so far.
-        var picked = GraphSubsetFrames.Picked(ev, incremental);
+        // incremental run the variables decided so far are kept so far (Committed) until the answer.
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var groups = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var literalsOfVariable = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -392,10 +394,10 @@ static class GroupedGraphFrames {
         bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
-        foreach (var step in run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>())) {
             frames.Add(stopped && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (stopped) {

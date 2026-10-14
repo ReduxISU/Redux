@@ -30,7 +30,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "False",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "False", "Committed",
     };
 
     private const string SatVis = "satdefaultvisualization";
@@ -294,8 +294,9 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // Every literal's state, judged here from the instance text and the frame's own assignment: a true literal is Solution
-    // only in a step that keeps the assignment (Accept, Backtrack, Done, and every step of an incremental solver, whose
-    // assignment is the variables decided so far) and ElementHighlight in one that only tries a whole assignment (Try,
+    // in the Done, Committed (or Solution, in an Accept that ends the run) in another step that keeps the assignment (Accept,
+    // Backtrack, and every step of an incremental solver, whose assignment is the variables decided so far; #886) and
+    // ElementHighlight in one that only tries a whole assignment (Try,
     // Reject), or while its variable is the one being tried; a false literal is False (or Rejected with its clause), even
     // while its variable is tried; a literal of an unassigned variable is Background unless it is being looked at.
     private static void AssertLiteralStatesFollowTheAssignment(JsonElement frame, List<string[]> clauses, bool incremental) {
@@ -311,7 +312,9 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 if (!assigned.TryGetValue("v:" + literal.TrimStart('!'), out bool value))
                     Assert.True(state is "Background" or "ElementHighlight", $"{where}: {state}");
                 else if (value != literal.StartsWith('!'))
-                    Assert.True(onlyTried ? state is "ElementHighlight" : state is "Solution" or "ElementHighlight", $"{where}: {state}");
+                    Assert.True(onlyTried ? state is "ElementHighlight"
+                        : ev == "Done" ? state is "Solution" or "ElementHighlight"
+                        : state is "Committed" or "Solution" or "ElementHighlight", $"{where}: {state}");
                 else
                     Assert.True(state is "False" or "Rejected", $"{where}: {state}");
             }

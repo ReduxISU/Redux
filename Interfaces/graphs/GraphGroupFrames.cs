@@ -30,9 +30,9 @@ sealed record GroupFailure(string Reason, string[] Focus);
 /// </para>
 /// <list type="bullet">
 /// <item><b>Coloring</b>: an edge whose two ends share a group is <c>Rejected</c> (a clash). Other edges are plain.</item>
-/// <item><b>Clique cover</b>: an edge inside a group is <c>Solution</c> (the clique is drawn solid), or
-/// <c>ElementHighlight</c> in a step that only tries a whole grouping (Try, Reject of a run that is not
-/// <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); a missing edge
+/// <item><b>Clique cover</b>: an edge inside a group is <c>Solution</c> in the confirmed answer (the clique is drawn solid),
+/// <c>Committed</c> in a grouping kept so far (#886), or <c>ElementHighlight</c> in a step that only tries a whole grouping
+/// (Try, Reject of a run that is not <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); a missing edge
 /// between two nodes of one group is a <c>Rejected</c> phantom, as in the Clique rule of <see cref="GraphSubsetFrames"/>.</item>
 /// <item>Either rule: a node whose group index is K or more (more colors, or more cliques, than allowed) is <c>Rejected</c>.</item>
 /// <item>What the solver is looking at (the node being colored) is <c>ElementHighlight</c>; in a
@@ -71,9 +71,10 @@ static class GraphGroupFrames {
 
     /// <summary>
     /// The frame for a grouping at one step. <c>incremental</c> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>), whose grouping so far is committed, so its clique edges stay <c>Solution</c>.
+    /// (<see cref="SolveRun.Incremental"/>), whose grouping so far is committed, so its clique edges stay <c>Committed</c> until
+    /// the answer; <c>endsRun</c> whether it is an Accept that ends the run (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static GraphFrame Frame(GraphGroupSpec spec, Groups partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static GraphFrame Frame(GraphGroupSpec spec, Groups partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var nodeIds = new HashSet<string>(spec.Nodes, StringComparer.Ordinal);
         var groups = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var (id, group) in partial.Of)
@@ -100,7 +101,7 @@ static class GraphGroupFrames {
                     for (int i = 0; i < members.Count; i++)
                         for (int j = i + 1; j < members.Count; j++) {
                             string id = GraphSubsetFrames.EdgeId(members[i], members[j]);
-                            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, GraphSubsetFrames.Picked(ev, incremental));
+                            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, GraphSubsetFrames.Picked(ev, incremental, endsRun));
                             else phantoms.Add(new GraphPhantom(members[i], members[j], PictureState.Rejected));
                         }
                 }
@@ -193,10 +194,10 @@ static class GraphGroupFrames {
     public static FramesResponse Build(GraphGroupSpec spec, SolveRun run, Func<string, Groups> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<Groups>? last = null;
-        foreach (var step in run.StepsFor(typeof(Groups)).OfType<SolverStep<Groups>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(Groups)).OfType<SolverStep<Groups>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {

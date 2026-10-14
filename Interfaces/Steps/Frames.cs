@@ -14,7 +14,10 @@ enum PictureState {
     Background,
     /// <summary>What the solver is looking at or trying right now.</summary>
     ElementHighlight,
-    /// <summary>Part of the answer.</summary>
+    /// <summary>
+    /// Part of the confirmed answer: only in the Done frame with ok = true, or an Accept that ends the run (the next step
+    /// is that Done). What a solver has kept before then is <see cref="Committed"/> (#886).
+    /// </summary>
     Solution,
     /// <summary>Failed: uncovered, undominated, or doubled.</summary>
     Rejected,
@@ -29,6 +32,13 @@ enum PictureState {
     /// whose value is not decided yet stays <see cref="Background"/>.
     /// </summary>
     False,
+    /// <summary>
+    /// Kept so far but not confirmed: what an incremental solver has committed mid-run (queens or digits placed, finished
+    /// sub-hulls, items packed, tree edges chosen, jobs scheduled), and a best-so-far a solver has accepted but may still
+    /// replace. It becomes <see cref="Solution"/> only once the run ends on it (#886). A whole candidate that is only being
+    /// tried is <see cref="ElementHighlight"/>, never this.
+    /// </summary>
+    Committed,
 }
 
 /// <summary>

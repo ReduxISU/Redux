@@ -268,18 +268,18 @@ public class GraphGroupFrames_Tests {
         Assert.DoesNotContain(f.Edges.Values.Concat(f.Nodes.Values), s => s.State == PictureState.Solution);
     }
 
-    // ---- incremental runs: the grouping so far stays Solution, only the piece under test is marked ----
+    // ---- incremental runs: the grouping so far stays Committed, only the piece under test is marked ----
 
     [Fact]
-    public void CliqueCover_Incremental_Reject_KeepsTheCliquesSoFarSolution_AndRejectsOnlyTheNodeUnderTest() {
+    public void CliqueCover_Incremental_Reject_KeepsTheCliquesSoFarCommitted_AndRejectsOnlyTheNodeUnderTest() {
         // A search that has put a, b and c in one clique and fails to place d: the clique stays drawn solid.
         var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0)), StepEvent.Reject, ["d"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "b-c"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "a-c"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "b-c"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "a-c"));
         Assert.Equal(PictureState.Rejected, State(f, "d"));
         var tried = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0), ("d", 1)), StepEvent.Try, ["d"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(tried, "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(tried, "a-b"));
         Assert.Equal(PictureState.ElementHighlight, State(tried, "d"));
     }
 
@@ -288,7 +288,7 @@ public class GraphGroupFrames_Tests {
         var steps = new List<object> { new SolverStep<Groups>(Of(("a", 0), ("b", 0)), StepEvent.Reject, ["c"], "x") };
         GraphFrame First(bool incremental) => (GraphFrame)GraphGroupFrames.Build(Spec(GroupRule.CliqueCover),
             new SolveRun("{}", steps, typeof(Groups)) { Incremental = incremental }, _ => Of(), _ => false).Frames[0];
-        Assert.Equal(PictureState.Solution, EdgeState(First(true), "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(First(true), "a-b"));
         Assert.Equal(PictureState.ElementHighlight, EdgeState(First(false), "a-b"));
         Assert.Equal(PictureState.Rejected, State(First(true), "c"));
     }

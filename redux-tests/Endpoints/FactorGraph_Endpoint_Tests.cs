@@ -31,7 +31,7 @@ public class FactorGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         frame.GetProperty(collection).EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetProperty("state").GetString()!);
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "False",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "False", "Committed",
     };
 
     // the factor graph, the default picture whose list format it shares, the problem, and every solver with steps
