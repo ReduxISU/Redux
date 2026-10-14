@@ -17,6 +17,30 @@ using System.Dynamic;
 [Route("[controller]")]
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase {
+    /// <summary>The configuration key for the time budget of a solve that records steps for a picture.</summary>
+    public const string SolveTimeLimitKey = "Visualization:SolveTimeLimitSeconds";
+    /// <summary>The budget used when <see cref="SolveTimeLimitKey"/> is not set.</summary>
+    public const double DefaultSolveTimeLimitSeconds = 10;
+
+    private readonly IConfiguration? _configuration;
+
+    /// <summary>Creates the controller; <paramref name="configuration"/> supplies the solve time limit.</summary>
+    public ProblemProvider(IConfiguration? configuration = null) {
+        _configuration = configuration;
+    }
+
+    /// <summary>
+    /// The time budget for a solve that records steps (the visualize endpoint), from
+    /// <see cref="SolveTimeLimitKey"/> (seconds, default <see cref="DefaultSolveTimeLimitSeconds"/>). Zero or less
+    /// means no limit. Only typed solvers (those that record steps) can be stopped by it; see <see cref="ISolver.Run"/>.
+    /// </summary>
+    private TimeSpan? SolveTimeLimit {
+        get {
+            double seconds = _configuration?.GetValue<double?>(SolveTimeLimitKey) ?? DefaultSolveTimeLimitSeconds;
+            return seconds > 0 ? TimeSpan.FromSeconds(seconds) : null;
+        }
+    }
+
     // Buckets every loaded type into its marker-interface dictionary in a single pass over
     // AppDomain.GetAssemblies().SelectMany(GetTypes()) instead of one full assembly scan per
     // dictionary. .Add (not the indexer) preserves the original ToDictionary behavior of
@@ -317,22 +341,29 @@ public class ProblemProvider : ControllerBase {
     /// <summary>
     /// Builds the non-empty visualization items in display order: the initial visual, any solver steps, then the
     /// solved visual. The initial visual is returned separately so each response shape can place it.
+    /// <para>
+    /// For a run stopped by the time limit (<paramref name="stopped"/>) there is no answer to draw: the frames are
+    /// the recorded steps only (ending with the stopped Done step, for a visualization that draws Done), and
+    /// <paramref name="unsolvedLast"/> asks for the unsolved picture in place of the solved one (the list format).
+    /// </para>
     /// </summary>
-    private static (API_JSON? Initial, List<API_JSON> Frames) buildFrames(IVisualization visualization, List<Object> steps, string solution, string instance) {
+    private static (API_JSON? Initial, List<API_JSON> Frames) buildFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, bool unsolvedLast = false, TimeSpan? timeLimit = null) {
         API_JSON visual = visualization.visualize(instance);
-        List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps);
-        API_JSON solutionJson = visualization.SolvedVisualization(instance, solution);
+        List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps, timeLimit);
 
         List<API_JSON> frames = new List<API_JSON>();
         frames.AddRange(apiSteps.Where(step => !IsEmptyVisualization(step)));
-        if (!IsEmptyVisualization(solutionJson))
-            frames.Add(solutionJson);
+        if (!stopped || unsolvedLast) {
+            API_JSON last = stopped ? visualization.visualize(instance) : visualization.SolvedVisualization(instance, solution);
+            if (!IsEmptyVisualization(last))
+                frames.Add(last);
+        }
 
         return (IsEmptyVisualization(visual) ? null : visual, frames);
     }
 
-    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance) {
-        var (initial, frames) = buildFrames(visualization, steps, solution, instance);
+    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, unsolvedLast: true, timeLimit);
         List<API_JSON> list = new List<API_JSON>();
         if (initial != null)
             list.Add(initial);
@@ -346,8 +377,8 @@ public class ProblemProvider : ControllerBase {
         [property: System.Text.Json.Serialization.JsonPropertyName("payload")] API_JSON? Payload,
         [property: System.Text.Json.Serialization.JsonPropertyName("frames")] List<API_JSON> Frames);
 
-    private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance) {
-        var (initial, frames) = buildFrames(visualization, steps, solution, instance);
+    private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, timeLimit: timeLimit);
         var body = new VisualizeFramesResponse(visualization.visualizationType.ToString(), initial, frames);
         return JsonSerializer.Serialize(body, VisualizeJsonOptions());
     }
@@ -404,12 +435,19 @@ public class ProblemProvider : ControllerBase {
             chosen = Solver(solver);
         }
         try {
-            var run = chosen.Run(instance, withSteps: true);
+            // A typed solver that runs past the time limit is stopped and its run comes back with TimedOut set; an
+            // uninstrumented (legacy) solver never records a step, so it cannot be stopped here (see issue #523).
+            TimeSpan? limit = SolveTimeLimit;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var run = chosen.Run(instance, withSteps: true, limit);
+            // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what is
+            // left of the limit, so the whole request stays within it (#764).
+            TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
             var steps = run.StepsFor(vis.StepShape);
             var solution = run.Answer;
             return Content(asFrames
-                ? getVisualizeFrames(vis, steps, solution, instance)
-                : getVisualize(vis, steps, solution, instance), "application/json");
+                ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
+                : getVisualize(vis, steps, solution, instance, run.TimedOut, left), "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
