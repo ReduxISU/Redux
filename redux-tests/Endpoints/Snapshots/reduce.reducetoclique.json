@@ -205,7 +205,7 @@
     "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
     "instance": "(({a,b,c,d,e,f,g},{{a,f},{b,d},{b,e},{b,f},{c,d},{c,e},{c,f},{c,g},{d,g},{e,g},{f,g}}),3)",
     "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
-    "certificateFormat": "Format: {K | K is set} Example: {1,2,4}",
+    "certificateFormat": "Format: {K | K is set} Example: {2,3,4,5}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
     "contributors": [

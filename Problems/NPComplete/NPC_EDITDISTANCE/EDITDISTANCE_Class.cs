@@ -24,8 +24,11 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     public static string _defaultInstance { get; } = "(horse, ros)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
-    public const string InstanceGrammar = "(x, y) | x,y are strings; a string containing a comma, quote, or leading/trailing space is written in double quotes with \\\" for a quote and \\ for a backslash, e.g. (\"a,b\", c); an optional third field k (an integer) is accepted and ignored";
-    public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
+    // The SPADE definition of the instance (x and y are free text; SPADE 0.2.0 adds `is string`).
+    public const string InstanceGrammar = "{(x,y) | x is string, y is string}";
+    // How to write the strings, kept out of the grammar so InstanceGrammar stays a SPADE definition.
+    public const string InstanceNotes = "A string containing a comma, quote, or leading/trailing space is written in double quotes, with \\\" for a quote and \\ for a backslash, e.g. (\"a,b\", c). An optional third field k (an integer) is accepted and ignored.";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar} {InstanceNotes} Example: {_defaultInstance}";
     public string certificateFormat { get; } =
         $"Format: {EditDistanceVerifier.CertificateGrammar} Example: {EditDistanceVerifier.CertificateExample}";
 
