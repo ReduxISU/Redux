@@ -65,7 +65,8 @@ public class EDITDISTANCE_Tests {
         var problem = new EDITDISTANCE();
         Assert.NotNull(problem.instanceFormat);
         Assert.NotEmpty(problem.instanceFormat);
-        Assert.Contains("(x, y)", problem.instanceFormat);
+        Assert.Contains(EDITDISTANCE.InstanceGrammar, problem.instanceFormat);
+        Assert.Equal("{(x,y) | x is string, y is string}", EDITDISTANCE.InstanceGrammar);
     }
 
     [Fact]
