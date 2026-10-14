@@ -117,7 +117,7 @@ public class IncrementalSolvers_Tests {
     // 1-3 would close a cycle once 1-2 and 2-3 are in the tree.
     [InlineData("({1,2,3,4},{({1,2},1),({2,3},1),({1,3},3),({3,4},5)})")]
     [InlineData("({a,b,c,d,e},{({a,b},1),({b,c},1),({a,c},1),({c,d},2),({b,d},2),({d,e},3),({a,e},4)})")]
-    public void Kruskal_ASkippedEdge_IsRejected_AndTheTreeSoFarStaysSolution(string instance) {
+    public void Kruskal_ASkippedEdge_IsRejected_AndTheTreeSoFarStaysCommitted(string instance) {
         var run = ((ISolver)new API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers.KruskalSolver()).Run(instance, withSteps: true);
         Assert.True(run.Incremental);
         var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["minimumspanningtreevisualization"])!;
@@ -127,7 +127,7 @@ public class IncrementalSolvers_Tests {
         Assert.NotEmpty(rejects);
         foreach (var (step, frame) in rejects) {
             Assert.NotEmpty(step.Partial.Edges);
-            foreach (var edge in step.Partial.Edges) Assert.Equal(PictureState.Solution, frame.Edges[edge].State);
+            foreach (var edge in step.Partial.Edges) Assert.Equal(PictureState.Committed, frame.Edges[edge].State);
             Assert.Equal(PictureState.Rejected, frame.Edges[Assert.Single(step.Focus)].State);
         }
     }
