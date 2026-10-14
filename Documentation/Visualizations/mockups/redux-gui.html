@@ -7151,13 +7151,15 @@ const MiscView = (() => {
 .ms-pt.Solution .dot { fill: var(--av-sol); stroke: var(--av-sol); }
 .ms-pt.Covered .dot { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-pt.Rejected .dot { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; }
-.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g1); stroke: var(--av-g1s); }
+.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g2); stroke: var(--av-g2s); }
 .ms-pt.ring .dot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-pt.trace .dot, .ms-pt:focus-visible .dot { stroke: var(--av-hot); stroke-width: 3; }
 .ms-pt.faint { filter: grayscale(1); }
 .ms-hull { fill: none; stroke: var(--av-edge); stroke-width: 1.4; stroke-dasharray: 4 3; }
-.ms-hull.c0 { stroke: var(--av-g0s); fill: rgba(86,180,233,.13); stroke-dasharray: none; stroke-width: 1.8; }
-.ms-hull.c1 { stroke: var(--av-g1s); fill: rgba(230,159,0,.13); stroke-dasharray: none; stroke-width: 1.8; }
+/* The right hull is purple (g2), not orange (g1): orange is too close to the amber highlight of the chain, most of all in
+   dark mode (#850). Both hulls fade by mixing their colour into the surface, not by opacity. */
+.ms-hull.c0 { stroke: var(--av-g0s); fill: color-mix(in srgb, var(--av-g0) 13%, var(--av-surface)); stroke-dasharray: none; stroke-width: 1.8; }
+.ms-hull.c1 { stroke: var(--av-g2s); fill: color-mix(in srgb, var(--av-g2) 13%, var(--av-surface)); stroke-dasharray: none; stroke-width: 1.8; }
 .ms-hull.hot { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: none; fill: var(--av-hl-fill); fill-opacity: .5; }
 .ms-hull.sol { stroke: var(--av-sol); stroke-width: 2.6; stroke-dasharray: none; fill: var(--av-sol-fill); fill-opacity: .55; }
 .ms-chain { fill: none; stroke: var(--av-hl); stroke-width: 2.6; }
