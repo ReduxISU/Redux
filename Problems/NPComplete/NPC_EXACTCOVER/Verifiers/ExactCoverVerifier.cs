@@ -1,4 +1,5 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Verifiers;
 
@@ -27,12 +28,19 @@ class ExactCoverVerifier : IVerifier<EXACTCOVER> {
     public ExactCoverVerifier() {
 
     }
+    // The chosen sets, read with SPADE as the instance is, so an element name the instance accepts (with ':' or '~' in it) is
+    // read back whole (#833). {} is the empty collection, which exactly covers an empty universe (#775).
     private List<List<string>> parseCertificate(string certificate) {
+        // ExactCoverRecursive asks about its empty choice as "", which SPADE cannot read.
+        if (string.IsNullOrWhiteSpace(certificate)) return new List<List<string>>();
+        UtilCollection chosen = new UtilCollection(certificate.Trim());
+        if (chosen.IsValue() || chosen.IsOrdered())
+            throw new FormatException($"'{certificate}' is not a set of sets like {CertificateExample}");
         List<List<string>> parsedCertificate = new List<List<string>>();
-        List<string> SubsetStringList = certificate.Replace(" ", "").Split(":")[0].Split("},{").ToList();
-        foreach (string stringSet in SubsetStringList) {
-            List<string> subset = stringSet.Replace("{", "").Replace("}", "").Split(",").ToList();
-            parsedCertificate.Add(subset);
+        foreach (UtilCollection subset in chosen.ToList()) {
+            if (subset.IsValue() || subset.IsOrdered())
+                throw new FormatException($"'{certificate}' is not a set of sets like {CertificateExample}");
+            parsedCertificate.Add(subset.ToList().Select(item => item.ToString()).ToList());
         }
 
         return parsedCertificate;

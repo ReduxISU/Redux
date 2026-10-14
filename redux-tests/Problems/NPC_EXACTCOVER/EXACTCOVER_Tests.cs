@@ -249,4 +249,16 @@ public class EXACTCOVER_Tests {
         string certificate = new ExactCoverBruteForce().solve(problem);
         Assert.Equal("{}", certificate);
     }
+
+    // #833: the verifier cut a certificate at its first ':', so a correct cover whose element names hold ':' was rejected.
+    [Theory]
+    [InlineData("({a~b,c:d},{{a~b},{c:d}})", "{{a~b},{c:d}}", true)]
+    [InlineData("({a:b,c},{{a:b},{c},{a:b,c}})", "{{a:b,c}}", true)]
+    [InlineData("({a:b,c},{{a:b},{c},{a:b,c}})", "{{a:b},{a:b,c}}", false)]
+    public void ExactCoverVerifier_Reads_Element_Names_With_Colons_Whole(string instance, string certificate, bool valid) {
+        EXACTCOVER problem = new EXACTCOVER(instance);
+        Assert.Equal(valid, new ExactCoverVerifier().verify(problem, certificate));
+        foreach (string answer in new[] { new ExactCoverBruteForce().solve(problem), new DancingLinks().solve(problem), new ExactCoverRecursive().solve(problem) })
+            Assert.True(new ExactCoverVerifier().verify(problem, answer), $"got: {answer}");
+    }
 }
