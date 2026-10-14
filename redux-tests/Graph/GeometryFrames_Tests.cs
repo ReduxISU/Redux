@@ -57,26 +57,26 @@ public class GeometryFrames_Tests {
     }
 
     [Fact]
-    public void Frame_Incremental_KeepsHullsAndTheChainSolution_TheTriedPointHighlighted_AndDroppedPointsRejected() {
+    public void Frame_Incremental_KeepsHullsAndTheChainPlain_TheTriedPointHighlighted_AndDroppedPointsRejected() {
         var frame = GeometryFrames.Frame(Square, H(pieces: [["P4"]], left: ["P1", "P5"], right: ["P2", "P3"], chain: ["P1", "P2"], dropped: []),
             StepEvent.Try, ["P2"], "Add P2 to the bottom edge.", incremental: true);
         Assert.Equal(["P4 piece", "P1,P5 left", "P2,P3 right"], frame.Pieces.Select(p => $"{string.Join(",", p.Points)} {p.Role}"));
         Assert.Equal(["P1", "P2"], frame.Chain);
         Assert.Empty(frame.Hull);
-        // P6 is P1 again, so it is drawn as P1 is.
-        Assert.Equal("P1:Solution P2:ElementHighlight P3:Solution P4:Solution P5:Solution P6:Solution", States(frame.Points));
+        // Mid-run the hulls and the chain are not the answer yet, so they stay plain (#849); only the tried point shows.
+        Assert.Equal("P2:ElementHighlight", States(frame.Points));
     }
 
     [Fact]
     public void Frame_IncrementalReject_MarksThePoppedPointRejected() {
         var frame = GeometryFrames.Frame(Square, H(left: ["P1", "P5"], right: ["P2", "P3"], chain: ["P1"]), StepEvent.Reject, ["P5"], "c", incremental: true);
-        Assert.Equal("P1:Solution P2:Solution P3:Solution P5:Rejected P6:Solution", States(frame.Points));
+        Assert.Equal("P5:Rejected", States(frame.Points));
     }
 
     [Fact]
     public void Frame_DroppedPoints_StayRejected() {
         var frame = GeometryFrames.Frame(Square, H(pieces: [["P1", "P2", "P3", "P4"]], dropped: ["P5"]), StepEvent.Try, [], "c", incremental: true);
-        Assert.Equal("P1:Solution P2:Solution P3:Solution P4:Solution P5:Rejected P6:Solution", States(frame.Points));
+        Assert.Equal("P5:Rejected", States(frame.Points));
     }
 
     [Fact]
@@ -84,7 +84,8 @@ public class GeometryFrames_Tests {
         var tried = GeometryFrames.Frame(Square, H(pieces: [["P1", "P2", "P3", "P4"]]), StepEvent.Reject, [], "c");
         Assert.Equal("P1:ElementHighlight P2:ElementHighlight P3:ElementHighlight P4:ElementHighlight P6:ElementHighlight", States(tried.Points));
         var accepted = GeometryFrames.Frame(Square, H(pieces: [["P1", "P2", "P3", "P4"]]), StepEvent.Accept, [], "c");
-        Assert.Equal("P1:Solution P2:Solution P3:Solution P4:Solution P6:Solution", States(accepted.Points));
+        // An accepted candidate is not the answer until the Done (#849).
+        Assert.Empty(accepted.Points);
     }
 
     [Fact]
@@ -109,8 +110,8 @@ public class GeometryFrames_Tests {
         var frame = GeometryFrames.Frame(Square, H(left: ["P1", "P9"], chain: ["P1", "Q"], dropped: ["P6", "x"]), StepEvent.Try, ["P7"], "c", incremental: true);
         Assert.Equal(["P1"], frame.Pieces.Single().Points);
         Assert.Equal(["P1"], frame.Chain);
-        // P6 is not an id a solver names (its first copy is P1), so dropping it does nothing.
-        Assert.Equal("P1:Solution P6:Solution", States(frame.Points));
+        // P6 is not an id a solver names (its first copy is P1), so dropping it does nothing; P1 stays plain mid-run.
+        Assert.Empty(frame.Points);
     }
 
     [Fact]

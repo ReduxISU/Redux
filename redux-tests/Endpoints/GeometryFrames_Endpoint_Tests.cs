@@ -162,14 +162,15 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 Assert.Equal(["points", "role"], p.EnumerateObject().Select(x => x.Name));
                 Assert.Contains(p.GetProperty("role").GetString(), new[] { "piece", "left", "right" });
             });
-            // In every step the hulls on the table and the chain are what the solver has committed: Solution, unless they are
-            // the point under test (highlighted) or popped (Rejected).
+            // Before the Done the hulls on the table and the chain are plain (#849), unless they are the point under test
+            // (highlighted) or popped (Rejected).
             string ev = f.GetProperty("event").GetString()!;
             if (ev == "Done") continue;
             Assert.Empty(f.GetProperty("hull").EnumerateArray());
             var focus = f.GetProperty("focus").EnumerateArray().Select(x => x.GetString()!).ToHashSet();
             foreach (var id in pieces.SelectMany(p => p.GetProperty("points").EnumerateArray()).Concat(f.GetProperty("chain").EnumerateArray()).Select(x => x.GetString()!))
-                Assert.Equal(focus.Contains(id) ? (ev == "Reject" ? "Rejected" : "ElementHighlight") : "Solution", states[id]);
+                Assert.Equal(focus.Contains(id) ? (ev == "Reject" ? "Rejected" : "ElementHighlight") : null, states.GetValueOrDefault(id));
+            Assert.DoesNotContain("Solution", states.Values);
         }
         // The Done frame draws the answer's corners in order: Solution, every other point Covered.
         Assert.True(done.GetProperty("ok").GetBoolean());
@@ -194,12 +195,12 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             "{\"event\":\"Try\",\"caption\":\"Sort the 9 points by x, then y: P1, P4, P5, P9, P8, P6, P7, P2 and P3. Then split the list in half, again and again, until each piece has at most 3 points.\","
             + "\"focus\":[],\"pieces\":[],\"chain\":[],\"hull\":[],\"points\":{}}",
             Readable(frames[0]));
-        // A pop during the first merge: the corner under test is Rejected, the chain and both hulls stay committed.
+        // A pop during the first merge: the corner under test is Rejected, the chain and both hulls stay plain (#849).
         var pop = frames.First(f => f.GetProperty("event").GetString() == "Reject");
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"The turn at P4 (from P1 to P5) is clockwise, so pop P4 from the bottom edge.\",\"focus\":[\"P4\"],"
             + "\"pieces\":[{\"points\":[\"P1\",\"P4\"],\"role\":\"left\"},{\"points\":[\"P5\",\"P9\"],\"role\":\"right\"}],\"chain\":[\"P1\"],\"hull\":[],"
-            + "\"points\":{\"P1\":{\"state\":\"Solution\"},\"P4\":{\"state\":\"Rejected\"},\"P5\":{\"state\":\"Solution\"},\"P9\":{\"state\":\"Solution\"}}}",
+            + "\"points\":{\"P4\":{\"state\":\"Rejected\"}}}",
             Readable(pop));
         // The mockup's solved view: the square's four corners in order, the five points inside Covered.
         Assert.Equal(
