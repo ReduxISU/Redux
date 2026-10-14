@@ -151,21 +151,21 @@ public class ScheduleSolvers_Tests {
         Assert.Equal(152, steps.Count);
         // The mockup's frame: the fifth order tried.
         Assert.Equal((StepEvent.Reject, "Try (0,1,2,5,3,4): jobs 2, 3 and 4 finish late, penalty 10 > K = 4."), (steps[4].Event, steps[4].Caption));
-        Assert.Equal(["J3", "J4", "J5"], steps[4].Focus);
+        Assert.Equal(["J2", "J3", "J4"], steps[4].Focus);
         // The order that works is kept past the cap, then Done says how many were not shown.
         Assert.Equal((StepEvent.Accept, "Try (1,3,5,4,0,2): jobs 0 and 2 finish late, penalty 4, within K = 4. It works."), (steps[^2].Event, steps[^2].Caption));
         Assert.Equal("(1,3,5,4,0,2) is the first order that keeps the late penalty within K = 4, found after 191 orders. (40 not shown)", steps[^1].Caption);
-        Assert.Equal(new JobOrder(["J2", "J4", "J6", "J5", "J1", "J3"]), steps[^1].Partial);
+        Assert.Equal(new JobOrder(["J1", "J3", "J5", "J4", "J0", "J2"]), steps[^1].Partial);
     }
 
     [Fact]
     public void JobSeq_WholeOrders_AreHighlighted_LateJobsRejected_AndTheAnswerIsSolution() {
         var (_, frames) = Picture<ScheduleJobsFrame>("jobseqbruteforce", JobDefault);
-        Assert.Equal("J1:ElementHighlight J2:ElementHighlight J3:Rejected J4:Rejected J5:Rejected J6:ElementHighlight", States(frames[4].Jobs));
+        Assert.Equal("J0:ElementHighlight J1:ElementHighlight J2:Rejected J3:Rejected J4:Rejected J5:ElementHighlight", States(frames[4].Jobs));
         Assert.Equal(10, frames[4].Penalty);
-        Assert.Equal("J1:Rejected J2:Solution J3:Rejected J4:Solution J5:Solution J6:Solution", States(frames[^1].Jobs));
+        Assert.Equal("J0:Rejected J1:Solution J2:Rejected J3:Solution J4:Solution J5:Solution", States(frames[^1].Jobs));
         Assert.Equal((4, true), (frames[^1].Penalty, frames[^1].Ok));
-        Assert.Equal("J2 0-2 J4 2-11 J6 11-14 J5 14-18 J1 18-22! J3 22-27!", string.Join(" ", frames[^1].Runs.Select(r => $"{r.Job} {r.Start}-{r.End}{(r.Late ? "!" : "")}")));
+        Assert.Equal("J1 0-2 J3 2-11 J5 11-14 J4 14-18 J0 18-22! J2 22-27!", string.Join(" ", frames[^1].Runs.Select(r => $"{r.Job} {r.Start}-{r.End}{(r.Late ? "!" : "")}")));
     }
 
     [Fact]
