@@ -34,7 +34,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     private static string Compact(string json) => JsonSerializer.Serialize(JsonDocument.Parse(json).RootElement);
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     public static TheoryData<string, string, string> FramesCases {
@@ -212,7 +212,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         var second = frames[2];
         Assert.Equal("Place 2 at position 2. Ready: 3.", second.GetProperty("caption").GetString());
-        Assert.Equal("{\"1\":{\"state\":\"Solution\"},\"2\":{\"state\":\"ElementHighlight\"},\"3\":{\"state\":\"Covered\"}}", Compact(second.GetProperty("nodes").GetRawText()));
+        Assert.Equal("{\"1\":{\"state\":\"Committed\"},\"2\":{\"state\":\"ElementHighlight\"},\"3\":{\"state\":\"Covered\"}}", Compact(second.GetProperty("nodes").GetRawText()));
         Assert.Equal("[\"1\",\"2\"]", Compact(second.GetProperty("order").GetRawText()));
         Assert.Equal("[\"1\",\"2\",\"3\",\"4\",\"6\",\"5\"]", Compact(frames[^1].GetProperty("order").GetRawText()));
     }
@@ -310,6 +310,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 }
 
 // A stopped run, under the 0.05 s budget of TinyBudgetAppFactory.
+[Collection(TimingCollection.Name)]
 public class LayeredFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
