@@ -73,27 +73,30 @@ public class ScheduleFrames_Tests {
         Assert.Equal(["J1", "J0", "J2"], frame.Order);
         Assert.Equal(6, frame.Penalty);
         Assert.Null(frame.Ok);
-        // The same order accepted: on-time jobs are the answer; a late job is still Rejected (its penalty counts).
+        // The same order accepted: on-time jobs are kept (Committed, #886), or the answer when the Accept ends the run; a late
+        // job is still Rejected (its penalty counts).
         var accepted = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0, 2]), StepEvent.Accept, [], "Fits.");
-        Assert.Equal("J0:Rejected J1:Solution J2:Rejected", States(accepted.Jobs));
+        Assert.Equal("J0:Rejected J1:Committed J2:Rejected", States(accepted.Jobs));
+        var answer = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0, 2]), StepEvent.Accept, [], "Fits.", endsRun: true);
+        Assert.Equal("J0:Rejected J1:Solution J2:Rejected", States(answer.Jobs));
     }
 
     [Fact]
-    public void JobsFrame_AnIncrementalRun_KeepsWhatItPlacedSolution_AndMarksOnlyTheFocus() {
+    public void JobsFrame_AnIncrementalRun_KeepsWhatItPlacedCommitted_AndMarksOnlyTheFocus() {
         var tried = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([2, 1]), StepEvent.Try, ["J2"], "Try J2.", incremental: true);
         Assert.Equal("J1:Rejected J2:ElementHighlight", States(tried.Jobs));
         // A tried job that would end late shows Rejected: that outranks the highlight.
         var late = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 2]), StepEvent.Try, ["J2"], "Try J2.", incremental: true);
-        Assert.Equal("J1:Solution J2:Rejected", States(late.Jobs));
+        Assert.Equal("J1:Committed J2:Rejected", States(late.Jobs));
         var rejected = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1]), StepEvent.Reject, ["J0"], "No room.", incremental: true);
-        Assert.Equal("J0:Rejected J1:Solution", States(rejected.Jobs));
+        Assert.Equal("J0:Rejected J1:Committed", States(rejected.Jobs));
     }
 
     [Fact]
     public void JobsFrame_DropsIdsThatAreNotJobs_AndRepeats() {
         var frame = ScheduleFrames.JobsFrame(Jobs3, new JobOrder(["J1", "J8", "J1", "x"]), StepEvent.Accept, ["J8"], "Odd.");
         Assert.Equal(["J1"], frame.Order);
-        Assert.Equal("J1:Solution", States(frame.Jobs));
+        Assert.Equal("J1:Committed", States(frame.Jobs));
     }
 
     [Theory]
@@ -210,12 +213,13 @@ public class ScheduleFrames_Tests {
     }
 
     [Fact]
-    public void PumpsFrame_TheSchedule_IsSolution_AndTheReplayDrawsUpToItsHour() {
+    public void PumpsFrame_TheTracedSchedule_IsCommitted_AndTheReplayDrawsUpToItsHour() {
         // The day ends below empty (no pump after hour 2): hours 21 to 23 leave the tank's limits.
         var plan = Plan(Day(["P1"], ["P1", "P2"], ["P2"]));
         var traced = ScheduleFrames.PumpsFrame(Tank, plan, StepEvent.Accept, [], "Traced.", incremental: true);
         Assert.Equal(23, traced.UpTo);
-        Assert.Equal("P1t0:Solution P1t1:Solution P2t1:Solution P2t2:Solution", States(traced.Cells));
+        // Traced back but still being replayed: kept, not the answer yet (#886).
+        Assert.Equal("P1t0:Committed P1t1:Committed P2t1:Committed P2t2:Committed", States(traced.Cells));
         Assert.Equal("t21:Rejected t22:Rejected t23:Rejected", States(traced.Hours));
 
         var replay = ScheduleFrames.PumpsFrame(Tank, plan, StepEvent.Try, ["t22"], "Hour 22.", incremental: true);

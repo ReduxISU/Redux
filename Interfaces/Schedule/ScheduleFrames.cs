@@ -184,13 +184,14 @@ sealed record SchedulePumpsFrame(
 /// apart, and no id needs escaping.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>; see
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>; see
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
 /// <item>A placed job, or a pump on in an hour of the schedule, is <c>ElementHighlight</c> while a whole candidate is only
-/// tried (a Try or Reject of a run that is not <see cref="SolveRun.Incremental"/>) and <c>Solution</c> otherwise: in an Accept,
-/// in Done and in every step of an incremental run (<see cref="GraphSubsetFrames.Picked"/>).</item>
+/// tried (a Try or Reject of a run that is not <see cref="SolveRun.Incremental"/>), <c>Committed</c> while it is kept but not
+/// confirmed (an Accept the run goes on from, and every step of an incremental run: the jobs scheduled so far; #886), and
+/// <c>Solution</c> only in the confirmed answer: the Done, or an Accept that ends the run (<see cref="GraphSubsetFrames.Picked"/>).</item>
 /// <item>A placed job that ends after its deadline is <c>Rejected</c> in every frame: its penalty counts.</item>
 /// <item>An hour drawn so far (up to <c>upTo</c>) whose tank level ends below the minimum or above the capacity is
 /// <c>Rejected</c>.</item>
@@ -262,13 +263,14 @@ static class ScheduleFrames {
 
     /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static ScheduleJobsFrame JobsFrame(JobScheduleSpec spec, JobOrder partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static ScheduleJobsFrame JobsFrame(JobScheduleSpec spec, JobOrder partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var order = Indices(spec, partial);
         var runs = Runs(spec, order);
         var states = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = GraphSubsetFrames.Picked(ev, incremental);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         foreach (var run in runs) {
             GraphSubsetFrames.Raise(states, run.Job, picked);
             if (run.Late) GraphSubsetFrames.Raise(states, run.Job, PictureState.Rejected);
@@ -309,10 +311,10 @@ static class ScheduleFrames {
     public static FramesResponse BuildJobs(JobScheduleSpec spec, SolveRun run, Func<string, JobOrder> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<JobOrder>? last = null;
-        foreach (var step in run.StepsFor(typeof(JobOrder)).OfType<SolverStep<JobOrder>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(JobOrder)).OfType<SolverStep<JobOrder>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedJobsFrame(step.Caption)
-                : JobsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : JobsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {
@@ -387,9 +389,10 @@ static class ScheduleFrames {
 
     /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static SchedulePumpsFrame PumpsFrame(PumpScheduleSpec spec, PumpPlan partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static SchedulePumpsFrame PumpsFrame(PumpScheduleSpec spec, PumpPlan partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var on = partial.On.Take(Hours).Select(hour => (IReadOnlyCollection<string>)hour).ToList();
         var schedule = Simulate(spec, on);
         var levels = ExactLevels(spec, on);
@@ -399,7 +402,7 @@ static class ScheduleFrames {
 
         var hourStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var cellStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = GraphSubsetFrames.Picked(ev, incremental);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
         var pumpIndex = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
         for (int h = 0; h < schedule.Count; h++) {
             foreach (var id in schedule[h].On) GraphSubsetFrames.Raise(cellStates, CellId(pumpIndex[id], h), picked);
@@ -460,10 +463,10 @@ static class ScheduleFrames {
     public static FramesResponse BuildPumps(PumpScheduleSpec spec, SolveRun run, Func<string, PumpPlan> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<PumpPlan>? last = null;
-        foreach (var step in run.StepsFor(typeof(PumpPlan)).OfType<SolverStep<PumpPlan>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(PumpPlan)).OfType<SolverStep<PumpPlan>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedPumpsFrame(step.Caption)
-                : PumpsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : PumpsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {

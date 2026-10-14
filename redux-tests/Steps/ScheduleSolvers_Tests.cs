@@ -217,7 +217,7 @@ public class ScheduleSolvers_Tests {
     }
 
     [Fact]
-    public void PumpCM_Frames_HighlightTheHourAtHand_AndDrawTheScheduleAsSolution() {
+    public void PumpCM_Frames_HighlightTheHourAtHand_AndDrawTheScheduleAsCommittedUntilTheAnswer() {
         var (payload, frames) = Picture<SchedulePumpsFrame>("pumpschedulingcmsolver", CmDefault);
         var p = Assert.IsType<SchedulePumpsPayload>(payload);
         Assert.Equal(("costMinimization", 24, 3, null), (p.Rule, p.Hours.Count, p.Pumps.Count, p.Budget));
@@ -227,7 +227,8 @@ public class ScheduleSolvers_Tests {
         // Trace back: the whole schedule is committed.
         Assert.Equal((23, ""), (frames[24].UpTo, States(frames[24].Hours)));
         Assert.Equal(47, frames[24].Cells.Count);
-        Assert.All(frames[24].Cells, c => Assert.Equal(PictureState.Solution, c.Value.State));
+        Assert.All(frames[24].Cells, c => Assert.Equal(PictureState.Committed, c.Value.State));
+        Assert.All(frames[^1].Cells, c => Assert.Equal(PictureState.Solution, c.Value.State));
         Assert.DoesNotContain(frames[24].Cells.Keys, id => id.StartsWith("P3"));
         // Replay: the hour at hand, drawn up to it.
         Assert.Equal((8, "t8:ElementHighlight"), (frames[33].UpTo, States(frames[33].Hours)));
