@@ -117,12 +117,16 @@ public class GraphEdgeFrames_Tests {
 
     [Fact]
     public void Edges_ChosenAreSolution_TheirEndsCovered_TheRestBackground() {
-        var f = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SpanningTree), Set("a-b", "b-c"), StepEvent.Accept, [], "x");
+        var f = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SpanningTree), Set("a-b", "b-c"), StepEvent.Accept, [], "x", endsRun: true);
         Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
         Assert.Equal(PictureState.Solution, EdgeState(f, "b-c"));
         Assert.Null(EdgeState(f, "a-c"));
         Assert.Null(EdgeState(f, "c-d"));
         Assert.All(new[] { "a", "b", "c" }, n => Assert.Equal(PictureState.Covered, State(f, n)));
+        // An Accept that does not end the run keeps the edges, but they are not the answer yet (#886).
+        var kept = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SpanningTree), Set("a-b", "b-c"), StepEvent.Accept, [], "x");
+        Assert.Equal(PictureState.Committed, EdgeState(kept, "a-b"));
+        Assert.Equal(PictureState.Covered, State(kept, "a"));
         Assert.Null(State(f, "d"));
         Assert.Null(State(f, "e"));
         Assert.Empty(f.Phantoms);
@@ -173,7 +177,7 @@ public class GraphEdgeFrames_Tests {
 
     [Fact]
     public void Cut_EdgesBetweenTheSidesAreSolution_TheFrameCarriesTheGroups() {
-        var f = GraphEdgeFrames.CutFrame(Spec(EdgeRule.MaxCut), Split("a", "d"), StepEvent.Accept, [], "x");
+        var f = GraphEdgeFrames.CutFrame(Spec(EdgeRule.MaxCut), Split("a", "d"), StepEvent.Accept, [], "x", endsRun: true);
         Assert.Equal(["a-b", "a-c", "c-d"], f.Edges.Keys);
         Assert.All(f.Edges.Values, s => Assert.Equal(PictureState.Solution, s.State));
         Assert.Null(EdgeState(f, "b-c"));
@@ -312,18 +316,20 @@ public class GraphEdgeFrames_Tests {
             Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "a-b"));
             Assert.DoesNotContain(f.Edges.Values, s => s.State == PictureState.Solution);
         }
-        Assert.Equal(PictureState.Solution, EdgeState(GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), Split("a"), StepEvent.Accept, [], "x"), "a-b"));
+        Assert.Equal(PictureState.Solution, EdgeState(GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), Split("a"), StepEvent.Accept, [], "x", endsRun: true), "a-b"));
+        // A best so far (an Accept the run goes on from) is kept, not confirmed.
+        Assert.Equal(PictureState.Committed, EdgeState(GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), Split("a"), StepEvent.Accept, [], "x"), "a-b"));
     }
 
-    // ---- incremental runs: the committed part stays Solution, only the piece under test is marked ----
+    // ---- incremental runs: the committed part stays Committed, only the piece under test is marked ----
 
     [Fact]
-    public void Edges_Incremental_Reject_KeepsTheTreeSoFarSolution_AndRejectsOnlyTheSkippedEdge() {
-        // Kruskal holds the tree {a-b, b-c} and skips a-c, which would close a cycle: the tree stays Solution, its ends
+    public void Edges_Incremental_Reject_KeepsTheTreeSoFarCommitted_AndRejectsOnlyTheSkippedEdge() {
+        // Kruskal holds the tree {a-b, b-c} and skips a-c, which would close a cycle: the tree stays Committed, its ends
         // Covered, and only a-c is Rejected.
         var f = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SpanningTree), Set("a-b", "b-c"), StepEvent.Reject, ["a-c"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "b-c"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "b-c"));
         Assert.Equal(PictureState.Covered, State(f, "a"));
         Assert.Equal(PictureState.Covered, State(f, "c"));
         Assert.Equal(PictureState.Rejected, EdgeState(f, "a-c"));
@@ -333,19 +339,19 @@ public class GraphEdgeFrames_Tests {
     [Fact]
     public void Edges_Incremental_Try_HighlightsOnlyThePieceUnderTest() {
         var f = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SpanningTree), Set("a-b"), StepEvent.Try, ["c"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "a-b"));
         Assert.Equal(PictureState.Covered, State(f, "a"));
         Assert.Equal(PictureState.ElementHighlight, State(f, "c"));
     }
 
     [Fact]
-    public void Cut_Incremental_Reject_KeepsTheCrossingEdgesSolution_AndRejectsTheFocus() {
+    public void Cut_Incremental_Reject_KeepsTheCrossingEdgesCommitted_AndRejectsTheFocus() {
         var f = GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), Split("a"), StepEvent.Reject, ["b"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(f, "a-b"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "a-c"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "a-c"));
         Assert.Equal(PictureState.Rejected, State(f, "b"));
         var tried = GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), Split("a"), StepEvent.Try, ["b"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(tried, "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(tried, "a-b"));
         Assert.Equal(PictureState.ElementHighlight, State(tried, "b"));
     }
 
@@ -354,13 +360,13 @@ public class GraphEdgeFrames_Tests {
         var edgeSteps = new List<object> { new SolverStep<EdgeSet>(Set("a-b", "b-c"), StepEvent.Reject, ["a-c"], "skip a-c") };
         GraphFrame FirstEdges(bool incremental) => (GraphFrame)GraphEdgeFrames.BuildEdges(Spec(EdgeRule.SpanningTree),
             new SolveRun("{}", edgeSteps, typeof(EdgeSet)) { Incremental = incremental }, _ => Set(), _ => false).Frames[0];
-        Assert.Equal(PictureState.Solution, EdgeState(FirstEdges(true), "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(FirstEdges(true), "a-b"));
         Assert.Equal(PictureState.ElementHighlight, EdgeState(FirstEdges(false), "a-b"));
 
         var cutSteps = new List<object> { new SolverStep<Groups>(Split("a"), StepEvent.Reject, ["b"], "x") };
         GraphFrame FirstCut(bool incremental) => (GraphFrame)GraphEdgeFrames.BuildCut(Spec(EdgeRule.Cut, 2),
             new SolveRun("{}", cutSteps, typeof(Groups)) { Incremental = incremental }, _ => Split(), _ => false).Frames[0];
-        Assert.Equal(PictureState.Solution, EdgeState(FirstCut(true), "a-b"));
+        Assert.Equal(PictureState.Committed, EdgeState(FirstCut(true), "a-b"));
         Assert.Equal(PictureState.Rejected, State(FirstCut(true), "b"));
         Assert.Equal(PictureState.ElementHighlight, EdgeState(FirstCut(false), "a-b"));
         Assert.Equal(PictureState.ElementHighlight, State(FirstCut(false), "b"));
