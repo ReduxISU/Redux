@@ -92,7 +92,7 @@ sealed record SearchTreeFrame(
 /// never seen (its step fell past the recorder's cap) hangs under a <c>hidden</c> stand-in for that parent, under the root.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Background</c>; see
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Background</c>; see
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
@@ -101,8 +101,9 @@ sealed record SearchTreeFrame(
 /// cut-off children <c>Rejected</c>.</item>
 /// <item>The node the step is about (its last patch) is marked as <see cref="GraphSubsetFrames.FocusMark"/> says:
 /// <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject.</item>
-/// <item>The answer's path, from the root to the latest solution node, is <c>Solution</c> only in the Accept that reaches it
-/// and in a Done with ok = true. A Done step may carry patches too: a solver whose answer was found past the recorder's cap
+/// <item>The answer's path, from the root to the latest solution node, is marked only in the Accept that reaches it and in a
+/// Done with ok = true: <c>Solution</c> in the Done and in an Accept that ends the run, and <c>Committed</c> in an Accept the
+/// run goes on from (a best so far a branch and bound may still beat; #886). A Done step may carry patches too: a solver whose answer was found past the recorder's cap
 /// names the answer's path there, so the tree ends on it.</item>
 /// <item>A run stopped by its time limit ends with the tree so far in a Done frame with ok = false: nothing highlighted, no
 /// answer path. Its answer string is never read.</item>
@@ -229,7 +230,8 @@ static class SearchTreeFrames {
         /// <param name="focus">The node the step is about, or null.</param>
         /// <param name="mark">The focus's state.</param>
         /// <param name="answer">The node whose path from the root is the answer's, or null.</param>
-        public List<SearchTreeNodeDto> Draw(int? focus, PictureState mark, int? answer) {
+        /// <param name="answerState">The state of that path: Solution once confirmed, Committed while only kept so far.</param>
+        public List<SearchTreeNodeDto> Draw(int? focus, PictureState mark, int? answer, PictureState answerState = PictureState.Solution) {
             Node? focusNode = focus is int f && _nodes.TryGetValue(f, out var fn) ? fn : null;
             var path = new HashSet<Node>();
             for (var n = answer is int a && _nodes.TryGetValue(a, out var an) ? an : null; n != null; n = n.Parent) path.Add(n);
@@ -287,7 +289,7 @@ static class SearchTreeFrames {
             void Emit(Node n) {
                 string id = NodeId(n.Id);
                 GraphSubsetFrames.Raise(states, id, n.Hidden ? PictureState.Background : StateOf(n.State));
-                if (path.Contains(n)) GraphSubsetFrames.Raise(states, id, PictureState.Solution);
+                if (path.Contains(n)) GraphSubsetFrames.Raise(states, id, answerState);
                 if (n == focusNode) GraphSubsetFrames.Raise(states, id, mark);
                 drawn.Add(new SearchTreeNodeDto(id, n.Parent is { } p ? NodeId(p.Id) : null, n.Label, n.Hidden ? "hidden" : KindOf(n.State),
                     states[id]) { Bound = n.Bound, Order = n.Order });
@@ -315,9 +317,10 @@ static class SearchTreeFrames {
 
     /// <summary>
     /// The frame for one step, after its patches are applied to <paramref name="tree"/>. <paramref name="stopped"/> marks the
-    /// Done step of a run stopped by its time limit.
+    /// Done step of a run stopped by its time limit; <paramref name="endsRun"/> says whether the step is an Accept that ends the
+    /// run (<see cref="GraphSubsetFrames.EndsRun"/>), so the path it reaches is the confirmed answer.
     /// </summary>
-    internal static SearchTreeFrame Frame(Tree tree, StepEvent ev, IReadOnlyList<SearchNode>? patches, string caption, bool? ok, bool stopped = false) {
+    internal static SearchTreeFrame Frame(Tree tree, StepEvent ev, IReadOnlyList<SearchNode>? patches, string caption, bool? ok, bool stopped = false, bool endsRun = false) {
         foreach (var p in patches ?? []) tree.Apply(p);
         int? focus = ev != StepEvent.Done && patches is { Count: > 0 } ? patches[^1].NodeId : null;
         int? answer = ev switch {
@@ -325,7 +328,8 @@ static class SearchTreeFrames {
             StepEvent.Done when ok == true && !stopped => tree.Solution,
             _ => null,
         };
-        var nodes = tree.Draw(focus, GraphSubsetFrames.FocusMark(ev), answer);
+        // The path is the answer once confirmed; an Accept the run goes on from only keeps it so far (#886).
+        var nodes = tree.Draw(focus, GraphSubsetFrames.FocusMark(ev), answer, ev == StepEvent.Accept && !endsRun ? PictureState.Committed : PictureState.Solution);
         return new SearchTreeFrame(ev, caption, focus is int id ? [NodeId(id)] : [], nodes, tree.Count, tree.Cut) { Ok = ok };
     }
 
@@ -338,9 +342,9 @@ static class SearchTreeFrames {
         var tree = new Tree();
         var frames = new List<object>();
         SolverStep<TPartial>? last = null;
-        foreach (var step in run.StepsFor(typeof(TPartial)).OfType<SolverStep<TPartial>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(TPartial)).OfType<SolverStep<TPartial>>())) {
             bool stopped = run.TimedOut && step.Event == StepEvent.Done;
-            frames.Add(Frame(tree, step.Event, step.Tree, step.Caption, stopped ? false : step.Ok, stopped));
+            frames.Add(Frame(tree, step.Event, step.Tree, step.Caption, stopped ? false : step.Ok, stopped, endsRun && !run.TimedOut));
             last = step;
         }
         if (run.TimedOut) {
