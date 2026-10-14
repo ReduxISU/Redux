@@ -9,8 +9,17 @@ coverage-min = 80
 [artifact]
 image = "ghcr.io/reduxisu/redux"
 port = 27000
-# Served by the minimal-API route in Program.cs (#621); used once `rbs integration-test` lands.
-health-path = "/health"
+# Not /health: that answers as soon as Kestrel listens. This route's first call forces the
+# reflection scan that builds the problem registry, so a 200 means genuinely warm — the same
+# probe Redux_GUI's rbs.toml uses for this image.
+health-path = "/Navigation/Batch/allProblems"
+
+[integration]
+# A separate project, deliberately not in Redux.slnx: `rbs unit-test` runs `dotnet test` on the
+# solution, so this can never be collected without a container to talk to.
+command = "dotnet test integration/Redux.Integration.csproj"
+# Cold start plus the reflection scan on a CI runner.
+timeout = 240
 
 [push]
 on-branch = "CSharpAPI"

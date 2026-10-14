@@ -3,21 +3,25 @@
   "image": "mcr.microsoft.com/dotnet/sdk:10.0",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
-      "username": "vscode",
+      "username": "ubuntu",
       "installZsh": false,
       "upgradePackages": false
     },
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": { "moby": false },
     "ghcr.io/reduxisu/features/rbs:1": {}
   },
-  "remoteUser": "vscode",
+  "appPort": [27000],
+  "portsAttributes": {
+    "27000": { "label": "Redux API", "onAutoForward": "notify" }
+  },
+  "containerUser": "ubuntu",
+  "remoteUser": "ubuntu",
+  "updateRemoteUserUID": true,
+  "postStartCommand": "if [ \"$(stat -c %U /workspaces/Redux)\" != \"ubuntu\" ]; then sudo chown -R ubuntu:ubuntu /workspaces/Redux; fi",
+  "postCreateCommand": "dotnet restore Redux.slnx",
   "customizations": {
     "vscode": {
-      "extensions": [
-        "ms-dotnettools.csharp"
-      ]
+      "extensions": ["ms-dotnettools.csharp"]
     }
-  },
-  "postStartCommand": "if [ \"$(stat -c %U /workspaces/Redux)\" != \"vscode\" ]; then sudo chown -R vscode:vscode /workspaces/Redux; fi",
-  "postCreateCommand": "dotnet --list-sdks"
+  }
 }

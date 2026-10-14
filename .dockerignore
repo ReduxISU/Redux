@@ -9,6 +9,7 @@ obj/
 .rbs/
 report.md
 Documentation/
+integration/
 Dockerfile
 .dockerignore
 **/bin/
