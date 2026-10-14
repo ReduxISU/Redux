@@ -29,7 +29,7 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     // visualization, its default solver, shape, rule, whether the instance has a K, whether edges carry weights
@@ -182,18 +182,21 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         }
     }
 
-    // MST: the first frame has nothing chosen; each Accept adds exactly one Solution edge and the nodes it joins are Covered.
+    // MST: each Accept adds exactly one edge to the tree so far (Committed, #886) and the nodes it joins are Covered; the
+    // Accept that ends the run shows the tree as the answer (Solution).
     [Fact]
     public async Task Frames_MinimumSpanningTree_AddsEdgesInWeightOrder_AndCoversTheJoinedNodes() {
         var (_, body) = await Visualize("visualization=minimumspanningtreevisualization&format=frames", DefaultInstance("minimumspanningtreevisualization"));
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(["Accept", "Accept", "Accept", "Done"], frames.Select(f => f.GetProperty("event").GetString()));
-        // The edge just added is highlighted (over its Solution state); the earlier ones are Solution.
+        // The edge just added is highlighted (over its Committed state); the earlier ones are Committed.
         string[] Chosen(JsonElement f) => f.GetProperty("edges").EnumerateObject().Select(e => e.Name).ToArray();
         Assert.Equal(["1-2"], frames[0].GetProperty("edges").EnumerateObject().Select(e => e.Name));
         Assert.Equal(["1-2", "3-4"], Chosen(frames[1]).Order());
         Assert.Equal(["1-2", "1-4", "3-4"], Chosen(frames[3]).Order());
-        // The edge just added is highlighted over its Solution state; the nodes it joins are Covered.
+        Assert.Equal("Committed", frames[1].GetProperty("edges").GetProperty("1-2").GetProperty("state").GetString());
+        Assert.Equal("Solution", frames[2].GetProperty("edges").GetProperty("1-2").GetProperty("state").GetString());
+        // The edge just added is highlighted over its Committed state; the nodes it joins are Covered.
         Assert.Equal("ElementHighlight", frames[0].GetProperty("edges").GetProperty("1-2").GetProperty("state").GetString());
         Assert.Equal("Covered", frames[0].GetProperty("nodes").GetProperty("1").GetProperty("state").GetString());
         Assert.False(frames[0].GetProperty("nodes").TryGetProperty("3", out _));
@@ -207,9 +210,9 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
         var reject = frames.Single(f => f.GetProperty("event").GetString() == "Reject");
         Assert.Equal("Rejected", reject.GetProperty("edges").GetProperty("1-3").GetProperty("state").GetString());
-        // Kruskal builds the tree piece by piece: the tree so far stays the answer so far; only the skipped edge is marked.
-        Assert.Equal("Solution", reject.GetProperty("edges").GetProperty("1-2").GetProperty("state").GetString());
-        Assert.Equal("Solution", reject.GetProperty("edges").GetProperty("2-3").GetProperty("state").GetString());
+        // Kruskal builds the tree piece by piece: the tree so far stays Committed; only the skipped edge is marked.
+        Assert.Equal("Committed", reject.GetProperty("edges").GetProperty("1-2").GetProperty("state").GetString());
+        Assert.Equal("Committed", reject.GetProperty("edges").GetProperty("2-3").GetProperty("state").GetString());
         Assert.Equal("Covered", reject.GetProperty("nodes").GetProperty("1").GetProperty("state").GetString());
         Assert.False(frames[^1].GetProperty("edges").TryGetProperty("1-3", out _), "1-3 is Background in the answer");
     }
