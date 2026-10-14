@@ -154,16 +154,17 @@ public class SearchTreeFrames_Tests {
     [Fact]
     public void BestFirst_TheAcceptThatReachesAnAnswerShowsItsPath_AndABetterAnswerDemotesTheOldOne() {
         var frames = Frames(BestFirst());
-        // The Accept that closes the first tour: its path is Solution, the node itself is in focus.
+        // The Accept that closes the first tour: the search goes on, so its path is kept but not confirmed (Committed, #886);
+        // the node itself is in focus.
         Assert.Equal(PictureState.ElementHighlight, ById(frames[4])["n3"].State);
-        Assert.Equal(PictureState.Solution, ById(frames[4])["n2"].State);
-        Assert.Equal(PictureState.Solution, ById(frames[4])["n0"].State);
+        Assert.Equal(PictureState.Committed, ById(frames[4])["n2"].State);
+        Assert.Equal(PictureState.Committed, ById(frames[4])["n0"].State);
         // The better tour takes over; the old one is just explored now.
         Assert.Equal("explored", ById(frames[5])["n3"].Kind);
         Assert.Equal(PictureState.Covered, ById(frames[5])["n3"].State);
-        Assert.Equal(["n0", "n1"], frames[5].Nodes.Where(n => n.State == PictureState.Solution).Select(n => n.Id));
+        Assert.Equal(["n0", "n1"], frames[5].Nodes.Where(n => n.State == PictureState.Committed).Select(n => n.Id));
         // A later step about the solution node is not an Accept: no path.
-        Assert.DoesNotContain(frames[6].Nodes, n => n.State == PictureState.Solution);
+        Assert.DoesNotContain(frames[6].Nodes, n => n.State is PictureState.Solution or PictureState.Committed);
         Assert.Equal(["n0", "n1", "n4"], frames[^1].Nodes.Where(n => n.State == PictureState.Solution).Select(n => n.Id));
     }
 
