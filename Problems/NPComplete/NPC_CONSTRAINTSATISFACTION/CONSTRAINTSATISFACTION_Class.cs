@@ -56,7 +56,8 @@ class CONSTRAINTSATISFACTION
     // API trusts. Leave as Unclassified (the default — this line can simply be deleted)
     // until someone has actually checked the literature/argued the class. Getting this
     // wrong is a public correctness claim the API will serve to callers.
-    // public ComplexityClass complexityClass {get;} = ComplexityClass.TODO;
+    public ComplexityClass complexityClass {get;} = ComplexityClass.NPComplete;
+    public ProblemType problemType {get;} = ProblemType.MathematicalProgramming;
 
     // --- Properties ---
 
