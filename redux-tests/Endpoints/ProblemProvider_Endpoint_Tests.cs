@@ -56,6 +56,15 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("False", result, StringComparison.OrdinalIgnoreCase);
     }
 
+    // #833: an element name with ':' in it is read whole, so this exact cover is accepted.
+    [Fact]
+    public async Task Verify_ExactCover_Reads_Element_Names_With_Colons_Whole() {
+        var body = new { Certificate = "{{a~b},{c:d}}", ProblemInstance = "({a~b,c:d},{{a~b},{c:d}})" };
+        var response = await _client.PostAsJsonAsync("/ProblemProvider/verify?verifier=ExactCoverVerifier", body, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("True", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), StringComparison.Ordinal);
+    }
+
     // ── /ProblemProvider/solve ────────────────────────────────────────────────
 
     [Fact]
