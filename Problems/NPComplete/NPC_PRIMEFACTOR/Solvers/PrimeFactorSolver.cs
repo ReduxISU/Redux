@@ -12,6 +12,7 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
         "and continues dividing the number by each prime factor found until the number is fully factored. " +
         "The algorithm runs in O(√n) time complexity in the worst case, making it suitable for small to moderate-sized integers.";
     public string source { get; } = "Pisano, Leonardo (1202), Incipit liber Abbaci compositus to Lionardo filio Bonaccii Pisano in year Mccij, Museo Galileo.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Jason L. Wright", "Paul Gilbreath", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive trial division. Classic trap: looks polynomial-ish
@@ -23,7 +24,7 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
     // solve()'s trial-division loop runs while i * i <= numberToFactor, i.e. O(sqrt(n)) iterations
     // in the *value* of n -- but n's bit-length b is the real input size, and n = 2^b, so this is
     // O(2^(b/2)): exponential in input size, matching the Exponential bucket above.
-    public string complexity { get; } = "O(sqrt(n)) in the value of n (exponential in n's bit-length)";
+    public MathematicalFunction timeComplexity { get; } = new("sqrt(n)", " in the value of n (exponential in n's bit-length)");
     // --- Methods Including Constructors ---
     public PrimeFactorSolver() { }
 

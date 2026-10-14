@@ -7,6 +7,7 @@ class Sat3DefaultVisualization : IVisualization<SAT3> {
     public string visualizationName { get; } = "3SAT Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for 3SAT";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Kaden Marchetti" };
     public VisualizationType visualizationType { get; } = VisualizationType.BooleanSatisfiability;
     public ISolver solver { get; } = new Sat3BacktrackingSolver();

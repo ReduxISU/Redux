@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -11,10 +12,14 @@ class SSSPVisualization : IVisualization<SSSP, API_GraphJSON> {
     public string visualizationName { get; } = "Single Source Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Source Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Rajit Nilkar" };
     public VisualizationType visualizationType => VisualizationType.GraphD3;
     public ISolver solver { get; } = new SSSPSolver();
     public IVerifier verifier { get; } = new SSSPVerifier();
+
+    // Implemented explicitly so it is not a public member (and so not part of /info).
+    Type? IVisualization.StepShape => typeof(Distances);
 
     public SSSPVisualization() { }
 
@@ -72,13 +77,8 @@ class SSSPVisualization : IVisualization<SSSP, API_GraphJSON> {
     public List<API_JSON> StepsVisualization(SSSP problem, List<Object> steps) {
         var result = new List<API_JSON>();
 
-        for (int s = 0; s < steps.Count; s++) {
-            var step = steps[s] as SSSPSolver.SSSPGraphStep;
-            if (step == null) {
-                result.Add(visualize(problem));
-                continue;
-            }
-
+        // One frame per settled node, made from the run's typed steps (no second run).
+        foreach (var step in SSSPSolver.GraphSteps(problem, steps)) {
             API_GraphJSON graph = problem.graph.ToAPIGraph();
             var knownNodes = new HashSet<string>(step.knownNodes);
 

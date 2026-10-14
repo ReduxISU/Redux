@@ -9,6 +9,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
     public string reductionName { get; } = "Karp's SAT Reduction";
     public string reductionDefinition { get; } = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
     public string source { get; } = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
     public string[] contributors { get; } = { "Daniel Igbokwe" };
     // Dictionary<Object,List<string>> _gadgetMap = new Dictionary<object, List<string>>();

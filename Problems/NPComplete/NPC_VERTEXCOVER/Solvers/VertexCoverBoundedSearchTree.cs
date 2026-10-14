@@ -14,12 +14,13 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER> {
  + " Returns the first successful branch's cover, or failure if both branches fail, meaning no vertex "
  + " cover of size at most k exists.";
     public string source { get; } = "David S. Johnson. 1974. Approximation algorithms for combinatorial problems. J. Comput. Syst. Sci. 9, 3 (December, 1974), 256–278. https://doi.org/10.1016/S0022-0000(74)80044-9";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/800125.804034";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } = "O(2^K * (n + m)), K = target cover size, n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^K * (n + m)", ", K = target cover size, n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public VertexCoverBoundedSearchTree() {

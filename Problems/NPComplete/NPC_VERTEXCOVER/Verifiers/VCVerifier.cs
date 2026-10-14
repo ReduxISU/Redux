@@ -10,6 +10,7 @@ class VCVerifier : IVerifier<VERTEXCOVER> {
     public string verifierName { get; } = "Default Vertex Cover Verifier";
     public string verifierDefinition { get; } = "This is a Vertex Cover Verifier.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Janita Aamir", "Alex Diviney" };
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

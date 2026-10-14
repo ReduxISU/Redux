@@ -10,6 +10,7 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET> {
     public string solverName { get; } = "Independent Set Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Independent Set problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -18,7 +19,7 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET> {
     // Declared, not derived. Enumerates all C(n,K) size-K node combinations (worst case
     // Theta(2^n) at K ~ n/2 via nextComb); each candidate costs O(K^2 * m) to verify
     // (IndependentSetVerifier checks every pair in the K-set against the edge list).
-    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public IndependentSetBruteForce() {

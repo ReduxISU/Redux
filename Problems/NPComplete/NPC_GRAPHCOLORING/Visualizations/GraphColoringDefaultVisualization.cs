@@ -13,6 +13,7 @@ class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING, API_Grap
     public string visualizationName { get; } = "Graph Coloring Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Graph Coloring";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic", "Russell Phillips" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new GraphColoringBruteForce();

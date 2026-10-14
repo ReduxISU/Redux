@@ -6,6 +6,7 @@ class MaxCutSolver : ISolver<MAXCUT> {
     public string solverName { get; } = "Max Cut Brute Force";
     public string solverDefinition { get; } = "Enumerates all 2^n partitions of the vertex set and returns the S side of the partition whose crossing edges have maximum total weight. Certificate format: {node1,node2,...} representing the S side.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Max Grünwoldt", "Eric Hill" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -14,7 +15,7 @@ class MaxCutSolver : ISolver<MAXCUT> {
     // Declared, not derived. Iterates every mask from 1 to (1<<n)-2, i.e. all 2^n vertex
     // subsets; each mask costs O(n) to build S plus O(m) to sum crossing-edge weights
     // (CutWeight, HashSet lookups are O(1)).
-    public string complexity { get; } = "O(2^n * (n + m)), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * (n + m)", ", n = |nodes|, m = |edges|");
 
     public MaxCutSolver() { }
 

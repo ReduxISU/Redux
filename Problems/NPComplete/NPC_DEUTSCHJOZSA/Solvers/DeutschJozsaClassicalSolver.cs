@@ -10,6 +10,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
     public string solverName { get; } = "Deutsch-Jozsa Classical";
     public string solverDefinition { get; } = "This solver classically solves the Deutsch-Jozsa problem by querying the oracle up to (n/2) + 1 times to determine if the function is constant or balanced.";
     public string source { get; } = "Deutsch, David and Jozsa, Richard. 1992. Rapid solution of problems by quantum computation. Proc. R. Soc. Lond. A439553-558";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "George Lake", "Eric Hill", "Paul Gilbreath", "Max Grünwoldt", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Classical baseline paired with DeutschJozsaQuantumSolver; no SolverType
@@ -20,7 +21,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // solve() queries the oracle array up to (2^n / 2) + 1 times (queries_to_be_certain,
     // computed from total_inputs = 2^n) before it can be certain of constant vs. balanced.
-    public string complexity { get; } = "O(2^n) queries";
+    public MathematicalFunction timeComplexity { get; } = new("2^n", " queries");
 
     // --- Methods Including Constructors ---
     public DeutschJozsaClassicalSolver() { }

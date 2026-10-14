@@ -11,6 +11,7 @@ class SetCoverBruteForce : ISolver<SETCOVER> {
     public string solverName { get; } = "Set Cover Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Set Cover problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -20,7 +21,7 @@ class SetCoverBruteForce : ISolver<SETCOVER> {
     // C(m, j) times (m = |subsets|), so total iterations are bounded by sum_{j=0}^{K-1} C(m,j)
     // <= 2^m. Each iteration's verify() call additionally costs O(u^2) (List.Contains/Remove
     // scans over the universal set, u = |universal|).
-    public string complexity { get; } = "O(2^m * u^2), m = |subsets|, u = |universal|";
+    public MathematicalFunction timeComplexity { get; } = new("2^m * u^2", ", m = |subsets|, u = |universal|");
 
     // --- Methods Including Constructors ---
     public SetCoverBruteForce() {

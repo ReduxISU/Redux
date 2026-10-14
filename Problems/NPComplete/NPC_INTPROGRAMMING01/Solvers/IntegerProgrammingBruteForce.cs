@@ -5,9 +5,10 @@ namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Solvers;
 class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
 
     // --- Fields ---
-    public string solverName { get; } = "Integer Programming Brute Force";
-    public string solverDefinition { get; } = "This is a generic brute force solver for 0-1 Integer Programming";
+    public string solverName { get; } = "0-1 ILP Brute Force";
+    public string solverDefinition { get; } = "Tests every binary assignment for 0-1 Integer Linear Programming and returns the first one that satisfies all constraints.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -15,7 +16,7 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates all 2^n 0/1 assignments (n = number of variables,
     // i.e. columns of C); each is verified via a full C*x matrix-vector product, O(m*n).
-    public string complexity { get; } = "O(2^n * m * n), n = number of variables, m = number of constraints";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * m * n", ", n = number of variables, m = number of constraints");
 
     // --- Methods Including Constructors ---
     public IntegerProgrammingBruteForce() {

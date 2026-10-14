@@ -12,6 +12,7 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
     public string solverName { get; } = "Edit Distance Dynamic Programming";
     public string solverDefinition { get; } = "Finds the edit distance between two strings using dynamic programming.";
     public string source { get; } = "R. A. Wagner and M. J. Fischer, “The String-to-String Correction Problem,” Journal of the ACM, vol. 21, no. 1, pp. 168-173, Jan. 1974";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/321796.321811";
     public string[] contributors { get; } = { "Kaosi Ibeabuchi", "Diya Pandey", "Srijan Pant" };
 
@@ -20,7 +21,7 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Fills the full (m+1) x (n+1) DP table with one O(1) transition per cell.
-    public string complexity { get; } = "O(m * n)";
+    public MathematicalFunction timeComplexity { get; } = new("m * n", "");
 
     public EditDistanceDPSolver() { }
 

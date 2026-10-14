@@ -9,8 +9,8 @@ namespace redux_tests;
 
 // Guards for the VisualizationType vocabulary (plan: Redux Tag System, Phase 1.6-1.8).
 //
-// Risk 1 (the highest-risk item in the plan): Newtonsoft serializes enums as integers
-// by default. Ship without the StringEnumConverter pinned on VisualizationType and every
+// Risk 1 (the highest-risk item in the plan): System.Text.Json serializes enums as integers
+// by default. Ship without the JsonStringEnumConverter pinned on VisualizationType and every
 // visualization in the app goes blank, because the GUI does
 // Visualizations.get(visualizationType) on what it expects to be a string. The first two
 // test groups below are the regression guard for that; they must never go back to failing.
@@ -58,8 +58,8 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
             checkedCount++;
             Assert.True(typeProp.ValueKind == JsonValueKind.String,
                 $"{className}.visualizationType serialized as {typeProp.ValueKind}, expected String. " +
-                "This is the Risk-1 regression: Newtonsoft defaults to serializing enums as integers " +
-                "unless StringEnumConverter is pinned on VisualizationType.");
+                "This is the Risk-1 regression: System.Text.Json serializes enums as integers by default " +
+                "unless JsonStringEnumConverter<VisualizationType> is pinned on VisualizationType.");
 
             var value = typeProp.GetString();
             Assert.True(value is not null && manifest.Contains(value),

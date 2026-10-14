@@ -11,6 +11,7 @@ class TSPVerifier : IVerifier<TSP> {
     public string verifierName { get; } = "Default Traveling Salesperson Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Traveling Salesperson problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 

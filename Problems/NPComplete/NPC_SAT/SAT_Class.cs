@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.DummyClasses;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
@@ -13,17 +14,18 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
     // --- Fields ---
     public string problemName { get; } = "SAT";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Boolean_satisfiability_problem";
-    public string formalDefinition { get; } = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
-    public string problemDefinition { get; } = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
-    public string inputDescription { get; } = "Φ, a boolean formula";
+    public string formalDefinition { get; } = "SAT = {Φ | Φ is a satisfiable Boolean formula in CNF}";
+    public string problemDefinition { get; } = "SAT is the Boolean satisfiability problem for formulas in conjunctive normal form (CNF): a conjunction of clauses, each a disjunction of literals. It asks whether there is an assignment of True/False values to the variables of Φ that makes the whole formula True. This is Karp's formulation; satisfiability of an arbitrary Boolean formula reduces to it (Tseitin).";
+    public string inputDescription { get; } = "Φ, a Boolean formula in CNF";
     public string outputDescription { get; } = "True or False, whether Φ is satisfiable";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Daniel Igbokwe" };
 
     public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
+    public string instanceFormat { get; } = "Boolean formula in CNF. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
     public string certificateFormat { get; } = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public string instance { get; set; } = string.Empty;
 
@@ -73,35 +75,30 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
 
     #endregion
 
+    // The parsed instance. Internal so it stays out of the serialized problem JSON.
+    // Note: clauses/literals still have public setters for older callers; code that assigns
+    // them directly does not update this.
+    internal CnfFormula formula { get; private set; }
+
     #region Constructors
     // --- Methods Including Constructors ---
-    public SAT() {
-        instance = defaultInstance;
-        clauses = getClauses(instance);
-        literals = getLiterals(instance);
+    public SAT() : this(_defaultInstance) {
     }
     public SAT(string phiInput) {
-        validateInstance(phiInput);
+        formula = parseInstance(phiInput);
         instance = phiInput;
-        clauses = getClauses(phiInput);
-        literals = getLiterals(phiInput);
+        clauses = formula.ClauseStrings();
+        literals = formula.LiteralStrings();
     }
 
-    private static void validateInstance(string phiInput) {
+    private static CnfFormula parseInstance(string phiInput) {
         if (string.IsNullOrWhiteSpace(phiInput)) {
             throw new ProblemParseException("SAT", phiInput, "instance is empty");
         }
-        string stripped = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-        string[] rawClauses = stripped.Split('&');
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('|');
-            foreach (string literal in rawLiterals) {
-                string name = literal.StartsWith("!") ? literal.Substring(1) : literal;
-                if (string.IsNullOrEmpty(name) || !char.IsLetter(name[0])) {
-                    throw new ProblemParseException("SAT", phiInput,
-                        $"literal '{literal}' is not a valid identifier (optionally prefixed with '!')");
-                }
-            }
+        try {
+            return CnfParser.Parse(phiInput);
+        } catch (CnfParseException e) {
+            throw new ProblemParseException("SAT", phiInput, e.Message, e);
         }
     }
 
@@ -114,45 +111,11 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
     }
 
     public List<List<string>> getClauses(string phiInput) {
-
-        List<List<string>> clauses = new List<List<string>>();
-
-        // Strip extra characters
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('&');
-
-        foreach (string clause in rawClauses) {
-            List<string> clauseToAdd = new List<string>();
-            string[] literals = clause.Split('|');
-
-            foreach (string literal in literals) {
-                clauseToAdd.Add(literal);
-            }
-            clauses.Add(clauseToAdd);
-        }
-
-        return clauses;
-
+        return parseInstance(phiInput).ClauseStrings();
     }
 
     public List<string> getLiterals(string phiInput) {
-
-        List<string> literals = new List<string>();
-        string strippedInput = phiInput.Replace(" ", "").Replace("(", "").Replace(")", "");
-
-        // Parse on | to collect each clause
-        string[] rawClauses = strippedInput.Split('|');
-
-        foreach (string clause in rawClauses) {
-            string[] rawLiterals = clause.Split('&');
-
-            foreach (string literal in rawLiterals) {
-                literals.Add(literal);
-            }
-        }
-        return literals;
+        return parseInstance(phiInput).LiteralStrings();
     }
 
     #endregion

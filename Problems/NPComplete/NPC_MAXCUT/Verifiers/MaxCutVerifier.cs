@@ -7,6 +7,7 @@ class MaxCutVerifier : IVerifier<MAXCUT> {
     public string verifierName { get; } = "Default Max Cut Verifier";
     public string verifierDefinition { get; } = "Verifies that the certificate represents a valid non-trivial partition S whose crossing-edge weight equals the true maximum cut weight computed by brute force enumeration.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Max Grünwoldt", "Eric Hill", "Michael Trosper" };
 
     private string _certificate = "";

@@ -10,6 +10,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
     public string solverName { get; } = "Weighted Cut Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the Weighted Cut problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -18,7 +19,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT> {
     // Declared, not derived. Enumerates ALL subset sizes 0..n-1 regardless of K (unlike
     // CutBruteForce, this is never bounded by K); each candidate costs O(n^2 * m) to
     // build (certificateToEdges) plus O(m) to verify.
-    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
 
     public WeightedCutBruteForce() {
 

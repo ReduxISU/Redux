@@ -12,6 +12,7 @@ class SubsetSumVerifier : IVerifier<SUBSETSUM> {
     public string verifierName { get; } = "Default Subset Sum Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Subset Sum";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Garret Stouffer" };
 
     private string _certificate = "";

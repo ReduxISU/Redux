@@ -11,20 +11,21 @@ class WalkSAT : ISolver<SAT3> {
 
     // --- Fields ---
     public string solverName { get; } = "WalkSAT Algorithm";
-    public string solverDefinition { get; } = "Repeats random-restart local search up to MaxTries times."
- + " In each try, starts with a random truth assignment and performs up to MaxFlips steps."
+    public string solverDefinition { get; } = "Repeats random-restart local search up to 100 times."
+ + " In each try, starts with a random truth assignment and performs up to 300n flips (n = number of variables)."
  + " Each step selects a randomly chosen unsatisfied clause. If any literal in the clause can be flipped"
  + " without breaking any satisfied clauses (break-count = 0), it flips it immediately."
  + " Otherwise, with probability p, a random literal in the clause is flipped; with probability 1-p,"
  + " the literal with the minimum break-count is flipped.";
 
     public string source { get; } = "Bart Selman, Henry A. Kautz, and Bram Cohen. 1994. Noise strategies for improving local search. In AAAI '94.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cdn.aaai.org/AAAI/1994/AAAI94-051.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(n * m), n = number of variables, m = number of clauses";
+    public MathematicalFunction timeComplexity { get; } = new("n * m", ", n = number of variables, m = number of clauses");
     // betweeen 0.5 and 0.6, empirically 0.57 proven best
     private readonly double _p = 0.57;
     private readonly int _maxTries = 100;

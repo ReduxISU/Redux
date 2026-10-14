@@ -9,6 +9,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
     public string solverName { get; } = "Subset Sum Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for Subset Sum";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley", "Garret Stouffer" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -17,7 +18,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
     // Declared, not derived. Enumerates all 2^n subset bitmasks; each candidate does O(n)
     // certificate building and an O(n) dictionary-based verify() -- no per-candidate factor
     // beyond linear.
-    public string complexity { get; } = "O(n * 2^n), n = |S|";
+    public MathematicalFunction timeComplexity { get; } = new("n * 2^n", ", n = |S|");
 
     // --- Methods Including Constructors ---
     public SubsetSumBruteForce() {

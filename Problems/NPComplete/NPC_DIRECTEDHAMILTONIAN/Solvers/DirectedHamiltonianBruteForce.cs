@@ -12,6 +12,7 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
     public string solverName { get; } = "Directed Hamiltonian Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Directed Hamiltonian Cycle problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Does real (if minor) pruning, but tagged BruteForce per its class name
@@ -24,7 +25,7 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
     // graph (the worst case) it never trips, so all n! permutations are still generated. Each yielded
     // permutation costs O(n) to build (CombinationToCertificate), and DirectedHamiltonianVerifier walks
     // it in O(n) steps, each doing an O(m) List<>.Contains edge lookup -- O(n*m) per verify call.
-    public string complexity { get; } = "O(n! * n * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("n! * n * m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
 

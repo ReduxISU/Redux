@@ -11,6 +11,7 @@ class ExactCoverVerifier : IVerifier<EXACTCOVER> {
     public string verifierName { get; } = "Default Exact Cover Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Exact Cover";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
 
     private string _certificate = "";

@@ -100,7 +100,7 @@ class SAT3PQObject {
 
         //create a new phiInput
         //Then construct a new SAT3 with that phi input
-        string newPhiExpression = "(";
+        string newPhiExpression = "";
         string tempExpression = "";
         string expLiteral;
         bool isValid = true;
@@ -154,7 +154,6 @@ class SAT3PQObject {
                 newPhiExpression += "(" + tempExpression + ")";
             }
         }
-        newPhiExpression += ")";
         // Console.WriteLine(this.nextVar + " : " + boolValue.ToString());
         // Console.WriteLine(newPhiExpression);
 
@@ -162,9 +161,9 @@ class SAT3PQObject {
         // this.varStates.Add(this.nextVar, boolValue);
         if (isValid) {
             SAT3PQObject newSATObj;
-            if (newPhiExpression == "()") {
+            if (newPhiExpression == string.Empty) {
                 // All clauses were satisfied by assigning nextVar = boolValue.
-                // new SAT3("()") is rejected by validateInstance (empty literal), so build
+                // new SAT3("") is rejected as an empty instance, so build
                 // the solved-sentinel state directly: clauses = [[""]] is what
                 // evaluateBooleanExpression checks to return 1 (satisfied).
                 SAT3 doneSAT = new SAT3();

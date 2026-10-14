@@ -14,6 +14,7 @@ class NodeSetVerifier : IVerifier<NODESET> {
     public string verifierName { get; } = "Default Feedback Node Set Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Node Set problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
 

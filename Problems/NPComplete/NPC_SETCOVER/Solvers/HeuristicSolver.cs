@@ -17,6 +17,7 @@ class HeuristicSolver : ISolver<SETCOVER> {
     + " structure, so it lacks DLX's O(1) undo per step.";
     public string source { get; } = "Knuth, D. E. (2000). Dancing links. In Millennium Perspectives in Computer"
     + " Science, 187-214. arXiv:cs/0011047.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://arxiv.org/abs/cs/0011047";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
@@ -30,7 +31,7 @@ class HeuristicSolver : ISolver<SETCOVER> {
     // by the number of subsets s covering the current minimum column, and recursion is cut off
     // once the partial solution exceeds K sets. Per-node cost is dominated by the X.OrderBy scan
     // over remaining columns (O(u log u), u = |universal|).
-    public string complexity { get; } = "O(s^K * u log u), s = |subsets|, u = |universal|, K = target cover size";
+    public MathematicalFunction timeComplexity { get; } = new("s^K * u log u", ", s = |subsets|, u = |universal|, K = target cover size");
 
     // --- Methods Including Constructors ---
     public HeuristicSolver() {

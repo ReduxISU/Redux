@@ -17,6 +17,7 @@ class MINIMUMVERTEXCOVER : IGraphProblem<BruteForceMinimumVertexCover, MinimumVe
     public string outputDescription { get; } = " Minimum subset of nodes C that forms a vertex cover of G";
     public string problemDefinition { get; } = "A vertex cover is a subset of nodes C, such that every edge in the graph, G, touches a node in C. A minimal vertex cover is the smallest possible subset C.";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     private static string _defaultInstance = "({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}})";
     public string defaultInstance { get; } = _defaultInstance;

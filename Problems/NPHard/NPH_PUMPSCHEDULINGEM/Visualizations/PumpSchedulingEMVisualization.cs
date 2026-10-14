@@ -50,6 +50,7 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM, API_empty
         "pump states, tank levels, budget consumption, and cumulative water stored, as " +
         "produced by the constrained longest-path DAG dynamic programming solver.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingEMSolver();

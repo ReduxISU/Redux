@@ -10,6 +10,7 @@ class TSPBranchAndBound : ISolver<TSP> {
     public string solverName { get; } = "Traveling Salesperson Branch and Bound";
     public string solverDefinition { get; } = "This is a Branch and Bound solver for the NP-Complete Traveling Salesperson problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning/bounding (branch-and-bound) -- distinct from
@@ -22,7 +23,7 @@ class TSPBranchAndBound : ISolver<TSP> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
     // Declared, not derived. Worst case (bound provides no effective pruning) visits O(n!) search
     // nodes; each node does O(n^2) work (CloneMatrix + ReduceMatrix over the full cost matrix).
-    public string complexity { get; } = "O(n^2 * n!), n = |nodes|";
+    public MathematicalFunction timeComplexity { get; } = new("n^2 * n!", ", n = |nodes|");
 
     private const double INF = double.PositiveInfinity;
     private long pushID = 0;

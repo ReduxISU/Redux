@@ -10,6 +10,7 @@ class TSPGreedy : ISolver<TSP> {
     public string solverName { get; } = "Traveling Salesperson Greedy";
     public string solverDefinition { get; } = "This is a greedy solver for the NP-Complete Traveling Salesperson problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Derek Winmill", "Beau Williams", "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Irrevocable locally-optimal choice each step (nearest-neighbor).
@@ -22,7 +23,7 @@ class TSPGreedy : ISolver<TSP> {
     // enforced here (TSP_Class.cs places no triangle-inequality/metric constraint on edge
     // weights, and a failed nearest-neighbor pass can also skip a start entirely), so this
     // stays Greedy rather than Approximation.
-    public string complexity { get; } = "O(n^3 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("n^3 * m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public TSPGreedy() {

@@ -178,6 +178,7 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 | `inputDescription` | A short name for the input. | `"S, a set of integers, and T, a target sum"` |
 | `outputDescription` | A short description of the answer. | `"True or False, whether some subset of S sums to T"` |
 | `source` | A proper citation for where the problem comes from. | Karp, "Reducibility among combinatorial problems", 1972 |
+| `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
 | `sourceLink` | A link to that citation. Not in the interface, but present in the template and in problems. | the Karp PDF link |
 | `defaultInstance` | A reasonably sized example instance. Used by the tests and the GUI. It **must** parse. | `"({1,7,12,15},28)"` |
 | `instance` | The instance string this object was built from. The constructor sets it. | set in the constructor |

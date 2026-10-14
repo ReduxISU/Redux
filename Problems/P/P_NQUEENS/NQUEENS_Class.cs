@@ -24,6 +24,7 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
     public string outputDescription { get; } = "A placement of n queens on the board so that no two attack each other";
 
     public string source { get; } = "Classic combinatorial problem.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Eight_queens_puzzle";
     // Declared, not derived. This class takes only n (no partial/pre-placed board), so
     // it models PLACEMENT ("does some valid arrangement exist"), not the NP-complete

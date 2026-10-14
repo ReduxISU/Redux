@@ -183,7 +183,7 @@ public class VERTEXCOVER_Tests {
         Assert.False(dict["c"]);
     }
 
-    // Vertex Cover Bounded Search Tree
+    // VertexCoverBruteForce — K=0 regression (GitHub issue #532)
     // -------------------------------------------------------------------------
 
     ///<summary>
@@ -247,6 +247,34 @@ public class VERTEXCOVER_Tests {
     public void VertexCoverBoundedSearchTree_KTooSmall_ReturnsEmptyBraces() {
 
         VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c},{{a,b},{b,c},{a,c}}),1)");
+        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
+
+    ///<summary>
+    /// K=0 on a graph with no edges: the empty set trivially covers it, so the
+    /// bounded search tree solver should return "{}" (GitHub issue #532).
+    ///</summary>
+    [Fact]
+    public void VertexCoverBoundedSearchTree_KZero_NoEdges_ReturnsEmptyBraces() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b},{}),0)");
+        VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
+
+        string certificate = solver.solve(problem);
+
+        Assert.Equal("{}", certificate);
+    }
+
+    ///<summary>
+    /// K=0 on a graph that DOES have edges: no 0-node vertex cover can exist, so the
+    /// solver should report "no solution" ("{}") instead of crashing (GitHub issue #532).
+    ///</summary>
+    [Fact]
+    public void VertexCoverBoundedSearchTree_KZero_WithEdges_ReturnsEmptyBraces() {
+        VERTEXCOVER problem = new VERTEXCOVER("(({a,b,c,d},{{a,b},{a,c},{a,d}}),0)");
         VertexCoverBoundedSearchTree solver = new VertexCoverBoundedSearchTree();
 
         string certificate = solver.solve(problem);

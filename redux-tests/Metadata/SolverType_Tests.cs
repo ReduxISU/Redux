@@ -21,8 +21,8 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
     // ── Risk 1: enums must serialize as strings, not integers ─────────────────
     //
     // Same regression class ReductionCost_Tests.cs / VisualizationType_Tests.cs guard
-    // against: Newtonsoft serializes enums as integers by default. The
-    // [JsonConverter]/[StringEnumConverter] attributes pinned on SolverType and
+    // against: System.Text.Json serializes enums as integers by default. The
+    // [JsonConverter(typeof(JsonStringEnumConverter<T>))] attributes pinned on SolverType and
     // SolverComplexityBucket (Interfaces/SolverType.cs, Interfaces/SolverComplexityBucket.cs)
     // are the actual fix; these are the regression guard.
 
@@ -65,16 +65,16 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
                 checkedSolverType++;
                 Assert.True(typeProp.ValueKind == JsonValueKind.String,
                     $"{className}.solverType serialized as {typeProp.ValueKind}, expected String. This is " +
-                    "the Risk-1 regression: Newtonsoft defaults to serializing enums as integers unless " +
-                    "StringEnumConverter is pinned on SolverType.");
+                    "the Risk-1 regression: System.Text.Json serializes enums as integers by default unless " +
+                    "JsonStringEnumConverter is pinned on SolverType.");
             }
 
             if (element.TryGetProperty("complexityBucket", out var bucketProp)) {
                 checkedComplexityBucket++;
                 Assert.True(bucketProp.ValueKind == JsonValueKind.String,
                     $"{className}.complexityBucket serialized as {bucketProp.ValueKind}, expected String. " +
-                    "This is the Risk-1 regression: Newtonsoft defaults to serializing enums as integers " +
-                    "unless StringEnumConverter is pinned on SolverComplexityBucket.");
+                    "This is the Risk-1 regression: System.Text.Json serializes enums as integers by default " +
+                    "unless JsonStringEnumConverter<SolverComplexityBucket> is pinned on SolverComplexityBucket.");
             }
         }
 
@@ -217,6 +217,48 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
             .Where(kv => string.IsNullOrEmpty(kv.Value))
             .Select(kv => kv.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    [Fact]
+    public void TimeComplexity_IsExposedThroughISolverAsEvaluableFunction() {
+        var solverType = ProblemProvider.Solvers["knapsackdp"];
+        var solver = Assert.IsAssignableFrom<ISolver>(Activator.CreateInstance(solverType));
+
+        var timeComplexity = Assert.IsType<MathematicalFunction>(solver.timeComplexity);
+        Assert.Equal("n * W", timeComplexity.Function);
+        Assert.Equal(24, timeComplexity.Evaluate(("n", 6), ("W", 4)));
+    }
+
+    [Fact]
+    public void TimeComplexity_EvaluatesForEverySolverThatDeclaresIt() {
+        var failures = new List<string>();
+        int checkedCount = 0;
+
+        foreach (var (className, type) in ProblemProvider.Solvers.OrderBy(kv => kv.Key, StringComparer.Ordinal)) {
+            try {
+                if (Activator.CreateInstance(type) is not ISolver solver || solver.timeComplexity is not { } timeComplexity)
+                    continue;
+
+                var variableValues = timeComplexity.VariableNames
+                    .ToDictionary(name => name, _ => 2.0, StringComparer.Ordinal);
+                _ = timeComplexity.Evaluate(variableValues);
+                checkedCount++;
+            } catch (Exception ex) {
+                failures.Add($"{className}: {ex.GetType().Name}: {ex.Message}");
+            }
+        }
+
+        Assert.True(checkedCount > 0, "Found no solver timeComplexity functions to evaluate.");
+        Assert.True(failures.Count == 0,
+            "Solver timeComplexity functions that failed to parse or evaluate:\n" + string.Join("\n", failures));
+    }
+
+    [Fact]
+    public void TimeComplexity_DefaultsToNullWhenSolverDoesNotDeclareIt() {
+        var solverType = ProblemProvider.Solvers["dummysolver"];
+        var solver = Assert.IsAssignableFrom<ISolver>(Activator.CreateInstance(solverType));
+
+        Assert.Null(solver.timeComplexity);
+    }
 
     [Fact]
     public void NoNewUndeclaredComplexity() {

@@ -9,6 +9,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
     public string solverName { get; } = "3-Dimensional Matching Brute Force";
     public string solverDefinition { get; } = "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -22,7 +23,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
     // bucket -- same reasoning as CliqueCoverBruteForce's (K+1)^n case, this combinatorial growth
     // isn't cleanly "exponential" or "factorial" in a single variable either. Each combination costs
     // O(n^2) to verify (GenericVerifierDM3's parse plus per-coordinate List.Contains membership scans).
-    public string complexity { get; } = "O(C(m, n) * n^2), m = |M| (candidate triples), n = |X| = |Y| = |Z|";
+    public MathematicalFunction timeComplexity { get; } = new("C(m, n) * n^2", ", m = |M| (candidate triples), n = |X| = |Y| = |Z|");
 
     // --- Methods Including Constructors ---
     public ThreeDimensionalMatchingBruteForce() {

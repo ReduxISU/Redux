@@ -15,6 +15,7 @@ class SATGroverSolver : ISolver<SAT> {
     public string solverName { get; } = "Grover's Algorithm";
     public string solverDefinition { get; } = "This solver builds the expression as a quantum circuit and then uses Grover's algorithm to probablisticly detemine a solution";
     public string source { get; } = "External API: towel.aws.cose.isu.edu:8080 or localhost:5000";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Delegates to the external quantum-simulator service.
@@ -22,7 +23,7 @@ class SATGroverSolver : ISolver<SAT> {
     // Grover search over the 2^v possible assignments to the formula's v boolean variables
     // takes O(sqrt(2^v)) oracle queries; this solver ships the whole formula to the quantum
     // endpoint in a single call that runs that search.
-    public string complexity { get; } = "O(sqrt(2^v)) oracle queries, where v is the number of boolean variables in the formula";
+    public MathematicalFunction timeComplexity { get; } = new("sqrt(2^v)", " oracle queries, where v is the number of boolean variables in the formula");
 
     // --- Constructors ---
 

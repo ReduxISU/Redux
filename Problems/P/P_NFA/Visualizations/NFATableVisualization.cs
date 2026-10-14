@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Tables;
 using API.Problems.P.P_NFA;
@@ -11,9 +12,13 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
     public string visualizationName { get; } = "Non-Deterministic Finite Automata Table Visualization";
     public string visualizationDefinition { get; } = "Displays a table for one explored run of the NFA on the input string at a time, showing the symbol consumed, the state transition, and acceptance at each step of that run. Accepting runs are listed before rejected runs, so the default run shown is the first accepting run, or the first rejected run if none accept.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new NFASolver();
+
+    // Implemented explicitly so it is not a public member (and so not part of /info).
+    Type? IVisualization.StepShape => typeof(ActiveStates);
 
     public NFATableVisualization() { }
 
@@ -29,25 +34,34 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
         return new API_empty();
     }
 
+    // One table per run, read from the solver's typed steps (no second run). When the recorder did not keep every
+    // step, the runs after the kept steps are missing, and a last, empty table says so.
     public List<API_JSON> StepsVisualization(NFA problem, List<Object> steps) {
-        var nfaSolver = new NFASolver();
-        var tableSteps = nfaSolver.GetTableSteps(problem);
-        return tableSteps.Select(s => (API_JSON)TranslateToTableJSON((NFATableStep)s)).ToList();
+        var (tables, notShown) = NFASolver.TableStepsFrom(problem, steps);
+        var frames = tables.Select(s => (API_JSON)TranslateToTableJSON(s)).ToList();
+        if (notShown > 0)
+            frames.Add(new API_TableJSON { title = NotAllRunsTitle(notShown), columns = Columns() });
+        return frames;
     }
+
+    internal static string NotAllRunsTitle(int notShown) =>
+        $"Not every run is listed: {notShown} later steps of the search were not kept.";
+
+    private static List<TableColumn> Columns() => new List<TableColumn>
+    {
+        new TableColumn { key = "step", label = "Step" },
+        new TableColumn { key = "symbol", label = "Symbol" },
+        new TableColumn { key = "fromState", label = "From State" },
+        new TableColumn { key = "toState", label = "To State" },
+        new TableColumn { key = "accepting", label = "Accepting" }
+    };
 
     private static API_TableJSON TranslateToTableJSON(NFATableStep step) {
         // Unlike DFA/SPSP/SSSP, consecutive frames here are different runs rather than later
         // moments of one run, so the caption is what tells the reader which of them they are on.
         var result = new API_TableJSON {
             title = $"Run {step.pathIndex + 1} of {step.pathCount} — {(step.accepted ? "Accepted" : "Rejected")}",
-            columns = new List<TableColumn>
-            {
-                new TableColumn { key = "step", label = "Step" },
-                new TableColumn { key = "symbol", label = "Symbol" },
-                new TableColumn { key = "fromState", label = "From State" },
-                new TableColumn { key = "toState", label = "To State" },
-                new TableColumn { key = "accepting", label = "Accepting" }
-            }
+            columns = Columns()
         };
 
         for (int i = 0; i < step.rows.Count; i++) {

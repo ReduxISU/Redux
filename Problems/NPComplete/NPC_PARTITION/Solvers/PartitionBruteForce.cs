@@ -10,6 +10,7 @@ class PartitionBruteForce : ISolver<PARTITION> {
     public string solverName { get; } = "Partition Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the Partition problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -18,7 +19,7 @@ class PartitionBruteForce : ISolver<PARTITION> {
     // Declared, not derived. Enumerates all 2^n binary partition vectors; each candidate's
     // verify() call is O(n^2) (nested Count()/Contains() scans over S), dominating the O(n)
     // certificate-building cost per candidate.
-    public string complexity { get; } = "O(n^2 * 2^n), n = |S|";
+    public MathematicalFunction timeComplexity { get; } = new("n^2 * 2^n", ", n = |S|");
 
     // --- Methods Including Constructors ---
     public PartitionBruteForce() {

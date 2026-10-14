@@ -146,7 +146,7 @@ public class ReductionEdge {
     /// <summary>The declared <see cref="ComplexityClass"/> wire value of <see cref="outputType"/>. Additive field for Phase 7 faceting; purely informational here.</summary>
     /// <example>NPComplete</example>
     public string toComplexity { get; set; } = "";
-    /// <summary>The declared <see cref="ReductionCost"/> wire value: how much this reduction blows up instance size (output vs input). Already-stringified, same Newtonsoft-enum-as-int mitigation as <see cref="fromComplexity"/>/<see cref="toComplexity"/>.</summary>
+    /// <summary>The declared <see cref="ReductionCost"/> wire value: how much this reduction blows up instance size (output vs input). Already-stringified, same enum-as-int mitigation as <see cref="fromComplexity"/>/<see cref="toComplexity"/>.</summary>
     /// <example>Linear</example>
     public string cost { get; set; } = "";
     /// <summary>The declared <see cref="ReductionType"/> wire value: the Garey &amp; Johnson proof technique this reduction uses. Additive field for issue #376; purely informational here.</summary>

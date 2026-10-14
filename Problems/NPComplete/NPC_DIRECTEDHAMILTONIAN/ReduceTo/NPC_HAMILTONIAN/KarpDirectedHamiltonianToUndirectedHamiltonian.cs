@@ -11,6 +11,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReduction<DIRECTEDHAMILT
     public string reductionName { get; } = "Karp's Hamiltonian Reduction";
     public string reductionDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // reduce() emits exactly 3 gadget nodes + 2 gadget edges per input node, and 1
     // converted edge per input edge — O(n+m), no cross-product terms.

@@ -4,6 +4,8 @@ interface IVerifier {
     string verifierName { get; }
     string verifierDefinition { get; }
     string source { get; }
+    // Repo-relative path of the file declaring this class; see SourceFile.
+    string sourceFile { get; }
     string certificate { get; }
     string[] contributors { get; }
 
