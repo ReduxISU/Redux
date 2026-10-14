@@ -38,9 +38,9 @@ frame = { "event": "Try" | "Accept" | "Reject" | "Backtrack" | "Done", "caption"
 - **Frames:** one per kept solver step, then a solved Done frame if the steps didn't end in one. A run stopped by the time limit ends on a blank Done frame with `ok: false` and a caption that starts "Stopped after".
 - **Ids are text** and the payload names both ends of every edge, so a renderer never splits an id. Names with separator characters are escaped with a backslash.
 
-**States** are the shared names from [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md#the-shared-states): `Background`, `ElementHighlight` (amber ring), `Solution` (green), `Rejected` (red), `Untraveled` (faded), `Covered` (light green), `Blocked` (dashed grey outline), `False` (assigned false). Annotations such as order badges, ×2 badges, missing-edge lines and group colors are not states.
+**States** are the shared names from [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md#the-shared-states): `Background`, `ElementHighlight` (amber ring), `Solution` (green, the confirmed answer only), `Committed` (lighter green with a dashed outline: kept so far, not confirmed), `Rejected` (red), `Untraveled` (faded), `Covered` (light green), `Blocked` (dashed grey outline), `False` (assigned false). Annotations such as order badges, ×2 badges, missing-edge lines and group colors are not states.
 
-**When things turn green.** A brute force judges whole candidates: its Try and Reject candidates are `ElementHighlight`, and only an accepted candidate or a correct Done is `Solution`. An incremental solver (`IIncrementalSolver`: greedy, backtracking, branch and bound, dynamic programming) keeps its committed pieces `Solution` and highlights only the piece under test. Board, Geometry and the Graph tour shape are stricter: green only for the confirmed answer. Each section below says which rule it follows.
+**When things turn green.** A brute force judges whole candidates: its Try and Reject candidates are `ElementHighlight`, and an accepted best so far is `Committed`. An incremental solver (`IIncrementalSolver`: greedy, backtracking, branch and bound, dynamic programming) draws its committed pieces `Committed` and highlights only the piece under test. Every picture keeps `Solution` for the confirmed answer: the correct Done, or an Accept that ends the run (#886). Below, "green" means `Solution` and "kept" means `Committed`.
 
 ### Index
 
@@ -83,10 +83,10 @@ One renderer for every plain graph problem. A visualization hands over its graph
 | Shape | Interface, spec, step shape | Problems (`rule`) | Layout | How the answer reads |
 | --- | --- | --- | --- | --- |
 | `subset` | `IGraphSubsetVisualization`, `GraphSubsetSpec(Nodes, Edges, K, SubsetRule)`, `NodeSet` | Clique (`clique`), Vertex Cover (`vertexCover`), Minimum Vertex Cover (`minVertexCover`), Independent Set (`independentSet`), Dominating Set (`dominatingSet`) | force | Chosen nodes green. Vertex Cover: edges with a chosen end `Covered`, others `Rejected` once judged. Clique: a missing edge between chosen nodes is a `Rejected` phantom. Independent Set: an edge inside the set is `Rejected`, unchosen neighbors `Blocked`. Dominating Set: dominated nodes `Covered`. |
-| `edges` | `IGraphEdgesVisualization`, `GraphEdgeSpec(Nodes, Edges, EdgeRule) { Terminals, K }`, `EdgeSet` | Minimum Spanning Tree (`spanningTree`), Steiner Tree (`steinerTree`) | force | Chosen edges green, their ends `Covered`. Steiner terminals carry `terminal: true` (a double outline). |
-| `cut` | `IGraphCutVisualization`, `GraphEdgeSpec` with a cut rule, `Groups` (0 = S side, 1 = T side) | Cut (`cut`), Weighted Cut (`weightedCut`), Max Cut (`maxCut`), Minimum Cut (`minCut`) | force | The two sides come as `groups` (colors). Edges that cross are green. |
-| `groups` | `IGraphGroupsVisualization`, `GraphGroupSpec(Nodes, Edges, K, GroupRule)`, `Groups` | Graph Coloring (`coloring`), Clique Cover (`cliqueCover`) | force | Nodes take their group's color, never green. Coloring: an edge inside a group is `Rejected`. Clique Cover: edges inside a group green, a missing one a `Rejected` phantom. A group index past K is `Rejected`. |
-| `tour` | `IGraphTourVisualization`, `GraphTourSpec(Nodes, Edges, Directed, K, TourRule)`, `Tour` | Hamiltonian Cycle and Directed Hamiltonian Cycle (`hamiltonianCycle`), Traveling Salesperson (`tsp`), Minimum Traveling Salesperson (`minTsp`) | circle | `order` gives the tour so far (order badges). Tour edges green; a hop with no edge is a `Rejected` phantom. Tour nodes are `Covered` while running and `Solution` only on a correct Done. |
+| `edges` | `IGraphEdgesVisualization`, `GraphEdgeSpec(Nodes, Edges, EdgeRule) { Terminals, K }`, `EdgeSet` | Minimum Spanning Tree (`spanningTree`), Steiner Tree (`steinerTree`) | force | Chosen edges kept, green on the confirmed answer; their ends `Covered`. Steiner terminals carry `terminal: true` (a double outline). |
+| `cut` | `IGraphCutVisualization`, `GraphEdgeSpec` with a cut rule, `Groups` (0 = S side, 1 = T side) | Cut (`cut`), Weighted Cut (`weightedCut`), Max Cut (`maxCut`), Minimum Cut (`minCut`) | force | The two sides come as `groups` (colors). Edges that cross are kept, green on the confirmed answer. |
+| `groups` | `IGraphGroupsVisualization`, `GraphGroupSpec(Nodes, Edges, K, GroupRule)`, `Groups` | Graph Coloring (`coloring`), Clique Cover (`cliqueCover`) | force | Nodes take their group's color, never green. Coloring: an edge inside a group is `Rejected`. Clique Cover: edges inside a group kept (green on the confirmed answer), a missing one a `Rejected` phantom. A group index past K is `Rejected`. |
+| `tour` | `IGraphTourVisualization`, `GraphTourSpec(Nodes, Edges, Directed, K, TourRule)`, `Tour` | Hamiltonian Cycle and Directed Hamiltonian Cycle (`hamiltonianCycle`), Traveling Salesperson (`tsp`), Minimum Traveling Salesperson (`minTsp`) | circle | `order` gives the tour so far (order badges). Tour edges kept, green on the confirmed answer; a hop with no edge is a `Rejected` phantom. Tour nodes are `Covered` while running and `Solution` only on a correct Done. |
 
 Cut and groups are separate shapes. Directed Hamiltonian Cycle is a directed tour (`subtype: "directed"`, edge ids `a>b`), not a Layered Graph. Traveling Salesperson is the decision version (a tour within K, sent as `k`); Minimum Traveling Salesperson is the separate NP-Hard problem with no K.
 
@@ -103,7 +103,7 @@ Cut and groups are separate shapes. Directed Hamiltonian Cycle is a directed tou
 
 **Edges.** Ids are `a-b` (undirected, ends in ordinal order) or `a>b` (directed). A `-` or `>` inside a name is escaped with `\`. Parallel edges become one edge: `weight` is their sum for Weighted Cut, Max Cut and Minimum Cut, and the lightest for every other weighted problem; `label` lists every weight. Exact duplicates are dropped, and so is a reversed identical copy in an undirected graph. Undirected graph problems refuse a loop with a 400 at parse time (#836, #882), and the builder leaves out any loop it is given.
 
-**Steps.** Each frame is the selected solver's answer so far plus its focus. The builder re-derives every state from that, so a greedy and a brute force solver animate on the same picture with no extra code. In a brute force the candidate is `ElementHighlight`; in an incremental solver the committed part is `Solution` and the focus is highlighted, or `Rejected` on a Reject.
+**Steps.** Each frame is the selected solver's answer so far plus its focus. The builder re-derives every state from that, so a greedy and a brute force solver animate on the same picture with no extra code. In a brute force the candidate is `ElementHighlight`; in an incremental solver the committed part is `Committed` and the focus is highlighted, or `Rejected` on a Reject.
 
 **Layout.** Deterministic: the same instance always lands in the same place. A Force / Circle switch lets you override the default.
 
@@ -148,7 +148,7 @@ One node per literal, grouped into one cluster per clause, with the clusters on 
 
 **Frame:** `event, caption, focus, ok?`, `nodes` (literal states), `groups` (clause states; a state map here, not group indices), `assignment: { variableId: bool }`.
 
-**States.** Literals of an unassigned variable `Background`; the variable being tried `ElementHighlight` on its occurrences; true literals green, and their clause `Covered`; false literals `False`; a clause whose literals are all false `Rejected`, with its literals.
+**States.** Literals of an unassigned variable `Background`; the variable being tried `ElementHighlight` on its occurrences; true literals kept (green on the confirmed answer), and their clause `Covered`; false literals `False`; a clause whose literals are all false `Rejected`, with its literals.
 
 **Edges.** An Edges switch shows complement pairs (default) or adds the within-clause edges, which makes this exactly the 3SAT → Independent Set graph.
 
@@ -188,7 +188,7 @@ Elements on one side, sets on the other, and an edge for every membership. The c
 
 **Frame:** `event, caption, focus, ok?`, `nodes`, `edges`, `hits: { id: count }` (drawn as ×N badges).
 
-**States.** Picked nodes and their edges green (highlighted while a brute force tries them); constraints hit the required number of times `Covered`; hit twice under exactly-once `Rejected`; unhit `Rejected` once a whole answer is judged; under exactly-once, an unpicked choice that would double up `Blocked`.
+**States.** Picked nodes and their edges kept, green on the confirmed answer (highlighted while a brute force tries them); constraints hit the required number of times `Covered`; hit twice under exactly-once `Rejected`; unhit `Rejected` once a whole answer is judged; under exactly-once, an unpicked choice that would double up `Blocked`.
 
 **Layout.** The set column is sorted by the average position of its elements to cut crossings. Names stay in instance order (S1, S2, …) so they match the certificate.
 
@@ -258,11 +258,11 @@ Directed graphs drawn left to right in ranks, so most edges point forward. Edges
 
 | Problem (`rule`) | `shape` | Step shape | How it reads |
 | --- | --- | --- | --- |
-| Topological Sort (`topologicalSort`) | `order` | `Tour` | Order badges; placed nodes green, nodes ready to place `Covered`; a placed edge that points backward `Rejected` |
-| Feedback Arc Set (`feedbackArcSet`) | `removedSet` | `EdgeSet` | Removed edges are the answer (green, or highlighted while a brute force tries them); a cycle that survives `Rejected` |
+| Topological Sort (`topologicalSort`) | `order` | `Tour` | Order badges; placed nodes kept, nodes ready to place `Covered`; a placed edge that points backward `Rejected` |
+| Feedback Arc Set (`feedbackArcSet`) | `removedSet` | `EdgeSet` | Removed edges are the answer (kept, green on the confirmed answer, or highlighted while a brute force tries them); a cycle that survives `Rejected` |
 | Feedback Node Set (`feedbackNodeSet`) | `removedSet` | `NodeSet` | Removed nodes are the answer; their edges `Untraveled`; a surviving cycle `Rejected` |
 | Strongly Connected Components (`stronglyConnectedComponents`) | `groups` | `Components` | Components as group colors; visited nodes `Covered`; Kosaraju's finish order in `finish` |
-| SSSP (`singleSourceShortestPath`), SPSP (`singlePairShortestPath`) | `distances` | `Distances` | Each node's distance under it, ∞ until reached. Settled nodes and their tree edges green, reached ones `Covered`, unreachable ones `Untraveled`. SPSP ends with only the path green. |
+| SSSP (`singleSourceShortestPath`), SPSP (`singlePairShortestPath`) | `distances` | `Distances` | Each node's distance under it, ∞ until reached. Settled nodes and their tree edges kept, reached ones `Covered`, unreachable ones `Untraveled`. SPSP ends with only the path green. |
 
 **Payload**
 
@@ -345,7 +345,7 @@ Every number problem here is the same question in a different container: which i
 
 **Frame:** `event, caption, focus, ok?`, `items`, `containers`, `assign: [container index per item]`, `totals: [{ size, value? }]`.
 
-**States.** Placed items green (highlighted while a brute force tries a whole placement); a container over its limit `Rejected`; a container whose line is met `Covered`; a missed target `Rejected` once a whole placement is judged; items left out of a correct answer `Untraveled`.
+**States.** Placed items kept, green on the confirmed answer (highlighted while a brute force tries a whole placement); a container over its limit `Rejected`; a container whose line is met `Covered`; a missed target `Rejected` once a whole placement is judged; items left out of a correct answer `Untraveled`.
 
 <details><summary>Subset Sum</summary>
 
@@ -382,7 +382,7 @@ frame:   reached: [{ states, low, high, best }], schedule: [{ hour, on, starts, 
          upTo, hours, cells (P1t0 …), budget?
 ```
 
-**Steps.** Job Sequencing records the orders tried (a brute force). Pump Scheduling records three phases: the dynamic program's forward pass (the band of tank levels still reachable, hour by hour, in `reached`), the trace back, and the chosen schedule replayed hour by hour (`upTo`). Pumps that are on are green; an hour whose tank level leaves its bounds is `Rejected`.
+**Steps.** Job Sequencing records the orders tried (a brute force). Pump Scheduling records three phases: the dynamic program's forward pass (the band of tank levels still reachable, hour by hour, in `reached`), the trace back, and the chosen schedule replayed hour by hour (`upTo`). Pumps that are on are kept, green on the confirmed answer; an hour whose tank level leaves its bounds is `Rejected`.
 
 <details><summary>Steps and Emergency Resilience</summary>
 
@@ -459,7 +459,7 @@ frame:   values: { cellId: text }, pieces: [{ id, r, c, kind: "queen" }], cells 
 
 **N-Queens** shows each queen as it lands. A square ruled out gets a `Rejected` link back to the queen attacking it. A Hints switch shades every attacked square.
 
-**Green only for the confirmed answer (#839).** Squares the solver filled are plain while it works, `ElementHighlight` while a brute force tries a whole board, green only on a Done with `ok: true`, and `Rejected` on a failed Done. Squares, pieces and links are all a board needs, so later grid puzzles (Latin squares, Kakuro) fit the same shape.
+**Green only for the confirmed answer (#839, #886).** Squares the solver filled are kept while it works, `ElementHighlight` while a brute force tries a whole board, green only on a Done with `ok: true`, and `Rejected` on a failed Done. Squares, pieces and links are all a board needs, so later grid puzzles (Latin squares, Kakuro) fit the same shape.
 
 ---
 
@@ -476,8 +476,8 @@ Rows and columns instead of dots and lines. Three shapes share one renderer, dra
 
 | `shape` | Problems | Step shape | How it reads |
 | --- | --- | --- | --- |
-| `grid` | Edit Distance | `TableCells` | The cell being computed is `ElementHighlight`, with arrows from the neighbors it read. The last frame draws the cheapest edit path green. |
-| `matrix` | 0-1 Integer Programming | `Assignment` | One row per constraint, with its total against the bound. Rows that hold are green, rows over the bound `Rejected`. |
+| `grid` | Edit Distance | `TableCells` | The cell being computed is `ElementHighlight`, with arrows from the neighbors it read. The trace back keeps the cheapest edit path, and the last frame draws it green. |
+| `matrix` | 0-1 Integer Programming | `Assignment` | One row per constraint, with its total against the bound. Rows that hold are `Covered`, rows over the bound `Rejected`; the assignment is kept while the solver works and green on the confirmed answer. |
 | `trace` | DFA, NFA (`AutomatonTraceTable`), SSSP, SPSP (`DistanceTraceTable`) | the problem's own (`ActiveStates`, `Distances`) | One row per step, added as the run reaches it. Cells that changed this step are underlined. |
 
 ```
@@ -508,21 +508,21 @@ Three problems that aren't graphs, each with its own picture type, following the
 <td><img src="images/misc--3-dimensional-matching-solved.png" alt="3-Dimensional Matching" width="420"></td>
 </tr><tr><td>Geometry: Convex Hull, merging two hulls (this screenshot predates #849 and #850: the right hull is now purple, the merge walks a chain, and hull corners stay plain until the answer is confirmed)</td><td>Tripartite Matching: 3-Dimensional Matching</td></tr></table>
 
-**Tripartite Matching** (`TripartiteMatching`; `ITripartiteVisualization`, spec `TripartiteSpec(X, Y, Z, Triples)`, step shape `ChosenTriples`). Three columns X, Y and Z; each triple is a line through its three names. Chosen triples green, names used once `Covered`, triples that share a name with a chosen one `Blocked`, names used twice `Rejected` with a ×2 badge.
+**Tripartite Matching** (`TripartiteMatching`; `ITripartiteVisualization`, spec `TripartiteSpec(X, Y, Z, Triples)`, step shape `ChosenTriples`). Three columns X, Y and Z; each triple is a line through its three names. Chosen triples kept, green on the confirmed answer; names used once `Covered`, triples that share a name with a chosen one `Blocked`, names used twice `Rejected` with a ×2 badge.
 
 ```
 payload: { kind: "tripartite", x: [{ id: "x1", name }], y, z, triples: [{ id: "T1", x, y, z }] }
 frame:   chosen: [triple ids], repeats: { id: count }, elements (states), triples (states)
 ```
 
-**Geometry** (`Geometry`; `IGeometryVisualization`, spec `GeometrySpec(Points)`, step shape `HullBuild`). Points drawn to scale on real axes. Steps follow Redux's divide-and-conquer solver: the pieces being merged (left and right hull), the chain the merge walks, and dropped points `Rejected`. **Green only for the confirmed hull (#849):** corners stay plain while the solver works, and on a correct Done the hull's corners are green, numbered in output order, and the points inside `Covered`.
+**Geometry** (`Geometry`; `IGeometryVisualization`, spec `GeometrySpec(Points)`, step shape `HullBuild`). Points drawn to scale on real axes. Steps follow Redux's divide-and-conquer solver: the pieces being merged (left and right hull), the chain the merge walks, and dropped points `Rejected`. **Green only for the confirmed hull (#849):** finished sub-hull corners are kept while the solver works, and on a correct Done the hull's corners are green, numbered in output order, and the points inside `Covered`.
 
 ```
 payload: { kind: "geometry", points: [{ id: "P1", x, y }] }
 frame:   pieces: [{ points, role: "piece" | "left" | "right" }], chain, hull (Done only), points (states)
 ```
 
-**Code Tree** (`CodeTree`; `ICodeTreeVisualization`, spec `CodeTreeSpec(Text)`, step shape `HuffmanForest`). A Huffman tree that grows bottom-up. Each step merges the two lightest trees under a new parent; merged nodes and their edges are green as they are committed. Left edges are 0, right edges are 1; finished characters show their code under them, and the encoded bits run underneath.
+**Code Tree** (`CodeTree`; `ICodeTreeVisualization`, spec `CodeTreeSpec(Text)`, step shape `HuffmanForest`). A Huffman tree that grows bottom-up. Each step merges the two lightest trees under a new parent; merged nodes and their edges are kept as they are committed, and green once the tree is done. Left edges are 0, right edges are 1; finished characters show their code under them, and the encoded bits run underneath.
 
 ```
 payload: { kind: "codeTree", text, symbols: [{ id: "c1", code, label, count }] }
@@ -556,7 +556,7 @@ payload: { kind: "searchTree", problem, instance, maxLeaves: 12 }
 frame:   nodes: [{ id: "n3", parent, label, kind, state, bound?, order?, hidden? }], total, cut
 ```
 
-**How it reads.** The node being worked on `ElementHighlight`; explored choices `Covered`; queued nodes `Untraveled` (best-first solvers only). Branches the solver cut without exploring, and branches it explored and backed out of, are `Rejected` (drawn dashed and solid). The answer's path turns green. Best-first solvers get numbered `order` badges for the order nodes left the queue.
+**How it reads.** The node being worked on `ElementHighlight`; explored choices `Covered`; queued nodes `Untraveled` (best-first solvers only). Branches the solver cut without exploring, and branches it explored and backed out of, are `Rejected` (drawn dashed and solid). A best-so-far path is kept; the answer's path turns green. Best-first solvers get numbered `order` badges for the order nodes left the queue.
 
 **Folding.** Past 12 leaves, the backend folds cut siblings into one "k cut" node and finished branches into "+k more" (`kind: "cut"` and `"more"`).
 
@@ -591,7 +591,7 @@ The instance you gave on the left, the instance the reduction builds on the righ
 
 1. **Build** (`phase: "build"`). One frame per construction step, in both problems' own words. The source ids a step came from and the target pieces it added are highlighted. Pairs a rule deliberately leaves unjoined come as `target.skipped` ("rule says no"). Past 150 steps the rest fold into one step, so the build always ends with the whole target.
 2. **Solve** (`phase: "solve"`). The target is solved by the reduction's `ReductionViewSolver()` if it names one, else the target's default solver; `?solver=` overrides both. The source pane stays at rest.
-3. **Map back** (`phase: "map"`). The target's answer is mapped to the source's answer, one piece at a time. The part mapped so far stays green.
+3. **Map back** (`phase: "map"`). The target's answer is mapped to the source's answer, one piece at a time. The part mapped so far is kept.
 
 Only the last frame is a Done with `ok`: the source's verifier on the mapped-back answer (#840).
 

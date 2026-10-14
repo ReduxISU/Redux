@@ -8,7 +8,7 @@
   --accent: #3552c9;
   --s-bg: #ffffff; --s-bg-stroke: #7d879a;
   --s-false: #e9ecf1; --s-false-ink: #646b77;
-  --s-hl: #a97809; --s-sol: #1e774e; --s-sol-fill: #d8f1e4; --s-rej: #ba3932; --s-rej-fill: #fbe1df;
+  --s-hl: #a97809; --s-sol: #1e774e; --s-sol-fill: #d8f1e4; --s-com: #3b9467; --s-com-fill: #eef8f2; --com-ink: #1d6b45; --s-rej: #ba3932; --s-rej-fill: #fbe1df;
   --edge: #616773;
   --edge-dim: #7b8392; --cov: #67927e; --sol-ink: #1e774e; --rej-ink: #ba3932; --hl-ink: #896107; --on-sol: #ffffff; --on-rej: #ffffff; --on-hl: #1b1300; --ctrl-line: #8a8d93; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #2b7fb0; --g1s: #a87200; --g2s: #7a5cb8; --g3s: #968c0c; --g4s: #2a8a70; --g5s: #9a4c78; --g0i: #2a7cac; --g1i: #a06c00; --g2i: #7a5cb8; --g3i: #827809; --g4i: #28846c; --g5i: #9a4c78; --hl-mix: 14%;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -19,14 +19,14 @@
   --accent: #8fa3ff;
   --s-bg: #1f2430; --s-bg-stroke: #8791a5;
   --s-false: #1a1e27; --s-false-ink: #7e8694;
-  --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
+  --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-com: #8ad8b1; --s-com-fill: #132a1f; --com-ink: #9fe3c1; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
   --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #11141a; --surface: #191d26; --ink: #e5e8ee; --muted: #9aa3b4; --line: #2b3240; --soft: #222835;
   --accent: #8fa3ff;
   --s-bg: #1f2430; --s-bg-stroke: #8791a5;
   --s-false: #1a1e27; --s-false-ink: #7e8694;
-  --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
+  --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-com: #8ad8b1; --s-com-fill: #132a1f; --com-ink: #9fe3c1; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
   --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark }
 
 :root {
@@ -34,7 +34,7 @@
   --av-surface: var(--surface); --av-line: var(--line); --av-edge: var(--edge);
   --av-hl: var(--s-hl); --av-hl-fill: color-mix(in srgb, var(--s-hl) var(--hl-mix), var(--surface));
   --av-edge-dim: var(--edge-dim); --av-cov: var(--cov); --av-sol-ink: var(--sol-ink); --av-rej-ink: var(--rej-ink); --av-hl-ink: var(--hl-ink); --av-on-sol: var(--on-sol); --av-on-rej: var(--on-rej); --av-on-hl: var(--on-hl); --av-ctrl: var(--ctrl-line); --av-g0: var(--g0); --av-g0s: var(--g0s); --av-g0i: var(--g0i); --av-g1: var(--g1); --av-g1s: var(--g1s); --av-g1i: var(--g1i); --av-g2: var(--g2); --av-g2s: var(--g2s); --av-g2i: var(--g2i); --av-g3: var(--g3); --av-g3s: var(--g3s); --av-g3i: var(--g3i); --av-g4: var(--g4); --av-g4s: var(--g4s); --av-g4i: var(--g4i); --av-g5: var(--g5); --av-g5s: var(--g5s); --av-g5i: var(--g5i);
-  --av-sol: var(--s-sol); --av-sol-fill: var(--s-sol-fill); --av-rej: var(--s-rej); --av-rej-fill: var(--s-rej-fill); --av-hot: var(--accent); --av-mono: var(--mono);
+  --av-sol: var(--s-sol); --av-sol-fill: var(--s-sol-fill); --av-com: var(--s-com); --av-com-fill: var(--s-com-fill); --av-com-ink: var(--com-ink); --av-rej: var(--s-rej); --av-rej-fill: var(--s-rej-fill); --av-hot: var(--accent); --av-mono: var(--mono);
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -104,6 +104,7 @@
 .sw.stord { background: var(--ink); color: var(--surface); border: 0; display: grid; place-items: center; font: 700 10px var(--mono); }
 .sw.stfold { background: var(--surface); border: 1.4px dashed var(--s-bg-stroke); border-radius: 5px; width: 30px; display: grid; place-items: center; font: 10px var(--mono); color: var(--muted); }
 .sw.cov { background: var(--s-sol-fill); border-color: var(--s-sol); }
+.sw.com { background: var(--s-com-fill); border-color: var(--s-com); border-style: dashed; border-width: 2.2px; }
 .sw.blk { background: transparent; border-style: dashed; border-color: var(--s-bg-stroke); }
 .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
 .checks li { display: flex; gap: 8px; align-items: baseline; }
@@ -667,6 +668,7 @@ frames: { chosen, trying?, focus?, missing?, trial?, caption }[]</pre>
         <div class="legend">
           <h3>Key</h3>
           <div class="row"><span class="sw sol"></span><div>Solution<small>In the answer</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>Kept so far by a step-by-step solver, not confirmed yet</small></div></div>
           <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>What the solver is trying now</small></div></div>
           <div class="row"><span class="sw cov"></span><div>Covered<small>An edge or node the answer takes care of</small></div></div>
           <div class="row"><span class="sw blk"></span><div>Blocked<small>Next to a chosen node, so it can't join (Independent Set)</small></div></div>
@@ -962,6 +964,7 @@ frames: { order? | removed? | groups? | dist + pred?, current?, caption }[]</pre
         <div class="legend">
           <h3>Key</h3>
           <div class="row"><span class="sw sol"></span><div>Solution<small>In the answer</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>Kept so far by a step-by-step solver, not confirmed yet</small></div></div>
           <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The item or set the solver is trying now</small></div></div>
           <div class="row"><span class="sw rej"></span><div>Rejected<small>Doesn't fit, or runs past a limit</small></div></div>
           <div class="row"><span class="sw blk"></span><div>Left out<small>Not part of the final answer</small></div></div>
@@ -2353,6 +2356,7 @@ const AutomatonView = (() => {
 .au-node.Active .inner { stroke: var(--av-hl); }
 .au-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
 .au-node.Solution .inner { stroke: var(--av-on-sol); } .au-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.au-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .au-node.Committed .inner { stroke: var(--av-com); } .au-node.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .au-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .au-node.Rejected .inner { stroke: var(--av-rej); } .au-node.Rejected text { fill: var(--av-rej); }
 .au-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; }
@@ -2812,6 +2816,7 @@ const BipartiteView = (() => {
 .bp-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .bp-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
 .bp-node.Solution text, .bp-node.Solution text.sub { fill: var(--av-on-sol); }
+.bp-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .bp-node.Committed text, .bp-node.Committed text.sub { fill: var(--av-com-ink); font-weight: 600; }
 .bp-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; }
 .bp-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .bp-node.Rejected text:not(.bp-count-t) { fill: var(--av-rej); }
@@ -2825,6 +2830,7 @@ const BipartiteView = (() => {
 .bp-node text.bp-count-t { fill: var(--av-on-rej); }
 .bp-edge { stroke: var(--av-edge); stroke-width: 1.4; transition: opacity .2s, stroke .2s; }
 .bp-edge.sol { stroke: var(--av-sol); stroke-width: 2.6; }
+.bp-edge.com { stroke: var(--av-com); stroke-width: 2.6; stroke-dasharray: 7 4; }
 .bp-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .bp-edge.rej { stroke: var(--av-rej); stroke-width: 2.8; }
 path.bp-edge { fill: none; }
@@ -3446,6 +3452,7 @@ const GraphView = (() => {
 .gb-node text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .gb-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .gb-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .gb-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.gb-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .gb-node.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .gb-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .gb-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .gb-node.Rejected text { fill: var(--av-rej); }
 .gb-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .gb-node.Blocked text { fill: var(--av-muted); }
@@ -3462,6 +3469,7 @@ const GraphView = (() => {
 .gb-order circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .gb-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .gb-edge.sol { stroke: var(--av-sol); stroke-width: 3.2; }
+.gb-edge.com { stroke: var(--av-com); stroke-width: 3.2; stroke-dasharray: 8 4; }
 .gb-edge.cov { stroke: var(--av-cov); stroke-width: 2; }
 .gb-edge.rej { stroke: var(--av-rej); stroke-width: 3.2; }
 .gb-edge.hot { stroke: var(--av-hl); stroke-width: 3.2; }
@@ -3471,6 +3479,7 @@ const GraphView = (() => {
 .gb-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .gb-w rect { fill: var(--av-surface); stroke: var(--av-line); } .gb-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .gb-w.sol rect { stroke: var(--av-sol); } .gb-w.sol text { fill: var(--av-sol); font-weight: 700; }
+.gb-w.com rect { stroke: var(--av-com); stroke-dasharray: 4 2; } .gb-w.com text { fill: var(--av-com-ink); font-weight: 700; }
 .gb-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .gb-node, .gb-node .body, .gb-edge { transition: none; } }`;
 
@@ -3561,13 +3570,15 @@ const GraphView = (() => {
     const setN = (n, v) => out.nodes.set(n, Object.assign(out.nodes.get(n) || {}, v));
     if (!f) return out;
     const trial = !!f.trial, done = !!f.done, K = G.K;
+    // What a step keeps mid-run (a partial frame) is Committed: kept so far, not confirmed (#886). Solution is the answer.
+    const keptN = f.partial ? "Committed" : "Solution", keptE = f.partial ? "com" : "sol";
     if (rule === "clique" || rule === "vc" || rule === "mvc" || rule === "is" || rule === "ds") {
       const S = new Set(f.cert || []);
-      S.forEach(n => setN(n, { st: trial || n === f.trying ? "Active" : "Solution" }));
+      S.forEach(n => setN(n, { st: trial || n === f.trying ? "Active" : keptN }));
       if (rule === "clique") {
         let missing = 0;
         const arr = [...S];
-        G.edges.forEach(e => { if (S.has(e.a) && S.has(e.b)) out.edges.set(e.k, trial ? "hot" : "sol"); else if (S.size) out.edges.set(e.k, "dim"); });
+        G.edges.forEach(e => { if (S.has(e.a) && S.has(e.b)) out.edges.set(e.k, trial ? "hot" : keptE); else if (S.size) out.edges.set(e.k, "dim"); });
         for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) if (!G.has(arr[i], arr[j])) { missing++; out.phantom.push([arr[i], arr[j]]); }
         out.checks.push({ label: `Pairs not joined by an edge: ${missing}`, ok: missing === 0 });
         out.checks.push({ label: `Size: ${S.size} (K = ${K})`, ok: S.size === K });
@@ -3663,7 +3674,7 @@ const GraphView = (() => {
       const touched = new Set();
       C.forEach(k => { const e = G.byKey.get(k); touched.add(e.a); touched.add(e.b); });
       G.edges.forEach(e => {
-        if (C.has(e.k)) out.edges.set(e.k, cycle.has(e.k) && (rule === "mst" || !f.partial) ? "rej" : trial ? "hot" : "sol");
+        if (C.has(e.k)) out.edges.set(e.k, cycle.has(e.k) && (rule === "mst" || !f.partial) ? "rej" : trial ? "hot" : keptE);
         else if (e.k === f.rejectEdge) out.edges.set(e.k, "rej");
         else if (frontier.has(e.k)) out.edges.set(e.k, "hot");
         else if (C.size || frontier.size || f.rejectEdge) out.edges.set(e.k, "dim");
@@ -3689,7 +3700,7 @@ const GraphView = (() => {
       }
     } else if (rule === "ham" || rule === "tsp") {
       const order = f.cert || [];
-      order.forEach((n, i) => setN(n, { st: f.badNode === n ? "Rejected" : n === f.trying ? "Active" : trial ? "Active" : "Solution", order: i + 1 }));
+      order.forEach((n, i) => setN(n, { st: f.badNode === n ? "Rejected" : n === f.trying ? "Active" : trial ? "Active" : keptN, order: i + 1 }));
       let missing = 0, total = 0;
       const steps = [];
       for (let i = 0; i + 1 < order.length; i++) steps.push([order[i], order[i + 1]]);
@@ -3698,7 +3709,7 @@ const GraphView = (() => {
       steps.forEach(([a, b], i) => {
         if (G.has(a, b)) {
           const k = key(a, b); used.add(k);
-          out.edges.set(k, (b === f.trying && i === steps.length - 1 && f.partial) || trial ? "hot" : "sol");
+          out.edges.set(k, (b === f.trying && i === steps.length - 1 && f.partial) || trial ? "hot" : keptE);
           if (rule === "tsp") total += G.W.get(k);
         } else { missing++; out.phantom.push([a, b]); }
       });
@@ -4191,7 +4202,7 @@ const GraphView = (() => {
         if (hover) cls = "gb-edge " + (o.e.a === hover || o.e.b === hover ? "trace" : "faint");
         o.el.setAttribute("class", cls);
         const w = els.weights.get(k);
-        if (w) w.setAttribute("class", "gb-w" + (hover ? (o.e.a === hover || o.e.b === hover ? "" : " faint") : st === "sol" ? " sol" : st === "dim" ? " faint" : ""));
+        if (w) w.setAttribute("class", "gb-w" + (hover ? (o.e.a === hover || o.e.b === hover ? "" : " faint") : st === "sol" ? " sol" : st === "com" ? " com" : st === "dim" ? " faint" : ""));
       }
       els.gPh.innerHTML = "";
       if (!hover) ev.phantom.forEach(([a, b]) => {
@@ -4438,6 +4449,7 @@ const FlowView = (() => {
 .fl-edge.sat { stroke: var(--av-ink); }
 .fl-edge.hot { stroke: var(--av-hl); }
 .fl-edge.sol { stroke: var(--av-sol); }
+.fl-edge.com { stroke: var(--av-com); stroke-dasharray: 7 4; }
 .fl-edge.dim { stroke: var(--av-edge-dim); }
 .fl-edge.trace { stroke: var(--av-hot); opacity: 1; }
 .fl-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
@@ -4870,6 +4882,7 @@ const LayeredView = (() => {
 .ly-node text.nm { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ly-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ly-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ly-node.Solution text.nm { fill: var(--av-on-sol); font-weight: 600; }
+.ly-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .ly-node.Committed text.nm { fill: var(--av-com-ink); font-weight: 600; }
 .ly-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .ly-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ly-node.Rejected text.nm { fill: var(--av-rej); }
 .ly-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .ly-node.Blocked text.nm { fill: var(--av-muted); }
@@ -4888,6 +4901,7 @@ const LayeredView = (() => {
 .ly-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ly-edge.back { stroke-dasharray: 2 0; }
 .ly-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
+.ly-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; }
 .ly-edge.cov { stroke: var(--av-cov); stroke-width: 1.8; }
 .ly-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
 .ly-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
@@ -4901,6 +4915,7 @@ const LayeredView = (() => {
 .ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); } .ly-m-untr { fill: var(--av-edge-dim); }
 .ly-w rect { fill: var(--av-surface); stroke: var(--av-line); } .ly-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-w.sol rect { stroke: var(--av-sol); } .ly-w.sol text { fill: var(--av-sol); font-weight: 700; }
+.ly-w.com rect { stroke: var(--av-com); stroke-dasharray: 4 2; } .ly-w.com text { fill: var(--av-com-ink); font-weight: 700; }
 .ly-w.hot rect { stroke: var(--av-hl); } .ly-w.hot text { fill: var(--av-ink); font-weight: 700; }
 .ly-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .ly-node, .ly-node .body, .ly-edge { transition: none; } }`;
@@ -5589,6 +5604,7 @@ const PackingView = (() => {
 .pk-tile text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pk-tile .sub { font-size: 10.5px; fill: var(--av-muted); }
 .pk-tile.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pk-tile.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.pk-tile.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .pk-tile.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .pk-tile.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .pk-tile.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .pk-tile.Rejected text { fill: var(--av-rej); }
 .pk-tile.Unused rect { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .pk-tile.Unused text { fill: var(--av-muted); }
@@ -5605,6 +5621,7 @@ const PackingView = (() => {
 .pk-seg rect { stroke: var(--av-surface); stroke-width: 1.5; transition: fill .2s; }
 .pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-on-sol); font-weight: 600; }
 .pk-seg.Solution rect { fill: var(--av-sol); }
+.pk-seg.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-dasharray: 4 2; }
 .pk-seg.Active rect { fill: var(--av-hl); } .pk-seg.Active text { fill: var(--av-on-hl); }
 .pk-seg.Rejected rect { fill: var(--av-rej); }
 .pk-seg.trace rect { stroke: var(--av-hot); stroke-width: 3; }
@@ -6243,6 +6260,7 @@ const ScheduleView = (() => {
 .sc-bar.Background { fill: var(--av-bg); stroke: var(--av-stroke); }
 .sc-bar.Covered { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .sc-bar.Solution { fill: var(--av-sol); stroke: var(--av-sol); }
+.sc-bar.Committed { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2; stroke-dasharray: 5 3; }
 .sc-bar.Active { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .sc-bar.Rejected { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.2; }
 .sc-over { fill: var(--av-rej); fill-opacity: .8; }
@@ -7726,6 +7744,7 @@ const BoardView = (() => {
 .bd-cell.Active { fill: var(--av-hl-fill); }
 .bd-cell.Rejected { fill: var(--av-rej-fill); }
 .bd-cell.Solution { fill: var(--av-sol-fill); }
+.bd-cell.Committed { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2; stroke-dasharray: 5 3; }
 .bd-cell:focus { outline: none; }
 .bd-ring { fill: none; stroke: transparent; stroke-width: 3; pointer-events: none; transition: stroke .2s; }
 .bd-ring.Active { stroke: var(--av-hl); }
@@ -7735,10 +7754,11 @@ const BoardView = (() => {
 .bd-thick { stroke: var(--av-ink); stroke-width: 2.2; fill: none; }
 .bd-dig { text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-ink); }
 .bd-dig.given { font-weight: 700; }
-/* Solver-placed digits: plain (muted, regular weight, so they differ from bold clues) until the answer is confirmed;
-   green (.sol) only on a solved board or where the frame says the cell is Solution. */
+/* Solver-placed digits: Committed (lighter green, kept so far, #886) while the solver is still working; green (.sol) only on
+   a solved board or where the frame says the cell is Solution; plain (muted) on a board drawn with no run. */
 .bd-dig.placed { fill: var(--av-muted); font-weight: 500; }
 .bd-dig.placed.sol { fill: var(--av-sol-ink); font-weight: 600; }
+.bd-dig.placed.com { fill: var(--av-com-ink); font-weight: 600; }
 .bd-dig.try { fill: var(--av-ink); font-weight: 700; }
 .bd-dig.bad { fill: var(--av-rej); font-weight: 700; }
 .bd-mark { text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); pointer-events: none; font-family: var(--av-mono); }
@@ -7748,6 +7768,7 @@ const BoardView = (() => {
 .bd-queen path, .bd-queen circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1; transition: fill .2s; }
 .bd-queen.Active path, .bd-queen.Active circle { fill: var(--av-hl); stroke: var(--av-ink); }
 .bd-queen.Solution path, .bd-queen.Solution circle { fill: var(--av-sol); stroke: var(--av-surface); }
+.bd-queen.Committed path, .bd-queen.Committed circle { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2; stroke-dasharray: 3 2; }
 .bd-queen.Rejected path, .bd-queen.Rejected circle { fill: var(--av-rej); }
 @media (prefers-reduced-motion: reduce) { .bd-cell, .bd-ring, .bd-queen path, .bd-queen circle { transition: none; } }`;
 
@@ -8058,7 +8079,7 @@ const BoardView = (() => {
         els.cells[r][c].setAttribute("class", "bd-cell " + st);
         els.rings[r][c].setAttribute("class", "bd-ring " + ring);
         const d = els.digs[r][c];
-        let text = v ? String(v) : "", dcls = given ? "given" : done && f.ok ? "placed sol" : "placed";
+        let text = v ? String(v) : "", dcls = given ? "given" : done && f.ok ? "placed sol" : f && !done && f.kind !== "show" ? "placed com" : "placed";
         if (here && f.kind === "clash") { text = String(f.value); dcls = "bad"; }
         else if (here && f.kind === "try") dcls = "try";
         else if (clashCells.has(id) && given) dcls = "bad given";
@@ -8106,7 +8127,7 @@ const BoardView = (() => {
       });
       qs.forEach((c, r) => {
         const [x, y] = center(g, r, c);
-        const cls = done ? (f.ok ? "Solution" : "Rejected") : f && f.kind === "place" && f.row === r ? "Active" : f && f.kind === "dead" && r === f.row - 1 ? "Rejected" : "";
+        const cls = done ? (f.ok ? "Solution" : "Rejected") : f && f.kind === "place" && f.row === r ? "Active" : f && f.kind === "dead" && r === f.row - 1 ? "Rejected" : f && f.kind !== "show" ? "Committed" : "";
         queen(els.gOver, x, y, g.cs * 0.8, cls);
       });
       if (hover) {
@@ -8284,11 +8305,14 @@ const TableView = (() => {
 .tb-table tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--av-hl); }
 .tb-table tr.ok td { background: var(--av-sol-fill); }
 .tb-table tr.ok td:first-child { box-shadow: inset 3px 0 0 var(--av-sol); }
+.tb-table tr.com td { background: var(--av-com-fill); }
+.tb-table tr.com td:first-child { box-shadow: inset 3px 0 0 var(--av-com); border-left: 2px dashed var(--av-com); }
 .tb-table tr.bad td { background: var(--av-rej-fill); color: var(--av-rej); }
 .tb-table tr.bad td:first-child { box-shadow: inset 3px 0 0 var(--av-rej); }
 .tb-table tr.unr td { color: var(--av-muted); }
 .tb-table td.chg { font-weight: 700; box-shadow: inset 0 -2.5px 0 var(--av-hl); }
 .tb-table td.on { background: var(--av-sol-fill); font-weight: 700; }
+.tb-table td.com { background: var(--av-com-fill); outline: 2px dashed var(--av-com); outline-offset: -2px; font-weight: 700; }
 .tb-table td.zero { color: var(--av-muted); }
 .tb-pill { display: inline-block; padding: 1px 9px; border-radius: 999px; border: 1.2px solid var(--av-stroke); font-size: 12px; color: var(--av-muted); }
 .tb-pill.yes { border-color: var(--av-sol); color: var(--av-sol); font-weight: 600; }
@@ -8313,6 +8337,8 @@ const TableView = (() => {
 .tb-cell.Active text { font-weight: 700; }
 .tb-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
 .tb-cell.Solution text { fill: var(--av-on-sol); font-weight: 700; }
+.tb-cell.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; }
+.tb-cell.Committed text { fill: var(--av-com-ink); font-weight: 700; }
 .tb-axis { font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .tb-axis.eps { fill: var(--av-muted); font-weight: 400; }
 .tb-axis.hl { fill: var(--av-hl-ink); }
@@ -9042,6 +9068,7 @@ const MiscView = (() => {
 .ms-pt .lbl { font-size: 11px; fill: var(--av-muted); pointer-events: none; }
 .ms-pt.Active .dot { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .ms-pt.Solution .dot { fill: var(--av-sol); stroke: var(--av-sol); }
+.ms-pt.Committed .dot { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 3 2; }
 .ms-pt.Covered .dot { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-pt.Rejected .dot { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; }
 .ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g2); stroke: var(--av-g2s); }
@@ -9073,6 +9100,7 @@ const MiscView = (() => {
 .ms-el.faint, .ms-trow.faint { filter: grayscale(1); } .ms-tri.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ms-tri { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ms-tri.sol { stroke: var(--av-sol); stroke-width: 3.4; }
+.ms-tri.com { stroke: var(--av-com); stroke-width: 3.4; stroke-dasharray: 8 4; }
 .ms-tri.hot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-tri.rej { stroke: var(--av-rej); stroke-width: 3; }
 .ms-tri.blk { stroke: var(--av-edge-dim); stroke-dasharray: 4 4; }
@@ -9084,6 +9112,7 @@ const MiscView = (() => {
 .ms-trow text { font-size: 12px; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ms-trow .tid { font-weight: 700; }
 .ms-trow.sol rect { fill: var(--av-sol-fill); stroke: var(--av-sol); }
+.ms-trow.com rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-dasharray: 5 3; }
 .ms-trow.hot rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
 .ms-trow.rej rect { fill: var(--av-rej-fill); stroke: var(--av-rej); }
 .ms-trow.blk text, .ms-trow.dim text { fill: var(--av-muted); }
@@ -9099,12 +9128,14 @@ const MiscView = (() => {
 .ms-tn.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ms-tn.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-tn.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ms-tn.Solution text { fill: var(--av-on-sol); }
+.ms-tn.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .ms-tn.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .ms-tn.trace .body, .ms-tn:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .ms-tn.hidden, .ms-te.hidden, .ms-bit.hidden, .ms-code.hidden { opacity: 0; pointer-events: none; }
 .ms-tn.faint { filter: grayscale(1); }
 .ms-te { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .25s, stroke .2s; }
 .ms-te.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ms-te.sol { stroke: var(--av-sol); stroke-width: 2.2; }
+.ms-te.com { stroke: var(--av-com); stroke-width: 2.2; stroke-dasharray: 6 3; }
 .ms-te.trace { stroke: var(--av-hot); stroke-width: 3; }
 .ms-bit { font-size: 11px; font-weight: 700; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; transition: opacity .25s; }
 .ms-bit.trace { fill: var(--av-hot); }
@@ -9974,6 +10005,7 @@ const CircuitGrammarView = (() => {
 .cg-gate .in-nm { font-size: 12.5px; fill: var(--av-ink); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .cg-gate.Active .body, .cg-gate.Active .bub { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .cg-gate.Solution .body, .cg-gate.Solution .bub { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
+.cg-gate.Committed .body, .cg-gate.Committed .bub { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 6 3; }
 .cg-gate.Rejected .body, .cg-gate.Rejected .bub { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .cg-gate.trace .body, .cg-gate:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .cg-gate.faint { filter: grayscale(1); }
@@ -9999,6 +10031,7 @@ const CircuitGrammarView = (() => {
 .cg-cell.split rect { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: 5 3; }
 .cg-cell.used rect { stroke: var(--av-sol); stroke-width: 2.6; }
 .cg-cell.Solution rect { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
+.cg-cell.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 6 3; }
 .cg-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .cg-cell.Rejected text { fill: var(--av-rej); }
 .cg-cell.trace rect, .cg-cell:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; }
 .cg-cell.faint { filter: grayscale(1); }
@@ -10723,6 +10756,7 @@ const ReductionView = (() => {
 .rd-node.new .body { stroke: var(--av-hl); stroke-width: 3; }
 .rd-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .rd-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .rd-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.rd-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .rd-node.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .rd-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .rd-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .rd-node.Rejected text { fill: var(--av-rej); }
 .rd-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .rd-node.Blocked text { fill: var(--av-muted); }
@@ -10750,6 +10784,7 @@ const ReductionView = (() => {
 .rd-lit text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .rd-lit.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
 .rd-lit.Solution rect { fill: var(--av-sol); } .rd-lit.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.rd-lit.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .rd-lit.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .rd-lit.False text { fill: var(--av-muted); text-decoration: line-through; }
 .rd-lit.trace rect { stroke: var(--av-hot); stroke-width: 2; }
 .rd-var rect { fill: var(--av-surface); stroke: var(--av-stroke); }
@@ -10769,6 +10804,7 @@ const ReductionView = (() => {
 .rd-edge.dim { stroke: var(--av-edge-dim); stroke-width: .8; }
 .rd-edge.new { stroke: var(--av-hl); stroke-width: 2.2; opacity: 1; }
 .rd-edge.sol { stroke: var(--av-sol); stroke-width: 3; opacity: 1; }
+.rd-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; opacity: 1; }
 .rd-edge.cov { stroke: var(--av-cov); stroke-width: 1.6; }
 .rd-edge.trace { stroke: var(--av-hot); stroke-width: 2.2; opacity: 1; }
 .rd-edge.faint { stroke: var(--av-edge-dim); stroke-width: .8; stroke-dasharray: 3 3; }
@@ -11417,6 +11453,7 @@ const MachineView = (() => {
 .mc-node.Active .inner { stroke: var(--av-hl); }
 .mc-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
 .mc-node.Solution .inner { stroke: var(--av-on-sol); } .mc-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.mc-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .mc-node.Committed .inner { stroke: var(--av-com); } .mc-node.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .mc-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .mc-node.Rejected .inner { stroke: var(--av-rej); } .mc-node.Rejected text { fill: var(--av-rej); }
 .mc-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; }
@@ -12190,6 +12227,7 @@ const PairView = (() => {
 .pv-cell text { font-size: 14px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .pv-cell.Covered rect { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .pv-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pv-cell.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.pv-cell.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .pv-cell.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .pv-cell.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.2; }
 .pv-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; } .pv-cell.Rejected text { fill: var(--av-rej); font-weight: 700; }
 .pv-cell.slot rect { fill: transparent; stroke: var(--av-hl); stroke-dasharray: 3 3; }
@@ -12220,6 +12258,7 @@ const PairView = (() => {
 .pv-node.faint { filter: grayscale(1); } .pv-node.faint .body { stroke-dasharray: 3 3; }
 .pv-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .pv-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
+.pv-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; }
 .pv-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
 .pv-edge.extra { stroke: var(--av-edge-dim); stroke-dasharray: 2 4; }
 .pv-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; }
@@ -12928,6 +12967,7 @@ const SearchTreeView = (() => {
 .st-edge.pruned, .st-edge.skipped { stroke-dasharray: 4 4; }
 .st-edge.pruned { stroke: var(--av-rej); }
 .st-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
+.st-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; }
 .st-edge.cur { stroke: var(--av-hl); stroke-width: 2.6; }
 .st-node rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.5; }
 .st-node text.lbl { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
@@ -12942,6 +12982,8 @@ const SearchTreeView = (() => {
 .st-node.skipped text.lbl, .st-node.skipped text.note { fill: var(--av-muted); }
 .st-node.solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
 .st-node.solution text.lbl { fill: var(--av-on-sol); font-weight: 600; }
+.st-node.committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; }
+.st-node.committed text.lbl { fill: var(--av-com-ink); font-weight: 600; }
 .st-node.cur rect { stroke: var(--av-hl); stroke-width: 3.2; stroke-dasharray: none; }
 .st-node.fold rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; }
 .st-node.fold text.lbl { fill: var(--av-muted); font-size: 11px; }

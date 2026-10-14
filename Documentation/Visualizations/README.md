@@ -68,14 +68,15 @@ Open the two mockup HTML files directly in a browser. They work offline.
 | --- | --- |
 | `Background` | Nothing has happened to it yet (left out of frames) |
 | `ElementHighlight` | What the solver is looking at or trying right now, including a whole candidate a brute force is testing |
-| `Solution` | Part of the answer: the confirmed answer, or a piece an incremental solver has committed |
+| `Solution` | Part of the confirmed answer only: the Done with `ok`, or an Accept that ends the run |
 | `Rejected` | Failed: falsified clause, rejecting state, uncovered or doubled element, a wrong final answer |
 | `Untraveled` | Never reached during this run, or not needed |
 | `Covered` | A constraint that is met (element covered, set hit, clause satisfied) |
 | `Blocked` | Can't be chosen without breaking an exactly-once rule (or independence) |
 | `False` | An assigned-false literal or variable. An unassigned one stays `Background` |
+| `Committed` | Kept so far but not confirmed: queens or digits placed, items packed, tree edges chosen, a best so far (#886). Drawn a lighter green with a dashed outline |
 
-**Green is for answers.** A brute force that judges whole candidates draws each candidate `ElementHighlight`, never `Solution`. A solver that builds its answer piece by piece declares `IIncrementalSolver`; its committed pieces are `Solution` and only the piece under test is highlighted. Some pictures go further and keep `Solution` for the confirmed final answer only (Board, Geometry, the tour shape). [PICTURE-TYPES.md](PICTURE-TYPES.md) says which.
+**Green is for answers.** A brute force that judges whole candidates draws each candidate `ElementHighlight`, never `Solution`. A solver that builds its answer piece by piece declares `IIncrementalSolver`; its committed pieces are `Committed` (a lighter green with a dashed outline) and only the piece under test is highlighted. In every picture, `Solution` is kept for the confirmed answer (#886).
 
 Badges such as ×2 (covered twice), order numbers in a tour, missing-edge lines and group colors are drawn annotations, not states.
 

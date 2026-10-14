@@ -17,6 +17,7 @@ const CircuitGrammarView = (() => {
 .cg-gate .in-nm { font-size: 12.5px; fill: var(--av-ink); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .cg-gate.Active .body, .cg-gate.Active .bub { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .cg-gate.Solution .body, .cg-gate.Solution .bub { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
+.cg-gate.Committed .body, .cg-gate.Committed .bub { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 6 3; }
 .cg-gate.Rejected .body, .cg-gate.Rejected .bub { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .cg-gate.trace .body, .cg-gate:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .cg-gate.faint { filter: grayscale(1); }
@@ -42,6 +43,7 @@ const CircuitGrammarView = (() => {
 .cg-cell.split rect { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: 5 3; }
 .cg-cell.used rect { stroke: var(--av-sol); stroke-width: 2.6; }
 .cg-cell.Solution rect { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
+.cg-cell.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 6 3; }
 .cg-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .cg-cell.Rejected text { fill: var(--av-rej); }
 .cg-cell.trace rect, .cg-cell:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; }
 .cg-cell.faint { filter: grayscale(1); }

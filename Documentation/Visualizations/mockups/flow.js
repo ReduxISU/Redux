@@ -25,6 +25,7 @@ const FlowView = (() => {
 .fl-edge.sat { stroke: var(--av-ink); }
 .fl-edge.hot { stroke: var(--av-hl); }
 .fl-edge.sol { stroke: var(--av-sol); }
+.fl-edge.com { stroke: var(--av-com); stroke-dasharray: 7 4; }
 .fl-edge.dim { stroke: var(--av-edge-dim); }
 .fl-edge.trace { stroke: var(--av-hot); opacity: 1; }
 .fl-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }

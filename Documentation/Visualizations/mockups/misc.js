@@ -18,6 +18,7 @@ const MiscView = (() => {
 .ms-pt .lbl { font-size: 11px; fill: var(--av-muted); pointer-events: none; }
 .ms-pt.Active .dot { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .ms-pt.Solution .dot { fill: var(--av-sol); stroke: var(--av-sol); }
+.ms-pt.Committed .dot { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 3 2; }
 .ms-pt.Covered .dot { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-pt.Rejected .dot { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; }
 .ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g2); stroke: var(--av-g2s); }
@@ -49,6 +50,7 @@ const MiscView = (() => {
 .ms-el.faint, .ms-trow.faint { filter: grayscale(1); } .ms-tri.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ms-tri { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ms-tri.sol { stroke: var(--av-sol); stroke-width: 3.4; }
+.ms-tri.com { stroke: var(--av-com); stroke-width: 3.4; stroke-dasharray: 8 4; }
 .ms-tri.hot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-tri.rej { stroke: var(--av-rej); stroke-width: 3; }
 .ms-tri.blk { stroke: var(--av-edge-dim); stroke-dasharray: 4 4; }
@@ -60,6 +62,7 @@ const MiscView = (() => {
 .ms-trow text { font-size: 12px; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ms-trow .tid { font-weight: 700; }
 .ms-trow.sol rect { fill: var(--av-sol-fill); stroke: var(--av-sol); }
+.ms-trow.com rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-dasharray: 5 3; }
 .ms-trow.hot rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
 .ms-trow.rej rect { fill: var(--av-rej-fill); stroke: var(--av-rej); }
 .ms-trow.blk text, .ms-trow.dim text { fill: var(--av-muted); }
@@ -75,12 +78,14 @@ const MiscView = (() => {
 .ms-tn.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ms-tn.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-tn.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ms-tn.Solution text { fill: var(--av-on-sol); }
+.ms-tn.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .ms-tn.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .ms-tn.trace .body, .ms-tn:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .ms-tn.hidden, .ms-te.hidden, .ms-bit.hidden, .ms-code.hidden { opacity: 0; pointer-events: none; }
 .ms-tn.faint { filter: grayscale(1); }
 .ms-te { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .25s, stroke .2s; }
 .ms-te.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ms-te.sol { stroke: var(--av-sol); stroke-width: 2.2; }
+.ms-te.com { stroke: var(--av-com); stroke-width: 2.2; stroke-dasharray: 6 3; }
 .ms-te.trace { stroke: var(--av-hot); stroke-width: 3; }
 .ms-bit { font-size: 11px; font-weight: 700; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; transition: opacity .25s; }
 .ms-bit.trace { fill: var(--av-hot); }

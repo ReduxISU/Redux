@@ -29,6 +29,7 @@ const PairView = (() => {
 .pv-cell text { font-size: 14px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .pv-cell.Covered rect { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .pv-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pv-cell.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.pv-cell.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .pv-cell.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .pv-cell.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.2; }
 .pv-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; } .pv-cell.Rejected text { fill: var(--av-rej); font-weight: 700; }
 .pv-cell.slot rect { fill: transparent; stroke: var(--av-hl); stroke-dasharray: 3 3; }
@@ -59,6 +60,7 @@ const PairView = (() => {
 .pv-node.faint { filter: grayscale(1); } .pv-node.faint .body { stroke-dasharray: 3 3; }
 .pv-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .pv-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
+.pv-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; }
 .pv-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
 .pv-edge.extra { stroke: var(--av-edge-dim); stroke-dasharray: 2 4; }
 .pv-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; }

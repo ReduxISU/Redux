@@ -21,11 +21,14 @@ const TableView = (() => {
 .tb-table tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--av-hl); }
 .tb-table tr.ok td { background: var(--av-sol-fill); }
 .tb-table tr.ok td:first-child { box-shadow: inset 3px 0 0 var(--av-sol); }
+.tb-table tr.com td { background: var(--av-com-fill); }
+.tb-table tr.com td:first-child { box-shadow: inset 3px 0 0 var(--av-com); border-left: 2px dashed var(--av-com); }
 .tb-table tr.bad td { background: var(--av-rej-fill); color: var(--av-rej); }
 .tb-table tr.bad td:first-child { box-shadow: inset 3px 0 0 var(--av-rej); }
 .tb-table tr.unr td { color: var(--av-muted); }
 .tb-table td.chg { font-weight: 700; box-shadow: inset 0 -2.5px 0 var(--av-hl); }
 .tb-table td.on { background: var(--av-sol-fill); font-weight: 700; }
+.tb-table td.com { background: var(--av-com-fill); outline: 2px dashed var(--av-com); outline-offset: -2px; font-weight: 700; }
 .tb-table td.zero { color: var(--av-muted); }
 .tb-pill { display: inline-block; padding: 1px 9px; border-radius: 999px; border: 1.2px solid var(--av-stroke); font-size: 12px; color: var(--av-muted); }
 .tb-pill.yes { border-color: var(--av-sol); color: var(--av-sol); font-weight: 600; }
@@ -50,6 +53,8 @@ const TableView = (() => {
 .tb-cell.Active text { font-weight: 700; }
 .tb-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
 .tb-cell.Solution text { fill: var(--av-on-sol); font-weight: 700; }
+.tb-cell.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; }
+.tb-cell.Committed text { fill: var(--av-com-ink); font-weight: 700; }
 .tb-axis { font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
 .tb-axis.eps { fill: var(--av-muted); font-weight: 400; }
 .tb-axis.hl { fill: var(--av-hl-ink); }

@@ -18,6 +18,7 @@ const LayeredView = (() => {
 .ly-node text.nm { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .ly-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .ly-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ly-node.Solution text.nm { fill: var(--av-on-sol); font-weight: 600; }
+.ly-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .ly-node.Committed text.nm { fill: var(--av-com-ink); font-weight: 600; }
 .ly-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .ly-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ly-node.Rejected text.nm { fill: var(--av-rej); }
 .ly-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .ly-node.Blocked text.nm { fill: var(--av-muted); }
@@ -36,6 +37,7 @@ const LayeredView = (() => {
 .ly-edge { fill: none; stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .ly-edge.back { stroke-dasharray: 2 0; }
 .ly-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
+.ly-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; }
 .ly-edge.cov { stroke: var(--av-cov); stroke-width: 1.8; }
 .ly-edge.rej { stroke: var(--av-rej); stroke-width: 3; }
 .ly-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
@@ -49,6 +51,7 @@ const LayeredView = (() => {
 .ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); } .ly-m-untr { fill: var(--av-edge-dim); }
 .ly-w rect { fill: var(--av-surface); stroke: var(--av-line); } .ly-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-w.sol rect { stroke: var(--av-sol); } .ly-w.sol text { fill: var(--av-sol); font-weight: 700; }
+.ly-w.com rect { stroke: var(--av-com); stroke-dasharray: 4 2; } .ly-w.com text { fill: var(--av-com-ink); font-weight: 700; }
 .ly-w.hot rect { stroke: var(--av-hl); } .ly-w.hot text { fill: var(--av-ink); font-weight: 700; }
 .ly-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .ly-node, .ly-node .body, .ly-edge { transition: none; } }`;

@@ -45,12 +45,13 @@ Every frame labels elements with these names (`PictureState`), never with colors
 | --- | --- |
 | `Background` | Nothing has happened to it yet |
 | `ElementHighlight` | What the solver is looking at or trying right now, including a whole candidate a brute force is testing |
-| `Solution` | Part of the answer: the confirmed answer, or a piece an incremental solver has committed |
+| `Solution` | Part of the confirmed answer only: the Done with `ok`, or an Accept that ends the run (the next step is that Done) |
 | `Rejected` | Failed: a falsified clause, a rejecting state, an uncovered or doubled element, a wrong final answer |
 | `Untraveled` | Never reached during this run, or not needed |
 | `Covered` | A constraint that is met: an element covered, a set hit, a clause satisfied |
 | `Blocked` | Can't be chosen without breaking a rule (exactly-once, independence) |
 | `False` | An assigned-false literal or variable. An unassigned one stays `Background` |
+| `Committed` | Kept so far but not confirmed: what an incremental solver has committed (queens placed, items packed, tree edges chosen), and a best so far a solver may still replace (#886). Drawn a lighter green with a dashed outline |
 
 Some marks are **annotations, not states**: the ×2 badge for "covered twice", order numbers on a tour, the dashed "missing edge" (sent as a `phantoms` entry), group colors for color classes and cut sides, and the Garbage node in a DFA. The builder adds them; you never set them by hand.
 
@@ -184,9 +185,9 @@ How a picture draws your partial depends on what kind of solver you are:
   - Try and Reject: the partial is what you have committed, and may also hold the piece under test.
   - The focus names the piece under test, and only that, never the whole partial.
 
-  The picture draws the committed part as `Solution` and only the focus as tried (`ElementHighlight`) or failed (`Rejected`).
+  The picture draws the committed part as `Committed` and only the focus as tried (`ElementHighlight`) or failed (`Rejected`). The committed part turns `Solution` on the correct Done, or on an Accept that ends the run.
 
-Some pictures keep green for the confirmed answer even in an incremental run: Board, Geometry and the Graph tour shape draw committed pieces plain until the final Done is `ok`. [PICTURE-TYPES.md](PICTURE-TYPES.md) says which.
+Every picture follows the same rule (#886): `Solution` is the confirmed answer only, and what a solver keeps before then is `Committed`. `GraphSubsetFrames.Picked` gives the state of picked elements, so use it rather than writing the rule again.
 
 ### 5.4 What to record
 

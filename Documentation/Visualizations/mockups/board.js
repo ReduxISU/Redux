@@ -18,6 +18,7 @@ const BoardView = (() => {
 .bd-cell.Active { fill: var(--av-hl-fill); }
 .bd-cell.Rejected { fill: var(--av-rej-fill); }
 .bd-cell.Solution { fill: var(--av-sol-fill); }
+.bd-cell.Committed { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2; stroke-dasharray: 5 3; }
 .bd-cell:focus { outline: none; }
 .bd-ring { fill: none; stroke: transparent; stroke-width: 3; pointer-events: none; transition: stroke .2s; }
 .bd-ring.Active { stroke: var(--av-hl); }
@@ -27,10 +28,11 @@ const BoardView = (() => {
 .bd-thick { stroke: var(--av-ink); stroke-width: 2.2; fill: none; }
 .bd-dig { text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-ink); }
 .bd-dig.given { font-weight: 700; }
-/* Solver-placed digits: plain (muted, regular weight, so they differ from bold clues) until the answer is confirmed;
-   green (.sol) only on a solved board or where the frame says the cell is Solution. */
+/* Solver-placed digits: Committed (lighter green, kept so far, #886) while the solver is still working; green (.sol) only on
+   a solved board or where the frame says the cell is Solution; plain (muted) on a board drawn with no run. */
 .bd-dig.placed { fill: var(--av-muted); font-weight: 500; }
 .bd-dig.placed.sol { fill: var(--av-sol-ink); font-weight: 600; }
+.bd-dig.placed.com { fill: var(--av-com-ink); font-weight: 600; }
 .bd-dig.try { fill: var(--av-ink); font-weight: 700; }
 .bd-dig.bad { fill: var(--av-rej); font-weight: 700; }
 .bd-mark { text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); pointer-events: none; font-family: var(--av-mono); }
@@ -40,6 +42,7 @@ const BoardView = (() => {
 .bd-queen path, .bd-queen circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1; transition: fill .2s; }
 .bd-queen.Active path, .bd-queen.Active circle { fill: var(--av-hl); stroke: var(--av-ink); }
 .bd-queen.Solution path, .bd-queen.Solution circle { fill: var(--av-sol); stroke: var(--av-surface); }
+.bd-queen.Committed path, .bd-queen.Committed circle { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2; stroke-dasharray: 3 2; }
 .bd-queen.Rejected path, .bd-queen.Rejected circle { fill: var(--av-rej); }
 @media (prefers-reduced-motion: reduce) { .bd-cell, .bd-ring, .bd-queen path, .bd-queen circle { transition: none; } }`;
 
@@ -350,7 +353,7 @@ const BoardView = (() => {
         els.cells[r][c].setAttribute("class", "bd-cell " + st);
         els.rings[r][c].setAttribute("class", "bd-ring " + ring);
         const d = els.digs[r][c];
-        let text = v ? String(v) : "", dcls = given ? "given" : done && f.ok ? "placed sol" : "placed";
+        let text = v ? String(v) : "", dcls = given ? "given" : done && f.ok ? "placed sol" : f && !done && f.kind !== "show" ? "placed com" : "placed";
         if (here && f.kind === "clash") { text = String(f.value); dcls = "bad"; }
         else if (here && f.kind === "try") dcls = "try";
         else if (clashCells.has(id) && given) dcls = "bad given";
@@ -398,7 +401,7 @@ const BoardView = (() => {
       });
       qs.forEach((c, r) => {
         const [x, y] = center(g, r, c);
-        const cls = done ? (f.ok ? "Solution" : "Rejected") : f && f.kind === "place" && f.row === r ? "Active" : f && f.kind === "dead" && r === f.row - 1 ? "Rejected" : "";
+        const cls = done ? (f.ok ? "Solution" : "Rejected") : f && f.kind === "place" && f.row === r ? "Active" : f && f.kind === "dead" && r === f.row - 1 ? "Rejected" : f && f.kind !== "show" ? "Committed" : "";
         queen(els.gOver, x, y, g.cs * 0.8, cls);
       });
       if (hover) {

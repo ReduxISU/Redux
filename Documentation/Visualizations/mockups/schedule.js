@@ -25,6 +25,7 @@ const ScheduleView = (() => {
 .sc-bar.Background { fill: var(--av-bg); stroke: var(--av-stroke); }
 .sc-bar.Covered { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .sc-bar.Solution { fill: var(--av-sol); stroke: var(--av-sol); }
+.sc-bar.Committed { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2; stroke-dasharray: 5 3; }
 .sc-bar.Active { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 2.6; }
 .sc-bar.Rejected { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.2; }
 .sc-over { fill: var(--av-rej); fill-opacity: .8; }

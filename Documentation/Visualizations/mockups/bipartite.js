@@ -20,6 +20,7 @@ const BipartiteView = (() => {
 .bp-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .bp-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
 .bp-node.Solution text, .bp-node.Solution text.sub { fill: var(--av-on-sol); }
+.bp-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .bp-node.Committed text, .bp-node.Committed text.sub { fill: var(--av-com-ink); font-weight: 600; }
 .bp-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; }
 .bp-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .bp-node.Rejected text:not(.bp-count-t) { fill: var(--av-rej); }
@@ -33,6 +34,7 @@ const BipartiteView = (() => {
 .bp-node text.bp-count-t { fill: var(--av-on-rej); }
 .bp-edge { stroke: var(--av-edge); stroke-width: 1.4; transition: opacity .2s, stroke .2s; }
 .bp-edge.sol { stroke: var(--av-sol); stroke-width: 2.6; }
+.bp-edge.com { stroke: var(--av-com); stroke-width: 2.6; stroke-dasharray: 7 4; }
 .bp-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .bp-edge.rej { stroke: var(--av-rej); stroke-width: 2.8; }
 path.bp-edge { fill: none; }

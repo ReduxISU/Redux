@@ -16,6 +16,7 @@ const GraphView = (() => {
 .gb-node text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .gb-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .gb-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .gb-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.gb-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .gb-node.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .gb-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .gb-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .gb-node.Rejected text { fill: var(--av-rej); }
 .gb-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .gb-node.Blocked text { fill: var(--av-muted); }
@@ -32,6 +33,7 @@ const GraphView = (() => {
 .gb-order circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .gb-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
 .gb-edge.sol { stroke: var(--av-sol); stroke-width: 3.2; }
+.gb-edge.com { stroke: var(--av-com); stroke-width: 3.2; stroke-dasharray: 8 4; }
 .gb-edge.cov { stroke: var(--av-cov); stroke-width: 2; }
 .gb-edge.rej { stroke: var(--av-rej); stroke-width: 3.2; }
 .gb-edge.hot { stroke: var(--av-hl); stroke-width: 3.2; }
@@ -41,6 +43,7 @@ const GraphView = (() => {
 .gb-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .gb-w rect { fill: var(--av-surface); stroke: var(--av-line); } .gb-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .gb-w.sol rect { stroke: var(--av-sol); } .gb-w.sol text { fill: var(--av-sol); font-weight: 700; }
+.gb-w.com rect { stroke: var(--av-com); stroke-dasharray: 4 2; } .gb-w.com text { fill: var(--av-com-ink); font-weight: 700; }
 .gb-w.faint { filter: grayscale(1); }
 @media (prefers-reduced-motion: reduce) { .gb-node, .gb-node .body, .gb-edge { transition: none; } }`;
 
@@ -131,13 +134,15 @@ const GraphView = (() => {
     const setN = (n, v) => out.nodes.set(n, Object.assign(out.nodes.get(n) || {}, v));
     if (!f) return out;
     const trial = !!f.trial, done = !!f.done, K = G.K;
+    // What a step keeps mid-run (a partial frame) is Committed: kept so far, not confirmed (#886). Solution is the answer.
+    const keptN = f.partial ? "Committed" : "Solution", keptE = f.partial ? "com" : "sol";
     if (rule === "clique" || rule === "vc" || rule === "mvc" || rule === "is" || rule === "ds") {
       const S = new Set(f.cert || []);
-      S.forEach(n => setN(n, { st: trial || n === f.trying ? "Active" : "Solution" }));
+      S.forEach(n => setN(n, { st: trial || n === f.trying ? "Active" : keptN }));
       if (rule === "clique") {
         let missing = 0;
         const arr = [...S];
-        G.edges.forEach(e => { if (S.has(e.a) && S.has(e.b)) out.edges.set(e.k, trial ? "hot" : "sol"); else if (S.size) out.edges.set(e.k, "dim"); });
+        G.edges.forEach(e => { if (S.has(e.a) && S.has(e.b)) out.edges.set(e.k, trial ? "hot" : keptE); else if (S.size) out.edges.set(e.k, "dim"); });
         for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) if (!G.has(arr[i], arr[j])) { missing++; out.phantom.push([arr[i], arr[j]]); }
         out.checks.push({ label: `Pairs not joined by an edge: ${missing}`, ok: missing === 0 });
         out.checks.push({ label: `Size: ${S.size} (K = ${K})`, ok: S.size === K });
@@ -233,7 +238,7 @@ const GraphView = (() => {
       const touched = new Set();
       C.forEach(k => { const e = G.byKey.get(k); touched.add(e.a); touched.add(e.b); });
       G.edges.forEach(e => {
-        if (C.has(e.k)) out.edges.set(e.k, cycle.has(e.k) && (rule === "mst" || !f.partial) ? "rej" : trial ? "hot" : "sol");
+        if (C.has(e.k)) out.edges.set(e.k, cycle.has(e.k) && (rule === "mst" || !f.partial) ? "rej" : trial ? "hot" : keptE);
         else if (e.k === f.rejectEdge) out.edges.set(e.k, "rej");
         else if (frontier.has(e.k)) out.edges.set(e.k, "hot");
         else if (C.size || frontier.size || f.rejectEdge) out.edges.set(e.k, "dim");
@@ -259,7 +264,7 @@ const GraphView = (() => {
       }
     } else if (rule === "ham" || rule === "tsp") {
       const order = f.cert || [];
-      order.forEach((n, i) => setN(n, { st: f.badNode === n ? "Rejected" : n === f.trying ? "Active" : trial ? "Active" : "Solution", order: i + 1 }));
+      order.forEach((n, i) => setN(n, { st: f.badNode === n ? "Rejected" : n === f.trying ? "Active" : trial ? "Active" : keptN, order: i + 1 }));
       let missing = 0, total = 0;
       const steps = [];
       for (let i = 0; i + 1 < order.length; i++) steps.push([order[i], order[i + 1]]);
@@ -268,7 +273,7 @@ const GraphView = (() => {
       steps.forEach(([a, b], i) => {
         if (G.has(a, b)) {
           const k = key(a, b); used.add(k);
-          out.edges.set(k, (b === f.trying && i === steps.length - 1 && f.partial) || trial ? "hot" : "sol");
+          out.edges.set(k, (b === f.trying && i === steps.length - 1 && f.partial) || trial ? "hot" : keptE);
           if (rule === "tsp") total += G.W.get(k);
         } else { missing++; out.phantom.push([a, b]); }
       });
@@ -761,7 +766,7 @@ const GraphView = (() => {
         if (hover) cls = "gb-edge " + (o.e.a === hover || o.e.b === hover ? "trace" : "faint");
         o.el.setAttribute("class", cls);
         const w = els.weights.get(k);
-        if (w) w.setAttribute("class", "gb-w" + (hover ? (o.e.a === hover || o.e.b === hover ? "" : " faint") : st === "sol" ? " sol" : st === "dim" ? " faint" : ""));
+        if (w) w.setAttribute("class", "gb-w" + (hover ? (o.e.a === hover || o.e.b === hover ? "" : " faint") : st === "sol" ? " sol" : st === "com" ? " com" : st === "dim" ? " faint" : ""));
       }
       els.gPh.innerHTML = "";
       if (!hover) ev.phantom.forEach(([a, b]) => {

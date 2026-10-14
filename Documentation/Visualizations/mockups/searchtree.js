@@ -16,6 +16,7 @@ const SearchTreeView = (() => {
 .st-edge.pruned, .st-edge.skipped { stroke-dasharray: 4 4; }
 .st-edge.pruned { stroke: var(--av-rej); }
 .st-edge.sol { stroke: var(--av-sol); stroke-width: 3; }
+.st-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; }
 .st-edge.cur { stroke: var(--av-hl); stroke-width: 2.6; }
 .st-node rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.5; }
 .st-node text.lbl { font-size: 12px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); }
@@ -30,6 +31,8 @@ const SearchTreeView = (() => {
 .st-node.skipped text.lbl, .st-node.skipped text.note { fill: var(--av-muted); }
 .st-node.solution rect { fill: var(--av-sol); stroke: var(--av-sol); }
 .st-node.solution text.lbl { fill: var(--av-on-sol); font-weight: 600; }
+.st-node.committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; }
+.st-node.committed text.lbl { fill: var(--av-com-ink); font-weight: 600; }
 .st-node.cur rect { stroke: var(--av-hl); stroke-width: 3.2; stroke-dasharray: none; }
 .st-node.fold rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; }
 .st-node.fold text.lbl { fill: var(--av-muted); font-size: 11px; }

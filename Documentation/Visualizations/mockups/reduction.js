@@ -39,6 +39,7 @@ const ReductionView = (() => {
 .rd-node.new .body { stroke: var(--av-hl); stroke-width: 3; }
 .rd-node.Active .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .rd-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .rd-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.rd-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .rd-node.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .rd-node.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
 .rd-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .rd-node.Rejected text { fill: var(--av-rej); }
 .rd-node.Blocked .body { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .rd-node.Blocked text { fill: var(--av-muted); }
@@ -66,6 +67,7 @@ const ReductionView = (() => {
 .rd-lit text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .rd-lit.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); }
 .rd-lit.Solution rect { fill: var(--av-sol); } .rd-lit.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.rd-lit.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .rd-lit.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .rd-lit.False text { fill: var(--av-muted); text-decoration: line-through; }
 .rd-lit.trace rect { stroke: var(--av-hot); stroke-width: 2; }
 .rd-var rect { fill: var(--av-surface); stroke: var(--av-stroke); }
@@ -85,6 +87,7 @@ const ReductionView = (() => {
 .rd-edge.dim { stroke: var(--av-edge-dim); stroke-width: .8; }
 .rd-edge.new { stroke: var(--av-hl); stroke-width: 2.2; opacity: 1; }
 .rd-edge.sol { stroke: var(--av-sol); stroke-width: 3; opacity: 1; }
+.rd-edge.com { stroke: var(--av-com); stroke-width: 3; stroke-dasharray: 8 4; opacity: 1; }
 .rd-edge.cov { stroke: var(--av-cov); stroke-width: 1.6; }
 .rd-edge.trace { stroke: var(--av-hot); stroke-width: 2.2; opacity: 1; }
 .rd-edge.faint { stroke: var(--av-edge-dim); stroke-width: .8; stroke-dasharray: 3 3; }

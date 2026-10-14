@@ -18,6 +18,7 @@ const PackingView = (() => {
 .pk-tile text { font-size: 12.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .pk-tile .sub { font-size: 10.5px; fill: var(--av-muted); }
 .pk-tile.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pk-tile.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.pk-tile.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .pk-tile.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .pk-tile.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .pk-tile.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .pk-tile.Rejected text { fill: var(--av-rej); }
 .pk-tile.Unused rect { fill: transparent; stroke: var(--av-stroke); stroke-dasharray: 4 3; } .pk-tile.Unused text { fill: var(--av-muted); }
@@ -34,6 +35,7 @@ const PackingView = (() => {
 .pk-seg rect { stroke: var(--av-surface); stroke-width: 1.5; transition: fill .2s; }
 .pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-on-sol); font-weight: 600; }
 .pk-seg.Solution rect { fill: var(--av-sol); }
+.pk-seg.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-dasharray: 4 2; }
 .pk-seg.Active rect { fill: var(--av-hl); } .pk-seg.Active text { fill: var(--av-on-hl); }
 .pk-seg.Rejected rect { fill: var(--av-rej); }
 .pk-seg.trace rect { stroke: var(--av-hot); stroke-width: 3; }

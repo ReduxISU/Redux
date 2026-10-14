@@ -18,6 +18,7 @@ const AutomatonView = (() => {
 .au-node.Active .inner { stroke: var(--av-hl); }
 .au-node.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); }
 .au-node.Solution .inner { stroke: var(--av-on-sol); } .au-node.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.au-node.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .au-node.Committed .inner { stroke: var(--av-com); } .au-node.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .au-node.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
 .au-node.Rejected .inner { stroke: var(--av-rej); } .au-node.Rejected text { fill: var(--av-rej); }
 .au-node.Untraveled .body { fill: transparent; stroke-dasharray: 4 4; }
