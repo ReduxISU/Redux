@@ -64,15 +64,16 @@ sealed record GeometryFrame(
 /// (<see cref="FirstOf"/>); every copy takes that copy's state.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>; see
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>; see
 /// <see cref="GraphSubsetFrames.Raise"/>):
 /// </para>
 /// <list type="bullet">
-/// <item>A corner of a hull on the table (a piece, or one of the two being merged) and a point on the chain are plain
-/// (<c>Background</c>) before the Done frame: in every step of an incremental run (<see cref="SolveRun.Incremental"/>) and
-/// in an Accept or Backtrack, so Solution colour never shows while the solver is still working (#849, as #839 decided for
-/// the Board); the piece outlines and the chain show the progress. A whole candidate that is only being tried (Try, Reject
-/// of a run that is not incremental) is <c>ElementHighlight</c>.</item>
+/// <item>A corner of a hull on the table (a piece, or one of the two being merged) and a point on the chain are
+/// <c>Committed</c> before the confirmed hull: in every step of an incremental run (<see cref="SolveRun.Incremental"/>) and
+/// in an Accept or Backtrack the run goes on from, they are kept so far but not the answer, so Solution colour never shows
+/// while the solver is still working (#849, #886); the piece outlines and the chain show the progress too. A whole
+/// candidate that is only being tried (Try, Reject of a run that is not incremental) is <c>ElementHighlight</c>, and an
+/// Accept that ends the run is <c>Solution</c> (<see cref="GraphSubsetFrames.Picked"/>).</item>
 /// <item>A dropped point (found inside a hull, or in the middle of an edge) is <c>Rejected</c>.</item>
 /// <item>The focus is <c>ElementHighlight</c>; in a Reject step of an incremental run it is what failed (a point popped from
 /// the chain), so <c>Rejected</c> (<see cref="GraphSubsetFrames.FocusMark"/>).</item>
@@ -115,9 +116,10 @@ static class GeometryFrames {
 
     /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
-    /// (<see cref="SolveRun.Incremental"/>).
+    /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
+    /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static GeometryFrame Frame(GeometrySpec spec, HullBuild partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false) {
+    public static GeometryFrame Frame(GeometrySpec spec, HullBuild partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var firstOf = FirstOf(spec);
         var ids = new HashSet<string>(firstOf, StringComparer.Ordinal);
         List<string> Known(IEnumerable<string> list) => list.Where(ids.Contains).ToList();
@@ -137,10 +139,10 @@ static class GeometryFrames {
             pieces.AddRange(partial.Pieces.Select(p => new GeometryPieceDto(Known(p), "piece")));
             if (partial.Left.Length > 0) pieces.Add(new GeometryPieceDto(Known(partial.Left), "left"));
             if (partial.Right.Length > 0) pieces.Add(new GeometryPieceDto(Known(partial.Right), "right"));
-            // Mid-run a hull's corners are not the answer yet, so they stay plain (#849); only a whole candidate being tried
-            // shows.
-            if (!incremental && ev is StepEvent.Try or StepEvent.Reject)
-                foreach (var id in pieces.SelectMany(p => p.Points).Concat(chain)) GraphSubsetFrames.Raise(states, id, PictureState.ElementHighlight);
+            // Mid-run a hull's corners are kept but not the answer yet, so they are Committed (#849, #886); a whole candidate
+            // being tried is highlighted.
+            var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+            foreach (var id in pieces.SelectMany(p => p.Points).Concat(chain)) GraphSubsetFrames.Raise(states, id, picked);
             foreach (var id in Known(partial.Dropped)) GraphSubsetFrames.Raise(states, id, PictureState.Rejected);
         }
 
@@ -180,10 +182,10 @@ static class GeometryFrames {
     public static FramesResponse Build(GeometrySpec spec, SolveRun run, Func<string, HullBuild> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<HullBuild>? last = null;
-        foreach (var step in run.StepsFor(typeof(HullBuild)).OfType<SolverStep<HullBuild>>()) {
+        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(HullBuild)).OfType<SolverStep<HullBuild>>())) {
             frames.Add(run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
             last = step;
         }
         if (run.TimedOut) {
