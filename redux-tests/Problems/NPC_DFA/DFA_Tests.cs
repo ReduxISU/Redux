@@ -1,6 +1,10 @@
 using Xunit;
 using API.Problems.P.P_DFA;
+using API.Interfaces;
+using API.Interfaces.JSON_Objects.Tables;
+using API.Interfaces.Steps;
 using API.Problems.P.P_DFA.Solvers;
+using API.Problems.P.P_DFA.Visualizations;
 using API.Problems.P.P_DFA.Verifiers;
 using System.Collections.Generic;
 using System.Linq;
@@ -261,88 +265,95 @@ public class DFA_Tests {
     }
 
     // -------------------------------------------------------------------------
-    // Solver — GetSteps / GetTableSteps
+    // Solver — typed steps / table visualization
     // -------------------------------------------------------------------------
 
-    [Fact]
-    public void DFA_GetSteps_Returns_Node_Path_For_Accepted_Input() {
-        DFASolver solver = new DFASolver();
-        var steps = solver.GetSteps(DefaultInstance);
-        Assert.Equal(new List<object> { "1", "2" }, steps);
+    private static List<SolverStep<ActiveStates>> Steps(string instance) =>
+        ((ISolver)new DFASolver()).Run(instance, withSteps: true).Steps.Cast<SolverStep<ActiveStates>>().ToList();
+
+    private static List<string> TriedStates(string instance) =>
+        Steps(instance).Where(s => s.Event == StepEvent.Try).Select(s => s.Partial.States[0]).ToList();
+
+    // The table frames DFATableVisualization builds from the steps the solver recorded.
+    private static List<API_TableJSON> TableFrames(string instance) {
+        var run = ((ISolver)new DFASolver()).Run(instance, withSteps: true);
+        var vis = (IVisualization)new DFATableVisualization();
+        return vis.StepsVisualization(instance, run.StepsFor(vis.StepShape)).Cast<API_TableJSON>().ToList();
     }
 
     [Fact]
-    public void DFA_GetSteps_Returns_Partial_Path_When_No_Solution() {
-        // Input "b" from default instance: 1 →b→ 3 (non-accept), but nodePath still
-        // records the path actually walked before solve() returns "No Solution".
+    public void DFA_Steps_Try_Each_State_Of_Path_For_Accepted_Input() {
+        Assert.Equal(new List<string> { "1", "2" }, TriedStates(DefaultInstance));
+        var steps = Steps(DefaultInstance);
+        Assert.Equal("Read 'a': move from 1 to 2.", steps[1].Caption);
+        Assert.Equal(StepEvent.Done, steps[^1].Event);
+        Assert.True(steps[^1].Ok);
+    }
+
+    [Fact]
+    public void DFA_Steps_Cover_Path_Then_Reject_When_No_Solution() {
+        // Input "b" from default instance: 1 →b→ 3 (non-accept).
         string instance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),b)";
-        DFASolver solver = new DFASolver();
-        var steps = solver.GetSteps(instance);
-        Assert.Equal(new List<object> { "1", "3" }, steps);
+        Assert.Equal(new List<string> { "1", "3" }, TriedStates(instance));
+        var steps = Steps(instance);
+        Assert.Equal(new[] { StepEvent.Try, StepEvent.Try, StepEvent.Reject, StepEvent.Done }, steps.Select(s => s.Event));
+        Assert.False(steps[^1].Ok);
     }
 
     [Fact]
-    public void DFA_GetTableSteps_Produces_One_Frame_Per_Row_For_Accepted_Input() {
+    public void DFA_TableFrames_One_Frame_Per_Row_For_Accepted_Input() {
         // Default instance, input "a": initial row (step 0) + one transition row (step 1)
-        DFA dfa = new DFA(DefaultInstance);
-        DFASolver solver = new DFASolver();
-        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+        var frames = TableFrames(DefaultInstance);
 
         Assert.Equal(2, frames.Count);
-        // Every frame carries the full trace; only currentRow moves.
+        // Every frame carries the full trace; only the highlight moves.
         Assert.All(frames, f => Assert.Equal(2, f.rows.Count));
-        Assert.Equal(0, frames[0].currentRow);
-        Assert.Equal(1, frames[1].currentRow);
+        Assert.Null(frames[0].rows[1].cellColors);
+        Assert.NotNull(frames[0].rows[0].cellColors);
+        Assert.NotNull(frames[1].rows[1].cellColors);
 
         var rows = frames[0].rows;
-        Assert.Equal(0, rows[0].step);
-        Assert.Equal("-", rows[0].symbol);
-        Assert.Equal("-", rows[0].fromState);
-        Assert.Equal("1", rows[0].toState);
-        Assert.False(rows[0].accepting);
+        Assert.Equal("0", rows[0].cells["step"]);
+        Assert.Equal("-", rows[0].cells["symbol"]);
+        Assert.Equal("-", rows[0].cells["fromState"]);
+        Assert.Equal("1", rows[0].cells["toState"]);
+        Assert.Equal("❌", rows[0].cells["accepting"]);
 
-        Assert.Equal(1, rows[1].step);
-        Assert.Equal("a", rows[1].symbol);
-        Assert.Equal("1", rows[1].fromState);
-        Assert.Equal("2", rows[1].toState);
-        Assert.True(rows[1].accepting);
+        Assert.Equal("1", rows[1].cells["step"]);
+        Assert.Equal("a", rows[1].cells["symbol"]);
+        Assert.Equal("1", rows[1].cells["fromState"]);
+        Assert.Equal("2", rows[1].cells["toState"]);
+        Assert.Equal("✅", rows[1].cells["accepting"]);
     }
 
     [Fact]
-    public void DFA_GetTableSteps_Stops_At_Single_Row_For_Epsilon_Accept() {
-        // Start state is accept and input is ε: loop breaks before adding any transition row.
-        DFA dfa = new DFA("(({q0,q1},{a},{(q0,a,q1)},q0,{q0}),ε)");
-        DFASolver solver = new DFASolver();
-        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+    public void DFA_TableFrames_Stop_At_Single_Row_For_Epsilon_Accept() {
+        // Start state is accept and input is ε: no transition row is added.
+        var frames = TableFrames("(({q0,q1},{a},{(q0,a,q1)},q0,{q0}),ε)");
 
         Assert.Single(frames);
         Assert.Single(frames[0].rows);
-        Assert.True(frames[0].rows[0].accepting);
+        Assert.Equal("✅", frames[0].rows[0].cells["accepting"]);
     }
 
     [Fact]
-    public void DFA_GetTableSteps_Stops_When_Character_Not_In_Alphabet() {
+    public void DFA_TableFrames_Stop_When_Character_Not_In_Alphabet() {
         // First char 'a' transitions normally; second char 'c' is not in the alphabet
         // so the trace stalls there and no further row is added.
-        string instance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),ac)";
-        DFA dfa = new DFA(instance);
-        DFASolver solver = new DFASolver();
-        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+        var frames = TableFrames("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),ac)");
 
         Assert.Equal(2, frames.Count);
-        Assert.Equal("2", frames[^1].rows[^1].toState);
+        Assert.Equal("2", frames[^1].rows[^1].cells["toState"]);
     }
 
     [Fact]
-    public void DFA_GetTableSteps_Stops_When_No_Matching_Edge() {
+    public void DFA_TableFrames_Stop_When_No_Matching_Edge() {
         // First char 'a' transitions to node 2, which has no outgoing edge for 'b';
         // the trace stalls there and no further row is added.
-        DFA dfa = new DFA("(({1,2},{a,b},{(1,a,2)},1,{2}),ab)");
-        DFASolver solver = new DFASolver();
-        var frames = solver.GetTableSteps(dfa).Cast<DFASolver.DFATableStep>().ToList();
+        var frames = TableFrames("(({1,2},{a,b},{(1,a,2)},1,{2}),ab)");
 
         Assert.Equal(2, frames.Count);
-        Assert.Equal("2", frames[^1].rows[^1].toState);
+        Assert.Equal("2", frames[^1].rows[^1].cells["toState"]);
     }
 
     // -------------------------------------------------------------------------

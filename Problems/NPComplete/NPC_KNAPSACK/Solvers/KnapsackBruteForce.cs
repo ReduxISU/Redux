@@ -18,7 +18,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 
 
-    public string complexity { get; } = "O(2^n)";
+    public MathematicalFunction timeComplexity { get; } = new("2^n", "");
 
     public IEnumerable<List<int>> possibleSolutions(int len) {
         for (int i = 0; i < Math.Pow(2, len); i++) {

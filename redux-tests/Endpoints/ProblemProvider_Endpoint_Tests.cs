@@ -227,6 +227,31 @@ public class ProblemProvider_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
+    public async Task VisualizeReduction_SAT3ToClique_RepeatedLiteralInClause_Returns200() {
+        var instance = "\"(x1 | x1 | x2) & (!x1 | x2 | x2)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("(x1:True,x2:True)");
+        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction=sipserreducetocliquestandard&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.False(string.IsNullOrWhiteSpace(body));
+    }
+
+    [Theory]
+    [InlineData("karpreducegraphcoloring")]
+    [InlineData("karpintprogstandard")]
+    public async Task MapSolution_UnsatisfyingAssignment_Returns400WithReductionInputError(string reduction) {
+        var instance = "\"(x1 | x2 | x3) & (!x1 | !x2 | !x3)\"";
+        var content = new StringContent(instance, Encoding.UTF8, "application/json");
+        var solution = Uri.EscapeDataString("(x1:True,x2:True,x3:True)");
+        var response = await _client.PostAsync($"/ProblemProvider/mapSolution?reduction={reduction}&solution={solution}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.Contains("reduction_input_parse_error", body);
+        Assert.DoesNotContain("inccorect", body);
+    }
+
+    [Fact]
     public async Task VisualizeReduction_UnknownReduction_Returns400() {
         var instance = "\"(x1 | !x2 | x3)\"";
         var content = new StringContent(instance, Encoding.UTF8, "application/json");

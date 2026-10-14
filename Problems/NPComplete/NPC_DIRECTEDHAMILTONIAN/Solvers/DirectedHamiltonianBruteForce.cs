@@ -25,7 +25,7 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
     // graph (the worst case) it never trips, so all n! permutations are still generated. Each yielded
     // permutation costs O(n) to build (CombinationToCertificate), and DirectedHamiltonianVerifier walks
     // it in O(n) steps, each doing an O(m) List<>.Contains edge lookup -- O(n*m) per verify call.
-    public string complexity { get; } = "O(n! * n * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("n! * n * m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
 

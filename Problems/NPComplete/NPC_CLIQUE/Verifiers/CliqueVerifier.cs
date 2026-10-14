@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
 class CliqueVerifier : IVerifier<CLIQUE> {
 
     public const string CertificateGrammar = "{K | K is set}";
-    public const string CertificateExample = "{1,2,4}";
+    public const string CertificateExample = "{2,3,4,5}";
 
     // --- Fields ---
     public string verifierName { get; } = "Default Clique Verifier";
