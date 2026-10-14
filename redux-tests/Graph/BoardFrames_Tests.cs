@@ -91,14 +91,17 @@ public class BoardFrames_Tests {
     }
 
     [Fact]
-    public void Frame_Incremental_KeepsWhatIsPlacedPlain_AndOnlyTheTriedSquareHighlighted() {
+    public void Frame_Incremental_KeepsWhatIsPlacedCommitted_AndOnlyTheTriedSquareHighlighted() {
         var frame = BoardFrames.Frame(Sudoku4, B(("r0c0", "1"), ("r0c1", "2"), ("r0c2", "4")), StepEvent.Try, ["r0c2"], "c", incremental: true);
-        // The placed digit r0c1 is not the answer yet, so it is plain (#839); the clue r0c0 is fixed: never Solution.
-        Assert.Equal("r0c2:ElementHighlight", States(frame.Cells));
+        // The placed digit r0c1 is kept but not the answer yet, so it is Committed (#839, #886); the clue r0c0 is fixed:
+        // never Solution or Committed.
+        Assert.Equal("r0c1:Committed r0c2:ElementHighlight", States(frame.Cells));
         Assert.Equal(["r0c0=1", "r0c1=2", "r0c2=4", "r1c2=3"], frame.Values.Select(p => $"{p.Key}={p.Value}"));
         // An Accept or Backtrack of an incremental run is still not the answer.
-        Assert.Empty(BoardFrames.Frame(Sudoku4, B(("r0c1", "2")), StepEvent.Accept, [], "c", incremental: true).Cells);
-        Assert.Empty(BoardFrames.Frame(Sudoku4, B(("r0c1", "2")), StepEvent.Backtrack, [], "c", incremental: true).Cells);
+        Assert.Equal("r0c1:Committed", States(BoardFrames.Frame(Sudoku4, B(("r0c1", "2")), StepEvent.Accept, [], "c", incremental: true).Cells));
+        Assert.Equal("r0c1:Committed", States(BoardFrames.Frame(Sudoku4, B(("r0c1", "2")), StepEvent.Backtrack, [], "c", incremental: true).Cells));
+        // The Accept that ends the run is the confirmed answer.
+        Assert.Equal("r0c1:Solution", States(BoardFrames.Frame(Sudoku4, B(("r0c1", "2")), StepEvent.Accept, [], "c", incremental: true, endsRun: true).Cells));
         // Only the Done with ok = true paints the placed digits Solution.
         Assert.Equal("r0c1:Solution", States(BoardFrames.Frame(Sudoku4, B(("r0c0", "1"), ("r0c1", "2")), StepEvent.Done, [], "c", ok: true, incremental: true).Cells));
     }
@@ -106,7 +109,7 @@ public class BoardFrames_Tests {
     [Fact]
     public void Frame_IncrementalReject_MarksTheFailedSquareRejected() {
         var frame = BoardFrames.Frame(Sudoku4, B(("r0c1", "2")), StepEvent.Reject, ["r0c2"], "c", incremental: true);
-        Assert.Equal("r0c2:Rejected", States(frame.Cells));
+        Assert.Equal("r0c1:Committed r0c2:Rejected", States(frame.Cells));
     }
 
     [Fact]
@@ -114,8 +117,9 @@ public class BoardFrames_Tests {
         var board = B(("r0c1", "Q"), ("r1c3", "Q"));
         Assert.Equal("r0c1:ElementHighlight r1c3:ElementHighlight", States(BoardFrames.Frame(Queens4, board, StepEvent.Try, [], "c").Cells));
         Assert.Equal("r0c1:ElementHighlight r1c3:ElementHighlight", States(BoardFrames.Frame(Queens4, board, StepEvent.Reject, [], "c").Cells));
-        // An Accept is not the end of the run: the board is plain until the Done confirms it (#839).
-        Assert.Empty(BoardFrames.Frame(Queens4, board, StepEvent.Accept, [], "c").Cells);
+        // An Accept the run goes on from is kept, not confirmed (Committed, #886); one that ends the run is the answer.
+        Assert.Equal("r0c1:Committed r1c3:Committed", States(BoardFrames.Frame(Queens4, board, StepEvent.Accept, [], "c").Cells));
+        Assert.Equal("r0c1:Solution r1c3:Solution", States(BoardFrames.Frame(Queens4, board, StepEvent.Accept, [], "c", endsRun: true).Cells));
         Assert.Equal("r0c1:Solution r1c3:Solution", States(BoardFrames.Frame(Queens4, board, StepEvent.Done, [], "c", ok: true).Cells));
         // A claimed answer that is wrong failed.
         Assert.Equal("r0c1:Rejected r1c3:Rejected", States(BoardFrames.Frame(Queens4, board, StepEvent.Done, [], "c", ok: false).Cells));
@@ -126,7 +130,7 @@ public class BoardFrames_Tests {
         var frame = BoardFrames.Frame(Queens4, B(("r2c0", "Q"), ("r0c1", "Q"), ("r1c3", "Q")), StepEvent.Try, ["r2c0"], "c", incremental: true);
         Assert.Equal(["r0c1 0 1 queen", "r1c3 1 3 queen", "r2c0 2 0 queen"], frame.Pieces.Select(p => $"{p.Id} {p.R} {p.C} {p.Kind}"));
         Assert.Empty(frame.Values);
-        Assert.Equal("r2c0:ElementHighlight", States(frame.Cells));
+        Assert.Equal("r0c1:Committed r1c3:Committed r2c0:ElementHighlight", States(frame.Cells));
         using var doc = JsonDocument.Parse(Json(frame));
         Assert.Equal(["id", "r", "c", "kind"], doc.RootElement.GetProperty("pieces")[0].EnumerateObject().Select(p => p.Name));
     }
@@ -136,7 +140,7 @@ public class BoardFrames_Tests {
         // Row 1: columns 0 and 1 are attacked by the queen at (0,0) and (0,0); the queen goes to column 2.
         var board = B([new BoardConflict("r1c0", "r0c0"), new BoardConflict("r1c1", "r0c0")], ("r0c0", "Q"), ("r1c2", "Q"));
         var frame = BoardFrames.Frame(Queens4, board, StepEvent.Try, ["r1c2"], "c", incremental: true);
-        Assert.Equal("r1c0:Rejected r1c1:Rejected r1c2:ElementHighlight", States(frame.Cells));
+        Assert.Equal("r0c0:Committed r1c0:Rejected r1c1:Rejected r1c2:ElementHighlight", States(frame.Cells));
         Assert.Equal(["r1c0>r0c0 Rejected", "r1c1>r0c0 Rejected"], frame.Links.Select(l => $"{l.From}>{l.To} {l.State}"));
         using var doc = JsonDocument.Parse(Json(frame));
         Assert.Equal(["from", "to", "state"], doc.RootElement.GetProperty("links")[0].EnumerateObject().Select(p => p.Name));
@@ -159,14 +163,14 @@ public class BoardFrames_Tests {
         var frame = BoardFrames.Frame(Queens4, board, StepEvent.Try, ["r0c7", "nope"], "c", incremental: true);
         Assert.Equal(["r0c0"], frame.Pieces.Select(p => p.Id));
         Assert.Empty(frame.Links);
-        Assert.Empty(frame.Cells);
+        Assert.Equal("r0c0:Committed", States(frame.Cells));
     }
 
     [Fact]
     public void Precedence_RejectedBeatsHighlightBeatsSolution() {
         // The focus is also placed and also a conflict (Rejected): Rejected shows.
         var frame = BoardFrames.Frame(Queens4, B([new BoardConflict("r1c1", "r0c0")], ("r0c0", "Q"), ("r1c1", "Q")), StepEvent.Try, ["r1c1"], "c", incremental: true);
-        Assert.Equal("r1c1:Rejected", States(frame.Cells));
+        Assert.Equal("r0c0:Committed r1c1:Rejected", States(frame.Cells));
         // Focus on a placed square in a Try: highlighted.
         Assert.Equal("r0c0:ElementHighlight", States(BoardFrames.Frame(Queens4, B(("r0c0", "Q")), StepEvent.Try, ["r0c0"], "c", incremental: true).Cells));
         // In the answer, a square named by the focus is highlighted over Solution, and a conflict is Rejected over both.
