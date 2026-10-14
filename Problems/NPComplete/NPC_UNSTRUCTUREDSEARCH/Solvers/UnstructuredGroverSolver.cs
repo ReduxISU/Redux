@@ -37,8 +37,8 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
 
     // Steps: a Try per column of Grover's circuit for the table (the textbook circuit, drawn and simulated here; the server
     // builds its own from the SAT expression and is never asked for these), then an Accept with the item the server
-    // measured (a Reject when it gave no answer), and Done with the verdict. With no answer, the answer is the server's
-    // error, as the other quantum solvers give it (#838).
+    // measured when it is marked (a Reject when it is not, #847, or when the server gave no answer), and Done with the
+    // verdict. With no answer, the answer is the server's error, as the other quantum solvers give it (#838).
     public string Solve(UNSTRUCTUREDSEARCH problem, StepRecorder<QuantumProgress> rec) {
         // We have to convert the function values into a SAT problem
         int nbits = PowerOfTwo(problem.funcValues.Count);
@@ -78,9 +78,13 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
         if (spec != null) {
             int all = spec.Columns.Count, index = Convert.ToInt32(solution, 2);
             long? outcome = index < problem.funcValues.Count ? index : null;
-            rec.Accept(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
-                () => $"The quantum server measured item {answer} ({QuantumCircuits.Bits(index, nbits)}){QuantumSteps.Shots(counts, measured)}.",
-                all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : []);
+            string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
+            string Measured() => $"The quantum server measured item {answer} ({QuantumCircuits.Bits(index, nbits)}){QuantumSteps.Shots(counts, measured)}";
+            // Green only for a marked item: a missed measurement is a Reject, not an answer (#847).
+            if (index < problem.funcValues.Count && problem.funcValues[index] != 0)
+                rec.Accept(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer), () => $"{Measured()}.", read);
+            else
+                rec.Reject(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer), () => $"{Measured()}, which is not marked.", read);
             QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
                 ok => ok ? $"Item {answer} is marked, found with {QuantumCircuits.GroverRounds(problem.funcValues.Count, problem.funcValues.Count(v => v != 0))} rounds of Grover's algorithm."
                     : problem.funcValues.All(v => v == 0) ? $"Nothing is marked, so item {answer} is not either: the answer should be no solution."

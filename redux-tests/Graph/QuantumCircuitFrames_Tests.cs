@@ -167,6 +167,26 @@ public class QuantumCircuitFrames_Tests {
         Assert.True(d.Probabilities[marked] >= atLeast, $"{d.Probabilities[marked]}");
     }
 
+    // #848: Unstructured Search numbers an item's bits with x0 the least significant, so the answer is read high bit first
+    // (x_{n-1} ... x0) and an outcome is the item number; qubit k holds x_k.
+    [Theory]
+    [InlineData("(0,1,0,0)", 1, new[] { 1, 0 })]
+    [InlineData("(0,0,1,0)", 2, new[] { 1, 0 })]
+    [InlineData("(0,0,0,0,0,0,1,0)", 6, new[] { 2, 1, 0 })]
+    [InlineData("(0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0)", 11, new[] { 3, 2, 1, 0 })]
+    public void Grover_ReadsHighBitFirst_SoAnOutcomeIsTheItem_AndQubitKHoldsBitK(string table, int marked, int[] measure) {
+        var spec = QuantumCircuits.UnstructuredSearch(Table(table));
+        Assert.Equal(measure, spec.Measure);
+        var bars = QuantumCircuitFrames.Bars(Final(spec), spec.Measure.Length);
+        Assert.Equal(marked, bars.OrderByDescending(b => b.Probability).First().Outcome);
+        var state = new QuantumState(spec.Wires.Count);
+        foreach (var column in spec.Columns) column.Apply?.Invoke(state);
+        for (int k = 0; k < spec.Wires.Count; k++) {
+            var x = state.Distribution([k]);
+            Assert.Equal((marked >> k) & 1, (int)x.MostLikely);
+        }
+    }
+
     [Fact]
     public void Grover_NothingMarked_RunsNoRounds_AndStaysEven() {
         var spec = QuantumCircuits.UnstructuredSearch(Table("(0,0,0,0)"));
