@@ -49,8 +49,8 @@ public class FactorGraphFrames_Tests {
 
     [Fact]
     public void AnAcceptedAssignment_TrueLiteralsSolution_FalseOnesFalse_UnassignedBackground() {
-        // x1 = True, x2 = True; x3 unassigned.
-        var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x2", true)), StepEvent.Accept, [], "...");
+        // x1 = True, x2 = True; x3 unassigned. The Accept ends the run, so the assignment is the confirmed answer.
+        var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x2", true)), StepEvent.Accept, [], "...", endsRun: true);
         Assert.Equal(PictureState.Solution, Node(f, "v:x1"));
         Assert.Equal(PictureState.Solution, Node(f, "v:x2"));
         Assert.Null(Node(f, "v:x3"));
@@ -58,6 +58,10 @@ public class FactorGraphFrames_Tests {
         Assert.Equal(PictureState.False, Edge(f, "c0-1"));        // !x2
         Assert.Equal(PictureState.False, Edge(f, "c1-0"));        // !x1
         Assert.Null(Edge(f, "c1-1"));                             // x3, unassigned
+        // An Accept the run goes on from keeps the assignment without confirming it (#886).
+        var kept = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x2", true)), StepEvent.Accept, [], "...");
+        Assert.Equal(PictureState.Committed, Node(kept, "v:x1"));
+        Assert.Equal(PictureState.Committed, Edge(kept, "c0-0"));
         Assert.Equal(PictureState.Covered, Node(f, "c0"));
         Assert.Null(Node(f, "c1"));                               // x3 may still save it
         Assert.Equal(PictureState.Covered, Node(f, "c2"));
@@ -153,7 +157,7 @@ public class FactorGraphFrames_Tests {
         var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x3", false)), StepEvent.Reject, ["v:x3", "c1"], "C2 has no true literal left.", incremental: true);
         Assert.Equal(PictureState.Rejected, Node(f, "c1"));
         Assert.Equal(PictureState.ElementHighlight, Node(f, "v:x3"));   // the tried variable, whatever its value
-        Assert.Equal(PictureState.Solution, Node(f, "v:x1"));           // decided earlier: kept
+        Assert.Equal(PictureState.Committed, Node(f, "v:x1"));          // decided earlier: kept
     }
 
     [Fact]
