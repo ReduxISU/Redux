@@ -208,7 +208,7 @@ public class GroupedGraphFrames_Tests {
         var f = GroupedGraphFrames.Frame(spec, new Assignment([new("a-b", "True"), new("a:b", "True")]), StepEvent.Accept,
             [GroupedGraphFrames.VariableId(@"a\b")], "x");
         Assert.Equal(new Dictionary<string, bool> { [@"v:a\-b"] = true, [@"v:a\:b"] = true }, f.Assignment);
-        Assert.Equal(PictureState.Solution, f.Nodes["c0-0"].State);   // a-b
+        Assert.Equal(PictureState.Committed, f.Nodes["c0-0"].State);   // a-b, kept but not confirmed (#886)
         Assert.Equal(PictureState.False, f.Nodes["c0-1"].State);      // !a:b
         Assert.Equal(PictureState.False, f.Nodes["c1-0"].State);      // !a-b
         Assert.Equal(PictureState.ElementHighlight, f.Nodes["c1-1"].State);   // a\b, in the focus by its escaped id
@@ -228,11 +228,11 @@ public class GroupedGraphFrames_Tests {
     }
 
     [Fact]
-    public void Frame_ATrueLiteralIsSolution_AndItsClauseIsCovered_AFalseLiteralIsFalse_AnUnassignedOneIsBackground() {
+    public void Frame_ATrueLiteralIsCommitted_AndItsClauseIsCovered_AFalseLiteralIsFalse_AnUnassignedOneIsBackground() {
         // x1 = True, kept (Accept): x1 in c2 is true; !x1 in c0 and c1 are false; x2, x3, x4 are unassigned.
         var f = Frame(Of(("x1", true)), StepEvent.Accept);
         Assert.Equal(["c0-0", "c1-0", "c2-0"], f.Nodes.Keys);
-        Assert.Equal(PictureState.Solution, Node(f, "c2-0"));
+        Assert.Equal(PictureState.Committed, Node(f, "c2-0"));
         Assert.Equal(PictureState.False, Node(f, "c0-0"));
         Assert.Equal(PictureState.False, Node(f, "c1-0"));
         // A literal of an unassigned variable is Background (absent), whatever the event: nothing is decided about it.
@@ -263,11 +263,13 @@ public class GroupedGraphFrames_Tests {
     [InlineData("Accept")]
     [InlineData("Backtrack")]
     [InlineData("Done")]
-    public void Frame_AnAssignmentTheSolverKeeps_DrawsItsTrueLiteralsAsSolution(string eventName) {
+    public void Frame_AnAssignmentTheSolverKeeps_DrawsItsTrueLiteralsAsCommitted_OrSolutionOnceConfirmed(string eventName) {
+        // Kept (Accept, Backtrack) is Committed; the Done is the confirmed answer (#886).
         var ev = Enum.Parse<StepEvent>(eventName);
         var f = Frame(Of(("x1", false), ("x2", true), ("x3", false), ("x4", false)), ev);
-        Assert.Equal(PictureState.Solution, Node(f, "c0-0"));
-        Assert.Equal(PictureState.Solution, Node(f, "c0-1"));
+        var kept = ev == StepEvent.Done ? PictureState.Solution : PictureState.Committed;
+        Assert.Equal(kept, Node(f, "c0-0"));
+        Assert.Equal(kept, Node(f, "c0-1"));
         Assert.Equal(PictureState.False, Node(f, "c0-2"));
     }
 
@@ -330,11 +332,11 @@ public class GroupedGraphFrames_Tests {
     }
 
     [Fact]
-    public void Frame_Incremental_TheDecidedVariablesStaySolution_AndOnlyTheTriedVariableIsMarked() {
-        // A backtracking search has decided x2 = True and tries x1 = True: x2's true literals are the answer so far.
+    public void Frame_Incremental_TheDecidedVariablesStayCommitted_AndOnlyTheTriedVariableIsMarked() {
+        // A backtracking search has decided x2 = True and tries x1 = True: x2's true literals are kept so far (Committed).
         foreach (var ev in new[] { StepEvent.Try, StepEvent.Reject }) {
             var f = GroupedGraphFrames.Frame(Spec, Of(("x2", true), ("x1", true)), ev, ["v:x1"], "x", incremental: true);
-            Assert.Equal(PictureState.Solution, Node(f, "c0-1"));            // x2 in c0
+            Assert.Equal(PictureState.Committed, Node(f, "c0-1"));           // x2 in c0
             Assert.Equal(PictureState.ElementHighlight, Node(f, "c2-0"));    // x1 in c2, the value being tried
             Assert.Equal(PictureState.False, Node(f, "c0-0"));               // !x1 in c0: false, and stays False
         }
@@ -342,7 +344,7 @@ public class GroupedGraphFrames_Tests {
         var rejected = GroupedGraphFrames.Frame(Spec, Of(("x2", true), ("x4", false), ("x1", true)), StepEvent.Reject, ["v:x1", "c1"], "x", incremental: true);
         Assert.Equal(PictureState.Rejected, Group(rejected, "c1"));
         Assert.All(new[] { "c1-0", "c1-1", "c1-2" }, id => Assert.Equal(PictureState.Rejected, Node(rejected, id)));
-        Assert.Equal(PictureState.Solution, Node(rejected, "c0-1"));
+        Assert.Equal(PictureState.Committed, Node(rejected, "c0-1"));
     }
 
     [Fact]
@@ -350,7 +352,7 @@ public class GroupedGraphFrames_Tests {
         var steps = new List<object> { new SolverStep<Assignment>(Of(("x2", true), ("x1", true)), StepEvent.Try, ["v:x1"], "x") };
         GroupedGraphFrame First(bool incremental) => (GroupedGraphFrame)GroupedGraphFrames.Build(Spec,
             new SolveRun("No Solution", steps, typeof(Assignment)) { Incremental = incremental }, GroupedGraphFrames.ParseAssignment, _ => false).Frames[0];
-        Assert.Equal(PictureState.Solution, Node(First(true), "c0-1"));
+        Assert.Equal(PictureState.Committed, Node(First(true), "c0-1"));
         Assert.Equal(PictureState.ElementHighlight, Node(First(false), "c0-1"));
     }
 
@@ -418,7 +420,7 @@ public class GroupedGraphFrames_Tests {
     [Fact]
     public void PictureState_FalseIsAddedAtTheEnd_AndSerializesAsItsName() {
         // Appended, so the numbers of the existing names do not move.
-        Assert.Equal(["Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "False"], Enum.GetNames<PictureState>());
+        Assert.Equal(["Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "False", "Committed"], Enum.GetNames<PictureState>());
         Assert.Equal("\"False\"", JsonSerializer.Serialize(PictureState.False));
         Assert.Equal("{\"state\":\"False\"}", JsonSerializer.Serialize(new StateRef(PictureState.False)));
     }
