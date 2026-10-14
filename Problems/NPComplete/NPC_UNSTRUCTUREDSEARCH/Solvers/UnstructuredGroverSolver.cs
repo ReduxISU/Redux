@@ -3,6 +3,7 @@ using API.Interfaces.Quantum;
 using API.Interfaces.Steps;
 using API.Tools;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
 
@@ -73,10 +74,10 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
             }
             return error;
         }
-        var solution = ReverseString(measured);
-        string answer = Convert.ToInt32(solution, 2).ToString();
+        int index = Item(satproblem, measured);
+        string answer = index.ToString();
         if (spec != null) {
-            int all = spec.Columns.Count, index = Convert.ToInt32(solution, 2);
+            int all = spec.Columns.Count;
             long? outcome = index < problem.funcValues.Count ? index : null;
             string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
             string Measured() => $"The quantum server measured item {answer} ({QuantumCircuits.Bits(index, nbits)}){QuantumSteps.Shots(counts, measured)}";
@@ -93,10 +94,26 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
         return answer;
     }
 
-    public static string ReverseString(string s) {
-        var a = s.ToArray();
-        Array.Reverse(a);
-        return new string(a);
+    /// <summary>
+    /// The variables of <paramref name="formula"/> in the quantum service's order: every distinct name, sorted by code point
+    /// (sat_quantum.py's <c>sorted(set(re.findall(r"[A-Za-z0-9_]+", expr)))</c>). From 11 variables up this is not x0, x1,
+    /// ...: x10 sorts before x2 (#883). The same as SATGroverSolver's on the #832 fix.
+    /// </summary>
+    public static List<string> ServiceVariableOrder(string formula) =>
+        Regex.Matches(formula, "[A-Za-z0-9_]+").Select(m => m.Value).Distinct().OrderBy(v => v, StringComparer.Ordinal).ToList();
+
+    /// <summary>
+    /// The item the service's <paramref name="bits"/> name: character i is variable i of
+    /// <see cref="ServiceVariableOrder"/>, and variable xb is bit b of the item. With no variable named (nothing is marked, so
+    /// the formula is empty), character i is bit i.
+    /// </summary>
+    public static int Item(string formula, string bits) {
+        List<string> order = ServiceVariableOrder(formula);
+        int item = 0;
+        for (int i = 0; i < bits.Length; i++)
+            if (bits[i] == '1')
+                item |= 1 << (i < order.Count ? int.Parse(order[i][1..]) : i);
+        return item;
     }
 
     public class JSON_Sat_Problem {
@@ -109,7 +126,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
     // Text inside the error's JSON string.
     private static string Escape(string text) => JsonEncodedText.Encode(text, System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping).ToString();
 
-    // The bits the server measured, x0 first; or null, with the error to answer instead and whether the server was reached
+    // The bits the server measured, in its variable order (see Item); or null, with the error to answer instead and whether the server was reached
     // at all (it answered, but with no bit string).
     private (string? Measured, string Error, bool Reached) SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, List<KeyValuePair<string, long>> counts) {
         string response;
