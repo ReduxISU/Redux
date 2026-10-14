@@ -109,14 +109,14 @@ public class GraphTourFrames_Tests {
     // ---- frames ----
 
     [Fact]
-    public void APathInProgress_HasItsEdgesSolution_ItsNodesCovered_AndTheOrderAnnotation() {
+    public void APathInProgress_HasItsEdgesCommitted_ItsNodesCovered_AndTheOrderAnnotation() {
         var f = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3"), StepEvent.Accept, ["3", "2-3"], "x");
         Assert.Equal(["1", "2", "3"], f.Order);
         Assert.Equal(PictureState.Covered, State(f, "1"));
         Assert.Equal(PictureState.Covered, State(f, "2"));
         Assert.Equal(PictureState.ElementHighlight, State(f, "3"));   // the focus shows over the ordinary state
         Assert.Null(State(f, "4"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "1-2"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "1-2"));   // kept so far, not confirmed (#886)
         Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "2-3"));
         Assert.Equal(["1-2", "2-3"], f.Edges.Keys.Order());
         Assert.Empty(f.Phantoms);
@@ -125,12 +125,13 @@ public class GraphTourFrames_Tests {
 
     [Fact]
     public void AClosedTour_ReadsEdgeOrderEitherWay_AndTheClosingEdgeIsSolution() {
-        var f = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3", "4", "1"), StepEvent.Accept, [], "x");
+        // The Accept that ends the run: the tour is the confirmed answer, so its hops and nodes are Solution.
+        var f = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3", "4", "1"), StepEvent.Accept, [], "x", endsRun: true);
         Assert.Equal(["1", "2", "3", "4", "1"], f.Order);   // a closed tour repeats its start, like the certificate
         Assert.Equal(["1-2", "1-4", "2-3", "3-4"], f.Edges.Keys.Order());
         Assert.All(f.Edges.Values, s => Assert.Equal(PictureState.Solution, s.State));
         Assert.Equal(4, f.Nodes.Count);
-        Assert.All(f.Nodes.Values, s => Assert.Equal(PictureState.Covered, s.State));
+        Assert.All(f.Nodes.Values, s => Assert.Equal(PictureState.Solution, s.State));
         Assert.Empty(f.Phantoms);
     }
 
@@ -337,7 +338,7 @@ public class GraphTourFrames_Tests {
         Assert.Equal(PictureState.ElementHighlight, EdgeState(f, "1-2"));
         Assert.Equal(PictureState.ElementHighlight, State(f, "3"));
         var accept = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3"), StepEvent.Accept, [], "x");
-        Assert.Equal(PictureState.Solution, EdgeState(accept, "1-2"));
+        Assert.Equal(PictureState.Committed, EdgeState(accept, "1-2"));
         Assert.Equal(PictureState.Covered, State(accept, "2"));
     }
 
@@ -347,7 +348,7 @@ public class GraphTourFrames_Tests {
     public void Incremental_Reject_KeepsThePathSoFar_AndRejectsOnlyTheNodeThatCannotFollow() {
         // A backtracking search holds 1 → 2 and finds that 4 cannot come next (there is no edge 2-4).
         var f = GraphTourFrames.Frame(Undirected(), Of("1", "2", "4"), StepEvent.Reject, ["4"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(f, "1-2"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "1-2"));
         Assert.Equal(PictureState.Covered, State(f, "1"));
         Assert.Equal(PictureState.Covered, State(f, "2"));
         Assert.Equal(PictureState.Rejected, State(f, "4"));
@@ -355,12 +356,12 @@ public class GraphTourFrames_Tests {
     }
 
     [Fact]
-    public void Incremental_ClosingReject_KeepsTheRouteSolution_AndRejectsOnlyTheClosingHop() {
+    public void Incremental_ClosingReject_KeepsTheRouteCommitted_AndRejectsOnlyTheClosingHop() {
         // A greedy route 1 → 2 → 3 → 4 closed back to 1 costs too much: the route stays, the closing hop 4-1 failed.
         var f = GraphTourFrames.Frame(Undirected(TourRule.TravelingSalesperson), Of("1", "2", "3", "4", "1"), StepEvent.Reject, ["4", "1", "1-4"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(f, "1-2"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "2-3"));
-        Assert.Equal(PictureState.Solution, EdgeState(f, "3-4"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "1-2"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "2-3"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "3-4"));
         Assert.Equal(PictureState.Rejected, EdgeState(f, "1-4"));
         Assert.Equal(PictureState.Covered, State(f, "2"));
         Assert.Equal(PictureState.Rejected, State(f, "4"));
@@ -369,7 +370,7 @@ public class GraphTourFrames_Tests {
     [Fact]
     public void Incremental_Try_HighlightsOnlyThePieceUnderTest() {
         var f = GraphTourFrames.Frame(Undirected(), Of("1", "2"), StepEvent.Try, ["2"], "x", incremental: true);
-        Assert.Equal(PictureState.Solution, EdgeState(f, "1-2"));
+        Assert.Equal(PictureState.Committed, EdgeState(f, "1-2"));
         Assert.Equal(PictureState.Covered, State(f, "1"));
         Assert.Equal(PictureState.ElementHighlight, State(f, "2"));
     }
@@ -379,7 +380,7 @@ public class GraphTourFrames_Tests {
         var steps = new List<object> { new SolverStep<Tour>(Of("1", "2", "4"), StepEvent.Reject, ["4"], "x") };
         GraphFrame First(bool incremental) => (GraphFrame)GraphTourFrames.Build(Undirected(),
             new SolveRun("{}", steps, typeof(Tour)) { Incremental = incremental }, _ => Of(), _ => false).Frames[0];
-        Assert.Equal(PictureState.Solution, EdgeState(First(true), "1-2"));
+        Assert.Equal(PictureState.Committed, EdgeState(First(true), "1-2"));
         Assert.Equal(PictureState.Covered, State(First(true), "1"));
         Assert.Equal(PictureState.ElementHighlight, EdgeState(First(false), "1-2"));
         Assert.Equal(PictureState.ElementHighlight, State(First(false), "1"));

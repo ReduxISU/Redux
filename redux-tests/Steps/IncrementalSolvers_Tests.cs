@@ -189,7 +189,7 @@ public class IncrementalSolvers_Tests {
             var order = step.Partial.Order;
             for (int i = 0; i + 1 < order.Length; i++) {
                 string id = GraphTourFrames.EdgeId(directed, order[i], order[i + 1]);
-                if (payloadEdges.Contains(id) && !step.Focus.Contains(id)) Assert.Equal(PictureState.Solution, frame.Edges[id].State);
+                if (payloadEdges.Contains(id) && !step.Focus.Contains(id)) Assert.Equal(PictureState.Committed, frame.Edges[id].State);
             }
             foreach (var node in order.Except(step.Focus)) Assert.Equal(PictureState.Covered, frame.Nodes[node].State);
             var mark = step.Event == StepEvent.Reject ? PictureState.Rejected : PictureState.ElementHighlight;
