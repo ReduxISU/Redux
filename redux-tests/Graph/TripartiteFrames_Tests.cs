@@ -85,21 +85,23 @@ public class TripartiteFrames_Tests {
     }
 
     [Fact]
-    public void Frame_IsSolutionOnlyInAnAcceptOrTheAnswer() {
-        Assert.Equal("T1:Solution T2:Blocked T3:Solution T4:Blocked", States(TripartiteFrames.Frame(Small, C("T1", "T3"), StepEvent.Accept, [], "c").Triples));
+    public void Frame_IsSolutionOnlyInTheAnswer_AndCommittedInAnAcceptTheRunGoesOnFrom() {
+        // An Accept is the answer only when it ends the run; otherwise its triples are kept, not confirmed (#886).
+        Assert.Equal("T1:Committed T2:Blocked T3:Committed T4:Blocked", States(TripartiteFrames.Frame(Small, C("T1", "T3"), StepEvent.Accept, [], "c").Triples));
+        Assert.Equal("T1:Solution T2:Blocked T3:Solution T4:Blocked", States(TripartiteFrames.Frame(Small, C("T1", "T3"), StepEvent.Accept, [], "c", endsRun: true).Triples));
         Assert.Equal("T1:Solution T2:Blocked T3:Solution T4:Blocked", States(TripartiteFrames.Frame(Small, C("T1", "T3"), StepEvent.Done, [], "c", ok: true).Triples));
         // A claimed answer that is wrong failed.
         Assert.Equal("T1:Rejected T2:Blocked T3:Rejected T4:Blocked", States(TripartiteFrames.Frame(Small, C("T1", "T3"), StepEvent.Done, [], "c", ok: false).Triples));
     }
 
     [Fact]
-    public void Frame_Incremental_KeepsTheCommittedTriplesSolution_AndMarksOnlyTheFocus() {
+    public void Frame_Incremental_KeepsTheCommittedTriplesCommitted_AndMarksOnlyTheFocus() {
         // T1 committed, T3 under test.
         var tried = TripartiteFrames.Frame(Small, C("T1", "T3"), StepEvent.Try, ["T3"], "c", incremental: true);
-        Assert.Equal("T1:Solution T2:Blocked T3:ElementHighlight T4:Blocked", States(tried.Triples));
+        Assert.Equal("T1:Committed T2:Blocked T3:ElementHighlight T4:Blocked", States(tried.Triples));
         // T2 shares a with the committed T1, so it is skipped: the focus failed.
         var skipped = TripartiteFrames.Frame(Small, C("T1"), StepEvent.Reject, ["T2"], "c", incremental: true);
-        Assert.Equal("T1:Solution T2:Rejected T4:Blocked", States(skipped.Triples));
+        Assert.Equal("T1:Committed T2:Rejected T4:Blocked", States(skipped.Triples));
         Assert.Equal("x1:Covered y1:Covered z1:Covered", States(skipped.Elements));
     }
 
@@ -122,11 +124,11 @@ public class TripartiteFrames_Tests {
     }
 
     [Fact]
-    public void Precedence_RejectedBeatsHighlightBeatsSolutionBeatsCoveredBeatsBlocked() {
+    public void Precedence_RejectedBeatsHighlightBeatsCommittedBeatsCoveredBeatsBlocked() {
         // The focus is a used element (Covered) and a ruled-out triple (Blocked): highlighted over both.
         var frame = TripartiteFrames.Frame(Small, C("T1"), StepEvent.Try, ["x1", "T2"], "c", incremental: true);
         Assert.Equal("x1:ElementHighlight y1:Covered z1:Covered", States(frame.Elements));
-        Assert.Equal("T1:Solution T2:ElementHighlight T4:Blocked", States(frame.Triples));
+        Assert.Equal("T1:Committed T2:ElementHighlight T4:Blocked", States(frame.Triples));
         // A repeated element in the focus stays Rejected.
         Assert.Equal("Rejected", TripartiteFrames.Frame(Small, C("T1", "T2"), StepEvent.Try, ["x1"], "c", incremental: true).Elements["x1"].State.ToString());
     }
