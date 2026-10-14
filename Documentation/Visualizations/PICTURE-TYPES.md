@@ -510,8 +510,8 @@ The instance you gave on the left, the instance the reduction builds on the righ
 
 ```
 target:   string                     // B's instance, in B's own format
-gadgets:  { kind, from: string[], to: string[], note? }[]
-          // kind ∈ element | group | edgeRule | palette | orGadget | bound
+gadgets:  { gadgetKind, sourceIds: string[], targetIds: string[], note? }[]
+          // gadgetKind ∈ element | group | edgeRule | palette | orGadget | bound
 build:    { addNodes, addEdges, skipped?, focus: { from, to }, caption }[]
 mapBack:  { fromB: string[], setsA: { id, value }[], caption }[]
 ```

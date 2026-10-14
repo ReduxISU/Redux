@@ -432,7 +432,7 @@ const TableView = (() => {
       const st = document.createElement("style"); st.id = "tb-style"; st.textContent = css; document.head.appendChild(st);
     }
     host.classList.add("tb-wrap");
-    let key, kind, I, run, frame = null;
+    let key, kind, I, run, frame = null, axes = {};
 
     function table(cols, rowsHtml) {
       return `<div class="tb-scroll"><table class="tb-table"><thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
@@ -447,16 +447,22 @@ const TableView = (() => {
       const defs = mk("defs", {}, svg);
       for (const k of ["hl", "sol"]) { const mm = mk("marker", { id: `tb-arr-${k}`, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto" }, defs); mk("path", { d: "M0,0 L10,5 L0,10 z", class: `tb-m-${k}` }, mm); }
       const cx = j => ox + j * C + C / 2, cy = i => oy + i * C + C / 2;
-      mk("text", { x: ox + ((n + 1) * C) / 2, y: 18, class: "tb-axis-name", "text-anchor": "middle" }, svg).textContent = "TARGET  y";
-      const side = mk("text", { x: 16, y: oy + ((m + 1) * C) / 2, class: "tb-axis-name", "text-anchor": "middle", transform: `rotate(-90 16 ${oy + ((m + 1) * C) / 2})` }, svg); side.textContent = "SOURCE  x";
-      const cur = f && !f.done ? f.cur : null;
+      // Viewer hook (local/viz-viewer): axis names given with the frames (the backend's rowAxis / columnAxis), else the mockup's.
+      // "source x" → "SOURCE  x": words in capitals, a trailing one-letter name kept as it is.
+      const axisText = t => { const w = String(t).trim().split(/\s+/), last = w.length > 1 && w[w.length - 1].length === 1 ? w.pop() : null; return w.join(" ").toUpperCase() + (last ? "  " + last : ""); };
+      mk("text", { x: ox + ((n + 1) * C) / 2, y: 18, class: "tb-axis-name", "text-anchor": "middle" }, svg).textContent = axisText(axes.col || "target y");
+      const side = mk("text", { x: 16, y: oy + ((m + 1) * C) / 2, class: "tb-axis-name", "text-anchor": "middle", transform: `rotate(-90 16 ${oy + ((m + 1) * C) / 2})` }, svg); side.textContent = axisText(axes.row || "source x");
+      // Viewer hook (local/viz-viewer): a backtrace step, f.back = { cur: [i, j], path: [[i, j], …] } — the cell being traced
+      // and the cells already on the path (in the frame's order). Drawn as a step: no forward arrows, no alignment yet.
+      const back = f && !f.done && f.back ? f.back : null;
+      const cur = f && !f.done ? (back ? back.cur : f.cur) : null;
       mk("text", { x: cx(0), y: oy - 22, class: "tb-axis eps" }, svg).textContent = "ε";
       [...y].forEach((ch, j) => mk("text", { x: cx(j + 1), y: oy - 22, class: "tb-axis" + (cur && cur[1] === j + 1 ? " hl" : "") }, svg).textContent = ch);
       mk("text", { x: ox - 24, y: cy(0), class: "tb-axis eps" }, svg).textContent = "ε";
       [...x].forEach((ch, i) => mk("text", { x: ox - 24, y: cy(i + 1), class: "tb-axis" + (cur && cur[0] === i + 1 ? " hl" : "") }, svg).textContent = ch);
-      const onPath = new Set(f && f.done ? f.path.map(([i, j]) => i + "," + j) : []);
+      const onPath = new Set(f && f.done ? f.path.map(([i, j]) => i + "," + j) : back ? back.path.map(([i, j]) => i + "," + j) : []);
       let src = new Set(), best = null;
-      if (cur) {
+      if (cur && !back) {
         const [i, j] = cur;
         if (f.op === "keep") { best = [i - 1, j - 1]; src.add((i - 1) + "," + (j - 1)); }
         else { src = new Set([(i - 1) + "," + (j - 1), (i - 1) + "," + j, i + "," + (j - 1)]); best = f.op === "sub" ? [i - 1, j - 1] : f.op === "del" ? [i - 1, j] : [i, j - 1]; }
@@ -471,14 +477,21 @@ const TableView = (() => {
         else if (src.has(i + "," + j)) cls += best && best[0] === i && best[1] === j ? " src best" : " src";
         const g = mk("g", { class: cls }, svg);
         mk("rect", { x: ox + j * C + 1, y: oy + i * C + 1, width: C - 2, height: C - 2, rx: 6 }, g);
-        mk("text", { x: cx(j), y: cy(i) }, g).textContent = run.dp[i][j];
+        // Viewer hook (local/viz-viewer): a frame may carry the table's values (the backend's), else the mockup's own DP.
+        mk("text", { x: cx(j), y: cy(i) }, g).textContent = (f && f.values ? (f.values[i] || [])[j] : run.dp && run.dp[i] ? run.dp[i][j] : "") ?? "";
       }
       const arrow = (a, b, cls, mark) => {
         const [i1, j1] = a, [i2, j2] = b, x1 = cx(j1), y1 = cy(i1), x2 = cx(j2), y2 = cy(i2);
         const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), sh = 15;
         mk("line", { x1: x1 + dx / L * sh, y1: y1 + dy / L * sh, x2: x2 - dx / L * (sh + 2), y2: y2 - dy / L * (sh + 2), class: "tb-arrow " + cls, "marker-end": `url(#tb-arr-${mark})` }, svg);
       };
-      if (cur) [...src].forEach(s => { const [i, j] = s.split(",").map(Number); arrow([i, j], cur, best[0] === i && best[1] === j ? "" : "alt", "hl"); });
+      if (cur && !back) [...src].forEach(s => { const [i, j] = s.split(",").map(Number); arrow([i, j], cur, best[0] === i && best[1] === j ? "" : "alt", "hl"); });
+      if (back) {
+        // The traced path so far, as the DP's own direction (earlier cell → later cell), and the step being taken now.
+        const p = back.path.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+        for (let k = 1; k < p.length; k++) arrow(p[k - 1], p[k], "path", "sol");
+        if (p.length) arrow(cur, p[0], "", "hl");
+      }
       if (f && f.done) {
         const box = document.createElement("div"); box.className = "tb-align";
         const line = (lab, cells, extra) => `<div class="tb-ln ${extra || ""}"><span class="tb-lab">${lab}</span>${cells.join("")}</div>`;
@@ -494,6 +507,10 @@ const TableView = (() => {
     }
 
     function drawIP(f) {
+      // Viewer hook (local/viz-viewer): f.values = the backend's table (row 0 = x, then one row per constraint: coefficients,
+      // Total, Bound, Holds). Draw exactly those columns and values: no "≤" column, and a Total / Holds the backend has
+      // not decided (null) stays blank / open instead of being derived here.
+      if (f && f.values) return drawIPValues(f);
       const x = f ? f.x : Array(I.n).fill(null);
       const rs = ipRowState(I, x);
       const cur = f && !f.done ? f.cur : undefined, trial = f && f.trial;
@@ -507,6 +524,19 @@ const TableView = (() => {
         return `<tr class="${rowCls}"><td class="mut">row ${r + 1}</td>${row.map((c, j) => `<td class="num ${c === 0 ? "zero" : x[j] === 1 ? "on" : ""}">${c}</td>`).join("")}<td class="num">${total}</td><td class="mut">≤</td><td class="num">${I.d[r]}</td><td>${verdict}</td></tr>`;
       }).join("");
       host.innerHTML = table(cols, xr + body) + `<div class="tb-note">Shaded coefficients belong to variables set to 1; they're what each row adds up. A range in Total is the smallest and largest it can still reach.</div>`;
+    }
+
+    function drawIPValues(f) {
+      const x = f.x, cur = !f.done ? f.cur : undefined;
+      const cols = ["", ...Array.from({ length: I.n }, (_, j) => `x<sub>${j + 1}</sub>`), "Total", "Bound", "Row holds?"];
+      const xr = `<tr><td class="mut">x =</td>${x.map((v, j) => `<td><span class="tb-x ${v === null ? "unset" : v ? "one" : "zero"}${cur === j ? " cur" : ""}">${v === null ? "?" : v}</span></td>`).join("")}<td></td><td></td><td></td></tr>`;
+      const body = I.C.map((row, r) => {
+        const vals = f.values[r + 1] || [], at = k => vals[I.n + k];
+        const holds = at(2), pillCls = holds === "yes" ? "yes" : holds === "no" ? "no" : "open";
+        return `<tr><td class="mut">row ${r + 1}</td>${row.map((c, j) => `<td class="num ${c === 0 ? "zero" : x[j] === 1 ? "on" : ""}">${c}</td>`).join("")}`
+          + `<td class="num">${at(0) == null ? "" : esc(at(0))}</td><td class="num">${at(1) == null ? "" : esc(at(1))}</td><td>${pill(holds == null ? "open" : holds, pillCls)}</td></tr>`;
+      }).join("");
+      host.innerHTML = table(cols, xr + body) + `<div class="tb-note">Shaded coefficients belong to variables set to 1; they're what each row adds up. A row's total and verdict appear once every x is set.</div>`;
     }
 
     function drawDFA(f) {
@@ -641,6 +671,10 @@ const TableView = (() => {
         frame = null; draw();
         return { frames: run.frames, ok: run.ok };
       },
+      // Viewer hook (local/viz-viewer): parse the instance and show frames supplied by the caller (in this module's own
+      // frame format) instead of running a mockup solver.
+      // opts.axes = {row, col}: axis names for the Edit Distance grid (default "source x" / "target y").
+      loadFrames(str, k, fr, opts = {}) { key = k; kind = PROBLEMS[k].kind; I = parse(str, k); axes = opts.axes || {}; run = { frames: fr, dp: null, rows: [], runs: [] }; frame = null; return { frames: fr, I }; },
       show(i) { frame = i === null ? null : run.frames[i]; draw(); return frame; },
       checks(i) { return checks(i === null ? null : run.frames[i]); },
       chosen(i) { return chosen(i === null ? null : run.frames[i]); },

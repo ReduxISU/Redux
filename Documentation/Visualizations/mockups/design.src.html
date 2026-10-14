@@ -1695,8 +1695,8 @@ frames:   { filled, cell?, splits?, treeShown?, caption }[]</pre>
         <p>Redux reductions already hand over the target instance and a gadget map. The view also needs the construction in order, and the answer mapped back from B to A.</p>
 <pre><span class="c">// What a reduction emits for one source instance</span>
 target:   string                       <span class="c">// B's instance, in B's own format</span>
-gadgets:  { kind, from: string[], to: string[], note? }[]
-          <span class="c">// kind ∈ element | group | edgeRule | palette | orGadget | bound</span>
+gadgets:  { gadgetKind, sourceIds: string[], targetIds: string[], note? }[]
+          <span class="c">// gadgetKind ∈ element | group | edgeRule | palette | orGadget | bound</span>
 build:    { addNodes: string[], addEdges: [string, string][],
             skipped?: [string, string][],      <span class="c">// pairs a rule leaves unjoined</span>
             focus: { from: string[], to: string[] }, caption }[]
@@ -1708,8 +1708,8 @@ mapBack:  { fromB: string[], setsA: { id, value }[], caption }[]</pre>
   <span class="k">"type"</span>: "Reduction",
   <span class="k">"from"</span>: { "problem": "SAT3", "payload": <span class="c">/* A's own picture */</span> },
   <span class="k">"to"</span>:   { "problem": "CLIQUE", "payload": <span class="c">/* B's own picture */</span> },
-  <span class="k">"gadgets"</span>: [{ "kind": "group", "from": ["c1"],
-                 "to": ["!x1_1", "x3_1", "x1_1"] }],
+  <span class="k">"gadgets"</span>: [{ "gadgetKind": "group", "sourceIds": ["c1"],
+                 "targetIds": ["!x1_1", "x3_1", "x1_1"] }],
   <span class="k">"frames"</span>: [{ "phase": "build", "nodes": 6, "edges": 0,
                 "focus": { "from": ["c1"], "to": ["!x1_1"] },
                 "caption": "Clause C2 becomes cluster 2 …" }]

@@ -20,18 +20,21 @@ const MiscView = (() => {
 .ms-pt.Solution .dot { fill: var(--av-sol); stroke: var(--av-sol); }
 .ms-pt.Covered .dot { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-pt.Rejected .dot { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; }
-.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g1); stroke: var(--av-g1s); }
+.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g2); stroke: var(--av-g2s); }
 .ms-pt.ring .dot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-pt.trace .dot, .ms-pt:focus-visible .dot { stroke: var(--av-hot); stroke-width: 3; }
 .ms-pt.faint { filter: grayscale(1); }
 .ms-hull { fill: none; stroke: var(--av-edge); stroke-width: 1.4; stroke-dasharray: 4 3; }
-.ms-hull.c0 { stroke: var(--av-g0s); fill: rgba(86,180,233,.13); stroke-dasharray: none; stroke-width: 1.8; }
-.ms-hull.c1 { stroke: var(--av-g1s); fill: rgba(230,159,0,.13); stroke-dasharray: none; stroke-width: 1.8; }
+/* The right hull is purple (g2), not orange (g1): orange is too close to the amber highlight of the chain, most of all in
+   dark mode (#850). Both hulls fade by mixing their colour into the surface, not by opacity. */
+.ms-hull.c0 { stroke: var(--av-g0s); fill: color-mix(in srgb, var(--av-g0) 13%, var(--av-surface)); stroke-dasharray: none; stroke-width: 1.8; }
+.ms-hull.c1 { stroke: var(--av-g2s); fill: color-mix(in srgb, var(--av-g2) 13%, var(--av-surface)); stroke-dasharray: none; stroke-width: 1.8; }
 .ms-hull.hot { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: none; fill: var(--av-hl-fill); fill-opacity: .5; }
 .ms-hull.sol { stroke: var(--av-sol); stroke-width: 2.6; stroke-dasharray: none; fill: var(--av-sol-fill); fill-opacity: .55; }
 .ms-chain { fill: none; stroke: var(--av-hl); stroke-width: 2.6; }
 .ms-chain.sol { stroke: var(--av-sol); }
 .ms-cand { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.ms-pop { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 5 4; fill: none; }
 .ms-tip rect { fill: var(--av-surface); stroke: var(--av-line); }
 .ms-tip text { font-size: 11.5px; fill: var(--av-ink); dominant-baseline: central; }
 .ms-ord circle { fill: var(--av-ink); } .ms-ord text { fill: var(--av-surface); font-size: 10px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
@@ -315,6 +318,18 @@ const MiscView = (() => {
             mk("line", { x1: E.X(E.P[f.cand[0]].x), y1: E.Y(E.P[f.cand[0]].y), x2: E.X(E.P[f.cand[1]].x), y2: E.Y(E.P[f.cand[1]].y), class: "ms-cand" }, E.gL);
             f.cand.forEach(i => set(i, "ring"));
           }
+          // Viewer hook (local/viz-viewer): a merge done as a chain walk over the left and right hulls (the backend's merge).
+          // f.walk = the chain built so far (point indices; the newest last, ringed); f.popped = the point just taken off it,
+          // drawn Rejected with a dashed red edge from the chain's end (the turn that failed).
+          if (f.walk && f.walk.length) {
+            mk("polyline", { points: poly(E, f.walk), class: "ms-chain" }, E.gL);
+            if (f.popped === undefined) set(f.walk[f.walk.length - 1], "ring");
+          }
+          if (f.popped !== undefined) {
+            const a = f.walk && f.walk.length ? f.walk[f.walk.length - 1] : null;
+            if (a !== null) mk("line", { x1: E.X(E.P[a].x), y1: E.Y(E.P[a].y), x2: E.X(E.P[f.popped].x), y2: E.Y(E.P[f.popped].y), class: "ms-pop" }, E.gL);
+            set(f.popped, "Rejected");
+          }
         } else if (f.chain) {
           if (f.lowerDone) { mk("polyline", { points: poly(E, f.lowerDone), class: "ms-chain sol" }, E.gL); f.lowerDone.forEach(i => set(i, "Solution")); }
           if (f.chain.length) mk("polyline", { points: poly(E, f.chain), class: "ms-chain" }, E.gL);
@@ -458,8 +473,18 @@ const MiscView = (() => {
       const widths = cols.map(c => Math.max(48, ...c.map(v => v.length * 7.6 + 22)));
       const ROW = 46, TROW = 22, top = 64;
       const rows = Math.max(...cols.map(c => c.length));
-      const H = Math.max(rows * ROW, D.M.length * TROW) + top + 22;
-      const listX = 560, W = 790;
+      // The triple list: each row wide enough for its id and its three names. A list much longer than the elements
+      // column (e.g. a reduction's 135 triples) wraps into columns under the picture instead of running far below it.
+      const idW = Math.max(30, ...D.M.map(t => String(t.id).length * 7.4 + 8));
+      const colW = idW + Math.max(0, ...D.M.map(t => `${t.x} · ${t.y} · ${t.z}`.length)) * 7.3 + 16;
+      const wrap = D.M.length > 30 && D.M.length * TROW > rows * ROW * 1.3;
+      let W = 790, listX = 560;
+      if (!wrap) W = Math.max(790, listX + colW + 4);
+      const nCols = wrap ? Math.max(1, Math.floor((W - 20) / colW)) : 1, perCol = Math.ceil(D.M.length / nCols);
+      const listTop = wrap ? top + rows * ROW + 46 : top;
+      if (wrap) listX = 20;
+      const rowW = wrap ? colW - 8 : Math.max(W - listX - 4, colW);
+      const H = wrap ? listTop + perCol * TROW + 22 : Math.max(rows * ROW, D.M.length * TROW) + top + 22;
       const cx = [80, 270, 460];
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const pos = new Map();
@@ -468,7 +493,7 @@ const MiscView = (() => {
         c.forEach((v, i) => pos.set(pre[k] + v, { x: cx[k], y: y0 + i * ROW, w: widths[k] }));
       });
       heads.forEach((h, k) => mk("text", { x: cx[k], y: 28, class: "ms-colhead", "text-anchor": "middle" }, svg).textContent = h);
-      mk("text", { x: listX, y: 28, class: "ms-colhead" }, svg).textContent = "TRIPLES · M";
+      mk("text", { x: listX, y: wrap ? listTop - 22 : 28, class: "ms-colhead" }, svg).textContent = "TRIPLES · M";
       const gT = mk("g", {}, svg), gN = mk("g", {}, svg), gR = mk("g", {}, svg);
       const m = D.M.length, lane = Math.min(3, 18 / Math.max(1, m));
       const tris = D.M.map((t, i) => {
@@ -476,10 +501,10 @@ const MiscView = (() => {
         const d = `M${a.x + a.w / 2},${a.y + o} L${b.x - b.w / 2},${b.y + o} M${b.x + b.w / 2},${b.y + o} L${c.x - c.w / 2},${c.y + o}`;
         const path = mk("path", { d, class: "ms-tri" }, gT);
         const g = mk("g", { class: "ms-trow", tabindex: "0", role: "button", "aria-label": tri(t) }, gR);
-        const y = top + 4 + i * TROW;
-        mk("rect", { x: listX - 6, y: y - 9, width: W - listX - 4, height: 18, rx: 5 }, g);
-        mk("text", { x: listX, y, class: "tid" }, g).textContent = t.id;
-        mk("text", { x: listX + 30, y }, g).textContent = `${t.x} · ${t.y} · ${t.z}`;
+        const col = Math.floor(i / perCol), lx = listX + col * colW, y = listTop + 4 + (i - col * perCol) * TROW;
+        mk("rect", { x: lx - 6, y: y - 9, width: rowW, height: 18, rx: 5 }, g);
+        mk("text", { x: lx, y, class: "tid" }, g).textContent = t.id;
+        mk("text", { x: lx + idW, y }, g).textContent = `${t.x} · ${t.y} · ${t.z}`;
         hook(g, "t:" + i, api);
         return { path, g };
       });
@@ -786,13 +811,14 @@ const MiscView = (() => {
       ] },
   };
 
-  function create({ svg }) {
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("ms-style")) {
       const st = document.createElement("style"); st.id = "ms-style"; st.textContent = css; document.head.appendChild(st);
     }
     svg.classList.add("ms-svg");
     let impl = null, model = null, frames = [], frame = null, hover = null, els = null;
-    const paint = () => { if (impl) impl.paint(els, model, frame, hover); };
+    // Viewer hook (local/viz-viewer): afterPaint(els, frame, hover) runs after every paint, so a caller can restyle with states it was given.
+    const paint = () => { if (impl) { impl.paint(els, model, frame, hover); if (afterPaint) afterPaint(els, frame, hover); } };
     const api = { set: h => { hover = h; paint(); }, get: () => hover };
     return {
       load(str, key, solver) {
@@ -806,6 +832,9 @@ const MiscView = (() => {
         paint();
         return { frames, ok: frames[frames.length - 1].ok };
       },
+      // Viewer hook (local/viz-viewer): draw a model built elsewhere (the shape IMPL[key].parse returns, plus what solve adds)
+      // with frames supplied by the caller instead of running a mockup solver.
+      loadModel(key, m, fr) { impl = IMPL[key]; model = m; frames = fr; frame = null; hover = null; els = impl.draw(svg, model, api); paint(); return { frames, els }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return impl.checks(model, i === null ? null : frames[i]); },
       chosen(i) { return impl.chosen(model, i === null ? null : frames[i]); },

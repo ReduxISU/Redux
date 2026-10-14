@@ -296,18 +296,20 @@ const AutomatonView = (() => {
           if (active.has(s)) st = f.accepted ? (A.accept.has(s) ? "Solution" : "Background") : "Rejected";
           else if (!f.visited.has(s)) st = "Untraveled";
         } else if (f && active.has(s)) st = "Active";
+        if (f && f.ev) st = f.ev.nodes.get(s) || "Background"; // Viewer hook (local/viz-viewer): states evaluated elsewhere
         let cls = "au-node " + st;
         if (hover) cls += s === hover ? " trace" : targets.has(s) ? "" : " faint";
         nodeEls[s].setAttribute("class", cls);
       });
       if (A.garbage) {
         let cls = "au-garbage";
-        if (active.has(A.garbage)) cls += done ? " Rejected" : " Active";
+        if (f && f.ev) { const gs = f.ev.nodes.get(A.garbage); if (gs) cls += " " + gs; } // Viewer hook (local/viz-viewer)
+        else if (active.has(A.garbage)) cls += done ? " Rejected" : " Active";
         if (hover) cls += " faint";
         nodeEls[A.garbage].setAttribute("class", cls);
       }
       for (const g of groups.values()) {
-        let state = taken.has(g.key) ? "hot" : "";
+        let state = f && f.ev ? f.ev.edges.get(g.key) || "" : taken.has(g.key) ? "hot" : ""; // Viewer hook (local/viz-viewer)
         if (hover) state = g.from === hover ? "trace" : "faint";
         g.path.setAttribute("class", "au-edge" + (g.syms.every(x => x === "ε") ? " eps" : "") + (state ? " " + state : ""));
         g.path.setAttribute("marker-end", `url(#au-arrow-${state === "hot" ? "hot" : state === "trace" ? "trace" : "def"})`);
@@ -339,6 +341,11 @@ const AutomatonView = (() => {
         return { frames: sim.frames, accepted: sim.accepted, states: A.states, accept: A.accept, start: A.start, garbage: A.garbage,
           paths: paths.map(p => ({ label: p.label, accepted: p.accepted })), pathLimitHit: paths.length >= PATH_LIMIT };
       },
+      // Viewer hook (local/viz-viewer): draw an automaton built elsewhere (the shape parse() returns) with frames supplied by
+      // the caller instead of simulating it. Frames may carry `ev` ({nodes: Map state → class, edges: Map from+SEP+to → class}).
+      // pathRuns (NFA): [{label, accepted, frames}] in the same frame shape, one per path, for usePath (the one-path picker).
+      loadModel(model, fr, pathRuns) { A = model; sim = { frames: fr, accepted: false }; cur = fr; paths = pathRuns || []; frame = null; hover = null; draw(); paint(); return { frames: fr, paths: paths.map(p => ({ label: p.label, accepted: p.accepted })) }; },
+      SEP,
       // null = all branches at once; otherwise follow paths[i] alone.
       usePath(i) {
         const p = i === null ? null : paths[i];

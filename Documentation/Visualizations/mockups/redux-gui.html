@@ -1343,18 +1343,20 @@ const AutomatonView = (() => {
           if (active.has(s)) st = f.accepted ? (A.accept.has(s) ? "Solution" : "Background") : "Rejected";
           else if (!f.visited.has(s)) st = "Untraveled";
         } else if (f && active.has(s)) st = "Active";
+        if (f && f.ev) st = f.ev.nodes.get(s) || "Background"; // Viewer hook (local/viz-viewer): states evaluated elsewhere
         let cls = "au-node " + st;
         if (hover) cls += s === hover ? " trace" : targets.has(s) ? "" : " faint";
         nodeEls[s].setAttribute("class", cls);
       });
       if (A.garbage) {
         let cls = "au-garbage";
-        if (active.has(A.garbage)) cls += done ? " Rejected" : " Active";
+        if (f && f.ev) { const gs = f.ev.nodes.get(A.garbage); if (gs) cls += " " + gs; } // Viewer hook (local/viz-viewer)
+        else if (active.has(A.garbage)) cls += done ? " Rejected" : " Active";
         if (hover) cls += " faint";
         nodeEls[A.garbage].setAttribute("class", cls);
       }
       for (const g of groups.values()) {
-        let state = taken.has(g.key) ? "hot" : "";
+        let state = f && f.ev ? f.ev.edges.get(g.key) || "" : taken.has(g.key) ? "hot" : ""; // Viewer hook (local/viz-viewer)
         if (hover) state = g.from === hover ? "trace" : "faint";
         g.path.setAttribute("class", "au-edge" + (g.syms.every(x => x === "ε") ? " eps" : "") + (state ? " " + state : ""));
         g.path.setAttribute("marker-end", `url(#au-arrow-${state === "hot" ? "hot" : state === "trace" ? "trace" : "def"})`);
@@ -1386,6 +1388,11 @@ const AutomatonView = (() => {
         return { frames: sim.frames, accepted: sim.accepted, states: A.states, accept: A.accept, start: A.start, garbage: A.garbage,
           paths: paths.map(p => ({ label: p.label, accepted: p.accepted })), pathLimitHit: paths.length >= PATH_LIMIT };
       },
+      // Viewer hook (local/viz-viewer): draw an automaton built elsewhere (the shape parse() returns) with frames supplied by
+      // the caller instead of simulating it. Frames may carry `ev` ({nodes: Map state → class, edges: Map from+SEP+to → class}).
+      // pathRuns (NFA): [{label, accepted, frames}] in the same frame shape, one per path, for usePath (the one-path picker).
+      loadModel(model, fr, pathRuns) { A = model; sim = { frames: fr, accepted: false }; cur = fr; paths = pathRuns || []; frame = null; hover = null; draw(); paint(); return { frames: fr, paths: paths.map(p => ({ label: p.label, accepted: p.accepted })) }; },
+      SEP,
       // null = all branches at once; otherwise follow paths[i] alone.
       usePath(i) {
         const p = i === null ? null : paths[i];
@@ -1835,7 +1842,7 @@ const TableView = (() => {
       const st = document.createElement("style"); st.id = "tb-style"; st.textContent = css; document.head.appendChild(st);
     }
     host.classList.add("tb-wrap");
-    let key, kind, I, run, frame = null;
+    let key, kind, I, run, frame = null, axes = {};
 
     function table(cols, rowsHtml) {
       return `<div class="tb-scroll"><table class="tb-table"><thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
@@ -1850,16 +1857,22 @@ const TableView = (() => {
       const defs = mk("defs", {}, svg);
       for (const k of ["hl", "sol"]) { const mm = mk("marker", { id: `tb-arr-${k}`, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto" }, defs); mk("path", { d: "M0,0 L10,5 L0,10 z", class: `tb-m-${k}` }, mm); }
       const cx = j => ox + j * C + C / 2, cy = i => oy + i * C + C / 2;
-      mk("text", { x: ox + ((n + 1) * C) / 2, y: 18, class: "tb-axis-name", "text-anchor": "middle" }, svg).textContent = "TARGET  y";
-      const side = mk("text", { x: 16, y: oy + ((m + 1) * C) / 2, class: "tb-axis-name", "text-anchor": "middle", transform: `rotate(-90 16 ${oy + ((m + 1) * C) / 2})` }, svg); side.textContent = "SOURCE  x";
-      const cur = f && !f.done ? f.cur : null;
+      // Viewer hook (local/viz-viewer): axis names given with the frames (the backend's rowAxis / columnAxis), else the mockup's.
+      // "source x" → "SOURCE  x": words in capitals, a trailing one-letter name kept as it is.
+      const axisText = t => { const w = String(t).trim().split(/\s+/), last = w.length > 1 && w[w.length - 1].length === 1 ? w.pop() : null; return w.join(" ").toUpperCase() + (last ? "  " + last : ""); };
+      mk("text", { x: ox + ((n + 1) * C) / 2, y: 18, class: "tb-axis-name", "text-anchor": "middle" }, svg).textContent = axisText(axes.col || "target y");
+      const side = mk("text", { x: 16, y: oy + ((m + 1) * C) / 2, class: "tb-axis-name", "text-anchor": "middle", transform: `rotate(-90 16 ${oy + ((m + 1) * C) / 2})` }, svg); side.textContent = axisText(axes.row || "source x");
+      // Viewer hook (local/viz-viewer): a backtrace step, f.back = { cur: [i, j], path: [[i, j], …] } — the cell being traced
+      // and the cells already on the path (in the frame's order). Drawn as a step: no forward arrows, no alignment yet.
+      const back = f && !f.done && f.back ? f.back : null;
+      const cur = f && !f.done ? (back ? back.cur : f.cur) : null;
       mk("text", { x: cx(0), y: oy - 22, class: "tb-axis eps" }, svg).textContent = "ε";
       [...y].forEach((ch, j) => mk("text", { x: cx(j + 1), y: oy - 22, class: "tb-axis" + (cur && cur[1] === j + 1 ? " hl" : "") }, svg).textContent = ch);
       mk("text", { x: ox - 24, y: cy(0), class: "tb-axis eps" }, svg).textContent = "ε";
       [...x].forEach((ch, i) => mk("text", { x: ox - 24, y: cy(i + 1), class: "tb-axis" + (cur && cur[0] === i + 1 ? " hl" : "") }, svg).textContent = ch);
-      const onPath = new Set(f && f.done ? f.path.map(([i, j]) => i + "," + j) : []);
+      const onPath = new Set(f && f.done ? f.path.map(([i, j]) => i + "," + j) : back ? back.path.map(([i, j]) => i + "," + j) : []);
       let src = new Set(), best = null;
-      if (cur) {
+      if (cur && !back) {
         const [i, j] = cur;
         if (f.op === "keep") { best = [i - 1, j - 1]; src.add((i - 1) + "," + (j - 1)); }
         else { src = new Set([(i - 1) + "," + (j - 1), (i - 1) + "," + j, i + "," + (j - 1)]); best = f.op === "sub" ? [i - 1, j - 1] : f.op === "del" ? [i - 1, j] : [i, j - 1]; }
@@ -1874,14 +1887,21 @@ const TableView = (() => {
         else if (src.has(i + "," + j)) cls += best && best[0] === i && best[1] === j ? " src best" : " src";
         const g = mk("g", { class: cls }, svg);
         mk("rect", { x: ox + j * C + 1, y: oy + i * C + 1, width: C - 2, height: C - 2, rx: 6 }, g);
-        mk("text", { x: cx(j), y: cy(i) }, g).textContent = run.dp[i][j];
+        // Viewer hook (local/viz-viewer): a frame may carry the table's values (the backend's), else the mockup's own DP.
+        mk("text", { x: cx(j), y: cy(i) }, g).textContent = (f && f.values ? (f.values[i] || [])[j] : run.dp && run.dp[i] ? run.dp[i][j] : "") ?? "";
       }
       const arrow = (a, b, cls, mark) => {
         const [i1, j1] = a, [i2, j2] = b, x1 = cx(j1), y1 = cy(i1), x2 = cx(j2), y2 = cy(i2);
         const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), sh = 15;
         mk("line", { x1: x1 + dx / L * sh, y1: y1 + dy / L * sh, x2: x2 - dx / L * (sh + 2), y2: y2 - dy / L * (sh + 2), class: "tb-arrow " + cls, "marker-end": `url(#tb-arr-${mark})` }, svg);
       };
-      if (cur) [...src].forEach(s => { const [i, j] = s.split(",").map(Number); arrow([i, j], cur, best[0] === i && best[1] === j ? "" : "alt", "hl"); });
+      if (cur && !back) [...src].forEach(s => { const [i, j] = s.split(",").map(Number); arrow([i, j], cur, best[0] === i && best[1] === j ? "" : "alt", "hl"); });
+      if (back) {
+        // The traced path so far, as the DP's own direction (earlier cell → later cell), and the step being taken now.
+        const p = back.path.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+        for (let k = 1; k < p.length; k++) arrow(p[k - 1], p[k], "path", "sol");
+        if (p.length) arrow(cur, p[0], "", "hl");
+      }
       if (f && f.done) {
         const box = document.createElement("div"); box.className = "tb-align";
         const line = (lab, cells, extra) => `<div class="tb-ln ${extra || ""}"><span class="tb-lab">${lab}</span>${cells.join("")}</div>`;
@@ -1897,6 +1917,10 @@ const TableView = (() => {
     }
 
     function drawIP(f) {
+      // Viewer hook (local/viz-viewer): f.values = the backend's table (row 0 = x, then one row per constraint: coefficients,
+      // Total, Bound, Holds). Draw exactly those columns and values: no "≤" column, and a Total / Holds the backend has
+      // not decided (null) stays blank / open instead of being derived here.
+      if (f && f.values) return drawIPValues(f);
       const x = f ? f.x : Array(I.n).fill(null);
       const rs = ipRowState(I, x);
       const cur = f && !f.done ? f.cur : undefined, trial = f && f.trial;
@@ -1910,6 +1934,19 @@ const TableView = (() => {
         return `<tr class="${rowCls}"><td class="mut">row ${r + 1}</td>${row.map((c, j) => `<td class="num ${c === 0 ? "zero" : x[j] === 1 ? "on" : ""}">${c}</td>`).join("")}<td class="num">${total}</td><td class="mut">≤</td><td class="num">${I.d[r]}</td><td>${verdict}</td></tr>`;
       }).join("");
       host.innerHTML = table(cols, xr + body) + `<div class="tb-note">Shaded coefficients belong to variables set to 1; they're what each row adds up. A range in Total is the smallest and largest it can still reach.</div>`;
+    }
+
+    function drawIPValues(f) {
+      const x = f.x, cur = !f.done ? f.cur : undefined;
+      const cols = ["", ...Array.from({ length: I.n }, (_, j) => `x<sub>${j + 1}</sub>`), "Total", "Bound", "Row holds?"];
+      const xr = `<tr><td class="mut">x =</td>${x.map((v, j) => `<td><span class="tb-x ${v === null ? "unset" : v ? "one" : "zero"}${cur === j ? " cur" : ""}">${v === null ? "?" : v}</span></td>`).join("")}<td></td><td></td><td></td></tr>`;
+      const body = I.C.map((row, r) => {
+        const vals = f.values[r + 1] || [], at = k => vals[I.n + k];
+        const holds = at(2), pillCls = holds === "yes" ? "yes" : holds === "no" ? "no" : "open";
+        return `<tr><td class="mut">row ${r + 1}</td>${row.map((c, j) => `<td class="num ${c === 0 ? "zero" : x[j] === 1 ? "on" : ""}">${c}</td>`).join("")}`
+          + `<td class="num">${at(0) == null ? "" : esc(at(0))}</td><td class="num">${at(1) == null ? "" : esc(at(1))}</td><td>${pill(holds == null ? "open" : holds, pillCls)}</td></tr>`;
+      }).join("");
+      host.innerHTML = table(cols, xr + body) + `<div class="tb-note">Shaded coefficients belong to variables set to 1; they're what each row adds up. A row's total and verdict appear once every x is set.</div>`;
     }
 
     function drawDFA(f) {
@@ -2044,6 +2081,10 @@ const TableView = (() => {
         frame = null; draw();
         return { frames: run.frames, ok: run.ok };
       },
+      // Viewer hook (local/viz-viewer): parse the instance and show frames supplied by the caller (in this module's own
+      // frame format) instead of running a mockup solver.
+      // opts.axes = {row, col}: axis names for the Edit Distance grid (default "source x" / "target y").
+      loadFrames(str, k, fr, opts = {}) { key = k; kind = PROBLEMS[k].kind; I = parse(str, k); axes = opts.axes || {}; run = { frames: fr, dp: null, rows: [], runs: [] }; frame = null; return { frames: fr, I }; },
       show(i) { frame = i === null ? null : run.frames[i]; draw(); return frame; },
       checks(i) { return checks(i === null ? null : run.frames[i]); },
       chosen(i) { return chosen(i === null ? null : run.frames[i]); },
@@ -2087,17 +2128,25 @@ const QuantumView = (() => {
 .qc-line { stroke: var(--av-ink); stroke-width: 1.6; }
 .qc-plus { fill: var(--av-surface); stroke: var(--av-ink); stroke-width: 1.6; }
 .qc-arc { fill: none; stroke: var(--av-ink); stroke-width: 1.4; }
-.qc-out { font-size: 13px; font-weight: 700; dominant-baseline: central; fill: var(--av-sol); }
+.qc-out { font-size: 13px; font-weight: 700; dominant-baseline: central; fill: var(--av-ink); }
+.qc-out.Solution { fill: var(--av-sol-ink); } .qc-out.Rejected { fill: var(--av-rej-ink); }
+.qc-wire-g.Solution .qc-wire { stroke: var(--av-sol); stroke-width: 2.6; } .qc-wire-g.Solution .qc-wname { fill: var(--av-sol-ink); font-weight: 700; }
+.qc-wire-g.Rejected .qc-wire { stroke: var(--av-rej); stroke-width: 2.6; } .qc-wire-g.Rejected .qc-wname { fill: var(--av-rej-ink); font-weight: 700; }
+.qc-wire-g.Active .qc-wire { stroke: var(--av-hl); stroke-width: 2.6; } .qc-wire-g.Active .qc-wname { fill: var(--av-hl-ink); font-weight: 700; }
+.qc-count { font-size: 10.5px; fill: var(--av-ink); text-anchor: middle; }
+.qc-src { font-size: 11px; fill: var(--av-hl-ink); font-weight: 600; }
 .qc-axis { stroke: var(--av-stroke); stroke-width: 1; }
 .qc-grid { stroke: var(--av-line); stroke-width: 1; stroke-dasharray: 2 4; }
 .qc-tick { font-size: 10.5px; fill: var(--av-muted); text-anchor: end; dominant-baseline: central; }
 .qc-blabel { font-size: 11px; fill: var(--av-muted); text-anchor: middle; }
-.qc-blabel.win { fill: var(--av-sol); font-weight: 700; }
+.qc-blabel.win { fill: var(--av-sol-ink); font-weight: 700; }
+.qc-blabel.miss { fill: var(--av-rej-ink); font-weight: 700; }
 .qc-bar { transition: height .25s, y .25s, fill .2s; }
 .qc-bar.pos { fill: var(--av-g0s); }
 .qc-bar.neg { fill: var(--av-g1s); }
 .qc-bar.plain { fill: var(--av-stroke); }
 .qc-bar.win { fill: var(--av-sol); }
+.qc-bar.miss { fill: var(--av-rej); }
 .qc-btitle { font-size: 12px; fill: var(--av-ink); font-weight: 600; }
 .qc-note { font-size: 12px; fill: var(--av-ink); }
 .qc-note.muted { fill: var(--av-muted); }
@@ -2644,34 +2693,60 @@ const QuantumView = (() => {
       });
       els.barsG = mk("g", {}, gB);
       els.note = mk("text", { x: left, y: barTop + BARH + 46, class: "qc-note muted" }, gB);
+      els.src = mk("text", { x: left - 70, y: barTop - 8, class: "qc-src" }, gB);
+    }
+
+    /** Viewer hook (local/viz-viewer): measured shot counts, as {outcome: n} (outcome a bit string or a number) or
+        [{outcome, count}], → Map(register value → count). */
+    function countsOf(c, nb) {
+      if (!c) return null;
+      const m = new Map(), key = o => (typeof o === "string" && /^[01]+$/.test(o) && o.length === nb ? parseInt(o, 2) : Number(o));
+      if (Array.isArray(c)) c.forEach(e => { const k = key(e.outcome); if (Number.isInteger(k)) m.set(k, (m.get(k) || 0) + (+e.count || 0)); });
+      else for (const [o, n] of Object.entries(c)) { const k = key(o); if (Number.isInteger(k)) m.set(k, (m.get(k) || 0) + (+n || 0)); }
+      return m.size ? m : null;
     }
 
     function paintBars(f) {
       const circ = run.B.circ, { left, right, top, h } = els.chart;
       els.barsG.innerHTML = "";
       els.note.textContent = "";
-      const d = f ? f.dist : null;
+      els.src.textContent = "";
+      const counts = f ? countsOf(f.counts, circ.reg.length) : null;
+      let d = f ? f.dist : null;
+      // Shot counts with no probabilities: draw the measured frequencies as the bars.
+      if (!d && counts) {
+        const tot = [...counts.values()].reduce((a, b) => a + b, 0) || 1, probs = new Array(1 << circ.reg.length).fill(0);
+        counts.forEach((n, k) => { if (k >= 0 && k < probs.length) probs[k] = n / tot; });
+        d = { probs, signs: null };
+      }
       if (!d) { els.btitle.textContent = `Outcome probabilities on the ${circ.regName} appear once you step through.`; return; }
       els.btitle.textContent = circ.decimal ? `Probability of each reading of the ${circ.regName}` : `Probability of each outcome on ${circ.regName}`;
+      // Viewer hook (local/viz-viewer): say where the bars come from when it is not the backend.
+      if (d.browser) els.src.textContent = "Simulated in this browser: the backend sent no probabilities for this circuit.";
       let idx = d.probs.map((p, i) => i);
       const sparse = idx.length > 32;
-      if (sparse) idx = idx.filter(i => d.probs[i] > 0.004);
+      if (sparse) idx = idx.filter(i => d.probs[i] > 0.004 || (counts && counts.has(i)));
       if (sparse && !idx.length) { els.note.textContent = `Spread evenly over all ${d.probs.length} readings (each ${(100 / d.probs.length).toFixed(2)}%), too thin to draw.`; return; }
       const nBars = idx.length, slot = (right - left) / Math.max(nBars, 1), bw = Math.min(42, slot * 0.7);
       const win = f.done || f.outcome !== undefined && f.outcome !== null ? f.outcome : null;
+      // The measured outcome turns green (or red) only once the frame says so: Viewer hook (local/viz-viewer) `measured`
+      // ("Solution" / "Rejected" / "" from the backend's qubit states), else the mockup's own done/ok.
+      const verdict = f.measured !== undefined ? f.measured : f.done ? (f.ok === false ? "Rejected" : "Solution") : f.col === circ.columns.length ? "Solution" : "";
       idx.forEach((i, k) => {
         const p = d.probs[i], x = left + slot * k + (slot - bw) / 2, bh = Math.max(p * h, p > 1e-9 ? 1.5 : 0);
         let cls = "qc-bar " + (d.signs ? (d.signs[i] < 0 ? "neg" : "pos") : "plain");
-        if (win === i && (f.done || f.col === circ.columns.length)) cls = "qc-bar win";
+        if (win === i && verdict) cls = "qc-bar " + (verdict === "Rejected" ? "miss" : "win");
         mk("rect", { x, y: top + h - bh, width: bw, height: bh, rx: 2, class: cls }, els.barsG);
         const lab = circ.decimal ? String(i) : bin(i, circ.reg.length);
         if (nBars <= 16 || k % Math.ceil(nBars / 16) === 0) {
-          const t = mk("text", { x: x + bw / 2, y: top + h + 16, class: "qc-blabel" + (cls.includes("win") ? " win" : "") }, els.barsG);
+          const t = mk("text", { x: x + bw / 2, y: top + h + 16, class: "qc-blabel" + (cls.includes("win") ? " win" : cls.includes("miss") ? " miss" : "") }, els.barsG);
           t.textContent = lab;
+          if (counts) mk("text", { x: x + bw / 2, y: top + h + 30, class: "qc-count" }, els.barsG).textContent = "×" + (counts.get(i) || 0);
         }
         if (p > 0.02 && nBars <= 16) mk("text", { x: x + bw / 2, y: top + h - bh - 6, class: "qc-blabel" }, els.barsG).textContent = Math.round(p * 100) + "%";
       });
-      if (d.signs) els.note.textContent = "Blue: positive amplitude. Orange: negative. Height: probability.";
+      if (counts) els.note.textContent = `Measured ${[...counts.values()].reduce((a, b) => a + b, 0)} shots: ×n under each outcome is how often it came up.`;
+      else if (d.signs) els.note.textContent = "Blue: positive amplitude. Orange: negative. Height: probability.";
       else if (circ.decimal) els.note.textContent = `Only readings above 0.4% are drawn. Peaks sit near multiples of ${1 << run.B.quantum.t}/r.`;
     }
 
@@ -2685,11 +2760,16 @@ const QuantumView = (() => {
       });
       // measured values on the wires
       const measured = f && f.col === C && f.outcome !== undefined && f.outcome !== null;
+      // Viewer hook (local/viz-viewer): f.qubitStates[k] = "Solution" | "Rejected" | "Active" | "" per wire (the backend's
+      // qubit states); without it the measured bits turn green only on a done, ok frame.
+      const qs = k => (f && f.qubitStates ? f.qubitStates[k] || "" : "");
+      const outCls = k => (f && f.qubitStates ? qs(k) : f && f.done ? (f.ok === false ? "Rejected" : "Solution") : "");
       els.outs.forEach((t, k) => {
         const pos = circ.reg.indexOf(k);
         t.textContent = measured && pos >= 0 ? String((f.outcome >> (circ.reg.length - 1 - pos)) & 1) : "";
+        t.setAttribute("class", "qc-out" + (outCls(k) && outCls(k) !== "Active" ? " " + outCls(k) : ""));
       });
-      els.wires.forEach((g, k) => g.setAttribute("class", "qc-wire-g" + (hover !== null && hover !== k ? " faint" : "")));
+      els.wires.forEach((g, k) => g.setAttribute("class", "qc-wire-g" + (qs(k) ? " " + qs(k) : "") + (hover !== null && hover !== k ? " faint" : "")));
       paintBars(f);
     }
 
@@ -2699,6 +2779,8 @@ const QuantumView = (() => {
         draw(); paint();
         return { frames: run.frames, ok: run.last.ok };
       },
+      // Viewer hook (local/viz-viewer): keep the circuit and simulation from load() but show frames supplied by the caller.
+      useFrames(fr) { run.frames = fr; frame = null; paint(); return { frames: fr, B: run.B }; },
       show(i) { frame = i === null ? null : run.frames[i]; paint(); return frame; },
       checks(i) {
         const f = i === null ? null : run.frames[i];
@@ -2754,6 +2836,8 @@ const BipartiteView = (() => {
 .bp-edge { stroke: var(--av-edge); stroke-width: 1.4; transition: opacity .2s, stroke .2s; }
 .bp-edge.sol { stroke: var(--av-sol); stroke-width: 2.6; }
 .bp-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
+.bp-edge.rej { stroke: var(--av-rej); stroke-width: 2.8; }
+path.bp-edge { fill: none; }
 .bp-edge.trace { stroke: var(--av-hot); stroke-width: 2.4; }
 .bp-edge.dim { stroke: var(--av-edge-dim); }
 .bp-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
@@ -2925,28 +3009,46 @@ const BipartiteView = (() => {
       const pos = new Map(M.els.map((e, i) => [e.id, i]));
       const bary = s => (s.items.length ? s.items.reduce((a, x) => a + pos.get("e:" + x), 0) / s.items.length : 1e9);
       const setOrder = M.sets.slice().sort((a, b) => bary(a) - bary(b));
-      const setW = Math.min(260, Math.max(...M.sets.map(s => (s.label.length + fmtSet(s.items).length) * 7.6 + 34), 96));
-      const rows = Math.max(M.els.length, M.sets.length);
-      const W = Math.max(640, 200 + setW + 300), H = rows * ROW + 80;
+      // Boxes fit their list up to 260 px; when some list is longer, boxes widen to 380 px and the rest wraps (below).
+      const want = Math.max(...M.sets.map(s => (s.label.length + fmtSet(s.items).length) * 7.6 + 34), 96);
+      const setW = Math.min(want > 260 ? 380 : 260, want);
+      // A member list too long for the box wraps onto more lines (at commas) and the box grows; set rows space out to fit.
+      const room = s => Math.max(6, Math.floor((setW - (14 + s.label.length * 8.5) - 10) / 7.4));
+      const lines = new Map(M.sets.map(s => {
+        const full = fmtSet(s.items), n = room(s);
+        if (full.length <= n) return [s.id, [full]];
+        const out = [];
+        let cur = "";
+        full.split(/(?<=,)/).forEach(part => { if (cur && (cur + part).length > n) { out.push(cur); cur = ""; } cur += part; });
+        if (cur) out.push(cur);
+        return [s.id, out];
+      }));
+      const maxLines = Math.max(1, ...[...lines.values()].map(l => l.length)), LH = 15;
+      const setRow = Math.max(ROW, 34 + (maxLines - 1) * LH + 12);
+      // An element label longer than fits in the circle gets a pill instead, as wide as its label.
+      const halfW = e => (String(e.label).length > 3 ? Math.max(ER, (String(e.label).length * 8.6 + 18) / 2) : ER);
+      const elHalf = Math.max(ER, ...M.els.map(halfW));
+      const H = Math.max(M.els.length * ROW, M.sets.length * setRow) + 80;
+      const W = Math.max(640, 200 + (elHalf - ER) + setW + 300);
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      const ex = 90, sx = W - 50 - setW;
-      const top = (count) => 70 + ((rows - count) * ROW) / 2 + ROW / 2;
+      const ex = 90 + (elHalf - ER), sx = W - 50 - setW;
+      const top = (count, rowH) => 70 + (H - 80 - count * rowH) / 2 + rowH / 2;
       const P = new Map();
-      M.els.forEach((e, i) => P.set(e.id, { x: ex, y: top(M.els.length) + i * ROW }));
-      setOrder.forEach((s, i) => P.set(s.id, { x: sx, y: top(M.sets.length) + i * ROW }));
+      M.els.forEach((e, i) => P.set(e.id, { x: ex, y: top(M.els.length, ROW) + i * ROW, hw: halfW(e) }));
+      setOrder.forEach((s, i) => P.set(s.id, { x: sx, y: top(M.sets.length, setRow) + i * setRow }));
 
       const head = (x, text, pick, anchor) => {
         const t = mk("text", { x, y: 28, class: "bp-head", "text-anchor": anchor }, svg);
         t.textContent = text;
         if (pick) { const ts = mk("tspan", { class: "pick" }, t); ts.textContent = "  ● PICKED"; }
       };
-      head(ex - ER, "ELEMENTS · U", !M.pickSets, "start");
+      head(ex - elHalf, "ELEMENTS · U", !M.pickSets, "start");
       head(sx, "SETS · S", M.pickSets, "start");
 
       const gE = mk("g", {}, svg), gN = mk("g", {}, svg);
       edgeEls = M.edges.map(e => {
         const a = P.get(e.el), b = P.get(e.set);
-        return { ...e, el2: mk("line", { x1: a.x + ER, y1: a.y, x2: b.x, y2: b.y, class: "bp-edge" }, gE) };
+        return { ...e, el2: mk("line", { x1: a.x + a.hw, y1: a.y, x2: b.x, y2: b.y, class: "bp-edge" }, gE) };
       });
       nodes = new Map();
       const hookup = (g, id) => {
@@ -2958,22 +3060,25 @@ const BipartiteView = (() => {
       M.els.forEach(e => {
         const p = P.get(e.id);
         const g = mk("g", { class: "bp-node el", tabindex: "0", role: "button", "aria-label": `Element ${e.label}` }, gN);
-        mk("circle", { cx: p.x, cy: p.y, r: ER, class: "body" }, g);
+        if (p.hw > ER) mk("rect", { x: p.x - p.hw, y: p.y - ER, width: 2 * p.hw, height: 2 * ER, rx: ER, class: "body" }, g);
+        else mk("circle", { cx: p.x, cy: p.y, r: ER, class: "body" }, g);
         mk("text", { x: p.x, y: p.y }, g).textContent = e.label;
         const badge = mk("g", { visibility: "hidden" }, g);
-        mk("circle", { cx: p.x - ER - 4, cy: p.y - ER + 4, r: 8, class: "bp-count-bg" }, badge);
-        const bt = mk("text", { x: p.x - ER - 4, y: p.y - ER + 4, class: "bp-count bp-count-t" }, badge);
+        mk("circle", { cx: p.x - p.hw - 4, cy: p.y - ER + 4, r: 8, class: "bp-count-bg" }, badge);
+        const bt = mk("text", { x: p.x - p.hw - 4, y: p.y - ER + 4, class: "bp-count bp-count-t" }, badge);
         nodes.set(e.id, { g, badge, bt }); hookup(g, e.id);
       });
       M.sets.forEach(s => {
         const p = P.get(s.id);
         const g = mk("g", { class: "bp-node set", tabindex: "0", role: "button", "aria-label": `Set ${s.label} ${fmtSet(s.items)}` }, gN);
-        mk("rect", { x: p.x, y: p.y - 17, width: setW, height: 34, rx: 8, class: "body" }, g);
-        mk("text", { x: p.x + 12, y: p.y, class: "lbl" }, g).textContent = s.label;
-        mk("text", { x: p.x + 14 + s.label.length * 8.5, y: p.y, class: "sub" }, g).textContent = fmtSet(s.items);
+        const ls = lines.get(s.id), hh = 17 + (ls.length - 1) * LH / 2;
+        mk("rect", { x: p.x, y: p.y - hh, width: setW, height: 2 * hh, rx: 8, class: "body" }, g);
+        mk("text", { x: p.x + 12, y: p.y - (ls.length - 1) * LH / 2, class: "lbl" }, g).textContent = s.label;
+        ls.forEach((t, k) => { mk("text", { x: p.x + 14 + s.label.length * 8.5, y: p.y - (ls.length - 1) * LH / 2 + k * LH, class: "sub" }, g).textContent = t; });
+        if (ls.length > 1) mk("title", {}, g).textContent = `${s.label} ${fmtSet(s.items)}`;
         const badge = mk("g", { visibility: "hidden" }, g);
-        mk("circle", { cx: p.x + setW + 2, cy: p.y - 15, r: 8, class: "bp-count-bg" }, badge);
-        const bt = mk("text", { x: p.x + setW + 2, y: p.y - 15, class: "bp-count bp-count-t" }, badge);
+        mk("circle", { cx: p.x + setW + 2, cy: p.y - hh + 2, r: 8, class: "bp-count-bg" }, badge);
+        const bt = mk("text", { x: p.x + setW + 2, y: p.y - hh + 2, class: "bp-count bp-count-t" }, badge);
         nodes.set(s.id, { g, badge, bt }); hookup(g, s.id);
       });
     }
@@ -2990,7 +3095,9 @@ const BipartiteView = (() => {
       for (const [id, n] of nodes) {
         let st = "Background";
         const isCand = M.hits.has(id);
-        if (f) {
+        // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+        if (f && f.ev) st = f.ev.nodes.get(id) || "Background";
+        else if (f) {
           if (isCand) {
             if ((id === f.trying || (f.trial && chosen.has(id))) && !f.done) st = "Active";
             else if (chosen.has(id)) st = "Solution";
@@ -3005,7 +3112,7 @@ const BipartiteView = (() => {
         if (f && id === f.focus && !f.done) cls += " focus";
         if (hover) cls += id === hover ? " trace" : neighbors.has(id) ? "" : " faint";
         n.g.setAttribute("class", cls);
-        const k = hitCount.get(id);
+        const k = f && f.ev ? f.ev.hits.get(id) || 0 : hitCount.get(id);
         const showBadge = f && !isCand && k > 1;
         n.badge.setAttribute("visibility", showBadge ? "visible" : "hidden");
         if (showBadge) n.bt.textContent = "×" + k;
@@ -3014,6 +3121,7 @@ const BipartiteView = (() => {
         const p = M.pickSets ? e.set : e.el;
         let cls = "bp-edge";
         if (hover) cls += e.el === hover || e.set === hover ? " trace" : " faint";
+        else if (f && f.ev) cls += f.ev.edges.get(e.id) ? " " + f.ev.edges.get(e.id) : "";
         else if (f && !f.done && (p === f.trying || (f.trial && chosen.has(p)))) cls += " hot";
         else if (f && chosen.has(p)) cls += " sol";
         else if (f) cls += " dim";
@@ -3051,6 +3159,9 @@ const BipartiteView = (() => {
         draw(); paint();
         return { frames: run.frames, ok: run.ok, solution: run.solution ? run.solution.map(M.name) : null, K: I.K };
       },
+      // Viewer hook (local/viz-viewer): draw a model built elsewhere (the shape model() returns, edges may carry an `id`)
+      // with frames supplied by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, inst, fr) { I = inst; M = model; run = { frames: fr }; frame = null; hover = null; draw(); paint(); return { frames: fr }; },
       show(i) { frame = i === null ? null : run.frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : run.frames[i]); },
       chosenLabels(i) { return i === null ? [] : run.frames[i].chosen.map(M.name); },
@@ -3065,7 +3176,9 @@ const BipartiteView = (() => {
 .bp-node.False .body { fill: var(--av-surface); stroke: var(--av-stroke); }
 .bp-node.False text { fill: var(--av-muted); }
 .bp-val { font-size: 12px; font-weight: 600; text-anchor: end; dominant-baseline: central; fill: var(--av-muted); }
-.bp-val.T { fill: var(--av-sol); }`;
+.bp-val.T { fill: var(--av-sol); }
+.bp-hits rect { fill: var(--av-surface); stroke: var(--av-sol); stroke-width: 1.4; }
+.bp-node text.bp-hits-t { font-size: 11px; font-weight: 600; text-anchor: middle; fill: var(--av-sol-ink); }`;
   const SUBS = "₀₁₂₃₄₅₆₇₈₉";
   const pretty = nm => { const m = /^([A-Za-z_]+)(\d+)$/.exec(nm); return m ? m[1] + m[2].split("").map(d => SUBS[d]).join("") : nm; };
 
@@ -3077,7 +3190,7 @@ const BipartiteView = (() => {
       const st = document.createElement("style"); st.id = "bp-sat-style"; st.textContent = satCss; document.head.appendChild(st);
     }
     svg.classList.add("bp-svg");
-    let C, names, varEls, clauseEls, edgeEls, frame = null, hover = null;
+    let C, names, varEls, clauseEls, edgeEls, frame = null, hover = null, withHits = false;
 
     function draw() {
       svg.innerHTML = "";
@@ -3085,7 +3198,8 @@ const BipartiteView = (() => {
       const litText = c => c.map(l => (l < 0 ? "¬" : "") + pretty(names[Math.abs(l) - 1])).join(" ∨ ");
       const bary = c => c.reduce((a, l) => a + Math.abs(l), 0) / c.length;
       const order = C.map((c, j) => j).sort((a, b) => bary(C[a]) - bary(C[b]));
-      const setW = Math.min(300, Math.max(...C.map((c, j) => (("C" + (j + 1)).length + litText(c).length) * 7.6 + 40), 120));
+      // Viewer hook (local/viz-viewer): room for the "n true" badge when frames carry hits counts.
+      const setW = Math.min(300, Math.max(...C.map((c, j) => (("C" + (j + 1)).length + litText(c).length) * 7.6 + 40), 120)) + (withHits ? 62 : 0);
       const rows = Math.max(n, m), W = Math.max(640, 220 + setW + 280), H = rows * ROW + 80;
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const vx = 110, cx = W - 50 - setW;
@@ -3100,9 +3214,18 @@ const BipartiteView = (() => {
       head(cx, "CLAUSES", false);
       const gE = mk("g", {}, svg), gN = mk("g", {}, svg);
       edgeEls = [];
-      C.forEach((c, j) => c.forEach(l => {
-        const i = Math.abs(l) - 1;
-        edgeEls.push({ v: i + 1, j, lit: l, el: mk("line", { x1: vx + ER, y1: vy(i), x2: cx, y2: cy.get(j), class: "bp-edge" + (l < 0 ? " neg" : "") }, gE) });
+      C.forEach((c, j) => c.forEach((l, k) => {
+        const i = Math.abs(l) - 1, x1 = vx + ER, y1 = vy(i), x2 = cx, y2 = cy.get(j);
+        // A clause that uses one variable twice (x and ¬x, or x twice) has two edges between the same two nodes: draw each
+        // repeat as a curve bowed to one side, so both literals stay visible.
+        const rep = c.slice(0, k).filter(m => Math.abs(m) === i + 1).length;
+        let el;
+        if (!rep) el = mk("line", { x1, y1, x2, y2, class: "bp-edge" + (l < 0 ? " neg" : "") }, gE);
+        else {
+          const L = Math.hypot(x2 - x1, y2 - y1) || 1, off = 22 * rep, mx = (x1 + x2) / 2 - ((y2 - y1) / L) * off, my = (y1 + y2) / 2 + ((x2 - x1) / L) * off;
+          el = mk("path", { d: `M${x1},${y1} Q${mx},${my} ${x2},${y2}`, class: "bp-edge" + (l < 0 ? " neg" : "") }, gE);
+        }
+        edgeEls.push({ v: i + 1, j, lit: l, el });
       }));
       const hookup = (g, key) => {
         const on = () => { hover = key; paint(); }, off = () => { hover = null; paint(); };
@@ -3124,6 +3247,12 @@ const BipartiteView = (() => {
         mk("rect", { x: cx, y: y - 17, width: setW, height: 34, rx: 8, class: "body" }, g);
         mk("text", { x: cx + 12, y, class: "lbl" }, g).textContent = "C" + (j + 1);
         mk("text", { x: cx + 18 + ("C" + (j + 1)).length * 8.5, y, class: "sub" }, g).textContent = litText(c);
+        if (withHits) {
+          const hb = mk("g", { class: "bp-hits", visibility: "hidden" }, g);
+          mk("rect", { x: cx + setW - 58, y: y - 10, width: 50, height: 20, rx: 10 }, hb);
+          g.hits = mk("text", { x: cx + setW - 33, y, class: "bp-hits-t" }, hb);
+          g.hitsBox = hb;
+        }
         hookup(g, "c" + j);
         return g;
       });
@@ -3140,6 +3269,7 @@ const BipartiteView = (() => {
         const v = i + 1, a = asg[v];
         let st = a === undefined ? "Background" : a ? "Solution" : "False";
         if (f && f.tried === v && !f.done) st = "Active";
+        if (f && f.ev) st = f.ev.nodes.get("v" + v) || "Background"; // Viewer hook (local/viz-viewer)
         let cls = "bp-node el " + st;
         if (hover) cls += hv === v ? " trace" : nearV.has(v) ? "" : " faint";
         o.g.setAttribute("class", cls);
@@ -3150,13 +3280,21 @@ const BipartiteView = (() => {
         let st = "Background";
         if (f && j === f.failed) st = "Rejected";
         else if (C[j].some(l => val(l) === true)) st = "Covered";
+        if (f && f.ev) st = f.ev.nodes.get("c" + j) || "Background"; // Viewer hook (local/viz-viewer)
+        // Viewer hook (local/viz-viewer): f.ev.hits = Map("c" + j → number of true literals), drawn as an "n true" badge.
+        if (g.hitsBox) {
+          const n = f && f.ev && f.ev.hits ? f.ev.hits.get("c" + j) : undefined;
+          g.hitsBox.setAttribute("visibility", n !== undefined ? "visible" : "hidden");
+          g.hits.textContent = n !== undefined ? `${n} true` : "";
+        }
         let cls = "bp-node set " + st;
         if (hover) cls += hc === j ? " trace" : nearC.has(j) ? "" : " faint";
         g.setAttribute("class", cls);
       });
-      edgeEls.forEach(e => {
+      edgeEls.forEach((e, ei) => {
         let cls = "bp-edge" + (e.lit < 0 ? " neg" : "");
         if (hover) cls += hv === e.v || hc === e.j ? " trace" : " faint";
+        else if (f && f.ev) cls += f.ev.edges[ei] ? " " + f.ev.edges[ei] : ""; // Viewer hook (local/viz-viewer)
         else if (f && f.tried === e.v && !f.done) cls += " hot";
         else if (val(e.lit) === true) cls += " sol";
         else if (val(e.lit) === false) cls += " dim";
@@ -3165,7 +3303,8 @@ const BipartiteView = (() => {
     }
 
     return {
-      load(clauses, varNames) { C = clauses; names = varNames; frame = null; hover = null; draw(); paint(); },
+      // opts.hits (viewer hook, local/viz-viewer): frames will carry per-clause true-literal counts; leave room for the badge.
+      load(clauses, varNames, opts = {}) { C = clauses; names = varNames; withHits = !!opts.hits; frame = null; hover = null; draw(); paint(); },
       show(f) { frame = f || null; paint(); },
       resetHover() { hover = null; paint(); },
     };
@@ -3204,6 +3343,7 @@ const GraphView = (() => {
 .gb-node.badnode .body { stroke: var(--av-rej); stroke-width: 3.5; }
 .gb-node.trace .body, .gb-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .gb-node.faint { filter: grayscale(1); } .gb-node.faint .body { stroke-dasharray: 3 3; }
+.gb-svg .gb-node .gb-order text { fill: var(--av-surface); } /* the order badge keeps its own text color when the node is Rejected or Solution */
 .gb-term { fill: none; stroke: var(--av-ink); stroke-width: 1.6; pointer-events: none; }
 .gb-order circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .gb-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
@@ -3917,7 +4057,8 @@ const GraphView = (() => {
     }
 
     function paint() {
-      const ev = evaluate(G, rule, frame);
+      // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+      const ev = frame && frame.ev ? frame.ev : evaluate(G, rule, frame);
       const nb = hover ? G.adj.get(hover) : null;
       for (const [n, o] of els.nodes) {
         const s = ev.nodes.get(n) || {};
@@ -3961,6 +4102,9 @@ const GraphView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: last.ok, K: G.K };
       },
+      // Viewer hook (local/viz-viewer): draw a graph built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, P, fr) { G = model; rule = P.rule; if (P.layout) mode = P.layout; frames = fr; frame = null; hover = null; draw(); paint(); return { frames, K: G.K }; },
       setLayout(m) { mode = m; if (G) { draw(); paint(); } },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return evaluate(G, rule, i === null ? null : frames[i]).checks; },
@@ -4459,6 +4603,7 @@ const ScheduleView = (() => {
         if (r.late) st = "Rejected";
         else if (f.done) st = f.ok ? "Solution" : "Covered";
         if (j === f.trying || (f.trial && !r.late && !f.done)) st = r.late ? "Rejected" : "Active";
+        if (f.states && f.states[j]) st = f.states[j]; // Viewer hook (local/viz-viewer): states evaluated by the caller (the backend's)
         mk("rect", { x: X(r.s), y: y + 7, width: Math.max(2, X(r.f) - X(r.s)), height: rowH - 14, rx: 4, class: "sc-bar " + st }, g);
         if (r.late) { const from = Math.max(I.D[j], r.s); mk("rect", { x: X(from), y: y + 7, width: Math.max(0, X(r.f) - X(from)), height: rowH - 14, rx: 4, class: "sc-over" }, g); }
       } else if (f && aside.has(j)) {
@@ -4644,6 +4789,8 @@ const ScheduleView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): parse the instance and show frames supplied by the caller instead of running a mockup solver.
+      loadFrames(str, key, fr) { I = key === "JOBSEQ" ? parseJob(str) : parsePump(str, key === "PUMPEM"); frames = fr; frame = null; hover = null; return { frames, I }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { const f = i === null ? null : frames[i]; return I.kind === "job" ? jobChecks(I, f) : pumpChecks(I, f); },
       chosen(i) {
@@ -4734,7 +4881,12 @@ const PackingView = (() => {
 .pk-tile.faint, .pk-seg.faint { filter: grayscale(1); }
 .pk-row-label { font-size: 13px; font-weight: 600; fill: var(--av-ink); }
 .pk-row-sub { font-size: 11px; fill: var(--av-muted); }
-.pk-track { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.2; }
+.pk-track { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.2; transition: fill .2s, stroke .2s; }
+.pk-track.Covered { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; }
+.pk-track.Solution { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
+.pk-track.Active { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
+.pk-track.Rejected { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
+.pk-row-label.Covered, .pk-row-label.Solution { fill: var(--av-sol-ink); } .pk-row-label.Active { fill: var(--av-hl-ink); } .pk-row-label.Rejected { fill: var(--av-rej-ink); }
 .pk-seg rect { stroke: var(--av-surface); stroke-width: 1.5; transition: fill .2s; }
 .pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-on-sol); font-weight: 600; }
 .pk-seg.Solution rect { fill: var(--av-sol); }
@@ -5057,7 +5209,7 @@ const PackingView = (() => {
         tiles.push({ t, x, y, w }); x += w + 8;
       });
       const poolBottom = y + 30;
-      els = { tiles: [], segs: [], reads: [], beam: null, rowY: [] };
+      els = { tiles: [], segs: [], reads: [], beam: null, rowY: [], tracks: [], labels: [] };
       const gT = mk("g", {}, svg);
       tiles.forEach(({ t, x: tx, y: ty, w }) => {
         const g = mk("g", { class: "pk-tile", tabindex: "0", role: "button", "aria-label": I.rule === "knapsack" ? `Item weight ${t.w} value ${t.v}` : `Item ${t.w}` }, gT);
@@ -5076,11 +5228,12 @@ const PackingView = (() => {
       rows.forEach((row, r) => {
         const cy = ry + 16;
         els.rowY.push(cy);
-        mk("text", { x: 24, y: cy - 3, class: "pk-row-label" }, svg).textContent = row.label;
+        els.labels.push(mk("text", { x: 24, y: cy - 3, class: "pk-row-label" }, svg));
+        els.labels[r].textContent = row.label;
         mk("text", { x: 24, y: cy + 13, class: "pk-row-sub" }, svg).textContent = row.sub;
         const lineAt = row.target || row.cap || row.atLeast;
         const trackLen = row.cap ? len(row, row.cap) * scales[r] : TW;
-        mk("rect", { x: X0, y: cy - 15, width: trackLen, height: 30, rx: 6, class: "pk-track" }, svg);
+        els.tracks.push(mk("rect", { x: X0, y: cy - 15, width: trackLen, height: 30, rx: 6, class: "pk-track" }, svg));
         const g = mk("g", {}, svg);
         els.segs.push({ r, g });
         if (lineAt) {
@@ -5113,6 +5266,8 @@ const PackingView = (() => {
 
     function itemState(f, i) {
       if (!f) return "";
+      // Viewer hook (local/viz-viewer): a frame may carry each item's state already decided (`itemStates`), e.g. from the backend.
+      if (f.itemStates) return f.itemStates[i] || "";
       if (i === f.bad) return "Rejected";
       const a = f.assign[i];
       if (i === f.trying && !f.done) return "Active";
@@ -5131,6 +5286,13 @@ const PackingView = (() => {
         if (grp !== null && st !== "Rejected") cls += " g" + (grp % 6);
         if (hover !== null) cls += i === hover ? " trace" : " faint";
         g.setAttribute("class", cls);
+      });
+      // Viewer hook (local/viz-viewer): a frame may carry each row's container state (`rowStates`[r] = "Covered" | "Rejected" |
+      // "Active" | "Solution" | ""), e.g. a bin or side the backend marks; it styles that row's track and label.
+      rows.forEach((row, r) => {
+        const rs = f && f.rowStates ? f.rowStates[r] || "" : "";
+        els.tracks[r].setAttribute("class", "pk-track" + (rs ? " " + rs : ""));
+        els.labels[r].setAttribute("class", "pk-row-label" + (rs ? " " + rs : ""));
       });
       els.segs.forEach(({ r, g }) => {
         g.innerHTML = "";
@@ -5218,6 +5380,9 @@ const PackingView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw an instance built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller ({assign, itemStates?, ...}) instead of running a mockup solver.
+      loadModel(model, prob, fr) { P = prob; I = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : frames[i]); },
       chosen(i) { return chosen(i === null ? null : frames[i]); },
@@ -5304,11 +5469,12 @@ const LayeredView = (() => {
 .ly-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ly-edge.cut { stroke: var(--av-sol); stroke-width: 2.4; stroke-dasharray: 6 5; }
 .ly-edge.dim { stroke: var(--av-edge-dim); }
+.ly-edge.untr { stroke: var(--av-edge-dim); stroke-dasharray: 4 4; }
 .ly-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; opacity: 1; }
 .ly-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ly-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .ly-m-def { fill: var(--av-edge); } .ly-m-sol { fill: var(--av-sol); } .ly-m-rej { fill: var(--av-rej); }
-.ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); }
+.ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); } .ly-m-untr { fill: var(--av-edge-dim); }
 .ly-w rect { fill: var(--av-surface); stroke: var(--av-line); } .ly-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-w.sol rect { stroke: var(--av-sol); } .ly-w.sol text { fill: var(--av-sol); font-weight: 700; }
 .ly-w.hot rect { stroke: var(--av-hl); } .ly-w.hot text { fill: var(--av-ink); font-weight: 700; }
@@ -5736,10 +5902,11 @@ const LayeredView = (() => {
 
     function draw() {
       svg.innerHTML = "";
-      L = layout(G);
+      // Viewer hook (local/viz-viewer): a model may bring its own positions (`fixedLayout`, the shape layout() returns).
+      L = G.fixedLayout || layout(G);
       svg.setAttribute("viewBox", `0 0 ${L.W} ${L.H}`);
       const defs = mk("defs", {}, svg);
-      for (const k of ["def", "sol", "rej", "hot", "trace"]) {
+      for (const k of ["def", "sol", "rej", "hot", "trace", "untr"]) {
         const m = mk("marker", { id: `ly-arrow-${k}`, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 9, markerHeight: 9, markerUnits: "userSpaceOnUse", orient: "auto" }, defs);
         mk("path", { d: "M0,0 L10,5 L0,10 z", class: `ly-m-${k}` }, m);
       }
@@ -5784,7 +5951,8 @@ const LayeredView = (() => {
     }
 
     function paint() {
-      const ev = evaluate(G, rule, frame);
+      // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+      const ev = frame && frame.ev ? frame.ev : evaluate(G, rule, frame);
       const touches = new Set();
       if (hover) G.edges.forEach(e => { if (e.u === hover || e.v === hover) { touches.add(e.u); touches.add(e.v); } });
       for (const [n, o] of els.nodes) {
@@ -5809,10 +5977,11 @@ const LayeredView = (() => {
         if (o.e.undirected && !st) st = ev.edges.get(dkey(o.e.v, o.e.u)) || "";
         if (hover) st = o.e.u === hover || o.e.v === hover ? "trace" : "faint";
         o.path.setAttribute("class", "ly-edge" + (o.back ? " back" : "") + (st ? " " + st : ""));
-        const mark = { sol: "sol", rej: "rej", hot: "hot", trace: "trace", cut: "sol" }[st] || "def";
+        // untr: an Untraveled edge (e.g. removed with its node), dashed like Untraveled nodes. Viewer hook (local/viz-viewer).
+        const mark = { sol: "sol", rej: "rej", hot: "hot", trace: "trace", cut: "sol", untr: "untr" }[st] || "def";
         if (o.e.undirected) o.path.removeAttribute("marker-end");
         else o.path.setAttribute("marker-end", `url(#ly-arrow-${mark})`);
-        if (o.w) o.w.setAttribute("class", "ly-w" + (st === "sol" ? " sol" : st === "hot" ? " hot" : st === "dim" || st === "faint" ? " faint" : ""));
+        if (o.w) o.w.setAttribute("class", "ly-w" + (st === "sol" ? " sol" : st === "hot" ? " hot" : st === "dim" || st === "faint" || st === "untr" ? " faint" : ""));
       }
       els.gPh.innerHTML = "";
       if (!hover) ev.phantom.forEach(([a, b]) => {
@@ -5833,6 +6002,9 @@ const LayeredView = (() => {
         const last = frames.at(-1);
         return { frames, ok: last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a graph built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, P, fr) { G = model; rule = P.rule; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return evaluate(G, rule, i === null ? null : frames[i]).checks; },
       chosen(i) {
@@ -6127,7 +6299,8 @@ const FlowView = (() => {
 
     function draw() {
       svg.innerHTML = "";
-      const W = 700, { P, H } = layout(G, W);
+      // Viewer hook (local/viz-viewer): a model may bring its own positions (`fixedLayout(W)` returns what layout() does).
+      const W = 700, { P, H } = G.fixedLayout ? G.fixedLayout(W) : layout(G, W);
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const defs = mk("defs", {}, svg);
       for (const k of ["def", "flow", "sat", "hot", "sol", "trace", "back"]) {
@@ -6223,6 +6396,9 @@ const FlowView = (() => {
         draw(); paint();
         return { frames, ok: true };
       },
+      // Viewer hook (local/viz-viewer): draw a network built elsewhere (the shape parse() returns) with frames in this
+      // module's own terms supplied by the caller, instead of running the mockup solver.
+      loadModel(model, fr) { G = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       setResidual(on) { residual = !!on; if (G) paint(); },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : frames[i]); },
@@ -6284,7 +6460,10 @@ const BoardView = (() => {
 .bd-thick { stroke: var(--av-ink); stroke-width: 2.2; fill: none; }
 .bd-dig { text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-ink); }
 .bd-dig.given { font-weight: 700; }
-.bd-dig.placed { fill: var(--av-sol); font-weight: 500; }
+/* Solver-placed digits: plain (muted, regular weight, so they differ from bold clues) until the answer is confirmed;
+   green (.sol) only on a solved board or where the frame says the cell is Solution. */
+.bd-dig.placed { fill: var(--av-muted); font-weight: 500; }
+.bd-dig.placed.sol { fill: var(--av-sol-ink); font-weight: 600; }
 .bd-dig.try { fill: var(--av-ink); font-weight: 700; }
 .bd-dig.bad { fill: var(--av-rej); font-weight: 700; }
 .bd-mark { text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); pointer-events: none; font-family: var(--av-mono); }
@@ -6509,7 +6688,8 @@ const BoardView = (() => {
   };
 
   /* ---------- the view ---------- */
-  function create({ svg }) {
+  // Viewer hook (local/viz-viewer): `afterPaint(frame, svg)` runs after every paint, so a caller can restyle cells from its own states.
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("bd-style")) {
       const st = document.createElement("style"); st.id = "bd-style"; st.textContent = css; document.head.appendChild(st);
     }
@@ -6603,7 +6783,7 @@ const BoardView = (() => {
         els.cells[r][c].setAttribute("class", "bd-cell " + st);
         els.rings[r][c].setAttribute("class", "bd-ring " + ring);
         const d = els.digs[r][c];
-        let text = v ? String(v) : "", dcls = given ? "given" : "placed";
+        let text = v ? String(v) : "", dcls = given ? "given" : done && f.ok ? "placed sol" : "placed";
         if (here && f.kind === "clash") { text = String(f.value); dcls = "bad"; }
         else if (here && f.kind === "try") dcls = "try";
         else if (clashCells.has(id) && given) dcls = "bad given";
@@ -6665,7 +6845,7 @@ const BoardView = (() => {
       }
     }
 
-    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); }
+    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); if (afterPaint) afterPaint(frame, svg); }
 
     function checksFor(f) {
       if (G.kind === "sudoku") {
@@ -6696,6 +6876,8 @@ const BoardView = (() => {
         const last = frames.at(-1);
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a board built elsewhere (the shape parse() returns) with frames supplied by the caller.
+      loadModel(model, Pk, fr) { P = Pk; G = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       setHints(on) { hints = !!on; if (G) paint(); },
       checks(i) { return checksFor(i === null ? null : frames[i]); },
@@ -6969,18 +7151,21 @@ const MiscView = (() => {
 .ms-pt.Solution .dot { fill: var(--av-sol); stroke: var(--av-sol); }
 .ms-pt.Covered .dot { fill: var(--av-sol-fill); stroke: var(--av-sol); }
 .ms-pt.Rejected .dot { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.4; }
-.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g1); stroke: var(--av-g1s); }
+.ms-pt.c0 .dot { fill: var(--av-g0); stroke: var(--av-g0s); } .ms-pt.c1 .dot { fill: var(--av-g2); stroke: var(--av-g2s); }
 .ms-pt.ring .dot { stroke: var(--av-hl); stroke-width: 3.4; }
 .ms-pt.trace .dot, .ms-pt:focus-visible .dot { stroke: var(--av-hot); stroke-width: 3; }
 .ms-pt.faint { filter: grayscale(1); }
 .ms-hull { fill: none; stroke: var(--av-edge); stroke-width: 1.4; stroke-dasharray: 4 3; }
-.ms-hull.c0 { stroke: var(--av-g0s); fill: rgba(86,180,233,.13); stroke-dasharray: none; stroke-width: 1.8; }
-.ms-hull.c1 { stroke: var(--av-g1s); fill: rgba(230,159,0,.13); stroke-dasharray: none; stroke-width: 1.8; }
+/* The right hull is purple (g2), not orange (g1): orange is too close to the amber highlight of the chain, most of all in
+   dark mode (#850). Both hulls fade by mixing their colour into the surface, not by opacity. */
+.ms-hull.c0 { stroke: var(--av-g0s); fill: color-mix(in srgb, var(--av-g0) 13%, var(--av-surface)); stroke-dasharray: none; stroke-width: 1.8; }
+.ms-hull.c1 { stroke: var(--av-g2s); fill: color-mix(in srgb, var(--av-g2) 13%, var(--av-surface)); stroke-dasharray: none; stroke-width: 1.8; }
 .ms-hull.hot { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: none; fill: var(--av-hl-fill); fill-opacity: .5; }
 .ms-hull.sol { stroke: var(--av-sol); stroke-width: 2.6; stroke-dasharray: none; fill: var(--av-sol-fill); fill-opacity: .55; }
 .ms-chain { fill: none; stroke: var(--av-hl); stroke-width: 2.6; }
 .ms-chain.sol { stroke: var(--av-sol); }
 .ms-cand { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.ms-pop { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 5 4; fill: none; }
 .ms-tip rect { fill: var(--av-surface); stroke: var(--av-line); }
 .ms-tip text { font-size: 11.5px; fill: var(--av-ink); dominant-baseline: central; }
 .ms-ord circle { fill: var(--av-ink); } .ms-ord text { fill: var(--av-surface); font-size: 10px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
@@ -7264,6 +7449,18 @@ const MiscView = (() => {
             mk("line", { x1: E.X(E.P[f.cand[0]].x), y1: E.Y(E.P[f.cand[0]].y), x2: E.X(E.P[f.cand[1]].x), y2: E.Y(E.P[f.cand[1]].y), class: "ms-cand" }, E.gL);
             f.cand.forEach(i => set(i, "ring"));
           }
+          // Viewer hook (local/viz-viewer): a merge done as a chain walk over the left and right hulls (the backend's merge).
+          // f.walk = the chain built so far (point indices; the newest last, ringed); f.popped = the point just taken off it,
+          // drawn Rejected with a dashed red edge from the chain's end (the turn that failed).
+          if (f.walk && f.walk.length) {
+            mk("polyline", { points: poly(E, f.walk), class: "ms-chain" }, E.gL);
+            if (f.popped === undefined) set(f.walk[f.walk.length - 1], "ring");
+          }
+          if (f.popped !== undefined) {
+            const a = f.walk && f.walk.length ? f.walk[f.walk.length - 1] : null;
+            if (a !== null) mk("line", { x1: E.X(E.P[a].x), y1: E.Y(E.P[a].y), x2: E.X(E.P[f.popped].x), y2: E.Y(E.P[f.popped].y), class: "ms-pop" }, E.gL);
+            set(f.popped, "Rejected");
+          }
         } else if (f.chain) {
           if (f.lowerDone) { mk("polyline", { points: poly(E, f.lowerDone), class: "ms-chain sol" }, E.gL); f.lowerDone.forEach(i => set(i, "Solution")); }
           if (f.chain.length) mk("polyline", { points: poly(E, f.chain), class: "ms-chain" }, E.gL);
@@ -7407,8 +7604,18 @@ const MiscView = (() => {
       const widths = cols.map(c => Math.max(48, ...c.map(v => v.length * 7.6 + 22)));
       const ROW = 46, TROW = 22, top = 64;
       const rows = Math.max(...cols.map(c => c.length));
-      const H = Math.max(rows * ROW, D.M.length * TROW) + top + 22;
-      const listX = 560, W = 790;
+      // The triple list: each row wide enough for its id and its three names. A list much longer than the elements
+      // column (e.g. a reduction's 135 triples) wraps into columns under the picture instead of running far below it.
+      const idW = Math.max(30, ...D.M.map(t => String(t.id).length * 7.4 + 8));
+      const colW = idW + Math.max(0, ...D.M.map(t => `${t.x} · ${t.y} · ${t.z}`.length)) * 7.3 + 16;
+      const wrap = D.M.length > 30 && D.M.length * TROW > rows * ROW * 1.3;
+      let W = 790, listX = 560;
+      if (!wrap) W = Math.max(790, listX + colW + 4);
+      const nCols = wrap ? Math.max(1, Math.floor((W - 20) / colW)) : 1, perCol = Math.ceil(D.M.length / nCols);
+      const listTop = wrap ? top + rows * ROW + 46 : top;
+      if (wrap) listX = 20;
+      const rowW = wrap ? colW - 8 : Math.max(W - listX - 4, colW);
+      const H = wrap ? listTop + perCol * TROW + 22 : Math.max(rows * ROW, D.M.length * TROW) + top + 22;
       const cx = [80, 270, 460];
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const pos = new Map();
@@ -7417,7 +7624,7 @@ const MiscView = (() => {
         c.forEach((v, i) => pos.set(pre[k] + v, { x: cx[k], y: y0 + i * ROW, w: widths[k] }));
       });
       heads.forEach((h, k) => mk("text", { x: cx[k], y: 28, class: "ms-colhead", "text-anchor": "middle" }, svg).textContent = h);
-      mk("text", { x: listX, y: 28, class: "ms-colhead" }, svg).textContent = "TRIPLES · M";
+      mk("text", { x: listX, y: wrap ? listTop - 22 : 28, class: "ms-colhead" }, svg).textContent = "TRIPLES · M";
       const gT = mk("g", {}, svg), gN = mk("g", {}, svg), gR = mk("g", {}, svg);
       const m = D.M.length, lane = Math.min(3, 18 / Math.max(1, m));
       const tris = D.M.map((t, i) => {
@@ -7425,10 +7632,10 @@ const MiscView = (() => {
         const d = `M${a.x + a.w / 2},${a.y + o} L${b.x - b.w / 2},${b.y + o} M${b.x + b.w / 2},${b.y + o} L${c.x - c.w / 2},${c.y + o}`;
         const path = mk("path", { d, class: "ms-tri" }, gT);
         const g = mk("g", { class: "ms-trow", tabindex: "0", role: "button", "aria-label": tri(t) }, gR);
-        const y = top + 4 + i * TROW;
-        mk("rect", { x: listX - 6, y: y - 9, width: W - listX - 4, height: 18, rx: 5 }, g);
-        mk("text", { x: listX, y, class: "tid" }, g).textContent = t.id;
-        mk("text", { x: listX + 30, y }, g).textContent = `${t.x} · ${t.y} · ${t.z}`;
+        const col = Math.floor(i / perCol), lx = listX + col * colW, y = listTop + 4 + (i - col * perCol) * TROW;
+        mk("rect", { x: lx - 6, y: y - 9, width: rowW, height: 18, rx: 5 }, g);
+        mk("text", { x: lx, y, class: "tid" }, g).textContent = t.id;
+        mk("text", { x: lx + idW, y }, g).textContent = `${t.x} · ${t.y} · ${t.z}`;
         hook(g, "t:" + i, api);
         return { path, g };
       });
@@ -7735,13 +7942,14 @@ const MiscView = (() => {
       ] },
   };
 
-  function create({ svg }) {
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("ms-style")) {
       const st = document.createElement("style"); st.id = "ms-style"; st.textContent = css; document.head.appendChild(st);
     }
     svg.classList.add("ms-svg");
     let impl = null, model = null, frames = [], frame = null, hover = null, els = null;
-    const paint = () => { if (impl) impl.paint(els, model, frame, hover); };
+    // Viewer hook (local/viz-viewer): afterPaint(els, frame, hover) runs after every paint, so a caller can restyle with states it was given.
+    const paint = () => { if (impl) { impl.paint(els, model, frame, hover); if (afterPaint) afterPaint(els, frame, hover); } };
     const api = { set: h => { hover = h; paint(); }, get: () => hover };
     return {
       load(str, key, solver) {
@@ -7755,6 +7963,9 @@ const MiscView = (() => {
         paint();
         return { frames, ok: frames[frames.length - 1].ok };
       },
+      // Viewer hook (local/viz-viewer): draw a model built elsewhere (the shape IMPL[key].parse returns, plus what solve adds)
+      // with frames supplied by the caller instead of running a mockup solver.
+      loadModel(key, m, fr) { impl = IMPL[key]; model = m; frames = fr; frame = null; hover = null; els = impl.draw(svg, model, api); paint(); return { frames, els }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return impl.checks(model, i === null ? null : frames[i]); },
       chosen(i) { return impl.chosen(model, i === null ? null : frames[i]); },
@@ -10471,6 +10682,13 @@ const SearchTreeView = (() => {
     return nodes;
   }
 
+  // Viewer hook (local/viz-viewer): a node list (parents before children not required) → the Map snapshot() builds.
+  function treeMap(list) {
+    const nodes = new Map(list.map(e => [e.id, { ...e, parent: e.parent ?? null, kids: [] }]));
+    for (const n of nodes.values()) if (n.parent !== null && nodes.has(n.parent)) nodes.get(n.parent).kids.push(n);
+    return nodes;
+  }
+
   function create({ svg }) {
     if (!document.getElementById("st-style")) {
       const st = document.createElement("style"); st.id = "st-style"; st.textContent = css; document.head.appendChild(st);
@@ -10488,7 +10706,8 @@ const SearchTreeView = (() => {
     function draw() {
       svg.innerHTML = "";
       const f = frame;
-      const nodes = f ? snapshot(out.R.ev, f.upto) : new Map();
+      // Viewer hook (local/viz-viewer): a frame may carry its whole tree (`tree`: [{id, parent, label, st, note, val, order}]).
+      const nodes = f ? (f.tree ? treeMap(f.tree) : snapshot(out.R.ev, f.upto)) : new Map();
       const root = [...nodes.values()].find(n => n.parent === null);
       const W0 = 680;
       if (!root) {
@@ -10506,8 +10725,10 @@ const SearchTreeView = (() => {
       const size = new Map();
       const sz = n => { let s = 1; n.kids.forEach(k => (s += sz(k))); size.set(n.id, s); return s; };
       sz(root);
-      // keep the picture about MAX_LEAVES leaves wide: first group cut-off leaves, then fold finished subtrees
-      const folded = new Set();
+      // keep the picture about MAX_LEAVES leaves wide: first group cut-off leaves, then fold finished subtrees.
+      // Viewer hook (local/viz-viewer): P.serverFolds — the tree arrives already folded (the backend's "cut" and "more"
+      // nodes, payload.maxLeaves), so draw it as given instead of folding it a second time.
+      const folded = new Set(), clientFolds = !P.serverFolds;
       const cutKids = (n, on) => (on ? n.kids.filter(k => !k.kids.length && k.st === "pruned" && k.id !== cur) : []);
       const leaves = on => {
         let c = 0;
@@ -10518,8 +10739,8 @@ const SearchTreeView = (() => {
         };
         rec(root); return c;
       };
-      const groupCuts = leaves(false) > MAX_LEAVES;
-      while (leaves(groupCuts) > MAX_LEAVES) {
+      const groupCuts = clientFolds && leaves(false) > MAX_LEAVES;
+      while (clientFolds && leaves(groupCuts) > MAX_LEAVES) {
         let pick = null;
         for (const n of nodes.values()) {
           if (open.has(n.id) || folded.has(n.id) || n.kids.length === 0 || size.get(n.id) < 3) continue;
@@ -10645,6 +10866,8 @@ const SearchTreeView = (() => {
         draw();
         return { frames, ok: out.ok };
       },
+      // Viewer hook (local/viz-viewer): frames supplied by the caller, each carrying `tree` (see draw), plus cur / done / ok.
+      loadModel(p, fr) { P = p; inst = null; out = { R: { ev: [] }, ok: fr.length ? fr[fr.length - 1].ok : null }; frames = fr; frame = null; hover = null; draw(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; draw(); return frame; },
       checks(i) {
         if (i === null) return [{ label: "Tree not grown yet", ok: null }];
@@ -11178,7 +11401,8 @@ const ReductionView = (() => {
   const fmt = a => "{" + a.join(", ") + "}";
 
   /* One shared list of gadget kinds. Redux's Gadget.color today carries "ElementHighlight" / "ClauseHighlight";
-     those map to element / group. */
+     those map to element / group. The Reduction View sends each gadget as {gadgetKind, sourceIds, targetIds, note?};
+     this module's own mock reductions build {kind, from, to, note?} internally. */
   const GADGET_KINDS = {
     element: { name: "Element", def: "One piece of A becomes one piece of B", redux: "ElementHighlight" },
     group: { name: "Group", def: "One part of A becomes a group of pieces in B", redux: "ClauseHighlight" },

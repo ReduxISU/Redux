@@ -387,6 +387,7 @@ const ScheduleView = (() => {
         if (r.late) st = "Rejected";
         else if (f.done) st = f.ok ? "Solution" : "Covered";
         if (j === f.trying || (f.trial && !r.late && !f.done)) st = r.late ? "Rejected" : "Active";
+        if (f.states && f.states[j]) st = f.states[j]; // Viewer hook (local/viz-viewer): states evaluated by the caller (the backend's)
         mk("rect", { x: X(r.s), y: y + 7, width: Math.max(2, X(r.f) - X(r.s)), height: rowH - 14, rx: 4, class: "sc-bar " + st }, g);
         if (r.late) { const from = Math.max(I.D[j], r.s); mk("rect", { x: X(from), y: y + 7, width: Math.max(0, X(r.f) - X(from)), height: rowH - 14, rx: 4, class: "sc-over" }, g); }
       } else if (f && aside.has(j)) {
@@ -572,6 +573,8 @@ const ScheduleView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): parse the instance and show frames supplied by the caller instead of running a mockup solver.
+      loadFrames(str, key, fr) { I = key === "JOBSEQ" ? parseJob(str) : parsePump(str, key === "PUMPEM"); frames = fr; frame = null; hover = null; return { frames, I }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { const f = i === null ? null : frames[i]; return I.kind === "job" ? jobChecks(I, f) : pumpChecks(I, f); },
       chosen(i) {

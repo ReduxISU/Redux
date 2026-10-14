@@ -27,6 +27,7 @@ const GraphView = (() => {
 .gb-node.badnode .body { stroke: var(--av-rej); stroke-width: 3.5; }
 .gb-node.trace .body, .gb-node:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; }
 .gb-node.faint { filter: grayscale(1); } .gb-node.faint .body { stroke-dasharray: 3 3; }
+.gb-svg .gb-node .gb-order text { fill: var(--av-surface); } /* the order badge keeps its own text color when the node is Rejected or Solution */
 .gb-term { fill: none; stroke: var(--av-ink); stroke-width: 1.6; pointer-events: none; }
 .gb-order circle { fill: var(--av-ink); stroke: var(--av-surface); stroke-width: 1.5; } .gb-order text { fill: var(--av-surface); font-size: 10.5px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
 .gb-edge { stroke: var(--av-edge); stroke-width: 1.6; transition: opacity .2s, stroke .2s; }
@@ -740,7 +741,8 @@ const GraphView = (() => {
     }
 
     function paint() {
-      const ev = evaluate(G, rule, frame);
+      // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+      const ev = frame && frame.ev ? frame.ev : evaluate(G, rule, frame);
       const nb = hover ? G.adj.get(hover) : null;
       for (const [n, o] of els.nodes) {
         const s = ev.nodes.get(n) || {};
@@ -784,6 +786,9 @@ const GraphView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: last.ok, K: G.K };
       },
+      // Viewer hook (local/viz-viewer): draw a graph built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, P, fr) { G = model; rule = P.rule; if (P.layout) mode = P.layout; frames = fr; frame = null; hover = null; draw(); paint(); return { frames, K: G.K }; },
       setLayout(m) { mode = m; if (G) { draw(); paint(); } },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return evaluate(G, rule, i === null ? null : frames[i]).checks; },

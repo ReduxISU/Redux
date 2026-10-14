@@ -600,6 +600,13 @@ const SearchTreeView = (() => {
     return nodes;
   }
 
+  // Viewer hook (local/viz-viewer): a node list (parents before children not required) → the Map snapshot() builds.
+  function treeMap(list) {
+    const nodes = new Map(list.map(e => [e.id, { ...e, parent: e.parent ?? null, kids: [] }]));
+    for (const n of nodes.values()) if (n.parent !== null && nodes.has(n.parent)) nodes.get(n.parent).kids.push(n);
+    return nodes;
+  }
+
   function create({ svg }) {
     if (!document.getElementById("st-style")) {
       const st = document.createElement("style"); st.id = "st-style"; st.textContent = css; document.head.appendChild(st);
@@ -617,7 +624,8 @@ const SearchTreeView = (() => {
     function draw() {
       svg.innerHTML = "";
       const f = frame;
-      const nodes = f ? snapshot(out.R.ev, f.upto) : new Map();
+      // Viewer hook (local/viz-viewer): a frame may carry its whole tree (`tree`: [{id, parent, label, st, note, val, order}]).
+      const nodes = f ? (f.tree ? treeMap(f.tree) : snapshot(out.R.ev, f.upto)) : new Map();
       const root = [...nodes.values()].find(n => n.parent === null);
       const W0 = 680;
       if (!root) {
@@ -635,8 +643,10 @@ const SearchTreeView = (() => {
       const size = new Map();
       const sz = n => { let s = 1; n.kids.forEach(k => (s += sz(k))); size.set(n.id, s); return s; };
       sz(root);
-      // keep the picture about MAX_LEAVES leaves wide: first group cut-off leaves, then fold finished subtrees
-      const folded = new Set();
+      // keep the picture about MAX_LEAVES leaves wide: first group cut-off leaves, then fold finished subtrees.
+      // Viewer hook (local/viz-viewer): P.serverFolds — the tree arrives already folded (the backend's "cut" and "more"
+      // nodes, payload.maxLeaves), so draw it as given instead of folding it a second time.
+      const folded = new Set(), clientFolds = !P.serverFolds;
       const cutKids = (n, on) => (on ? n.kids.filter(k => !k.kids.length && k.st === "pruned" && k.id !== cur) : []);
       const leaves = on => {
         let c = 0;
@@ -647,8 +657,8 @@ const SearchTreeView = (() => {
         };
         rec(root); return c;
       };
-      const groupCuts = leaves(false) > MAX_LEAVES;
-      while (leaves(groupCuts) > MAX_LEAVES) {
+      const groupCuts = clientFolds && leaves(false) > MAX_LEAVES;
+      while (clientFolds && leaves(groupCuts) > MAX_LEAVES) {
         let pick = null;
         for (const n of nodes.values()) {
           if (open.has(n.id) || folded.has(n.id) || n.kids.length === 0 || size.get(n.id) < 3) continue;
@@ -774,6 +784,8 @@ const SearchTreeView = (() => {
         draw();
         return { frames, ok: out.ok };
       },
+      // Viewer hook (local/viz-viewer): frames supplied by the caller, each carrying `tree` (see draw), plus cur / done / ok.
+      loadModel(p, fr) { P = p; inst = null; out = { R: { ev: [] }, ok: fr.length ? fr[fr.length - 1].ok : null }; frames = fr; frame = null; hover = null; draw(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; draw(); return frame; },
       checks(i) {
         if (i === null) return [{ label: "Tree not grown yet", ok: null }];

@@ -228,7 +228,8 @@ const FlowView = (() => {
 
     function draw() {
       svg.innerHTML = "";
-      const W = 700, { P, H } = layout(G, W);
+      // Viewer hook (local/viz-viewer): a model may bring its own positions (`fixedLayout(W)` returns what layout() does).
+      const W = 700, { P, H } = G.fixedLayout ? G.fixedLayout(W) : layout(G, W);
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       const defs = mk("defs", {}, svg);
       for (const k of ["def", "flow", "sat", "hot", "sol", "trace", "back"]) {
@@ -324,6 +325,9 @@ const FlowView = (() => {
         draw(); paint();
         return { frames, ok: true };
       },
+      // Viewer hook (local/viz-viewer): draw a network built elsewhere (the shape parse() returns) with frames in this
+      // module's own terms supplied by the caller, instead of running the mockup solver.
+      loadModel(model, fr) { G = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       setResidual(on) { residual = !!on; if (G) paint(); },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : frames[i]); },

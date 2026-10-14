@@ -25,7 +25,12 @@ const PackingView = (() => {
 .pk-tile.faint, .pk-seg.faint { filter: grayscale(1); }
 .pk-row-label { font-size: 13px; font-weight: 600; fill: var(--av-ink); }
 .pk-row-sub { font-size: 11px; fill: var(--av-muted); }
-.pk-track { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.2; }
+.pk-track { fill: var(--av-surface); stroke: var(--av-stroke); stroke-width: 1.2; transition: fill .2s, stroke .2s; }
+.pk-track.Covered { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; }
+.pk-track.Solution { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
+.pk-track.Active { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
+.pk-track.Rejected { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
+.pk-row-label.Covered, .pk-row-label.Solution { fill: var(--av-sol-ink); } .pk-row-label.Active { fill: var(--av-hl-ink); } .pk-row-label.Rejected { fill: var(--av-rej-ink); }
 .pk-seg rect { stroke: var(--av-surface); stroke-width: 1.5; transition: fill .2s; }
 .pk-seg text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-on-sol); font-weight: 600; }
 .pk-seg.Solution rect { fill: var(--av-sol); }
@@ -348,7 +353,7 @@ const PackingView = (() => {
         tiles.push({ t, x, y, w }); x += w + 8;
       });
       const poolBottom = y + 30;
-      els = { tiles: [], segs: [], reads: [], beam: null, rowY: [] };
+      els = { tiles: [], segs: [], reads: [], beam: null, rowY: [], tracks: [], labels: [] };
       const gT = mk("g", {}, svg);
       tiles.forEach(({ t, x: tx, y: ty, w }) => {
         const g = mk("g", { class: "pk-tile", tabindex: "0", role: "button", "aria-label": I.rule === "knapsack" ? `Item weight ${t.w} value ${t.v}` : `Item ${t.w}` }, gT);
@@ -367,11 +372,12 @@ const PackingView = (() => {
       rows.forEach((row, r) => {
         const cy = ry + 16;
         els.rowY.push(cy);
-        mk("text", { x: 24, y: cy - 3, class: "pk-row-label" }, svg).textContent = row.label;
+        els.labels.push(mk("text", { x: 24, y: cy - 3, class: "pk-row-label" }, svg));
+        els.labels[r].textContent = row.label;
         mk("text", { x: 24, y: cy + 13, class: "pk-row-sub" }, svg).textContent = row.sub;
         const lineAt = row.target || row.cap || row.atLeast;
         const trackLen = row.cap ? len(row, row.cap) * scales[r] : TW;
-        mk("rect", { x: X0, y: cy - 15, width: trackLen, height: 30, rx: 6, class: "pk-track" }, svg);
+        els.tracks.push(mk("rect", { x: X0, y: cy - 15, width: trackLen, height: 30, rx: 6, class: "pk-track" }, svg));
         const g = mk("g", {}, svg);
         els.segs.push({ r, g });
         if (lineAt) {
@@ -404,6 +410,8 @@ const PackingView = (() => {
 
     function itemState(f, i) {
       if (!f) return "";
+      // Viewer hook (local/viz-viewer): a frame may carry each item's state already decided (`itemStates`), e.g. from the backend.
+      if (f.itemStates) return f.itemStates[i] || "";
       if (i === f.bad) return "Rejected";
       const a = f.assign[i];
       if (i === f.trying && !f.done) return "Active";
@@ -422,6 +430,13 @@ const PackingView = (() => {
         if (grp !== null && st !== "Rejected") cls += " g" + (grp % 6);
         if (hover !== null) cls += i === hover ? " trace" : " faint";
         g.setAttribute("class", cls);
+      });
+      // Viewer hook (local/viz-viewer): a frame may carry each row's container state (`rowStates`[r] = "Covered" | "Rejected" |
+      // "Active" | "Solution" | ""), e.g. a bin or side the backend marks; it styles that row's track and label.
+      rows.forEach((row, r) => {
+        const rs = f && f.rowStates ? f.rowStates[r] || "" : "";
+        els.tracks[r].setAttribute("class", "pk-track" + (rs ? " " + rs : ""));
+        els.labels[r].setAttribute("class", "pk-row-label" + (rs ? " " + rs : ""));
       });
       els.segs.forEach(({ r, g }) => {
         g.innerHTML = "";
@@ -509,6 +524,9 @@ const PackingView = (() => {
         const last = frames[frames.length - 1];
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw an instance built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller ({assign, itemStates?, ...}) instead of running a mockup solver.
+      loadModel(model, prob, fr) { P = prob; I = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return checks(i === null ? null : frames[i]); },
       chosen(i) { return chosen(i === null ? null : frames[i]); },

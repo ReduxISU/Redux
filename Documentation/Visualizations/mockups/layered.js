@@ -41,11 +41,12 @@ const LayeredView = (() => {
 .ly-edge.hot { stroke: var(--av-hl); stroke-width: 3; }
 .ly-edge.cut { stroke: var(--av-sol); stroke-width: 2.4; stroke-dasharray: 6 5; }
 .ly-edge.dim { stroke: var(--av-edge-dim); }
+.ly-edge.untr { stroke: var(--av-edge-dim); stroke-dasharray: 4 4; }
 .ly-edge.trace { stroke: var(--av-hot); stroke-width: 2.6; opacity: 1; }
 .ly-edge.faint { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
 .ly-phantom { stroke: var(--av-rej); stroke-width: 2.4; stroke-dasharray: 6 5; fill: none; }
 .ly-m-def { fill: var(--av-edge); } .ly-m-sol { fill: var(--av-sol); } .ly-m-rej { fill: var(--av-rej); }
-.ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); }
+.ly-m-hot { fill: var(--av-hl); } .ly-m-trace { fill: var(--av-hot); } .ly-m-untr { fill: var(--av-edge-dim); }
 .ly-w rect { fill: var(--av-surface); stroke: var(--av-line); } .ly-w text { font-size: 11.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); }
 .ly-w.sol rect { stroke: var(--av-sol); } .ly-w.sol text { fill: var(--av-sol); font-weight: 700; }
 .ly-w.hot rect { stroke: var(--av-hl); } .ly-w.hot text { fill: var(--av-ink); font-weight: 700; }
@@ -473,10 +474,11 @@ const LayeredView = (() => {
 
     function draw() {
       svg.innerHTML = "";
-      L = layout(G);
+      // Viewer hook (local/viz-viewer): a model may bring its own positions (`fixedLayout`, the shape layout() returns).
+      L = G.fixedLayout || layout(G);
       svg.setAttribute("viewBox", `0 0 ${L.W} ${L.H}`);
       const defs = mk("defs", {}, svg);
-      for (const k of ["def", "sol", "rej", "hot", "trace"]) {
+      for (const k of ["def", "sol", "rej", "hot", "trace", "untr"]) {
         const m = mk("marker", { id: `ly-arrow-${k}`, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 9, markerHeight: 9, markerUnits: "userSpaceOnUse", orient: "auto" }, defs);
         mk("path", { d: "M0,0 L10,5 L0,10 z", class: `ly-m-${k}` }, m);
       }
@@ -521,7 +523,8 @@ const LayeredView = (() => {
     }
 
     function paint() {
-      const ev = evaluate(G, rule, frame);
+      // Viewer hook (local/viz-viewer): a frame may carry its states already evaluated (`ev`), e.g. from the backend.
+      const ev = frame && frame.ev ? frame.ev : evaluate(G, rule, frame);
       const touches = new Set();
       if (hover) G.edges.forEach(e => { if (e.u === hover || e.v === hover) { touches.add(e.u); touches.add(e.v); } });
       for (const [n, o] of els.nodes) {
@@ -546,10 +549,11 @@ const LayeredView = (() => {
         if (o.e.undirected && !st) st = ev.edges.get(dkey(o.e.v, o.e.u)) || "";
         if (hover) st = o.e.u === hover || o.e.v === hover ? "trace" : "faint";
         o.path.setAttribute("class", "ly-edge" + (o.back ? " back" : "") + (st ? " " + st : ""));
-        const mark = { sol: "sol", rej: "rej", hot: "hot", trace: "trace", cut: "sol" }[st] || "def";
+        // untr: an Untraveled edge (e.g. removed with its node), dashed like Untraveled nodes. Viewer hook (local/viz-viewer).
+        const mark = { sol: "sol", rej: "rej", hot: "hot", trace: "trace", cut: "sol", untr: "untr" }[st] || "def";
         if (o.e.undirected) o.path.removeAttribute("marker-end");
         else o.path.setAttribute("marker-end", `url(#ly-arrow-${mark})`);
-        if (o.w) o.w.setAttribute("class", "ly-w" + (st === "sol" ? " sol" : st === "hot" ? " hot" : st === "dim" || st === "faint" ? " faint" : ""));
+        if (o.w) o.w.setAttribute("class", "ly-w" + (st === "sol" ? " sol" : st === "hot" ? " hot" : st === "dim" || st === "faint" || st === "untr" ? " faint" : ""));
       }
       els.gPh.innerHTML = "";
       if (!hover) ev.phantom.forEach(([a, b]) => {
@@ -570,6 +574,9 @@ const LayeredView = (() => {
         const last = frames.at(-1);
         return { frames, ok: last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a graph built elsewhere (the shape parse() returns) with frames supplied
+      // by the caller instead of running a mockup solver. Frames may carry `ev` (see paint).
+      loadModel(model, P, fr) { G = model; rule = P.rule; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       checks(i) { return evaluate(G, rule, i === null ? null : frames[i]).checks; },
       chosen(i) {

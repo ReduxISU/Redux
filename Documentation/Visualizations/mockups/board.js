@@ -27,7 +27,10 @@ const BoardView = (() => {
 .bd-thick { stroke: var(--av-ink); stroke-width: 2.2; fill: none; }
 .bd-dig { text-anchor: middle; dominant-baseline: central; pointer-events: none; fill: var(--av-ink); }
 .bd-dig.given { font-weight: 700; }
-.bd-dig.placed { fill: var(--av-sol); font-weight: 500; }
+/* Solver-placed digits: plain (muted, regular weight, so they differ from bold clues) until the answer is confirmed;
+   green (.sol) only on a solved board or where the frame says the cell is Solution. */
+.bd-dig.placed { fill: var(--av-muted); font-weight: 500; }
+.bd-dig.placed.sol { fill: var(--av-sol-ink); font-weight: 600; }
 .bd-dig.try { fill: var(--av-ink); font-weight: 700; }
 .bd-dig.bad { fill: var(--av-rej); font-weight: 700; }
 .bd-mark { text-anchor: middle; dominant-baseline: central; fill: var(--av-muted); pointer-events: none; font-family: var(--av-mono); }
@@ -252,7 +255,8 @@ const BoardView = (() => {
   };
 
   /* ---------- the view ---------- */
-  function create({ svg }) {
+  // Viewer hook (local/viz-viewer): `afterPaint(frame, svg)` runs after every paint, so a caller can restyle cells from its own states.
+  function create({ svg, afterPaint }) {
     if (!document.getElementById("bd-style")) {
       const st = document.createElement("style"); st.id = "bd-style"; st.textContent = css; document.head.appendChild(st);
     }
@@ -346,7 +350,7 @@ const BoardView = (() => {
         els.cells[r][c].setAttribute("class", "bd-cell " + st);
         els.rings[r][c].setAttribute("class", "bd-ring " + ring);
         const d = els.digs[r][c];
-        let text = v ? String(v) : "", dcls = given ? "given" : "placed";
+        let text = v ? String(v) : "", dcls = given ? "given" : done && f.ok ? "placed sol" : "placed";
         if (here && f.kind === "clash") { text = String(f.value); dcls = "bad"; }
         else if (here && f.kind === "try") dcls = "try";
         else if (clashCells.has(id) && given) dcls = "bad given";
@@ -408,7 +412,7 @@ const BoardView = (() => {
       }
     }
 
-    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); }
+    function paint() { if (G.kind === "sudoku") paintSudoku(); else paintQueens(); if (afterPaint) afterPaint(frame, svg); }
 
     function checksFor(f) {
       if (G.kind === "sudoku") {
@@ -439,6 +443,8 @@ const BoardView = (() => {
         const last = frames.at(-1);
         return { frames, ok: !!last.ok };
       },
+      // Viewer hook (local/viz-viewer): draw a board built elsewhere (the shape parse() returns) with frames supplied by the caller.
+      loadModel(model, Pk, fr) { P = Pk; G = model; frames = fr; frame = null; hover = null; draw(); paint(); return { frames }; },
       show(i) { frame = i === null ? null : frames[i]; paint(); return frame; },
       setHints(on) { hints = !!on; if (G) paint(); },
       checks(i) { return checksFor(i === null ? null : frames[i]); },
