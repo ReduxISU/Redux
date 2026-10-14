@@ -88,6 +88,16 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("Format:", body); // SUDOKU.instanceFormat
     }
 
+    // #836: SPADE reads the loop {a,a} as {a}, and the constructor read its missing second end, so the detail was an index error.
+    [Fact]
+    public async Task Solve_GraphColoring_Loop_Returns400NamingTheLoop() {
+        var (status, body) = await PostAsync("/ProblemProvider/solve?solver=GraphColoringGreedy", "(({a,b},{{a,a},{a,b}}),3)");
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        using JsonDocument doc = JsonDocument.Parse(body);
+        Assert.Equal("instance_parse_error", doc.RootElement.GetProperty("error").GetString());
+        Assert.Equal("edge {a,a} joins a node to itself; Graph Coloring has no loops", doc.RootElement.GetProperty("detail").GetString());
+    }
+
     [Fact]
     public async Task ProblemInstance_ParseFailure_KeepsExistingResponseShape() {
         var (status, body) = await PostAsync("/ProblemProvider/problemInstance?problem=MINCUT", "garbage");
