@@ -43,7 +43,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         map.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetProperty("state").GetString()!);
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     public static TheoryData<string, string, string> FramesCases {
@@ -180,7 +180,8 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             });
             var ids = jobs.Select(j => j.GetProperty("id").GetString()!).ToHashSet();
             var byId = jobs.ToDictionary(j => j.GetProperty("id").GetString()!);
-            foreach (var f in frames) {
+            for (int i = 0; i < frames.Count; i++) {
+                var f = frames[i];
                 Assert.Equal(["event", "caption", "focus", "order", "runs", "jobs", "penalty", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                     f.EnumerateObject().Select(p => p.Name));
                 Assert.All(f.GetProperty("focus").EnumerateArray(), id => Assert.Contains(id.GetString()!, ids));
@@ -201,9 +202,11 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                     if (late) { penalty += job.GetProperty("penalty").GetInt32(); Assert.Equal("Rejected", states[r.GetProperty("job").GetString()!]); }
                 }
                 Assert.Equal(penalty, f.GetProperty("penalty").GetInt32());
-                // Whole orders: what is placed is highlighted while tried, the answer once accepted.
+                // Whole orders: what is placed is highlighted while tried, kept (Committed) once accepted, and the answer in
+                // the Done or an Accept that ends the run (#886).
                 string ev = f.GetProperty("event").GetString()!;
-                string placed = ev == "Reject" ? "ElementHighlight" : "Solution";
+                bool confirmed = ev == "Done" || ev == "Accept" && frames[i + 1].GetProperty("event").GetString() == "Done";
+                string placed = ev == "Reject" ? "ElementHighlight" : confirmed ? "Solution" : "Committed";
                 Assert.All(states.Where(s => s.Value != "Rejected"), s => Assert.Equal(placed, s.Value));
             }
             if (ok) {
@@ -230,7 +233,8 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             Assert.Equal(["capacity", "level", "minimum"], tank.EnumerateObject().Select(p => p.Name));
             var hourIds = hours.Select(h => h.GetProperty("id").GetString()!).ToHashSet();
             var cellIds = pumps.SelectMany(p => hourIds.Select(h => p.GetProperty("id").GetString() + h)).ToHashSet();
-            foreach (var f in frames) {
+            for (int i = 0; i < frames.Count; i++) {
+                var f = frames[i];
                 Assert.Equal(["event", "caption", "focus", "reached", "schedule", "upTo", "hours", "cells",
                     .. f.TryGetProperty("budget", out _) ? new[] { "budget" } : [], .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                     f.EnumerateObject().Select(p => p.Name));
@@ -239,7 +243,10 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 var hourStates = StatesOf(f.GetProperty("hours"));
                 var cellStates = StatesOf(f.GetProperty("cells"));
                 Assert.All(hourStates, s => { Assert.Contains(s.Key, hourIds); Assert.Contains(s.Value, Vocabulary); });
-                Assert.All(cellStates, s => { Assert.Contains(s.Key, cellIds); Assert.Equal("Solution", s.Value); });
+                // The schedule is kept (Committed) while it is replayed, and the answer in the Done or an Accept that ends the run (#886).
+                string fev = f.GetProperty("event").GetString()!;
+                bool final = fev == "Done" || fev == "Accept" && frames[i + 1].GetProperty("event").GetString() == "Done";
+                Assert.All(cellStates, s => { Assert.Contains(s.Key, cellIds); Assert.Equal(final ? "Solution" : "Committed", s.Value); });
                 Assert.All(f.GetProperty("reached").EnumerateArray(), r => Assert.Equal(["states", "low", "high", "best"], r.EnumerateObject().Select(p => p.Name)));
                 var schedule = f.GetProperty("schedule").EnumerateArray().ToList();
                 int upTo = f.GetProperty("upTo").GetInt32();
@@ -249,7 +256,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                     continue;
                 }
                 Assert.Equal(24, schedule.Count);
-                // Each hour on the schedule: its pumps are its Solution cells, and an hour drawn so far outside the tank's limits is Rejected.
+                // Each hour on the schedule: its pumps are its kept cells, and an hour drawn so far outside the tank's limits is Rejected.
                 for (int h = 0; h < 24; h++) {
                     var row = schedule[h];
                     Assert.Equal(["hour", "on", "starts", "inflow", "level", "energy", "startup"], row.EnumerateObject().Select(p => p.Name));
