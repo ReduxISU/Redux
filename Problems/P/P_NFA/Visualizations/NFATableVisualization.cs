@@ -18,8 +18,6 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
     public ISolver solver { get; } = new NFASolver();
 
     // Implemented explicitly so it is not a public member (and so not part of /info).
-    // The table is still built from the solver's own run enumeration (GetTableSteps), not from the typed
-    // steps, but it declares the shape its solver records so the steps are not dropped as a mismatch.
     Type? IVisualization.StepShape => typeof(ActiveStates);
 
     public NFATableVisualization() { }
@@ -36,28 +34,25 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
         return new API_empty();
     }
 
-    public List<API_JSON> StepsVisualization(NFA problem, List<Object> steps) => Tables(problem, null);
-
-    // The visualize endpoint's entry point. The tables come from re-enumerating every run (GetTableSteps), not from
-    // the steps, so that enumeration gets the endpoint's time limit: it can take as long as the solve (#764).
-    List<API_JSON> IVisualization.StepsVisualization(string problem, List<Object> steps, TimeSpan? timeLimit) {
-        if (steps.Count == 0)
-            return new List<API_JSON>();
-        return Tables(ParseGuard.CreateProblem<NFA>(problem), timeLimit);
-    }
-
-    // One table per run; when the time limit runs out first, one empty table that says so instead.
-    private static List<API_JSON> Tables(NFA problem, TimeSpan? timeLimit) {
-        var rec = timeLimit is null ? StepRecorder<ActiveStates>.Off : new StepRecorder<ActiveStates>(cap: 0, timeLimit);
-        try {
-            var tableSteps = new NFASolver().GetTableSteps(problem, rec);
-            return tableSteps.Select(s => (API_JSON)TranslateToTableJSON((NFATableStep)s)).ToList();
-        } catch (StepBudgetExceededException ex) when (ex.Recorder == rec) {
-            return new List<API_JSON> { new API_TableJSON { title = StoppedTitle, columns = Columns() } };
-        }
+    // One table per run, read from the solver's typed steps (no second run). When the run was stopped by the time
+    // limit (#764), or the recorder did not keep every step, the runs after the kept steps are missing, and a last,
+    // empty table says so.
+    public List<API_JSON> StepsVisualization(NFA problem, List<Object> steps) {
+        var (tables, notShown) = NFASolver.TableStepsFrom(problem, steps);
+        var frames = tables.Select(s => (API_JSON)TranslateToTableJSON(s)).ToList();
+        bool stopped = steps.OfType<SolverStep<ActiveStates>>().LastOrDefault() is { Event: StepEvent.Done } done
+            && StepCaptions.IsStopped(done.Caption);
+        if (stopped)
+            frames.Add(new API_TableJSON { title = StoppedTitle, columns = Columns() });
+        else if (notShown > 0)
+            frames.Add(new API_TableJSON { title = NotAllRunsTitle(notShown), columns = Columns() });
+        return frames;
     }
 
     internal const string StoppedTitle = "Stopped: the time limit ran out before every run was listed.";
+
+    internal static string NotAllRunsTitle(int notShown) =>
+        $"Not every run is listed: {notShown} later steps of the search were not kept.";
 
     private static List<TableColumn> Columns() => new List<TableColumn>
     {

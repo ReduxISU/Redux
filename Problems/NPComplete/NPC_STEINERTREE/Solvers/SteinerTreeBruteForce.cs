@@ -22,7 +22,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE> {
     // not node subsets or permutations. Each candidate costs O(i) to build (indexListToCertificate) and
     // SteinerTreeVerifier's IsConnected/terminal-coverage check costs O(i*t) (t = |terminals|, from the
     // per-edge-endpoint List.Contains/Remove scans against the terminals list), i <= m.
-    public string complexity { get; } = "O(2^m * m * t), m = |edges|, t = |terminals|";
+    public MathematicalFunction timeComplexity { get; } = new("2^m * m * t", ", m = |edges|, t = |terminals|");
 
     // --- Methods Including Constructors ---
     public SteinerTreeBruteForce() {

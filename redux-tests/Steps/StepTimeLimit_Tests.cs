@@ -17,6 +17,7 @@ namespace redux_tests;
 // The time limit on solves that record steps (the visualize endpoint). Uses the NFA solver on an automaton whose
 // every state moves to every state on 'a' and which can never accept: it enumerates 2^n runs on a^n, so it is
 // slow enough to be stopped, and it records a step for every move.
+[Collection(TimingCollection.Name)]
 public class StepTimeLimit_Tests {
     // 2^40 runs: never finishes within a test's lifetime unless stopped.
     internal const string SlowNfa = "(({1,2,3},{a},{(1,a,1),(1,a,2),(2,a,1),(2,a,2)},1,{3}),aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa)";
@@ -64,31 +65,37 @@ public class StepTimeLimit_Tests {
         Assert.StartsWith("Rejected: no run accepts the input.", done.Caption);
     }
 
-    // #764: the NFA table re-enumerates every run (GetTableSteps) instead of drawing the recorded steps, so it used to
-    // ignore the time limit even when the solve had been stopped, and hung the request.
+    // #764: the NFA table draws the runs in the recorded steps (#734), so a stopped solve gives the runs found before
+    // the time limit and then a table that says it stopped; nothing searches the NFA again.
     [Fact]
-    public void NfaTable_SlowEnumeration_WithA50msBudget_StopsQuickly_AndSaysSo() {
-        IVisualization vis = new NFATableVisualization();
-        var steps = new List<object> { "any recorded step" };
+    public void NfaTable_StoppedRun_ListsTheRunsFound_ThenSaysItStopped() {
+        var run = ((ISolver)new NFASolver()).Run(SlowNfa, withSteps: true, TimeSpan.FromMilliseconds(50));
+        Assert.True(run.TimedOut);
         var sw = Stopwatch.StartNew();
-        var tables = vis.StepsVisualization(SlowNfa, steps, TimeSpan.FromMilliseconds(50));
+        var tables = new NFATableVisualization().StepsVisualization(new API.Problems.P.P_NFA.NFA(SlowNfa), run.Steps.ToList())
+            .Cast<API_TableJSON>().ToList();
         sw.Stop();
 
         Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
-        var table = Assert.IsType<API_TableJSON>(Assert.Single(tables));
-        Assert.Equal(NFATableVisualization.StoppedTitle, table.title);
-        Assert.Empty(table.rows);
-        Assert.Equal(5, table.columns.Count);
+        var last = tables[^1];
+        Assert.Equal(NFATableVisualization.StoppedTitle, last.title);
+        Assert.Empty(last.rows);
+        Assert.Equal(5, last.columns.Count);
+        Assert.All(tables.Take(tables.Count - 1), t => Assert.Contains("Rejected", t.title));
     }
 
     [Fact]
-    public void NfaTable_WithinTheBudget_ListsEveryRun() {
-        IVisualization vis = new NFATableVisualization();
-        var steps = new List<object> { "any recorded step" };
-        var timed = vis.StepsVisualization(SmallNfa, steps, TimeSpan.FromSeconds(60)).Cast<API_TableJSON>().ToList();
-        var untimed = new NFATableVisualization().StepsVisualization(new API.Problems.P.P_NFA.NFA(SmallNfa), steps).Cast<API_TableJSON>().ToList();
-        Assert.Equal(1 << 12, timed.Count);
-        Assert.Equal(untimed.Select(t => t.title), timed.Select(t => t.title));
+    public void NfaTable_RunPastTheStepCap_ListsTheRunsInTheKeptSteps() {
+        // 2^12 runs take far more steps than the cap keeps, so the table lists the runs in the kept steps and then says
+        // the rest were not kept.
+        var run = ((ISolver)new NFASolver()).Run(SmallNfa, withSteps: true, TimeSpan.FromSeconds(60));
+        Assert.False(run.TimedOut);
+        var tables = new NFATableVisualization().StepsVisualization(new API.Problems.P.P_NFA.NFA(SmallNfa), run.Steps.ToList())
+            .Cast<API_TableJSON>().ToList();
+        int notShown = StepCaptions.NotShown(((SolverStep<ActiveStates>)run.Steps[^1]).Caption);
+        Assert.True(notShown > 0);
+        Assert.Equal(NFATableVisualization.NotAllRunsTitle(notShown), tables[^1].title);
+        Assert.InRange(tables.Count - 1, 1, (1 << 12) - 1);
     }
 
     [Fact]
@@ -109,6 +116,7 @@ public class TinyBudgetAppFactory : AppFactory {
     }
 }
 
+[Collection(TimingCollection.Name)]
 public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
@@ -188,7 +196,7 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
         Assert.Equal(list[0], list[^1]);
     }
 
-    // #764: the stopped solve no longer leaves the table to re-enumerate 2^40 runs with no limit. The test server runs
+    // #764: the stopped solve no longer leaves the table to enumerate 2^40 runs with no limit. The test server runs
     // the controller on the calling thread, so the request runs on its own task and the test stops waiting after 30 s:
     // a hang fails the test instead of stalling the run.
     [Theory]
@@ -205,9 +213,11 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
         Assert.True(sw.Elapsed < TimeSpan.FromSeconds(10), $"took {sw.Elapsed}");
         var root = JsonDocument.Parse(body).RootElement;
         var tables = (format == "frames" ? root.GetProperty("frames") : root).EnumerateArray().ToList();
-        var table = Assert.Single(tables);
+        // The runs found before the limit, then the table that says the run stopped.
+        var table = tables[^1];
         Assert.Equal(NFATableVisualization.StoppedTitle, table.GetProperty("title").GetString());
         Assert.Equal(0, table.GetProperty("rows").GetArrayLength());
+        Assert.All(tables.Take(tables.Count - 1), t => Assert.Contains("Rejected", t.GetProperty("title").GetString()));
     }
 
     [Fact]

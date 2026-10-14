@@ -21,7 +21,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // solve() queries the oracle array up to (2^n / 2) + 1 times (queries_to_be_certain,
     // computed from total_inputs = 2^n) before it can be certain of constant vs. balanced.
-    public string complexity { get; } = "O(2^n) queries";
+    public MathematicalFunction timeComplexity { get; } = new("2^n", " queries");
 
     // --- Methods Including Constructors ---
     public DeutschJozsaClassicalSolver() { }

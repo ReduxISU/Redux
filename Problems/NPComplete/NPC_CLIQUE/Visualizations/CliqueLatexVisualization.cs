@@ -1,7 +1,6 @@
 using API.Interfaces;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 

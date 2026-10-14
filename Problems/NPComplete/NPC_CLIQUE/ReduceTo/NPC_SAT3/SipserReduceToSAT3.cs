@@ -129,6 +129,8 @@ class SipserReduceToSAT3 : IReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.S
         if (!int.TryParse(node.Substring(u + 1), out int idx))
             throw new ArgumentException(
                 $"Node '{node}' is not Sipser-formatted: clause index '{node.Substring(u + 1)}' is not an integer");
-        return (node.Substring(0, u), idx);
+        // SipserReduceToCliqueStandard marks repeated literals within a clause with trailing
+        // apostrophes (x1, x1', ...); they are the same literal.
+        return (node.Substring(0, u).TrimEnd('\''), idx);
     }
 }

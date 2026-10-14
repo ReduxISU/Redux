@@ -4,7 +4,7 @@ namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
 
 class GenericVerifier01INTP : IVerifier<INTPROGRAMMING01> {
     public const string CertificateGrammar = "(x1 ... xn) | n space-separated bits (0 or 1), Cx <= d holds for every row";
-    public const string CertificateExample = "(0 0 0)";
+    public const string CertificateExample = "(0 1 0)";
 
     // --- Fields ---
     public string verifierName { get; } = "Default 0-1 Integer Linear Programming Verifier";
@@ -28,7 +28,7 @@ class GenericVerifier01INTP : IVerifier<INTPROGRAMMING01> {
     }
     public List<int> parseCertificate(string certificate) {
         List<int> c = new List<int>();
-        string[] stringVector = certificate.Replace("(", "").Replace(")", "").Split(" ");
+        string[] stringVector = certificate.Replace("(", " ").Replace(")", " ").Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         for (int i = 0; i < stringVector.Length; i++) {
             c.Add(int.Parse(stringVector[i]));
         }
@@ -38,7 +38,14 @@ class GenericVerifier01INTP : IVerifier<INTPROGRAMMING01> {
     //Takes an instance of the 0-1 integer linear programming problem and a certificate, and verifies if that certificate is a solution
     //c should be in the form of a vector of 1's and 0's separated by spaces. such as "(1 0 1 1 0)"
     public bool verify(INTPROGRAMMING01 problem, string certificate) {
-        List<int> cert = parseCertificate(certificate);
+        List<int> cert;
+        try {
+            cert = parseCertificate(certificate);
+        } catch (FormatException) {
+            return false;
+        } catch (OverflowException) {
+            return false;
+        }
 
         //checks that the certificate is the correct size
         if (cert.Count != problem.C[0].Count) { return false; }

@@ -39,15 +39,23 @@ sealed class StepRecorder<TPartial> {
     private readonly TimeSpan? _timeLimit;
     // Environment.TickCount64 at which the time limit runs out; long.MaxValue when there is no limit.
     private readonly long _deadline;
+    // A test's clock in milliseconds, read instead of Environment.TickCount64; null outside tests.
+    private readonly Func<long>? _clock;
 
     public StepRecorder(int cap = DefaultCap, TimeSpan? timeLimit = null) : this(enabled: true, cap, timeLimit) { }
 
-    private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit) {
+    /// <summary>A recorder that reads the time from <paramref name="clock"/> (milliseconds), so a test decides when the limit passes.</summary>
+    internal StepRecorder(int cap, TimeSpan timeLimit, Func<long> clock) : this(enabled: true, cap, timeLimit, clock) { }
+
+    private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit, Func<long>? clock = null) {
         _enabled = enabled;
         _cap = cap;
         _timeLimit = timeLimit;
-        _deadline = timeLimit is { } limit ? Environment.TickCount64 + (long)Math.Ceiling(limit.TotalMilliseconds) : long.MaxValue;
+        _clock = clock;
+        _deadline = timeLimit is { } limit ? Now() + (long)Math.Ceiling(limit.TotalMilliseconds) : long.MaxValue;
     }
+
+    private long Now() => _clock == null ? Environment.TickCount64 : _clock();
 
     /// <summary>The kept steps, in order.</summary>
     public IReadOnlyList<SolverStep<TPartial>> Steps => _steps;
@@ -82,7 +90,7 @@ sealed class StepRecorder<TPartial> {
             _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption());
         }
         // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
-        if (Environment.TickCount64 >= _deadline)
+        if (Now() >= _deadline)
             throw new StepBudgetExceededException(this);
     }
 
@@ -98,7 +106,7 @@ sealed class StepRecorder<TPartial> {
         }
         int hidden = Hidden;
         _total++;
-        if (hidden > 0) caption += $" ({hidden} not shown)";
+        if (hidden > 0) caption += StepCaptions.NotShownSuffix(hidden);
         _steps.Add(new SolverStep<TPartial>(answer, StepEvent.Done, Array.Empty<string>(), caption) { Ok = ok });
     }
 
@@ -118,7 +126,7 @@ sealed class StepRecorder<TPartial> {
             : default!;
         string seconds = (_timeLimit ?? TimeSpan.Zero).TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
         string steps = reported.ToString("N0", CultureInfo.InvariantCulture);
-        Done(last, false, $"Stopped after {seconds} s and {steps} {(reported == 1 ? "step" : "steps")}; the solver had not finished.");
+        Done(last, false, $"{StepCaptions.StoppedPrefix}{seconds} s and {steps} {(reported == 1 ? "step" : "steps")}; the solver had not finished.");
     }
 }
 
@@ -131,5 +139,25 @@ sealed class StepBudgetExceededException : Exception {
     public object Recorder { get; }
     public StepBudgetExceededException(object recorder) : base("The solver ran past the time limit for recording steps.") {
         Recorder = recorder;
+    }
+}
+
+/// <summary>What a Done caption says about steps the recorder did not keep, and about a run stopped by its time limit.</summary>
+static class StepCaptions {
+    private static readonly System.Text.RegularExpressions.Regex NotShownPattern = new(@" \((\d+) not shown\)$");
+
+    /// <summary>How the caption of a Done step for a run stopped by its time limit begins.</summary>
+    public const string StoppedPrefix = "Stopped after ";
+
+    /// <summary>Whether a Done caption is that of a run stopped by its time limit.</summary>
+    public static bool IsStopped(string caption) => caption.StartsWith(StoppedPrefix, StringComparison.Ordinal);
+
+    /// <summary>The note added to a Done caption when <paramref name="hidden"/> steps were not kept.</summary>
+    public static string NotShownSuffix(int hidden) => $" ({hidden} not shown)";
+
+    /// <summary>How many steps a Done caption says were not kept; 0 when it says nothing.</summary>
+    public static int NotShown(string caption) {
+        var match = NotShownPattern.Match(caption);
+        return match.Success ? int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) : 0;
     }
 }

@@ -1,7 +1,6 @@
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.Xml;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

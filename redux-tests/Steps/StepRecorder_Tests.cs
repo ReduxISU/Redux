@@ -176,17 +176,21 @@ public class StepRecorder_Tests {
 
     [Fact]
     public void TimeLimit_ThrowsOnTheNextStepAfterTheLimit_EvenPastTheCap() {
-        var rec = new StepRecorder<NodeSet>(cap: 1, timeLimit: TimeSpan.FromMilliseconds(30));
-        var sw = System.Diagnostics.Stopwatch.StartNew();
+        // The test moves the clock by hand (#837): on the real clock a busy test run could pass the limit before the
+        // first step, and the run would stop on the kept step instead of on one past the cap.
+        long now = 0;
+        var rec = new StepRecorder<NodeSet>(cap: 1, timeLimit: TimeSpan.FromMilliseconds(30), clock: () => now);
         int lambdaCalls = 0;
-        Action runForever = () => {
-            while (true) rec.Reject(() => { lambdaCalls++; return Nodes("x"); }, () => "r");
-        };
-        Assert.Throws<StepBudgetExceededException>(runForever);
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5));
+        void Step() => rec.Reject(() => { lambdaCalls++; return Nodes("x"); }, () => "r");
+        Step();         // kept
+        now = 29;
+        Step();         // past the cap, before the limit: counted, not kept
+        Step();
+        now = 30;
+        Assert.Throws<StepBudgetExceededException>(Step);
         Assert.Single(rec.Steps);
         Assert.Equal(1, lambdaCalls);   // the clock is checked on skipped steps without running their lambdas
-        Assert.True(rec.Total > 1);
+        Assert.Equal(4, rec.Total);
     }
 
     [Fact]
