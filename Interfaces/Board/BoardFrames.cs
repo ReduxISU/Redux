@@ -119,7 +119,8 @@ sealed record BoardFrame(
 /// <c>Committed</c>, placed so far but not confirmed (#886): in every step of an incremental run
 /// (<see cref="SolveRun.Incremental"/>) and in an Accept or Backtrack the run goes on from, so Solution colour never shows
 /// while the solver is still searching. A whole candidate that is only being tried (Try, Reject of a run that is not
-/// incremental) is <c>ElementHighlight</c>. In a Done frame with ok = false it is <c>Rejected</c>.</item>
+/// incremental) is <c>ElementHighlight</c>. In a Done frame with ok = false it is <c>Rejected</c>
+/// (<see cref="GraphSubsetFrames.Picked"/>).</item>
 /// <item>A clue is fixed: it is never <c>Solution</c>, and is <c>Rejected</c> only when a step names it.</item>
 /// <item>A square a step ruled out (a conflict's square) is <c>Rejected</c>, with a <c>Rejected</c> link to the square that
 /// rules it out.</item>
@@ -171,17 +172,6 @@ static class BoardFrames {
         ParseCellId(id) is var (r, c) && r < spec.Size && c < spec.Size;
 
     /// <summary>
-    /// The state of a square the solver filled: <c>Solution</c> only in the confirmed answer (a Done with ok = true, or an
-    /// Accept that ends the run), <c>Rejected</c> in any other Done, <c>ElementHighlight</c> while a whole candidate is tried
-    /// (Try, Reject of a run that is not incremental), and <c>Committed</c> otherwise: a placed piece is kept so far, not the
-    /// answer until the run ends on it (#839, #886).
-    /// </summary>
-    public static PictureState Placed(StepEvent ev, bool? ok, bool incremental, bool endsRun = false) => ev switch {
-        StepEvent.Done => ok == true ? PictureState.Solution : PictureState.Rejected,
-        _ => GraphSubsetFrames.Picked(ev, incremental, endsRun),
-    };
-
-    /// <summary>
     /// The frame for one step. <paramref name="incremental"/> says whether the step comes from an incremental run
     /// (<see cref="SolveRun.Incremental"/>); <paramref name="endsRun"/> whether it is an Accept that ends the run
     /// (<see cref="GraphSubsetFrames.EndsRun"/>).
@@ -192,7 +182,8 @@ static class BoardFrames {
         var pieces = new List<BoardPieceDto>();
         var states = new Dictionary<string, PictureState>(StringComparer.Ordinal);
 
-        var picked = Placed(ev, ok, incremental, endsRun);
+        // The squares the solver filled follow the shared rule (#839, #886); ok is set only on the Done.
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         foreach (var (id, value) in partial.Values) {
             if (clues.ContainsKey(id) || !OnBoard(spec, id)) continue;
             var (r, c) = ParseCellId(id)!.Value;
