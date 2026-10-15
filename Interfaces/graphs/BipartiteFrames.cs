@@ -226,7 +226,7 @@ static class BipartiteFrames {
 
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var pickedState = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var pickedState = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         foreach (var p in chosen) {
             GraphSubsetFrames.Raise(nodes, p, pickedState);
             foreach (var e in m.EdgesOf[p]) GraphSubsetFrames.Raise(edges, e, pickedState);
