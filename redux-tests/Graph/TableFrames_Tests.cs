@@ -157,6 +157,53 @@ public class TableFrames_Tests {
         Assert.Equal(3, ((TablePayload)response.Payload).Rows.Count);
     }
 
+    // The payload carries the blank: the base picture a frontend draws before Run. Its cells' text only (no states, focus,
+    // changed cells or arrows, whatever the draft marks), and the payload lists every row it uses.
+    [Fact]
+    public void Build_ThePayloadCarriesTheBlank_CellTextOnly_AndListsItsRows() {
+        var run = new SolveRun("x", [Step(StepEvent.Try, "a"), Step(StepEvent.Done, "b", true)], typeof(TableCells));
+        var blank = new TableDraft();
+        blank.AddRow("0", null);
+        blank.AddRow("1", "?");
+        blank.AddRow("2", null);
+        blank.MarkRow(1, PictureState.Solution);
+        blank.MarkCell(0, 0, PictureState.Rejected);
+        blank.MarkChanged(1, 1);
+        blank.FocusRow(2);
+        var response = TableFrames.Build<TableCells>(Trace, run, Growing, () => blank, _ => null, _ => throw new InvalidOperationException("not read"));
+        var payload = (TablePayload)response.Payload;
+        Assert.Equal(3, payload.Rows.Count);
+        Assert.Equal(
+            "{\"kind\":\"table\",\"shape\":\"trace\",\"columns\":[{\"id\":\"c0\",\"label\":\"Step\",\"key\":\"step\"},{\"id\":\"c1\",\"label\":\"To\",\"key\":\"to\"}],"
+            + "\"rows\":[{\"id\":\"r0\"},{\"id\":\"r1\"},{\"id\":\"r2\"}],"
+            + "\"blank\":{\"values\":[[\"0\",null],[\"1\",\"?\"],[\"2\",null]]}}",
+            Compact(payload));
+
+        // A grid's blank lists its rows too, and a blank wider than the table is refused like any frame.
+        var grid = (TablePayload)TableFrames.Build<TableCells>(Grid, new SolveRun("x", [], typeof(TableCells)), Growing, () => Rows(3, 3), _ => null, _ => false).Payload;
+        Assert.Equal([["0.0", "0.1", "0.2"], ["1.0", "1.1", "1.2"], ["2.0", "2.1", "2.2"]], grid.Blank!.Values.Select(r => r.ToArray()));
+        Assert.Throws<InvalidOperationException>(() => TableFrames.Build<TableCells>(Grid, new SolveRun("x", [], typeof(TableCells)), Growing, () => Rows(1, 4), _ => null, _ => false));
+    }
+
+    // A visualization whose start depends on the run (Start) gives the blank everywhere: the payload's and a stopped run's.
+    [Fact]
+    public void Build_AStartFromTheSteps_IsTheBlank_InThePayloadAndAStoppedRun() {
+        var steps = new object[] { Step(StepEvent.Try, "a"), Step(StepEvent.Done, "Stopped after 0.05 s and 2 steps; the solver had not finished.", false) };
+        var run = new SolveRun(SolveRun.TimedOutAnswer, steps, typeof(TableCells)) { TimedOut = true };
+        var start = new TableDraft();
+        start.AddRow("0", "start");
+        int seen = -1;
+        var response = TableFrames.Build<TableCells>(Trace, run, Growing, () => throw new InvalidOperationException("not read"),
+            _ => null, _ => true, s => { seen = s.Count; return start; });
+        Assert.Equal(1, seen);
+        Assert.Equal([["0", "start"]], ((TablePayload)response.Payload).Blank!.Values.Select(r => r.ToArray()));
+        Assert.Equal([["0", "start"]], response.Frames.Cast<TableFrame>().Last().Values.Select(r => r.ToArray()));
+
+        // A start of null falls back to the blank.
+        var fallback = TableFrames.Build<TableCells>(Trace, new SolveRun("x", [], typeof(TableCells)), Growing, () => Rows(1, 2), _ => null, _ => false, _ => null);
+        Assert.Equal([["0.0", "0.1"]], ((TablePayload)fallback.Payload).Blank!.Values.Select(r => r.ToArray()));
+    }
+
     [Fact]
     public void Build_StepsItCannotDraw_EndInADoneFrameFromTheAnswer() {
         var legacy = new SolveRun("answer", ["legacy step"], null);
