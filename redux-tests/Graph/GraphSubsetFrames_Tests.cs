@@ -307,12 +307,32 @@ public class GraphSubsetFrames_Tests {
     [InlineData(true)]
     public void Picked_IsSolutionOnlyForTheConfirmedAnswer(bool incremental) {
         Assert.Equal(PictureState.Solution, GraphSubsetFrames.Picked(StepEvent.Done, incremental));
+        Assert.Equal(PictureState.Solution, GraphSubsetFrames.Picked(StepEvent.Done, incremental, ok: true));
         Assert.Equal(PictureState.Solution, GraphSubsetFrames.Picked(StepEvent.Accept, incremental, endsRun: true));
         Assert.Equal(PictureState.Committed, GraphSubsetFrames.Picked(StepEvent.Accept, incremental));
         Assert.Equal(PictureState.Committed, GraphSubsetFrames.Picked(StepEvent.Backtrack, incremental));
         var tried = incremental ? PictureState.Committed : PictureState.ElementHighlight;
         Assert.Equal(tried, GraphSubsetFrames.Picked(StepEvent.Try, incremental));
         Assert.Equal(tried, GraphSubsetFrames.Picked(StepEvent.Reject, incremental));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Picked_IsRejectedInADoneThatFoundNothing(bool incremental) {
+        // A run that ends without an answer never shows green: what its partial picks failed.
+        Assert.Equal(PictureState.Rejected, GraphSubsetFrames.Picked(StepEvent.Done, incremental, ok: false));
+        // ok only matters to the Done.
+        Assert.Equal(PictureState.Committed, GraphSubsetFrames.Picked(StepEvent.Accept, incremental, ok: false));
+    }
+
+    [Fact]
+    public void Frame_AFailedDoneDrawsItsPicksRejected() {
+        var f = GraphSubsetFrames.Frame(Spec(SubsetRule.Clique), Set("a", "b"), StepEvent.Done, [], "x", false);
+        Assert.Equal(PictureState.Rejected, State(f, "a"));
+        Assert.Equal(PictureState.Rejected, State(f, "b"));
+        Assert.Equal(PictureState.Rejected, EdgeState(f, "a-b"));
+        Assert.DoesNotContain(f.Nodes.Values.Concat(f.Edges.Values), s => s.State == PictureState.Solution);
     }
 
     [Fact]
@@ -332,6 +352,7 @@ public class GraphSubsetFrames_Tests {
         steps[2] = new SolverStep<NodeSet>(Set("a", "b"), StepEvent.Done, [], "done") { Ok = false };
         frames = GraphSubsetFrames.Build(Spec(SubsetRule.Clique), new SolveRun("{a,b}", steps, typeof(NodeSet)), _ => Set(), _ => false).Frames;
         Assert.Equal(PictureState.Committed, State((GraphFrame)frames[1], "a"));
+        Assert.Equal(PictureState.Rejected, State((GraphFrame)frames[2], "a"));
     }
 
     // ---- incremental runs: the committed set stays Committed, only the piece under test is marked ----
