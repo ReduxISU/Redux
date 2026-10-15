@@ -16,10 +16,11 @@ enum PictureState {
     ElementHighlight,
     /// <summary>
     /// Part of the confirmed answer: only in the Done frame with ok = true, or an Accept that ends the run (the next step
-    /// is that Done). What a solver has kept before then is <see cref="Committed"/> (#886).
+    /// is that Done). What a solver has kept before then is <see cref="Committed"/> (#886). A run that ends without an
+    /// answer (a Done with ok = false) never shows it: what that Done picks is <see cref="Rejected"/>.
     /// </summary>
     Solution,
-    /// <summary>Failed: uncovered, undominated, or doubled.</summary>
+    /// <summary>Failed: uncovered, undominated, or doubled; and what a Done with ok = false picks (the run found nothing).</summary>
     Rejected,
     /// <summary>Never reached during this run.</summary>
     Untraveled,
