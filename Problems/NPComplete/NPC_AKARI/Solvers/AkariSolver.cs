@@ -27,6 +27,8 @@ class AkariSolver : ISolver<AKARI> {
     public string solve(AKARI problem){
         // TODO: implement Akari Solver for AKARI
 
+        // To get parsed problem instance, use the problem.grid property.
+
         // make sure to check timerHasExpired occasionally, and return if it has
         if (timerHasExpired)
             return "timeout";

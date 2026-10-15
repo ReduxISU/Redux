@@ -19,13 +19,13 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public string source {get;} = "Bram Pulles. 2021. Analysis of Akari. Bachelor Thesis. Radboud University, Nijmegen, Netherlands.";
     public string sourceLink {get;} = "https://www.cs.ru.nl/bachelors-theses/2021/Bram_Pulles___1015194___Analysis_of_Akari.pdf";
     public string sourceFile {get;} = SourceFile.Path();
-    private static readonly string _defaultInstance = "TODO";
+    private static readonly string _defaultInstance = "((w,w,b,w),(b,w,w,1))";
     public string defaultInstance {get;} = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat {get;} = "TODO: describe the instance string format with an embedded example, e.g. 'Boolean formula in 3-CNF, clauses joined by `&`. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)'";
+    public string instanceFormat {get;} = "Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 0-9 (clue wall). Example: ((w,w,b,w),(b,w,w,1))";
     public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Depreciated, do not implement
@@ -44,6 +44,8 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
 
     // --- Properties ---
 
+    public char[][] grid { get; set; } = Array.Empty<char[]>();
+
     // --- Methods and Constructors ---
     public AKARI() : this(_defaultInstance) {
 
@@ -61,7 +63,6 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         //       throw new ProblemParseException("Akari", stringInstance, "instance is empty");
         //   }
 
-        // TODO: implement parsing of string instance of Akari. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
         
         // Wall Set Version: The instance is comprised of the grid dimensions and the set of wall positions (and hints/clues).
         /*
@@ -73,9 +74,58 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         */
 
         // Puzzle Grid Version: 2D list of characters associated with each cell.
-        StringParser gridParser = new("{ (c) | c is list}");
-        gridParser.parse(instance);
-        UtilCollection columns = gridParser["c"];
+        grid = ParseGrid(stringInstance);
+    }
 
+    // Parses a nested list such as "((w,w,b,w),(b,w,w,1))" into a char[][].
+    // Whitespace is ignored; valid cells are w/W/b/B and digits 0-9.
+    // This custom parser was built since SPADE currently struggles with nested lists (as of 10-15-2026).
+    private static char[][] ParseGrid(string input) {
+        if (string.IsNullOrWhiteSpace(input)) {
+            throw new ProblemParseException("Akari", input, "instance is empty");
+        }
+
+        string s = string.Concat(input.Where(c => !char.IsWhiteSpace(c)));
+        int pos = 0;
+
+        void Expect(char c) {
+            if (pos >= s.Length || s[pos] != c) {
+                string found = pos >= s.Length ? "end of input" : $"'{s[pos]}'";
+                throw new ProblemParseException("Akari", input, $"expected '{c}' but found {found} at position {pos}");
+            }
+            pos++;
+        }
+
+        var rows = new List<char[]>();
+        Expect('(');
+        while (true) {
+            Expect('(');
+            var row = new List<char>();
+            while (true) {
+                if (pos >= s.Length) {
+                    throw new ProblemParseException("Akari", input, "unexpected end of input inside a row");
+                }
+                char c = s[pos];
+                if (c != 'w' && c != 'W' && c != 'b' && c != 'B' && !char.IsAsciiDigit(c)) {
+                    throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at position {pos}; allowed: w, W, b, B, 0-9");
+                }
+                row.Add(c);
+                pos++;
+                if (pos < s.Length && s[pos] == ',') { pos++; continue; }
+                break;
+            }
+            Expect(')');
+            if (rows.Count > 0 && row.Count != rows[0].Length) {
+                throw new ProblemParseException("Akari", input, $"row {rows.Count + 1} has {row.Count} cells but row 1 has {rows[0].Length}");
+            }
+            rows.Add(row.ToArray());
+            if (pos < s.Length && s[pos] == ',') { pos++; continue; }
+            break;
+        }
+        Expect(')');
+        if (pos != s.Length) {
+            throw new ProblemParseException("Akari", input, $"unexpected trailing characters at position {pos}");
+        }
+        return rows.ToArray();
     }
 }
