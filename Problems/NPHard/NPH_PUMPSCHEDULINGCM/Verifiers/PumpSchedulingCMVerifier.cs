@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using API.Interfaces;
+using API.Interfaces.Schedule;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGCM;
 using SPADE;
 
@@ -70,19 +71,21 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
             }
         }
 
-        double level = problem.TankCurrentLevel;
+        // The tank in exact decimals, as the instance writes it (#887): in doubles, 0.1 + 0.2 lands just past a 0.3 limit.
+        decimal level = TankLevels.Exact(problem.TankCurrentLevel);
+        decimal capacity = TankLevels.Exact(problem.TankCapacity);
         double totalCost = 0.0;
         int prevMask = 0;
 
         for (int h = 0; h < 24; h++) {
             int mask = 0;
-            double flowIn = 0.0;
+            decimal flowIn = 0m;
             double kw = 0.0;
 
             for (int p = 0; p < n; p++) {
                 if (!on[p, h]) continue;
                 mask |= (1 << p);
-                flowIn += problem.Pumps[p].FlowRateGph;
+                flowIn += TankLevels.Exact(problem.Pumps[p].FlowRateGph);
                 kw += problem.Pumps[p].PowerKw;
             }
 
@@ -97,8 +100,8 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
                     totalCost += problem.Pumps[p].StartupCostDollars;
 
             prevMask = mask;
-            level = level + flowIn - problem.DemandGph[h];
-            if (level < 0 || level > problem.TankCapacity)
+            level = level + flowIn - TankLevels.Exact(problem.DemandGph[h]);
+            if (level < 0 || level > capacity)
                 return false;
         }
 
