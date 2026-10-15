@@ -191,7 +191,8 @@ sealed record SchedulePumpsFrame(
 /// <item>A placed job, or a pump on in an hour of the schedule, is <c>ElementHighlight</c> while a whole candidate is only
 /// tried (a Try or Reject of a run that is not <see cref="SolveRun.Incremental"/>), <c>Committed</c> while it is kept but not
 /// confirmed (an Accept the run goes on from, and every step of an incremental run: the jobs scheduled so far; #886), and
-/// <c>Solution</c> only in the confirmed answer: the Done, or an Accept that ends the run (<see cref="GraphSubsetFrames.Picked"/>).</item>
+/// <c>Solution</c> only in the confirmed answer: the Done, or an Accept that ends the run (<see cref="GraphSubsetFrames.Picked"/>).
+/// In a Done with ok = false (the run found nothing) it is <c>Rejected</c>, never <c>Solution</c>.</item>
 /// <item>A placed job that ends after its deadline is <c>Rejected</c> in every frame: its penalty counts.</item>
 /// <item>An hour drawn so far (up to <c>upTo</c>) whose tank level ends below the minimum or above the capacity is
 /// <c>Rejected</c>.</item>
@@ -270,7 +271,7 @@ static class ScheduleFrames {
         var order = Indices(spec, partial);
         var runs = Runs(spec, order);
         var states = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         foreach (var run in runs) {
             GraphSubsetFrames.Raise(states, run.Job, picked);
             if (run.Late) GraphSubsetFrames.Raise(states, run.Job, PictureState.Rejected);
@@ -402,7 +403,7 @@ static class ScheduleFrames {
 
         var hourStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var cellStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         var pumpIndex = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
         for (int h = 0; h < schedule.Count; h++) {
             foreach (var id in schedule[h].On) GraphSubsetFrames.Raise(cellStates, CellId(pumpIndex[id], h), picked);

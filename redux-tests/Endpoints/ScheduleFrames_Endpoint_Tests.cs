@@ -243,10 +243,12 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
                 var hourStates = StatesOf(f.GetProperty("hours"));
                 var cellStates = StatesOf(f.GetProperty("cells"));
                 Assert.All(hourStates, s => { Assert.Contains(s.Key, hourIds); Assert.Contains(s.Value, Vocabulary); });
-                // The schedule is kept (Committed) while it is replayed, and the answer in the Done or an Accept that ends the run (#886).
+                // The schedule is kept (Committed) while it is replayed, and the answer in the Done or an Accept that ends the run;
+                // a Done the verifier turns down draws it Rejected, never Solution (#886).
                 string fev = f.GetProperty("event").GetString()!;
-                bool final = fev == "Done" || fev == "Accept" && frames[i + 1].GetProperty("event").GetString() == "Done";
-                Assert.All(cellStates, s => { Assert.Contains(s.Key, cellIds); Assert.Equal(final ? "Solution" : "Committed", s.Value); });
+                string kept = fev == "Done" ? (ok ? "Solution" : "Rejected")
+                    : fev == "Accept" && ok && frames[i + 1].GetProperty("event").GetString() == "Done" ? "Solution" : "Committed";
+                Assert.All(cellStates, s => { Assert.Contains(s.Key, cellIds); Assert.Equal(kept, s.Value); });
                 Assert.All(f.GetProperty("reached").EnumerateArray(), r => Assert.Equal(["states", "low", "high", "best"], r.EnumerateObject().Select(p => p.Name)));
                 var schedule = f.GetProperty("schedule").EnumerateArray().ToList();
                 int upTo = f.GetProperty("upTo").GetInt32();
