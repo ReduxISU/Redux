@@ -149,7 +149,7 @@ static class TripartiteFrames {
         foreach (var (id, n) in uses)
             GraphSubsetFrames.Raise(elements, id, n > 1 ? PictureState.Rejected : PictureState.Covered);
 
-        var picked = ev == StepEvent.Done && ok != true ? PictureState.Rejected : GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var isChosen = new HashSet<int>(chosen);
         for (int i = 0; i < spec.Triples.Count; i++) {
             var ids = ElementIds(spec.Triples[i]);
