@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using API.Interfaces;
+using API.Interfaces.Schedule;
 using API.Problems.NPHard.NPH_PUMPSCHEDULINGEM;
 using SPADE;
 
@@ -82,21 +83,24 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM> {
             }
         }
 
-        // Simulate the 24-hour schedule.
-        double level = problem.TankCurrentLevel;
+        // Simulate the 24-hour schedule, the tank in exact decimals as the instance writes it (#738): in doubles, 0.1 + 0.2
+        // lands just past a 0.3 limit.
+        decimal level = TankLevels.Exact(problem.TankCurrentLevel);
+        decimal minimum = TankLevels.Exact(problem.TankMinLevel);
+        decimal capacity = TankLevels.Exact(problem.TankCapacity);
         double computed = 0.0;
         int prevMask = 0;
         int nMasks = 1 << n;
 
         for (int h = 0; h < 24; h++) {
             int mask = 0;
-            double flowIn = 0.0;
+            decimal flowIn = 0m;
             double kw = 0.0;
 
             for (int p = 0; p < n; p++) {
                 if (!on[p, h]) continue;
                 mask |= (1 << p);
-                flowIn += problem.Pumps[p].FlowRateGph;
+                flowIn += TankLevels.Exact(problem.Pumps[p].FlowRateGph);
                 kw += problem.Pumps[p].PowerKw;
             }
 
@@ -111,10 +115,10 @@ class PumpSchedulingEMVerifier : IVerifier<PUMPSCHEDULINGEM> {
                     computed += problem.Pumps[p].StartupCostDollars;
 
             prevMask = mask;
-            level = level + flowIn - problem.DemandGph[h];
+            level = level + flowIn - TankLevels.Exact(problem.DemandGph[h]);
 
             // Tank must stay within [minLevel, capacity].
-            if (level < problem.TankMinLevel || level > problem.TankCapacity)
+            if (level < minimum || level > capacity)
                 return false;
         }
 

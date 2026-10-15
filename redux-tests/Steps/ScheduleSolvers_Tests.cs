@@ -12,7 +12,8 @@ namespace redux_tests;
 // The Job Sequencing and Pump Scheduling solvers record steps for the Schedule picture. Recording must never change an
 // answer. Endpoints/Snapshots/schedule_solver_answers.tsv holds what each returned (solver, instance and answer as JSON
 // strings; tab separated) BEFORE the picture existed (with the #700/#701 and #800 to #804 fixes in), on its default
-// instance, hand-picked edge cases and seeded random instances.
+// instance, hand-picked edge cases and seeded random instances. The one fractional instance (CmFractional) was retaken when
+// the solvers stopped rounding the tank to whole gallons (#887): its old answer ran the tank dry.
 public class ScheduleSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -53,8 +54,9 @@ public class ScheduleSolvers_Tests {
     internal const string CmDemandTooHigh =
         "((3000,1500),((900,900,900,900,900,900,900,900,1500,1500,1500,1500,900,900,900,900,900,1500,1500,1500,1500,1500,900,900),"
         + "(8,9,10,11,17,18,19,20),(0.12,0.06))," + Pumps3 + ")";
-    // 0.4 gal of demand an hour and one 1-gal pump: the table rounds 0.6 gal up to 1 and never sees the tank run dry (#738).
-    internal const string CmRounded =
+    // 0.4 gal of demand an hour and one 1-gal pump. Rounded to whole gallons, the table took 0.6 gal for 1 and never saw the
+    // tank run dry (#738); exactly, it runs the pump ten hours (#887).
+    internal const string CmFractional =
         "((10,0),((0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4),(),(1,1)),((A,1,1,0)))";
 
     private static SolveRun Run(string solver, string instance) =>
@@ -252,14 +254,28 @@ public class ScheduleSolvers_Tests {
     }
 
     [Fact]
-    public void PumpCM_ARoundedSchedule_ShowsTheHoursTheTankRunsDry_AndIsNotOk() {
-        var run = Run("pumpschedulingcmsolver", CmRounded);
+    public void PumpCM_FractionalLevels_AreExact_SoTheScheduleKeepsTheTankWithinItsLimits() {
+        var run = Run("pumpschedulingcmsolver", CmFractional);
+        var steps = run.Steps.Cast<SolverStep<PumpPlan>>().ToList();
+        Assert.Equal((true, "Cheapest schedule: $10.00 for the day. The tank stays between 0 and 6 gal."), (steps[^1].Ok!.Value, steps[^1].Caption));
+        Assert.Equal("Forward pass, hour 0: 1 reachable (tank level, pumps on) state, level 0.6 gal, cheapest so far $1.00.", steps[0].Caption);
+        Assert.Equal("Hour 10: no pump on. In 0, out 0.4 gal, so the tank drops to 5.6 gal. Hour cost $0.00.", steps[24 + 1 + 10].Caption);
+        var (_, frames) = Picture<SchedulePumpsFrame>("pumpschedulingcmsolver", CmFractional);
+        Assert.Empty(frames[^1].Hours);
+        Assert.Equal(0.4, frames[^1].Schedule[23].Level);
+    }
+
+    // A solver that may hold only one state an hour falls back to whole gallons at once: the old table, rounding note and all.
+    [Fact]
+    public void PumpCM_PastTheStateCap_RoundsToWholeGallons_ShowsTheHoursTheTankRunsDry_AndIsNotOk() {
+        var run = ((ISolver)new API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Solvers.PumpSchedulingCMSolver { StateCap = 1 }).Run(CmFractional, withSteps: true);
         var last = (SolverStep<PumpPlan>)run.Steps[^1];
         Assert.Equal(false, last.Ok);
         Assert.Equal("The schedule costs $1.00, but the tank ends hour 2 at -0.2 gal, outside 0 to 10 gal: the solver rounds the tank level to whole gallons, so it did not see this.",
             last.Caption);
         Assert.Equal("Forward pass, hour 0: 1 reachable (tank level, pumps on) state, level 1 gal, cheapest so far $1.00.", ((SolverStep<PumpPlan>)run.Steps[0]).Caption);
-        var (_, frames) = Picture<SchedulePumpsFrame>("pumpschedulingcmsolver", CmRounded);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers[VisualizationOf["pumpschedulingcmsolver"]])!;
+        var frames = vis.BuildFrames(CmFractional, run).Frames.Cast<SchedulePumpsFrame>().ToList();
         Assert.Equal(Enumerable.Range(2, 22).Select(h => $"t{h}").Order(StringComparer.Ordinal), frames[^1].Hours.Keys);
         Assert.All(frames[^1].Hours, h => Assert.Equal(PictureState.Rejected, h.Value.State));
         // While replaying hour 2, only that hour is drawn out of bounds.

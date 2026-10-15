@@ -35,6 +35,13 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
     // two sequential passes don't change the asymptotic bound.
     public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
 
+    // The most (tank level, pumps on) states the exact table may hold in one hour, in either pass; past it the solver falls
+    // back to whole gallons (#887, #738). Each pass keeps only the hour at hand and the next, so the cap bounds the table to
+    // a few MB; the labels on the Pareto fronts are not capped, as they never were. The same cap as Cost Minimization.
+    internal const int DefaultStateCap = 100_000;
+    // Internal, so it stays out of /info; tests lower it to reach the fallback on a small instance.
+    internal int StateCap { get; init; } = DefaultStateCap;
+
     private const string NoSolution = "{}";
     private const int Hours = 24;
     private const double BudgetSlack = 1.5;
@@ -47,12 +54,16 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
     // with the band of tank levels still reachable (a Reject, and no answer, at an hour no state survives); the trace back,
     // one Accept that commits the schedule; the replay, one Try per hour of it; then Done.
     public string Solve(PUMPSCHEDULINGEM problem, StepRecorder<PumpPlan> rec) {
+        // The tank level exactly (#738, #887), one state per level reached, unless that is too many states: then whole
+        // gallons. Both passes count in the same tank.
+        var tank = TankLevels.For(problem.TankCapacity, problem.TankCurrentLevel, problem.TankMinLevel, problem.DemandGph,
+            problem.Pumps.Select(p => p.FlowRateGph).ToList(), StateCap);
         double effectiveBudget = problem.BudgetLimitDollars;
         bool auto = effectiveBudget <= 0;
 
         if (auto) {
             // Auto-compute: run cost-minimization solve first.
-            double minCost = RunCostMinimization(problem);
+            double minCost = RunCostMinimization(problem, tank);
             effectiveBudget = minCost * BudgetSlack;
             double fixedBudget = Math.Round(effectiveBudget, 2);
             rec.Try(() => new PumpPlan([], [], fixedBudget),
@@ -66,7 +77,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
         double budget = Math.Round(effectiveBudget, 2);
 
         var reached = new List<ReachedHour>();
-        var (schedMasks, bestScore) = RunEmergencyResilience(problem, effectiveBudget, rec, reached, budget);
+        var (schedMasks, bestScore) = RunEmergencyResilience(problem, tank, effectiveBudget, rec, reached, budget);
 
         // No schedule fits the tank limits and the budget: report "no solution" ("{}", the repo's
         // standard convention, see #605) rather than inventing an over-budget schedule.
@@ -74,7 +85,8 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
             rec.Done(new PumpPlan(reached, [], budget), false, timerHasExpired
                 ? "The solver's timer ran out, so there is no answer."
                 : $"No schedule keeps the tank between {ScheduleFrames.Gallons(problem.TankMinLevel)} and {ScheduleFrames.Gallons(problem.TankCapacity)} gal "
-                    + $"within the {ScheduleFrames.Money(budget)} budget for all 24 hours, so there is no answer.");
+                    + $"within the {ScheduleFrames.Money(budget)} budget for all 24 hours, so there is no answer."
+                    + (tank.Rounded ? " The tank has too many levels to track exactly, so the solver rounded it to whole gallons." : ""));
             return timerHasExpired ? "timeout" : NoSolution;
         }
 
@@ -88,77 +100,59 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
         var on = schedMasks.Select(m => (IReadOnlyCollection<string>)ScheduleFrames.OnFromMask(m, n)).ToList();
         var plan = new PumpPlan(reached, on, budget);
         rec.Accept(() => plan,
-            () => $"Trace back from the state that stores the most water by hour 24 ({ScheduleFrames.Gallons(bestScore)} gal·h), "
+            () => $"Trace back from the state that stores the most water by hour 24 ({ScheduleFrames.Gallons(tank.Gallons(bestScore))} gal·h), "
                 + "following each step's parent, to recover the schedule.");
         for (int h = 0; h < Hours; h++) {
             int hour = h;
             rec.Try(() => plan, () => ScheduleFrames.ReplayCaption(PumpSchedulingEMVisualization.Spec(problem), on, hour, budget), ScheduleFrames.HourId(hour));
         }
-        // The verifier simulates the schedule exactly; the table rounds the tank to whole gallons (#738), so it can disagree.
+        // The verifier simulates the schedule exactly, as the table does unless it fell back to whole gallons, when the two
+        // can disagree (#738).
         bool ok;
         try { ok = problem.defaultVerifier.verify(problem, certificate); } catch { ok = false; }
-        rec.Done(plan, ok, DoneCaption(problem, on, ok, budget, auto));
+        rec.Done(plan, ok, DoneCaption(problem, on, ok, budget, auto, tank.Rounded));
         return certificate;
     }
 
-    private static string DoneCaption(PUMPSCHEDULINGEM problem, IReadOnlyList<IReadOnlyCollection<string>> on, bool ok, double budget, bool auto) {
+    private static string DoneCaption(PUMPSCHEDULINGEM problem, IReadOnlyList<IReadOnlyCollection<string>> on, bool ok, double budget, bool auto, bool rounded) {
         var spec = PumpSchedulingEMVisualization.Spec(problem);
         var (levels, cost) = ScheduleFrames.Exact(spec, on);
         if (ok)
             return $"Most water stored within the {ScheduleFrames.Money(budget)} budget{(auto ? " (1.5 times the cheapest schedule)" : "")}: "
-                + $"{ScheduleFrames.Gallons(levels.Sum())} gal·h, for {ScheduleFrames.Money(cost)}.";
+                + $"{ScheduleFrames.Gallons(levels.Sum())} gal·h, for {ScheduleFrames.Money(cost)}."
+                + (rounded ? " The tank has too many levels to track exactly, so the solver rounded it to whole gallons: a schedule may store more." : "");
         return ScheduleFrames.FirstOutOfLimits(spec, on) is var (hour, level)
             ? $"The schedule costs {ScheduleFrames.Money(cost)}, but the tank ends hour {hour} at {ScheduleFrames.Gallons(level)} gal, outside "
-                + $"{ScheduleFrames.Gallons(spec.Minimum)} to {ScheduleFrames.Gallons(spec.Capacity)} gal: the solver rounds the tank level to whole gallons, so it did not see this."
+                + $"{ScheduleFrames.Gallons(spec.Minimum)} to {ScheduleFrames.Gallons(spec.Capacity)} gal"
+                + (rounded ? ": the solver rounds the tank level to whole gallons, so it did not see this." : ".")
             : $"The schedule costs {ScheduleFrames.Money(cost)}, which the verifier does not accept.";
     }
 
     // ── Cost-minimization sub-solve (shortest path) — returns total cost ──────
-    private double RunCostMinimization(PUMPSCHEDULINGEM problem) {
+    private double RunCostMinimization(PUMPSCHEDULINGEM problem, TankLevels tank) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
-        double cap = problem.TankCapacity;
-        double minLevel = problem.TankMinLevel;
-        int buckets = (int)Math.Ceiling(cap);
-        int stateB = buckets + 1;
-        double bucketSize = 1.0;
 
-        int ToBucket(double level) => Math.Clamp((int)Math.Round(level / bucketSize), 0, buckets);
-        double ToLevel(int b) => b * bucketSize;
-
-        double[] maskFlow = BuildMaskFlow(problem, n, nMasks);
-
-        double[,] dp = new double[stateB, nMasks];
-        for (int b = 0; b < stateB; b++)
-            for (int m = 0; m < nMasks; m++)
-                dp[b, m] = Inf;
-
-        int initB = ToBucket(problem.TankCurrentLevel);
-        dp[initB, 0] = 0.0;
+        var dp = new TankLayer<double>(nMasks, Inf);
+        dp[dp.Row(tank.Start), 0] = 0.0;
 
         for (int h = 0; h < Hours; h++) {
             if (timerHasExpired) return 0.0;
 
-            double[,] next = new double[stateB, nMasks];
-            for (int b = 0; b < stateB; b++)
-                for (int m = 0; m < nMasks; m++)
-                    next[b, m] = Inf;
+            var next = new TankLayer<double>(nMasks, Inf);
 
-            double demand = problem.DemandGph[h];
-
-            for (int b = 0; b < stateB; b++) {
-                double levelNow = ToLevel(b);
+            foreach (int b in dp.ByLevel()) {
+                long levelNow = dp.Levels[b];
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     double cur = dp[b, prevMask];
                     if (cur >= Inf) continue;
 
                     for (int mask = 0; mask < nMasks; mask++) {
-                        double newLevel = levelNow - demand + maskFlow[mask];
-                        if (newLevel < minLevel || newLevel > cap) continue;
+                        if (!tank.Next(levelNow, h, mask, out long newLevel, out _)) continue;
 
                         double edgeCost = EdgeCost(problem, prevMask, mask, h, n, nMasks);
                         double candidate = cur + edgeCost;
-                        int newB = ToBucket(newLevel);
+                        int newB = next.Row(newLevel);
 
                         if (candidate < next[newB, mask])
                             next[newB, mask] = candidate;
@@ -170,7 +164,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
         }
 
         double minCost = Inf;
-        for (int b = 0; b < stateB; b++)
+        for (int b = 0; b < dp.Levels.Count; b++)
             for (int m = 0; m < nMasks; m++)
                 if (dp[b, m] < minCost)
                     minCost = dp[b, m];
@@ -178,7 +172,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
         return minCost >= Inf ? 0.0 : minCost;
     }
 
-    // One DP label: a path to some (tank bucket, mask) state with its cumulative cost and score.
+    // One DP label: a path to some (tank level, mask) state with its cumulative cost and score.
     private sealed class Label {
         public readonly double Cost;
         public readonly double Score;
@@ -207,47 +201,33 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
     }
 
     // ── Emergency resilience solve (constrained longest path) ─────────────────
-    // Each (tank bucket, previous mask) state keeps the Pareto front of (cost, score) labels instead
+    // Each (tank level, previous mask) state keeps the Pareto front of (cost, score) labels instead
     // of a single max-score path: a cheaper, lower-scoring path may be the only one that still fits
     // the budget in later hours, so it must not be discarded.
-    // Returns the schedule (null when there is none) and the water it stores, as the table counts it.
-    private (int[]? Masks, double Score) RunEmergencyResilience(PUMPSCHEDULINGEM problem, double budgetLimit,
+    // Returns the schedule (null when there is none) and the water it stores, as the table counts it (in the tank's units).
+    private (int[]? Masks, double Score) RunEmergencyResilience(PUMPSCHEDULINGEM problem, TankLevels tank, double budgetLimit,
         StepRecorder<PumpPlan> rec, List<ReachedHour> reached, double budget) {
         int n = problem.Pumps.Count;
         int nMasks = 1 << n;
-        double cap = problem.TankCapacity;
-        double minLevel = problem.TankMinLevel;
-        int buckets = (int)Math.Ceiling(cap);
-        int stateB = buckets + 1;
-        double bucketSize = 1.0;
 
-        int ToBucket(double level) => Math.Clamp((int)Math.Round(level / bucketSize), 0, buckets);
-        double ToLevel(int b) => b * bucketSize;
-
-        double[] maskFlow = BuildMaskFlow(problem, n, nMasks);
-
-        List<Label>?[,] dp = new List<Label>?[stateB, nMasks];
-        int initB = ToBucket(problem.TankCurrentLevel);
-        dp[initB, 0] = new List<Label> { new Label(0.0, 0.0, 0, null) };
+        var dp = new TankLayer<List<Label>?>(nMasks, null);
+        dp[dp.Row(tank.Start), 0] = new List<Label> { new Label(0.0, 0.0, 0, null) };
 
         for (int h = 0; h < Hours; h++) {
             if (timerHasExpired) return (null, 0);
 
-            List<Label>?[,] next = new List<Label>?[stateB, nMasks];
-            double demand = problem.DemandGph[h];
+            var next = new TankLayer<List<Label>?>(nMasks, null);
 
-            for (int b = 0; b < stateB; b++) {
-                double levelNow = ToLevel(b);
+            foreach (int b in dp.ByLevel()) {
+                long levelNow = dp.Levels[b];
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     var front = dp[b, prevMask];
                     if (front == null) continue;
 
                     for (int mask = 0; mask < nMasks; mask++) {
-                        double newLevel = levelNow - demand + maskFlow[mask];
-                        if (newLevel < minLevel || newLevel > cap) continue;
+                        if (!tank.Next(levelNow, h, mask, out long newLevel, out double stored)) continue;
 
                         double edgeCost = EdgeCost(problem, prevMask, mask, h, n, nMasks);
-                        int newB = ToBucket(newLevel);
 
                         foreach (var label in front) {
                             double totalCost = label.Cost + edgeCost;
@@ -255,7 +235,8 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
                             if (totalCost > budgetLimit) continue;
 
                             // Score is the water stored after this hour.
-                            var cand = new Label(totalCost, label.Score + newLevel, mask, label);
+                            var cand = new Label(totalCost, label.Score + stored, mask, label);
+                            int newB = next.Row(newLevel);
                             AddToFront(next[newB, mask], cand, out var updated);
                             next[newB, mask] = updated;
                         }
@@ -268,14 +249,14 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
             // The states the table holds after hour h: how many, their tank levels and the most water stored so far.
             int states = 0;
             double low = Inf, high = NegInf, most = NegInf;
-            for (int b = 0; b < stateB; b++)
+            for (int b = 0; b < dp.Levels.Count; b++)
                 for (int m = 0; m < nMasks; m++) {
                     var front = dp[b, m];
                     if (front == null) continue;
                     states++;
-                    low = Math.Min(low, ToLevel(b));
-                    high = Math.Max(high, ToLevel(b));
-                    foreach (var l in front) most = Math.Max(most, l.Score);
+                    low = Math.Min(low, tank.Gallons(dp.Levels[b]));
+                    high = Math.Max(high, tank.Gallons(dp.Levels[b]));
+                    foreach (var l in front) most = Math.Max(most, tank.Gallons(l.Score));
                 }
             int hour = h;
             if (states == 0) {
@@ -293,7 +274,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
 
         // Pick the terminal label with the highest cumulative water score.
         Label? best = null;
-        for (int b = 0; b < stateB; b++)
+        foreach (int b in dp.ByLevel())
             for (int m = 0; m < nMasks; m++) {
                 var front = dp[b, m];
                 if (front == null) continue;
@@ -316,15 +297,6 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private static double[] BuildMaskFlow(PUMPSCHEDULINGEM problem, int n, int nMasks) {
-        double[] maskFlow = new double[nMasks];
-        for (int mask = 0; mask < nMasks; mask++)
-            for (int p = 0; p < n; p++)
-                if ((mask & (1 << p)) != 0)
-                    maskFlow[mask] += problem.Pumps[p].FlowRateGph;
-        return maskFlow;
-    }
 
     private static double EdgeCost(PUMPSCHEDULINGEM problem, int prevMask, int mask, int h, int n, int nMasks) {
         double rate = problem.PeakHours.Contains(h)

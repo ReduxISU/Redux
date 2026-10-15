@@ -353,7 +353,7 @@ static class ScheduleFrames {
     public static List<ScheduleHourRunDto> Simulate(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on) {
         var index = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
         var hours = new List<ScheduleHourRunDto>();
-        double level = spec.Level;
+        decimal level = TankLevels.Exact(spec.Level);
         var before = new HashSet<int>();
         for (int h = 0; h < on.Count && h < Hours; h++) {
             var now = on[h].Where(index.ContainsKey).Select(id => index[id]).ToHashSet();
@@ -363,24 +363,28 @@ static class ScheduleFrames {
             double energy = ordered.Sum(p => spec.Pumps[p].Power) * rate;
             var starts = ordered.Where(p => !before.Contains(p)).ToList();
             double startup = starts.Sum(p => spec.Pumps[p].StartupCost);
-            level = level + inflow - spec.Demand[h];
+            level = level + ordered.Sum(p => TankLevels.Exact(spec.Pumps[p].Flow)) - TankLevels.Exact(spec.Demand[h]);
             hours.Add(new ScheduleHourRunDto(HourId(h), ordered.Select(PumpId).ToList(), starts.Select(PumpId).ToList(),
-                Round(inflow), Round(level), Round(energy), Round(startup)));
+                Round(inflow), Round((double)level), Round(energy), Round(startup)));
             before = now;
         }
         return hours;
     }
 
-    /// <summary>Whether the tank level after an hour is outside what the problem allows.</summary>
-    public static bool OutOfLimits(PumpScheduleSpec spec, double level) => level < spec.Minimum || level > spec.Capacity;
+    /// <summary>
+    /// Whether the tank level after an hour is outside what the problem allows, in exact decimals as the verifiers check it
+    /// (#887).
+    /// </summary>
+    public static bool OutOfLimits(PumpScheduleSpec spec, decimal level) =>
+        level < TankLevels.Exact(spec.Minimum) || level > TankLevels.Exact(spec.Capacity);
 
-    // The tank level after hour h, exactly (the DTO's level is rounded for JSON).
-    private static List<double> ExactLevels(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on) {
+    // The tank level after hour h, exactly, in decimals as the verifiers simulate it (the DTO's level is rounded for JSON).
+    private static List<decimal> ExactLevels(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on) {
         var index = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
-        var levels = new List<double>();
-        double level = spec.Level;
+        var levels = new List<decimal>();
+        decimal level = TankLevels.Exact(spec.Level);
         for (int h = 0; h < on.Count && h < Hours; h++) {
-            level = level + on[h].Where(index.ContainsKey).Distinct().Sum(id => spec.Pumps[index[id]].Flow) - spec.Demand[h];
+            level = level + on[h].Where(index.ContainsKey).Distinct().Sum(id => TankLevels.Exact(spec.Pumps[index[id]].Flow)) - TankLevels.Exact(spec.Demand[h]);
             levels.Add(level);
         }
         return levels;
@@ -498,14 +502,14 @@ static class ScheduleFrames {
     public static (List<double> Levels, double Cost) Exact(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on) {
         var levels = ExactLevels(spec, on);
         var hours = Simulate(spec, on);
-        return (levels, hours.Sum(h => h.Energy + h.Startup));
+        return (levels.Select(l => (double)l).ToList(), hours.Sum(h => h.Energy + h.Startup));
     }
 
     /// <summary>The first hour whose tank level leaves the limits, and that level; null when every hour stays within them.</summary>
     public static (int Hour, double Level)? FirstOutOfLimits(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on) {
         var levels = ExactLevels(spec, on);
         for (int h = 0; h < levels.Count; h++)
-            if (OutOfLimits(spec, levels[h])) return (h, levels[h]);
+            if (OutOfLimits(spec, levels[h])) return (h, (double)levels[h]);
         return null;
     }
 
@@ -518,15 +522,15 @@ static class ScheduleFrames {
         var hours = Simulate(spec, on);
         var levels = ExactLevels(spec, on);
         var r = hours[hour];
-        double before = hour == 0 ? spec.Level : levels[hour - 1], after = levels[hour];
+        decimal before = hour == 0 ? TankLevels.Exact(spec.Level) : levels[hour - 1], after = levels[hour];
         var index = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
         string Names(IEnumerable<string> ids) => AndList(ids.Select(id => spec.Pumps[index[id]].Name).ToList());
         string pumps = r.On.Count == 0 ? "no pump on" : $"{Names(r.On)} on";
         string verb = after > before ? "rises to" : after < before ? "drops to" : "stays at";
-        string text = $"Hour {hour}{(spec.PeakHours.Contains(hour) ? " (peak)" : "")}: {pumps}. In {Gallons(r.Inflow)}, out {Gallons(spec.Demand[hour])} gal, so the tank {verb} {Gallons(after)} gal.";
-        if (after < spec.Minimum)
+        string text = $"Hour {hour}{(spec.PeakHours.Contains(hour) ? " (peak)" : "")}: {pumps}. In {Gallons(r.Inflow)}, out {Gallons(spec.Demand[hour])} gal, so the tank {verb} {Gallons((double)after)} gal.";
+        if (after < TankLevels.Exact(spec.Minimum))
             text += spec.Minimum == 0 ? " That is below empty." : $" That is below the {Gallons(spec.Minimum)}-gal minimum.";
-        else if (after > spec.Capacity)
+        else if (after > TankLevels.Exact(spec.Capacity))
             text += $" That is over the {Gallons(spec.Capacity)}-gal capacity.";
         text += $" Hour cost {Money(r.Energy + r.Startup)}";
         if (r.Startup > 0) text += $", including {Money(r.Startup)} to start {Names(r.Starts)}";

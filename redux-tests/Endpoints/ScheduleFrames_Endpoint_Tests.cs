@@ -361,14 +361,16 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.All(done.GetProperty("schedule").EnumerateArray(), r => Assert.InRange(r.GetProperty("level").GetDouble(), 2000, 10000));
     }
 
+    // #887: with fractional demand the solver tracks the tank exactly, so it never runs dry (it did when the table rounded
+    // to whole gallons; ScheduleSolvers_Tests keeps that case, through the state cap).
     [Fact]
-    public async Task Frames_PumpRounded_ShowsWhereTheTankRunsDry() {
-        var (_, body) = await Visualize("visualization=pumpschedulingcmvisualization&format=frames", ScheduleSolvers_Tests.CmRounded);
+    public async Task Frames_PumpFractional_KeepsTheTankWithinItsLimits() {
+        var (_, body) = await Visualize("visualization=pumpschedulingcmvisualization&format=frames", ScheduleSolvers_Tests.CmFractional);
         var done = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().Last();
-        Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Equal(-0.2, done.GetProperty("schedule")[2].GetProperty("level").GetDouble());
-        Assert.Equal("Rejected", StatesOf(done.GetProperty("hours"))["t2"]);
-        Assert.False(StatesOf(done.GetProperty("hours")).ContainsKey("t1"));
+        Assert.True(done.GetProperty("ok").GetBoolean());
+        Assert.All(done.GetProperty("schedule").EnumerateArray(), r => Assert.InRange(r.GetProperty("level").GetDouble(), 0, 10));
+        Assert.Equal(0.4, done.GetProperty("schedule")[23].GetProperty("level").GetDouble());
+        Assert.Empty(StatesOf(done.GetProperty("hours")));
     }
 
     [Theory]
@@ -428,6 +430,11 @@ public class ScheduleFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
     // Eleven jobs that all take 3 and are due at 3, with K = 0: no order fits, and there are 39,916,800 to try.
     internal const string ElevenLate = "((3,3,3,3,3,3,3,3,3,3,3),(3,3,3,3,3,3,3,3,3,3,3),(1,1,1,1,1,1,1,1,1,1,1),0)";
 
+    // Five pumps of 7 to 19 gal an hour against 30 gal of demand: thousands of tank levels with 32 pump mixes each, seconds
+    // of work. The default instance no longer is: since #887 its table holds only the levels it reaches.
+    internal const string CmFivePumps = "((3000,1500),((30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30),"
+        + "(8,9,10,11,17,18,19,20),(0.12,0.06)),((PA,7,1.1,0.5),(PB,11,1.3,0.5),(PC,13,1.7,0.5),(PD,17,1.9,0.5),(PE,19,2.3,0.5)))";
+
     private async Task<List<JsonElement>> StoppedFrames(string query, string instance) {
         var sw = Stopwatch.StartNew();
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
@@ -460,7 +467,7 @@ public class ScheduleFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
     }
 
     [Theory]
-    [InlineData("pumpschedulingcmvisualization", ScheduleSolvers_Tests.CmDefault)]
+    [InlineData("pumpschedulingcmvisualization", CmFivePumps)]
     [InlineData("pumpschedulingemvisualization", ScheduleSolvers_Tests.EmDefault)]
     public async Task Frames_StoppedPump_EndsBlank_NotOk(string vis, string instance) {
         var frames = await StoppedFrames($"visualization={vis}", instance);
