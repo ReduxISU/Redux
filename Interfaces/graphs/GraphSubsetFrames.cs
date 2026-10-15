@@ -147,10 +147,14 @@ static class GraphSubsetFrames {
     /// a Backtrack. A Done with <paramref name="ok"/> = false ends a run that found nothing, so what its partial picks is
     /// <c>Rejected</c>, never <c>Solution</c>: green never shows on a run without an answer. (A run stopped by its time limit
     /// draws its own blank frame instead, see <see cref="StoppedFrame"/>.) Shared by every picture type.
+    /// <para>
+    /// Every argument is required, so a caller cannot forget the run's result and paint a failed Done green.
+    /// <paramref name="ok"/> is only read in a Done; a step or frame whose ok is a <c>bool?</c> (set only on the Done, see
+    /// <see cref="SolverStep{TPartial}.Ok"/>) passes <c>ok == true</c>, so a Done with no result fails closed (<c>Rejected</c>).
+    /// </para>
     /// </summary>
-    public static PictureState Picked(StepEvent ev, bool incremental, bool endsRun = false, bool? ok = null) => ev switch {
-        StepEvent.Done when ok == false => PictureState.Rejected,
-        StepEvent.Done => PictureState.Solution,
+    public static PictureState Picked(StepEvent ev, bool incremental, bool endsRun, bool ok) => ev switch {
+        StepEvent.Done => ok ? PictureState.Solution : PictureState.Rejected,
         StepEvent.Accept when endsRun => PictureState.Solution,
         StepEvent.Try or StepEvent.Reject when !incremental => PictureState.ElementHighlight,
         _ => PictureState.Committed,
@@ -266,7 +270,7 @@ static class GraphSubsetFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var phantoms = new List<GraphPhantom>();
 
-        var picked = Picked(ev, incremental, endsRun, ok);
+        var picked = Picked(ev, incremental, endsRun, ok == true);
         foreach (var n in chosen) Raise(nodes, n, picked);
 
         switch (spec.Rule) {
