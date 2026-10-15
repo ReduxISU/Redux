@@ -78,7 +78,8 @@ sealed record GeometryFrame(
 /// <item>The focus is <c>ElementHighlight</c>; in a Reject step of an incremental run it is what failed (a point popped from
 /// the chain), so <c>Rejected</c> (<see cref="GraphSubsetFrames.FocusMark"/>).</item>
 /// <item>In the Done frame the hull's corners are <c>Solution</c> and every other point is <c>Covered</c> (inside or on the
-/// hull); when the answer is wrong (ok = false) its corners are <c>Rejected</c> and the rest <c>Background</c>.</item>
+/// hull); when the answer is wrong (ok = false) its corners are <c>Rejected</c> and the rest <c>Background</c>
+/// (the shared rule, <see cref="GraphSubsetFrames.Picked"/>).</item>
 /// <item>A run stopped by its time limit ends with a blank Done frame, ok = false (<see cref="StoppedFrame"/>).</item>
 /// </list>
 /// Blocked and Untraveled are not used.
@@ -132,7 +133,7 @@ static class GeometryFrames {
             // The answer: its corners in output order; everything else is inside it, or the answer is wrong.
             if (partial.Pieces.Length == 1) hull = Known(partial.Pieces[0]);
             chain = [];
-            foreach (var id in hull) GraphSubsetFrames.Raise(states, id, ok == true ? PictureState.Solution : PictureState.Rejected);
+            foreach (var id in hull) GraphSubsetFrames.Raise(states, id, GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true));
             if (ok == true && hull.Count > 0)
                 foreach (var id in ids) GraphSubsetFrames.Raise(states, id, PictureState.Covered);
         } else {
@@ -141,7 +142,7 @@ static class GeometryFrames {
             if (partial.Right.Length > 0) pieces.Add(new GeometryPieceDto(Known(partial.Right), "right"));
             // Mid-run a hull's corners are kept but not the answer yet, so they are Committed (#849, #886); a whole candidate
             // being tried is highlighted.
-            var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+            var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
             foreach (var id in pieces.SelectMany(p => p.Points).Concat(chain)) GraphSubsetFrames.Raise(states, id, picked);
             foreach (var id in Known(partial.Dropped)) GraphSubsetFrames.Raise(states, id, PictureState.Rejected);
         }
