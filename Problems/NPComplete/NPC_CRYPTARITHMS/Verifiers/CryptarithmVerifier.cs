@@ -7,12 +7,12 @@ class CryptarithmVerifier : IVerifier<CRYPTARITHMS> {
 
     // --- Fields ---
     public string verifierName {get;} = "Cryptarithm Verifier";
-    public string verifierDefinition {get;} = "TODO";
-    public string source {get;} = " ";
-    public string sourceLink {get;} = "TODO";
-    public string[] contributors {get;} = { "TODO" };
+    public string verifierDefinition {get;} = "A type of verbal arithmetic puzzle in which a set of words is written down in the form of a long addition sum or some other mathematical problem. The object is to replace the letters of the alphabet with decimal digits to make a valid arithmetic sum.";
+    public string source {get;} = "Eppstein, D. On the np-completeness of cryptarithms. Computer Science Department of Columbia University, New York, NY.";
+    public string sourceLink {get;} = "https://dl.acm.org/doi/pdf/10.1145/24658.2466";
+    public string[] contributors {get;} = { "Dani Sleight", "Brayden Weisbeck" };
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? complexity { get; set; } = null;
+    public string? complexity { get; set; } = "NP-Complete";
     private string _certificate =  "";
 
     public string certificate {
