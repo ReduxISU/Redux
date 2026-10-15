@@ -180,7 +180,8 @@ sealed class TableDraft {
 /// gives rows and cells their states in its own terms (a constraint that holds is <c>Covered</c>, a trace-back cell
 /// <c>Solution</c>); the base adds the focus: <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject step of an incremental
 /// run (<see cref="GraphSubsetFrames.FocusMark"/>). <c>Solution</c> is for the confirmed answer only (the Done, or an Accept
-/// that ends the run); what a solver has kept before then is <c>Committed</c> (<see cref="GraphSubsetFrames.Picked"/>, #886).
+/// that ends the run); what a solver has kept before then is <c>Committed</c>, and what a Done with ok = false keeps is
+/// <c>Rejected</c>, never <c>Solution</c> (<see cref="GraphSubsetFrames.Picked"/>, #886).
 /// </para>
 /// <para>
 /// A run stopped by its time limit ends with a Done frame, ok = false, that shows the instance with nothing worked out and
