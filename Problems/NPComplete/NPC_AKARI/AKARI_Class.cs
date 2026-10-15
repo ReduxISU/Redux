@@ -114,7 +114,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
                     throw new ProblemParseException("Akari", input, "unexpected end of input inside a row");
                 }
                 char c = s[pos];
-                if (c != 'w' && c != 'W' && c != 'b' && c != 'B' && (c < '1' || c > '4')) {
+                if (c != 'w' && c != 'W' && c != 'b' && c != 'B' && (c < '0' || c > '4')) {
                     throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at position {pos}; allowed: w, W, b, B, 1-4");
                 }
                 row.Add(c);
