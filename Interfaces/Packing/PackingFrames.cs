@@ -138,7 +138,8 @@ sealed record PackingFrame(
 /// <item>An item in a container is <c>ElementHighlight</c> while a whole candidate is only being tried (Try, Reject of a
 /// run that is not <see cref="SolveRun.Incremental"/>), <c>Committed</c> while it is kept but not confirmed (in an Accept the
 /// run goes on from, after a Backtrack, and in every step of an incremental run: what it has packed so far; #886), and
-/// <c>Solution</c> only in the confirmed answer: the Done, or an Accept that ends the run (<see cref="GraphSubsetFrames.Picked"/>).</item>
+/// <c>Solution</c> only in the confirmed answer: the Done, or an Accept that ends the run (<see cref="GraphSubsetFrames.Picked"/>).
+/// In a Done with ok = false (the run found nothing) it is <c>Rejected</c>, never <c>Solution</c>.</item>
 /// <item>An item left out of a correct answer (a Done frame with ok = true) is <c>Untraveled</c>: not part of the
 /// answer.</item>
 /// <item>A container over its limit is <c>Rejected</c> in every frame. A container whose constraint is met is
@@ -226,7 +227,7 @@ static class PackingFrames {
         bool inProgress = ev is StepEvent.Accept or StepEvent.Backtrack || (incremental && ev == StepEvent.Try);
         bool placedAny = assign.Any(c => c >= 0);
 
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         for (int i = 0; i < assign.Length; i++) {
             if (assign[i] >= 0) GraphSubsetFrames.Raise(items, ItemId(i), picked);
             else if (ev == StepEvent.Done && ok == true) GraphSubsetFrames.Raise(items, ItemId(i), PictureState.Untraveled);

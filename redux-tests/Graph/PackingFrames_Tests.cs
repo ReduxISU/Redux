@@ -117,6 +117,14 @@ public class PackingFrames_Tests {
     }
 
     [Fact]
+    public void AFailedDone_DrawsItsPackedItemsRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var spec = Sizes(PackingRule.SubsetSum, 1, 7, 12, 15) with { Target = 30 };
+        var done = PackingFrames.Frame(spec, P(0, -1, 0, 0), StepEvent.Done, [], "c", ok: false);
+        Assert.Equal("I1:Rejected I3:Rejected I4:Rejected", States(done.Items));
+    }
+
+    [Fact]
     public void DoneWithNoAnswer_IsBlank() {
         var spec = Sizes(PackingRule.SubsetSum, 4, 6, 10) with { Target = 7 };
         var done = PackingFrames.Frame(spec, P(), StepEvent.Done, [], "c", ok: false);
