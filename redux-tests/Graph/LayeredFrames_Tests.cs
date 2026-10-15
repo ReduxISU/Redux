@@ -152,6 +152,10 @@ public class LayeredFrames_Tests {
         // An Accept the run goes on from is kept, not confirmed (#886).
         var kept = LayeredFrames.Frame(Feedback(LayeredRule.FeedbackArcSet), new EdgeSet(["2>3"]), StepEvent.Accept, [], "Found.");
         Assert.Equal(PictureState.Committed, Edge(kept, "2>3"));
+        // A run that ends without an answer never shows green (#886).
+        var failed = LayeredFrames.Frame(Feedback(LayeredRule.FeedbackArcSet), new EdgeSet(["2>3"]), StepEvent.Done, [], "None.", false);
+        Assert.Equal(PictureState.Rejected, Edge(failed, "2>3"));
+        Assert.DoesNotContain(failed.Nodes.Values.Concat(failed.Edges.Values), s => s.State == PictureState.Solution);
     }
 
     [Fact]
