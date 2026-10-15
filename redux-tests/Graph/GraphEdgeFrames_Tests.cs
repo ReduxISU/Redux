@@ -186,6 +186,16 @@ public class GraphEdgeFrames_Tests {
     }
 
     [Fact]
+    public void AFailedDone_DrawsItsEdgesRejected_NeverSolution() {
+        // A run that ends without an answer never shows green (#886).
+        var edges = GraphEdgeFrames.EdgeFrame(Spec(EdgeRule.SpanningTree), Set("a-b"), StepEvent.Done, [], "x", false);
+        Assert.Equal(PictureState.Rejected, EdgeState(edges, "a-b"));
+        Assert.Equal(PictureState.Covered, State(edges, "a"));
+        var cut = GraphEdgeFrames.CutFrame(Spec(EdgeRule.MaxCut), Split("a", "d"), StepEvent.Done, [], "x", false);
+        Assert.All(cut.Edges.Values, s => Assert.Equal(PictureState.Rejected, s.State));
+    }
+
+    [Fact]
     public void Cut_AnEmptySplitHasNoCutEdgesAndEmptyGroups() {
         var f = GraphEdgeFrames.CutFrame(Spec(EdgeRule.Cut, 2), new Groups([]), StepEvent.Done, [], "x", false);
         Assert.Empty(f.Edges);

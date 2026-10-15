@@ -32,7 +32,7 @@ sealed record GraphEdgeSpec(IReadOnlyList<string> Nodes, IReadOnlyList<GraphEdge
 /// <para>
 /// Edges answer, from the partial <see cref="EdgeSet"/> (edge keys are the payload's edge ids, <c>"a-b"</c>):
 /// chosen edges are <c>Solution</c> in the confirmed answer (the Done, or an Accept that ends the run) and <c>Committed</c>
-/// while they are only kept so far (#886); a node a chosen edge touches is <c>Covered</c> (the nodes joined so far). In a
+/// while they are only kept so far (#886), and <c>Rejected</c> in a Done with ok = false (the run found nothing); a node a chosen edge touches is <c>Covered</c> (the nodes joined so far). In a
 /// step that only tries a whole candidate (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/> of a run that is not
 /// <see cref="SolveRun.Incremental"/>) those edges and nodes are <c>ElementHighlight</c> instead (see
 /// <see cref="GraphSubsetFrames.Picked"/>); in an incremental run (Kruskal, Prim) they are the tree so far, so they stay
@@ -43,8 +43,8 @@ sealed record GraphEdgeSpec(IReadOnlyList<string> Nodes, IReadOnlyList<GraphEdge
 /// <para>
 /// Cut answer, from the partial <see cref="Groups"/> (node id to 0, the S side, or 1, the T side): the frame carries
 /// the split as <c>groups</c> (an annotation, so the frontend can color the sides) and every edge that crosses it
-/// is <c>Solution</c> in the confirmed answer, <c>Committed</c> in a split kept so far (a best so far, or an incremental run's
-/// split mid-run), or <c>ElementHighlight</c> in a step that only tries the split (Try, Reject of a run that is not
+/// is <c>Solution</c> in the confirmed answer, <c>Rejected</c> in a Done with ok = false, <c>Committed</c> in a split kept so
+/// far (a best so far, or an incremental run's split mid-run), or <c>ElementHighlight</c> in a step that only tries the split (Try, Reject of a run that is not
 /// incremental; see <see cref="GraphSubsetFrames.Picked"/>). The focus is highlighted; in a Reject step of an incremental run it is the piece that failed, so
 /// <c>Rejected</c>. Nodes keep their ordinary states.
 /// </para>
@@ -137,7 +137,7 @@ static class GraphEdgeFrames {
         // A whole candidate only being tried (Try, Reject) is highlighted, edges and the nodes they touch alike; a set the
         // solver has kept (in an incremental run, the tree so far in every step) is Committed edges, and the answer Solution
         // edges, joining Covered nodes.
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         var touched = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight : PictureState.Covered;
         foreach (var id in partial.Edges) {
             if (!byId.TryGetValue(id, out var e)) continue;
@@ -166,7 +166,7 @@ static class GraphEdgeFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         foreach (var e in edges)
             if (groups.TryGetValue(e.A, out int ga) && groups.TryGetValue(e.B, out int gb) && ga != gb)
-                GraphSubsetFrames.Raise(edgeStates, e.Id, GraphSubsetFrames.Picked(ev, incremental, endsRun));
+                GraphSubsetFrames.Raise(edgeStates, e.Id, GraphSubsetFrames.Picked(ev, incremental, endsRun, ok));
         // A rejected whole split is not an element that failed (nothing in it is wrong, it is just the wrong size), so its
         // focus is only highlighted; the event tells the frontend it was rejected. An incremental run's focus is the piece
         // under test, so a Reject marks it Rejected.
