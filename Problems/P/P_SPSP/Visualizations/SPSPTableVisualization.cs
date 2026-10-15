@@ -38,7 +38,7 @@ class SPSPTableVisualization : IVisualization<SPSP>, ITableVisualization<SPSP, D
     TableSpec ITableVisualization<SPSP, Distances>.Describe(SPSP problem) => DistanceTraceTable.Spec(problem.sourceNode, problem.targetNode);
     IReadOnlyList<TableDraft> ITableVisualization<SPSP, Distances>.Draw(SPSP problem, IReadOnlyList<SolverStep<Distances>> steps, bool incremental) =>
         DistanceTraceTable.Drafts(steps, problem.nodes, problem.sourceNode, problem.targetNode);
-    TableDraft ITableVisualization<SPSP, Distances>.Blank(SPSP problem) => DistanceTraceTable.Blank(problem.nodes);
+    TableDraft ITableVisualization<SPSP, Distances>.Blank(SPSP problem) => DistanceTraceTable.Blank(problem.nodes, problem.sourceNode);
 
     public SPSPTableVisualization() { }
 

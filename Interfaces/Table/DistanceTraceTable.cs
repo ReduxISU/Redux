@@ -28,10 +28,19 @@ static class DistanceTraceTable {
             Title = target == null ? $"Shortest paths from {source}" : $"Shortest path from {source} to {target}",
         };
 
-    /// <summary>The nodes with nothing worked out yet.</summary>
-    public static TableDraft Blank(IReadOnlyList<string> nodes) {
+    /// <summary>
+    /// The table's start, before anything is settled, as Dijkstra's first step writes it: every node not yet settled at
+    /// ∞, the source at 0 on its own path. It is the payload's blank (drawn before Run) and the frame that closes a stopped
+    /// run. A source that is not a node leaves every cell but the names empty, as that run's Done does.
+    /// </summary>
+    public static TableDraft Blank(IReadOnlyList<string> nodes, string source) {
         var draft = new TableDraft();
-        foreach (var n in nodes) draft.AddRow(n, null, null, null, null);
+        bool known = nodes.Contains(source);
+        foreach (var n in nodes) {
+            if (!known) draft.AddRow(n, null, null, null, null);
+            else if (n == source) draft.AddRow(n, "not yet", TableFrames.Num(0), None, source);
+            else draft.AddRow(n, "not yet", Infinity, None, None);
+        }
         return draft;
     }
 
