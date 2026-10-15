@@ -14,7 +14,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncremental
     public string solverName { get; } = "Pump Scheduling Cost Minimization Dynamic Programming";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents " +
-        "(hour, tank-level-bucket, previous-pump-mask). A forward pass computes the minimum-cost " +
+        "(hour, exact tank level, previous-pump-mask). A forward pass computes the minimum-cost " +
         "path from the initial state to any valid end state. The optimal schedule is recovered " +
         "by backtracking through parent pointers.\r\n" +
         "The output certificate is a 2-section tuple: (total-cost, schedule) where total-cost is the " +
@@ -28,10 +28,10 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncremental
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Declared, not derived. Pseudo-polynomial, same nuance as KnapsackDP's "O(n * W)":
-    // polynomial in the hour count H and tank-bucket count B, but the per-hour transition
+    // polynomial in the hour count H and reachable tank-level count B, but the per-hour transition
     // enumerates prevMask x mask over nMasks = 2^n pump-on/off states (n = pump count),
     // i.e. exponential in the number of pumps.
-    public MathematicalFunction timeComplexity { get; } = new("H * B * n * 4^n", ", H = 24 hours, B = tank buckets, n = number of pumps");
+    public MathematicalFunction timeComplexity { get; } = new("H * B * n * 4^n", ", H = 24 hours, B = reachable tank levels per hour (whole gallons if there are too many to track exactly), n = number of pumps");
 
     // The most (tank level, pumps on) states the exact table may hold in one hour; past it the solver falls back to whole
     // gallons (#887). The table keeps every hour for the trace back, 16 bytes a state, so at most 24 x 100,000 x 16 B,
