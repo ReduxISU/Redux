@@ -79,6 +79,17 @@ public class ScheduleFrames_Tests {
         Assert.Equal("J0:Rejected J1:Committed J2:Rejected", States(accepted.Jobs));
         var answer = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0, 2]), StepEvent.Accept, [], "Fits.", endsRun: true);
         Assert.Equal("J0:Rejected J1:Solution J2:Rejected", States(answer.Jobs));
+        // A run that ends without an answer never shows green (#886).
+        var failed = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0, 2]), StepEvent.Done, [], "None.", ok: false);
+        Assert.Equal("J0:Rejected J1:Rejected J2:Rejected", States(failed.Jobs));
+    }
+
+    [Fact]
+    public void PumpsFrame_AFailedDone_DrawsItsPumpsRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var done = ScheduleFrames.PumpsFrame(Tank, new PumpPlan([], Day(["P1"]), null), StepEvent.Done, [], "None.", ok: false, incremental: true);
+        Assert.NotEmpty(done.Cells);
+        Assert.All(done.Cells, c => Assert.Equal(PictureState.Rejected, c.Value.State));
     }
 
     [Fact]
