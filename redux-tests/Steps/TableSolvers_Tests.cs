@@ -2,7 +2,9 @@ using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.Steps;
 using API.Interfaces.Table;
+using API.Problems.NPComplete.NPC_EDITDISTANCE;
 using API.Problems.NPComplete.NPC_EDITDISTANCE.Solvers;
+using API.Problems.NPComplete.NPC_EDITDISTANCE.Visualizations;
 using Xunit;
 
 namespace redux_tests;
@@ -162,7 +164,7 @@ public class TableSolvers_Tests {
     }
 
     [Fact]
-    public void EditDistance_TheFrames_ArrowTheReadsAndKeepTheTraceBackAsSolution() {
+    public void EditDistance_TheFrames_ArrowTheReadsAndKeepTheTraceBackCommittedUntilTheAnswer() {
         var (payload, frames) = Picture("editdistancedpsolver", "(horse, ros)");
         Assert.Equal(["ε", "r", "o", "s"], payload.Columns.Select(c => c.Label));
         Assert.Equal(["ε", "h", "o", "r", "s", "e"], payload.Rows.Select(r => r.Label));
@@ -174,12 +176,24 @@ public class TableSolvers_Tests {
         Assert.All(frames.Take(16), f => Assert.DoesNotContain(f.Cells.Values, s => s.State == PictureState.Solution));
         var back = frames[18];
         Assert.Equal(PictureState.ElementHighlight, back.Cells["r3c2"].State);
-        Assert.Equal(["r4c3", "r5c3"], back.Cells.Where(c => c.Value.State == PictureState.Solution).Select(c => c.Key));
+        // The trace-back so far is kept, not the answer yet (#886).
+        Assert.Equal(["r4c3", "r5c3"], back.Cells.Where(c => c.Value.State == PictureState.Committed).Select(c => c.Key));
         var done = frames[^1];
         Assert.Equal(["r0c0", "r1c1", "r2c2", "r3c2", "r4c3", "r5c3"], done.Cells.Keys);
         Assert.All(done.Cells.Values, s => Assert.Equal(PictureState.Solution, s.State));
         Assert.Empty(done.Arrows!);
         Assert.True(done.Ok);
+    }
+
+    [Fact]
+    public void EditDistance_AFailedDone_DrawsItsTraceBackRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var problem = new EDITDISTANCE("(ab, b)");
+        var step = new SolverStep<TableCells>(new TableCells([], [], ["r1c0", "r0c0"]), StepEvent.Done, [], "x") { Ok = false };
+        var draft = EditDistanceVisualization.Drafts(problem, [step])[0];
+        var f = TableFrames.Frame(EditDistanceVisualization.Spec(problem), draft, StepEvent.Done, "x", false, incremental: true);
+        Assert.Equal(["r0c0", "r1c0"], f.Cells.Keys);
+        Assert.All(f.Cells.Values, s => Assert.Equal(PictureState.Rejected, s.State));
     }
 
     // ---- 0-1 ILP ----

@@ -34,7 +34,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         JsonSerializer.Serialize(element, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     public static TheoryData<string, string, string> FramesCases {
@@ -174,7 +174,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var payload = root.GetProperty("payload");
         string shape = payload.GetProperty("shape").GetString()!;
         Assert.Equal(vis == "editdistancevisualization" ? "grid" : "matrix", shape);
-        Assert.Equal(["kind", "shape", "columns", "rows", .. shape == "grid" ? new[] { "rowAxis", "columnAxis" } : []],
+        Assert.Equal(["kind", "shape", "columns", "rows", .. shape == "grid" ? new[] { "rowAxis", "columnAxis" } : [], "blank"],
             payload.EnumerateObject().Select(p => p.Name));
         Assert.Equal("table", payload.GetProperty("kind").GetString());
         var columns = payload.GetProperty("columns").EnumerateArray().ToList();
@@ -183,6 +183,22 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         for (int i = 0; i < rows.Count; i++) {
             Assert.Equal($"r{i}", rows[i].GetProperty("id").GetString());
             Assert.False(string.IsNullOrEmpty(rows[i].GetProperty("label").GetString()));
+        }
+        // The blank: every row, as wide as the table, with nothing worked out. A grid is empty; a matrix has "?" for every x,
+        // its coefficients and bounds, and no totals or verdicts.
+        var blank = payload.GetProperty("blank");
+        Assert.Equal(["values"], blank.EnumerateObject().Select(p => p.Name));
+        var blankRows = blank.GetProperty("values").EnumerateArray().ToList();
+        Assert.Equal(rows.Count, blankRows.Count);
+        Assert.All(blankRows, row => Assert.Equal(columns.Count, row.GetArrayLength()));
+        if (shape == "grid") {
+            Assert.All(blankRows, row => Assert.All(row.EnumerateArray(), v => Assert.Equal(JsonValueKind.Null, v.ValueKind)));
+        } else {
+            Assert.All(blankRows[0].EnumerateArray().Take(columns.Count - 3), v => Assert.Equal("?", v.GetString()));
+            Assert.All(blankRows, row => {
+                Assert.Equal(JsonValueKind.Null, row[columns.Count - 3].ValueKind);
+                Assert.Equal(JsonValueKind.Null, row[columns.Count - 1].ValueKind);
+            });
         }
         var rowIds = rows.Select(r => r.GetProperty("id").GetString()!).ToHashSet();
         var cellIds = Enumerable.Range(0, rows.Count).SelectMany(i => Enumerable.Range(0, columns.Count).Select(j => $"r{i}c{j}")).ToHashSet();
@@ -254,7 +270,8 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             "{\"kind\":\"table\",\"shape\":\"grid\","
             + "\"columns\":[{\"id\":\"c0\",\"label\":\"ε\"},{\"id\":\"c1\",\"label\":\"r\"},{\"id\":\"c2\",\"label\":\"o\"},{\"id\":\"c3\",\"label\":\"s\"}],"
             + "\"rows\":[{\"id\":\"r0\",\"label\":\"ε\"},{\"id\":\"r1\",\"label\":\"h\"},{\"id\":\"r2\",\"label\":\"o\"},{\"id\":\"r3\",\"label\":\"r\"},"
-            + "{\"id\":\"r4\",\"label\":\"s\"},{\"id\":\"r5\",\"label\":\"e\"}],\"rowAxis\":\"source x\",\"columnAxis\":\"target y\"}",
+            + "{\"id\":\"r4\",\"label\":\"s\"},{\"id\":\"r5\",\"label\":\"e\"}],\"rowAxis\":\"source x\",\"columnAxis\":\"target y\","
+            + "\"blank\":{\"values\":[" + string.Join(",", Enumerable.Repeat("[null,null,null,null]", 6)) + "]}}",
             Readable(root.GetProperty("payload")));
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(23, frames.Count);
@@ -300,6 +317,22 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("(0 1 1 0) satisfies every row, found on try 7 of 16.", frames[^1].GetProperty("caption").GetString());
     }
 
+    // Before Run a frontend draws the payload's blank, not the first frame: x is "?", the coefficients and bounds are there,
+    // and no total or verdict leaks the brute force's first try.
+    [Fact]
+    public async Task Frames_IntProgramming_PayloadBlank_IsTheInstanceWithNothingTried() {
+        var (status, body) = await Visualize("visualization=intprogrammingvisualization&format=frames", "(1 -1),(0 1)<=(-1 1)");
+        Assert.Equal(HttpStatusCode.OK, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        Assert.Equal(
+            "{\"values\":[[\"?\",\"?\",null,null,null],[\"1\",\"-1\",null,\"-1\",null],[\"0\",\"1\",null,\"1\",null]]}",
+            Readable(root.GetProperty("payload").GetProperty("blank")));
+        // The first frame is a try, with totals: what the blank keeps back.
+        var first = root.GetProperty("frames")[0].GetProperty("values");
+        Assert.NotEqual(JsonValueKind.Null, first[1][2].ValueKind);
+        Assert.NotEqual("?", first[0][0].GetString());
+    }
+
     [Theory]
     [InlineData("intprogrammingvisualization", "(1 a)<=(1)")]
     [InlineData("editdistancevisualization", "(abc)")]
@@ -311,6 +344,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 }
 
 // A stopped run, under the 0.05 s budget of TinyBudgetAppFactory.
+[Collection(TimingCollection.Name)]
 public class TableFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 

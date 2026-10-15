@@ -60,8 +60,16 @@ sealed record TableRowDto([property: JsonPropertyName("id")] string Id) {
 }
 
 /// <summary>
-/// The static part of a Table picture, sent once per response: the shape, the columns and every row any frame shows. Cell
-/// <c>(i, j)</c> is <c>r{i}c{j}</c>: row <c>rows[i]</c>, column <c>columns[j]</c>.
+/// The base picture of the instance: the cells' text with nothing worked out, written the way a frame writes its
+/// <c>values</c> (<c>values[i][j]</c> is cell <c>r{i}c{j}</c>, null for an empty cell). It has no states, no focus, nothing
+/// changed and no arrows: it is what a frontend draws before Run, so it shows none of the solver's work.
+/// </summary>
+sealed record TableBlank([property: JsonPropertyName("values")] IReadOnlyList<IReadOnlyList<string?>> Values);
+
+/// <summary>
+/// The static part of a Table picture, sent once per response: the shape, the columns, every row any frame (or the blank)
+/// shows, and the blank: the base picture of the instance, drawn before Run. Cell <c>(i, j)</c> is <c>r{i}c{j}</c>: row
+/// <c>rows[i]</c>, column <c>columns[j]</c>.
 /// </summary>
 sealed record TablePayload(
     [property: JsonPropertyName("kind")] string Kind,
@@ -79,6 +87,13 @@ sealed record TablePayload(
     [JsonPropertyName("columnAxis")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ColumnAxis { get; init; }
+
+    /// <summary>The base picture of the instance (<see cref="TableBlank"/>): what a frontend draws before Run, instead of
+    /// a solver's first frame. Always sent by <see cref="TableFrames.Build"/>; null (left out) only for a payload made
+    /// without one.</summary>
+    [JsonPropertyName("blank")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TableBlank? Blank { get; init; }
 }
 
 /// <summary>An arrow in a grid, from a cell a fill read to the cell it filled. <c>best</c> marks the one whose value it
@@ -175,11 +190,13 @@ sealed class TableDraft {
 /// distinct and no id needs escaping.
 /// </para>
 /// <para>
-/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Covered &gt; Blocked &gt; Background</c>,
+/// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>,
 /// with <c>Untraveled</c> only where nothing else applies; see <see cref="GraphSubsetFrames.Raise"/>). The visualization
 /// gives rows and cells their states in its own terms (a constraint that holds is <c>Covered</c>, a trace-back cell
 /// <c>Solution</c>); the base adds the focus: <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject step of an incremental
-/// run (<see cref="GraphSubsetFrames.FocusMark"/>). <c>Solution</c> is for an Accept step and the answer only.
+/// run (<see cref="GraphSubsetFrames.FocusMark"/>). <c>Solution</c> is for the confirmed answer only (the Done, or an Accept
+/// that ends the run); what a solver has kept before then is <c>Committed</c>, and what a Done with ok = false keeps is
+/// <c>Rejected</c>, never <c>Solution</c> (<see cref="GraphSubsetFrames.Picked"/>, #886).
 /// </para>
 /// <para>
 /// A run stopped by its time limit ends with a Done frame, ok = false, that shows the instance with nothing worked out and
@@ -218,9 +235,12 @@ static class TableFrames {
 
     /// <summary>
     /// The payload. Its rows are the spec's labelled rows, or for a trace table as many unlabelled rows as the longest
-    /// frame shows (<paramref name="rowsShown"/>).
+    /// frame, or the <paramref name="blank"/>, shows (<paramref name="rowsShown"/>). <paramref name="blank"/> is the base
+    /// picture of the instance (the instance with nothing worked out), sent as the payload's <c>blank</c> with its cells'
+    /// text only; null leaves it out.
     /// </summary>
-    public static TablePayload Payload(TableSpec spec, int rowsShown) {
+    public static TablePayload Payload(TableSpec spec, int rowsShown, TableDraft? blank = null) {
+        if (blank != null) rowsShown = Math.Max(rowsShown, blank.RowCount);
         var rows = spec.RowLabels is { } labels
             ? labels.Select((label, i) => new TableRowDto(RowId(i)) { Label = label }).ToList()
             : Enumerable.Range(0, rowsShown).Select(i => new TableRowDto(RowId(i))).ToList();
@@ -229,6 +249,7 @@ static class TableFrames {
             Title = spec.Title,
             RowAxis = spec.RowAxis,
             ColumnAxis = spec.ColumnAxis,
+            Blank = blank == null ? null : new TableBlank(CheckedValues(spec, blank)),
         };
     }
 
@@ -280,20 +301,27 @@ static class TableFrames {
     /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
     /// step already is the Done step. A run stopped by its time limit ends with <see cref="StoppedFrame"/> instead, and its
-    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read.
+    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read. The payload carries the blank (the base picture
+    /// of the instance, drawn before Run) so a frontend never has to draw a solver's first frame before the run.
     /// </summary>
     /// <param name="spec">The table's shape, columns and fixed rows.</param>
     /// <param name="run">The solver's run.</param>
     /// <param name="draw">One draft per step given, in order.</param>
-    /// <param name="blank">The instance with nothing worked out.</param>
+    /// <param name="blank">The instance with nothing worked out: the payload's blank, and the closing frame of a stopped
+    /// run.</param>
     /// <param name="solved">The answer drawn without steps, or null to show <paramref name="blank"/>.</param>
     /// <param name="verifyAnswer">The problem's verifier on an answer.</param>
+    /// <param name="start">Optional: the instance with nothing worked out as the run's steps write it (a trace table whose
+    /// start row depends on the solver), or null to use <paramref name="blank"/>. Used in place of
+    /// <paramref name="blank"/> everywhere.</param>
     public static FramesResponse Build<TPartial>(TableSpec spec, SolveRun run,
         Func<IReadOnlyList<SolverStep<TPartial>>, IReadOnlyList<TableDraft>> draw, Func<TableDraft> blank,
-        Func<string, TableDraft?> solved, Func<string, bool> verifyAnswer) {
+        Func<string, TableDraft?> solved, Func<string, bool> verifyAnswer,
+        Func<IReadOnlyList<SolverStep<TPartial>>, TableDraft?>? start = null) {
         var steps = run.StepsFor(typeof(TPartial)).OfType<SolverStep<TPartial>>().ToList();
         SolverStep<TPartial>? stoppedDone = run.TimedOut && steps.Count > 0 && steps[^1].Event == StepEvent.Done ? steps[^1] : null;
         if (stoppedDone != null) steps.RemoveAt(steps.Count - 1);
+        TableDraft Blank() => start?.Invoke(steps) ?? blank();
 
         var drafts = steps.Count > 0 ? draw(steps) : [];
         if (drafts.Count != steps.Count)
@@ -304,13 +332,13 @@ static class TableFrames {
             frames.Add(Frame(spec, drafts[i], steps[i].Event, steps[i].Caption, steps[i].Ok, run.Incremental));
 
         if (run.TimedOut) {
-            frames.Add(StoppedFrame(spec, blank(), stoppedDone?.Caption ?? GraphSubsetFrames.StoppedCaption));
+            frames.Add(StoppedFrame(spec, Blank(), stoppedDone?.Caption ?? GraphSubsetFrames.StoppedCaption));
         } else if (steps.Count == 0 || steps[^1].Event != StepEvent.Done) {
             bool ok = verifyAnswer(run.Answer);
-            var draft = (ok ? solved(run.Answer) : null) ?? blank();
+            var draft = (ok ? solved(run.Answer) : null) ?? Blank();
             frames.Add(Frame(spec, draft, StepEvent.Done, ok ? $"The answer is {run.Answer}." : "No answer was found.", ok));
         }
-        return new FramesResponse(nameof(VisualizationType.Table), Payload(spec, frames.Count == 0 ? 0 : frames.Max(f => f.Values.Count)),
+        return new FramesResponse(nameof(VisualizationType.Table), Payload(spec, frames.Count == 0 ? 0 : frames.Max(f => f.Values.Count), Blank()),
             frames.Cast<object>().ToList());
     }
 
@@ -353,8 +381,9 @@ static class TableFrames {
 
 /// <summary>
 /// A visualization drawn as the Table picture. The visualization declares what the table is (<see cref="Describe"/>), how
-/// each recorded step looks (<see cref="Draw"/>) and the instance with nothing worked out (<see cref="Blank"/>); the frames
-/// hook then comes for free. Implement members explicitly so nothing new appears in /info. The class must also declare
+/// each recorded step looks (<see cref="Draw"/>) and the instance with nothing worked out (<see cref="Blank"/>, the base
+/// picture the payload carries); the frames hook then comes for free. Implement members explicitly so nothing new appears
+/// in /info. The class must also declare
 /// <c>Type? IVisualization.StepShape =&gt; typeof(TPartial)</c>.
 /// </summary>
 interface ITableVisualization<TProblem, TPartial> : IFramesVisualization where TProblem : IProblem {
@@ -364,8 +393,13 @@ interface ITableVisualization<TProblem, TPartial> : IFramesVisualization where T
     /// stopped by its time limit is given its steps without the closing Done.</summary>
     IReadOnlyList<TableDraft> Draw(TProblem problem, IReadOnlyList<SolverStep<TPartial>> steps, bool incremental);
 
-    /// <summary>The instance with nothing worked out and no states: the frame that closes a stopped run.</summary>
+    /// <summary>The instance with nothing worked out and no states: the base picture the payload carries as its blank (what a
+    /// frontend draws before Run), and the frame that closes a stopped run.</summary>
     TableDraft Blank(TProblem problem);
+
+    /// <summary>The instance with nothing worked out as the run's steps write it, or null to use <see cref="Blank"/>: for a
+    /// trace table whose start row depends on the solver (an NFA's subset simulation starts in its ε-closure).</summary>
+    TableDraft? Start(TProblem problem, IReadOnlyList<SolverStep<TPartial>> steps) => null;
 
     /// <summary>The answer drawn without steps (used only when the run's steps cannot be drawn), or null to show
     /// <see cref="Blank"/> with the answer in the caption.</summary>
@@ -380,6 +414,7 @@ interface ITableVisualization<TProblem, TPartial> : IFramesVisualization where T
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            },
+            steps => Start(problem, steps));
     }
 }

@@ -27,7 +27,7 @@ public class GraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     private static readonly HashSet<string> Vocabulary = new() {
-        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked",
+        "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
     // visualization, its default solver, the rule it declares, whether the instance has a K

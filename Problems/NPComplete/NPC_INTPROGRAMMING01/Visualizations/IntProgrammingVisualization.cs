@@ -27,7 +27,7 @@ class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJS
     Type? IVisualization.StepShape => typeof(Assignment);
     TableSpec ITableVisualization<INTPROGRAMMING01, Assignment>.Describe(INTPROGRAMMING01 problem) => Spec(problem);
     IReadOnlyList<TableDraft> ITableVisualization<INTPROGRAMMING01, Assignment>.Draw(INTPROGRAMMING01 problem, IReadOnlyList<SolverStep<Assignment>> steps, bool incremental) =>
-        steps.Select(s => Draft(problem, ValuesOf(problem, s.Partial), s.Event, s.Ok, incremental, s.Focus)).ToList();
+        GraphSubsetFrames.WithEndsRun(steps).Select(p => Draft(problem, ValuesOf(problem, p.Step.Partial), p.Step.Event, p.Step.Ok, incremental, p.Step.Focus, p.EndsRun)).ToList();
     TableDraft ITableVisualization<INTPROGRAMMING01, Assignment>.Blank(INTPROGRAMMING01 problem) => Matrix(problem, null);
     TableDraft? ITableVisualization<INTPROGRAMMING01, Assignment>.Solved(INTPROGRAMMING01 problem, string answer) => SolvedDraft(problem, answer);
 
@@ -69,13 +69,13 @@ class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJS
         return draft;
     }
 
-    // One step: the assignment is a candidate (ElementHighlight) while it is only tried, and the answer (Solution) in an
-    // Accept or a correct Done. A row over its bound is Rejected; a row that holds is Covered while the assignment is
+    // One step: the assignment is a candidate (ElementHighlight) while it is only tried, kept (Committed) in an Accept the run
+    // goes on from, and the answer (Solution) in an Accept that ends the run or a correct Done (#886). A row over its bound is Rejected; a row that holds is Covered while the assignment is
     // tried, and Solution once it is the answer.
-    private static TableDraft Draft(INTPROGRAMMING01 problem, int[]? x, StepEvent ev, bool? ok, bool incremental, IEnumerable<string> focus) {
+    private static TableDraft Draft(INTPROGRAMMING01 problem, int[]? x, StepEvent ev, bool? ok, bool incremental, IEnumerable<string> focus, bool endsRun = false) {
         var draft = Matrix(problem, x);
         if (x != null && (ev != StepEvent.Done || ok == true)) {
-            var picked = GraphSubsetFrames.Picked(ev, incremental);
+            var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
             for (int j = 0; j < x.Length; j++) draft.MarkCell(0, j, picked);
             for (int r = 0; r < problem.C.Count && r < problem.d.Count; r++) {
                 bool holds = IntegerProgrammingBruteForce.Total(problem.C[r], x) <= problem.d[r];
