@@ -64,11 +64,13 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         // TODO: implement parsing of string instance of Akari. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
         
         // Wall Set Version: The instance is comprised of the grid dimensions and the set of wall positions (and hints/clues).
+        /*
         StringParser parser = new("{ (m, n, B) | m is int, n is int, B is set }");
         parser.parse(instance);
         int m = int.Parse(parser["m"].ToString());
         int n = int.Parse(parser["n"].ToString());
         UtilCollection walls = parser["B"];
+        */
 
         // Puzzle Grid Version: 2D list of characters associated with each cell.
         StringParser gridParser = new("{ (c) | c is list}");
