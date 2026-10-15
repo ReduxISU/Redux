@@ -34,7 +34,7 @@ class SSSPTableVisualization : IVisualization<SSSP>, ITableVisualization<SSSP, D
     TableSpec ITableVisualization<SSSP, Distances>.Describe(SSSP problem) => DistanceTraceTable.Spec(problem.sourceNode, null);
     IReadOnlyList<TableDraft> ITableVisualization<SSSP, Distances>.Draw(SSSP problem, IReadOnlyList<SolverStep<Distances>> steps, bool incremental) =>
         DistanceTraceTable.Drafts(steps, problem.nodes, problem.sourceNode, null);
-    TableDraft ITableVisualization<SSSP, Distances>.Blank(SSSP problem) => DistanceTraceTable.Blank(problem.nodes);
+    TableDraft ITableVisualization<SSSP, Distances>.Blank(SSSP problem) => DistanceTraceTable.Blank(problem.nodes, problem.sourceNode);
 
     public SSSPTableVisualization() { }
 

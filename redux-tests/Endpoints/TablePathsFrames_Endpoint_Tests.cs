@@ -55,12 +55,17 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var root = await Visualize($"visualization={(pair ? "spsp" : "sssp")}tablevisualization&format=frames", instance);
         Assert.Equal("Table", root.GetProperty("type").GetString());
         var payload = root.GetProperty("payload");
-        Assert.Equal(["kind", "shape", "columns", "rows", "title"], payload.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["kind", "shape", "columns", "rows", "title", "blank"], payload.EnumerateObject().Select(p => p.Name));
         Assert.Equal("trace", payload.GetProperty("shape").GetString());
         Assert.Equal(["node", "settled", "cost", "via", "path"], payload.GetProperty("columns").EnumerateArray().Select(c => c.GetProperty("key").GetString()));
         int nodes = payload.GetProperty("rows").GetArrayLength();
 
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
+        // The blank is the start, every node, as the first step writes it (when the run had a start at all).
+        var blank = payload.GetProperty("blank").GetProperty("values");
+        Assert.Equal(nodes, blank.GetArrayLength());
+        if (frames[0].GetProperty("event").GetString() == "Try")
+            Assert.Equal(Readable(frames[0].GetProperty("values")), Readable(blank));
         var settledOrder = new List<string>();
         for (int i = 0; i < frames.Count; i++) {
             var f = frames[i];
@@ -115,6 +120,11 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     public async Task Frames_Sssp_AsTheMockupDrawsIt() {
         var root = await Visualize("visualization=sssptablevisualization&format=frames", "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1)");
         Assert.Equal("Shortest paths from 1", root.GetProperty("payload").GetProperty("title").GetString());
+        // Before Run: Dijkstra's start, the source at 0 and every other node at ∞, nothing settled.
+        Assert.Equal(
+            "{\"values\":[[\"1\",\"not yet\",\"0\",\"—\",\"1\"],[\"2\",\"not yet\",\"∞\",\"—\",\"—\"],[\"3\",\"not yet\",\"∞\",\"—\",\"—\"],"
+            + "[\"4\",\"not yet\",\"∞\",\"—\",\"—\"],[\"5\",\"not yet\",\"∞\",\"—\",\"—\"]]}",
+            Readable(root.GetProperty("payload").GetProperty("blank")));
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(7, frames.Count);
         Assert.Equal(
@@ -133,6 +143,9 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     public async Task Frames_Spsp_StopsAtTheTarget_AndMarksOnlyThePath() {
         var root = await Visualize("visualization=spsptablevisualization&format=frames", "({s,a,b,c,t},{((s,a),1),((a,t),2),((s,b),2),((b,c),5),((c,t),9)},s,t)");
         Assert.Equal("Shortest path from s to t", root.GetProperty("payload").GetProperty("title").GetString());
+        Assert.Equal(["s", "∞", "∞", "∞", "∞"], root.GetProperty("payload").GetProperty("blank").GetProperty("values").EnumerateArray()
+            .Select(r => r[0].GetString() == "s" ? "s" : r[2].GetString()!));
+        Assert.Equal("0", root.GetProperty("payload").GetProperty("blank").GetProperty("values")[0][2].GetString());
         var done = root.GetProperty("frames").EnumerateArray().Last();
         Assert.Equal(["#1", "#2", "#3", "not yet", "#4"], Column(done, 1));
         Assert.Equal("r0:Solution r1:Solution r4:Solution", RowStates(done));
@@ -145,7 +158,7 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public void Frames_AStoppedRun_EndsWithTheNodesAndNothingWorkedOut() {
+    public void Frames_AStoppedRun_EndsWithTheStart_NothingSettled() {
         // Dijkstra is too quick to stop through the endpoint, so the stopped run is built by hand, as SolveRun.Record makes it.
         string instance = "({1,2,3},{((1,2),1),((2,3),1)},1)";
         var start = new SolverStep<Distances>(new Distances([new("1", 0)], [], []), StepEvent.Try, [], "Start at 1 with distance 0. Every other node starts at ∞.");
@@ -156,7 +169,7 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(2, frames.Count);
         var done = frames[^1];
         Assert.Equal((StepEvent.Done, false), (done.Event, done.Ok));
-        Assert.Equal([["1", null, null, null, null], ["2", null, null, null, null], ["3", null, null, null, null]], done.Values.Select(r => r.ToArray()));
+        Assert.Equal([["1", "not yet", "0", "—", "1"], ["2", "not yet", "∞", "—", "—"], ["3", "not yet", "∞", "—", "—"]], done.Values.Select(r => r.ToArray()));
         Assert.Empty(done.Rows);
         Assert.Empty(done.Changed);
     }
