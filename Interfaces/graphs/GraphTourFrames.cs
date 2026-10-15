@@ -42,7 +42,8 @@ sealed record GraphTourSpec(
 /// frame with ok true, or an Accept that ends the run) they are <c>Solution</c>, like the green nodes of the solved
 /// mockups;</item>
 /// <item>each hop of the path that is an edge of the graph (in the hop's direction, for a directed graph) is <c>Solution</c>
-/// in the confirmed answer and <c>Committed</c> while the path is only kept so far (#886);</item>
+/// in the confirmed answer, <c>Rejected</c> in a Done with ok = false (the run found nothing; its nodes stay <c>Covered</c>),
+/// and <c>Committed</c> while the path is only kept so far (#886);</item>
 /// <item>in a step that only tries a whole tour (<see cref="StepEvent.Try"/>, <see cref="StepEvent.Reject"/> of a run that is
 /// not <see cref="SolveRun.Incremental"/>) its nodes and hops are <c>ElementHighlight</c> instead (see
 /// <see cref="GraphSubsetFrames.Picked"/>); an incremental run's path is the path so far, so it keeps its Committed hops in every
@@ -123,8 +124,8 @@ static class GraphTourFrames {
 
         // A whole tour only being tried (Try, Reject) is highlighted, nodes and hops alike; otherwise (and always in an
         // incremental run, whose path is the path so far) its hops are Committed and its nodes Covered, or both Solution once
-        // the path is the confirmed answer (#886).
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        // the path is the confirmed answer (#886). A Done that found nothing has Rejected hops on Covered nodes.
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         var onPath = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight
             : ev == StepEvent.Done ? (ok == true ? PictureState.Solution : PictureState.Covered)
             : picked == PictureState.Solution ? PictureState.Solution : PictureState.Covered;

@@ -143,6 +143,9 @@ public class GraphTourFrames_Tests {
         Assert.True(done.Ok);
         var notOk = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3", "4", "1"), StepEvent.Done, [], "x", false);
         Assert.All(notOk.Nodes.Values, s => Assert.Equal(PictureState.Covered, s.State));
+        // A run that ends without an answer never shows green: its hops are Rejected (#886).
+        Assert.NotEmpty(notOk.Edges);
+        Assert.All(notOk.Edges.Values, s => Assert.Equal(PictureState.Rejected, s.State));
         var notDone = GraphTourFrames.Frame(Undirected(), Of("1", "2", "3", "4", "1"), StepEvent.Accept, [], "x", true);
         Assert.All(notDone.Nodes.Values, s => Assert.Equal(PictureState.Covered, s.State));
     }

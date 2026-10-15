@@ -117,6 +117,15 @@ public class GraphGroupFrames_Tests {
     }
 
     [Fact]
+    public void CliqueCover_AFailedDoneDrawsItsCliqueEdgesRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0), ("d", 1), ("e", 2)), StepEvent.Done, [], "x", false);
+        Assert.Equal(PictureState.Rejected, EdgeState(f, "a-b"));
+        Assert.Equal(PictureState.Rejected, EdgeState(f, "a-c"));
+        Assert.DoesNotContain(f.Edges.Values, s => s.State == PictureState.Solution);
+    }
+
+    [Fact]
     public void CliqueCover_AMissingEdgeInsideAGroupIsARejectedPhantom() {
         var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("d", 0), ("b", 1)), StepEvent.Reject, ["a", "d"], "x");
         var phantom = Assert.Single(f.Phantoms);
