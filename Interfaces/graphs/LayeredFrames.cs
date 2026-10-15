@@ -150,7 +150,8 @@ sealed record LayeredFrame(
 /// <b>States</b> (precedence <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>,
 /// with <c>Untraveled</c> only where nothing else applies; see <see cref="GraphSubsetFrames.Raise"/>). What a solver has
 /// kept is <c>Committed</c> until the run ends on it, and <c>Solution</c> only in the confirmed answer (the Done, or an Accept
-/// that ends the run; <see cref="GraphSubsetFrames.Picked"/>, #886):
+/// that ends the run; <see cref="GraphSubsetFrames.Picked"/>, #886). In a Done with ok = false (the run found nothing) what it
+/// keeps is <c>Rejected</c> instead, never <c>Solution</c>:
 /// </para>
 /// <list type="bullet">
 /// <item><b>Order</b> (Topological Sort): placed nodes are <c>Committed</c> (an incremental solver's committed order), nodes
@@ -446,8 +447,9 @@ static class LayeredFrames {
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var known = new HashSet<string>(m.Nodes, StringComparer.Ordinal);
-        // What the step keeps: Committed until the run ends on it, Solution in the answer (#886).
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        // What the step keeps: Committed until the run ends on it, Solution in the answer, Rejected in a Done that found
+        // nothing (#886).
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         LayeredFrame frame;
 
         switch (partial) {
