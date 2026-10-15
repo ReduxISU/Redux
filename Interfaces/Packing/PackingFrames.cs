@@ -229,7 +229,7 @@ static class PackingFrames {
         bool inProgress = ev is StepEvent.Accept or StepEvent.Backtrack || (incremental && ev is StepEvent.Try or StepEvent.Reject);
         bool placedAny = assign.Any(c => c >= 0);
 
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         for (int i = 0; i < assign.Length; i++) {
             if (assign[i] >= 0) GraphSubsetFrames.Raise(items, ItemId(i), picked);
             else if (ev == StepEvent.Done && ok == true) GraphSubsetFrames.Raise(items, ItemId(i), PictureState.Untraveled);
