@@ -10,6 +10,7 @@ class AkariVerifier : IVerifier<AKARI> {
     public string verifierDefinition {get;} = "TODO";
     public string source {get;} = " ";
     public string sourceLink {get;} = "TODO";
+    public string sourceFile {get;} = SourceFile.Path();
     public string[] contributors {get;} = { "TODO" };
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
