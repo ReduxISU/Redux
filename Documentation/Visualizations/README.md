@@ -76,7 +76,7 @@ Open the two mockup HTML files directly in a browser. They work offline.
 | `False` | An assigned-false literal or variable. An unassigned one stays `Background` |
 | `Committed` | Kept so far but not confirmed: queens or digits placed, items packed, tree edges chosen, a best so far (#886). Drawn a lighter green with a dashed outline |
 
-**Green is for answers.** A brute force that judges whole candidates draws each candidate `ElementHighlight`, never `Solution`. A solver that builds its answer piece by piece declares `IIncrementalSolver`; its committed pieces are `Committed` (a lighter green with a dashed outline) and only the piece under test is highlighted. In every picture, `Solution` is kept for the confirmed answer (#886).
+**Green is for answers.** A brute force that judges whole candidates draws each candidate `ElementHighlight`, never `Solution`. A solver that builds its answer piece by piece declares `IIncrementalSolver`; its committed pieces are `Committed` (a lighter green with a dashed outline) and only the piece under test is highlighted. In every picture, `Solution` is kept for the confirmed answer (#886), and a run that ends without an answer draws its picks `Rejected`.
 
 Badges such as ×2 (covered twice), order numbers in a tour, missing-edge lines and group colors are drawn annotations, not states.
 

@@ -187,7 +187,7 @@ How a picture draws your partial depends on what kind of solver you are:
 
   The picture draws the committed part as `Committed` and only the focus as tried (`ElementHighlight`) or failed (`Rejected`). The committed part turns `Solution` on the correct Done, or on an Accept that ends the run.
 
-Every picture follows the same rule (#886): `Solution` is the confirmed answer only, and what a solver keeps before then is `Committed`. `GraphSubsetFrames.Picked` gives the state of picked elements, so use it rather than writing the rule again.
+Every picture follows the same rule (#886): `Solution` is the confirmed answer only, and what a solver keeps before then is `Committed`. A Done with `ok = false` draws the picks `Rejected`, never `Solution`. `GraphSubsetFrames.Picked(ev, incremental, endsRun, ok)` gives the state of picked elements, so use it rather than writing the rule again, and always pass the step's `ok`.
 
 ### 5.4 What to record
 

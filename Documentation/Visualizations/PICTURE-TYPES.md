@@ -40,7 +40,7 @@ frame = { "event": "Try" | "Accept" | "Reject" | "Backtrack" | "Done", "caption"
 
 **States** are the shared names from [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md#the-shared-states): `Background`, `ElementHighlight` (amber ring), `Solution` (green, the confirmed answer only), `Committed` (lighter green with a dashed outline: kept so far, not confirmed), `Rejected` (red), `Untraveled` (faded), `Covered` (light green), `Blocked` (dashed grey outline), `False` (assigned false). Annotations such as order badges, ×2 badges, missing-edge lines and group colors are not states.
 
-**When things turn green.** A brute force judges whole candidates: its Try and Reject candidates are `ElementHighlight`, and an accepted best so far is `Committed`. An incremental solver (`IIncrementalSolver`: greedy, backtracking, branch and bound, dynamic programming) draws its committed pieces `Committed` and highlights only the piece under test. Every picture keeps `Solution` for the confirmed answer: the correct Done, or an Accept that ends the run (#886). Below, "green" means `Solution` and "kept" means `Committed`.
+**When things turn green.** A brute force judges whole candidates: its Try and Reject candidates are `ElementHighlight`, and an accepted best so far is `Committed`. An incremental solver (`IIncrementalSolver`: greedy, backtracking, branch and bound, dynamic programming) draws its committed pieces `Committed` and highlights only the piece under test. Every picture keeps `Solution` for the confirmed answer: the correct Done, or an Accept that ends the run (#886). A Done with `ok: false` draws its picks `Rejected`, so green never shows on a run that found nothing; a run stopped by the time limit stays blank. Below, "green" means `Solution` and "kept" means `Committed`.
 
 ### Index
 
@@ -382,7 +382,7 @@ frame:   reached: [{ states, low, high, best }], schedule: [{ hour, on, starts, 
          upTo, hours, cells (P1t0 …), budget?
 ```
 
-**Steps.** Job Sequencing records the orders tried (a brute force). Pump Scheduling records three phases: the dynamic program's forward pass (the band of tank levels still reachable, hour by hour, in `reached`), the trace back, and the chosen schedule replayed hour by hour (`upTo`). Pumps that are on are kept, green on the confirmed answer; an hour whose tank level leaves its bounds is `Rejected`.
+**Steps.** Job Sequencing records the orders tried (a brute force). Pump Scheduling records three phases: the dynamic program's forward pass (the band of tank levels still reachable, hour by hour, in `reached`), the trace back, and the chosen schedule replayed hour by hour (`upTo`). Pumps that are on are kept, green on the confirmed answer, and `Rejected` when the final schedule fails the check (the CM solver rounds tank levels, so this can happen); an hour whose tank level leaves its bounds is `Rejected`.
 
 <details><summary>Steps and Emergency Resilience</summary>
 
