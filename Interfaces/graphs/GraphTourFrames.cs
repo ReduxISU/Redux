@@ -125,7 +125,7 @@ static class GraphTourFrames {
         // A whole tour only being tried (Try, Reject) is highlighted, nodes and hops alike; otherwise (and always in an
         // incremental run, whose path is the path so far) its hops are Committed and its nodes Covered, or both Solution once
         // the path is the confirmed answer (#886). A Done that found nothing has Rejected hops on Covered nodes.
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var onPath = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight
             : ev == StepEvent.Done ? (ok == true ? PictureState.Solution : PictureState.Covered)
             : picked == PictureState.Solution ? PictureState.Solution : PictureState.Covered;
