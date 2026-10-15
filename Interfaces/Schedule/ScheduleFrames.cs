@@ -271,7 +271,7 @@ static class ScheduleFrames {
         var order = Indices(spec, partial);
         var runs = Runs(spec, order);
         var states = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         foreach (var run in runs) {
             GraphSubsetFrames.Raise(states, run.Job, picked);
             if (run.Late) GraphSubsetFrames.Raise(states, run.Job, PictureState.Rejected);
@@ -403,7 +403,7 @@ static class ScheduleFrames {
 
         var hourStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var cellStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var pumpIndex = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
         for (int h = 0; h < schedule.Count; h++) {
             foreach (var id in schedule[h].On) GraphSubsetFrames.Raise(cellStates, CellId(pumpIndex[id], h), picked);
