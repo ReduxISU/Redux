@@ -449,7 +449,7 @@ static class LayeredFrames {
         var known = new HashSet<string>(m.Nodes, StringComparer.Ordinal);
         // What the step keeps: Committed until the run ends on it, Solution in the answer, Rejected in a Done that found
         // nothing (#886).
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         LayeredFrame frame;
 
         switch (partial) {
