@@ -266,11 +266,21 @@ public class GroupedGraphFrames_Tests {
     public void Frame_AnAssignmentTheSolverKeeps_DrawsItsTrueLiteralsAsCommitted_OrSolutionOnceConfirmed(string eventName) {
         // Kept (Accept, Backtrack) is Committed; the Done is the confirmed answer (#886).
         var ev = Enum.Parse<StepEvent>(eventName);
-        var f = Frame(Of(("x1", false), ("x2", true), ("x3", false), ("x4", false)), ev);
+        var f = GroupedGraphFrames.Frame(Spec, Of(("x1", false), ("x2", true), ("x3", false), ("x4", false)), ev, [], "x", ev == StepEvent.Done ? true : null);
         var kept = ev == StepEvent.Done ? PictureState.Solution : PictureState.Committed;
         Assert.Equal(kept, Node(f, "c0-0"));
         Assert.Equal(kept, Node(f, "c0-1"));
         Assert.Equal(PictureState.False, Node(f, "c0-2"));
+    }
+
+    [Fact]
+    public void Frame_AFailedDone_DrawsItsTrueLiteralsRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var f = GroupedGraphFrames.Frame(Spec, Of(("x1", false), ("x2", true), ("x3", false), ("x4", false)), StepEvent.Done, [], "x", false);
+        Assert.Equal(PictureState.Rejected, Node(f, "c0-0"));
+        Assert.Equal(PictureState.Rejected, Node(f, "c0-1"));
+        Assert.Equal(PictureState.False, Node(f, "c0-2"));
+        Assert.DoesNotContain(f.Nodes.Values, s => s.State == PictureState.Solution);
     }
 
     [Fact]
@@ -304,7 +314,7 @@ public class GroupedGraphFrames_Tests {
     [Fact]
     public void Frame_ASatisfiedFormula_HasOneSolutionLiteralPerCluster_AtLeast() {
         // x1 = False, x2 = True, x3 = False, x4 = False satisfies all three clauses.
-        var f = Frame(Of(("x1", false), ("x2", true), ("x3", false), ("x4", false)), StepEvent.Done);
+        var f = GroupedGraphFrames.Frame(Spec, Of(("x1", false), ("x2", true), ("x3", false), ("x4", false)), StepEvent.Done, [], "x", true);
         Assert.Equal(["c0", "c1", "c2"], f.Groups.Keys);
         Assert.All(f.Groups.Values, g => Assert.Equal(PictureState.Covered, g.State));
         Assert.DoesNotContain(f.Nodes.Values, s => s.State == PictureState.Rejected);

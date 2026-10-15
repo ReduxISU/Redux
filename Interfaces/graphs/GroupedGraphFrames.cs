@@ -96,7 +96,7 @@ sealed record GroupedGraphFrame(
 /// </para>
 /// <para>
 /// <b>States.</b> A true literal is <c>Solution</c> in the confirmed answer (the Done, or an Accept that ends the run),
-/// <c>Committed</c> in a step that keeps the assignment without confirming it (an Accept mid-run, a Backtrack; #886), and
+/// <c>Rejected</c> in a Done with ok = false (the run found nothing), <c>Committed</c> in a step that keeps the assignment without confirming it (an Accept mid-run, a Backtrack; #886), and
 /// <c>ElementHighlight</c> in a step that only tries a whole assignment (Try, Reject of a run that is not
 /// <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); either way its clause is <c>Covered</c>.
 /// In an incremental run (the 3SAT backtracking) the assignment is the variables decided so far, so their true literals
@@ -202,7 +202,7 @@ static class GroupedGraphFrames {
 
         // A true literal of a whole candidate that is only being tried is highlighted, not drawn as the answer; in an
         // incremental run the variables decided so far are kept so far (Committed) until the answer.
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var groups = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var literalsOfVariable = new Dictionary<string, List<string>>(StringComparer.Ordinal);
