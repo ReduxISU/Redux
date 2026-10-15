@@ -202,7 +202,7 @@ static class GroupedGraphFrames {
 
         // A true literal of a whole candidate that is only being tried is highlighted, not drawn as the answer; in an
         // incremental run the variables decided so far are kept so far (Committed) until the answer.
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var groups = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var literalsOfVariable = new Dictionary<string, List<string>>(StringComparer.Ordinal);
