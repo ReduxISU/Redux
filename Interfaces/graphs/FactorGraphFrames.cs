@@ -109,7 +109,7 @@ static class FactorGraphFrames {
                 assignment[GroupedGraphFrames.VariableId(spec.Variables[v - 1])] = value;
             }
 
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var hits = new SortedDictionary<string, int>(StringComparer.Ordinal);

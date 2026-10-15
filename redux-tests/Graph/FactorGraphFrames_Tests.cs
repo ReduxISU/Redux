@@ -100,7 +100,8 @@ public class FactorGraphFrames_Tests {
     [InlineData("Backtrack", true)]
     public void AnAllFalseClause_HasRejectedEdges_WhateverTheEvent_EvenWhenItsVariableIsTheFocus(string ev, bool incremental) {
         // x1 = True, x3 = False: C2 = (!x1 | x3) has every literal false. The tried variable's highlight does not cover it.
-        var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x3", false)), Enum.Parse<StepEvent>(ev), ["v:x3"], "...", incremental: incremental);
+        var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x3", false)), Enum.Parse<StepEvent>(ev), ["v:x3"], "...",
+            ok: ev == "Done" ? true : null, incremental: incremental);
         Assert.Equal(PictureState.Rejected, Node(f, "c1"));
         Assert.Equal(PictureState.Rejected, Edge(f, "c1-0"));
         Assert.Equal(PictureState.Rejected, Edge(f, "c1-1"));
