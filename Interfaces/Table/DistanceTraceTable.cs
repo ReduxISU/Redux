@@ -68,7 +68,7 @@ static class DistanceTraceTable {
                 }
 
                 if (!done) {
-                    if (settled.Contains(n)) draft.MarkRow(i, GraphSubsetFrames.Picked(step.Event, incremental: true, endsRun));
+                    if (settled.Contains(n)) draft.MarkRow(i, GraphSubsetFrames.Picked(step.Event, incremental: true, endsRun, step.Ok == true));
                 } else if (step.Ok == true) {
                     if (target == null ? reached : OnPath(d, source, target, n)) draft.MarkRow(i, PictureState.Solution);
                     else if (!reached) draft.MarkRow(i, PictureState.Untraveled);
