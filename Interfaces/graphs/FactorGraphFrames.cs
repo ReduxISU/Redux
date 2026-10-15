@@ -59,7 +59,8 @@ sealed record FactorGraphFrame(
 /// </para>
 /// <para>
 /// <b>States.</b> An edge whose literal is true is <c>Solution</c> in the confirmed answer (the Done, or an Accept that ends
-/// the run), <c>Committed</c> in another step that keeps the assignment (#886) and
+/// the run), <c>Rejected</c> in a Done with ok = false (the run found nothing), <c>Committed</c> in another step that keeps
+/// the assignment (#886) and
 /// <c>ElementHighlight</c> in a step that only tries a whole assignment (<see cref="GraphSubsetFrames.Picked"/>); a variable
 /// assigned true is the same. An edge whose literal is false, and a variable assigned false, are <c>False</c>; anything
 /// unassigned is <c>Background</c>. A clause with a true literal is <c>Covered</c>; one whose literals are all assigned and
@@ -108,7 +109,7 @@ static class FactorGraphFrames {
                 assignment[GroupedGraphFrames.VariableId(spec.Variables[v - 1])] = value;
             }
 
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var hits = new SortedDictionary<string, int>(StringComparer.Ordinal);
