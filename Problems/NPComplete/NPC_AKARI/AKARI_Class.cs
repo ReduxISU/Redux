@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_AKARI;
 class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Akari (Light Up)";
+    public string problemName {get;} = "Akari (Light Up Puzzle)";
     public string problemLink {get;} = "https://en.wikipedia.org/wiki/Light_Up_(puzzle)";
     public string formalDefinition {get;} = "TODO"; // Consider excluding due to lack of formal definition
     public string problemDefinition {get;} = "An Akari (Light Up) puzzle is comprised of a rectangular m x n grid containing sets of white 'unlit' cells and black 'walls'. 'Light bulbs' can be placed in white cells that illuminate their row and column, until blocked by a wall. Black wall cells may optionally include a clue in the form of integer indicating the number of expected adjacent bulbs. A puzzle instance is considered solvable if there is an arangement of 'light bulbs' that satisifes the following conditions:\n1. Every white cell has line-of-sight to a light bulb.\n2. No light bulb illuminates another bulb.\n3. Walls with clue labeling are satisfied.";
@@ -19,13 +19,21 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public string source {get;} = "Bram Pulles. 2021. Analysis of Akari. Bachelor Thesis. Radboud University, Nijmegen, Netherlands.";
     public string sourceLink {get;} = "https://www.cs.ru.nl/bachelors-theses/2021/Bram_Pulles___1015194___Analysis_of_Akari.pdf";
     public string sourceFile {get;} = SourceFile.Path();
-    private static readonly string _defaultInstance = "((w,w,b,w),(b,w,w,1))";
+    private static readonly string _defaultInstance = """
+    ((W,W,B,W,W,W,B),
+    (W,4,W,W,1,W,B),
+    (W,W,W,2,W,W,W),
+    (W,B,W,W,W,B,W),
+    (W,W,W,B,W,W,W),
+    (B,W,B,W,W,1,W),
+    (1,W,W,W,1,W,W))
+    """;
     public string defaultInstance {get;} = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat {get;} = "Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 0-9 (clue wall). Example: ((w,w,b,w),(b,w,w,1))";
+    public string instanceFormat {get;} = "Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 1-4 (clue wall). Example: ((w,w,b,w),(b,w,w,1))";
     public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance {get;set;} = string.Empty;
     public string wikiName {get;} = ""; // Depreciated, do not implement
@@ -78,7 +86,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     }
 
     // Parses a nested list such as "((w,w,b,w),(b,w,w,1))" into a char[][].
-    // Whitespace is ignored; valid cells are w/W/b/B and digits 0-9.
+    // Whitespace is ignored; valid cells are w/W/b/B and digits 1-4.
     // This custom parser was built since SPADE currently struggles with nested lists (as of 10-15-2026).
     private static char[][] ParseGrid(string input) {
         if (string.IsNullOrWhiteSpace(input)) {
@@ -106,8 +114,8 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
                     throw new ProblemParseException("Akari", input, "unexpected end of input inside a row");
                 }
                 char c = s[pos];
-                if (c != 'w' && c != 'W' && c != 'b' && c != 'B' && !char.IsAsciiDigit(c)) {
-                    throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at position {pos}; allowed: w, W, b, B, 0-9");
+                if (c != 'w' && c != 'W' && c != 'b' && c != 'B' && (c < '1' || c > '4')) {
+                    throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at position {pos}; allowed: w, W, b, B, 1-4");
                 }
                 row.Add(c);
                 pos++;
