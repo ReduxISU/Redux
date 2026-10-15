@@ -33,6 +33,28 @@ static class AutomatonTraceTable {
             Title = title,
         };
 
+    /// <summary>
+    /// The trace's start row alone, as the first row of a run writes it: step 0, nothing read yet (the whole input is still
+    /// to come), in <paramref name="to"/>, accepting or not. It is the payload's blank (drawn before Run) and the frame
+    /// that closes a stopped run.
+    /// </summary>
+    public static TableDraft StartDraft(string to, bool accepting) {
+        var draft = new TableDraft();
+        draft.AddRow("0", NotRead, NotRead, to, accepting ? "yes" : "no");
+        return draft;
+    }
+
+    /// <summary>
+    /// The start row as the run's first step writes it (<paramref name="write"/> and <paramref name="accepts"/> as for
+    /// <see cref="Drafts"/>): for a solver whose start is more than the start state (an NFA's subset simulation starts in
+    /// its ε-closure). Null when the first step is not a start (no steps, or no state at position 0).
+    /// </summary>
+    public static TableDraft? StartOf(IReadOnlyList<SolverStep<ActiveStates>> steps, Func<IReadOnlyList<string>, string> write, Func<string, bool> accepts) =>
+        steps.Count > 0 && steps[0].Partial is { Position: 0, States.Length: > 0 } p ? StartDraft(write(p.States), p.States.Any(accepts)) : null;
+
+    // What the start row has in Read and From: nothing was read, the run came from nowhere.
+    private const string NotRead = "—";
+
     // A row: what is written, plus where the run is after it (null for Garbage and ∅, or a row of "…").
     private sealed record Row(string Step, string Read, string From, string To, string Accepting, string[]? States, int Position);
 
@@ -54,7 +76,7 @@ static class AutomatonTraceTable {
         string Accepting(IReadOnlyList<string> states) => states.Any(accepts) ? "yes" : "no";
         string Symbol(int at) => at >= 0 && at < input.Length ? input[at].ToString() : Gap;
 
-        Row Start(ActiveStates p) => new("0", "—", "—", write(p.States), Accepting(p.States), p.States, 0);
+        Row Start(ActiveStates p) => new("0", NotRead, NotRead, write(p.States), Accepting(p.States), p.States, 0);
 
         // Steps were not shown before this one: a row of "…" stands for them. A search's branch at the cap need not lead to
         // where the run is now, so only its start row is kept; a single run's rows are a true start of it.

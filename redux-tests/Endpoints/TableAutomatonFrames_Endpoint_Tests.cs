@@ -69,7 +69,7 @@ public class TableAutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal("Table", root.GetProperty("type").GetString());
         var payload = root.GetProperty("payload");
-        Assert.Equal(["kind", "shape", "columns", "rows"], payload.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["kind", "shape", "columns", "rows", "blank"], payload.EnumerateObject().Select(p => p.Name));
         Assert.Equal("trace", payload.GetProperty("shape").GetString());
         Assert.Equal(
             "[{\"id\":\"c0\",\"label\":\"Step\",\"key\":\"step\"},{\"id\":\"c1\",\"label\":\"Read\",\"key\":\"read\"},"
@@ -79,6 +79,12 @@ public class TableAutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         for (int i = 0; i < rows.Count; i++) Assert.Equal($"{{\"id\":\"r{i}\"}}", Readable(rows[i]));
 
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
+        // The blank is the start row alone, nothing read, as the run's first row writes it.
+        var blank = payload.GetProperty("blank").GetProperty("values");
+        Assert.Equal(1, blank.GetArrayLength());
+        Assert.Equal(["0", "—", "—"], blank[0].EnumerateArray().Take(3).Select(c => c.GetString()));
+        if (frames[0].GetProperty("values").GetArrayLength() > 0 && frames[0].GetProperty("values")[0][0].GetString() == "0")
+            Assert.Equal(Readable(frames[0].GetProperty("values")[0]), Readable(blank[0]));
         foreach (var f in frames) {
             Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
@@ -184,6 +190,21 @@ public class TableAutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(Readable(accept.GetProperty("values")), Readable(nfa[^1].GetProperty("values")));
     }
 
+    // Before Run the trace shows its starting point: the start row alone, nothing read, nothing marked.
+    [Fact]
+    public async Task Frames_PayloadBlank_IsTheStartRow_AsTheRunWritesIt() {
+        var (_, dfa) = await Visualize("visualization=dfatablevisualization&format=frames", "(({1,2,3},{a,b},{(1,a,2),(1,b,1),(2,a,2),(2,b,3),(3,a,2),(3,b,1)},1,{3}),abaab)");
+        Assert.Equal("{\"values\":[[\"0\",\"—\",\"—\",\"1\",\"no\"]]}", Readable(JsonDocument.Parse(dfa).RootElement.GetProperty("payload").GetProperty("blank")));
+
+        // An NFA whose start state has an ε move: subset simulation starts in the ε-closure, the backtracking search in the
+        // start state alone, and each blank is that run's own first row.
+        const string closure = "(({1,2},{a},{(1,ε,2),(2,a,2)},1,{2}),a)";
+        var (_, subset) = await Visualize("visualization=nfatablevisualization&format=frames&solver=nfasubsetsolver", closure);
+        Assert.Equal("{\"values\":[[\"0\",\"—\",\"—\",\"{1, 2}\",\"yes\"]]}", Readable(JsonDocument.Parse(subset).RootElement.GetProperty("payload").GetProperty("blank")));
+        var (_, search) = await Visualize("visualization=nfatablevisualization&format=frames", closure);
+        Assert.Equal("{\"values\":[[\"0\",\"—\",\"—\",\"1\",\"no\"]]}", Readable(JsonDocument.Parse(search).RootElement.GetProperty("payload").GetProperty("blank")));
+    }
+
     [Fact]
     public async Task Frames_SymbolNotInTheAlphabet_RejectsTheStartRow() {
         var nfa = await Frames("visualization=nfatablevisualization&format=frames", "(({1,2},{a,b},{(1,a,2)},1,{2}),ac)");
@@ -203,7 +224,7 @@ public class TableAutomatonFrames_StoppedRun_Endpoint_Tests : IClassFixture<Tiny
     }
 
     [Fact]
-    public async Task Frames_StoppedRun_EndsWithAnEmptyTable_NotOk() {
+    public async Task Frames_StoppedRun_EndsWithTheStartRow_NotOk() {
         var sw = Stopwatch.StartNew();
         var content = new StringContent(JsonSerializer.Serialize(StepTimeLimit_Tests.SlowNfa), Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=nfatablevisualization&format=frames", content, TestContext.Current.CancellationToken);
@@ -219,7 +240,10 @@ public class TableAutomatonFrames_StoppedRun_Endpoint_Tests : IClassFixture<Tiny
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
         Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
-        Assert.Equal(0, done.GetProperty("values").GetArrayLength());
+        // The start row alone, nothing marked: the same as the payload's blank.
+        Assert.Equal(1, done.GetProperty("values").GetArrayLength());
+        Assert.Equal("0", done.GetProperty("values")[0][0].GetString());
+        Assert.Equal(root.GetProperty("payload").GetProperty("blank").GetProperty("values").GetRawText(), done.GetProperty("values").GetRawText());
         Assert.Empty(done.GetProperty("rows").EnumerateObject());
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
     }

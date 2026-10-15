@@ -35,13 +35,21 @@ class NFATableVisualization : IVisualization<NFA, API_empty>, ITableVisualizatio
     // The Table picture (format=frames only). Implemented explicitly so it is not part of /info. A single state is written
     // as its name, a set of them (subset simulation) in braces.
     TableSpec ITableVisualization<NFA, ActiveStates>.Describe(NFA problem) => AutomatonTraceTable.Spec();
-    IReadOnlyList<TableDraft> ITableVisualization<NFA, ActiveStates>.Draw(NFA problem, IReadOnlyList<SolverStep<ActiveStates>> steps, bool incremental) {
-        // Sets of states (subset simulation) are written in braces once any of them has more than one state.
+    IReadOnlyList<TableDraft> ITableVisualization<NFA, ActiveStates>.Draw(NFA problem, IReadOnlyList<SolverStep<ActiveStates>> steps, bool incremental) =>
+        AutomatonTraceTable.Drafts(steps, AutomatonFrames.InputSymbols(problem.inputString), Write(steps), problem.acceptStates.Contains,
+            AutomatonTraceTable.Dead, oneRun: false);
+    // Before Run (and when a run is stopped) the trace shows its start, as the run's first row writes it: the start state
+    // for the backtracking search (this visualization's own solver), the ε-closure in braces for subset simulation.
+    TableDraft ITableVisualization<NFA, ActiveStates>.Blank(NFA problem) =>
+        AutomatonTraceTable.StartDraft(problem.startState, problem.acceptStates.Contains(problem.startState));
+    TableDraft? ITableVisualization<NFA, ActiveStates>.Start(NFA problem, IReadOnlyList<SolverStep<ActiveStates>> steps) =>
+        AutomatonTraceTable.StartOf(steps, Write(steps), problem.acceptStates.Contains);
+
+    // Sets of states (subset simulation) are written in braces once any of them has more than one state.
+    private static Func<IReadOnlyList<string>, string> Write(IReadOnlyList<SolverStep<ActiveStates>> steps) {
         bool sets = steps.Any(s => s.Partial.States.Length > 1);
-        return AutomatonTraceTable.Drafts(steps, AutomatonFrames.InputSymbols(problem.inputString),
-            states => states.Count == 1 && !sets ? states[0] : AutomatonFrames.Braces(states), problem.acceptStates.Contains, AutomatonTraceTable.Dead, oneRun: false);
+        return states => states.Count == 1 && !sets ? states[0] : AutomatonFrames.Braces(states);
     }
-    TableDraft ITableVisualization<NFA, ActiveStates>.Blank(NFA problem) => new();
 
     public NFATableVisualization() { }
 
