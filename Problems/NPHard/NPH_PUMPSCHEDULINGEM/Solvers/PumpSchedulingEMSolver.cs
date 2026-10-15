@@ -15,7 +15,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
     public string solverName { get; } = "Pump Scheduling Emergency Resilience Longest Path";
     public string solverDefinition { get; } =
         "Models the 24-hour pump scheduling problem as a DAG where each node represents\r\n" +
-        "(hour, tank-level-bucket, previous-pump-mask). For emergency resilience, a forward\r\n" +
+        "(hour, exact tank level, previous-pump-mask). For emergency resilience, a forward\r\n" +
         "pass computes the maximum-cumulative-water-stored path subject to total cost\r\n" +
         "remaining within the effective budget. If the instance budget is 0, the effective\r\n" +
         "budget is auto-computed as 1.5× the cost-minimization optimum via a preliminary\r\n" +
@@ -33,7 +33,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
     // optional cost-minimization pre-solve and the emergency-resilience solve each run the
     // same H x B x nMasks x nMasks DP transition (nMasks = 2^n pump-on/off states), so the
     // two sequential passes don't change the asymptotic bound.
-    public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = tank buckets, n = number of pumps";
+    public string complexity { get; } = "O(H * B * n * 4^n), H = 24 hours, B = reachable tank levels per hour (whole gallons if there are too many to track exactly), n = number of pumps";
 
     // The most (tank level, pumps on) states the exact table may hold in one hour, in either pass; past it the solver falls
     // back to whole gallons (#887, #738). Each pass keeps only the hour at hand and the next, so the cap bounds the table to
