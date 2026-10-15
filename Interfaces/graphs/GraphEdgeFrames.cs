@@ -137,7 +137,7 @@ static class GraphEdgeFrames {
         // A whole candidate only being tried (Try, Reject) is highlighted, edges and the nodes they touch alike; a set the
         // solver has kept (in an incremental run, the tree so far in every step) is Committed edges, and the answer Solution
         // edges, joining Covered nodes.
-        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var touched = picked == PictureState.ElementHighlight ? PictureState.ElementHighlight : PictureState.Covered;
         foreach (var id in partial.Edges) {
             if (!byId.TryGetValue(id, out var e)) continue;
@@ -166,7 +166,7 @@ static class GraphEdgeFrames {
         var edgeStates = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         foreach (var e in edges)
             if (groups.TryGetValue(e.A, out int ga) && groups.TryGetValue(e.B, out int gb) && ga != gb)
-                GraphSubsetFrames.Raise(edgeStates, e.Id, GraphSubsetFrames.Picked(ev, incremental, endsRun, ok));
+                GraphSubsetFrames.Raise(edgeStates, e.Id, GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true));
         // A rejected whole split is not an element that failed (nothing in it is wrong, it is just the wrong size), so its
         // focus is only highlighted; the event tells the frontend it was rejected. An incremental run's focus is the piece
         // under test, so a Reject marks it Rejected.
