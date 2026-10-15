@@ -14,9 +14,9 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
     // --- Fields ---
     public string problemName { get; } = "SAT";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Boolean_satisfiability_problem";
-    public string formalDefinition { get; } = "SAT = {Φ | Φ is a satisfiable Boolean formula}";
-    public string problemDefinition { get; } = "SAT, or the Boolean satisfiability problem, is a problem that asks for a list of assignments to the literals of phi to result in 'True'";
-    public string inputDescription { get; } = "Φ, a boolean formula";
+    public string formalDefinition { get; } = "SAT = {Φ | Φ is a satisfiable Boolean formula in CNF}";
+    public string problemDefinition { get; } = "SAT is the Boolean satisfiability problem for formulas in conjunctive normal form (CNF): a conjunction of clauses, each a disjunction of literals. It asks whether there is an assignment of True/False values to the variables of Φ that makes the whole formula True. This is Karp's formulation; satisfiability of an arbitrary Boolean formula reduces to it (Tseitin).";
+    public string inputDescription { get; } = "Φ, a Boolean formula in CNF";
     public string outputDescription { get; } = "True or False, whether Φ is satisfiable";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceFile { get; } = SourceFile.Path();
@@ -25,7 +25,7 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
 
     public static string _defaultInstance { get; } = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = "Boolean formula. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
+    public string instanceFormat { get; } = "Boolean formula in CNF. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has 1+ literals of any size. Example: (x1 | !x2 | x3) & (!x1 | x2)";
     public string certificateFormat { get; } = "Comma-separated variable:value pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public string instance { get; set; } = string.Empty;
 
