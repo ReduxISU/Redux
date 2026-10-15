@@ -52,13 +52,13 @@ class EditDistanceVisualization : IVisualization<EDITDISTANCE, API_TableJSON>, I
 
     // A draft per step: the cells filled so far, the cell being filled (the focus) with arrows from the cells it compared,
     // and the trace-back's cells as Committed (the run is incremental: they are kept so far), Solution once the run ends on
-    // them (the Done, or an Accept that ends the run; #886). Cells whose value is new at this step are marked changed.
+    // them (the Done, or an Accept that ends the run; #886), and Rejected in a Done that found nothing. Cells whose value is new at this step are marked changed.
     internal static IReadOnlyList<TableDraft> Drafts(EDITDISTANCE problem, IReadOnlyList<SolverStep<TableCells>> steps) {
         var drafts = new List<TableDraft>();
         IReadOnlyDictionary<string, string> before = new Dictionary<string, string>();
         foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(steps)) {
             var cells = step.Partial;
-            var path = GraphSubsetFrames.Picked(step.Event, incremental: true, endsRun);
+            var path = GraphSubsetFrames.Picked(step.Event, incremental: true, endsRun, step.Ok);
             var draft = Grid(problem, cells.Values);
             foreach (var (id, value) in cells.Values)
                 if ((!before.TryGetValue(id, out var old) || old != value) && TableFrames.ParseCellId(id) is var (i, j))

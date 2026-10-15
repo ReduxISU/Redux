@@ -2,7 +2,9 @@ using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.Steps;
 using API.Interfaces.Table;
+using API.Problems.NPComplete.NPC_EDITDISTANCE;
 using API.Problems.NPComplete.NPC_EDITDISTANCE.Solvers;
+using API.Problems.NPComplete.NPC_EDITDISTANCE.Visualizations;
 using Xunit;
 
 namespace redux_tests;
@@ -181,6 +183,17 @@ public class TableSolvers_Tests {
         Assert.All(done.Cells.Values, s => Assert.Equal(PictureState.Solution, s.State));
         Assert.Empty(done.Arrows!);
         Assert.True(done.Ok);
+    }
+
+    [Fact]
+    public void EditDistance_AFailedDone_DrawsItsTraceBackRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var problem = new EDITDISTANCE("(ab, b)");
+        var step = new SolverStep<TableCells>(new TableCells([], [], ["r1c0", "r0c0"]), StepEvent.Done, [], "x") { Ok = false };
+        var draft = EditDistanceVisualization.Drafts(problem, [step])[0];
+        var f = TableFrames.Frame(EditDistanceVisualization.Spec(problem), draft, StepEvent.Done, "x", false, incremental: true);
+        Assert.Equal(["r0c0", "r1c0"], f.Cells.Keys);
+        Assert.All(f.Cells.Values, s => Assert.Equal(PictureState.Rejected, s.State));
     }
 
     // ---- 0-1 ILP ----
