@@ -89,7 +89,7 @@ sealed record CodeTreeFrame(
 /// <item>Once the codes are known, every leaf that has one takes the same state (a one-character text has no merge).</item>
 /// <item>The focus (the two trees being merged and their new parent) is <c>ElementHighlight</c>, with the edges between focused
 /// nodes (the parent's two edges); in a Reject step of an incremental run it is <c>Rejected</c> (<see cref="GraphSubsetFrames.FocusMark"/>).</item>
-/// <item>In a Done frame with ok = false everything drawn is <c>Rejected</c>.</item>
+/// <item>In a Done frame with ok = false everything drawn is <c>Rejected</c> (the same rule).</item>
 /// <item>A run stopped by its time limit ends with a blank Done frame, ok = false (<see cref="StoppedFrame"/>).</item>
 /// </list>
 /// Covered, Blocked and Untraveled are not used.
@@ -183,7 +183,7 @@ static class CodeTreeFrames {
 
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var picked = ev == StepEvent.Done && ok != true ? PictureState.Rejected : GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         foreach (var m in merged) {
             foreach (var id in new[] { m.Id, m.Left, m.Right }) GraphSubsetFrames.Raise(nodes, id, picked);
             GraphSubsetFrames.Raise(edges, EdgeId(m.Id, '0'), picked);
