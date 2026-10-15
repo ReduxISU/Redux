@@ -31,7 +31,7 @@ sealed record GroupFailure(string Reason, string[] Focus);
 /// <list type="bullet">
 /// <item><b>Coloring</b>: an edge whose two ends share a group is <c>Rejected</c> (a clash). Other edges are plain.</item>
 /// <item><b>Clique cover</b>: an edge inside a group is <c>Solution</c> in the confirmed answer (the clique is drawn solid),
-/// <c>Committed</c> in a grouping kept so far (#886), or <c>ElementHighlight</c> in a step that only tries a whole grouping
+/// <c>Rejected</c> in a Done with ok = false (the run found nothing), <c>Committed</c> in a grouping kept so far (#886), or <c>ElementHighlight</c> in a step that only tries a whole grouping
 /// (Try, Reject of a run that is not <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); a missing edge
 /// between two nodes of one group is a <c>Rejected</c> phantom, as in the Clique rule of <see cref="GraphSubsetFrames"/>.</item>
 /// <item>Either rule: a node whose group index is K or more (more colors, or more cliques, than allowed) is <c>Rejected</c>.</item>
@@ -101,7 +101,7 @@ static class GraphGroupFrames {
                     for (int i = 0; i < members.Count; i++)
                         for (int j = i + 1; j < members.Count; j++) {
                             string id = GraphSubsetFrames.EdgeId(members[i], members[j]);
-                            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, GraphSubsetFrames.Picked(ev, incremental, endsRun));
+                            if (edgeIds.Contains(id)) GraphSubsetFrames.Raise(edgeStates, id, GraphSubsetFrames.Picked(ev, incremental, endsRun, ok));
                             else phantoms.Add(new GraphPhantom(members[i], members[j], PictureState.Rejected));
                         }
                 }
