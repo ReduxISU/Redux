@@ -16,31 +16,28 @@ class CONSTRAINTSATISFACTION
     // --- Fields ---
     public string problemName {get;} = "Constraint Satisfaction Problem";
     public string problemLink {get;} = "https://en.wikipedia.org/wiki/Constraint_satisfaction_problem";
-    public string formalDefinition {get;} = "CONSTRAINTSATISFACTION = {<X, D, C> | there exists a complete and consistent assignment of values to all variables}";
-    public string problemDefinition {get;} = "The Constraint Satisfaction Problem is a problem in which, given a set of variables, their respective nonempty domains of possible values, and a set of constraints, the goal is to determine whether there exists an assignment of values to all variables that satisfies every constraint.";
-    public string inputDescription {get;} = "X, a set of variables; D, the set of their respective nonempty domains of values; and C, a set of constraints";
-    public string outputDescription {get;} = "True or False, whether there exists an assignment of values to all variables that satisfies every constraint (consistent) and includes a value for every variable in X (complete).";
+    public string formalDefinition {get;} = "CONSTRAINTSATISFACTION = {<X, D, C> | there exists a complete and consistent assignment of values to all variables in X}";
+    public string problemDefinition {get;} = "The Constraint Satisfaction Problem is a problem in which, given a list of variables, a list of their respective nonempty domains of possible values, and a set of constraints, the goal is to determine whether there exists an assignment of values to all variables that satisfies every constraint.";
+    public string inputDescription {get;} = "X, a list of distinct variables; D, a list of nonempty domains where the ith domain corresponds to the ith variable in X; and C, a set of constraint strings";
+    public string outputDescription {get;} = "True or False, indicating whether there exists an assignment of values to all variables in X, such that each variable is assigned a value from its corresponding domain and all constraints are satisfied.";
     public string source {get;} = "S. Russell and P. Norvig, “Constraint Satisfaction Problems,” in Artificial Intelligence: A Modern Approach, 3rd ed. New Jersey: Pearson, 2010, pp. 202–233.";
     public string sourceLink {get;} = "https://aima.eecs.berkeley.edu/3rd-ed/";
     public string sourceFile { get; } = SourceFile.Path();
     private static readonly string _defaultInstance =
-    "({x,y},{(x,{1,2}),(y,{1,2})},{((x,y),{(1,2),(2,1)})})";
+    "((x,y),({1,2},{1,2}),{\"x!=y\"})";
     public string defaultInstance {get;} = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
     public string instanceFormat { get; } =
-        "Format: (X,D,C), where X is a set of variables, " +
-        "D is a set of (variable,domain) pairs, and " +
-        "C is a set of (scope,allowed values) pairs. " +
-        "Each domain is a nonempty set of possible values. " +
-        "Each constraint specifies the allowed value combinations " +
-        "for its variables. " +
+        "Format: (X,D,C), where X is a list of variables, " +
+        "D is a list of sets where the ith set is the nonempty domain for the ith variable in X, and " +
+        "C is a set of constraints where each constraint is a string. " +
         $"Example: {_defaultInstance}";
 
     public string certificateFormat { get; } =
-        "Format: a set of (variable,value) pairs. " +
+        "Format: a set of (variable,value) pairs representing a satisfying assignment. " +
         "Each variable must be assigned exactly one value " +
         "from its domain, and all constraints must be satisfied. " +
         "Example: {(x,1),(y,2)}";
@@ -61,7 +58,7 @@ class CONSTRAINTSATISFACTION
 
     // --- Properties ---
 
-    public const string InstanceGrammar = "{(X,D,C) | X is set, D is set, C is set}";
+    public const string InstanceGrammar = "{(X,D,C) | X is a list of variables, D is a list of sets, and C is a set of strings}";
     public UtilCollection X { get; }
     public UtilCollection D { get; }
     public UtilCollection C { get; }
