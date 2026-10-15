@@ -171,6 +171,11 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
         }
     }
 
-    private static double ParseDouble(string s) =>
-        double.Parse(s.Trim(), System.Globalization.CultureInfo.InvariantCulture);
+    // Refuses NaN and ±Infinity (#888): double.Parse accepts them, and they slip past the range checks above because every
+    // comparison with NaN is false. The parse error is wrapped into a ProblemParseException by the catch above.
+    private static double ParseDouble(string s) {
+        double value = double.Parse(s.Trim(), System.Globalization.CultureInfo.InvariantCulture);
+        if (!double.IsFinite(value)) throw new FormatException($"'{s.Trim()}' is not a finite number.");
+        return value;
+    }
 }
