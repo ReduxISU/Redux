@@ -189,6 +189,10 @@ public class BipartiteFrames_Tests {
         var f = BipartiteFrames.Frame(Cover(), ["S1"], StepEvent.Done, [], "Done.", ok: false, incremental: true);
         Assert.Equal(PictureState.Rejected, State(f, "e:4"));
         Assert.Equal(PictureState.Rejected, State(f, "e:5"));
+        // A run that ends without an answer never shows green: the pick is Rejected, with its edges (#886).
+        Assert.Equal(PictureState.Rejected, State(f, "S1"));
+        Assert.NotEmpty(f.Edges);
+        Assert.All(f.Edges.Values, s => Assert.Equal(PictureState.Rejected, s.State));
     }
 
     [Fact]

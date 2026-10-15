@@ -274,6 +274,16 @@ public class GroupedGraphFrames_Tests {
     }
 
     [Fact]
+    public void Frame_AFailedDone_DrawsItsTrueLiteralsRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var f = GroupedGraphFrames.Frame(Spec, Of(("x1", false), ("x2", true), ("x3", false), ("x4", false)), StepEvent.Done, [], "x", false);
+        Assert.Equal(PictureState.Rejected, Node(f, "c0-0"));
+        Assert.Equal(PictureState.Rejected, Node(f, "c0-1"));
+        Assert.Equal(PictureState.False, Node(f, "c0-2"));
+        Assert.DoesNotContain(f.Nodes.Values, s => s.State == PictureState.Solution);
+    }
+
+    [Fact]
     public void Frame_FalseShowsOverTheHighlight_AndUnderTheRejection() {
         // x1 = True: !x1 at c0-0 is False, and stays False while x1 is the variable being tried (it is false, not a true
         // literal); the true occurrence x1 at c2-0 is the one highlighted.

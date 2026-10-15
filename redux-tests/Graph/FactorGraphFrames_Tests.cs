@@ -70,6 +70,16 @@ public class FactorGraphFrames_Tests {
     }
 
     [Fact]
+    public void AFailedDone_DrawsItsTrueLiteralsRejected() {
+        // A run that ends without an answer never shows green (#886).
+        var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x2", true)), StepEvent.Done, [], "...", ok: false);
+        Assert.Equal(PictureState.Rejected, Node(f, "v:x1"));
+        Assert.Equal(PictureState.Rejected, Edge(f, "c0-0"));
+        Assert.Equal(PictureState.False, Edge(f, "c0-1"));
+        Assert.DoesNotContain(f.Nodes.Values.Concat(f.Edges.Values), s => s.State == PictureState.Solution);
+    }
+
+    [Fact]
     public void AFalseVariable_IsFalse_AndAClauseWithEveryLiteralFalse_IsRejected() {
         var f = FactorGraphFrames.Frame(Spec(), Values(("x1", true), ("x2", false), ("x3", false)), StepEvent.Accept, [], "...");
         Assert.Equal(PictureState.False, Node(f, "v:x2"));

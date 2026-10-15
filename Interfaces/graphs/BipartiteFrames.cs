@@ -89,7 +89,7 @@ sealed record BipartiteFrame(
 /// </para>
 /// <para>
 /// <b>States.</b> A picked node and its edges are <c>Solution</c> in the confirmed answer (the Done, or an Accept that ends
-/// the run), <c>Committed</c> in another step that keeps the picks (an Accept mid-run, a Backtrack, and every step of an
+/// the run), <c>Rejected</c> in a Done with ok = false (the run found nothing), <c>Committed</c> in another step that keeps the picks (an Accept mid-run, a Backtrack, and every step of an
 /// incremental run; #886) and <c>ElementHighlight</c> in a step that only tries a whole candidate (Try,
 /// Reject of a run that is not <see cref="SolveRun.Incremental"/>; see <see cref="GraphSubsetFrames.Picked"/>). A constraint
 /// hit by the picks is <c>Covered</c>; under the exactly-once rule a constraint hit more than once is <c>Rejected</c> in
@@ -226,7 +226,7 @@ static class BipartiteFrames {
 
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var pickedState = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+        var pickedState = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok);
         foreach (var p in chosen) {
             GraphSubsetFrames.Raise(nodes, p, pickedState);
             foreach (var e in m.EdgesOf[p]) GraphSubsetFrames.Raise(edges, e, pickedState);
