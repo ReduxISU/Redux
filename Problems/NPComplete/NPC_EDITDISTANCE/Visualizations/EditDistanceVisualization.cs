@@ -58,7 +58,7 @@ class EditDistanceVisualization : IVisualization<EDITDISTANCE, API_TableJSON>, I
         IReadOnlyDictionary<string, string> before = new Dictionary<string, string>();
         foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(steps)) {
             var cells = step.Partial;
-            var path = GraphSubsetFrames.Picked(step.Event, incremental: true, endsRun, step.Ok);
+            var path = GraphSubsetFrames.Picked(step.Event, incremental: true, endsRun, step.Ok == true);
             var draft = Grid(problem, cells.Values);
             foreach (var (id, value) in cells.Values)
                 if ((!before.TryGetValue(id, out var old) || old != value) && TableFrames.ParseCellId(id) is var (i, j))

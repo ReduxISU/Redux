@@ -75,7 +75,7 @@ class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJS
     private static TableDraft Draft(INTPROGRAMMING01 problem, int[]? x, StepEvent ev, bool? ok, bool incremental, IEnumerable<string> focus, bool endsRun = false) {
         var draft = Matrix(problem, x);
         if (x != null && (ev != StepEvent.Done || ok == true)) {
-            var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun);
+            var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
             for (int j = 0; j < x.Length; j++) draft.MarkCell(0, j, picked);
             for (int r = 0; r < problem.C.Count && r < problem.d.Count; r++) {
                 bool holds = IntegerProgrammingBruteForce.Total(problem.C[r], x) <= problem.d[r];
