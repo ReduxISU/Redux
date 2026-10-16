@@ -187,6 +187,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Copy every node of the graph (a, b, c, d) into the clique graph, with the same names. Its edges will be the pairs the graph is missing.",
+      "step": 0,
       "sourceFocus": [
         "a",
         "b",
@@ -248,6 +249,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node a has no edge to c, d in the original graph, so it gets those edges in the complement.",
+      "step": 1,
       "sourceFocus": [
         "a"
       ],
@@ -299,6 +301,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node b has no edge to d in the original graph, so it gets that edge in the complement.",
+      "step": 2,
       "sourceFocus": [
         "b"
       ],
@@ -342,6 +345,7 @@
       "phase": "build",
       "event": "Reject",
       "caption": "Node c is already joined to every later node in the original graph, so it gets no new edges.",
+      "step": 3,
       "sourceFocus": [
         "c"
       ],
@@ -373,6 +377,7 @@
       "phase": "build",
       "event": "Reject",
       "caption": "Node d is the last node: the steps above already gave it its edges in the complement.",
+      "step": 4,
       "sourceFocus": [
         "d"
       ],
@@ -404,6 +409,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "K stays 2. 2 nodes with no edge between them in the original graph are 2 nodes joined to each other in the complement.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -427,6 +433,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {a,b}: a and b aren\u0027t joined.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "a",
@@ -460,6 +467,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try {a,c}. Every pair is joined.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "a",
@@ -491,6 +499,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "{a,c} is a clique, found after 2 tries.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -519,6 +528,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Node a is in the clique of the complement graph, so it shares no edge with the others in the original: it is in the independent set.",
+      "step": 0,
       "sourceFocus": [
         "a"
       ],
@@ -558,6 +568,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Node c is in the clique of the complement graph, so it shares no edge with the others in the original: it is in the independent set.",
+      "step": 1,
       "sourceFocus": [
         "c"
       ],
@@ -603,6 +614,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{a,c} is a valid Independent Set answer.",
+      "step": 2,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

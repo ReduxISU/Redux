@@ -191,6 +191,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Copy every node of the graph (a, b, c) into the directed graph, with the same names. Its arcs will come from the edges.",
+      "step": 0,
       "sourceFocus": [
         "a",
         "b",
@@ -242,6 +243,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {a,b} becomes the arcs a \u2192 b and b \u2192 a: a cycle of two, which only removing a or b breaks, as only a or b covers the edge.",
+      "step": 1,
       "sourceFocus": [
         "a-b",
         "a",
@@ -297,6 +299,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {b,c} becomes the arcs b \u2192 c and c \u2192 b: a cycle of two, which only removing b or c breaks, as only b or c covers the edge.",
+      "step": 2,
       "sourceFocus": [
         "b-c",
         "b",
@@ -352,6 +355,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "K stays 1: every cycle of the directed graph goes along some edge, so removing at most 1 node leaves no cycle exactly when they cover every edge.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -374,6 +378,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing nothing: the cycle a \u2192 b \u2192 a is there.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -397,6 +402,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing {a}: the cycle b \u2192 c \u2192 b is still there.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "a"
@@ -432,6 +438,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try removing {b}. No cycle is left.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "b"
@@ -467,6 +474,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Removing {b} leaves no cycle, within K = 1. Found after 3 tries.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -500,6 +508,7 @@
       "phase": "map",
       "event": "Reject",
       "caption": "Node a is not in the feedback node set, so it is left out of the cover.",
+      "step": 0,
       "sourceFocus": [
         "a"
       ],
@@ -551,6 +560,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Node b is in the feedback node set, so it is in the vertex cover.",
+      "step": 1,
       "sourceFocus": [
         "b"
       ],
@@ -599,6 +609,7 @@
       "phase": "map",
       "event": "Reject",
       "caption": "Node c is not in the feedback node set, so it is left out of the cover.",
+      "step": 2,
       "sourceFocus": [
         "c"
       ],
@@ -653,6 +664,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{b} is a valid Vertex Cover answer.",
+      "step": 3,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

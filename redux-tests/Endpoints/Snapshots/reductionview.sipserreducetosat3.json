@@ -530,6 +530,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Nodes x1_0, !x2_0, x3_0 of the clique graph all end in _0, so they become clause C1 (x1 | !x2 | x3): each node is the literal written before its _0.",
+      "step": 0,
       "sourceFocus": [
         "x1_0",
         "!x2_0",
@@ -591,6 +592,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Nodes !x1_1, x3_1, x1_1 of the clique graph all end in _1, so they become clause C2 (!x1 | x3 | x1): each node is the literal written before its _1.",
+      "step": 1,
       "sourceFocus": [
         "!x1_1",
         "x3_1",
@@ -653,6 +655,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Nodes x2_2, !x3_2, !x1_2 of the clique graph all end in _2, so they become clause C3 (x2 | !x3 | !x1): each node is the literal written before its _2.",
+      "step": 2,
       "sourceFocus": [
         "x2_2",
         "!x3_2",
@@ -719,6 +722,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "The formula has 3 clauses. Sipser\u0027s construction joins two nodes exactly when they come from different clauses and do not contradict, so a clique with a node from every clause picks literals that can all be true at once. The clique graph asks for K = 3.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -738,6 +742,7 @@
       "phase": "solve",
       "event": "Try",
       "caption": "Try x1 = True.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "v:x1"
@@ -779,6 +784,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Keep x1 = True: no clause has every literal false yet, so this branch is queued.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "v:x1"
@@ -820,6 +826,7 @@
       "phase": "solve",
       "event": "Try",
       "caption": "Try x1 = False.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "v:x1"
@@ -861,6 +868,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Keep x1 = False: no clause has every literal false yet, so this branch is queued.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "v:x1"
@@ -902,6 +910,7 @@
       "phase": "solve",
       "event": "Try",
       "caption": "Try x2 = True after x1 = True.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [
         "v:x2"
@@ -953,6 +962,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Keep x2 = True: every clause now has a true literal.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [
         "v:x2"
@@ -1004,6 +1014,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Every clause has a true literal under x1 = True, x2 = True, x3 = False.",
+      "step": 6,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -1063,6 +1074,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "x1 = True, so x1 is true in clause C1: its node x1_0 is in the clique.",
+      "step": 0,
       "sourceFocus": [
         "x1_0"
       ],
@@ -1130,6 +1142,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "x1 = True, so x1 is true in clause C2: its node x1_1 is in the clique.",
+      "step": 1,
       "sourceFocus": [
         "x1_1"
       ],
@@ -1204,6 +1217,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "x2 = True, so x2 is true in clause C3: its node x2_2 is in the clique.",
+      "step": 2,
       "sourceFocus": [
         "x2_2"
       ],
@@ -1287,6 +1301,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{x1_0,x1_1,x2_2} is a valid Clique answer.",
+      "step": 3,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

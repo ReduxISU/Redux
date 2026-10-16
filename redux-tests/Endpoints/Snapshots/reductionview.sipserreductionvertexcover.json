@@ -185,6 +185,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Copy every node of the clique graph (a, b, c, d) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing.",
+      "step": 0,
       "sourceFocus": [
         "a",
         "b",
@@ -246,6 +247,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node a has no edge to d in the clique graph, so it gets that edge in the complement.",
+      "step": 1,
       "sourceFocus": [
         "a"
       ],
@@ -289,6 +291,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node b has no edge to d in the clique graph, so it gets that edge in the complement.",
+      "step": 2,
       "sourceFocus": [
         "b"
       ],
@@ -332,6 +335,7 @@
       "phase": "build",
       "event": "Reject",
       "caption": "Node c is already joined to every later node in the clique graph, so it gets no new edges.",
+      "step": 3,
       "sourceFocus": [
         "c"
       ],
@@ -363,6 +367,7 @@
       "phase": "build",
       "event": "Reject",
       "caption": "Node d is the last node: the steps above already gave it its edges in the complement.",
+      "step": 4,
       "sourceFocus": [
         "d"
       ],
@@ -394,6 +399,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "K\u0027 = N - K = 4 - 3 = 1. The clique graph has a clique of size 3 exactly when the complement has a vertex cover of size 1.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -417,6 +423,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {a}: edge {b,d} isn\u0027t covered.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "a"
@@ -447,6 +454,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {b}: edge {a,d} isn\u0027t covered.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "b"
@@ -477,6 +485,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {c}: edge {a,d} isn\u0027t covered.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "c"
@@ -507,6 +516,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try {d}. It covers every edge.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "d"
@@ -537,6 +547,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "{d} covers every edge, found after 4 tries.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -565,6 +576,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Node a is not in the vertex cover, so it is in the clique.",
+      "step": 0,
       "sourceFocus": [
         "a"
       ],
@@ -604,6 +616,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Node b is not in the vertex cover, so it is in the clique.",
+      "step": 1,
       "sourceFocus": [
         "b"
       ],
@@ -650,6 +663,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Node c is not in the vertex cover, so it is in the clique.",
+      "step": 2,
       "sourceFocus": [
         "c"
       ],
@@ -705,6 +719,7 @@
       "phase": "map",
       "event": "Reject",
       "caption": "Node d is in the vertex cover, so it is left out of the clique.",
+      "step": 3,
       "sourceFocus": [
         "d"
       ],
@@ -760,6 +775,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{a,b,c} is a valid Clique answer.",
+      "step": 4,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

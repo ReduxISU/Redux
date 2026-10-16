@@ -635,6 +635,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node a becomes the variables v0_0, v0_1, one per color, and 2 clauses: (v0_0 | v0_1) says a takes a color, and (!v0_0 | !v0_1) says it takes only one.",
+      "step": 0,
       "sourceFocus": [
         "a"
       ],
@@ -697,6 +698,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node b becomes the variables v1_0, v1_1, one per color, and 2 clauses: (v1_0 | v1_1) says b takes a color, and (!v1_0 | !v1_1) says it takes only one.",
+      "step": 1,
       "sourceFocus": [
         "b"
       ],
@@ -759,6 +761,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node c becomes the variables v2_0, v2_1, one per color, and 2 clauses: (v2_0 | v2_1) says c takes a color, and (!v2_0 | !v2_1) says it takes only one.",
+      "step": 2,
       "sourceFocus": [
         "c"
       ],
@@ -821,6 +824,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {a,b} becomes 2 clauses, (!v0_0 | !v1_0), (!v0_1 | !v1_1): a and b never take the same color.",
+      "step": 3,
       "sourceFocus": [
         "a-b",
         "a",
@@ -892,6 +896,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {b,c} becomes 2 clauses, (!v1_0 | !v2_0), (!v1_1 | !v2_1): b and c never take the same color.",
+      "step": 4,
       "sourceFocus": [
         "b-c",
         "b",
@@ -963,6 +968,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "The formula can be satisfied exactly when the graph can be colored with 2 colors: a node takes the color whose variable is true.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -983,6 +989,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1102,6 +1109,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1221,6 +1229,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1340,6 +1349,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1459,6 +1469,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1578,6 +1589,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1697,6 +1709,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 6,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1816,6 +1829,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 7,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -1935,6 +1949,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 8,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2054,6 +2069,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 9,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2173,6 +2189,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 10,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2292,6 +2309,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = False, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 11,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2411,6 +2429,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = False, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 12,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2530,6 +2549,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = False, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 13,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2649,6 +2669,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = True, v2_1 = False: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 14,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2768,6 +2789,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = False, v1_0 = True, v1_1 = True, v2_0 = True, v2_1 = True: clause C1 (v0_0 | v0_1) has no true literal.",
+      "step": 15,
       "sourceFocus": [],
       "targetFocus": [
         "c0"
@@ -2887,6 +2909,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = False: clause C3 (v1_0 | v1_1) has no true literal.",
+      "step": 16,
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -3006,6 +3029,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = False, v2_1 = True: clause C3 (v1_0 | v1_1) has no true literal.",
+      "step": 17,
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -3125,6 +3149,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = False: clause C3 (v1_0 | v1_1) has no true literal.",
+      "step": 18,
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -3244,6 +3269,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = False, v2_0 = True, v2_1 = True: clause C3 (v1_0 | v1_1) has no true literal.",
+      "step": 19,
       "sourceFocus": [],
       "targetFocus": [
         "c2"
@@ -3363,6 +3389,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = False: clause C5 (v2_0 | v2_1) has no true literal.",
+      "step": 20,
       "sourceFocus": [],
       "targetFocus": [
         "c4"
@@ -3482,6 +3509,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = False, v2_1 = True: clause C8 (!v0_1 | !v1_1) has no true literal.",
+      "step": 21,
       "sourceFocus": [],
       "targetFocus": [
         "c7"
@@ -3601,6 +3629,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = False: clause C8 (!v0_1 | !v1_1) has no true literal.",
+      "step": 22,
       "sourceFocus": [],
       "targetFocus": [
         "c7"
@@ -3720,6 +3749,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = False, v1_1 = True, v2_0 = True, v2_1 = True: clause C6 (!v2_0 | !v2_1) has no true literal.",
+      "step": 23,
       "sourceFocus": [],
       "targetFocus": [
         "c5"
@@ -3839,6 +3869,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = False: clause C5 (v2_0 | v2_1) has no true literal.",
+      "step": 24,
       "sourceFocus": [],
       "targetFocus": [
         "c4"
@@ -3958,6 +3989,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try v0_0 = False, v0_1 = True, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = True: every clause has a true literal.",
+      "step": 25,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -4075,6 +4107,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "The formula is satisfied by v0_0 = False, v0_1 = True, v1_0 = True, v1_1 = False, v2_0 = False, v2_1 = True.",
+      "step": 26,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -4192,6 +4225,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "v0_1 = True, so node a takes color 1.",
+      "step": 0,
       "sourceFocus": [
         "a"
       ],
@@ -4319,6 +4353,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "v1_0 = True, so node b takes color 0.",
+      "step": 1,
       "sourceFocus": [
         "b"
       ],
@@ -4447,6 +4482,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "v2_1 = True, so node c takes color 1.",
+      "step": 2,
       "sourceFocus": [
         "c"
       ],
@@ -4576,6 +4612,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{{b},{a,c}} is a valid Graph Coloring answer.",
+      "step": 3,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

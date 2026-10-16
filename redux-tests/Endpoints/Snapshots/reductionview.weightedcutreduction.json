@@ -182,6 +182,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 1 becomes node 1.",
+      "step": 0,
       "sourceFocus": [
         "I1"
       ],
@@ -229,6 +230,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 2 becomes node 2, joined to node 1 by an edge weighing the product of their numbers: 1 * 2 = 2.",
+      "step": 1,
       "sourceFocus": [
         "I2"
       ],
@@ -282,6 +284,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 3 becomes node 3, joined to nodes 1, 2 by edges weighing the product of their numbers: 1 * 3 = 3, 2 * 3 = 6.",
+      "step": 2,
       "sourceFocus": [
         "I3"
       ],
@@ -340,6 +343,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "K = 6^2 / 4 = 9. A cut between sides whose numbers add up to a and b weighs a * b, which reaches 3 * 3 = 9 only when a = b = 3: an even split.",
+      "step": 3,
       "sourceFocus": [
         "C1",
         "C2"
@@ -386,6 +390,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Put {1} against {2,3}: the crossing edges weigh 5, not 9.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -427,6 +432,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Put {2} against {1,3}: the crossing edges weigh 8, not 9.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -468,6 +474,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Put {3} against {1,2}: the crossing edges weigh 9, as wanted.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -509,6 +516,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "{3} against {1,2} cuts edges of total weight 9, found after 3 tries.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -550,6 +558,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Node 1 is number 1; it goes to side S1, and every other node\u0027s side is read from its edge to 1.",
+      "step": 0,
       "sourceFocus": [
         "I1"
       ],
@@ -603,6 +612,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Edge {1,2} is not cut, so node 2 is on node 1\u0027s side: 2 goes to side S1.",
+      "step": 1,
       "sourceFocus": [
         "I2"
       ],
@@ -663,6 +673,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Edge {1,3} is cut, so node 3 is across from node 1: 3 goes to side S2.",
+      "step": 2,
       "sourceFocus": [
         "I3"
       ],
@@ -729,6 +740,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{(1,2),(3)} is a valid Partition answer.",
+      "step": 3,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

@@ -457,6 +457,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node a becomes the element a, 2 slots (one per edge at a and color) and 2 sets, one per color: the set for color j holds a and a\u0027s slots for color j. Exactly one of them covers a, so a gets one color.",
+      "step": 0,
       "sourceFocus": [
         "a"
       ],
@@ -525,6 +526,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node b becomes the element b, 4 slots (one per edge at b and color) and 2 sets, one per color: the set for color j holds b and b\u0027s slots for color j. Exactly one of them covers b, so b gets one color.",
+      "step": 1,
       "sourceFocus": [
         "b"
       ],
@@ -609,6 +611,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node c becomes the element c, 2 slots (one per edge at c and color) and 2 sets, one per color: the set for color j holds c and c\u0027s slots for color j. Exactly one of them covers c, so c gets one color.",
+      "step": 2,
       "sourceFocus": [
         "c"
       ],
@@ -677,6 +680,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {a,b} becomes the element a_b and 2 sets, one per pair of different colors (f, g): each holds a_b, a\u0027s slots for this edge except color f and b\u0027s except color g. One fits exactly when a and b have different colors.",
+      "step": 3,
       "sourceFocus": [
         "a-b",
         "a",
@@ -754,6 +758,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {b,c} becomes the element b_c and 2 sets, one per pair of different colors (f, g): each holds b_c, b\u0027s slots for this edge except color f and c\u0027s except color g. One fits exactly when b and c have different colors.",
+      "step": 4,
       "sourceFocus": [
         "b-c",
         "b",
@@ -831,6 +836,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "An exact cover takes one color set per node and one set per edge, which fits only when the edge\u0027s two ends have different colors: the sets have an exact cover exactly when the graph can be colored with 2 colors.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -851,6 +857,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "a has the fewest options (2). Try S1 {a,a_a_b_1}.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "S1"
@@ -897,6 +904,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "a_b has the fewest options (1). Try S7 {a_b,a_a_b_2,b_a_b_1}.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "S7"
@@ -970,6 +978,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "b has the fewest options (1). Try S4 {b,b_a_b_2,b_b_c_2}.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "S4"
@@ -1070,6 +1079,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "b_c has the fewest options (1). Try S10 {b_c,b_b_c_1,c_b_c_2}.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "S10"
@@ -1197,6 +1207,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "c has the fewest options (1). Try S5 {c,c_b_c_1}.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [
         "S5"
@@ -1341,6 +1352,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Every element is covered by exactly one chosen set: {S1,S10,S4,S5,S7}.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -1483,6 +1495,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Set S5 {c,c_b_c_1} is in the exact cover. It is c\u0027s set for color 1, so c takes color 1.",
+      "step": 0,
       "sourceFocus": [
         "c"
       ],
@@ -1635,6 +1648,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Set S4 {b,b_a_b_2,b_b_c_2} is in the exact cover. It is b\u0027s set for color 2, so b takes color 2.",
+      "step": 1,
       "sourceFocus": [
         "b"
       ],
@@ -1788,6 +1802,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Set S1 {a,a_a_b_1} is in the exact cover. It is a\u0027s set for color 1, so a takes color 1.",
+      "step": 2,
       "sourceFocus": [
         "a"
       ],
@@ -1942,6 +1957,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{{a,c},{b}} is a valid Graph Coloring answer.",
+      "step": 3,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

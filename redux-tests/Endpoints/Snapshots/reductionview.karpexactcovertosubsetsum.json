@@ -191,6 +191,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Set S1 {1,2,3} becomes the number 21: 0111 in base 4, one digit per element of X (4, 3, 2, 1 from the left), a 1 where S1 holds that element.",
+      "step": 0,
       "sourceFocus": [
         "S1"
       ],
@@ -244,6 +245,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Set S2 {2,3} becomes the number 20: 0110 in base 4, one digit per element of X (4, 3, 2, 1 from the left), a 1 where S2 holds that element.",
+      "step": 1,
       "sourceFocus": [
         "S2"
       ],
@@ -294,6 +296,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Set S3 {4,1} becomes the number 65: 1001 in base 4, one digit per element of X (4, 3, 2, 1 from the left), a 1 where S3 holds that element.",
+      "step": 2,
       "sourceFocus": [
         "S3"
       ],
@@ -344,6 +347,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "The target T is 1111 in base 4 = 85: a 1 for every element of X. At most 3 sets add to any digit and 3 \u003C 4, so nothing carries, and numbers add up to T exactly when their sets hold every element once.",
+      "step": 3,
       "sourceFocus": [
         "e:1",
         "e:2",
@@ -394,6 +398,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {21}: 21, not 85.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "I1"
@@ -430,6 +435,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {20}: 20, not 85.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "I2"
@@ -466,6 +472,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {21,20}: 21 \u002B 20 = 41, not 85.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -506,6 +513,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {65}: 65, not 85.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "I3"
@@ -542,6 +550,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {21,65}: 21 \u002B 65 = 86, not 85.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -582,6 +591,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try {20,65}: 20 \u002B 65 = 85. That\u0027s T.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [
         "I2",
@@ -622,6 +632,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "{20,65} adds up to exactly 85, found after 6 subsets.",
+      "step": 6,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -662,6 +673,7 @@
       "phase": "map",
       "event": "Reject",
       "caption": "Number 21 is not in the subset, so set S1 {1,2,3} is left out of the exact cover.",
+      "step": 0,
       "sourceFocus": [
         "S1"
       ],
@@ -720,6 +732,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Number 20 is in the subset, so set S2 {2,3} is in the exact cover: 20 is S2 written in base 4.",
+      "step": 1,
       "sourceFocus": [
         "S2"
       ],
@@ -787,6 +800,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Number 65 is in the subset, so set S3 {4,1} is in the exact cover: 65 is S3 written in base 4.",
+      "step": 2,
       "sourceFocus": [
         "S3"
       ],
@@ -871,6 +885,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{{2,3},{4,1}} is a valid Exact Cover answer.",
+      "step": 3,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

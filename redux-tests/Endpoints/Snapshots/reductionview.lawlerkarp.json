@@ -248,6 +248,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node a becomes two nodes, a0 and a1, joined by the arc a0 \u2192 a1. Removing that arc is how the arc set picks a.",
+      "step": 0,
       "sourceFocus": [
         "a"
       ],
@@ -290,6 +291,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node b becomes two nodes, b0 and b1, joined by the arc b0 \u2192 b1. Removing that arc is how the arc set picks b.",
+      "step": 1,
       "sourceFocus": [
         "b"
       ],
@@ -332,6 +334,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node c becomes two nodes, c0 and c1, joined by the arc c0 \u2192 c1. Removing that arc is how the arc set picks c.",
+      "step": 2,
       "sourceFocus": [
         "c"
       ],
@@ -374,6 +377,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {a,b} becomes the arcs a1 \u2192 b0 and b1 \u2192 a0, closing the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0. Removing a0 \u2192 a1 or b0 \u2192 b1 breaks it, as a or b covers the edge.",
+      "step": 3,
       "sourceFocus": [
         "a-b",
         "a",
@@ -437,6 +441,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Edge {b,c} becomes the arcs b1 \u2192 c0 and c1 \u2192 b0, closing the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0. Removing b0 \u2192 b1 or c0 \u2192 c1 breaks it, as b or c covers the edge.",
+      "step": 4,
       "sourceFocus": [
         "b-c",
         "b",
@@ -500,6 +505,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "K stays 1: removing at most 1 arc can leave no cycle exactly when at most 1 node can cover every edge.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -522,6 +528,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing nothing: the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0 is there.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -551,6 +558,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing {(a1,b0)}: the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0 is still there.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "a1\u003Eb0"
@@ -585,6 +593,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing {(b1,a0)}: the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0 is still there.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "b1\u003Ea0"
@@ -619,6 +628,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing {(b1,c0)}: the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0 is still there.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "b1\u003Ec0"
@@ -653,6 +663,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing {(c1,b0)}: the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0 is still there.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [
         "c1\u003Eb0"
@@ -687,6 +698,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try removing {(a0,a1)}: the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0 is still there.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [
         "a0\u003Ea1"
@@ -721,6 +733,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try removing {(b0,b1)}. No cycle is left.",
+      "step": 6,
       "sourceFocus": [],
       "targetFocus": [
         "b0\u003Eb1"
@@ -743,6 +756,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Removing {(b0,b1)} leaves no cycle, within K = 1. Found after 7 tries.",
+      "step": 7,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -763,6 +777,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Arc b0 \u2192 b1 is removed. It is node b\u0027s own arc, so b is in the vertex cover.",
+      "step": 0,
       "sourceFocus": [
         "b"
       ],
@@ -798,6 +813,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{b} is a valid Vertex Cover answer.",
+      "step": 1,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

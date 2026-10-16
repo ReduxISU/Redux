@@ -154,6 +154,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 1 becomes the item (1,1): weight 1 and value 1, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "step": 0,
       "sourceFocus": [
         "I1"
       ],
@@ -209,6 +210,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 7 becomes the item (7,7): weight 7 and value 7, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "step": 1,
       "sourceFocus": [
         "I2"
       ],
@@ -264,6 +266,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 12 becomes the item (12,12): weight 12 and value 12, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "step": 2,
       "sourceFocus": [
         "I3"
       ],
@@ -319,6 +322,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 15 becomes the item (15,15): weight 15 and value 15, so it adds as much to the knapsack\u0027s weight as to its value.",
+      "step": 3,
       "sourceFocus": [
         "I4"
       ],
@@ -374,6 +378,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "The target T = 28 becomes both the weight limit W = 28 and the value goal V = 28. An item\u0027s weight equals its value, so items that weigh at most 28 and are worth at least 28 add up to exactly 28.",
+      "step": 4,
       "sourceFocus": [
         "C1"
       ],
@@ -424,6 +429,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {}: weight 0, value 0, short of 28.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -462,6 +468,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(1,1)}: weight 1, value 1, short of 28.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "I1"
@@ -510,6 +517,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(7,7)}: weight 7, value 7, short of 28.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "I2"
@@ -558,6 +566,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(1,1),(7,7)}: weight 8, value 8, short of 28.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -610,6 +619,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(12,12)}: weight 12, value 12, short of 28.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [
         "I3"
@@ -658,6 +668,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(1,1),(12,12)}: weight 13, value 13, short of 28.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -710,6 +721,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(7,7),(12,12)}: weight 19, value 19, short of 28.",
+      "step": 6,
       "sourceFocus": [],
       "targetFocus": [
         "I2",
@@ -762,6 +774,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(1,1),(7,7),(12,12)}: weight 20, value 20, short of 28.",
+      "step": 7,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -818,6 +831,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(15,15)}: weight 15, value 15, short of 28.",
+      "step": 8,
       "sourceFocus": [],
       "targetFocus": [
         "I4"
@@ -866,6 +880,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(1,1),(15,15)}: weight 16, value 16, short of 28.",
+      "step": 9,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -918,6 +933,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(7,7),(15,15)}: weight 22, value 22, short of 28.",
+      "step": 10,
       "sourceFocus": [],
       "targetFocus": [
         "I2",
@@ -970,6 +986,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(1,1),(7,7),(15,15)}: weight 23, value 23, short of 28.",
+      "step": 11,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1026,6 +1043,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {(12,12),(15,15)}: weight 27, value 27, short of 28.",
+      "step": 12,
       "sourceFocus": [],
       "targetFocus": [
         "I3",
@@ -1078,6 +1096,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try {(1,1),(12,12),(15,15)}: weight 28, value 28. It works.",
+      "step": 13,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1134,6 +1153,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "{(1,1),(12,12),(15,15)} fits in 28 and is worth at least 28, found after 14 sets.",
+      "step": 14,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -1189,6 +1209,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Item (1,1) is in the knapsack, so 1 is in the subset.",
+      "step": 0,
       "sourceFocus": [
         "I1"
       ],
@@ -1252,6 +1273,7 @@
       "phase": "map",
       "event": "Reject",
       "caption": "Item (7,7) is not in the knapsack, so 7 is left out of the subset.",
+      "step": 1,
       "sourceFocus": [
         "I2"
       ],
@@ -1318,6 +1340,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Item (12,12) is in the knapsack, so 12 is in the subset.",
+      "step": 2,
       "sourceFocus": [
         "I3"
       ],
@@ -1384,6 +1407,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Item (15,15) is in the knapsack, so 15 is in the subset.",
+      "step": 3,
       "sourceFocus": [
         "I4"
       ],
@@ -1457,6 +1481,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{1,12,15} is a valid Subset Sum answer.",
+      "step": 4,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

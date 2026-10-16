@@ -188,6 +188,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node a becomes set S1, the edges it touches: {a_b}. Edge {a,b} is new, so it joins the elements to cover.",
+      "step": 0,
       "sourceFocus": [
         "a",
         "a-b"
@@ -237,6 +238,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node b becomes set S2, the edges it touches: {a_b,b_c}. Edge {b,c} is new, so it joins the elements to cover.",
+      "step": 1,
       "sourceFocus": [
         "b",
         "b-c"
@@ -294,6 +296,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Node c becomes set S3, the edges it touches: {b_c}.",
+      "step": 2,
       "sourceFocus": [
         "c"
       ],
@@ -337,6 +340,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "K stays 1: at most 1 set can cover every element exactly when at most 1 node can touch every edge.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -360,6 +364,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try {S1}: b_c isn\u0027t covered.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "S1"
@@ -395,6 +400,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try {S2}. It covers every element.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "S2"
@@ -434,6 +440,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "{S2} covers U with 1 set, found after 2 tries. Smaller combinations were tried first, so no cover uses fewer sets.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -471,6 +478,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Set S2 {a_b,b_c} is in the cover. It is node b\u0027s set, the edges that touch b, so b is in the vertex cover.",
+      "step": 0,
       "sourceFocus": [
         "b"
       ],
@@ -523,6 +531,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{b} is a valid Vertex Cover answer.",
+      "step": 1,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],

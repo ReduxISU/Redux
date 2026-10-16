@@ -188,6 +188,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 1 of S becomes the number 1 of Partition, unchanged.",
+      "step": 0,
       "sourceFocus": [
         "I1"
       ],
@@ -247,6 +248,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 7 of S becomes the number 7 of Partition, unchanged.",
+      "step": 1,
       "sourceFocus": [
         "I2"
       ],
@@ -306,6 +308,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 12 of S becomes the number 12 of Partition, unchanged.",
+      "step": 2,
       "sourceFocus": [
         "I3"
       ],
@@ -365,6 +368,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Number 15 of S becomes the number 15 of Partition, unchanged.",
+      "step": 3,
       "sourceFocus": [
         "I4"
       ],
@@ -424,6 +428,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Partition gets the number T \u002B 1 = 29. On its side it needs numbers of S adding up to (sum \u002B 1) - (T \u002B 1) = 7: the ones left out of a subset that adds up to T = 28.",
+      "step": 4,
       "sourceFocus": [
         "C1"
       ],
@@ -483,6 +488,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Partition gets the number sum - T \u002B 1 = 8. On its side it needs numbers of S adding up to (sum \u002B 1) - (sum - T \u002B 1) = 28: a subset that adds up to T.",
+      "step": 5,
       "sourceFocus": [
         "C1"
       ],
@@ -542,6 +548,7 @@
       "phase": "build",
       "event": "Accept",
       "caption": "Partition\u0027s numbers add up to 2 * 35 \u002B 2 = 72, so each side must hold 36. The two added numbers add up to 37, more than a side holds, so they always sit on different sides.",
+      "step": 6,
       "sourceFocus": [
         "C1"
       ],
@@ -595,6 +602,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {7}: 7 against 65, off by 58.",
+      "step": 0,
       "sourceFocus": [],
       "targetFocus": [
         "I2"
@@ -665,6 +673,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,7}: 8 against 64, off by 56.",
+      "step": 1,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -736,6 +745,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {12}: 12 against 60, off by 48.",
+      "step": 2,
       "sourceFocus": [],
       "targetFocus": [
         "I3"
@@ -806,6 +816,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,12}: 13 against 59, off by 46.",
+      "step": 3,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -877,6 +888,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {7,12}: 19 against 53, off by 34.",
+      "step": 4,
       "sourceFocus": [],
       "targetFocus": [
         "I2",
@@ -948,6 +960,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,7,12}: 20 against 52, off by 32.",
+      "step": 5,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1020,6 +1033,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {15}: 15 against 57, off by 42.",
+      "step": 6,
       "sourceFocus": [],
       "targetFocus": [
         "I4"
@@ -1090,6 +1104,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,15}: 16 against 56, off by 40.",
+      "step": 7,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1161,6 +1176,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {7,15}: 22 against 50, off by 28.",
+      "step": 8,
       "sourceFocus": [],
       "targetFocus": [
         "I2",
@@ -1232,6 +1248,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,7,15}: 23 against 49, off by 26.",
+      "step": 9,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1304,6 +1321,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {12,15}: 27 against 45, off by 18.",
+      "step": 10,
       "sourceFocus": [],
       "targetFocus": [
         "I3",
@@ -1375,6 +1393,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,12,15}: 28 against 44, off by 16.",
+      "step": 11,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1447,6 +1466,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {7,12,15}: 34 against 38, off by 4.",
+      "step": 12,
       "sourceFocus": [],
       "targetFocus": [
         "I2",
@@ -1519,6 +1539,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,7,12,15}: 35 against 37, off by 2.",
+      "step": 13,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1592,6 +1613,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {29}: 29 against 43, off by 14.",
+      "step": 14,
       "sourceFocus": [],
       "targetFocus": [
         "I5"
@@ -1662,6 +1684,7 @@
       "phase": "solve",
       "event": "Reject",
       "caption": "Try S1 = {1,29}: 30 against 42, off by 12.",
+      "step": 15,
       "sourceFocus": [],
       "targetFocus": [
         "I1",
@@ -1733,6 +1756,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Try S1 = {7,29}: 36 against 36. Equal.",
+      "step": 16,
       "sourceFocus": [],
       "targetFocus": [
         "I2",
@@ -1804,6 +1828,7 @@
       "phase": "solve",
       "event": "Accept",
       "caption": "Both sides add up to 36, found after 17 splits.",
+      "step": 17,
       "sourceFocus": [],
       "targetFocus": [],
       "source": {
@@ -1872,6 +1897,7 @@
       "phase": "map",
       "event": "Try",
       "caption": "Number 8 (sum - T \u002B 1) is on side S2, so the numbers of S beside it add up to T: they are the subset.",
+      "step": 0,
       "sourceFocus": [
         "C1"
       ],
@@ -1948,6 +1974,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Number 1 is on side S2 with 8, so 1 is in the subset.",
+      "step": 1,
       "sourceFocus": [
         "I1"
       ],
@@ -2024,6 +2051,7 @@
       "phase": "map",
       "event": "Reject",
       "caption": "Number 7 is on side S1 with 29 (T \u002B 1), so 7 is left out of the subset.",
+      "step": 2,
       "sourceFocus": [
         "I2"
       ],
@@ -2103,6 +2131,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Number 12 is on side S2 with 8, so 12 is in the subset.",
+      "step": 3,
       "sourceFocus": [
         "I3"
       ],
@@ -2182,6 +2211,7 @@
       "phase": "map",
       "event": "Accept",
       "caption": "Number 15 is on side S2 with 8, so 15 is in the subset.",
+      "step": 4,
       "sourceFocus": [
         "I4"
       ],
@@ -2268,6 +2298,7 @@
       "phase": "map",
       "event": "Done",
       "caption": "{1,12,15} is a valid Subset Sum answer.",
+      "step": 5,
       "ok": true,
       "sourceFocus": [],
       "targetFocus": [],
