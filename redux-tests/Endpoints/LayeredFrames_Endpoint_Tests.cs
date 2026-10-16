@@ -294,6 +294,29 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.False(problem.defaultVerifier.verify(problem, problem.defaultSolver.solve(problem)));
     }
 
+    // #892: settling SPSP's target ends the run, but the answer is only the path. No frame marks a node or edge Solution
+    // that the Done does not.
+    [Fact]
+    public async Task Frames_SpspDefault_NoFrameShowsMoreSolutionThanTheDone() {
+        var (status, body) = await Visualize("visualization=spspvisualization&format=frames", new API.Problems.P.P_SPSP.SPSP().defaultInstance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        static HashSet<string> Solution(JsonElement frame, string kind) =>
+            frame.GetProperty(kind).EnumerateObject().Where(p => p.Value.GetProperty("state").GetString() == "Solution").Select(p => p.Name).ToHashSet();
+        var done = frames[^1];
+        Assert.Equal("Done", done.GetProperty("event").GetString());
+        Assert.NotEmpty(Solution(done, "nodes"));
+        foreach (var frame in frames) {
+            Assert.Subset(Solution(done, "nodes"), Solution(frame, "nodes"));
+            Assert.Subset(Solution(done, "edges"), Solution(frame, "edges"));
+        }
+        // The Accept that settles the target already draws the path, and keeps the other settled nodes Committed.
+        var accept = frames[^2];
+        Assert.Equal("Accept", accept.GetProperty("event").GetString());
+        Assert.Equal(Solution(done, "edges"), Solution(accept, "edges"));
+        Assert.Contains(accept.GetProperty("nodes").EnumerateObject(), p => p.Value.GetProperty("state").GetString() == "Committed");
+    }
+
     [Fact]
     public async Task Frames_SccHasAPicture() {
         var (status, body) = await Visualize("visualization=sccvisualization&format=frames", "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})");

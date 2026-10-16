@@ -175,7 +175,8 @@ sealed record LayeredFrame(
 /// cost is final, but the run is not over), and <c>Solution</c> in the answer; nodes
 /// reached but not settled, and the edges they were reached through, <c>Covered</c>. In the Done step nodes never reached
 /// are <c>Untraveled</c>; for a single pair only the path is <c>Solution</c> (other settled nodes are <c>Covered</c>), and an
-/// unreached target is <c>Rejected</c>.</item>
+/// unreached target is <c>Rejected</c>. The Accept that settles a single pair's target (it ends the run) already draws the path
+/// <c>Solution</c>, with the other settled nodes still <c>Committed</c> (#892).</item>
 /// <item>The focus is <c>ElementHighlight</c>, or <c>Rejected</c> in a Reject step of an incremental run
 /// (<see cref="GraphSubsetFrames.FocusMark"/>). A whole candidate's focus (a brute force) is only highlighted.</item>
 /// </list>
@@ -569,30 +570,39 @@ static class LayeredFrames {
         string? TreeEdge(string v) =>
             d.Pred.TryGetValue(v, out var u) && known.Contains(u) && m.EdgeById.ContainsKey(EdgeId(directed, u, v)) ? EdgeId(directed, u, v) : null;
 
-        if (done && pair) {
-            // The answer is the path to the target; the rest of what was settled is only known.
+        // For a single pair the answer is only the path to the target: its nodes and the edges between them are Solution.
+        void MarkPath() {
+            if (m.Spec.Target is not { } t) return;
             var path = new List<string>();
-            if (ok == true && m.Spec.Target is { } t) {
-                for (string? x = t; x != null && path.Count <= m.Nodes.Count; x = d.Pred.TryGetValue(x, out var u) ? u : null) {
-                    path.Add(x);
-                    if (x == m.Spec.Source) break;
-                }
+            for (string? x = t; x != null && path.Count <= m.Nodes.Count; x = d.Pred.TryGetValue(x, out var u) ? u : null) {
+                path.Add(x);
+                if (x == m.Spec.Source) break;
             }
             var onPath = new HashSet<string>(path, StringComparer.Ordinal);
             foreach (var n in path) {
                 GraphSubsetFrames.Raise(nodes, NodeId(n), PictureState.Solution);
                 if (TreeEdge(n) is { } id && onPath.Contains(d.Pred[n])) GraphSubsetFrames.Raise(edges, id, PictureState.Solution);
             }
+        }
+
+        if (done && pair) {
+            // The answer is the path to the target; the rest of what was settled is only known.
+            if (ok == true) MarkPath();
             foreach (var n in settled) GraphSubsetFrames.Raise(nodes, NodeId(n), PictureState.Covered);
             if (ok != true && m.Spec.Target is { } target) GraphSubsetFrames.Raise(nodes, NodeId(target), PictureState.Rejected);
         } else {
+            // The Accept that settles a single pair's target ends the run (picked is Solution), but its answer is only the
+            // path: the other settled nodes and tree edges stay Committed, as kept so far (#892).
+            bool pairAnswer = pair && picked == PictureState.Solution;
+            var settledState = pairAnswer ? PictureState.Committed : picked;
             foreach (var n in m.Nodes) {
                 bool reached = d.Dist.ContainsKey(n);
                 if (!reached) continue;
-                var state = settled.Contains(n) ? picked : PictureState.Covered;
+                var state = settled.Contains(n) ? settledState : PictureState.Covered;
                 GraphSubsetFrames.Raise(nodes, NodeId(n), state);
                 if (TreeEdge(n) is { } id) GraphSubsetFrames.Raise(edges, id, state);
             }
+            if (pairAnswer) MarkPath();
         }
         if (done)
             foreach (var n in m.Nodes)
