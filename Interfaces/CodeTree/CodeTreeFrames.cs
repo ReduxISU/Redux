@@ -60,6 +60,11 @@ sealed record CodeTreeFrame(
     [property: JsonPropertyName("codes")] IReadOnlyDictionary<string, string> Codes,
     [property: JsonPropertyName("nodes")] IReadOnlyDictionary<string, StateRef> Nodes,
     [property: JsonPropertyName("edges")] IReadOnlyDictionary<string, StateRef> Edges) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("bits")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public long? Bits { get; init; }
@@ -244,10 +249,10 @@ static class CodeTreeFrames {
     public static FramesResponse Build(CodeTreeSpec spec, SolveRun run, Func<string, HuffmanForest> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<HuffmanForest>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(HuffmanForest)).OfType<SolverStep<HuffmanForest>>())) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<HuffmanForest>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {
