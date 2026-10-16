@@ -32,7 +32,7 @@ public class IncrementalSolvers_Tests {
         // Placement (Packing pictures)
         ["partitionbruteforce"] = false,
         ["subsetsumbruteforce"] = false,
-        ["fastapproximation"] = false,
+        ["fastapproximation"] = true,
         ["knapsackbruteforce"] = false,
         ["knapsackdp"] = true,
         ["binpackingbruteforce"] = true,

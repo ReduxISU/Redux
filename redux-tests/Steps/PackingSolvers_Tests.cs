@@ -161,6 +161,40 @@ public class PackingSolvers_Tests {
         Assert.Equal([0, -1, 0, 0], steps[3].Partial.Assign);
     }
 
+    // Fast Approximation's steps keep the best sum so far, which the run goes on from: its numbers are Committed and Chosen
+    // is never Rejected before the Done, which alone says whether T was hit (#898).
+    [Theory]
+    [InlineData("({1,7,12,15},28)", true)]
+    [InlineData("({1000,1001,5},1006)", false)]
+    public void FastApproximation_Frames_KeepTheBestSumSoFar_AndOnlyTheDoneJudgesIt(string instance, bool ok) {
+        var run = ((ISolver)Activator.CreateInstance(ProblemProvider.Solvers["fastapproximation"])!).Run(instance, withSteps: true);
+        Assert.True(run.Incremental);
+        var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers["subsetsumvisualization"])!;
+        var frames = vis.BuildFrames(instance, run).Frames.Cast<PackingFrame>().ToList();
+        var steps = run.Steps.Cast<SolverStep<Placement>>().ToList();
+        // A frame lists only what is not Background.
+        static PictureState Of(IReadOnlyDictionary<string, API.Interfaces.Graphs.StateRef> states, string id) => states.TryGetValue(id, out var s) ? s.State : PictureState.Background;
+        for (int i = 0; i < frames.Count - 1; i++) {
+            var frame = frames[i];
+            Assert.Equal(StepEvent.Try, frame.Event);
+            Assert.NotEqual(PictureState.Rejected, Of(frame.Containers, "C1"));
+            // The best sum so far is kept (Committed); the number just added is the one in focus.
+            var focus = Assert.Single(frame.Focus);
+            for (int item = 0; item < frame.Assign.Count; item++) {
+                string id = PackingFrames.ItemId(item);
+                if (id == focus) Assert.Equal(PictureState.ElementHighlight, Of(frame.Items, id));
+                else if (frame.Assign[item] >= 0) Assert.Equal(PictureState.Committed, Of(frame.Items, id));
+                else Assert.Equal(PictureState.Background, Of(frame.Items, id));
+            }
+            // Chosen is Covered once the best sum is T, and neutral before.
+            bool hit = frame.Totals[0].Size == int.Parse(instance[(instance.LastIndexOf(',') + 1)..^1]);
+            Assert.Equal(hit ? PictureState.Covered : PictureState.Background, Of(frame.Containers, "C1"));
+        }
+        Assert.Equal((StepEvent.Done, (bool?)ok), (frames[^1].Event, frames[^1].Ok));
+        Assert.Equal(steps.Count, frames.Count);
+        if (ok) Assert.All(frames[^1].Items.Where(p => frames[^1].Assign[int.Parse(p.Key[1..]) - 1] >= 0), p => Assert.Equal(PictureState.Solution, p.Value.State));
+    }
+
     [Fact]
     public void FastApproximation_ThatMissesT_SaysSo_AndHasNoAnswer() {
         var steps = Steps("fastapproximation", "({1000,1001,5},1006)");

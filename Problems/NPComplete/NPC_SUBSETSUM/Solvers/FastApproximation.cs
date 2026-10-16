@@ -8,8 +8,10 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 
-// Not incremental: each step shows the best subset kept so far, a candidate the next number can still replace.
-class FastApproximation : ISolver<SUBSETSUM, Placement> {
+// Incremental: each step shows the best subset kept so far, which the run goes on from (the next number can still replace
+// it), never a whole candidate judged against T. So the picture draws it Committed and only the Done says whether T was hit
+// (#898).
+class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "Fast Approximation Algorithm";
     public string solverDefinition { get; } = "A fast approximation algorithm for subset sum that trades"
