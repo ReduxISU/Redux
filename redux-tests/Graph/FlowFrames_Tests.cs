@@ -128,9 +128,9 @@ public class FlowFrames_Tests {
         Assert.Empty(frame.Path);
 
         using var doc = JsonDocument.Parse(Json(frame));
-        Assert.Equal(["event", "caption", "focus", "nodes", "edges", "flow", "value", "path", "groups", "cut", "ok"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "nodes", "edges", "flow", "value", "path", "step", "groups", "cut", "ok"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         using var step = JsonDocument.Parse(Json(FlowFrames.Frame(spec, Flow(), StepEvent.Try, [], "Start.", incremental: true)));
-        Assert.Equal(["event", "caption", "focus", "nodes", "edges", "flow", "value", "path"], step.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "nodes", "edges", "flow", "value", "path", "step"], step.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("{\"edge\":\"1>2\",\"forward\":false,\"units\":1}",
             JsonSerializer.Serialize(new FlowArc("1>2", false, 1), new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
     }

@@ -127,7 +127,7 @@ public class FlowFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         foreach (var f in frames) {
             bool cutFrame = f.TryGetProperty("groups", out _);
-            Assert.Equal(["event", "caption", "focus", "nodes", "edges", "flow", "value", "path",
+            Assert.Equal(["event", "caption", "focus", "nodes", "edges", "flow", "value", "path", "step",
                 .. cutFrame ? new[] { "groups", "cut" } : [], .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             Assert.All(f.GetProperty("focus").EnumerateArray(), id => Assert.True(nodeIds.Contains(id.GetString()!) || capacity.ContainsKey(id.GetString()!), id.GetString()));
@@ -188,12 +188,12 @@ public class FlowFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"nodes\":{\"1\":{\"state\":\"ElementHighlight\"},\"3\":{\"state\":\"ElementHighlight\"},\"4\":{\"state\":\"ElementHighlight\"}},"
             + "\"edges\":{\"1>3\":{\"state\":\"ElementHighlight\"},\"2>4\":{\"state\":\"Covered\"},\"3>4\":{\"state\":\"ElementHighlight\"}},"
             + "\"flow\":{\"1>2\":3,\"1>3\":2,\"2>4\":3,\"3>4\":2},\"value\":5,"
-            + "\"path\":[{\"edge\":\"1>3\",\"forward\":true,\"units\":2},{\"edge\":\"3>4\",\"forward\":true,\"units\":2}]}",
+            + "\"path\":[{\"edge\":\"1>3\",\"forward\":true,\"units\":2},{\"edge\":\"3>4\",\"forward\":true,\"units\":2}],\"step\":2}",
             Readable(frames[2]));
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"No augmenting path is left. The nodes still reachable from 1 form S = {1,2}. The 2 edges from S to T are full and add up to 5, equal to the maximum flow.\","
             + "\"focus\":[],\"nodes\":{},\"edges\":{\"1>3\":{\"state\":\"Solution\"},\"2>4\":{\"state\":\"Solution\"}},"
-            + "\"flow\":{\"1>2\":3,\"1>3\":2,\"2>4\":3,\"3>4\":2},\"value\":5,\"path\":[],"
+            + "\"flow\":{\"1>2\":3,\"1>3\":2,\"2>4\":3,\"3>4\":2},\"value\":5,\"path\":[],\"step\":3,"
             + "\"groups\":{\"1\":0,\"2\":0,\"3\":1,\"4\":1},\"cut\":[\"1>3\",\"2>4\"],\"ok\":true}",
             Readable(frames[3]));
     }
