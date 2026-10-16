@@ -172,7 +172,7 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         string[] expectedAnnotations = Annotations[shape];
         foreach (var f in frames) {
-            Assert.Equal(["event", "caption", "focus", "nodes", "edges", .. expectedAnnotations, .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "nodes", "edges", "step", .. expectedAnnotations, .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             Assert.All(f.GetProperty("focus").EnumerateArray(), id => Assert.True(nodeIds.Contains(id.GetString()!) || edgeIds.Contains(id.GetString()!), id.GetString()));
             foreach (var n in f.GetProperty("nodes").EnumerateObject()) {
