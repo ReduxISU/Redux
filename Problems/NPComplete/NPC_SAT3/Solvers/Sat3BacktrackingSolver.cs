@@ -38,7 +38,9 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     // that is not a branch it just made, a Backtrack says where it went back to. Recorder state lives only in this call.
     // Each step also names its node of the search tree (SolverStep.Tree, for the Search Tree picture): the root "start" is
     // queued, each value tried is a node ("x2=F") under the state it decides, queued (with its priority), pruned (with the
-    // clause it makes false) or the solution, and a Backtrack takes the node it goes back to off the queue.
+    // clause it makes false) or the solution (with the variables it never had to set, "x3 free"), and a Backtrack takes the
+    // node it goes back to off the queue. The tree stops where every clause has a true literal, so the Done says which
+    // variables are free and that the answer sets them to False (#899).
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
         Dictionary<string, bool>? solution = Search(sat3, rec, out SearchNode[]? answerPath);
 
@@ -47,6 +49,8 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
             return "No Solution";
         }
 
+        var decided = new Dictionary<string, bool>(solution);
+        List<string> free = FreeVariables(sat3, decided);
         // fill in any variables the backtracker left unassigned
         foreach (string literal in sat3.literals) {
             string varName = literal.TrimStart('!');
@@ -63,10 +67,28 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         solutionString = solutionString.TrimEnd(',');
         solutionString += ")";
         // The answer's path in the search tree, root first: past the cap, its ancestors' steps may not have been kept.
-        rec.Done(ToAssignment(solution), true, $"Every clause has a true literal under {GroupedGraphFrames.Assigned(solution)}.",
+        rec.Done(ToAssignment(solution), true, $"Every clause has a true literal under {GroupedGraphFrames.Assigned(decided)}.{FreeText(free)}",
             answerPath is null ? null : () => answerPath);
         return solutionString;
     }
+
+    // The variables of the formula the search never had to set, in the order they first appear.
+    private static List<string> FreeVariables(SAT3 sat3, IReadOnlyDictionary<string, bool> decided) =>
+        sat3.literals.Select(l => l.TrimStart('!')).Distinct().Where(v => !decided.ContainsKey(v)).ToList();
+
+    // What the Done says about the free variables: either value works, and the answer sets them to False.
+    private static string FreeText(List<string> free) => free.Count switch {
+        0 => "",
+        1 => $" {free[0]} is free (either value works), so the answer sets it to False.",
+        _ => $" {string.Join(", ", free.SkipLast(1))} and {free[^1]} are free (either value works), so the answer sets them to False.",
+    };
+
+    // The solution node's note: the variables it never had to set ("x3 free"), or how many when there are more than two.
+    private static string? FreeNote(List<string> free) => free.Count switch {
+        0 => null,
+        <= 2 => $"{string.Join(", ", free)} free",
+        _ => $"{free.Count} free",
+    };
 
     private static Assignment ToAssignment(Dictionary<string, bool> values) =>
         new(values.Select(p => new KeyValuePair<string, string>(p.Key, p.Value.ToString())));
@@ -180,12 +202,13 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
                         //WRITE ASSIGNMENTS OF VARIABLES
                         solutionFound = true;
                         solution = childSAT.varStates;
-                        var path = new List<SearchNode> { child with { State = SearchNodeState.Solution } };
+                        var solved = child with { State = SearchNodeState.Solution, Bound = FreeNote(FreeVariables(sat3, childSAT.varStates)) };
+                        var path = new List<SearchNode> { solved };
                         for (int? up = child.ParentId; up is int id; up = byId[id].ParentId)
                             path.Insert(0, byId[id] with { State = SearchNodeState.Explored, Bound = null });
                         answerPath = [.. path];
                         rec.Accept(Partial, () => $"Keep {decided.nextVar} = {tried}: every clause now has a true literal.", () => focus,
-                            () => Node(SearchNodeState.Solution));
+                            () => [solved]);
                         break; //SOLUTION FOUND EXIT FOR EACH
                     }
                 } else {
