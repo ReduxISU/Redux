@@ -97,6 +97,11 @@ sealed record BoardFrame(
     [property: JsonPropertyName("pieces")] IReadOnlyList<BoardPieceDto> Pieces,
     [property: JsonPropertyName("cells")] IReadOnlyDictionary<string, StateRef> Cells,
     [property: JsonPropertyName("links")] IReadOnlyList<BoardLinkDto> Links) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
@@ -227,10 +232,10 @@ static class BoardFrames {
     public static FramesResponse Build(BoardSpec spec, SolveRun run, Func<string, BoardCells> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<BoardCells>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(BoardCells)).OfType<SolverStep<BoardCells>>())) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<BoardCells>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(spec, step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {

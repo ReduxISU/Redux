@@ -234,7 +234,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         foreach (var f in frames) {
-            Assert.Equal(["event", "caption", "focus", "values", "pieces", "cells", "links", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "values", "pieces", "cells", "links", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             string ev = f.GetProperty("event").GetString()!;
             Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString()));
@@ -333,7 +333,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"focus\":[\"r1c2\"],\"values\":{},"
             + "\"pieces\":[{\"id\":\"r0c0\",\"r\":0,\"c\":0,\"kind\":\"queen\"},{\"id\":\"r1c2\",\"r\":1,\"c\":2,\"kind\":\"queen\"}],"
             + "\"cells\":{\"r0c0\":{\"state\":\"Committed\"},\"r1c0\":{\"state\":\"Rejected\"},\"r1c1\":{\"state\":\"Rejected\"},\"r1c2\":{\"state\":\"ElementHighlight\"}},"
-            + "\"links\":[{\"from\":\"r1c0\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r1c1\",\"to\":\"r0c0\",\"state\":\"Rejected\"}]}",
+            + "\"links\":[{\"from\":\"r1c0\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r1c1\",\"to\":\"r0c0\",\"state\":\"Rejected\"}],\"step\":1}",
             Readable(frames[1]));
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"Row 2: every column is attacked, so back up and move the queen in row 1.\","
@@ -342,7 +342,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"cells\":{\"r0c0\":{\"state\":\"Committed\"},\"r1c2\":{\"state\":\"Rejected\"},\"r2c0\":{\"state\":\"Rejected\"},\"r2c1\":{\"state\":\"Rejected\"},"
             + "\"r2c2\":{\"state\":\"Rejected\"},\"r2c3\":{\"state\":\"Rejected\"}},"
             + "\"links\":[{\"from\":\"r2c0\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r2c1\",\"to\":\"r1c2\",\"state\":\"Rejected\"},"
-            + "{\"from\":\"r2c2\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r2c3\",\"to\":\"r1c2\",\"state\":\"Rejected\"}]}",
+            + "{\"from\":\"r2c2\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r2c3\",\"to\":\"r1c2\",\"state\":\"Rejected\"}],\"step\":2}",
             Readable(frames[2]));
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"All 4 queens are placed and none attacks another: {(0,1),(1,3),(2,0),(3,2)}. Found after 8 placements.\","
@@ -350,7 +350,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"pieces\":[{\"id\":\"r0c1\",\"r\":0,\"c\":1,\"kind\":\"queen\"},{\"id\":\"r1c3\",\"r\":1,\"c\":3,\"kind\":\"queen\"},"
             + "{\"id\":\"r2c0\",\"r\":2,\"c\":0,\"kind\":\"queen\"},{\"id\":\"r3c2\",\"r\":3,\"c\":2,\"kind\":\"queen\"}],"
             + "\"cells\":{\"r0c1\":{\"state\":\"Solution\"},\"r1c3\":{\"state\":\"Solution\"},\"r2c0\":{\"state\":\"Solution\"},\"r3c2\":{\"state\":\"Solution\"}},"
-            + "\"links\":[],\"ok\":true}",
+            + "\"links\":[],\"step\":12,\"ok\":true}",
             Readable(frames[^1]));
     }
 
