@@ -247,7 +247,7 @@ public class AutomatonFrames_Tests {
         var f = AutomatonFrames.Frame(Dfa(), ["2"], 1, StepEvent.Try, ["q:1>q:2"], "Read 'a'.");
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"Read \\u0027a\\u0027.\",\"focus\":[\"q:1\\u003Eq:2\"],\"position\":1,\"active\":[\"q:2\"]," +
-            "\"nodes\":{\"q:2\":{\"state\":\"ElementHighlight\"}},\"edges\":{\"q:1\\u003Eq:2\":{\"state\":\"ElementHighlight\"}}}",
+            "\"nodes\":{\"q:2\":{\"state\":\"ElementHighlight\"}},\"edges\":{\"q:1\\u003Eq:2\":{\"state\":\"ElementHighlight\"}},\"step\":null}",
             JsonSerializer.Serialize(f));
         var done = AutomatonFrames.Frame(Dfa(), ["2"], 1, StepEvent.Done, [], "Accepted.", ok: false);
         Assert.EndsWith(",\"ok\":false}", JsonSerializer.Serialize(done));
