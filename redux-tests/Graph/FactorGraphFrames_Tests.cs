@@ -176,7 +176,7 @@ public class FactorGraphFrames_Tests {
         var f = FactorGraphFrames.Frame(GroupedGraphSpec.FromLiterals([["x1", "!x2"]]), Values(("x1", false)), StepEvent.Accept, ["v:x1"], "x1 = False.", incremental: true);
         Assert.Equal(
             "{\"event\":\"Accept\",\"caption\":\"x1 = False.\",\"focus\":[\"v:x1\"]," +
-            "\"nodes\":{\"v:x1\":{\"state\":\"ElementHighlight\"}},\"edges\":{\"c0-0\":{\"state\":\"False\"}},\"hits\":{},\"assignment\":{\"v:x1\":false}}",
+            "\"nodes\":{\"v:x1\":{\"state\":\"ElementHighlight\"}},\"edges\":{\"c0-0\":{\"state\":\"False\"}},\"hits\":{},\"assignment\":{\"v:x1\":false},\"step\":null}",
             JsonSerializer.Serialize(f));
     }
 
