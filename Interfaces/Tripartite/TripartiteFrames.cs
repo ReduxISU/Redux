@@ -58,6 +58,11 @@ sealed record TripartiteFrame(
     [property: JsonPropertyName("repeats")] IReadOnlyDictionary<string, int> Repeats,
     [property: JsonPropertyName("elements")] IReadOnlyDictionary<string, StateRef> Elements,
     [property: JsonPropertyName("triples")] IReadOnlyDictionary<string, StateRef> Triples) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
@@ -215,10 +220,10 @@ static class TripartiteFrames {
     public static FramesResponse Build(TripartiteSpec spec, SolveRun run, Func<string, ChosenTriples> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<ChosenTriples>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(ChosenTriples)).OfType<SolverStep<ChosenTriples>>())) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<ChosenTriples>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {

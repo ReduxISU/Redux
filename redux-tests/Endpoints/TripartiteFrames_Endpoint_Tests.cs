@@ -192,7 +192,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.All(frames, f => Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString())));
         Assert.All(frames.SkipLast(1), f => Assert.False(f.TryGetProperty("ok", out _)));
         foreach (var f in frames) {
-            Assert.Equal(["event", "caption", "focus", "chosen", "repeats", "elements", "triples", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "chosen", "repeats", "elements", "triples", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             var chosen = f.GetProperty("chosen").EnumerateArray().Select(x => x.GetString()!).ToList();
             Assert.All(chosen, id => Assert.Contains(id, byId.Keys));
@@ -246,7 +246,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"repeats\":{\"x1\":2,\"z1\":2},"
             + "\"elements\":{\"x1\":{\"state\":\"Rejected\"},\"x2\":{\"state\":\"Covered\"},\"y1\":{\"state\":\"Covered\"},\"y2\":{\"state\":\"Covered\"},\"y3\":{\"state\":\"Covered\"},"
             + "\"z1\":{\"state\":\"Rejected\"},\"z3\":{\"state\":\"Covered\"}},"
-            + "\"triples\":{\"T1\":{\"state\":\"Rejected\"},\"T2\":{\"state\":\"Rejected\"},\"T3\":{\"state\":\"Rejected\"},\"T4\":{\"state\":\"Blocked\"},\"T5\":{\"state\":\"Blocked\"},\"T6\":{\"state\":\"Blocked\"}}}",
+            + "\"triples\":{\"T1\":{\"state\":\"Rejected\"},\"T2\":{\"state\":\"Rejected\"},\"T3\":{\"state\":\"Rejected\"},\"T4\":{\"state\":\"Blocked\"},\"T5\":{\"state\":\"Blocked\"},\"T6\":{\"state\":\"Blocked\"}},\"step\":0}",
             Readable(frames[0]));
         // The mockup's solved view: T2, T4 and T6 chosen, every name used once, the other triples ruled out.
         Assert.Equal(
@@ -254,7 +254,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"focus\":[],\"chosen\":[\"T2\",\"T4\",\"T6\"],\"repeats\":{},"
             + "\"elements\":{\"x1\":{\"state\":\"Covered\"},\"x2\":{\"state\":\"Covered\"},\"x3\":{\"state\":\"Covered\"},\"y1\":{\"state\":\"Covered\"},\"y2\":{\"state\":\"Covered\"},"
             + "\"y3\":{\"state\":\"Covered\"},\"z1\":{\"state\":\"Covered\"},\"z2\":{\"state\":\"Covered\"},\"z3\":{\"state\":\"Covered\"}},"
-            + "\"triples\":{\"T1\":{\"state\":\"Blocked\"},\"T2\":{\"state\":\"Solution\"},\"T3\":{\"state\":\"Blocked\"},\"T4\":{\"state\":\"Solution\"},\"T5\":{\"state\":\"Blocked\"},\"T6\":{\"state\":\"Solution\"}},\"ok\":true}",
+            + "\"triples\":{\"T1\":{\"state\":\"Blocked\"},\"T2\":{\"state\":\"Solution\"},\"T3\":{\"state\":\"Blocked\"},\"T4\":{\"state\":\"Solution\"},\"T5\":{\"state\":\"Blocked\"},\"T6\":{\"state\":\"Solution\"}},\"step\":15,\"ok\":true}",
             Readable(frames[^1]));
     }
 

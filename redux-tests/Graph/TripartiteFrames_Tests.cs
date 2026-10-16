@@ -58,7 +58,7 @@ public class TripartiteFrames_Tests {
     [Fact]
     public void Frame_Json_HasTheContractFieldsInOrder_AndOkOnlyOnDone() {
         using var doc = JsonDocument.Parse(Json(TripartiteFrames.Frame(Small, C("T1", "T2"), StepEvent.Reject, ["x1"], "c")));
-        Assert.Equal(["event", "caption", "focus", "chosen", "repeats", "elements", "triples"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "chosen", "repeats", "elements", "triples", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("{\"x1\":2}", JsonSerializer.Serialize(doc.RootElement.GetProperty("repeats")));
         Assert.Equal("{\"state\":\"Rejected\"}", JsonSerializer.Serialize(doc.RootElement.GetProperty("elements").GetProperty("x1")));
         using var done = JsonDocument.Parse(Json(TripartiteFrames.Frame(Small, C("T1", "T3"), StepEvent.Done, [], "c", ok: true)));
