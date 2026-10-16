@@ -250,7 +250,7 @@ public class TourSolvers_Tests {
         Assert.Equal(["New York", "Denver"], pruned.Partial.Order);
         // The greedy tour is already optimal on the default instance, so the search never improves on it.
         Assert.DoesNotContain(steps.Skip(1), s => s.Event == StepEvent.Accept && s.Caption.StartsWith("Close"));
-        Assert.StartsWith("The cheapest tour is New York → Chicago → Denver → Los Angeles → Miami → New York, total 6830, within K = 8000.", steps[^1].Caption);
+        Assert.Equal("The cheapest tour is the greedy tour New York → Chicago → Denver → Los Angeles → Miami → New York, total 6830, within K = 8000: the search found nothing cheaper.", steps[^1].Caption);
     }
 
     [Fact]
