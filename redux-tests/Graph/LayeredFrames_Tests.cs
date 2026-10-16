@@ -245,6 +245,30 @@ public class LayeredFrames_Tests {
         Assert.DoesNotContain(lost.Nodes.Values, s => s.State == PictureState.Solution);
     }
 
+    [Fact]
+    public void Distances_SinglePairAcceptThatEndsTheRun_OnlyThePathIsSolution_OtherSettledNodesStayCommitted() {
+        // Settling the target ends the run, but a single pair's answer is only the path 1 > 3 > 2; 4 was settled on the way
+        // and is not part of it (#892).
+        var spsp = Spec(LayeredRule.SinglePairShortestPath, ["1", "2", "3", "4"], E("1", "2", 4), E("1", "3", 2), E("3", "2", 1), E("1", "4", 1))
+            with { Source = "1", Target = "2" };
+        var d = new Distances(new Dictionary<string, int> { ["1"] = 0, ["4"] = 1, ["3"] = 2, ["2"] = 3 },
+            new Dictionary<string, string> { ["4"] = "1", ["3"] = "1", ["2"] = "3" }, ["1", "4", "3", "2"]);
+        var f = LayeredFrames.Frame(spsp, d, StepEvent.Accept, ["2"], "Settle 2.", null, incremental: true, endsRun: true);
+        Assert.Equal(PictureState.Solution, Node(f, "1"));
+        Assert.Equal(PictureState.Solution, Node(f, "3"));
+        Assert.Equal(PictureState.ElementHighlight, Node(f, "2"));
+        Assert.Equal(PictureState.Committed, Node(f, "4"));
+        Assert.Equal(PictureState.Solution, Edge(f, "1>3"));
+        Assert.Equal(PictureState.Solution, Edge(f, "3>2"));
+        Assert.Equal(PictureState.Committed, Edge(f, "1>4"));
+
+        // A single source's answer is the whole tree, so there every settled node is Solution.
+        var sssp = spsp with { Rule = LayeredRule.SingleSourceShortestPath, Target = null };
+        var tree = LayeredFrames.Frame(sssp, d, StepEvent.Accept, ["2"], "Settle 2.", null, incremental: true, endsRun: true);
+        Assert.Equal(PictureState.Solution, Node(tree, "4"));
+        Assert.Equal(PictureState.Solution, Edge(tree, "1>4"));
+    }
+
     // ---- The whole response ----
 
     [Fact]
