@@ -34,7 +34,7 @@ Nothing in a problem, solver or reduction mentions colors, coordinates or SVG. T
 | **Answer shape** | What kind of thing the answer is: `NodeSet`, `EdgeSet`, `Groups`, `Tour`, `Assignment`, `ChosenSets`, `ActiveStates`, and so on (`Interfaces/Steps/Shapes.cs`). Steps are typed by answer shape, as `SolverStep<TPartial>`. |
 | **Rule** | What the answer must satisfy, such as `SubsetRule.Clique` or `BipartiteRule.ExactlyOnce`. The builder uses it to decide which parts are Covered or Rejected. |
 | **Step** | One decision a solver made, with the answer so far, the ids it is looking at, and a one-sentence caption. |
-| **Frame** | One picture in the animation. The builder turns each step into a frame, and adds a solved frame if the run did not end in Done. |
+| **Frame** | One picture in the animation. The builder turns each step into a frame, and adds a solved frame if the run did not end in Done. Each frame says which step it was drawn from (`step`, null on an added frame). The payload alone is the picture before Run. |
 | **State** | The shared name for how an element looks in a frame (below). |
 
 ### The shared states
@@ -61,7 +61,7 @@ Some marks are **annotations, not states**: the ×2 badge for "covered twice", o
 | --- | --- |
 | Which picture type the problem uses (the interface you implement) | The payload, with ids and a deterministic layout hint |
 | `Describe`: how the problem's fields fill the spec | Every state, from the steps, the rule and the verifier |
-| `StepShape`: the answer shape your picture draws | Matching steps to the picture; a solver with another shape still gets the initial and solved frames |
+| `StepShape`: the answer shape your picture draws | Matching steps to the picture; a solver with another shape still gets the payload and the solved frame |
 | In a solver: one `rec.…` call per decision, with a caption | Capping long runs, stopping at the time limit, the closing Done |
 | Endpoint tests for the JSON | Responsive layout, dark mode, the key, hover and tap (frontends) |
 
@@ -108,10 +108,17 @@ That is the whole change. The Graph builder knows that, for `Clique`, a pair of 
 Some interfaces have more members:
 
 - `ParseAnswer(problem, answer)` reads the solver's answer string into the answer shape, for the solved frame. Most have a default; override it when your problem's certificate looks different (Max Cut does).
-- `ITableVisualization<TProblem, TPartial>` asks for `Draw` (one `TableDraft` per step), `Blank` and optionally `Solved`, because a table's cells are problem-specific.
+- `ITableVisualization<TProblem, TPartial>` asks for `Draw` (one `TableDraft` per step), `Blank` and optionally `Start` and `Solved`, because a table's cells are problem-specific. `Blank` is the instance with nothing worked out: the payload sends it as `blank`, the picture before Run, and a stopped run closes on it. `Start` is the same blank as the run's steps write it, for a trace table whose first row depends on the run (DFA and NFA start in the start state, SSSP and SPSP Dijkstra at the source); null means use `Blank`.
 - `ISearchTreeVisualization<TProblem, TPartial>` only needs `Describe`; the tree comes from the solver's `SolverStep.Tree` patches.
 
-Don't override `BuildFrames`, `ListReadsTypedSteps` or `PictureType` unless you know why. `ListReadsTypedSteps` returns true only for a visualization whose list format already drew typed steps (DFA).
+Don't override `BuildFrames`, `ListReadsTypedSteps`, `PictureType` or `DrawsAnswerAlone` unless you know why. `ListReadsTypedSteps` returns true only for a visualization whose list format already drew typed steps (DFA). `DrawsAnswerAlone` says whether the picture means anything when it can't draw the solver's steps; it is true except for the Search Tree, which `visualizeRun` then lists as `shape_mismatch`.
+
+**Writing a new frames builder** (a new picture type only). Every frame must say which solver step it was drawn from (#895), so pictures of one run line up:
+
+- Give the frame record `[JsonPropertyName("step")] [JsonIgnore(Condition = JsonIgnoreCondition.Never)] public int? Step { get; init; }`, so it is written even when null.
+- Loop over `GraphSubsetFrames.DrawnSteps<TPartial>(run)` (each step with whether it ends the run, and its index in the run's full step list), or `GraphSubsetFrames.Indexed<TPartial>(run)` if you don't need `endsRun`, and add each frame `with { Step = index }`. Never count your own index after filtering.
+- Leave `Step` null on frames you add yourself: the solved frame built from the answer, and the blank stopped frame when the run's own stopped Done can't be drawn. A stopped Done you draw from the run keeps its index.
+- `FrameStep_Tests` checks every frames visualization for this, and `VisualizeRun_Shape_Tests` checks the answer-alone picture.
 
 ### 4.3 Register it
 
@@ -271,7 +278,7 @@ The Automaton builder (`Interfaces/graphs/AutomatonFrames.cs`) does the rest:
 - gives each state a layer, its breadth-first distance from the start state;
 - merges parallel transitions into one arrow with a combined label (`a,b`);
 - sends the start state, accept states and input tape;
-- adds an isolated **Garbage** state (`garbage`) when a DFA is missing a transition, listing the missing moves, so a run that falls off the machine has somewhere visible to go.
+- adds an isolated **Garbage** state (`garbage`) when a DFA is missing a transition, listing the missing moves, so a run that falls off the machine has somewhere visible to go. A symbol of the input outside the alphabet is a missing move too: `garbage.missing` lists the `{ state, symbol }` the run hits, and Garbage appears even if every in-alphabet move exists.
 
 ### 7.3 The solver: record each symbol read
 
@@ -316,7 +323,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
 }
 ```
 
-The real solver loops over the edges instead of `FirstOrDefault`, keeps the path for its answer text, and also handles a symbol outside the alphabet (a Reject on the current state, not Garbage). An empty set of states in a DFA step means the run is in Garbage.
+The real solver loops over the edges instead of `FirstOrDefault` and keeps the path for its answer text. A symbol outside the alphabet takes the same branch as a missing move: the DFA falls into Garbage. An empty set of states in a DFA step means the run is in Garbage. An NFA has no Garbage state: a branch that meets a symbol outside the alphabet dies there (a Reject at a dead end).
 
 What the frontend draws from those steps, without any DFA-specific code:
 
@@ -351,6 +358,7 @@ NFA uses the same `ActiveStates`. `NFASolver` is a depth-first search that recor
 - [ ] Solvers that build answers piece by piece implement `IIncrementalSolver`, and their focus names only the piece under test.
 - [ ] `SolverReplay_Tests` passes, and the picture's endpoint tests cover the problem.
 - [ ] You looked at the actual JSON from the endpoint (or in the frames viewer), not just the build.
+- [ ] A new frames builder sets `step` on every frame drawn from a step, and leaves it null on frames it adds (`FrameStep_Tests` passes).
 - [ ] The list format and `/info` are unchanged (the snapshot tests pass).
 - [ ] Any new `VisualizationType` value is also in `Documentation/visualization-types.json`.
 - [ ] Problem names and descriptions match what the code does.
@@ -364,7 +372,9 @@ NFA uses the same `ActiveStates`. `NFASolver` is a depth-first search that recor
 
 **Can two solvers for the same problem animate differently?** Yes, that's the point. Greedy and Brute Force for Set Cover record different steps on the same picture, so students can see why one overshoots. The user picks the solver, and `visualize` takes it as `solver=`.
 
-**What if my solver's shape doesn't match the visualization's?** The response still has the initial and solved frames, just no steps in between.
+**What if my solver's shape doesn't match the visualization's?** The response still has the payload and the solved frame (`step: null`), just no steps. `visualizeRun` returns that solved-only picture too, except for the Search Tree, which it lists as `shape_mismatch`.
+
+**How does a frontend switch pictures without rerunning the solver?** `POST visualizeRun?solver=…` runs it once and returns every picture of the problem built from that run. Frames line up by `step`, not by position.
 
 **What about very large instances?** Steps are capped and long solves are stopped, and both say so in the last caption. Very large drawings are a frontend concern.
 

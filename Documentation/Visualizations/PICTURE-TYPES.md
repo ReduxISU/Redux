@@ -13,7 +13,7 @@ Every picture type has three views, picked with the **Instance / Solved / Steps*
 
 | View | Shows | Comes from |
 | --- | --- | --- |
-| Instance | The problem as given, nothing highlighted | The payload |
+| Instance | The problem as given, nothing highlighted | The payload alone (the base picture before Run; `frames[0]` is already the solver's first step) |
 | Solved | The answer, plus checks that show why it's right | The last frame (a Done) |
 | Steps | The solver's run, one decision per frame, with a caption | The frames, from the selected solver's steps |
 
@@ -30,12 +30,15 @@ Every picture and screenshot meets the contrast rules in [README.md](README.md) 
 ```
 { "type": "<picture type>", "payload": { "kind": …, … }, "frames": [ frame, … ] }
 frame = { "event": "Try" | "Accept" | "Reject" | "Backtrack" | "Done", "caption", "focus": [ids],
+          "step": int | null,   // the solver step it was drawn from (#895)
           "ok"?: bool,          // Done only
           …state maps and annotations for that type }
 ```
 
 - **State maps** look like `"nodes": { "<id>": { "state": "Solution" } }`. Elements not listed are `Background`.
-- **Frames:** one per kept solver step, then a solved Done frame if the steps didn't end in one. A run stopped by the time limit ends on a blank Done frame with `ok: false` and a caption that starts "Stopped after".
+- **Frames:** one per kept solver step, then a solved Done frame if the steps didn't end in one. A run stopped by the time limit ends on a blank Done frame with `ok: false` and a caption that starts "Stopped after". The payload alone is the base picture shown before Run; there is no base frame, so `frames[0]` is the solver's first step.
+- **`step`** (#895) is on every frame, always written: the 0-based index of the solver step the frame was drawn from, counted in the run's full step list. It is null for a frame drawn from no step: the solved frame added from the answer, and the blank stopped frame added when the run's own stopped Done step can't be drawn. Pictures of one run line up by `step`, not by position. A picture that can't draw the solver's steps (another answer shape, or untyped steps) gets only the solved frame, with `step: null`.
+- **One run, every picture.** `POST /ProblemProvider/visualizeRun?solver=<name>[&visualizations=A,B]` runs the solver once and returns `{ solver, solverName, answer, ok, timedOut, pictures: [{ visualization, type, payload, frames }], unavailable: [{ visualization, reason, detail }] }` for every visualization of the problem, the default first. `reason` is `no_frames` (no frames picture), `shape_mismatch` (it can't draw these steps, nor the answer alone: the Search Tree) or `solver_mismatch`. See [README.md](README.md) §3.1.
 - **Ids are text** and the payload names both ends of every edge, so a renderer never splits an id. Names with separator characters are escaped with a backslash.
 
 **States** are the shared names from [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md#the-shared-states): `Background`, `ElementHighlight` (amber ring), `Solution` (green, the confirmed answer only), `Committed` (lighter green with a dashed outline: kept so far, not confirmed), `Rejected` (red), `Untraveled` (faded), `Covered` (light green), `Blocked` (dashed grey outline), `False` (assigned false). Annotations such as order badges, ×2 badges, missing-edge lines and group colors are not states.
@@ -228,7 +231,7 @@ States laid out left to right in the order the machine reaches them. The start s
 
 **Decided behavior**
 
-- **DFA missing transitions** go to a separate, isolated **Garbage** state drawn in red. A run that falls in stays there and is rejected. A symbol outside the alphabet is a Reject on the current state, not Garbage.
+- **DFA missing transitions** go to a separate, isolated **Garbage** state drawn in red. A run that falls in stays there and is rejected. A symbol of the input outside the alphabet is a missing move too: the run falls into Garbage, and `garbage.missing` lists the `{ state, symbol }` it hit (only that one, since the run stops there), so Garbage appears even when every in-alphabet move exists. The symbol is not added to `alphabet`. An NFA has no Garbage: its branches die there (path outcome `dies`).
 - **NFA** shows all branches at once by default. A **One path** switch follows a single run, chosen from a dropdown. The backend computes the runs (`paths`, up to 40, accepting ones first), each with its outcome (`accepts`, `rejects` or `dies`) and its own frames.
 - **ε-transitions** (NFA) are dashed (`epsilon: true`).
 - **Edge labels stay strings**, never fed to a number scale.
@@ -472,7 +475,9 @@ Rows and columns instead of dots and lines. Three shapes share one renderer, dra
 <td><img src="images/table--0-1-integer-programming-solved.png" alt="0-1 Integer Programming" width="420"></td>
 </tr><tr><td>Grid: Edit Distance, each cell and the neighbors it reads</td><td>Matrix: 0-1 Integer Programming, constraints against variables</td></tr></table>
 
-**Backend:** `ITableVisualization<TProblem, TPartial>`. Unlike the other types, the visualization fills the cells: `Describe` returns a `TableSpec(TableShape, Columns) { RowLabels, Title, RowAxis, ColumnAxis }`, `Draw` returns one `TableDraft` per step, `Blank` the empty table, and `Solved` (optional) the answer. The builder adds ids, focus and the closing frame.
+**Backend:** `ITableVisualization<TProblem, TPartial>`. Unlike the other types, the visualization fills the cells: `Describe` returns a `TableSpec(TableShape, Columns) { RowLabels, Title, RowAxis, ColumnAxis }`, `Draw` returns one `TableDraft` per step, `Blank` the instance with nothing worked out, `Start` (optional) that blank as the run's steps write it, and `Solved` (optional) the answer. The builder adds ids, focus and the closing frame.
+
+**The blank.** The payload carries `blank: { values: [[text | null]] }`: the instance with nothing worked out, which is the picture before Run (draw it instead of the first frame, which is already solver work such as 0-1 ILP's first try). Edit Distance's blank is the grid before any cell is computed, and 0-1 ILP's is the constraint matrix before any assignment is tried. A trace table's blank is its start row, from `ITableVisualization.Start`: DFA and NFA in the start state, before any symbol is read; SSSP and SPSP as Dijkstra starts, with the source at 0 and every other node at ∞. A run stopped by the time limit closes on the blank (a Done, `ok: false`), and so does a run whose answer can't be drawn.
 
 | `shape` | Problems | Step shape | How it reads |
 | --- | --- | --- | --- |
@@ -482,7 +487,7 @@ Rows and columns instead of dots and lines. Three shapes share one renderer, dra
 
 ```
 payload: { kind: "table", shape, columns: [{ id: "c0", label, key? }], rows: [{ id: "r0", label? }],
-           title?, rowAxis?, columnAxis? }
+           title?, rowAxis?, columnAxis?, blank: { values: [[text | null]] } }
 frame:   values: [[text | null]], rows (states), cells (states, ids "r0c1"), changed: [cell ids],
          arrows?: [{ from, to, best }]    // grid only
 ```
@@ -593,7 +598,7 @@ The instance you gave on the left, the instance the reduction builds on the righ
 2. **Solve** (`phase: "solve"`). The target is solved by the reduction's `ReductionViewSolver()` if it names one, else the target's default solver; `?solver=` overrides both. The source pane stays at rest.
 3. **Map back** (`phase: "map"`). The target's answer is mapped to the source's answer, one piece at a time. The part mapped so far is kept.
 
-Only the last frame is a Done with `ok`: the source's verifier on the mapped-back answer (#840).
+Only the last frame is a Done with `ok`: the source's verifier on the mapped-back answer (#840). Every frame carries `step` (#895), counted within its own phase: the construction step in `build`, the solver step in `solve`, the backward map's step in `map`; null on a frame the view adds.
 
 **Response**
 
