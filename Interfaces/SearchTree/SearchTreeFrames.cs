@@ -73,6 +73,11 @@ sealed record SearchTreeFrame(
     [property: JsonPropertyName("nodes")] IReadOnlyList<SearchTreeNodeDto> Nodes,
     [property: JsonPropertyName("total")] int Total,
     [property: JsonPropertyName("cut")] int Cut) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
@@ -342,9 +347,9 @@ static class SearchTreeFrames {
         var tree = new Tree();
         var frames = new List<object>();
         SolverStep<TPartial>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(TPartial)).OfType<SolverStep<TPartial>>())) {
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<TPartial>(run)) {
             bool stopped = run.TimedOut && step.Event == StepEvent.Done;
-            frames.Add(Frame(tree, step.Event, step.Tree, step.Caption, stopped ? false : step.Ok, stopped, endsRun && !run.TimedOut));
+            frames.Add(Frame(tree, step.Event, step.Tree, step.Caption, stopped ? false : step.Ok, stopped, endsRun && !run.TimedOut) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {
@@ -365,6 +370,12 @@ static class SearchTreeFrames {
 /// </summary>
 interface ISearchTreeVisualization<TProblem, TPartial> : IFramesVisualization where TProblem : IProblem {
     SearchTreeSpec Describe(TProblem problem);
+
+    /// <summary>
+    /// A search tree is the search itself: a run whose steps it cannot draw leaves it nothing but an empty tree, so
+    /// <c>visualizeRun</c> lists it as <c>shape_mismatch</c> instead of drawing the answer alone (#895).
+    /// </summary>
+    bool IFramesVisualization.DrawsAnswerAlone() => false;
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
