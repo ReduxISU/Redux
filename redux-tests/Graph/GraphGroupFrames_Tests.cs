@@ -140,6 +140,52 @@ public class GraphGroupFrames_Tests {
         Assert.Null(State(f, "a"));
     }
 
+    [Fact]
+    public void Why_CliqueCover_NamesEveryNodeInNoClique_BeforeAnUnjoinedPair() {
+        // a and d share a group but aren't joined; b and e are in no group. The left-out nodes come first (#889).
+        var left = GraphGroupFrames.Why(GroupRule.CliqueCover, Nodes, Edges, Of(("a", 0), ("d", 0), ("c", 1)).Of);
+        Assert.Equal("nodes b and e are in no clique", left!.Reason);
+        Assert.Equal(["b", "e"], left.Focus);
+        var one = GraphGroupFrames.Why(GroupRule.CliqueCover, Nodes, Edges, Of(("b", 0), ("c", 0), ("d", 1), ("e", 1)).Of);
+        Assert.Equal("node a is in no clique", one!.Reason);
+        Assert.Equal(["a"], one.Focus);
+    }
+
+    [Fact]
+    public void CliqueCover_ARejectedCandidate_DrawsANodeInNoGroupRejected() {
+        // "Try {b,c},{d,e}" leaves a out: no clique covers it, so the picture says so even when the caption's focus is
+        // elsewhere (#889).
+        var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("b", 0), ("c", 0), ("d", 1), ("e", 1)), StepEvent.Reject, ["d", "e"], "x");
+        Assert.Equal(PictureState.Rejected, State(f, "a"));
+        Assert.DoesNotContain("a", f.Groups!.Keys);
+        Assert.Null(State(f, "b"));
+    }
+
+    [Fact]
+    public void CliqueCover_AFailedDoneCarryingACandidate_DrawsANodeInNoGroupRejected() {
+        var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0), ("d", 1)), StepEvent.Done, [], "x", false);
+        Assert.Equal(PictureState.Rejected, State(f, "e"));
+        // A failed Done with no grouping at all (the run found nothing) does not paint the whole graph red.
+        Assert.Empty(GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(), StepEvent.Done, [], "x", false).Nodes);
+    }
+
+    [Theory]
+    [InlineData("Try", false)]
+    [InlineData("Accept", false)]
+    [InlineData("Reject", true)]
+    public void CliqueCover_ANodeInNoGroup_IsOnlyRejectedWhenAWholeCandidateIsJudged(string ev, bool incremental) {
+        // A grouping being tried, kept, or built one node at a time has nodes still to place; they stay plain.
+        var f = GraphGroupFrames.Frame(Spec(GroupRule.CliqueCover), Of(("a", 0), ("b", 0), ("c", 0)), Enum.Parse<StepEvent>(ev), [], "x", incremental: incremental);
+        Assert.Null(State(f, "d"));
+        Assert.Null(State(f, "e"));
+    }
+
+    [Fact]
+    public void Coloring_ANodeWithNoColor_IsNotMarkedByTheCliqueCoverRule() {
+        var f = GraphGroupFrames.Frame(Spec(GroupRule.Coloring), Of(("a", 0), ("b", 1), ("c", 2)), StepEvent.Reject, [], "x");
+        Assert.Empty(f.Nodes);
+    }
+
     // ---- common ----
 
     [Fact]
@@ -201,7 +247,7 @@ public class GraphGroupFrames_Tests {
         var uncolored = GraphGroupFrames.Why(GroupRule.Coloring, Nodes, Edges, Of(("a", 0), ("b", 1), ("c", 2), ("d", 0)).Of);
         Assert.Equal("e has no color", uncolored!.Reason);
         Assert.Equal(["e"], uncolored.Focus);
-        Assert.Equal("e is in no group", GraphGroupFrames.Why(GroupRule.CliqueCover, Nodes, Edges, Of(("a", 0), ("b", 0), ("c", 0), ("d", 1)).Of)!.Reason);
+        Assert.Equal("node e is in no clique", GraphGroupFrames.Why(GroupRule.CliqueCover, Nodes, Edges, Of(("a", 0), ("b", 0), ("c", 0), ("d", 1)).Of)!.Reason);
         Assert.Null(GraphGroupFrames.Why(GroupRule.Coloring, Nodes, Edges, Of(("a", 0), ("b", 1), ("c", 2), ("d", 0), ("e", 0)).Of));
     }
 

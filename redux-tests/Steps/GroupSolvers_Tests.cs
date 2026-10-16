@@ -140,7 +140,7 @@ public class GroupSolvers_Tests {
         var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
         var rejects = steps.Where(s => s.Event == StepEvent.Reject).ToList();
         Assert.NotEmpty(rejects);
-        Assert.All(rejects, s => Assert.Matches(@"^Try \{[^}]*\},\{[^}]*\},\{[^}]*\}: (\S+ and \S+ are in one group but aren't joined|\S+ is in no group)\.$", s.Caption));
+        Assert.All(rejects, s => Assert.Matches(@"^Try \{[^}]*\},\{[^}]*\},\{[^}]*\}: (\S+ and \S+ are in one group but aren't joined|nodes? .+ (is|are) in no clique)\.$", s.Caption));
         // The search tries far more than 150 candidates, so the recorder keeps the first 150, then the Accept for the
         // winning candidate (kept past the cap), then Done.
         Assert.Equal(152, steps.Count);
@@ -150,6 +150,17 @@ public class GroupSolvers_Tests {
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         Assert.Contains("not shown", steps[^1].Caption);
         Assert.Equal(["1", "2", "3"], steps[^1].Partial.Of.Where(p => p.Value == steps[^1].Partial.Of["1"]).Select(p => p.Key).Order());
+    }
+
+    [Fact]
+    public void CliqueCoverBruteForce_ACandidateThatLeavesANodeOut_SaysSoFirst() {
+        // Digits run 0..3 per node, node 1 first: 300 is {2,3},{},{} with node 1 in no group. 2 and 3 are not joined
+        // either, but the left-out node is the first reason, and it is the focus (#889).
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_CLIQUECOVER.Solvers.CliqueCoverBruteForce()).Run("(({1,2,3},{{1,2}}),4)", true);
+        var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
+        var leftOut = steps.First(s => s.Event == StepEvent.Reject && !s.Partial.Of.ContainsKey("1"));
+        Assert.Equal("Try {2,3},{},{}: node 1 is in no clique.", leftOut.Caption);
+        Assert.Equal(["1"], leftOut.Focus);
     }
 
     [Fact]
