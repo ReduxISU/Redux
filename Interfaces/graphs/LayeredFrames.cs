@@ -99,6 +99,11 @@ sealed record LayeredFrame(
     [property: JsonPropertyName("focus")] string[] Focus,
     [property: JsonPropertyName("nodes")] IReadOnlyDictionary<string, StateRef> Nodes,
     [property: JsonPropertyName("edges")] IReadOnlyDictionary<string, StateRef> Edges) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("order")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? Order { get; init; }
@@ -700,9 +705,9 @@ static class LayeredFrames {
         for (int i = 0; i < steps.Count; i++) {
             var (partial, ev, focus, caption, ok) = steps[i];
             bool endsRun = i + 1 < steps.Count && GraphSubsetFrames.EndsRun(ev, steps[i + 1].Event, steps[i + 1].Ok);
-            frames.Add(run.TimedOut && ev == StepEvent.Done
+            frames.Add((run.TimedOut && ev == StepEvent.Done
                 ? StoppedFrame(spec, caption)
-                : Frame(m, partial, ev, focus, caption, ok, run.Incremental, endsRun));
+                : Frame(m, partial, ev, focus, caption, ok, run.Incremental, endsRun)) with { Step = i });
             last = ev;
         }
         bool endsWithDone = last == StepEvent.Done;
