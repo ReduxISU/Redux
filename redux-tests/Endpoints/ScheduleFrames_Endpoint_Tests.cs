@@ -182,7 +182,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             var byId = jobs.ToDictionary(j => j.GetProperty("id").GetString()!);
             for (int i = 0; i < frames.Count; i++) {
                 var f = frames[i];
-                Assert.Equal(["event", "caption", "focus", "order", "runs", "jobs", "penalty", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+                Assert.Equal(["event", "caption", "focus", "order", "runs", "jobs", "penalty", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                     f.EnumerateObject().Select(p => p.Name));
                 Assert.All(f.GetProperty("focus").EnumerateArray(), id => Assert.Contains(id.GetString()!, ids));
                 var states = StatesOf(f.GetProperty("jobs"));
@@ -235,7 +235,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             var cellIds = pumps.SelectMany(p => hourIds.Select(h => p.GetProperty("id").GetString() + h)).ToHashSet();
             for (int i = 0; i < frames.Count; i++) {
                 var f = frames[i];
-                Assert.Equal(["event", "caption", "focus", "reached", "schedule", "upTo", "hours", "cells",
+                Assert.Equal(["event", "caption", "focus", "reached", "schedule", "upTo", "hours", "cells", "step",
                     .. f.TryGetProperty("budget", out _) ? new[] { "budget" } : [], .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                     f.EnumerateObject().Select(p => p.Name));
                 Assert.Equal(em, f.TryGetProperty("budget", out _));
@@ -301,7 +301,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"runs\":[{\"job\":\"J0\",\"start\":0,\"end\":4,\"late\":false},{\"job\":\"J1\",\"start\":4,\"end\":6,\"late\":false},{\"job\":\"J2\",\"start\":6,\"end\":11,\"late\":true},"
             + "{\"job\":\"J5\",\"start\":11,\"end\":14,\"late\":false},{\"job\":\"J3\",\"start\":14,\"end\":23,\"late\":true},{\"job\":\"J4\",\"start\":23,\"end\":27,\"late\":true}],"
             + "\"jobs\":{\"J0\":{\"state\":\"ElementHighlight\"},\"J1\":{\"state\":\"ElementHighlight\"},\"J2\":{\"state\":\"Rejected\"},\"J3\":{\"state\":\"Rejected\"},"
-            + "\"J4\":{\"state\":\"Rejected\"},\"J5\":{\"state\":\"ElementHighlight\"}},\"penalty\":10}",
+            + "\"J4\":{\"state\":\"Rejected\"},\"J5\":{\"state\":\"ElementHighlight\"}},\"penalty\":10,\"step\":4}",
             Readable(frames[4]));
         // The mockup's solved view: (1,3,5,4,0,2), jobs 0 and 2 late, penalty 4.
         Assert.Equal(
@@ -310,7 +310,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"runs\":[{\"job\":\"J1\",\"start\":0,\"end\":2,\"late\":false},{\"job\":\"J3\",\"start\":2,\"end\":11,\"late\":false},{\"job\":\"J5\",\"start\":11,\"end\":14,\"late\":false},"
             + "{\"job\":\"J4\",\"start\":14,\"end\":18,\"late\":false},{\"job\":\"J0\",\"start\":18,\"end\":22,\"late\":true},{\"job\":\"J2\",\"start\":22,\"end\":27,\"late\":true}],"
             + "\"jobs\":{\"J0\":{\"state\":\"Rejected\"},\"J1\":{\"state\":\"Solution\"},\"J2\":{\"state\":\"Rejected\"},\"J3\":{\"state\":\"Solution\"},"
-            + "\"J4\":{\"state\":\"Solution\"},\"J5\":{\"state\":\"Solution\"}},\"penalty\":4,\"ok\":true}",
+            + "\"J4\":{\"state\":\"Solution\"},\"J5\":{\"state\":\"Solution\"}},\"penalty\":4,\"step\":151,\"ok\":true}",
             Readable(frames[^1]));
     }
 
@@ -328,7 +328,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(50, frames.Count);
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"Forward pass, hour 0: 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, cheapest so far $0.00.\","
-            + "\"focus\":[\"t0\"],\"reached\":[{\"states\":8,\"low\":4400,\"high\":5450,\"best\":0}],\"schedule\":[],\"upTo\":-1,\"hours\":{\"t0\":{\"state\":\"ElementHighlight\"}},\"cells\":{}}",
+            + "\"focus\":[\"t0\"],\"reached\":[{\"states\":8,\"low\":4400,\"high\":5450,\"best\":0}],\"schedule\":[],\"upTo\":-1,\"hours\":{\"t0\":{\"state\":\"ElementHighlight\"}},\"cells\":{},\"step\":0}",
             Readable(frames[0]));
         // The mockup's solved view: PumpA 23 hours, PumpB 24, PumpC none, $32.12, the tank down to 0 at midnight.
         var done = frames[^1];
@@ -351,7 +351,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(51, frames.Count);
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"The budget is 0, which means 1.5 times the cheapest schedule that keeps the tank within its limits. That costs $37.24, so the budget is $55.86.\","
-            + "\"focus\":[],\"reached\":[],\"schedule\":[],\"upTo\":-1,\"hours\":{},\"cells\":{},\"budget\":55.86}",
+            + "\"focus\":[],\"reached\":[],\"schedule\":[],\"upTo\":-1,\"hours\":{},\"cells\":{},\"step\":0,\"budget\":55.86}",
             Readable(frames[0]));
         Assert.All(frames, f => Assert.Equal(55.86, f.GetProperty("budget").GetDouble()));
         var done = frames[^1];

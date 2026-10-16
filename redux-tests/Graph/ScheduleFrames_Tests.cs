@@ -58,7 +58,7 @@ public class ScheduleFrames_Tests {
     public void JobsFrame_Json_HasTheContractFieldsInOrder_AndOkOnlyOnDone() {
         var frame = ScheduleFrames.JobsFrame(Jobs3, ScheduleFrames.Order([1, 0]), StepEvent.Reject, ["J0"], "Late.");
         using var doc = JsonDocument.Parse(Json(frame));
-        Assert.Equal(["event", "caption", "focus", "order", "runs", "jobs", "penalty"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "order", "runs", "jobs", "penalty", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("[{\"job\":\"J1\",\"start\":0,\"end\":2,\"late\":false},{\"job\":\"J0\",\"start\":2,\"end\":6,\"late\":true}]",
             JsonSerializer.Serialize(doc.RootElement.GetProperty("runs")));
         var done = ScheduleFrames.JobsFrame(Jobs3, new JobOrder([]), StepEvent.Done, [], "None.", ok: false);
@@ -203,12 +203,12 @@ public class ScheduleFrames_Tests {
     public void PumpsFrame_Json_HasTheContractFieldsInOrder() {
         var frame = ScheduleFrames.PumpsFrame(Tank, new PumpPlan([new ReachedHour(4, 40, 60, 0.5)], [], null), StepEvent.Try, ["t0"], "Hour 0.", incremental: true);
         using var doc = JsonDocument.Parse(Json(frame));
-        Assert.Equal(["event", "caption", "focus", "reached", "schedule", "upTo", "hours", "cells"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "reached", "schedule", "upTo", "hours", "cells", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("[{\"states\":4,\"low\":40,\"high\":60,\"best\":0.5}]", JsonSerializer.Serialize(doc.RootElement.GetProperty("reached")));
 
         var done = ScheduleFrames.PumpsFrame(Tank, new PumpPlan([], Day(["P1"]), 12.3456), StepEvent.Done, [], "Done.", ok: true, incremental: true);
         using var doneDoc = JsonDocument.Parse(Json(done));
-        Assert.Equal(["event", "caption", "focus", "reached", "schedule", "upTo", "hours", "cells", "budget", "ok"], doneDoc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "reached", "schedule", "upTo", "hours", "cells", "step", "budget", "ok"], doneDoc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal(12.35, doneDoc.RootElement.GetProperty("budget").GetDouble());
         Assert.Equal("{\"hour\":\"t0\",\"on\":[\"P1\"],\"starts\":[\"P1\"],\"inflow\":20,\"level\":60,\"energy\":0.5,\"startup\":1}",
             JsonSerializer.Serialize(doneDoc.RootElement.GetProperty("schedule")[0]));
