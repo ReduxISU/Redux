@@ -211,7 +211,7 @@ public class GraphSubsetFrames_Tests {
         string json = JsonSerializer.Serialize(f);
         Assert.Equal("{\"event\":\"Accept\",\"caption\":\"Add b.\",\"focus\":[\"b\"],"
             + "\"nodes\":{\"a\":{\"state\":\"Committed\"},\"b\":{\"state\":\"ElementHighlight\"}},"
-            + "\"edges\":{\"a-b\":{\"state\":\"Committed\"}},\"phantoms\":[]}", json);   // no "ok" before Done
+            + "\"edges\":{\"a-b\":{\"state\":\"Committed\"}},\"phantoms\":[],\"step\":null}", json);   // no "ok" before Done; "step" always written (#895)
     }
 
     // ---- the whole response ----
@@ -465,7 +465,7 @@ public class GraphSubsetFrames_Tests {
         Assert.False(done.Ok);
         Assert.Equal(GraphSubsetFrames.StoppedCaption, done.Caption);
         Assert.Empty(done.Nodes);
-        Assert.Equal("{\"event\":\"Done\",\"caption\":\"" + GraphSubsetFrames.StoppedCaption + "\",\"focus\":[],\"nodes\":{},\"edges\":{},\"phantoms\":[],\"ok\":false}",
+        Assert.Equal("{\"event\":\"Done\",\"caption\":\"" + GraphSubsetFrames.StoppedCaption + "\",\"focus\":[],\"nodes\":{},\"edges\":{},\"phantoms\":[],\"step\":null,\"ok\":false}",
             JsonSerializer.Serialize(done));
     }
 
