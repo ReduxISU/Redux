@@ -424,12 +424,11 @@
     {
       "phase": "solve",
       "event": "Reject",
-      "caption": "Try {b,c},{}: b and c are in one group but aren\u0027t joined.",
+      "caption": "Try {b,c},{}: node a is in no clique.",
       "step": 2,
       "sourceFocus": [],
       "targetFocus": [
-        "b",
-        "c"
+        "a"
       ],
       "source": {
         "nodes": {},
@@ -439,10 +438,7 @@
       },
       "target": {
         "nodes": {
-          "b": {
-            "state": "Rejected"
-          },
-          "c": {
+          "a": {
             "state": "Rejected"
           }
         },
