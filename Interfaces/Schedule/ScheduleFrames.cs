@@ -126,6 +126,11 @@ sealed record ScheduleJobsFrame(
     [property: JsonPropertyName("runs")] IReadOnlyList<ScheduleRunDto> Runs,
     [property: JsonPropertyName("jobs")] IReadOnlyDictionary<string, StateRef> Jobs,
     [property: JsonPropertyName("penalty")] int Penalty) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
@@ -165,6 +170,11 @@ sealed record SchedulePumpsFrame(
     [property: JsonPropertyName("upTo")] int UpTo,
     [property: JsonPropertyName("hours")] IReadOnlyDictionary<string, StateRef> Hours,
     [property: JsonPropertyName("cells")] IReadOnlyDictionary<string, StateRef> Cells) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("budget")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Budget { get; init; }
@@ -312,10 +322,10 @@ static class ScheduleFrames {
     public static FramesResponse BuildJobs(JobScheduleSpec spec, SolveRun run, Func<string, JobOrder> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<JobOrder>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(JobOrder)).OfType<SolverStep<JobOrder>>())) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<JobOrder>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedJobsFrame(step.Caption)
-                : JobsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : JobsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {
@@ -468,10 +478,10 @@ static class ScheduleFrames {
     public static FramesResponse BuildPumps(PumpScheduleSpec spec, SolveRun run, Func<string, PumpPlan> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<PumpPlan>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(PumpPlan)).OfType<SolverStep<PumpPlan>>())) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<PumpPlan>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedPumpsFrame(step.Caption)
-                : PumpsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : PumpsFrame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {
