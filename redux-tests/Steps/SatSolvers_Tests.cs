@@ -233,7 +233,7 @@ public class SatSolvers_Tests {
         Assert.Equal("Keep x2 = True: every clause now has a true literal.", steps[5].Caption);
         // The variable nobody needed is filled in as False, as the answer says, on the Done step.
         Assert.Equal(new Assignment([new("x1", "True"), new("x2", "True"), new("x3", "False")]), steps[^1].Partial);
-        Assert.Equal("Every clause has a true literal under x1 = True, x2 = True, x3 = False.", steps[^1].Caption);
+        Assert.Equal("Every clause has a true literal under x1 = True, x2 = True. x3 is free (either value works), so the answer sets it to False.", steps[^1].Caption);
     }
 
     [Fact]

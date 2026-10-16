@@ -11,8 +11,9 @@ namespace redux_tests;
 // (solver, instance, step count, then a hash of each step: the first 16 hex digits of the SHA-256 of its compact JSON,
 // so a changed step is reported with its new JSON) captured BEFORE the solver reported its search tree: every 3SAT row
 // of sat_solver_answers.tsv, the mockup's examples, and five seeded random formulas (one past the 150-step cap, two
-// unsatisfiable). With each step's "tree" removed, the steps must hash the same, so no other picture changes. The other
-// tests check the tree links themselves.
+// unsatisfiable). With each step's "tree" removed, the steps must hash the same, so no other picture changes. The one
+// change since is the Done caption of an answer with variables the search never set, which now names them free (#899).
+// The other tests check the tree links themselves.
 public class SearchTreeSat3_Tests {
     internal static IEnumerable<(string Solver, string Instance, int Count, string[] Hashes)> Rows() =>
         File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", "searchtree_sat3_steps.tsv")).Where(l => l.Length > 0).Select(l => {
@@ -130,5 +131,33 @@ public class SearchTreeSat3_Tests {
         var answer = steps.Last(s => s.Event == StepEvent.Accept);
         Assert.Equal(answer.Tree![^1], path[^1]);
         Assert.Equal(answer.Partial.Values.Select(v => $"{v.Key}={(v.Value == "True" ? "T" : "F")}").Order(), path.Skip(1).Select(n => n.Label).Order());
+        // The caption names what the path set, then the variables it never set, which the answer sets to False (#899); the
+        // solution's note names those too.
+        var set = answer.Partial.Values.Select(v => v.Key).ToHashSet();
+        var free = done.Partial.Values.Where(v => !set.Contains(v.Key)).ToList();
+        Assert.All(free, v => Assert.Equal("False", v.Value));
+        const string under = "Every clause has a true literal under ";
+        Assert.StartsWith(under, done.Caption);
+        Assert.Equal(answer.Partial.Values.Select(v => $"{v.Key} = {v.Value}").Order(), done.Caption[under.Length..done.Caption.IndexOf('.')].Split(", ").Order());
+        if (free.Count == 0) {
+            Assert.Null(path[^1].Bound);
+            Assert.DoesNotContain("free", done.Caption);
+        } else {
+            Assert.EndsWith(free.Count == 1 ? "is free (either value works), so the answer sets it to False." : "are free (either value works), so the answer sets them to False.", done.Caption);
+            Assert.All(free, v => Assert.Contains(v.Key, done.Caption));
+            Assert.Equal(free.Count <= 2 ? $"{string.Join(", ", free.Select(v => v.Key))} free" : $"{free.Count} free", path[^1].Bound);
+        }
+    }
+
+    [Fact]
+    public void AVariableTheSearchNeverSets_IsNamedFree_NotPartOfThePath() {
+        // (x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1): x1 = True, x2 = True satisfies every clause, so x3 is never set
+        // (#899).
+        var steps = Steps("sat3backtrackingsolver", "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)");
+        var done = steps[^1];
+        Assert.Equal("Every clause has a true literal under x1 = True, x2 = True. x3 is free (either value works), so the answer sets it to False.", done.Caption);
+        Assert.Equal(["start", "x1=T", "x2=T"], done.Tree!.Select(n => n.Label));
+        Assert.Equal("x3 free", done.Tree![^1].Bound);
+        Assert.Equal(new Assignment([new("x1", "True"), new("x2", "True"), new("x3", "False")]), done.Partial);
     }
 }

@@ -335,7 +335,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         // Clauses c0 and c1 contain a true x1 already.
         Assert.Equal(new Dictionary<string, string> { ["c0"] = "Covered", ["c1"] = "Covered" }, States(first, "groups"));
         var last = frames[^1];
-        Assert.Equal("Every clause has a true literal under x1 = True, x2 = True, x3 = False.", last.GetProperty("caption").GetString());
+        Assert.Equal("Every clause has a true literal under x1 = True, x2 = True. x3 is free (either value works), so the answer sets it to False.", last.GetProperty("caption").GetString());
         Assert.Equal(new Dictionary<string, bool> { ["v:x1"] = true, ["v:x2"] = true, ["v:x3"] = false }, Assignment(last));
     }
 
