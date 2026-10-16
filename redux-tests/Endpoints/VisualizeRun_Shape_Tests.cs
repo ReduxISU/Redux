@@ -16,9 +16,17 @@ public class VisualizeRun_Shape_Tests {
     private static bool Runnable(Type solver) => !solver.Name.Contains("Quantum", StringComparison.OrdinalIgnoreCase)
         && !solver.Name.Contains("Grover", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>The TPartial a typed solver records, or null for one that records untyped steps.</summary>
-    private static Type? ShapeOf(Type solver) => solver.GetInterfaces()
-        .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
+    /// <summary>
+    /// The TPartial a solver records, or null for untyped steps: its <c>ISolver&lt;T, TPartial&gt;</c>, or, for a solver that
+    /// writes its own <c>ISolver.Run</c> (the SAT brute force), the shape of a run on <paramref name="instance"/>.
+    /// </summary>
+    private static Type? ShapeOf(Type solver, string instance) {
+        bool ownRun = solver.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.DeclaredOnly)
+            .Any(m => m.Name.EndsWith("ISolver.Run", StringComparison.Ordinal));
+        if (ownRun) return ((ISolver)Activator.CreateInstance(solver)!).Run(instance, withSteps: true, TimeSpan.FromSeconds(10)).StepShape;
+        return solver.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>))?.GetGenericArguments()[1];
+    }
 
     /// <summary>The problem a solver solves (its <c>ISolver&lt;P&gt;</c>).</summary>
     private static Type? ProblemOf(Type solver) => solver.GetInterfaces()
@@ -39,9 +47,10 @@ public class VisualizeRun_Shape_Tests {
                 if (Activator.CreateInstance(visType) is not IFramesVisualization vis) continue;
                 Type? problem = ProblemProvider.ProblemOfVisualization(visType);
                 if (problem == null) continue;
+                string instance = ((IProblem)Activator.CreateInstance(problem)!).defaultInstance;
                 var solver = ProblemProvider.Solvers.Values
                     .Where(s => s.Assembly == typeof(IVisualization).Assembly && Runnable(s))
-                    .Where(s => ProblemOf(s) == problem && ShapeOf(s) != vis.StepShape)
+                    .Where(s => ProblemOf(s) == problem && ShapeOf(s, instance) != vis.StepShape)
                     .OrderBy(s => s.Name, StringComparer.Ordinal)
                     .FirstOrDefault();
                 if (solver != null) data.Add(visType.Name, solver.Name, vis.DrawsAnswerAlone());
