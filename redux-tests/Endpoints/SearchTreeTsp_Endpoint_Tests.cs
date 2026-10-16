@@ -138,7 +138,7 @@ public class SearchTreeTsp_Endpoint_Tests : IClassFixture<AppFactory> {
             + "{\"id\":\"n10\",\"parent\":\"n2\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
             + "{\"id\":\"n3\",\"parent\":\"n0\",\"label\":\"d\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 28 ≥ 27\"},"
             + "{\"id\":\"n4\",\"parent\":\"n0\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 27 ≥ 27\"}],"
-            + "\"total\":14,\"cut\":8,\"ok\":true}",
+            + "\"total\":14,\"cut\":8,\"step\":23,\"ok\":true}",
             Readable(frames[^1]));
         // The greedy tour is the first step: only the root, queued, in focus.
         Assert.Equal("[{\"id\":\"n0\",\"parent\":null,\"label\":\"a\",\"kind\":\"queued\",\"state\":\"ElementHighlight\",\"bound\":\"lb 27\"}]",

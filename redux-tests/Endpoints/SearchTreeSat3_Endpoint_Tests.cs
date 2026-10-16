@@ -121,7 +121,7 @@ public class SearchTreeSat3_Endpoint_Tests : IClassFixture<AppFactory> {
             + "{\"id\":\"n1\",\"parent\":\"n0\",\"label\":\"x1=T\",\"kind\":\"explored\",\"state\":\"Covered\",\"bound\":\"priority -1\",\"order\":2},"
             + "{\"id\":\"n3\",\"parent\":\"n1\",\"label\":\"x3=T\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"C4 false\"},"
             + "{\"id\":\"n4\",\"parent\":\"n1\",\"label\":\"x3=F\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"C3 false\"},"
-            + "{\"id\":\"n2\",\"parent\":\"n0\",\"label\":\"x1=F\",\"kind\":\"explored\",\"state\":\"ElementHighlight\",\"bound\":\"priority -1\",\"order\":3}],\"total\":5,\"cut\":2}",
+            + "{\"id\":\"n2\",\"parent\":\"n0\",\"label\":\"x1=F\",\"kind\":\"explored\",\"state\":\"ElementHighlight\",\"bound\":\"priority -1\",\"order\":3}],\"total\":5,\"cut\":2,\"step\":8}",
             Readable(frames[8]));
         var done = frames[^1];
         Assert.False(done.GetProperty("ok").GetBoolean());

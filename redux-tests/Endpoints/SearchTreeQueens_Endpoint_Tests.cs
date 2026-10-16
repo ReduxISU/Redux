@@ -144,7 +144,7 @@ public class SearchTreeQueens_Endpoint_Tests : IClassFixture<AppFactory> {
             + "{\"id\":\"n23\",\"parent\":\"n22\",\"label\":\"(2,0)\",\"kind\":\"explored\",\"state\":\"Solution\"},"
             + "{\"id\":\"n23.cut\",\"parent\":\"n23\",\"label\":\"2 cut\",\"kind\":\"cut\",\"state\":\"Rejected\",\"hidden\":2},"
             + "{\"id\":\"n26\",\"parent\":\"n23\",\"label\":\"(3,2)\",\"kind\":\"solution\",\"state\":\"Solution\"}],"
-            + "\"total\":27,\"cut\":18,\"ok\":true}",
+            + "\"total\":27,\"cut\":18,\"step\":12,\"ok\":true}",
             Readable(frames[^1]));
     }
 

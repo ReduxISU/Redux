@@ -37,7 +37,7 @@ public static class SearchTreeJson {
 
     public static void CheckFrame(JsonElement f) {
         bool isDone = f.GetProperty("event").GetString() == "Done";
-        Assert.Equal(["event", "caption", "focus", "nodes", "total", "cut", .. isDone ? new[] { "ok" } : []], f.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "nodes", "total", "cut", "step", .. isDone ? new[] { "ok" } : []], f.EnumerateObject().Select(p => p.Name));
         Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString()));
         var nodes = f.GetProperty("nodes").EnumerateArray().ToList();
         var ids = new HashSet<string>();
