@@ -180,10 +180,10 @@ static class GraphTourFrames {
     public static FramesResponse Build(GraphTourSpec spec, SolveRun run, Func<string, Tour> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<Tour>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(Tour)).OfType<SolverStep<Tour>>())) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<Tour>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {
