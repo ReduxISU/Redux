@@ -118,4 +118,20 @@ public class NodeSetSolvers_Tests {
         Assert.NotEmpty(rejects);
         Assert.All(rejects, s => Assert.Matches(@"^Try \{[^}]*\}: \S+ and \S+ aren't joined\.$", s.Caption));
     }
+
+    [Theory]
+    [InlineData("CarraghanPardalos")]
+    [InlineData("ChibaNishizeki")]
+    public void CliqueSolverCaptions_CountOneVertexAndNoneInTheSingular(string solverName) {
+        // An edge 1-2 and an isolated 3, k = 2: adding the first end leaves 1 vertex joined to it, the second none (#890).
+        ISolver solver = solverName == "CarraghanPardalos"
+            ? new API.Problems.NPComplete.NPC_CLIQUE.Solvers.CarraghanPardalos()
+            : new API.Problems.NPComplete.NPC_CLIQUE.Solvers.ChibaNishizeki();
+        var captions = new[] { "(({1,2,3},{{1,2}}),2)", "(({1,2,3},{{1,2},{2,3}}),3)", new API.Problems.NPComplete.NPC_CLIQUE.CLIQUE().defaultInstance }
+            .SelectMany(instance => solver.Run(instance, withSteps: true).Steps.Cast<SolverStep<NodeSet>>().Select(s => s.Caption))
+            .ToList();
+        Assert.Contains(captions, c => c.EndsWith(". 1 vertex is joined to every member so far."));
+        Assert.Contains(captions, c => c.EndsWith(". No vertex is joined to every member so far."));
+        Assert.DoesNotContain(captions, c => System.Text.RegularExpressions.Regex.IsMatch(c, @"\b[01] vertices\b|\b1 are\b|only no vertex"));
+    }
 }

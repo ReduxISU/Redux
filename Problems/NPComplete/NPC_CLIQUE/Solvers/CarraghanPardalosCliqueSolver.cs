@@ -67,6 +67,12 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         return adj;
     }
 
+    // "no vertex", "1 vertex", "3 vertices": caption counts read right for 0 and 1 (#890).
+    private static string Vertices(int n) => n switch { 0 => "no vertex", 1 => "1 vertex", _ => $"{n} vertices" };
+
+    // "is" for no vertex or one, "are" for more.
+    private static string IsAre(int n) => n <= 1 ? "is" : "are";
+
     // Branch-and-bound search: extends 'partial' using vertices from 'candidates', pruning whenever
     // the partial clique plus remaining candidates can no longer reach size k.
     private HashSet<string>? Expand(
@@ -89,14 +95,14 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
             // Bound: skip v if the resulting branch cannot possibly reach size k.
             if (partial.Count + 1 + newCandidates.Count < k) {
                 rec.Reject(() => new NodeSet(partial),
-                    () => $"Skip {v}: with it only {partial.Count + 1 + newCandidates.Count} vertices could ever join, but the clique needs {k}.", v);
+                    () => $"Skip {v}: with it only {Vertices(partial.Count + 1 + newCandidates.Count)} could ever join, but the clique needs {k}.", v);
                 candidates.Remove(v);
                 continue;
             }
 
             partial.Add(v);
             rec.Accept(() => new NodeSet(partial),
-                () => $"Add {v} to the clique. {newCandidates.Count} vertices are joined to every member so far.", v);
+                () => $"Add {v} to the clique. {(newCandidates.Count == 0 ? "No vertex" : Vertices(newCandidates.Count))} {IsAre(newCandidates.Count)} joined to every member so far.", v);
             HashSet<string>? result = Expand(newCandidates, partial, k, adj, rec);
             if (result != null) {
                 return result;

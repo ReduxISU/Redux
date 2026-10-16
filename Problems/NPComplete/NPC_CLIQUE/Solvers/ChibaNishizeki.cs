@@ -88,6 +88,12 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         return adj;
     }
 
+    // "no vertex", "1 vertex", "3 vertices": caption counts read right for 0 and 1 (#890).
+    private static string Vertices(int n) => n switch { 0 => "no vertex", 1 => "1 vertex", _ => $"{n} vertices" };
+
+    // "is" for no vertex or one, "are" for more.
+    private static string IsAre(int n) => n <= 1 ? "is" : "are";
+
     // Recursively searches the induced subgraph 'candidates' for a clique of size 'remaining',
     // extending 'partial' with the result if found.
     private HashSet<string>? FindClique(
@@ -107,13 +113,13 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
             // Prune: not enough remaining candidates to complete the clique.
             if (nextCandidates.Count < remaining - 1) {
                 rec.Reject(() => new NodeSet(partial),
-                    () => $"Skip {u}: only {nextCandidates.Count} vertices would be left to join it, but {remaining - 1} are needed.", u);
+                    () => $"Skip {u}: {(nextCandidates.Count == 0 ? "no vertex" : $"only {Vertices(nextCandidates.Count)}")} would be left to join it, but {remaining - 1} {IsAre(remaining - 1)} needed.", u);
                 continue;
             }
 
             partial.Add(u);
             rec.Accept(() => new NodeSet(partial),
-                () => $"Add {u} to the clique. {nextCandidates.Count} vertices are joined to every member so far.", u);
+                () => $"Add {u} to the clique. {(nextCandidates.Count == 0 ? "No vertex" : Vertices(nextCandidates.Count))} {IsAre(nextCandidates.Count)} joined to every member so far.", u);
             HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj, rec);
             if (result != null) {
                 return result;
