@@ -108,6 +108,11 @@ sealed record QuantumFrame(
     [property: JsonPropertyName("columns")] IReadOnlyDictionary<string, StateRef> Columns,
     [property: JsonPropertyName("gates")] IReadOnlyDictionary<string, StateRef> Gates,
     [property: JsonPropertyName("qubits")] IReadOnlyDictionary<string, StateRef> Qubits) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("bars")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<QuantumBarDto>? Bars { get; init; }
@@ -263,13 +268,14 @@ static class QuantumCircuitFrames {
     /// </summary>
     public static FramesResponse Build(QuantumCircuitSpec spec, SolveRun run, Func<string, bool> verifyAnswer) {
         var simulation = new QuantumSimulation(spec);
-        var steps = run.StepsFor(typeof(QuantumProgress)).OfType<SolverStep<QuantumProgress>>().ToList();
+        var indexed = GraphSubsetFrames.Indexed<QuantumProgress>(run).ToList();
+        var steps = indexed.Select(p => p.Step).ToList();
         bool runApplies = steps.Any(s => s.Partial.Applied > 0);
         var frames = new List<object>();
-        foreach (var step in steps)
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, index) in indexed)
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, simulation, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, runApplies));
+                : Frame(spec, simulation, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, runApplies)) with { Step = index });
         if (run.TimedOut) {
             if (steps.LastOrDefault() is not { Event: StepEvent.Done }) frames.Add(StoppedFrame(GraphSubsetFrames.StoppedCaption));
         } else if (steps.LastOrDefault() is not { Event: StepEvent.Done }) {

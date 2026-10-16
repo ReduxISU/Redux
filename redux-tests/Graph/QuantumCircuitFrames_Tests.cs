@@ -234,10 +234,10 @@ public class QuantumCircuitFrames_Tests {
     [Fact]
     public void Frame_Json_HasTheContractFieldsInOrder_AndOptionalOnesOnlyWhenSet() {
         using var doc = JsonDocument.Parse(Json(Frame(Bv, new QuantumProgress(), StepEvent.Try, [])));
-        Assert.Equal(["event", "caption", "focus", "applied", "queries", "columns", "gates", "qubits"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "applied", "queries", "columns", "gates", "qubits", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         var done = Frame(Bv, new QuantumProgress(5, [new OracleQuery(4, 1)], 5, [new("101", 1024)], "(1,0,1)"), StepEvent.Done, [], ok: true);
         using var doneDoc = JsonDocument.Parse(Json(done));
-        Assert.Equal(["event", "caption", "focus", "applied", "queries", "columns", "gates", "qubits", "bars", "outcome", "counts", "result", "ok"],
+        Assert.Equal(["event", "caption", "focus", "applied", "queries", "columns", "gates", "qubits", "step", "bars", "outcome", "counts", "result", "ok"],
             doneDoc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("[{\"input\":4,\"output\":1}]", JsonSerializer.Serialize(doneDoc.RootElement.GetProperty("queries")));
         Assert.Equal("[{\"outcome\":5,\"probability\":1,\"sign\":1}]", JsonSerializer.Serialize(doneDoc.RootElement.GetProperty("bars")));

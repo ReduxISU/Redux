@@ -185,7 +185,7 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var qubitIds = qubits.Select(q => q.GetProperty("id").GetString()!).ToHashSet();
         foreach (var f in frames) {
             var optional = new[] { "bars", "outcome", "counts", "result", "ok" }.Where(n => f.TryGetProperty(n, out _));
-            Assert.Equal(["event", "caption", "focus", "applied", "queries", .. new[] { "columns", "gates", "qubits" }, .. optional], f.EnumerateObject().Select(p => p.Name));
+            Assert.Equal(["event", "caption", "focus", "applied", "queries", .. new[] { "columns", "gates", "qubits", "step" }, .. optional], f.EnumerateObject().Select(p => p.Name));
             Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString()));
             int applied = f.GetProperty("applied").GetInt32();
             Assert.InRange(applied, 0, columns.Count);
@@ -226,7 +226,7 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         // After the oracle: every input equally likely, the sign of x flipped where s · x = 1 (the mockup's blue and orange).
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"One call to the oracle U_f. Because y is |−⟩, every input x with f(x) = 1 (4 of 8) gets its sign flipped: phase kickback.\","
-            + "\"focus\":[\"t2\",\"g2_0\"],\"applied\":3,\"queries\":[],\"columns\":{\"t2\":{\"state\":\"ElementHighlight\"}},\"gates\":{\"g2_0\":{\"state\":\"ElementHighlight\"}},\"qubits\":{},"
+            + "\"focus\":[\"t2\",\"g2_0\"],\"applied\":3,\"queries\":[],\"columns\":{\"t2\":{\"state\":\"ElementHighlight\"}},\"gates\":{\"g2_0\":{\"state\":\"ElementHighlight\"}},\"qubits\":{},\"step\":2,"
             + "\"bars\":[{\"outcome\":0,\"probability\":0.125,\"sign\":1},{\"outcome\":1,\"probability\":0.125,\"sign\":-1},{\"outcome\":2,\"probability\":0.125,\"sign\":1},"
             + "{\"outcome\":3,\"probability\":0.125,\"sign\":-1},{\"outcome\":4,\"probability\":0.125,\"sign\":-1},{\"outcome\":5,\"probability\":0.125,\"sign\":1},"
             + "{\"outcome\":6,\"probability\":0.125,\"sign\":-1},{\"outcome\":7,\"probability\":0.125,\"sign\":1}]}",
@@ -235,7 +235,7 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"s = 101, found with one call to the oracle.\",\"focus\":[],\"applied\":5,\"queries\":[],\"columns\":{},"
             + "\"gates\":{\"g4_0\":{\"state\":\"Solution\"},\"g4_1\":{\"state\":\"Solution\"},\"g4_2\":{\"state\":\"Solution\"}},"
-            + "\"qubits\":{\"q0\":{\"state\":\"Solution\"},\"q1\":{\"state\":\"Solution\"},\"q2\":{\"state\":\"Solution\"}},"
+            + "\"qubits\":{\"q0\":{\"state\":\"Solution\"},\"q1\":{\"state\":\"Solution\"},\"q2\":{\"state\":\"Solution\"}},\"step\":6,"
             + "\"bars\":[{\"outcome\":5,\"probability\":1,\"sign\":1}],\"outcome\":5,\"counts\":{\"101\":1024},\"result\":\"(1,0,1)\",\"ok\":true}",
             Readable(frames[^1]));
     }
