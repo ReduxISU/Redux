@@ -206,7 +206,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         bool incremental = IncrementalSolvers_Tests.Classification[solver];
         foreach (var f in frames) {
-            Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", .. shape == "grid" ? new[] { "arrows" } : [],
+            Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", "step", .. shape == "grid" ? new[] { "arrows" } : [],
                 .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []], f.EnumerateObject().Select(p => p.Name));
             string ev = f.GetProperty("event").GetString()!;
             Assert.All(f.GetProperty("focus").EnumerateArray(), id => Assert.True(rowIds.Contains(id.GetString()!) || cellIds.Contains(id.GetString()!), id.GetString()));
@@ -279,14 +279,14 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"Cell (2,2): 'o' = 'o', so copy the diagonal: 1.\",\"focus\":[\"r2c2\"],"
             + "\"values\":[[\"0\",\"1\",\"2\",\"3\"],[\"1\",\"1\",\"2\",\"3\"],[\"2\",\"2\",\"1\",null],[\"3\",null,null,null],[\"4\",null,null,null],[\"5\",null,null,null]],"
-            + "\"rows\":{},\"cells\":{\"r2c2\":{\"state\":\"ElementHighlight\"}},\"changed\":[\"r2c2\"],"
+            + "\"rows\":{},\"cells\":{\"r2c2\":{\"state\":\"ElementHighlight\"}},\"changed\":[\"r2c2\"],\"step\":5,"
             + "\"arrows\":[{\"from\":\"r1c1\",\"to\":\"r2c2\",\"best\":true}]}",
             Readable(frames[5]));
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"Edit distance 3: one cheapest way is 1 replacement, 2 deletions.\",\"focus\":[],"
             + "\"values\":[[\"0\",\"1\",\"2\",\"3\"],[\"1\",\"1\",\"2\",\"3\"],[\"2\",\"2\",\"1\",\"2\"],[\"3\",\"2\",\"2\",\"2\"],[\"4\",\"3\",\"3\",\"2\"],[\"5\",\"4\",\"4\",\"3\"]],"
             + "\"rows\":{},\"cells\":{\"r0c0\":{\"state\":\"Solution\"},\"r1c1\":{\"state\":\"Solution\"},\"r2c2\":{\"state\":\"Solution\"},"
-            + "\"r3c2\":{\"state\":\"Solution\"},\"r4c3\":{\"state\":\"Solution\"},\"r5c3\":{\"state\":\"Solution\"}},\"changed\":[],\"arrows\":[],\"ok\":true}",
+            + "\"r3c2\":{\"state\":\"Solution\"},\"r4c3\":{\"state\":\"Solution\"},\"r5c3\":{\"state\":\"Solution\"}},\"changed\":[],\"step\":22,\"arrows\":[],\"ok\":true}",
             Readable(frames[^1]));
     }
 
@@ -312,7 +312,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "[\"0\",\"0\",\"1\",\"1\",\"0\",\"1\",\"yes\"],[\"1\",\"0\",\"1\",\"0\",\"1\",\"1\",\"yes\"]],"
             + "\"rows\":{\"r1\":{\"state\":\"Covered\"},\"r2\":{\"state\":\"Rejected\"},\"r3\":{\"state\":\"Covered\"},\"r4\":{\"state\":\"Covered\"}},"
             + "\"cells\":{\"r0c0\":{\"state\":\"ElementHighlight\"},\"r0c1\":{\"state\":\"ElementHighlight\"},\"r0c2\":{\"state\":\"ElementHighlight\"},\"r0c3\":{\"state\":\"ElementHighlight\"}},"
-            + "\"changed\":[]}",
+            + "\"changed\":[],\"step\":3}",
             Readable(frames[3]));
         Assert.Equal("(0 1 1 0) satisfies every row, found on try 7 of 16.", frames[^1].GetProperty("caption").GetString());
     }
