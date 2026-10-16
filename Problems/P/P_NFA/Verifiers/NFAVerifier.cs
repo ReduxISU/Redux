@@ -95,14 +95,14 @@ class NFAVerifier : IVerifier<NFA> {
         result = sb.ToString().TrimEnd();
 
         string[] sequences = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-        bool hasPath = false;
-        foreach (string seq in sequences) {
-            if (seq.Replace(" ", "").Trim() == certificate.Replace(" ", "").Trim()) {
-                hasPath = true;
-                break;
-            }
-        }
+        var runs = sequences.Select(seq => seq.Replace(" ", "").Trim()).ToHashSet();
 
-        return hasPath;
+        // The certificate is one run, or several, one per line (as NFASolver answers); each must be an accepting run (#896).
+        string[] lines = certificate.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+            .Select(line => line.Replace(" ", "").Trim())
+            .Where(line => line.Length > 0)
+            .ToArray();
+
+        return lines.Length > 0 && lines.All(runs.Contains);
     }
 }

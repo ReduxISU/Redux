@@ -8,6 +8,8 @@ using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 using API.Problems.NPComplete.NPC_CLIQUE.Visualizations;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_VERTEXCOVER.Visualizations;
+using API.Problems.P.P_DFA;
+using API.Problems.P.P_NFA;
 using Xunit;
 
 namespace redux_tests;
@@ -149,6 +151,19 @@ public class VisualizeRun_Endpoint_Tests : IClassFixture<AppFactory> {
         // Every picture comes from the one run: its non-null steps are 0, 1, ... and the rest is one added frame.
         foreach (var picture in Pictures(body))
             FrameStep_TestsAccess.AssertStepsInOrder(picture);
+    }
+
+    // The default DFA and NFA runs accept, and their answers are certificates, so the verifier says ok (#896).
+    [Theory]
+    [InlineData("DFASolver", "1,2")]
+    [InlineData("NFASolver", "1,2,3,2\n1,2,2\n1,2")]
+    [InlineData("NFASubsetSolver", "1,2")]
+    public async Task AutomatonDefault_AcceptedRun_IsOk(string solver, string expected) {
+        string instance = solver == "DFASolver" ? DefaultInstance<DFA>() : DefaultInstance<NFA>();
+        var (status, body) = await Run($"solver={solver}", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Equal(expected, body.GetProperty("answer").GetString()!.Replace("\r\n", "\n"));
+        Assert.True(body.GetProperty("ok").GetBoolean());
     }
 
     // ---- Errors, as visualize gives them ----

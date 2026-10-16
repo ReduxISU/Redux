@@ -33,15 +33,9 @@ public class SolverReplay_Tests {
         return (ISolver)(seeded != null ? seeded.Invoke([Seed]) : Activator.CreateInstance(solverType)!);
     }
 
-    // The certificate a verifier expects, taken from a solver's answer string. Path-style answers
-    // ("The sequence of states to accept is: 1, 2") carry the certificate after the colon; a solver whose
-    // answer is already a certificate needs no mapping.
-    private static string CertificateFrom(string answer) {
-        string firstLine = answer.Split('\n')[0].Trim();
-        if (firstLine.StartsWith("No Solution")) return "";
-        const string prefix = "The sequence of states to accept is:";
-        return firstLine.StartsWith(prefix) ? firstLine[prefix.Length..].Replace(" ", "") : answer;
-    }
+    // The certificate a verifier expects, taken from a solver's answer string: the answer itself (the DFA and NFA
+    // solvers answer with the run, "1,2", one run per line for NFA; #896), or none for a "No Solution" answer.
+    private static string CertificateFrom(string answer) => answer.StartsWith("No Solution") ? "" : answer;
 
     // The sets of a problem whose answers pick sets by their elements, in instance order.
     private static List<List<string>> SetsOf(IProblem problem) => problem switch {
@@ -68,10 +62,10 @@ public class SolverReplay_Tests {
             return new ChosenSets(ids);
         }
         if (lastPartial is ActiveStates last) {
-            // The end states of the accepting run(s): the last state of each path line.
-            var ends = answer.Split('\n')
-                .Where(l => l.StartsWith("The sequence of states to accept is:"))
-                .Select(l => l.Split(':')[1].Split(',').Last().Trim());
+            // The end states of the accepting run(s): the last state of each run, one run per line ("1,2"); none for
+            // a "No Solution" answer.
+            var ends = answer.StartsWith("No Solution") ? Enumerable.Empty<string>()
+                : answer.Split('\n').Where(l => l.Trim().Length > 0).Select(l => l.Split(',').Last().Trim());
             return new ActiveStates(ends, last.Position);
         }
         if (lastPartial is NodeSet) {

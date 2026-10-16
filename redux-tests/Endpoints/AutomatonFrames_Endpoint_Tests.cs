@@ -167,7 +167,7 @@ public class AutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var done = Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         Assert.Equal(done, frames[^1]);
         var s = (API.Interfaces.ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver])!;
-        bool accepts = s.solve(instance).StartsWith("The sequence of states to accept is:");
+        bool accepts = !s.solve(instance).StartsWith("No Solution");
         Assert.Equal(accepts, done.GetProperty("ok").GetBoolean());
         if (accepts)
             Assert.Contains(done.GetProperty("nodes").EnumerateObject(), n => n.Value.GetProperty("state").GetString() == "Solution");

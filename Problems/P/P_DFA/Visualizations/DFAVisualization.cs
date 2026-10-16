@@ -42,10 +42,9 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON>, IAutomatonVisualiza
     API_JSON IVisualization<DFA>.SolvedVisualization(DFA instance, string solution) {
         API_GraphJSON apiGraph = instance.graph.ToAPIGraph();
 
-        var lastState = solution
-            .Split(':')
-            .Skip(1)
-            .FirstOrDefault()?
+        // An accepted answer is the run ("1,2"; #896), and its last state is the accept state reached. A "No Solution"
+        // answer colors no state.
+        var lastState = solution.StartsWith("No Solution") ? null : solution
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.Trim())
             .LastOrDefault();

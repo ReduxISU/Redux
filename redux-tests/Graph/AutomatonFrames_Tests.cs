@@ -327,7 +327,7 @@ public class AutomatonFrames_Tests {
             Step(["2"], 1, StepEvent.Try, ["q:1>q:2"], "Read 'a': move from 1 to 2."),
             Step(["2"], 1, StepEvent.Done, [], "Accepted.", true),
         ];
-        var response = AutomatonFrames.Build(Dfa(), new SolveRun("The sequence of states to accept is: 1, 2", steps, typeof(ActiveStates)));
+        var response = AutomatonFrames.Build(Dfa(), new SolveRun("1,2", steps, typeof(ActiveStates)));
         Assert.Equal("Automaton", response.Type);
         Assert.IsType<AutomatonPayload>(response.Payload);
         Assert.Equal(3, response.Frames.Count);

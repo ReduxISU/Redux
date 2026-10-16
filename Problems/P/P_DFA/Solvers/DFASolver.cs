@@ -92,8 +92,9 @@ class DFASolver : ISolver<DFA, ActiveStates> {
         }
 
         // Check If Last State Is Accept State //
+        // The answer is the run as a certificate DFAVerifier accepts ("1,2") (#896).
         if (problem.acceptStates.Contains(currentNode)) {
-            return Finish("The sequence of states to accept is: " + string.Join(", ", nodePath), true,
+            return Finish(string.Join(",", nodePath), true,
                 $"The input is used up in {currentNode}, an accept state, so the DFA accepts.");
         } else {
             rec.Reject(() => new ActiveStates([currentNode], consumed),

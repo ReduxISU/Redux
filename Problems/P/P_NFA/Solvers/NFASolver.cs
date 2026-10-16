@@ -124,9 +124,10 @@ class NFASolver : ISolver<NFA, ActiveStates> {
         rec.Done(new ActiveStates(acceptPaths.Select(p => p[^1]), input.Length), true,
             acceptPaths.Count == 1 ? "Accepted: one run accepts the input." : $"Accepted: {acceptPaths.Count} runs accept the input.");
 
+        // One accepting run per line, each a certificate NFAVerifier accepts ("1,2") (#896).
         var sb = new StringBuilder();
         foreach (var p in acceptPaths) {
-            sb.AppendLine("The sequence of states to accept is: " + string.Join(", ", p));
+            sb.AppendLine(string.Join(",", p));
         }
 
         return sb.ToString().TrimEnd();
