@@ -50,7 +50,7 @@ public class TableAutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             var path = Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", "automaton_solver_answers.tsv");
             foreach (var line in File.ReadAllLines(path).Where(l => l.Length > 0)) {
                 var parts = line.Split('\t');
-                bool accepts = JsonSerializer.Deserialize<string>(parts[2])!.StartsWith("The sequence of states to accept is:");
+                bool accepts = !JsonSerializer.Deserialize<string>(parts[2])!.StartsWith("No Solution");
                 if (parts[0] == "dfasolver") data.Add("dfatablevisualization", "dfasolver", parts[1], accepts);
                 else {
                     data.Add("nfatablevisualization", "nfasolver", parts[1], accepts);
