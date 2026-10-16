@@ -78,14 +78,14 @@ public class TableFrames_Tests {
         var frame = TableFrames.Frame(Grid, draft, StepEvent.Try, "Fill (1,1).");
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"Fill (1,1).\",\"focus\":[\"r1c1\"],\"values\":[[\"0\",\"1\",\"2\"],[\"1\",null,null],[null,null,null]],"
-            + "\"rows\":{},\"cells\":{\"r1c1\":{\"state\":\"ElementHighlight\"}},\"changed\":[\"r1c1\"],"
+            + "\"rows\":{},\"cells\":{\"r1c1\":{\"state\":\"ElementHighlight\"}},\"changed\":[\"r1c1\"],\"step\":null,"
             + "\"arrows\":[{\"from\":\"r0c0\",\"to\":\"r1c1\",\"best\":true},{\"from\":\"r0c1\",\"to\":\"r1c1\",\"best\":false}]}",
             Compact(frame));
 
         var trace = Rows(1, 2);
         trace.AddArrow("r0c0", "r0c1", true);
         var traceFrame = TableFrames.Frame(Trace, trace, StepEvent.Done, "Done.", ok: true);
-        Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", "ok"],
+        Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", "step", "ok"],
             JsonDocument.Parse(Json(traceFrame)).RootElement.EnumerateObject().Select(p => p.Name));
     }
 

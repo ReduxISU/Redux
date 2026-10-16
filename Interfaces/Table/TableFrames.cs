@@ -123,6 +123,11 @@ sealed record TableFrame(
     [property: JsonPropertyName("rows")] IReadOnlyDictionary<string, StateRef> Rows,
     [property: JsonPropertyName("cells")] IReadOnlyDictionary<string, StateRef> Cells,
     [property: JsonPropertyName("changed")] string[] Changed) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("arrows")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<TableArrow>? Arrows { get; init; }
@@ -329,10 +334,11 @@ static class TableFrames {
 
         var frames = new List<TableFrame>();
         for (int i = 0; i < steps.Count; i++)
-            frames.Add(Frame(spec, drafts[i], steps[i].Event, steps[i].Caption, steps[i].Ok, run.Incremental));
+            frames.Add(Frame(spec, drafts[i], steps[i].Event, steps[i].Caption, steps[i].Ok, run.Incremental) with { Step = i });
 
         if (run.TimedOut) {
-            frames.Add(StoppedFrame(spec, Blank(), stoppedDone?.Caption ?? GraphSubsetFrames.StoppedCaption));
+            // The stopped run's own Done step (taken off the end of the steps above) keeps its index; an added stopped frame has none.
+            frames.Add(StoppedFrame(spec, Blank(), stoppedDone?.Caption ?? GraphSubsetFrames.StoppedCaption) with { Step = stoppedDone == null ? null : steps.Count });
         } else if (steps.Count == 0 || steps[^1].Event != StepEvent.Done) {
             bool ok = verifyAnswer(run.Answer);
             var draft = (ok ? solved(run.Answer) : null) ?? Blank();
