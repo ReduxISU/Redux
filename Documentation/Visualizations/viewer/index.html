@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redux Frames Viewer</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+<header class="top">
+  <h1>Redux frames viewer <small>local · format=frames</small></h1>
+  <label class="f inline">Backend <input type="url" id="backend" value="http://localhost:27000" size="26" spellcheck="false"></label>
+  <button class="btn" id="check">Check</button>
+  <span class="health" id="health">not checked</span>
+  <span class="grow"></span>
+  <div class="tabs" role="group" aria-label="Mode">
+    <button id="mode-picture" aria-pressed="true">Picture</button>
+    <button id="mode-reduction" aria-pressed="false">Reduction</button>
+  </div>
+  <div class="tabs" role="group" aria-label="Theme">
+    <button data-theme-set="auto" aria-pressed="true">Auto</button>
+    <button data-theme-set="light" aria-pressed="false">Light</button>
+    <button data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<main>
+  <section class="card controls" id="pic-controls">
+    <div class="row">
+      <label class="f">Problem <select id="problem"></select></label>
+      <label class="f">Visualization <select id="vis"></select></label>
+      <label class="f">Solver <select id="solver"></select></label>
+      <label class="f inline" id="st-wrap" hidden><input type="checkbox" id="st-along"> Search tree alongside</label>
+    </div>
+    <label class="f wide">Instance <textarea id="instance" rows="2" spellcheck="false"></textarea></label>
+    <div class="row">
+      <button class="btn primary" id="run">Run (format=frames)</button>
+      <button class="btn" id="reset-inst">Default instance</button>
+      <span class="hint" id="pic-hint"></span>
+    </div>
+    <div class="hint">Time limit: the backend has no per-request limit; it reads <code>Visualization:SolveTimeLimitSeconds</code> (default 10 s) at startup. For a stopped run, start a second backend with a tiny limit (see README) and point the Backend field at it.</div>
+    <div class="err" id="pic-err" hidden></div>
+  </section>
+
+  <section class="card controls" id="red-controls" hidden>
+    <div class="row">
+      <label class="f wide">Reduction <select id="reduction"></select></label>
+      <label class="f">Target solver <select id="red-solver"></select></label>
+    </div>
+    <label class="f wide">Source instance <textarea id="red-instance" rows="2" spellcheck="false"></textarea></label>
+    <div class="row">
+      <button class="btn primary" id="red-run">Run Reduction View</button>
+      <button class="btn" id="red-reset">Default instance</button>
+      <span class="hint" id="red-hint"></span>
+    </div>
+    <div class="err" id="red-err" hidden></div>
+  </section>
+
+  <section class="bench" id="bench" hidden>
+    <div class="card stages" id="stages"></div>
+    <aside class="side">
+      <div class="card stepper">
+        <div class="phases" id="phases" hidden></div>
+        <div class="btns">
+          <button class="btn" id="prev" aria-label="Previous frame">◀</button>
+          <button class="btn" id="play">Play</button>
+          <button class="btn" id="next" aria-label="Next frame">▶</button>
+          <label class="f inline">Speed <select id="speed"><option value="1600">slow</option><option value="900" selected>normal</option><option value="400">fast</option><option value="120">very fast</option></select></label>
+          <span class="count" id="count">0 / 0</span>
+        </div>
+        <input type="range" id="scrub" min="0" max="0" value="0" aria-label="Frame">
+        <div class="caption" id="caption"></div>
+        <div class="badges" id="badges"></div>
+      </div>
+      <div class="card" id="gadget-card" hidden>
+        <h3>Gadgets</h3>
+        <div class="hint" id="gadget-hint">Hover a row, or a piece in either pane. Rows built in the current step are outlined.</div>
+        <div class="gadgets" id="gadgets"></div>
+      </div>
+      <div class="card">
+        <h3>States in this run</h3>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="card">
+        <h3>Adapter notes (backend JSON vs mockup)</h3>
+        <ul class="notes" id="notes"></ul>
+      </div>
+      <div class="card">
+        <details class="raw" id="raw-frame"><summary>Raw JSON: current frame</summary><pre id="raw-frame-pre"></pre></details>
+        <details class="raw" id="raw-payload"><summary>Raw JSON: payload / response header</summary><pre id="raw-payload-pre"></pre></details>
+      </div>
+    </aside>
+  </section>
+  <div class="empty" id="empty">Pick a problem and press Run.</div>
+</main>
+
+<!-- Mockup renderers, loaded unchanged-in-place from ../mockups (classic scripts that declare globals). -->
+<script src="../mockups/graphbase.js"></script>
+<script src="../mockups/bipartite.js"></script>
+<script src="../mockups/automaton.js"></script>
+<script src="../mockups/layered.js"></script>
+<script src="../mockups/flow.js"></script>
+<script src="../mockups/packing.js"></script>
+<script src="../mockups/board.js"></script>
+<script src="../mockups/table.js"></script>
+<script src="../mockups/quantum.js"></script>
+<script src="../mockups/schedule.js"></script>
+<script src="../mockups/misc.js"></script>
+<script src="../mockups/searchtree.js"></script>
+<script src="../mockups/reduction.js"></script>
+
+<!-- Viewer: adapter registry, one adapter per picture type, then the page. -->
+<script src="adapters/common.js"></script>
+<script src="adapters/graph.js"></script>
+<script src="adapters/groupedgraph.js"></script>
+<script src="adapters/bipartite.js"></script>
+<script src="adapters/automaton.js"></script>
+<script src="adapters/layered.js"></script>
+<script src="adapters/flow.js"></script>
+<script src="adapters/packing.js"></script>
+<script src="adapters/board.js"></script>
+<script src="adapters/table.js"></script>
+<script src="adapters/quantum.js"></script>
+<script src="adapters/schedule.js"></script>
+<script src="adapters/misc.js"></script>
+<script src="adapters/searchtree.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
