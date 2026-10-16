@@ -1013,7 +1013,7 @@
     {
       "phase": "solve",
       "event": "Accept",
-      "caption": "Every clause has a true literal under x1 = True, x2 = True, x3 = False.",
+      "caption": "Every clause has a true literal under x1 = True, x2 = True. x3 is free (either value works), so the answer sets it to False.",
       "step": 6,
       "sourceFocus": [],
       "targetFocus": [],
