@@ -56,7 +56,7 @@ public class SearchTreeFrames_Tests {
     public void Frame_Json_HasTheContractsFields_AndOmitsUnsetOptionalOnes() {
         var frames = Frames(DepthFirst());
         var json = JsonDocument.Parse(JsonSerializer.Serialize<object>(frames[1], FramesResponse.JsonOptions)).RootElement;
-        Assert.Equal(["event", "caption", "focus", "nodes", "total", "cut"], json.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "nodes", "total", "cut", "step"], json.EnumerateObject().Select(p => p.Name));
         var nodes = json.GetProperty("nodes").EnumerateArray().ToList();
         Assert.Equal(["id", "parent", "label", "kind", "state"], nodes[0].EnumerateObject().Select(p => p.Name));
         Assert.Equal(JsonValueKind.Null, nodes[0].GetProperty("parent").ValueKind);
