@@ -124,7 +124,8 @@ sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepSha
     /// <summary>
     /// The steps to hand a visualization that draws <paramref name="visualizationShape"/>. If the shapes differ
     /// (including one typed and one legacy) the steps cannot be drawn, so none are given: the response then
-    /// shows the initial and solved pictures instead of failing.
+    /// shows the initial and solved pictures instead of failing (under <c>format=frames</c>, the payload and one solved
+    /// frame with no <c>step</c>; <c>visualizeRun</c> serves that answer-alone picture, #895).
     /// </summary>
     public List<object> StepsFor(Type? visualizationShape) =>
         StepShape == visualizationShape ? Steps.ToList() : new List<object>();
