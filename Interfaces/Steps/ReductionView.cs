@@ -27,12 +27,19 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// three phases. Nothing here draws: every pane's states come from the problem's own <see cref="IFramesVisualization"/>, so a
 /// frontend renders each pane with the renderer it already has and only adds the cross-pane links.
 /// <para>
-/// <b>Frame.</b> <c>{ phase, event, caption, ok?, bound?, gadgets?, sourceFocus, targetFocus, source, target }</c>. <c>phase</c>
+/// <b>Frame.</b> <c>{ phase, event, caption, step, ok?, bound?, gadgets?, sourceFocus, targetFocus, source, target }</c>. <c>phase</c>
 /// is <c>build</c>, <c>solve</c> or <c>map</c>. <c>sourceFocus</c> and <c>targetFocus</c> are ids of the source and target picture
 /// (the sides are told apart by field, so ids carry no prefix); a frontend highlights them across the panes and links them
 /// through the gadget list. <c>source</c> and <c>target</c> are the states of each pane, exactly the per-step fields of that
 /// picture's own frames (<c>nodes</c>, <c>edges</c>, <c>groups</c>, <c>assignment</c>, ...) without the event, caption, focus and
 /// ok, which are lifted to the frame.
+/// </para>
+/// <para>
+/// <b>Step.</b> Every frame carries <c>step</c> (#895), always written: the 0-based index of the step it was drawn from in its
+/// own phase's list: the construction steps in <c>build</c>, the solver run's full step list in <c>solve</c> (as in every
+/// <c>format=frames</c> response), the backward map's steps in <c>map</c>. It is null for a frame drawn from no step: the
+/// solved frame the target's picture adds, a stopped solve whose steps the picture cannot draw, and the Done the view adds
+/// at the end of the map. The panes never carry it: it belongs to the frame.
 /// </para>
 /// <para>
 /// <b>Build.</b> One frame per construction step (<see cref="BuildDelta"/>). The source pane highlights the source ids the step
@@ -69,7 +76,7 @@ static class ReductionView {
     public const string Build = "build", Solve = "solve", Map = "map";
 
     /// <summary>The state fields a frame of a picture carries that are not the frame's own envelope.</summary>
-    private static readonly string[] Envelope = ["event", "caption", "focus", "ok"];
+    private static readonly string[] Envelope = ["event", "caption", "focus", "ok", "step"];
 
     /// <param name="red">The reduction, built from the source instance. It must have a backward map.</param>
     /// <param name="sourceInstance">The source instance as the caller gave it.</param>
@@ -130,7 +137,7 @@ static class ReductionView {
             target["builtEdges"] = counts[i].Edges;
             if (step.Partial.Skipped.Length > 0)
                 target["skipped"] = new JsonArray(step.Partial.Skipped.Select(s => (JsonNode)new JsonObject { ["id"] = s.Id, ["a"] = s.A, ["b"] = s.B }).ToArray());
-            var frame = Frame(Build, step.Event, step.Caption, step.Ok, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
+            var frame = Frame(Build, step.Event, step.Caption, i, step.Ok, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
             if (step.Partial.Bound is int bound) frame["bound"] = bound;
             if (step.Partial.Gadgets.Length > 0) frame["gadgets"] = ToArray(step.Partial.Gadgets);
             frames.Add(frame);
@@ -140,6 +147,7 @@ static class ReductionView {
         SolveRun solved = solver.Run(targetInstance, withSteps: true, solveTimeLimit);
         var solveSteps = solved.StepsFor(targetShape);
         // A stopped run has no answer to draw: if its steps cannot be drawn either (another shape), keep just its stopped Done step.
+        bool solveStepsDrawn = solveSteps.Count > 0;
         if (solved.TimedOut && solveSteps.Count == 0)
             solveSteps = [NewStep(targetShape, emptyTarget, StepEvent.Done, [], ReadStep(solved.Steps[^1]).Caption, false)];
         // A stopped run stays stopped when it is drawn, so the picture closes it with its blank stopped Done frame.
@@ -149,7 +157,8 @@ static class ReductionView {
             bool last = i == solveFrames.Count - 1;
             // The solved picture is judged by the problem's own verifier, whatever the solver reported; a stopped solve has no answer.
             bool? ok = last ? !solved.TimedOut && Verify(red.reductionTo, targetInstance, solved.Answer) : f.Ok;
-            frames.Add(Frame(Solve, f.Event, f.Caption, ok, [], f.Focus, neutralSource.DeepClone().AsObject(), f.Pane));
+            // The frame's step indexes the solver run, unless it was drawn from the stand-in stopped step.
+            frames.Add(Frame(Solve, f.Event, f.Caption, solveStepsDrawn ? f.Step : null, ok, [], f.Focus, neutralSource.DeepClone().AsObject(), f.Pane));
         }
         // What the target pane shows while the answer is mapped back: the solved picture. The solver's Done step holds the
         // answer in the picture's own shape; a solver that records no steps leaves only the last solve frame to reuse.
@@ -161,7 +170,7 @@ static class ReductionView {
         // ---- Map ----
         if (solved.TimedOut) {
             frames.Add(Frame(Map, StepEvent.Done, $"The solver had not finished, so there is no {red.reductionTo.problemName} answer to map back.",
-                false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
+                null, false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
             return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
         }
         SolveRun mapped;
@@ -197,12 +206,12 @@ static class ReductionView {
             // The backward map's Done step already carries the source verifier's verdict (MapBackRun).
             bool? ok = last && s.Event != StepEvent.Done ? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : s.Ok;
             JsonObject target = mapTargetPanes != null ? mapTargetPanes[i].Pane : solvedPane.DeepClone().AsObject();
-            frames.Add(Frame(Map, s.Event, s.Caption, ok, sourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
+            frames.Add(Frame(Map, s.Event, s.Caption, i, ok, sourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
         }
 
         if (mapSteps.Count == 0 || mapSteps[^1].Event != StepEvent.Done)
             frames.Add(Frame(Map, StepEvent.Done, $"{red.reductionFrom.problemName} has the answer {mapped.Answer}.",
-                Verify(red.reductionFrom, sourceInstance, mapped.Answer), [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
+                null, Verify(red.reductionFrom, sourceInstance, mapped.Answer), [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
 
         return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
     }
@@ -234,7 +243,7 @@ static class ReductionView {
     // ---- Panes ----
 
     /// <summary>One frame of a picture, taken apart: its envelope, and the rest (its pane).</summary>
-    private sealed record Rendered(JsonObject Pane, StepEvent Event, string Caption, string[] Focus, bool? Ok);
+    private sealed record Rendered(JsonObject Pane, StepEvent Event, string Caption, string[] Focus, bool? Ok, int? Step);
 
     /// <summary>
     /// Draws <paramref name="steps"/> (typed <see cref="SolverStep{TPartial}"/> of <paramref name="shape"/>) with the picture's
@@ -254,8 +263,9 @@ static class ReductionView {
             string caption = node["caption"]!.GetValue<string>();
             string[] focus = node["focus"]!.AsArray().Select(n => n!.GetValue<string>()).ToArray();
             bool? ok = node["ok"]?.GetValue<bool>();
+            int? step = node["step"]?.GetValue<int>();
             foreach (string key in Envelope) node.Remove(key);
-            frames.Add(new Rendered(node, Enum.Parse<StepEvent>(ev), caption, focus, ok));
+            frames.Add(new Rendered(node, Enum.Parse<StepEvent>(ev), caption, focus, ok, step));
         }
         // One-for-one with the steps unless the caller wants the builder's own closing frame: cut what it appended.
         if (exact && steps.Count > 0 && frames.Count > steps.Count) frames.RemoveRange(steps.Count, frames.Count - steps.Count);
@@ -271,12 +281,13 @@ static class ReductionView {
     private static JsonArray ToArray<T>(IEnumerable<T> items) =>
         new(items.Select(i => JsonSerializer.SerializeToNode(i)).ToArray());
 
-    private static JsonObject Frame(string phase, StepEvent ev, string caption, bool? ok, IEnumerable<string> sourceFocus,
+    private static JsonObject Frame(string phase, StepEvent ev, string caption, int? step, bool? ok, IEnumerable<string> sourceFocus,
         IEnumerable<string> targetFocus, JsonObject source, JsonObject target) {
         var frame = new JsonObject {
             ["phase"] = phase,
             ["event"] = ev.ToString(),
             ["caption"] = caption,
+            ["step"] = step,
         };
         if (ok is bool b) frame["ok"] = b;
         frame["sourceFocus"] = ToArray(sourceFocus);
