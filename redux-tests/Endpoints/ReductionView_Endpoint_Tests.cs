@@ -186,6 +186,31 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Theory]
     [MemberData(nameof(Cases))]
+    public async Task EveryFrame_SaysItsStep_CountedInItsOwnPhase(string reduction, string instance) {
+        var view = await View(reduction, instance);
+        foreach (string phase in new[] { "build", "solve", "map" }) {
+            var frames = Phase(view, phase);
+            var steps = frames.Select(f => {
+                Assert.True(f.TryGetProperty("step", out var s), $"a {phase} frame has no step");
+                return s.ValueKind == JsonValueKind.Null ? (int?)null : s.GetInt32();
+            }).ToList();
+            // 0, 1, ... one per step of the phase, then at most one frame drawn from no step (#895).
+            int drawn = steps.TakeWhile(s => s != null).Count();
+            for (int i = 0; i < drawn; i++) Assert.Equal(i, steps[i]);
+            Assert.True(steps.Count - drawn <= 1, $"{phase}: [{string.Join(",", steps)}]");
+            Assert.All(steps.Skip(drawn), s => Assert.Null(s));
+            // Every construction step is a frame.
+            if (phase == "build") Assert.Equal(frames.Count, drawn);
+            // The step belongs to the frame, never to a pane.
+            Assert.All(frames, f => {
+                Assert.False(f.GetProperty("source").TryGetProperty("step", out _));
+                Assert.False(f.GetProperty("target").TryGetProperty("step", out _));
+            });
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Cases))]
     public async Task Build_ReplayEndsWithExactlyTheTargetsNodesAndEdges(string reduction, string instance) {
         var view = await View(reduction, instance);
         var target = view.GetProperty("target");
