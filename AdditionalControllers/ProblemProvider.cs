@@ -17,7 +17,7 @@ using System.Dynamic;
 [ApiController]
 [Route("[controller]")]
 [Tags("Problem Provider")]
-public class ProblemProvider : ControllerBase {
+public partial class ProblemProvider : ControllerBase {
     /// <summary>The configuration key for the time budget of a solve that records steps for a picture.</summary>
     public const string SolveTimeLimitKey = "Visualization:SolveTimeLimitSeconds";
     /// <summary>The budget used when <see cref="SolveTimeLimitKey"/> is not set.</summary>
