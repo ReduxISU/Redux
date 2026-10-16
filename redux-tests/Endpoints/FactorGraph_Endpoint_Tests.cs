@@ -97,7 +97,7 @@ public class FactorGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.True(frames.Count >= 2);
         foreach (var f in frames) {
             bool isDone = f.GetProperty("event").GetString() == "Done";
-            Assert.Equal(["event", "caption", "focus", "nodes", "edges", "hits", "assignment", .. isDone ? new[] { "ok" } : []], f.EnumerateObject().Select(x => x.Name));
+            Assert.Equal(["event", "caption", "focus", "nodes", "edges", "hits", "assignment", "step", .. isDone ? new[] { "ok" } : []], f.EnumerateObject().Select(x => x.Name));
             foreach (var (collection, ids) in new[] { ("nodes", nodeIds), ("edges", edgeIds) })
                 foreach (var (id, state) in States(f, collection)) {
                     Assert.Contains(id, ids);

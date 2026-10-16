@@ -41,6 +41,11 @@ sealed record FactorGraphFrame(
     [property: JsonPropertyName("edges")] IReadOnlyDictionary<string, StateRef> Edges,
     [property: JsonPropertyName("hits")] IReadOnlyDictionary<string, int> Hits,
     [property: JsonPropertyName("assignment")] IReadOnlyDictionary<string, bool> Assignment) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
@@ -196,10 +201,10 @@ static class FactorGraphFrames {
         bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), GroupedGraphFrames.SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(Assignment)).OfType<SolverStep<Assignment>>())) {
-            frames.Add(stopped && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<Assignment>(run)) {
+            frames.Add((stopped && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (stopped) {
