@@ -4,6 +4,7 @@ using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using API.Problems.P.P_DFA;
 using API.Problems.P.P_DFA.Solvers;
+using API.Problems.P.P_DFA.Verifiers;
 using API.Problems.P.P_DFA.Visualizations;
 using API.Problems.P.P_NFA;
 using API.Problems.P.P_NFA.Solvers;
@@ -147,12 +148,38 @@ public class AutomatonSolvers_Tests {
     }
 
     [Fact]
-    public void Dfa_ASymbolOutsideTheAlphabet_IsRejectedWhereTheMachineIs() {
-        var steps = Steps(new DFASolver(), DefaultDfa + "ac)");
-        var reject = Assert.Single(steps, s => s.Event == StepEvent.Reject);
-        Assert.Equal("'c' is not in the alphabet, so the DFA cannot read it.", reject.Caption);
-        Assert.Equal(["q:2"], reject.Focus);
-        Assert.Equal(new ActiveStates(["2"], 1), reject.Partial);
+    public void Dfa_ASymbolOutsideTheAlphabet_FallsIntoGarbage_AsAMissingMoveDoes() {
+        // The bug report: the DFA's default instance on "abc" ended Rejected in 2; 'c' is a move 2 does not have.
+        const string instance = DefaultDfa + "abc)";
+        var run = ((ISolver)new DFASolver()).Run(instance, withSteps: true);
+        Assert.Equal("No Solution: Input contains character 'c' not in DFA alphabet", run.Answer);
+        var steps = run.Steps.Cast<SolverStep<ActiveStates>>().ToList();
+        Assert.Equal([StepEvent.Try, StepEvent.Try, StepEvent.Try, StepEvent.Reject, StepEvent.Done], steps.Select(s => s.Event));
+        var fall = steps[3];
+        Assert.Equal("'c' is not in the alphabet, so 2 has no move on it, and the DFA falls into the Garbage state and stays there.", fall.Caption);
+        Assert.Equal(["garbage"], fall.Focus);
+        // As with a missing move: no state, the head on the symbol it could not read.
+        Assert.Equal(new ActiveStates([], 2), fall.Partial);
+        Assert.Equal(new ActiveStates([], 2), steps[^1].Partial);
+        Assert.Equal("Rejected: 'c' is not in the alphabet, so 2 has no move on it and the run ends in the Garbage state.", steps[^1].Caption);
+        Assert.False(steps[^1].Ok);
+
+        var spec = DFAVisualization.Spec(new DFA(instance));
+        var frames = AutomatonFrames.Build(spec, run).Frames.Cast<AutomatonFrame>().ToList();
+        Assert.Equal(5, frames.Count);
+        foreach (var f in frames.Skip(3)) {
+            Assert.Equal(["garbage"], f.Active);
+            Assert.Equal(PictureState.Rejected, f.Nodes["garbage"].State);
+            Assert.Equal(2, f.Position);
+            Assert.DoesNotContain(f.Nodes, n => n.Key != "garbage" && n.Value.State == PictureState.Rejected);
+        }
+        Assert.Equal(["garbage"], frames[3].Focus);
+        Assert.False(frames[^1].Ok);
+
+        // The verifier keeps its answer: no run of states reads 'c'.
+        var verifier = new DFAVerifier();
+        Assert.False(verifier.verify(new DFA(instance), "1,2,2,2"));
+        Assert.False(verifier.verify(new DFA(instance), "1,2,2"));
     }
 
     // ---- NFA, one run at a time ----
@@ -246,6 +273,41 @@ public class AutomatonSolvers_Tests {
     public void NfaSubset_ASymbolOutsideTheAlphabet_AnswersAsTheBacktrackingSolverDoes() {
         const string instance = "(({1,2},{a},{(1,a,2)},1,{2}),ac)";
         Assert.Equal(new NFASolver().solve(new NFA(instance)), new NFASubsetSolver().solve(new NFA(instance)));
+        Assert.Equal("No Solution: Input contains character 'c' not in NFA alphabet", new NFASubsetSolver().solve(new NFA(instance)));
+    }
+
+    [Fact]
+    public void NfaBacktracking_ASymbolOutsideTheAlphabet_IsADeadEndForEveryRunThatReachesIt() {
+        // The runs are explored as for any input, and each one dies at 'c', as at any missing move.
+        var steps = Steps(new NFASolver(), DefaultNfa[..^2] + "ac)");
+        Assert.Equal(StepEvent.Try, steps[0].Event);
+        Assert.Contains(steps, s => s.Event == StepEvent.Backtrack);
+        Assert.DoesNotContain(steps, s => s.Event == StepEvent.Accept);
+        var deadEnds = steps.Where(s => s.Event == StepEvent.Reject).ToList();
+        Assert.NotEmpty(deadEnds);
+        Assert.All(deadEnds, r => {
+            Assert.Equal(1, r.Partial.Position);
+            string state = Assert.Single(r.Partial.States);
+            Assert.Equal($"'c' is not in the alphabet, so {state} has no move on it: this run is a dead end.", r.Caption);
+            Assert.Equal([AutomatonFrames.StateId(state)], r.Focus);
+        });
+        Assert.Equal(new ActiveStates([], 2), steps[^1].Partial);
+        Assert.Equal("Rejected: 'c' is not in the alphabet, so no run can read the whole input.", steps[^1].Caption);
+        Assert.False(steps[^1].Ok);
+        Assert.Equal("No Solution: Input contains character 'c' not in NFA alphabet", new NFASolver().solve(new NFA(DefaultNfa[..^2] + "ac)")));
+        // No Garbage for an NFA.
+        Assert.Null(AutomatonFrames.Payload(NFAVisualization.Spec(new NFA(DefaultNfa[..^2] + "ac)"))).Garbage);
+    }
+
+    [Fact]
+    public void NfaSubset_ASymbolOutsideTheAlphabet_KillsEveryBranch() {
+        var steps = Steps(new NFASubsetSolver(), DefaultNfa[..^2] + "ac)");
+        Assert.Equal([StepEvent.Try, StepEvent.Try, StepEvent.Reject, StepEvent.Done], steps.Select(s => s.Event));
+        Assert.Equal("Read 'c': 'c' is not in the alphabet, so no active state has a move on it, and every branch dies.", steps[2].Caption);
+        Assert.Equal(["q:2", "q:3"], steps[2].Focus);
+        Assert.Equal(new ActiveStates([], 1), steps[2].Partial);
+        Assert.Equal("Rejected: every branch died at symbol 2, 'c', which is not in the alphabet.", steps[^1].Caption);
+        Assert.False(steps[^1].Ok);
     }
 
     // Wall-clock assertions run alone, after the parallel tests (#837).

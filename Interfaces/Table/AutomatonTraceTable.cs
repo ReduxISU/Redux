@@ -9,8 +9,9 @@ namespace API.Interfaces.Table;
 /// for an ε move), the state or states before and after, and whether that is an accepting place to be. Nothing here
 /// changes a solver; the table is read off the same recorded steps.
 /// <list type="bullet">
-/// <item>One run at a time (DFA Simulation, NFA Subset Simulation): every Try adds a row. A DFA's missing move is a row
-/// into <c>Garbage</c>, and every branch of an NFA dying is a row into <c>∅</c>; both are <c>Rejected</c>.</item>
+/// <item>One run at a time (DFA Simulation, NFA Subset Simulation): every Try adds a row. A DFA's missing move (a symbol
+/// outside the alphabet included) is a row into <c>Garbage</c>, and every branch of an NFA dying is a row into <c>∅</c>;
+/// both are <c>Rejected</c>.</item>
 /// <item>A depth-first search (NFA Backtracking, recognised by its Backtrack steps): a Try adds a row and a Backtrack takes
 /// it away, so the table is always the branch being explored. An Accept marks it <c>Solution</c> and a dead end
 /// <c>Rejected</c>. The Done frame shows the first branch that accepted, or the last one that died.</item>

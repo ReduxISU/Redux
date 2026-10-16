@@ -31,8 +31,9 @@ class DFASolver : ISolver<DFA, ActiveStates> {
 
     // Steps, for the Automaton picture (ids from AutomatonFrames): a Try for the start state (focus: the state), then a
     // Try per symbol read (partial: the state reached; focus: the arrow taken). A missing move is a Reject whose partial
-    // has no state: the machine falls into the Garbage state (focus: its id). A symbol outside the alphabet, or input used
-    // up in a state that does not accept, is a Reject on that state. Done closes the run with the state it ended in (none
+    // has no state: the machine falls into the Garbage state (focus: its id). A symbol outside the alphabet is a missing
+    // move too, and falls into Garbage the same way. Input used up in a state that does not accept is a Reject on that
+    // state. Done closes the run with the state it ended in (none
     // for Garbage) and whether the DFA accepts. Recorder state lives only in this call, so the solver object stays stateless.
     public string Solve(DFA problem, StepRecorder<ActiveStates> rec) {
         SolveProbe.Hit(GetType());
@@ -56,11 +57,14 @@ class DFASolver : ISolver<DFA, ActiveStates> {
 
         foreach (char character in inputString) {
             // Check If Character Is In Alphabet //
+            // A symbol outside the alphabet is a missing move like any other: the DFA falls into the Garbage state.
             if (!problem.alphabet.Contains(character)) {
-                rec.Reject(() => new ActiveStates([currentNode], consumed),
-                    () => $"'{character}' is not in the alphabet, so the DFA cannot read it.", () => [AutomatonFrames.StateId(currentNode)]);
+                rec.Reject(() => new ActiveStates([], consumed),
+                    () => $"'{character}' is not in the alphabet, so {currentNode} has no move on it, and the DFA falls into the Garbage state and stays there.",
+                    () => [AutomatonFrames.GarbageId]);
                 return Finish($"No Solution: Input contains character '{character}' not in DFA alphabet", false,
-                    $"Rejected: '{character}' is not in the alphabet.");
+                    $"Rejected: '{character}' is not in the alphabet, so {currentNode} has no move on it and the run ends in the Garbage state.",
+                    inGarbage: true);
             }
 
             // Follow the Edge //

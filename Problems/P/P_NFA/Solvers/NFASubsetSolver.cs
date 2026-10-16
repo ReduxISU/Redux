@@ -30,20 +30,15 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
 
     // Steps, for the Automaton picture (ids from AutomatonFrames): a Try for the start (the start state and its ε-closure;
     // focus: the start state and the ε arrows followed), a Try per symbol read (the new set; focus: every arrow taken,
-    // ε moves included), a Reject when no active state can read the next symbol (every branch dies; the set is empty), then
-    // an Accept on the accept states in the final set or a Reject on the set, and Done. Recorder state lives only in this call.
+    // ε moves included), a Reject when no active state can read the next symbol, one outside the alphabet included (every
+    // branch dies; the set is empty), then an Accept on the accept states in the final set or a Reject on the set, and Done.
+    // Recorder state lives only in this call.
     public string Solve(NFA problem, StepRecorder<ActiveStates> rec) {
         string input = problem.inputString == "ε" ? "" : problem.inputString;
 
-        // The same answers as NFASolver for input it cannot read.
-        foreach (char c in input) {
-            if (!problem.alphabet.Contains(c)) {
-                rec.Reject(() => new ActiveStates([problem.startState], 0),
-                    () => $"'{c}' is not in the alphabet, so the NFA cannot read it.", () => [AutomatonFrames.StateId(problem.startState)]);
-                rec.Done(new ActiveStates([], 0), false, $"Rejected: '{c}' is not in the alphabet.");
-                return $"No Solution: Input contains character '{c}' not in NFA alphabet";
-            }
-        }
+        // A symbol outside the alphabet is a move no state has, so every branch dies on it, as on any other missing move.
+        // The answer is NFASolver's for such input: it names the symbol.
+        char? offAlphabet = input.Any(c => !problem.alphabet.Contains(c)) ? input.First(c => !problem.alphabet.Contains(c)) : null;
 
         // How each (state, position) was first reached, so one run can be read back for each accept state.
         var parent = new Dictionary<(string State, int Pos), (string State, int Pos)>();
@@ -97,11 +92,15 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
                 }
             if (moved.Count == 0) {
                 var stuck = active;
+                bool known = problem.alphabet.Contains(symbol);
                 rec.Reject(() => new ActiveStates([], i),
-                    () => $"Read '{symbol}': no active state has a '{symbol}' transition, so every branch dies.",
+                    () => known ? $"Read '{symbol}': no active state has a '{symbol}' transition, so every branch dies."
+                        : $"Read '{symbol}': '{symbol}' is not in the alphabet, so no active state has a move on it, and every branch dies.",
                     () => stuck.Select(AutomatonFrames.StateId).ToArray());
-                rec.Done(new ActiveStates([], i), false, $"Rejected: every branch died at symbol {pos}, '{symbol}'.");
-                return "No Solution Exists: No run accepts the input";
+                rec.Done(new ActiveStates([], i), false, known ? $"Rejected: every branch died at symbol {pos}, '{symbol}'."
+                    : $"Rejected: every branch died at symbol {pos}, '{symbol}', which is not in the alphabet.");
+                return offAlphabet is char off ? $"No Solution: Input contains character '{off}' not in NFA alphabet"
+                    : "No Solution Exists: No run accepts the input";
             }
             int symbolMoves = taken.Count;
             active = Closure(moved, pos);

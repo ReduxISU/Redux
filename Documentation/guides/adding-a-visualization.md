@@ -166,7 +166,7 @@ The payload (sent once) is `{ kind: "dfa" | "nfa", layout: "layered", states, st
 - A state is `{ id, label, layer }`. `layer` is how many moves the start state needs to reach it; a state it cannot reach goes one layer past the last.
 - `start` and `accepting` hold state ids. `input` is the tape, one symbol per cell (`[]` for the empty input).
 - A transition is one arrow `{ id, a, b, label, symbols, epsilon }` for every transition from `a` to `b`: `label` joins the symbols with commas (`"a,b"`), and `epsilon` is true when every symbol is ε (the arrow is dashed).
-- `garbage` is there only for a DFA with a missing move: `{ id: "garbage", label: "Garbage", missing }`, where `missing` lists each `{ state, symbol }` with no move. It is drawn apart, with no arrows into it. Its label gets a `'` while a state already has that name.
+- `garbage` is there only for a DFA with a missing move: `{ id: "garbage", label: "Garbage", missing }`, where `missing` lists each `{ state, symbol }` with no move. A symbol of the input outside the alphabet is a missing move too: the `{ state, symbol }` the run hits is listed (only that one, since the run stops there), and it brings `garbage` along even when every in-alphabet move exists. The symbol is not added to `alphabet`. It is drawn apart, with no arrows into it. Its label gets a `'` while a state already has that name.
 - `paths` is there only for an NFA: its runs for the path picker, accepting runs first, at most 40 (`pathsTruncated` says whether there are more). Each is `{ id, label, accepted, outcome, frames }`. The `label` reads like `Path 1: 1 ⇢ 2 → 3, accepts` (⇢ is an ε move), `outcome` is `accepts`, `rejects` or `dies`, and `frames` follow that run alone, in the same shape as the main frames. The runs are the ones `NFASolver.GetPathRuns` finds, in the same order, so Path *i* is Run *i* of the NFA table.
 
 Each frame is `{ event, caption, focus, position, active, nodes, edges, ok? }`. `position` is how many symbols have been read (the tape head sits on the next one). `active` lists the ids of the states the machine is in. `nodes` and `edges` map an id to `{ state }`; an id that is absent is `Background`.
@@ -183,8 +183,8 @@ States: the active states are `ElementHighlight` while the machine runs, and so 
 
 The solvers and their steps (`ISolver<T, ActiveStates>`; a step's partial is the states the machine is in and how many symbols it has read):
 
-- `DFASolver` records a `Try` for the start state and one per symbol read (focus: the arrow taken). A missing move is a `Reject` whose partial has no states: the picture shows the machine in Garbage (focus: `garbage`). A symbol outside the alphabet, or input used up in a state that does not accept, is a `Reject` on that state.
-- `NFASolver` follows one run at a time: a `Try` for each move (focus: its arrow), `Accept` when a run ends in an accept state, `Reject` at a dead end, and `Backtrack` when it backs out of a move.
+- `DFASolver` records a `Try` for the start state and one per symbol read (focus: the arrow taken). A missing move, a symbol outside the alphabet included, is a `Reject` whose partial has no states: the picture shows the machine in Garbage (focus: `garbage`), and the run stops there. Input used up in a state that does not accept is a `Reject` on that state.
+- `NFASolver` follows one run at a time: a `Try` for each move (focus: its arrow), `Accept` when a run ends in an accept state, `Reject` at a dead end (a symbol outside the alphabet is one too: no state has a move on it), and `Backtrack` when it backs out of a move.
 - `NFASubsetSolver` ("NFA Subset Simulation") runs every branch at once. It records a `Try` per symbol with the whole active set (focus: every arrow taken, ε moves included), then an `Accept` on the accept states it reached, or a `Reject`. This is the picture's "all branches" view. The path picker is the "one path" view.
 
 Every run ends with `Done`, whose `ok` says whether the machine accepts.
@@ -416,7 +416,7 @@ The two problems have their own visualizations for the picture (`EditDistanceVis
 - The columns are Step, Read, From, To and Accepting? (keys `step`, `read`, `from`, `to`, `accepting`). Read is `ε` for an ε move and `—` for the start row.
 - Every move adds a row. The new row is the focus, and its To cell is marked changed.
 - An `Accept` marks its row `Solution`, and a `Reject` marks its row `Rejected`. In `Done` the last row is `Solution` when the input is accepted and `Rejected` when not.
-- A DFA's missing move is a row into `Garbage`. Every NFA branch dying is a row into `∅`. Both rows are `Rejected`.
+- A DFA's missing move, a symbol outside the alphabet included, is a row into `Garbage`. Every NFA branch dying is a row into `∅` (subset simulation), or a dead end marked `Rejected` (backtracking); a symbol outside the alphabet kills every branch the same way. Both rows are `Rejected`.
 - NFA Backtracking (the table's own solver) shows the branch being explored: a `Try` adds a row and a `Backtrack` takes it away. Its `Done` shows the first branch that accepted, or the last one that died.
 - NFA Subset Simulation (`&solver=nfasubsetsolver`) adds one row per symbol, with every active state in braces.
 - Past the 150-step cap a step may not follow on from the one before. A row of `…` then stands for the steps not shown. A DFA keeps the rows before it, since they are the start of its one run. An NFA keeps only its start row, because a search's backtracking may have been hidden.
