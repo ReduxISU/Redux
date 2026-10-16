@@ -86,6 +86,11 @@ sealed record GraphFrame(
     [property: JsonPropertyName("nodes")] IReadOnlyDictionary<string, StateRef> Nodes,
     [property: JsonPropertyName("edges")] IReadOnlyDictionary<string, StateRef> Edges,
     [property: JsonPropertyName("phantoms")] IReadOnlyList<GraphPhantom> Phantoms) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
@@ -166,6 +171,29 @@ static class GraphSubsetFrames {
             held = step;
         }
         if (held != null) yield return (held, false);
+    }
+
+    /// <summary>
+    /// The steps of <paramref name="run"/> that a picture drawing <typeparamref name="TPartial"/> can draw, each with its 0-based
+    /// index in the run's full step list (<see cref="SolveRun.Steps"/>, before any filtering by shape): the <c>step</c> of the
+    /// frame drawn from it (#895). None when the run's steps are of another shape.
+    /// </summary>
+    public static IEnumerable<(SolverStep<TPartial> Step, int Index)> Indexed<TPartial>(SolveRun run) =>
+        run.StepsFor(typeof(TPartial)).Select((step, index) => (step, index))
+            .Where(p => p.step is SolverStep<TPartial>)
+            .Select(p => ((SolverStep<TPartial>)p.step, p.index));
+
+    /// <summary>
+    /// <see cref="Indexed"/> with whether each step is an Accept that ends the run (<see cref="EndsRun"/>): what most
+    /// builders loop over, so every frame they draw from a step can say which step it is (<c>with { Step = index }</c>, #895).
+    /// </summary>
+    public static IEnumerable<(SolverStep<TPartial> Step, bool EndsRun, int Index)> DrawnSteps<TPartial>(SolveRun run) {
+        (SolverStep<TPartial> Step, int Index)? held = null;
+        foreach (var current in Indexed<TPartial>(run)) {
+            if (held is { } h) yield return (h.Step, EndsRun(h.Step.Event, current.Step.Event, current.Step.Ok), h.Index);
+            held = current;
+        }
+        if (held is { } last) yield return (last.Step, false, last.Index);
     }
 
     /// <summary>
@@ -378,10 +406,10 @@ static class GraphSubsetFrames {
     public static FramesResponse Build(GraphSubsetSpec spec, SolveRun run, Func<string, NodeSet> parseAnswer, Func<string, bool> verifyAnswer) {
         var frames = new List<object>();
         SolverStep<NodeSet>? last = null;
-        foreach (var (step, endsRun) in GraphSubsetFrames.WithEndsRun(run.StepsFor(typeof(NodeSet)).OfType<SolverStep<NodeSet>>())) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, endsRun, index) in DrawnSteps<NodeSet>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun));
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {
