@@ -34,6 +34,8 @@ sealed record GroupFailure(string Reason, string[] Focus);
 /// <c>Rejected</c> in a Done with ok = false (the run found nothing), <c>Committed</c> in a grouping kept so far (#886), or <c>ElementHighlight</c> in a step that only tries a whole grouping
 /// (Try, Reject of a run that is not <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); a missing edge
 /// between two nodes of one group is a <c>Rejected</c> phantom, as in the Clique rule of <see cref="GraphSubsetFrames"/>.</item>
+/// <item><b>Clique cover</b>: in a step that judges a whole candidate (a Reject of a run that is not incremental, or a Done
+/// with ok = false that carries a grouping), a node in no group is <c>Rejected</c>: no clique covers it (#889).</item>
 /// <item>Either rule: a node whose group index is K or more (more colors, or more cliques, than allowed) is <c>Rejected</c>.</item>
 /// <item>What the solver is looking at (the node being colored) is <c>ElementHighlight</c>; in a
 /// <see cref="StepEvent.Reject"/> step it is the thing that failed, so <c>Rejected</c>.</item>
@@ -97,6 +99,12 @@ static class GraphGroupFrames {
                 break;
 
             case GroupRule.CliqueCover:
+                // A step that judges a whole candidate (a Reject of a run that is not incremental, or a failed Done that
+                // carries one) shows a node in no group as Rejected: the candidate covers it with no clique (#889).
+                bool judgesCandidate = (ev == StepEvent.Reject && !incremental) || (ev == StepEvent.Done && ok != true && groups.Count > 0);
+                if (judgesCandidate)
+                    foreach (var id in spec.Nodes)
+                        if (!groups.ContainsKey(id)) GraphSubsetFrames.Raise(nodes, id, PictureState.Rejected);
                 foreach (var members in groups.GroupBy(g => g.Value).OrderBy(g => g.Key).Select(g => g.Select(p => p.Key).ToList())) {
                     for (int i = 0; i < members.Count; i++)
                         for (int j = i + 1; j < members.Count; j++) {
@@ -159,9 +167,10 @@ static class GraphGroupFrames {
     };
 
     /// <summary>
-    /// The first thing wrong with a candidate grouping, or null if it is fine: two neighbours that share a color
-    /// ("1 and 2 are both color 0"), a pair in one clique that is not joined ("1 and 4 are in one group but aren't
-    /// joined"), else a node that has no group yet. Sizes against K are the solver's own business.
+    /// The first thing wrong with a candidate grouping, or null if it is fine. Coloring: two neighbours that share a color
+    /// ("1 and 2 are both color 0"), else a node that has no color. Clique cover: the nodes in no clique, all of them
+    /// ("node 1 is in no clique", #889), else a pair in one clique that is not joined ("1 and 4 are in one group but
+    /// aren't joined"). Sizes against K are the solver's own business.
     /// </summary>
     public static GroupFailure? Why(GroupRule rule, IReadOnlyList<string> nodes, IReadOnlyList<KeyValuePair<string, string>> edges, IReadOnlyDictionary<string, int> of) {
         if (rule == GroupRule.Coloring) {
@@ -169,6 +178,10 @@ static class GraphGroupFrames {
                 if (e.Key != e.Value && of.TryGetValue(e.Key, out int a) && of.TryGetValue(e.Value, out int b) && a == b)
                     return new($"{e.Key} and {e.Value} are both color {a}", [e.Key, e.Value]);
         } else {
+            // A node in no clique is the first thing wrong with a cover candidate (#889), so name every such node.
+            var left = nodes.Where(n => !of.ContainsKey(n)).Distinct(StringComparer.Ordinal).ToList();
+            if (left.Count > 0)
+                return new(left.Count == 1 ? $"node {left[0]} is in no clique" : $"nodes {And(left)} are in no clique", left.ToArray());
             var joined = new HashSet<string>(edges.Select(e => GraphSubsetFrames.EdgeId(e.Key, e.Value)), StringComparer.Ordinal);
             foreach (var members in of.GroupBy(p => p.Value).OrderBy(g => g.Key).Select(g => g.Select(p => p.Key).OrderBy(k => k, StringComparer.Ordinal).ToList()))
                 for (int i = 0; i < members.Count; i++)
@@ -177,7 +190,7 @@ static class GraphGroupFrames {
                             return new($"{members[i]} and {members[j]} are in one group but aren't joined", [members[i], members[j]]);
         }
         string? missing = nodes.FirstOrDefault(n => !of.ContainsKey(n));
-        return missing == null ? null : new(rule == GroupRule.Coloring ? $"{missing} has no color" : $"{missing} is in no group", [missing]);
+        return missing == null ? null : new($"{missing} has no color", [missing]);
     }
 
     // ---- The whole response ----
