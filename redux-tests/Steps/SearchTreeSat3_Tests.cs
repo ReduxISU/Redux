@@ -48,6 +48,13 @@ public class SearchTreeSat3_Tests {
             if (Hash(steps[i]!) != hashes[i]) Assert.Fail($"Step {i} changed. It is now {steps[i]!.ToJsonString()}");
     }
 
+    // How many clauses of the formula have no true literal under the values set so far.
+    private static int ClausesLeft(string instance, IEnumerable<KeyValuePair<string, string>> values) {
+        var set = values.ToDictionary(v => v.Key, v => v.Value == "True");
+        return new API.Problems.NPComplete.NPC_SAT3.SAT3(instance).clauses
+            .Count(c => !c.Any(l => set.TryGetValue(l.TrimStart('!'), out bool v) && v != l.StartsWith('!')));
+    }
+
     private static List<SolverStep<Assignment>> Steps(string solver, string instance) =>
         Create(solver).Run(instance, withSteps: true).Steps.Cast<SolverStep<Assignment>>().ToList();
 
@@ -95,8 +102,10 @@ public class SearchTreeSat3_Tests {
                         Assert.Matches(@"^C\d+ false$", node.Bound);
                         Assert.Contains($"clause {node.Bound![..^6]} ", step.Caption);
                     } else if (step.Caption.EndsWith("so this branch is queued.", StringComparison.Ordinal)) {
+                        // Its note: how many clauses still have no true literal on this branch (#900).
                         Assert.Equal(SearchNodeState.Queued, node.State);
-                        Assert.Matches(@"^priority -?\d+$", node.Bound);
+                        int left = ClausesLeft(instance, values);
+                        Assert.Equal($"{left} {(left == 1 ? "clause" : "clauses")} left", node.Bound);
                     } else {
                         Assert.Equal(SearchNodeState.Solution, node.State);
                         Assert.Equal(StepEvent.Done, steps[i + 1].Event);

@@ -37,7 +37,8 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     // queued) or a Reject (a clause has no true literal left). The search takes the most promising queued branch next; when
     // that is not a branch it just made, a Backtrack says where it went back to. Recorder state lives only in this call.
     // Each step also names its node of the search tree (SolverStep.Tree, for the Search Tree picture): the root "start" is
-    // queued, each value tried is a node ("x2=F") under the state it decides, queued (with its priority), pruned (with the
+    // queued, each value tried is a node ("x2=F") under the state it decides, queued (with how many clauses still have no
+    // true literal, "2 clauses left"; the queue's own priority means nothing to a reader, #900), pruned (with the
     // clause it makes false) or the solution (with the variables it never had to set, "x3 free"), and a Backtrack takes the
     // node it goes back to off the queue. The tree stops where every clause has a true literal, so the Done says which
     // variables are free and that the answer sets them to False (#899).
@@ -194,9 +195,9 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
                         justQueued.Add(childSAT);
                         nodes[childSAT] = child with { State = SearchNodeState.Queued };
                         byId[child.NodeId] = child;
-                        SAT3PQObject queued = childSAT;
+                        int left = childSAT.SATState.clauses.Count;
                         rec.Accept(Partial, () => $"Keep {decided.nextVar} = {tried}: no clause has every literal false yet, so this branch is queued.", () => focus,
-                            () => Node(SearchNodeState.Queued, $"priority {queued.getPQWeight()}"));
+                            () => Node(SearchNodeState.Queued, $"{left} {(left == 1 ? "clause" : "clauses")} left"));
                     } else if (eval == 1) {
                         //satisfiable
                         //WRITE ASSIGNMENTS OF VARIABLES
