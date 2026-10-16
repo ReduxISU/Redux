@@ -136,6 +136,35 @@ public class AutomatonFrames_Tests {
     }
 
     [Fact]
+    public void Garbage_ASymbolOutsideTheAlphabet_IsAMissingMove_ListedOnlyWhereTheInputHitsIt() {
+        // A complete DFA gets Garbage once its input holds a symbol outside the alphabet: the move the run misses is the
+        // one listed. The symbol is not added to the alphabet.
+        var p = AutomatonFrames.Payload(Dfa("abc"));
+        Assert.NotNull(p.Garbage);
+        Assert.Equal([("q:2", "c")], p.Garbage.Missing.Select(x => (x.State, x.Symbol)));
+        Assert.Equal(["a", "b"], p.Alphabet);
+        Assert.Equal(["a", "b", "c"], p.Input);
+        Assert.Null(AutomatonFrames.Payload(Dfa("ab")).Garbage);
+        // With missing moves of its own, the one the input hits is listed after them.
+        Assert.Equal([("q:1", "b"), ("q:2", "a"), ("q:2", "b"), ("q:2", "c")],
+            AutomatonFrames.Payload(Partial("ac")).Garbage!.Missing.Select(x => (x.State, x.Symbol)));
+        // A run that falls before the symbol never reaches it, so it is not listed.
+        Assert.Equal(3, AutomatonFrames.Payload(Partial("bc")).Garbage!.Missing.Count);
+        // An NFA has no Garbage, whatever its input.
+        Assert.Null(AutomatonFrames.Payload(Nfa("ac")).Garbage);
+    }
+
+    [Fact]
+    public void NfaPaths_ASymbolOutsideTheAlphabet_KillsEveryPathThere() {
+        var paths = AutomatonFrames.Payload(Nfa("ac")).Paths!;
+        Assert.NotEmpty(paths);
+        Assert.All(paths, p => Assert.Equal("dies", p.Outcome));
+        // Every path ends in 3 (2 goes on to 3 by ε), where 'c' is read.
+        Assert.All(paths, p => Assert.Equal("'c' is not in the alphabet, so 3 has no move on it and this path dies. Rejected.", p.Frames[^1].Caption));
+        Assert.All(paths, p => Assert.Equal(("q:3", 1, false), (p.Frames[^1].Active.Single(), p.Frames[^1].Position, p.Frames[^1].Ok)));
+    }
+
+    [Fact]
     public void Frame_EmptyStatesInADfaWithGarbage_IsGarbage_AndADoneThatFellInIsRejected() {
         var fall = AutomatonFrames.Frame(Partial(), [], 0, StepEvent.Reject, [AutomatonFrames.GarbageId], "falls");
         Assert.Equal(["garbage"], fall.Active);
@@ -315,10 +344,18 @@ public class AutomatonFrames_Tests {
         var fell = Assert.IsType<AutomatonFrame>(Assert.Single(AutomatonFrames.Build(Partial("ba"), new SolveRun("x", [], null)).Frames));
         Assert.Equal((false, "garbage"), (fell.Ok, fell.Active.Single()));
         Assert.Equal("The machine falls into Garbage, so it rejects the input.", fell.Caption);
-        // A symbol outside the alphabet is no move into Garbage: the machine stops where it is.
-        var stuck = Assert.IsType<AutomatonFrame>(Assert.Single(AutomatonFrames.Build(Partial("ac"), new SolveRun("x", [], null)).Frames));
-        Assert.Equal((false, "q:2", 1), (stuck.Ok, stuck.Active.Single(), stuck.Position));
-        Assert.Equal("The machine rejects the input.", stuck.Caption);
+        // A symbol outside the alphabet is a missing move too: the machine falls into Garbage there, as on any other.
+        foreach (var spec in new[] { Partial("ac"), Dfa("abc") }) {
+            var stuck = Assert.IsType<AutomatonFrame>(Assert.Single(AutomatonFrames.Build(spec, new SolveRun("x", [], null)).Frames));
+            Assert.Equal((false, "garbage"), (stuck.Ok, stuck.Active.Single()));
+            Assert.Equal(spec.Input.Length - 1, stuck.Position);
+            Assert.Equal("The machine falls into Garbage, so it rejects the input.", stuck.Caption);
+        }
+        // An NFA has no Garbage: it stays where its branches died.
+        var died = Assert.IsType<AutomatonFrame>(Assert.Single(AutomatonFrames.Build(Nfa("ac"), new SolveRun("x", [], null)).Frames));
+        Assert.Equal((false, 1), (died.Ok, died.Position));
+        Assert.Equal(["q:2", "q:3"], died.Active);
+        Assert.Equal("The machine rejects the input.", died.Caption);
     }
 
     [Fact]
