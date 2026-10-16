@@ -75,7 +75,7 @@ public class BoardFrames_Tests {
     public void Frame_Json_HasTheContractFieldsInOrder_AndOkOnlyOnDone() {
         var frame = BoardFrames.Frame(Sudoku4, B(("r0c0", "1"), ("r0c1", "2")), StepEvent.Try, ["r0c1"], "Try 2.", incremental: true);
         using var doc = JsonDocument.Parse(Json(frame));
-        Assert.Equal(["event", "caption", "focus", "values", "pieces", "cells", "links"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "values", "pieces", "cells", "links", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("Try", doc.RootElement.GetProperty("event").GetString());
         var done = BoardFrames.Frame(Sudoku4, B(), StepEvent.Done, [], "No.", ok: false, incremental: true);
         Assert.False(JsonDocument.Parse(Json(done)).RootElement.GetProperty("ok").GetBoolean());
