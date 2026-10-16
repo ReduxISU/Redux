@@ -109,7 +109,7 @@ public class DFA_Tests {
     [Fact]
     public void DFA_Accepts_The_Same_Transition_Written_Twice() {
         DFA dfa = new DFA("(({1,2},{a},{(1,a,2),(1,a,2)},1,{2}),a)");
-        Assert.Contains("1, 2", new DFASolver().solve(dfa));
+        Assert.Equal("1,2", new DFASolver().solve(dfa));
     }
 
     // #780: a symbol is one character; "ab" used to be cut to "a" without a word.
@@ -161,8 +161,14 @@ public class DFA_Tests {
         DFA dfa = new DFA(DefaultInstance);
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
-        Assert.Contains("sequence of states", result);
+        Assert.True(new DFAVerifier().verify(dfa, result), result);
         Assert.DoesNotContain("No Solution", result);
+    }
+
+    [Fact]
+    public void DFA_Solver_Answers_The_Run_As_A_Certificate() {
+        // The accepted answer is the run in the verifier's certificate format, so Check takes it as is (#896).
+        Assert.Equal(DFAVerifier.CertificateExample, new DFASolver().solve(new DFA(DefaultInstance)));
     }
 
     [Fact]
@@ -182,7 +188,7 @@ public class DFA_Tests {
         DFA dfa = new DFA(instance);
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
-        Assert.Contains("sequence of states", result);
+        Assert.True(new DFAVerifier().verify(dfa, result), result);
         Assert.DoesNotContain("No Solution", result);
     }
 
@@ -201,7 +207,7 @@ public class DFA_Tests {
         DFA dfa = new DFA("(({q0,q1},{a},{(q0,a,q1)},q0,{q0}),ε)");
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
-        Assert.Contains("sequence of states", result);
+        Assert.True(new DFAVerifier().verify(dfa, result), result);
     }
 
     [Fact]
@@ -297,14 +303,14 @@ public class DFA_Tests {
     // -------------------------------------------------------------------------
 
     [Theory]
-    [InlineData("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)", "1, 2")]
-    [InlineData("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),ba)", "1, 3, 2")]
-    [InlineData("(({even,odd},{a,b},{(even,a,even),(even,b,odd),(odd,a,odd),(odd,b,even)},even,{even}),bb)", "even, odd, even")]
+    [InlineData("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)", "1,2")]
+    [InlineData("(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),ba)", "1,3,2")]
+    [InlineData("(({even,odd},{a,b},{(even,a,even),(even,b,odd),(odd,a,odd),(odd,b,even)},even,{even}),bb)", "even,odd,even")]
     public void DFA_Solver_Returns_Correct_State_Path_For_Accepted_Input(string instance, string expectedPath) {
         DFA dfa = new DFA(instance);
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
-        Assert.Contains(expectedPath, result);
+        Assert.Equal(expectedPath, result);
     }
 
     // -------------------------------------------------------------------------

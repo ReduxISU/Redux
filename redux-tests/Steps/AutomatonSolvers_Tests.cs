@@ -18,7 +18,8 @@ namespace redux_tests;
 // The DFA and NFA solvers record steps for the Automaton picture. Recording must never change an answer.
 // Endpoints/Snapshots/automaton_solver_answers.tsv holds what each solver returned (solver, instance, answer as a JSON
 // string; tab separated) BEFORE the picture existed (with the #777-#780 fixes in), on its default instance, three
-// hand-picked instances and 12 seeded random ones.
+// hand-picked instances and 12 seeded random ones. An accepted answer is written as the certificate the verifier takes
+// ("1,2", one run per line for NFA; #896).
 public class AutomatonSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -56,10 +57,11 @@ public class AutomatonSolvers_Tests {
         return ids;
     }
 
-    private static bool Accepts(string answer) => answer.StartsWith("The sequence of states to accept is:");
+    private static bool Accepts(string answer) => !answer.StartsWith("No Solution");
 
-    // The end state of each run in an answer ("The sequence of states to accept is: 1, 2" -> 2).
-    private static string[] Ends(string answer) => Lines(answer).Split('\n').Where(l => Accepts(l)).Select(l => l.Split(',')[^1].Split(':')[^1].Trim()).ToArray();
+    // The end state of each run in an accepted answer, one run per line ("1,2" -> 2).
+    private static string[] Ends(string answer) =>
+        Accepts(answer) ? Lines(answer).Split('\n').Select(l => l.Split(',')[^1].Trim()).ToArray() : [];
 
     [Theory]
     [MemberData(nameof(RecordedAnswers))]
@@ -233,7 +235,7 @@ public class AutomatonSolvers_Tests {
         Assert.Equal(["q:1>q:2", "q:2>q:2", "q:3>q:2", "q:2>q:3"], steps[1].Focus);
         Assert.Equal(["q:2"], steps[2].Focus);
         Assert.Equal(new ActiveStates(["2"], 1), steps[^1].Partial);
-        Assert.Equal("The sequence of states to accept is: 1, 2", new NFASubsetSolver().solve(new NFA(DefaultNfa)));
+        Assert.Equal("1,2", new NFASubsetSolver().solve(new NFA(DefaultNfa)));
     }
 
     [Fact]
@@ -263,10 +265,37 @@ public class AutomatonSolvers_Tests {
         var verifier = new NFAVerifier();
         foreach (var line in subset.Split('\n')) {
             Assert.Contains(line, backtracking.Split('\n'));
-            Assert.True(verifier.verify(nfa, line.Split(':')[1].Replace(" ", "")));
+            Assert.True(verifier.verify(nfa, line));
         }
         var done = Steps(new NFASubsetSolver(), instance)[^1];
         Assert.Equal(new ActiveStates(Ends(subset), done.Partial.Position), done.Partial);
+    }
+
+    // Each solver's accepted answer is a certificate the problem's default verifier accepts as it is, so Check and the
+    // one-run response take it with no mapping (#896). Rejections keep their "No Solution" text.
+    [Theory]
+    [MemberData(nameof(RecordedAnswers))]
+    public void AnAcceptedAnswer_PassesTheDefaultVerifier(string solverName, string instance, string answer) {
+        var answers = new List<(string Solver, string Answer)> { (solverName, answer) };
+        if (solverName == "nfasolver") answers.Add(("nfasubsetsolver", new NFASubsetSolver().solve(new NFA(instance))));
+        foreach (var (solver, given) in answers) {
+            if (!Accepts(given)) {
+                Assert.StartsWith("No Solution", given);
+                continue;
+            }
+            bool ok = solverName == "dfasolver"
+                ? new DFA(instance).defaultVerifier.verify(new DFA(instance), given)
+                : new NFA(instance).defaultVerifier.verify(new NFA(instance), given);
+            Assert.True(ok, $"{solver}: {given}");
+        }
+    }
+
+    [Fact]
+    public void NfaBacktracking_ASeveralRunAnswer_PassesTheDefaultVerifierAsAWhole() {
+        var nfa = new NFA(DefaultNfa);
+        string answer = new NFASolver().solve(nfa);
+        Assert.Equal(["1,2,3,2", "1,2,2", "1,2"], Lines(answer).Split('\n'));
+        Assert.True(nfa.defaultVerifier.verify(nfa, answer));
     }
 
     [Fact]

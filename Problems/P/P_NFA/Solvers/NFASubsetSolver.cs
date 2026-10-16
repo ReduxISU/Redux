@@ -127,7 +127,8 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
         rec.Done(new ActiveStates(accepting, input.Length), true,
             accepting.Count == 1 ? "Accepted: a run ends in an accept state." : $"Accepted: runs end in {accepting.Count} accept states.");
 
-        // One run per accept state reached, read back from how each (state, position) was first reached.
+        // One run per accept state reached, read back from how each (state, position) was first reached. Each line is a
+        // certificate NFAVerifier accepts ("1,2") (#896).
         var lines = accepting.Select(a => {
             var run = new List<string>();
             var at = (State: a, Pos: input.Length);
@@ -137,7 +138,7 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
                 at = before;
             }
             run.Reverse();
-            return "The sequence of states to accept is: " + string.Join(", ", run);
+            return string.Join(",", run);
         });
         return string.Join(Environment.NewLine, lines);
     }
