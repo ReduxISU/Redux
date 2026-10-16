@@ -163,7 +163,7 @@ The two problems have their own visualizations for the picture (`EditDistanceVis
 - The columns are Step, Read, From, To and Accepting? (keys `step`, `read`, `from`, `to`, `accepting`). Read is `ε` for an ε move and `—` for the start row.
 - Every move adds a row. The new row is the focus, and its To cell is marked changed.
 - An `Accept` marks its row `Solution`, and a `Reject` marks its row `Rejected`. In `Done` the last row is `Solution` when the input is accepted and `Rejected` when not.
-- A DFA's missing move is a row into `Garbage`. Every NFA branch dying is a row into `∅`. Both rows are `Rejected`.
+- A DFA's missing move, a symbol outside the alphabet included, is a row into `Garbage`. Every NFA branch dying is a row into `∅` (subset simulation), or a dead end marked `Rejected` (backtracking); a symbol outside the alphabet kills every branch the same way. Both rows are `Rejected`.
 - NFA Backtracking (the table's own solver) shows the branch being explored: a `Try` adds a row and a `Backtrack` takes it away. Its `Done` shows the first branch that accepted, or the last one that died.
 - NFA Subset Simulation (`&solver=nfasubsetsolver`) adds one row per symbol, with every active state in braces.
 - Past the 150-step cap a step may not follow on from the one before. A row of `…` then stands for the steps not shown. A DFA keeps the rows before it, since they are the start of its one run. An NFA keeps only its start row, because a search's backtracking may have been hidden.

@@ -205,12 +205,40 @@ public class TableAutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("{\"values\":[[\"0\",\"—\",\"—\",\"1\",\"no\"]]}", Readable(JsonDocument.Parse(search).RootElement.GetProperty("payload").GetProperty("blank")));
     }
 
+    // A symbol outside the alphabet is a missing move like any other: the DFA's row reading it goes into Garbage, as the
+    // Automaton picture falls into Garbage there.
     [Fact]
-    public async Task Frames_SymbolNotInTheAlphabet_RejectsTheStartRow() {
-        var nfa = await Frames("visualization=nfatablevisualization&format=frames", "(({1,2},{a,b},{(1,a,2)},1,{2}),ac)");
-        Assert.Equal(["Reject", "Done"], nfa.Select(f => f.GetProperty("event").GetString()));
-        Assert.Equal("[[\"0\",\"—\",\"—\",\"1\",\"no\"]]", Readable(nfa[^1].GetProperty("values")));
-        Assert.Equal("r0:Rejected", RowStates(nfa[^1]));
+    public async Task Frames_Dfa_ASymbolNotInTheAlphabet_IsARowIntoGarbage() {
+        var frames = await Frames("visualization=dfatablevisualization&format=frames",
+            "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),abc)");
+        Assert.Equal(["Try", "Try", "Try", "Reject", "Done"], frames.Select(f => f.GetProperty("event").GetString()));
+        var reject = frames[3];
+        Assert.Equal("[\"3\",\"c\",\"2\",\"Garbage\",\"no\"]", Readable(reject.GetProperty("values")[3]));
+        Assert.Equal(4, reject.GetProperty("values").GetArrayLength());
+        Assert.Equal("r3:Rejected", RowStates(reject));
+        Assert.Equal(Readable(reject.GetProperty("values")), Readable(frames[^1].GetProperty("values")));
+        Assert.Equal("r3:Rejected", RowStates(frames[^1]));
+        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
+    }
+
+    // An NFA has no Garbage: every branch dies at the symbol, as at any missing move. The backtracking search's branch
+    // ends in a dead end; subset simulation's set empties into ∅.
+    [Fact]
+    public async Task Frames_Nfa_ASymbolNotInTheAlphabet_KillsEveryBranch() {
+        const string instance = "(({1,2},{a,b},{(1,a,2)},1,{2}),ac)";
+        var search = await Frames("visualization=nfatablevisualization&format=frames", instance);
+        Assert.Equal(["Try", "Try", "Reject", "Backtrack", "Done"], search.Select(f => f.GetProperty("event").GetString()));
+        Assert.Equal("[[\"0\",\"—\",\"—\",\"1\",\"no\"],[\"1\",\"a\",\"1\",\"2\",\"yes\"]]", Readable(search[2].GetProperty("values")));
+        Assert.Equal("r1:Rejected", RowStates(search[2]));
+        Assert.Equal(Readable(search[2].GetProperty("values")), Readable(search[^1].GetProperty("values")));
+        Assert.Equal("r1:Rejected", RowStates(search[^1]));
+        Assert.False(search[^1].GetProperty("ok").GetBoolean());
+
+        var subset = await Frames("visualization=nfatablevisualization&format=frames&solver=nfasubsetsolver", instance);
+        Assert.Equal(["Try", "Try", "Reject", "Done"], subset.Select(f => f.GetProperty("event").GetString()));
+        Assert.Equal("[\"2\",\"c\",\"2\",\"∅\",\"no\"]", Readable(subset[^1].GetProperty("values")[2]));
+        Assert.Equal("r2:Rejected", RowStates(subset[^1]));
+        Assert.False(subset[^1].GetProperty("ok").GetBoolean());
     }
 }
 
