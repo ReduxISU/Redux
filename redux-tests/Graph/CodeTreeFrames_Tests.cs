@@ -58,11 +58,11 @@ public class CodeTreeFrames_Tests {
     [Fact]
     public void Frame_Json_HasTheContractFieldsInOrder_BitsOnlyWithCodes_AndOkOnlyOnDone() {
         using var doc = JsonDocument.Parse(Json(CodeTreeFrames.Frame(Abc, F([N1]), StepEvent.Try, ["c2", "c3", "n1"], "c", incremental: true)));
-        Assert.Equal(["event", "caption", "focus", "merged", "roots", "codes", "nodes", "edges"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "merged", "roots", "codes", "nodes", "edges", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("[{\"id\":\"n1\",\"weight\":2,\"left\":\"c2\",\"right\":\"c3\"}]", JsonSerializer.Serialize(doc.RootElement.GetProperty("merged")));
         var done = CodeTreeFrames.Frame(Abc, F([N1, N2], ("c1", "1"), ("c2", "00"), ("c3", "01")), StepEvent.Done, [], "c", ok: true, incremental: true);
         using var doneDoc = JsonDocument.Parse(Json(done));
-        Assert.Equal(["event", "caption", "focus", "merged", "roots", "codes", "nodes", "edges", "bits", "ok"], doneDoc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "merged", "roots", "codes", "nodes", "edges", "step", "bits", "ok"], doneDoc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal(7, done.Bits);   // a 3 x 1 bit, b and c 2 bits each
     }
 

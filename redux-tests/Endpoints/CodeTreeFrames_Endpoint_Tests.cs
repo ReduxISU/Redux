@@ -164,7 +164,7 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         for (int i = 0; i < frames.Count; i++) {
             var f = frames[i];
             bool hasBits = f.TryGetProperty("bits", out _);
-            Assert.Equal(["event", "caption", "focus", "merged", "roots", "codes", "nodes", "edges", .. hasBits ? new[] { "bits" } : [], .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "merged", "roots", "codes", "nodes", "edges", "step", .. hasBits ? new[] { "bits" } : [], .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             var merged = f.GetProperty("merged").EnumerateArray().ToList();
             var ids = leafIds.Concat(merged.Select(m => m.GetProperty("id").GetString()!)).ToHashSet();
@@ -223,7 +223,7 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             + "\"focus\":[\"c2\",\"n1\",\"n2\"],\"merged\":[{\"id\":\"n1\",\"weight\":2,\"left\":\"c3\",\"right\":\"c4\"},{\"id\":\"n2\",\"weight\":4,\"left\":\"c2\",\"right\":\"n1\"}],"
             + "\"roots\":[\"c5\",\"n2\",\"c1\"],\"codes\":{},"
             + "\"nodes\":{\"c2\":{\"state\":\"ElementHighlight\"},\"c3\":{\"state\":\"Committed\"},\"c4\":{\"state\":\"Committed\"},\"n1\":{\"state\":\"ElementHighlight\"},\"n2\":{\"state\":\"ElementHighlight\"}},"
-            + "\"edges\":{\"n1.0\":{\"state\":\"Committed\"},\"n1.1\":{\"state\":\"Committed\"},\"n2.0\":{\"state\":\"ElementHighlight\"},\"n2.1\":{\"state\":\"ElementHighlight\"}}}",
+            + "\"edges\":{\"n1.0\":{\"state\":\"Committed\"},\"n1.1\":{\"state\":\"Committed\"},\"n2.0\":{\"state\":\"ElementHighlight\"},\"n2.1\":{\"state\":\"ElementHighlight\"}},\"step\":2}",
             Readable(frames[2]));
         // The mockup's solved view: a gets the 1-bit code, the encoded text is 23 bits instead of 88.
         var done = frames[^1];
