@@ -38,15 +38,9 @@ class NFASolver : ISolver<NFA, ActiveStates> {
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
 
-        // Validate characters
-        foreach (char c in input) {
-            if (!problem.alphabet.Contains(c)) {
-                rec.Reject(() => new ActiveStates([problem.startState], 0),
-                    () => $"'{c}' is not in the alphabet, so the NFA cannot read it.", () => [AutomatonFrames.StateId(problem.startState)]);
-                rec.Done(new ActiveStates([], 0), false, $"Rejected: '{c}' is not in the alphabet.");
-                return $"No Solution: Input contains character '{c}' not in NFA alphabet";
-            }
-        }
+        // A symbol outside the alphabet is a move no state has: every branch that reaches it dies there, as at any other
+        // missing move, so the search still runs (and shows those dead ends). The answer still names the symbol.
+        char? offAlphabet = input.Any(c => !problem.alphabet.Contains(c)) ? input.First(c => !problem.alphabet.Contains(c)) : null;
 
         var edges = problem.edges; // List<NFAEdge>
         var acceptPaths = new List<List<string>>();
@@ -101,7 +95,9 @@ class NFASolver : ISolver<NFA, ActiveStates> {
             if (!moved && !acceptingHere) {
                 rec.Reject(() => new ActiveStates([state], pos),
                     () => pos < input.Length
-                        ? $"{state} has no move on '{input[pos]}': this run is a dead end."
+                        ? problem.alphabet.Contains(input[pos])
+                            ? $"{state} has no move on '{input[pos]}': this run is a dead end."
+                            : $"'{input[pos]}' is not in the alphabet, so {state} has no move on it: this run is a dead end."
                         : $"The input is used up in {state}, which is not an accept state: this run is a dead end.",
                     () => [AutomatonFrames.StateId(state)]);
             }
@@ -115,6 +111,10 @@ class NFASolver : ISolver<NFA, ActiveStates> {
         DFS(problem.startState, 0, startPath, startVisited);
 
         // Build output
+        if (offAlphabet is char off) {
+            rec.Done(new ActiveStates([], input.Length), false, $"Rejected: '{off}' is not in the alphabet, so no run can read the whole input.");
+            return $"No Solution: Input contains character '{off}' not in NFA alphabet";
+        }
         if (acceptPaths.Count == 0) {
             rec.Done(new ActiveStates([], input.Length), false, "Rejected: no run accepts the input.");
             return "No Solution Exists: No run accepts the input";

@@ -132,7 +132,9 @@ sealed record AutomatonFrame(
 /// </para>
 /// <para>
 /// <b>Garbage.</b> A DFA in which some state has no move on some symbol gets a Garbage state (label <c>Garbage</c>, with
-/// a <c>'</c> added while a state already has that name), drawn apart with no arrows into it. A DFA solver that falls into
+/// a <c>'</c> added while a state already has that name), drawn apart with no arrows into it. A symbol of the input
+/// outside the alphabet is a missing move too: the one the run hits is listed in <c>missing</c> (and brings Garbage
+/// with it when the machine has no other missing move). A DFA solver that falls into
 /// it records a step whose partial has no states (<see cref="ActiveStates"/> is empty); the picture shows Garbage as the
 /// active state.
 /// </para>
@@ -235,19 +237,11 @@ static class AutomatonFrames {
             int beyond = Layer.Values.Max() + 1;
             foreach (var s in States) Layer.TryAdd(s, beyond);
 
-            if (spec.Kind == AutomatonKind.Dfa) {
+            bool dfa = spec.Kind == AutomatonKind.Dfa;
+            if (dfa)
                 foreach (var s in States)
                     foreach (var a in spec.Alphabet)
                         if (!spec.Transitions.Any(t => t.From == s && t.Symbol == a)) Missing.Add(new AutomatonMissingMove(StateId(s), a));
-                if (Missing.Count > 0) {
-                    string label = "Garbage";
-                    while (States.Contains(label)) label += "'";
-                    GarbageLabel = label;
-                    NodeIds.Add(GarbageId);
-                }
-            }
-            foreach (var s in States) NodeIds.Add(StateId(s));
-            foreach (var (from, to, _) in Arrows) EdgeIds.Add(TransitionId(from, to));
 
             // The states reached on this input, step by step as the whole machine runs it.
             var active = Closure([spec.Start]);
@@ -255,13 +249,30 @@ static class AutomatonFrames {
             foreach (char c in Input) {
                 var next = Closure(active.SelectMany(s => Moves(s, c.ToString())));
                 if (next.Count == 0) {
-                    // A missing move falls into Garbage; a symbol outside the alphabet is not a move at all.
-                    FellIntoGarbage = GarbageLabel != null && Spec.Alphabet.Contains(c.ToString());
+                    // A DFA with no move falls into Garbage. A symbol outside the alphabet is a missing move too: the one
+                    // this input hits is listed with the others (only that one: the run stops there, and the symbols an
+                    // alphabet lacks are endless).
+                    if (dfa) {
+                        FellIntoGarbage = true;
+                        string symbol = c.ToString();
+                        if (!spec.Alphabet.Contains(symbol))
+                            foreach (var s in States.Where(active.Contains))
+                                Missing.Add(new AutomatonMissingMove(StateId(s), symbol));
+                    }
                     break;
                 }
                 Reached.UnionWith(next);
                 active = next;
             }
+
+            if (dfa && Missing.Count > 0) {
+                string label = "Garbage";
+                while (States.Contains(label)) label += "'";
+                GarbageLabel = label;
+                NodeIds.Add(GarbageId);
+            }
+            foreach (var s in States) NodeIds.Add(StateId(s));
+            foreach (var (from, to, _) in Arrows) EdgeIds.Add(TransitionId(from, to));
         }
 
         public IEnumerable<string> Moves(string state, string symbol) =>
@@ -437,7 +448,9 @@ static class AutomatonFrames {
         }
         string done = accepted ? $"This path ends in {end}, an accept state. Accepted."
             : endPos >= m.Input.Length ? $"This path ends in {end}, which is not an accept state. Rejected."
-            : $"No '{m.Input[endPos]}' move from {end}, so this path dies. Rejected.";
+            : m.Spec.Alphabet.Contains(m.Input[endPos].ToString())
+                ? $"No '{m.Input[endPos]}' move from {end}, so this path dies. Rejected."
+                : $"'{m.Input[endPos]}' is not in the alphabet, so {end} has no move on it and this path dies. Rejected.";
         frames.Add(Frame(m, [end], endPos, StepEvent.Done, [], done, accepted, reached));
         return frames;
     }
@@ -453,7 +466,8 @@ static class AutomatonFrames {
         int read = 0;
         foreach (char c in m.Input) {
             var next = m.Closure(active.SelectMany(s => m.Moves(s, c.ToString())));
-            // Stuck: a DFA's missing move leaves no state (Garbage); a symbol outside the alphabet leaves the machine where it is.
+            // Stuck: a DFA's missing move (a symbol outside the alphabet included) leaves no state (Garbage); an NFA stays
+            // where its branches died.
             if (next.Count == 0) {
                 if (m.FellIntoGarbage) active = next;
                 break;

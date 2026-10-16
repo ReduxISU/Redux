@@ -207,6 +207,55 @@ public class AutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
+    public async Task Frames_Dfa_ASymbolOutsideTheAlphabet_FallsIntoTheGarbageState() {
+        // The bug report: the DFA's default instance on "abc" ended Rejected in 2. 'c' is a missing move of 2, so the run
+        // falls into Garbage there and ends in it, as at any missing move. The JSON as the API writes it.
+        const string instance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),abc)";
+        var (status, body) = await Visualize("visualization=DFAVisualization&format=frames", instance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        var payload = root.GetProperty("payload");
+        Assert.Equal(["a", "b"], payload.GetProperty("alphabet").EnumerateArray().Select(a => a.GetString()));
+        Assert.Equal(["a", "b", "c"], payload.GetProperty("input").EnumerateArray().Select(a => a.GetString()));
+        Assert.Equal("""{"id":"garbage","label":"Garbage","missing":[{"state":"q:2","symbol":"c"}]}""",
+            Compact(payload.GetProperty("garbage").GetRawText()));
+        var frames = root.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(["Try", "Try", "Try", "Reject", "Done"], frames.Select(f => f.GetProperty("event").GetString()));
+        Assert.Equal("'c' is not in the alphabet, so 2 has no move on it, and the DFA falls into the Garbage state and stays there.",
+            frames[3].GetProperty("caption").GetString());
+        Assert.Equal(["garbage"], frames[3].GetProperty("focus").EnumerateArray().Select(a => a.GetString()));
+        foreach (var f in frames.Skip(3)) {
+            Assert.Equal(["garbage"], f.GetProperty("active").EnumerateArray().Select(a => a.GetString()));
+            Assert.Equal("Rejected", f.GetProperty("nodes").GetProperty("garbage").GetProperty("state").GetString());
+            Assert.Equal(2, f.GetProperty("position").GetInt32());
+            Assert.False(f.GetProperty("nodes").TryGetProperty("q:2", out var q2) && q2.GetProperty("state").GetString() == "Rejected");
+        }
+        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
+        Assert.Equal("Untraveled", frames[^1].GetProperty("nodes").GetProperty("q:3").GetProperty("state").GetString());
+
+        // The verifier keeps its answer.
+        var request = new StringContent(JsonSerializer.Serialize(new { Certificate = "1,2,2,2", ProblemInstance = instance }), Encoding.UTF8, "application/json");
+        var verify = await _client.PostAsync("/ProblemProvider/verify?verifier=dfaverifier", request, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, verify.StatusCode);
+        Assert.Contains("false", await verify.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Frames_Nfa_ASymbolOutsideTheAlphabet_KillsEveryBranch_WithoutAGarbageState() {
+        const string instance = "(({1,2,3},{a,b},{(1,a,2),(1,ε,2),(1,b,3),(2,a,2),(2,ε,3),(2,b,2),(3,a,2),(3,b,3)},1,{2}),ac)";
+        foreach (var solver in new[] { "nfasolver", "nfasubsetsolver" }) {
+            var (status, body) = await Visualize($"visualization=nfavisualization&format=frames&solver={solver}", instance);
+            Assert.Equal(HttpStatusCode.OK, status);
+            var root = JsonDocument.Parse(body).RootElement;
+            Assert.False(root.GetProperty("payload").TryGetProperty("garbage", out _));
+            var frames = root.GetProperty("frames").EnumerateArray().ToList();
+            Assert.Contains(frames, f => f.GetProperty("event").GetString() == "Reject"
+                && f.GetProperty("caption").GetString()!.Contains("'c' is not in the alphabet"));
+            Assert.False(frames[^1].GetProperty("ok").GetBoolean());
+        }
+    }
+
+    [Fact]
     public async Task Frames_StateNamesWithSeparators_KeepEveryIdUnique() {
         // State names that hold the id separators (":" and ">") are escaped, not refused.
         var (status, body) = await Visualize("visualization=dfavisualization&format=frames",
@@ -256,6 +305,7 @@ public class AutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 }
 
 // A stopped run, under the 0.05 s budget of TinyBudgetAppFactory.
+[Collection(TimingCollection.Name)]
 public class AutomatonFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
