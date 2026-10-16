@@ -13,7 +13,8 @@ namespace redux_tests;
 // the solver reported its search tree: every branch and bound row of tour_solver_answers.tsv, the mockup's "Greedy
 // isn't optimal" example, a square whose best tour is over K, and four seeded random complete graphs of 7 to 11 cities
 // (two past the 150-step cap). With each step's "tree" removed, the steps must hash the same, so no other picture
-// changes. The other tests check the tree links themselves.
+// changes. The one change since is the Done caption of a run that never beats the greedy tour, which now says so (#897).
+// The other tests check the tree links themselves.
 public class SearchTreeTsp_Tests {
     internal static IEnumerable<(string Solver, string Instance, int Count, string[] Hashes)> Rows() =>
         File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", "searchtree_tsp_steps.tsv")).Where(l => l.Length > 0).Select(l => {
@@ -61,16 +62,28 @@ public class SearchTreeTsp_Tests {
         for (int i = 0; i < steps.Count && i < StepRecorder<Tour>.DefaultCap; i++) {
             var step = steps[i];
             if (step.Event == StepEvent.Done) continue;
-            var node = Assert.Single(step.Tree!);
             var cities = step.Partial.Order;
             if (i == 0) {
-                // The root: the start city, queued with the initial lower bound (the first expansion checks its label).
-                Assert.Equal((0, (int?)null, SearchNodeState.Queued), (node.NodeId, node.ParentId, node.State));
-                Assert.Matches(@"^lb [\d,.]+$", node.Bound);
-                made[0] = node;
-                path[0] = [node.Label];
+                // The root: the start city, queued with the initial lower bound (the first expansion checks its label). With
+                // it, when the greedy solver found a tour, that tour's own leaf under the root: the solution so far (#897).
+                var root = step.Tree![0];
+                Assert.Equal((0, (int?)null, SearchNodeState.Queued), (root.NodeId, root.ParentId, root.State));
+                Assert.Matches(@"^lb [\d,.]+$", root.Bound);
+                made[0] = root;
+                path[0] = [root.Label];
+                if (step.Event == StepEvent.Accept) {
+                    Assert.StartsWith("Start from the greedy tour", step.Caption);
+                    var greedy = step.Tree[1];
+                    Assert.Equal((1, (int?)0, "greedy tour", SearchNodeState.Solution), (greedy.NodeId, greedy.ParentId, greedy.Label, greedy.State));
+                    Assert.Matches(@"^tour [\d,.]+$", greedy.Bound);
+                    Assert.Equal(2, step.Tree.Count);
+                    made[1] = greedy;
+                } else {
+                    Assert.Single(step.Tree);
+                }
                 continue;
             }
+            var node = Assert.Single(step.Tree!);
             bool isNew = !made.ContainsKey(node.NodeId);
             if (isNew) {
                 // An extension of the path being expanded, numbered in order.
@@ -126,17 +139,23 @@ public class SearchTreeTsp_Tests {
         var steps = Steps(solver, instance);
         var done = steps[^1];
         var accepts = steps.Where(s => s.Event == StepEvent.Accept && s.Caption.StartsWith("Close the tour", StringComparison.Ordinal)).ToList();
-        if (done.Ok != true || (accepts.Count == 0 && steps.Count <= StepRecorder<Tour>.DefaultCap + 1)) {
-            // No answer, or the greedy tour was never beaten: nothing to name.
+        if (done.Ok != true) {
+            // No answer: nothing to name.
             Assert.Null(done.Tree);
             return;
         }
-        if (done.Tree == null) {
-            // Past the cap the greedy tour may still be the best; then no kept step closed a better one either.
+        var path = done.Tree!;
+        if (accepts.Count == 0 && steps.Count <= StepRecorder<Tour>.DefaultCap + 1) Assert.Equal("greedy tour", path[^1].Label);
+        if (path is [{ Label: "greedy tour" } greedy]) {
+            // The greedy tour was never beaten (past the cap it may still be the best; then no kept step closed a better one
+            // either): the answer is its leaf under the root, and the caption says so (#897).
             Assert.Empty(accepts);
+            Assert.Equal((1, (int?)0, SearchNodeState.Solution), (greedy.NodeId, greedy.ParentId, greedy.State));
+            Assert.Equal(steps[0].Tree![1], greedy);
+            Assert.StartsWith("The cheapest tour is the greedy tour ", done.Caption);
+            Assert.EndsWith(": the search found nothing cheaper.", done.Caption);
             return;
         }
-        var path = done.Tree;
         Assert.Equal((0, (int?)null), (path[0].NodeId, path[0].ParentId));
         for (int i = 1; i < path.Count; i++) Assert.Equal(path[i - 1].NodeId, path[i].ParentId);
         Assert.All(path.SkipLast(1), n => Assert.Equal(SearchNodeState.Explored, n.State));

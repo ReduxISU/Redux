@@ -95,20 +95,28 @@ public class SearchTreeTsp_Endpoint_Tests : IClassFixture<AppFactory> {
             frames.Select(f => (f.GetProperty("event").GetString(), f.GetProperty("caption").GetString())));
         Assert.All(frames.SkipLast(1), f => Assert.Single(f.GetProperty("focus").EnumerateArray()));
         // Branch and bound queues: the root and every path it expands get an order badge (the Done step's path past the cap
-        // may name nodes whose steps were not kept, which have none).
-        Assert.All(frames.SkipLast(1).SelectMany(f => f.GetProperty("nodes").EnumerateArray()).Where(n => SearchTreeJson.Kind(n) == "explored"),
+        // may name nodes whose steps were not kept, which have none; the greedy tour's leaf, once beaten, was never queued).
+        Assert.All(frames.SkipLast(1).SelectMany(f => f.GetProperty("nodes").EnumerateArray())
+                .Where(n => SearchTreeJson.Kind(n) == "explored" && n.GetProperty("label").GetString() != "greedy tour"),
             n => Assert.True(n.TryGetProperty("order", out _)));
 
-        // Done: ok when there is an answer within K. The green path, when the search beat the greedy tour, spells the answer.
+        // Done: ok when there is an answer within K. The green path spells the answer when the search beat the greedy tour, and
+        // ends on the greedy tour's leaf when it did not (#897).
         string answer = ((ISolver)Activator.CreateInstance(ProblemProvider.Solvers[Solver])!).solve(instance);
         bool ok = tourFrames[^1].GetProperty("ok").GetBoolean();
         Assert.Equal(ok, done.GetProperty("ok").GetBoolean());
         var green = SearchTreeJson.GreenPath(done);
-        if (!ok || green.Count == 0) {
+        if (!ok) {
             Assert.Empty(green);
             return;
         }
+        Assert.NotEmpty(green);
         Assert.Equal("solution", SearchTreeJson.Kind(green[^1]));
+        if (green[^1].GetProperty("label").GetString() == "greedy tour") {
+            Assert.Equal(2, green.Count);
+            Assert.StartsWith("The cheapest tour is the greedy tour ", done.GetProperty("caption").GetString());
+            return;
+        }
         if (green.Any(n => SearchTreeJson.Kind(n) == "hidden")) return;
         var cities = answer.Trim('{', '}').Split(',').SkipLast(1);
         Assert.Equal(cities, green.Select(n => n.GetProperty("label").GetString()));
@@ -125,24 +133,45 @@ public class SearchTreeTsp_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"The cheapest tour is a → c → b → d → e → a, total 27, within K = 100.\",\"focus\":[],\"nodes\":["
             + "{\"id\":\"n0\",\"parent\":null,\"label\":\"a\",\"kind\":\"explored\",\"state\":\"Solution\",\"bound\":\"lb 27\",\"order\":1},"
-            + "{\"id\":\"n1\",\"parent\":\"n0\",\"label\":\"b\",\"kind\":\"explored\",\"state\":\"Covered\",\"bound\":\"lb 27\",\"order\":2},"
-            + "{\"id\":\"n5\",\"parent\":\"n1\",\"label\":\"c\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
-            + "{\"id\":\"n6\",\"parent\":\"n1\",\"label\":\"d\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
-            + "{\"id\":\"n7\",\"parent\":\"n1\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 33 ≥ 31\"},"
-            + "{\"id\":\"n2\",\"parent\":\"n0\",\"label\":\"c\",\"kind\":\"explored\",\"state\":\"Solution\",\"bound\":\"lb 27\",\"order\":3},"
-            + "{\"id\":\"n8\",\"parent\":\"n2\",\"label\":\"b\",\"kind\":\"explored\",\"state\":\"Solution\",\"bound\":\"lb 27\",\"order\":4},"
-            + "{\"id\":\"n11\",\"parent\":\"n8\",\"label\":\"d\",\"kind\":\"explored\",\"state\":\"Solution\",\"bound\":\"lb 27\",\"order\":5},"
-            + "{\"id\":\"n13\",\"parent\":\"n11\",\"label\":\"e\",\"kind\":\"solution\",\"state\":\"Solution\",\"bound\":\"tour 27\",\"order\":6},"
-            + "{\"id\":\"n12\",\"parent\":\"n8\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 30 ≥ 27\"},"
-            + "{\"id\":\"n9\",\"parent\":\"n2\",\"label\":\"d\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
-            + "{\"id\":\"n10\",\"parent\":\"n2\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
-            + "{\"id\":\"n3\",\"parent\":\"n0\",\"label\":\"d\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 28 ≥ 27\"},"
-            + "{\"id\":\"n4\",\"parent\":\"n0\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 27 ≥ 27\"}],"
-            + "\"total\":14,\"cut\":8,\"ok\":true}",
+            + "{\"id\":\"n1\",\"parent\":\"n0\",\"label\":\"greedy tour\",\"kind\":\"explored\",\"state\":\"Covered\",\"bound\":\"tour 31\"},"
+            + "{\"id\":\"n2\",\"parent\":\"n0\",\"label\":\"b\",\"kind\":\"explored\",\"state\":\"Covered\",\"bound\":\"lb 27\",\"order\":2},"
+            + "{\"id\":\"n6\",\"parent\":\"n2\",\"label\":\"c\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
+            + "{\"id\":\"n7\",\"parent\":\"n2\",\"label\":\"d\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
+            + "{\"id\":\"n8\",\"parent\":\"n2\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 33 ≥ 31\"},"
+            + "{\"id\":\"n3\",\"parent\":\"n0\",\"label\":\"c\",\"kind\":\"explored\",\"state\":\"Solution\",\"bound\":\"lb 27\",\"order\":3},"
+            + "{\"id\":\"n9\",\"parent\":\"n3\",\"label\":\"b\",\"kind\":\"explored\",\"state\":\"Solution\",\"bound\":\"lb 27\",\"order\":4},"
+            + "{\"id\":\"n12\",\"parent\":\"n9\",\"label\":\"d\",\"kind\":\"explored\",\"state\":\"Solution\",\"bound\":\"lb 27\",\"order\":5},"
+            + "{\"id\":\"n14\",\"parent\":\"n12\",\"label\":\"e\",\"kind\":\"solution\",\"state\":\"Solution\",\"bound\":\"tour 27\",\"order\":6},"
+            + "{\"id\":\"n13\",\"parent\":\"n9\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 30 ≥ 27\"},"
+            + "{\"id\":\"n10\",\"parent\":\"n3\",\"label\":\"d\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
+            + "{\"id\":\"n11\",\"parent\":\"n3\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 31 ≥ 31\"},"
+            + "{\"id\":\"n4\",\"parent\":\"n0\",\"label\":\"d\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 28 ≥ 27\"},"
+            + "{\"id\":\"n5\",\"parent\":\"n0\",\"label\":\"e\",\"kind\":\"pruned\",\"state\":\"Rejected\",\"bound\":\"lb 27 ≥ 27\"}"
+            + "],\"total\":15,\"cut\":8,\"ok\":true}",
             Readable(frames[^1]));
-        // The greedy tour is the first step: only the root, queued, in focus.
-        Assert.Equal("[{\"id\":\"n0\",\"parent\":null,\"label\":\"a\",\"kind\":\"queued\",\"state\":\"ElementHighlight\",\"bound\":\"lb 27\"}]",
+        // The greedy tour is the first step: the root, and the greedy tour's own leaf under it, the best so far, in focus (#897).
+        // Once the search beats it, the leaf is only explored.
+        Assert.Equal("[{\"id\":\"n0\",\"parent\":null,\"label\":\"a\",\"kind\":\"explored\",\"state\":\"Committed\",\"bound\":\"lb 27\",\"order\":1},{\"id\":\"n1\",\"parent\":\"n0\",\"label\":\"greedy tour\",\"kind\":\"solution\",\"state\":\"ElementHighlight\",\"bound\":\"tour 31\"}]",
             Readable(frames[0].GetProperty("nodes")));
+    }
+
+    [Theory]
+    [InlineData("(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)", "tour 6830")]
+    [InlineData("(({1,2,3,4},{({1,2},3),({1,3},9),({1,4},4),({2,3},2),({2,4},8),({3,4},5)}),20)", "tour 14")]
+    public async Task Frames_GreedyNeverBeaten_EndOnTheGreedyToursLeaf(string instance, string cost) {
+        // The search never beats the greedy tour, so the answer is that tour: its own leaf under the root, green in the Done
+        // (#897). It is the best so far from the first frame on.
+        var (_, body) = await Visualize($"visualization={Vis}&format=frames", instance);
+        var frames = SearchTreeJson.Check(body, "Traveling Salesperson", instance);
+        var done = frames[^1];
+        Assert.True(done.GetProperty("ok").GetBoolean());
+        Assert.EndsWith(": the search found nothing cheaper.", done.GetProperty("caption").GetString());
+        var green = SearchTreeJson.GreenPath(done);
+        Assert.Equal([("n0", "Solution"), ("n1", "Solution")], green.Select(n => (SearchTreeJson.Id(n), SearchTreeJson.State(n))));
+        Assert.Equal(("greedy tour", "solution", cost), (green[1].GetProperty("label").GetString(), SearchTreeJson.Kind(green[1]), green[1].GetProperty("bound").GetString()));
+        Assert.Equal(["n1"], frames[0].GetProperty("focus").EnumerateArray().Select(x => x.GetString()));
+        Assert.Equal("Committed", SearchTreeJson.State(frames[0].GetProperty("nodes")[0]));
+        Assert.All(frames.Skip(1).SkipLast(1), f => Assert.Empty(SearchTreeJson.GreenPath(f)));
     }
 
     [Fact]
