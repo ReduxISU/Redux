@@ -230,7 +230,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         bool incremental = IncrementalSolvers_Tests.Classification[solver];
         foreach (var f in frames) {
-            Assert.Equal(["event", "caption", "focus", "items", "containers", "assign", "totals", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "items", "containers", "assign", "totals", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             string ev = f.GetProperty("event").GetString()!;
             Assert.All(f.GetProperty("focus").EnumerateArray(), id => Assert.True(itemIds.Contains(id.GetString()!) || containerIds.Contains(id.GetString()!), id.GetString()));
@@ -292,12 +292,12 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"Try {1,7}: 1 + 7 = 8, not 28.\",\"focus\":[\"I1\",\"I2\"],"
             + "\"items\":{\"I1\":{\"state\":\"ElementHighlight\"},\"I2\":{\"state\":\"ElementHighlight\"}},"
-            + "\"containers\":{\"C1\":{\"state\":\"Rejected\"}},\"assign\":[0,0,-1,-1],\"totals\":[{\"size\":8}]}",
+            + "\"containers\":{\"C1\":{\"state\":\"Rejected\"}},\"assign\":[0,0,-1,-1],\"totals\":[{\"size\":8}],\"step\":2}",
             Readable(frames[2]));
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"{1,12,15} adds up to exactly 28, found after 13 subsets.\",\"focus\":[],"
             + "\"items\":{\"I1\":{\"state\":\"Solution\"},\"I2\":{\"state\":\"Untraveled\"},\"I3\":{\"state\":\"Solution\"},\"I4\":{\"state\":\"Solution\"}},"
-            + "\"containers\":{\"C1\":{\"state\":\"Covered\"}},\"assign\":[0,-1,0,0],\"totals\":[{\"size\":28}],\"ok\":true}",
+            + "\"containers\":{\"C1\":{\"state\":\"Covered\"}},\"assign\":[0,-1,0,0],\"totals\":[{\"size\":28}],\"step\":13,\"ok\":true}",
             Readable(frames[^1]));
     }
 
@@ -337,7 +337,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"No bin has room for 6, so take back the last choice.\",\"focus\":[\"I3\"],"
             + "\"items\":{\"I1\":{\"state\":\"Committed\"},\"I2\":{\"state\":\"Committed\"},\"I3\":{\"state\":\"Rejected\"}},"
-            + "\"containers\":{\"C1\":{\"state\":\"Covered\"},\"C2\":{\"state\":\"Covered\"}},\"assign\":[0,1,-1],\"totals\":[{\"size\":6},{\"size\":6}]}",
+            + "\"containers\":{\"C1\":{\"state\":\"Covered\"},\"C2\":{\"state\":\"Covered\"}},\"assign\":[0,1,-1],\"totals\":[{\"size\":6},{\"size\":6}],\"step\":2}",
             Readable(reject));
     }
 

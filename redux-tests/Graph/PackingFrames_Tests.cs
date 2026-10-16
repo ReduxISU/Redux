@@ -88,7 +88,7 @@ public class PackingFrames_Tests {
     public void Frame_Json_HasTheContractFields_AndOkOnlyWhenSet() {
         var spec = Knapsack(50, 220, (10, 60), (20, 100));
         using var doc = JsonDocument.Parse(Json(PackingFrames.Frame(spec, P(0), StepEvent.Try, ["I1"], "c")));
-        Assert.Equal(["event", "caption", "focus", "items", "containers", "assign", "totals"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "items", "containers", "assign", "totals", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("[{\"size\":10,\"value\":60}]", JsonSerializer.Serialize(doc.RootElement.GetProperty("totals")));
         Assert.Equal("[0,-1]", JsonSerializer.Serialize(doc.RootElement.GetProperty("assign")));
         using var done = JsonDocument.Parse(Json(PackingFrames.Frame(spec, P(), StepEvent.Done, [], "c", ok: false)));
