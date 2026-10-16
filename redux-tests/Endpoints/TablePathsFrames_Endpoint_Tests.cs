@@ -69,7 +69,7 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var settledOrder = new List<string>();
         for (int i = 0; i < frames.Count; i++) {
             var f = frames[i];
-            Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             // Every node, every frame.
             Assert.Equal(nodes, f.GetProperty("values").GetArrayLength());
@@ -131,7 +131,7 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             "{\"event\":\"Accept\",\"caption\":\"Settle 1 at distance 0. Shorter routes found: 2: ∞ → 4, 3: ∞ → 2.\",\"focus\":[\"r0\"],"
             + "\"values\":[[\"1\",\"#1\",\"0\",\"—\",\"1\"],[\"2\",\"not yet\",\"4\",\"1\",\"1 → 2\"],[\"3\",\"not yet\",\"2\",\"1\",\"1 → 3\"],"
             + "[\"4\",\"not yet\",\"∞\",\"—\",\"—\"],[\"5\",\"not yet\",\"∞\",\"—\",\"—\"]],"
-            + "\"rows\":{\"r0\":{\"state\":\"ElementHighlight\"}},\"cells\":{},\"changed\":[\"r1c2\",\"r1c3\",\"r2c2\",\"r2c3\"]}",
+            + "\"rows\":{\"r0\":{\"state\":\"ElementHighlight\"}},\"cells\":{},\"changed\":[\"r1c2\",\"r1c3\",\"r2c2\",\"r2c3\"],\"step\":1}",
             Readable(frames[1]));
         // The mockup's solved table: settled #1 #3 #2 #4 #5, costs 0 4 2 7 9.
         Assert.Equal(["#1", "#3", "#2", "#4", "#5"], Column(frames[^1], 1));

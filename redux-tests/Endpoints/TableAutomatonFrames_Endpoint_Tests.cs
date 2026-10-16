@@ -86,7 +86,7 @@ public class TableAutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         if (frames[0].GetProperty("values").GetArrayLength() > 0 && frames[0].GetProperty("values")[0][0].GetString() == "0")
             Assert.Equal(Readable(frames[0].GetProperty("values")[0]), Readable(blank[0]));
         foreach (var f in frames) {
-            Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "values", "rows", "cells", "changed", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             var values = f.GetProperty("values").EnumerateArray().ToList();
             Assert.InRange(values.Count, 0, rows.Count);
@@ -119,7 +119,7 @@ public class TableAutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"Read 'b': move from 2 to 3.\",\"focus\":[\"r2\"],"
             + "\"values\":[[\"0\",\"—\",\"—\",\"1\",\"no\"],[\"1\",\"a\",\"1\",\"2\",\"no\"],[\"2\",\"b\",\"2\",\"3\",\"yes\"]],"
-            + "\"rows\":{\"r2\":{\"state\":\"ElementHighlight\"}},\"cells\":{},\"changed\":[\"r2c3\"]}",
+            + "\"rows\":{\"r2\":{\"state\":\"ElementHighlight\"}},\"cells\":{},\"changed\":[\"r2c3\"],\"step\":2}",
             Readable(frames[2]));
         Assert.Equal(["1", "2", "3", "2", "2", "3"], Column(frames[^1], 3));
         Assert.Equal("r5:Solution", RowStates(frames[^1]));
