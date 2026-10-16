@@ -90,7 +90,7 @@ What this means for you:
 - **The class name is the ID** that callers (including the website) use, so renaming a class changes the API.
 - Anything that looks like a problem becomes public. Do not put half-finished classes on a branch you intend to merge.
 
-The calls you get for free, all in `ProblemProvider.cs`: `verify`, `solve`, `info`, `problemInstance`, `visualize`, `visualizeReduction`, `reduce`, `mapSolution`, and `gadgets`. Try them in Swagger.
+The calls you get for free, all in `ProblemProvider.cs`: `verify`, `solve`, `info`, `problemInstance`, `visualize`, `visualizeRun` (one solver run, every picture of its problem), `visualizeReduction`, `reduce`, `mapSolution`, and `gadgets`. Try them in Swagger.
 
 ## 5. The Navigation controllers (careful)
 
