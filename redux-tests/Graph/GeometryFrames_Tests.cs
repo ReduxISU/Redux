@@ -49,7 +49,7 @@ public class GeometryFrames_Tests {
     public void Frame_Json_HasTheContractFieldsInOrder_AndOkOnlyOnDone() {
         var frame = GeometryFrames.Frame(Square, H(left: ["P1", "P5"], right: ["P2", "P3"], chain: ["P1"]), StepEvent.Try, ["P1"], "c", incremental: true);
         using var doc = JsonDocument.Parse(Json(frame));
-        Assert.Equal(["event", "caption", "focus", "pieces", "chain", "hull", "points"], doc.RootElement.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["event", "caption", "focus", "pieces", "chain", "hull", "points", "step"], doc.RootElement.EnumerateObject().Select(p => p.Name));
         Assert.Equal("[{\"points\":[\"P1\",\"P5\"],\"role\":\"left\"},{\"points\":[\"P2\",\"P3\"],\"role\":\"right\"}]",
             JsonSerializer.Serialize(doc.RootElement.GetProperty("pieces")));
         var done = GeometryFrames.Frame(Square, H(), StepEvent.Done, [], "c", ok: true, incremental: true);

@@ -153,7 +153,7 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.All(frames.SkipLast(1), f => Assert.False(f.TryGetProperty("ok", out _)));
         for (int i = 0; i < frames.Count; i++) {
             var f = frames[i];
-            Assert.Equal(["event", "caption", "focus", "pieces", "chain", "hull", "points", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "pieces", "chain", "hull", "points", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             var states = StatesOf(f.GetProperty("points"));
             Assert.All(states, s => { Assert.Contains(s.Key, byId.Keys); Assert.Contains(s.Value, Vocabulary); });
@@ -197,21 +197,21 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(
             "{\"event\":\"Try\",\"caption\":\"Sort the 9 points by x, then y: P1, P4, P5, P9, P8, P6, P7, P2 and P3. Then split the list in half, again and again, until each piece has at most 3 points.\","
-            + "\"focus\":[],\"pieces\":[],\"chain\":[],\"hull\":[],\"points\":{}}",
+            + "\"focus\":[],\"pieces\":[],\"chain\":[],\"hull\":[],\"points\":{},\"step\":0}",
             Readable(frames[0]));
         // A pop during the first merge: the corner under test is Rejected, the chain and both hulls stay Committed.
         var pop = frames.First(f => f.GetProperty("event").GetString() == "Reject");
         Assert.Equal(
             "{\"event\":\"Reject\",\"caption\":\"The turn at P4 (from P1 to P5) is clockwise, so pop P4 from the bottom edge.\",\"focus\":[\"P4\"],"
             + "\"pieces\":[{\"points\":[\"P1\",\"P4\"],\"role\":\"left\"},{\"points\":[\"P5\",\"P9\"],\"role\":\"right\"}],\"chain\":[\"P1\"],\"hull\":[],"
-            + "\"points\":{\"P1\":{\"state\":\"Committed\"},\"P4\":{\"state\":\"Rejected\"},\"P5\":{\"state\":\"Committed\"},\"P9\":{\"state\":\"Committed\"}}}",
+            + "\"points\":{\"P1\":{\"state\":\"Committed\"},\"P4\":{\"state\":\"Rejected\"},\"P5\":{\"state\":\"Committed\"},\"P9\":{\"state\":\"Committed\"}},\"step\":6}",
             Readable(pop));
         // The mockup's solved view: the square's four corners in order, the five points inside Covered.
         Assert.Equal(
             "{\"event\":\"Done\",\"caption\":\"Done. The hull has 4 corners, listed counterclockwise from P1: P1, P2, P3 and P4. The other 5 points lie inside it or on an edge.\","
             + "\"focus\":[],\"pieces\":[],\"chain\":[],\"hull\":[\"P1\",\"P2\",\"P3\",\"P4\"],"
             + "\"points\":{\"P1\":{\"state\":\"Solution\"},\"P2\":{\"state\":\"Solution\"},\"P3\":{\"state\":\"Solution\"},\"P4\":{\"state\":\"Solution\"},"
-            + "\"P5\":{\"state\":\"Covered\"},\"P6\":{\"state\":\"Covered\"},\"P7\":{\"state\":\"Covered\"},\"P8\":{\"state\":\"Covered\"},\"P9\":{\"state\":\"Covered\"}},\"ok\":true}",
+            + "\"P5\":{\"state\":\"Covered\"},\"P6\":{\"state\":\"Covered\"},\"P7\":{\"state\":\"Covered\"},\"P8\":{\"state\":\"Covered\"},\"P9\":{\"state\":\"Covered\"}},\"step\":59,\"ok\":true}",
             Readable(frames[^1]));
     }
 
