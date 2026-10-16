@@ -225,7 +225,7 @@ public class BipartiteFrames_Tests {
             "{\"event\":\"Accept\",\"caption\":\"Pick S4.\",\"focus\":[\"S4\"]," +
             "\"nodes\":{\"S4\":{\"state\":\"ElementHighlight\"},\"e:4\":{\"state\":\"Covered\"},\"e:5\":{\"state\":\"Covered\"}}," +
             "\"edges\":{\"e:4~S4\":{\"state\":\"ElementHighlight\"},\"e:5~S4\":{\"state\":\"ElementHighlight\"}}," +
-            "\"hits\":{\"e:4\":1,\"e:5\":1}}",
+            "\"hits\":{\"e:4\":1,\"e:5\":1},\"step\":null}",
             JsonSerializer.Serialize(f));
         var done = BipartiteFrames.Frame(Cover(), [], StepEvent.Done, [], "None.", ok: false);
         Assert.EndsWith(",\"ok\":false}", JsonSerializer.Serialize(done));
@@ -348,7 +348,7 @@ public class BipartiteFrames_Tests {
         var run = new SolveRun(SolveRun.TimedOutAnswer, [], null) { TimedOut = true };
         var response = BipartiteFrames.Build(Cover(), run, _ => ["S1"], _ => true);
         var done = Assert.IsType<BipartiteFrame>(Assert.Single(response.Frames));
-        Assert.Equal("{\"event\":\"Done\",\"caption\":\"" + GraphSubsetFrames.StoppedCaption + "\",\"focus\":[],\"nodes\":{},\"edges\":{},\"hits\":{},\"ok\":false}",
+        Assert.Equal("{\"event\":\"Done\",\"caption\":\"" + GraphSubsetFrames.StoppedCaption + "\",\"focus\":[],\"nodes\":{},\"edges\":{},\"hits\":{},\"step\":null,\"ok\":false}",
             JsonSerializer.Serialize(done));
     }
 }
