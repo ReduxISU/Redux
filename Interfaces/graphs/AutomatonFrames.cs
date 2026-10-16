@@ -114,6 +114,11 @@ sealed record AutomatonFrame(
     [property: JsonPropertyName("active")] IReadOnlyList<string> Active,
     [property: JsonPropertyName("nodes")] IReadOnlyDictionary<string, StateRef> Nodes,
     [property: JsonPropertyName("edges")] IReadOnlyDictionary<string, StateRef> Edges) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
@@ -491,10 +496,10 @@ static class AutomatonFrames {
         var m = new Model(spec);
         var frames = new List<object>();
         SolverStep<ActiveStates>? last = null;
-        foreach (var step in run.StepsFor(typeof(ActiveStates)).OfType<SolverStep<ActiveStates>>()) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, index) in GraphSubsetFrames.Indexed<ActiveStates>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption, step.Partial?.Position ?? 0)
-                : Frame(m, step.Partial!.States, step.Partial.Position, step.Event, step.Focus, step.Caption, step.Ok, null));
+                : Frame(m, step.Partial!.States, step.Partial.Position, step.Event, step.Focus, step.Caption, step.Ok, null)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {

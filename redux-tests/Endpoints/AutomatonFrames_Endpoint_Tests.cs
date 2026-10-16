@@ -144,7 +144,7 @@ public class AutomatonFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         void CheckFrame(JsonElement f) {
-            Assert.Equal(["event", "caption", "focus", "position", "active", "nodes", "edges", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
+            Assert.Equal(["event", "caption", "focus", "position", "active", "nodes", "edges", "step", .. f.TryGetProperty("ok", out _) ? new[] { "ok" } : []],
                 f.EnumerateObject().Select(p => p.Name));
             Assert.InRange(f.GetProperty("position").GetInt32(), 0, inputLength);
             Assert.All(f.GetProperty("active").EnumerateArray(), id => Assert.Contains(id.GetString()!, nodeIds));
