@@ -69,6 +69,11 @@ sealed record FlowFrame(
     [property: JsonPropertyName("flow")] IReadOnlyDictionary<string, int> Flow,
     [property: JsonPropertyName("value")] int Value,
     [property: JsonPropertyName("path")] IReadOnlyList<FlowArc> Path) {
+    /// <summary>The solver step this frame was drawn from (see <see cref="FramesResponse"/>, #895); null for an added frame. Always written.</summary>
+    [JsonPropertyName("step")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public int? Step { get; init; }
+
     [JsonPropertyName("groups")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<string, int>? Groups { get; init; }
@@ -348,10 +353,10 @@ static class FlowFrames {
         var m = new Model(spec);
         var frames = new List<object>();
         SolverStep<NetworkFlow>? last = null;
-        foreach (var step in run.StepsFor(typeof(NetworkFlow)).OfType<SolverStep<NetworkFlow>>()) {
-            frames.Add(run.TimedOut && step.Event == StepEvent.Done
+        foreach (var (step, index) in GraphSubsetFrames.Indexed<NetworkFlow>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
                 ? StoppedFrame(spec, step.Caption)
-                : Frame(m, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
+                : Frame(m, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental)) with { Step = index });
             last = step;
         }
         if (run.TimedOut) {
