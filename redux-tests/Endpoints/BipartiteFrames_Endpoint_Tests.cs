@@ -207,7 +207,7 @@ public class BipartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var picks = picture.Pick == "sets" ? setIds.ToHashSet() : elementIds.ToHashSet();
         foreach (var f in frames) {
             bool isDone = f.GetProperty("event").GetString() == "Done";
-            Assert.Equal(["event", "caption", "focus", "nodes", "edges", "hits", .. isDone ? new[] { "ok" } : []], f.EnumerateObject().Select(p => p.Name));
+            Assert.Equal(["event", "caption", "focus", "nodes", "edges", "hits", "step", .. isDone ? new[] { "ok" } : []], f.EnumerateObject().Select(p => p.Name));
             Assert.Contains(f.GetProperty("event").GetString(), new[] { "Try", "Accept", "Reject", "Backtrack", "Done" });
             Assert.False(string.IsNullOrWhiteSpace(f.GetProperty("caption").GetString()));
             foreach (var id in f.GetProperty("focus").EnumerateArray()) Assert.True(nodeIds.Contains(id.GetString()!) || edgeIds.Contains(id.GetString()!), id.GetString());
