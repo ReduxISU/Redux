@@ -333,9 +333,11 @@ static class QuantumCircuits {
         };
         for (int j = 0; j < t; j++) {
             int ctrl = t - 1 - j;
-            long mult = ModPow(a, 1L << j, odd);
+            // The power is fixed here: the caption runs later, when the loop's j has moved on (#903).
+            long power = 1L << j;
+            long mult = ModPow(a, power, odd);
             columns.Add(new([new QuantumGate("box", work, Control: ctrl, Label: $"×{mult}")], null,
-                _ => $"If c{ctrl} is 1, multiply the work register by {a}^{1L << j} mod {odd} = {mult}.{(mult == 1 ? " That is ×1, so nothing happens." : "")}"));
+                _ => $"If c{ctrl} is 1, multiply the work register by {a}^{power} mod {odd} = {mult}.{(mult == 1 ? " That is ×1, so nothing happens." : "")}"));
         }
         columns.Add(new([new QuantumGate("box", count, Label: "QFT†")], null,
             _ => $"Inverse quantum Fourier transform on the counting qubits: the period {r} shows up as evenly spaced peaks."));

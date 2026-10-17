@@ -208,8 +208,9 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(verified, done.GetProperty("ok").GetBoolean());
         var row = QuantumSolvers_Tests.Rows().Where(r => r.Solver == solver && r.Instance == instance).ToList();
         if (row.Count > 0) Assert.Equal(row[0].Answer, answer);
-        // A classical run never ran the circuit: its columns are Untraveled at the end. A server run applied them all.
-        bool classical = !ServerSolvers.Contains(solver) || solver == "shorsquantumsolver";
+        // A classical run never ran the circuit: its columns are Untraveled at the end. A server run applied them all,
+        // Shor's too (#903).
+        bool classical = !ServerSolvers.Contains(solver);
         if (classical) Assert.All(columnIds, id => Assert.Equal("Untraveled", StatesOf(done.GetProperty("columns"))[id]));
         else Assert.Equal(columns.Count, done.GetProperty("applied").GetInt32());
         // The measured answer is Solution when it is right.
