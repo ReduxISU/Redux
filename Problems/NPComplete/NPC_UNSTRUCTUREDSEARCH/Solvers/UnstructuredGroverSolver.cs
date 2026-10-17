@@ -87,12 +87,15 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
             else
                 rec.Reject(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer), () => $"{Measured()}, which is not marked.", read);
             QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
-                ok => ok ? $"Item {answer} is marked, found with {QuantumCircuits.GroverRounds(problem.funcValues.Count, problem.funcValues.Count(v => v != 0))} rounds of Grover's algorithm."
+                ok => ok ? $"Item {answer} is marked, found with {Rounds(QuantumCircuits.GroverRounds(problem.funcValues.Count, problem.funcValues.Count(v => v != 0)))} of Grover's algorithm."
                     : problem.funcValues.All(v => v == 0) ? $"Nothing is marked, so item {answer} is not either: the answer should be no solution."
                     : $"Item {answer} is not marked: the measurement missed. Running the circuit again usually finds a marked item.");
         }
         return answer;
     }
+
+    // "1 round", "2 rounds" (#902).
+    private static string Rounds(int rounds) => rounds == 1 ? "1 round" : $"{rounds} rounds";
 
     /// <summary>
     /// The variables of <paramref name="formula"/> in the quantum service's order: every distinct name, sorted by code point

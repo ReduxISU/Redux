@@ -312,6 +312,8 @@ public class QuantumSolvers_Tests {
             "Accept: The quantum server measured item 5 (101) in 1,024 of 1,024 runs.",
             "Done: Item 5 is marked, found with 2 rounds of Grover's algorithm.",
         ], captions);
+        // One round is "1 round", not "1 rounds" (#902).
+        Assert.Equal("Done: Item 1 is marked, found with 1 round of Grover's algorithm.", Captions("unstructuredgroversolver", "(0,1,0,0)")[^1]);
     }
 
     [Fact]
