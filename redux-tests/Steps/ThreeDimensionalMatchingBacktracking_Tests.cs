@@ -145,6 +145,19 @@ public class ThreeDimensionalMatchingBacktracking_Tests {
         }
     }
 
+    // An Accept says how many triples are left for the element, with the verb agreeing: "one triple left that uses",
+    // "2 triples left that use" (#901).
+    [Fact]
+    public void AcceptCaptions_AgreeWithHowManyTriplesAreLeft() {
+        var p = new DM3("{a,d}{b,e}{c,f}{a,b,c}{a,e,f}{d,e,f}{d,b,c}");
+        var rec = new StepRecorder<ChosenTriples>(cap: int.MaxValue);
+        new ThreeDimensionalMatchingBacktracking().Solve(p, rec);
+        Assert.Equal(new[] {
+            "a has 2 triples left that use no element twice. Choose T1 (a, b, c).",
+            "d has one triple left that uses no element twice. Choose T3 (d, e, f).",
+        }, rec.Steps.Where(s => s.Event == StepEvent.Accept).Select(s => s.Caption));
+    }
+
     [Fact]
     public void IsIncremental_AndNotTheDefaultSolver() {
         Assert.True(new ThreeDimensionalMatchingBacktracking() is IIncrementalSolver);
