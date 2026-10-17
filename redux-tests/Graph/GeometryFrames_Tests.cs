@@ -202,7 +202,7 @@ public class GeometryFrames_Tests {
         Assert.Equal(StepRecorder<HullBuild>.DefaultCap + 2, frames.Count);
         Assert.Equal("Add 149.", frames[^3].Caption);
         Assert.Equal(StepEvent.Accept, frames[^2].Event);
-        Assert.Equal("Done. (250 not shown)", frames[^1].Caption);
+        Assert.Equal("Done (250 not shown).", frames[^1].Caption);
         Assert.Equal(["P1", "P2", "P3", "P4"], frames[^1].Hull);
     }
 

@@ -212,7 +212,7 @@ public class CodeTreeFrames_Tests {
         Assert.Equal(StepRecorder<HuffmanForest>.DefaultCap + 2, frames.Count);
         Assert.Equal("Merge 149.", frames[^3].Caption);
         Assert.Equal(StepEvent.Accept, frames[^2].Event);
-        Assert.Equal("Encoded. (250 not shown)", frames[^1].Caption);
+        Assert.Equal("Encoded (250 not shown).", frames[^1].Caption);
         Assert.Equal(7, frames[^1].Bits);
     }
 

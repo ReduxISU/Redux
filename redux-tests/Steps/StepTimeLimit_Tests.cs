@@ -180,7 +180,7 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
         Assert.StartsWith("Stopped after 0.05 s and ", done.GetProperty("caption").GetString());
-        Assert.Contains("the solver had not finished.", done.GetProperty("caption").GetString());
+        Assert.Contains("the solver had not finished", done.GetProperty("caption").GetString());
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         // The solver had not finished: no node or edge is drawn as part of an answer (nor judged).
         Assert.Empty(done.GetProperty("nodes").EnumerateObject());

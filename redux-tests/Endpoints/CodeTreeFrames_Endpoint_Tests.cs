@@ -262,7 +262,7 @@ public class CodeTreeFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         var done = frames[^1];
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         Assert.Empty(done.GetProperty("focus").EnumerateArray());
         Assert.Empty(done.GetProperty("merged").EnumerateArray());
         Assert.Empty(done.GetProperty("roots").EnumerateArray());

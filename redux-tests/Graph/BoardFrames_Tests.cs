@@ -248,7 +248,7 @@ public class BoardFrames_Tests {
             .Frames.Cast<BoardFrame>().ToList();
         Assert.Equal(StepRecorder<BoardCells>.DefaultCap + 1, frames.Count);
         Assert.Equal("Try 149.", frames[^2].Caption);
-        Assert.Equal("All 4 queens are placed. (250 not shown)", frames[^1].Caption);
+        Assert.Equal("All 4 queens are placed (250 not shown).", frames[^1].Caption);
         Assert.Equal(4, frames[^1].Pieces.Count);
         Assert.All(frames[^1].Cells.Values, s => Assert.Equal(PictureState.Solution, s.State));
     }

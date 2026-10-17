@@ -373,7 +373,7 @@ public class TourSolvers_Tests {
         Assert.Equal(["a", "f", "b", "d", "c", "e", "g", "a"], lastAccept.Partial.Order);
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         // 720 orderings: 150 kept, the last Accept kept, 569 not shown.
-        Assert.Equal("Tried all 720 orderings of the cities after a. The cheapest tour is a → f → b → d → c → e → g → a, cost 7. (569 not shown)", steps[^1].Caption);
+        Assert.Equal("Tried all 720 orderings of the cities after a. The cheapest tour is a → f → b → d → c → e → g → a, cost 7 (569 not shown).", steps[^1].Caption);
     }
 
     // ---- the recorder cap ----

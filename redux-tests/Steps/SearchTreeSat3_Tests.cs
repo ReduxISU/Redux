@@ -146,8 +146,10 @@ public class SearchTreeSat3_Tests {
         var free = done.Partial.Values.Where(v => !set.Contains(v.Key)).ToList();
         Assert.All(free, v => Assert.Equal("False", v.Value));
         const string under = "Every clause has a true literal under ";
+        // Without the note on steps not shown, which comes before the full stop.
+        string caption = done.Caption.Replace(StepCaptions.NotShownSuffix(StepCaptions.NotShown(done.Caption)), "");
         Assert.StartsWith(under, done.Caption);
-        Assert.Equal(answer.Partial.Values.Select(v => $"{v.Key} = {v.Value}").Order(), done.Caption[under.Length..done.Caption.IndexOf('.')].Split(", ").Order());
+        Assert.Equal(answer.Partial.Values.Select(v => $"{v.Key} = {v.Value}").Order(), caption[under.Length..caption.IndexOf('.')].Split(", ").Order());
         if (free.Count == 0) {
             Assert.Null(path[^1].Bound);
             Assert.DoesNotContain("free", done.Caption);

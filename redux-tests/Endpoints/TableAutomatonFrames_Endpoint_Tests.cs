@@ -267,7 +267,7 @@ public class TableAutomatonFrames_StoppedRun_Endpoint_Tests : IClassFixture<Tiny
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         // The start row alone, nothing marked: the same as the payload's blank.
         Assert.Equal(1, done.GetProperty("values").GetArrayLength());
         Assert.Equal("0", done.GetProperty("values")[0][0].GetString());

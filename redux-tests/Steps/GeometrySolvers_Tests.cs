@@ -153,7 +153,7 @@ public class GeometrySolvers_Tests {
         var frames = Frames(instance);
         Assert.Equal(StepRecorder<HullBuild>.DefaultCap + 2, frames.Count);
         Assert.Equal(StepEvent.Accept, frames[^2].Event);
-        Assert.Matches(@"^Done\. The hull has \d+ corners, .* \(\d+ not shown\)$", frames[^1].Caption);
+        Assert.Matches(@"^Done\. The hull has \d+ corners, .* \(\d+ not shown\)\.$", frames[^1].Caption);
         Assert.Equal(answer.Count(c => c == '('), frames[^1].Hull.Count + 1);
     }
 

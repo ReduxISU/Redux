@@ -265,7 +265,7 @@ public class FlowFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppF
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         Assert.Empty(done.GetProperty("nodes").EnumerateObject());
         Assert.Empty(done.GetProperty("edges").EnumerateObject());
         Assert.All(done.GetProperty("flow").EnumerateObject(), p => Assert.Equal(0, p.Value.GetInt32()));

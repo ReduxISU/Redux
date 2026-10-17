@@ -158,7 +158,7 @@ public class CodeTreeSolvers_Tests {
         var frames = Frames(instance);
         Assert.Equal(StepRecorder<HuffmanForest>.DefaultCap + 2, frames.Count);
         Assert.Equal(StepEvent.Accept, frames[^2].Event);
-        Assert.Matches(@"^Encoded: [\d,]+ bits, .* \(\d+ not shown\)$", frames[^1].Caption);
+        Assert.Matches(@"^Encoded: [\d,]+ bits, .* \(\d+ not shown\)\.$", frames[^1].Caption);
         Assert.Equal(170, frames[^1].Codes.Count);
     }
 

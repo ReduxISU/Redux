@@ -305,7 +305,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             Readable(frames[4]));
         // The mockup's solved view: (1,3,5,4,0,2), jobs 0 and 2 late, penalty 4.
         Assert.Equal(
-            "{\"event\":\"Done\",\"caption\":\"(1,3,5,4,0,2) is the first order that keeps the late penalty within K = 4, found after 191 orders. (40 not shown)\",\"focus\":[],"
+            "{\"event\":\"Done\",\"caption\":\"(1,3,5,4,0,2) is the first order that keeps the late penalty within K = 4, found after 191 orders (40 not shown).\",\"focus\":[],"
             + "\"order\":[\"J1\",\"J3\",\"J5\",\"J4\",\"J0\",\"J2\"],"
             + "\"runs\":[{\"job\":\"J1\",\"start\":0,\"end\":2,\"late\":false},{\"job\":\"J3\",\"start\":2,\"end\":11,\"late\":false},{\"job\":\"J5\",\"start\":11,\"end\":14,\"late\":false},"
             + "{\"job\":\"J4\",\"start\":14,\"end\":18,\"late\":false},{\"job\":\"J0\",\"start\":18,\"end\":22,\"late\":true},{\"job\":\"J2\",\"start\":22,\"end\":27,\"late\":true}],"
@@ -449,7 +449,7 @@ public class ScheduleFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         Assert.Empty(done.GetProperty("focus").EnumerateArray());
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         return frames;

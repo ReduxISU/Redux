@@ -316,7 +316,7 @@ public class TripartiteFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudg
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         Assert.Empty(done.GetProperty("focus").EnumerateArray());
         Assert.Empty(done.GetProperty("chosen").EnumerateArray());
         Assert.Empty(done.GetProperty("repeats").EnumerateObject());

@@ -317,7 +317,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
         var done = frames[^1];
         Assert.True(done.GetProperty("ok").GetBoolean());
-        Assert.Equal("Every square is filled and no row, column or box repeats a digit. Solved after 429 tries. (396 not shown)", done.GetProperty("caption").GetString());
+        Assert.Equal("Every square is filled and no row, column or box repeats a digit. Solved after 429 tries (396 not shown).", done.GetProperty("caption").GetString());
         Assert.Equal(51, done.GetProperty("cells").EnumerateObject().Count());
     }
 
@@ -427,7 +427,7 @@ public class BoardFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetApp
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         Assert.Empty(done.GetProperty("cells").EnumerateObject());
         Assert.Empty(done.GetProperty("pieces").EnumerateArray());
         Assert.Empty(done.GetProperty("links").EnumerateArray());

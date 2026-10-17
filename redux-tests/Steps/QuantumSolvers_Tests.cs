@@ -340,7 +340,7 @@ public class QuantumSolvers_Tests {
         Assert.Equal(StepRecorder<QuantumProgress>.DefaultCap + 2, steps.Count);
         Assert.Equal(StepEvent.Accept, steps[^2].Event);
         Assert.Equal("No number from 2 to √2,147,483,647 divides 2,147,483,647, so 2,147,483,647 is prime.", steps[^2].Caption);
-        Assert.Equal("2,147,483,647 is prime. (46189 not shown)", steps[^1].Caption);
+        Assert.Equal("2,147,483,647 is prime (46189 not shown).", steps[^1].Caption);
     }
 
     [Fact]

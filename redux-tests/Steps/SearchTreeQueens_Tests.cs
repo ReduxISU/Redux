@@ -113,6 +113,6 @@ public class SearchTreeQueens_Tests {
         string answer = Create(solver).solve(instance);
         Assert.Equal(answer, "{" + string.Join(",", path.Skip(1).Select(q => q.Label)) + "}");
         // The last queen placed is the solution node.
-        if (!done.Caption.EndsWith(" not shown)", StringComparison.Ordinal)) Assert.Equal(path[^1], steps[^2].Tree![^1]);
+        if (StepCaptions.NotShown(done.Caption) == 0) Assert.Equal(path[^1], steps[^2].Tree![^1]);
     }
 }

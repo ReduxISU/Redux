@@ -290,7 +290,7 @@ public class GraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
         Assert.True(frames[^1].GetProperty("ok").GetBoolean());
         // 211 decisions reported, 151 kept (150 + the Accept): 60 not shown.
-        Assert.EndsWith("found after 211 tries. (60 not shown)", frames[^1].GetProperty("caption").GetString());
+        Assert.EndsWith("found after 211 tries (60 not shown).", frames[^1].GetProperty("caption").GetString());
     }
 
     // ---- The list format is what old frontends read: it must not change. ----

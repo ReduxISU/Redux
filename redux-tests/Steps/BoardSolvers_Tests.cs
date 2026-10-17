@@ -142,7 +142,7 @@ public class BoardSolvers_Tests {
         Assert.Equal("9", next.Partial.Values["r1c3"]);
 
         var done = steps[^1];
-        Assert.Equal("Every square is filled and no row, column or box repeats a digit. Solved after 429 tries. (396 not shown)", done.Caption);
+        Assert.Equal("Every square is filled and no row, column or box repeats a digit. Solved after 429 tries (396 not shown).", done.Caption);
         Assert.Equal(81, done.Partial.Values.Count);
         Assert.Empty(steps.SelectMany(s => s.Partial.Conflicts));
     }
@@ -362,7 +362,7 @@ public class BoardSolvers_Tests {
             Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"took {clock.Elapsed}");
             Assert.Equal(StepRecorder<BoardCells>.DefaultCap + 1, steps.Count);
             Assert.EndsWith(", … (100,000 in all). Row i gets the i-th number, minus 1.", steps[0].Caption);
-            Assert.Equal("All 100,000 queens placed in 100,000 steps, with no search. (99851 not shown)", steps[^1].Caption);
+            Assert.Equal("All 100,000 queens placed in 100,000 steps, with no search (99851 not shown).", steps[^1].Caption);
             Assert.Equal(100000, steps[^1].Partial.Values.Count);
             Assert.True(steps[^1].Ok);
         }

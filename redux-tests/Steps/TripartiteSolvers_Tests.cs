@@ -181,7 +181,7 @@ public class TripartiteSolvers_Tests {
         Assert.All(frames.Take(150), f => Assert.Equal(StepEvent.Reject, f.Event));
         Assert.Equal(StepEvent.Accept, frames[^2].Event);
         Assert.Equal(["T2", "T7", "T10", "T11"], frames[^2].Chosen);
-        Assert.Equal("T2 (x1, y2, z2), T7 (x4, y3, z4), T10 (x2, y4, z3) and T11 (x3, y1, z1) use every element of X, Y and Z exactly once. Found after 273 tries. (122 not shown)",
+        Assert.Equal("T2 (x1, y2, z2), T7 (x4, y3, z4), T10 (x2, y4, z3) and T11 (x3, y1, z1) use every element of X, Y and Z exactly once. Found after 273 tries (122 not shown).",
             frames[^1].Caption);
     }
 

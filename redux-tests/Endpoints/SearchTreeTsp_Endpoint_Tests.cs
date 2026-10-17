@@ -187,7 +187,7 @@ public class SearchTreeTsp_Endpoint_Tests : IClassFixture<AppFactory> {
             if (parentOf.TryGetValue(id, out var p)) Assert.Equal(p, SearchTreeJson.Parent(n));
             else parentOf[id] = SearchTreeJson.Parent(n);
         }
-        Assert.EndsWith(" not shown)", frames[^1].GetProperty("caption").GetString());
+        Assert.EndsWith(" not shown).", frames[^1].GetProperty("caption").GetString());
     }
 }
 
@@ -217,7 +217,7 @@ public class SearchTreeTsp_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetA
         Assert.True(frames.Count >= 2);
         var done = frames[^1];
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         // The tree so far, with nothing claimed: no answer path, nothing highlighted.
         var nodes = done.GetProperty("nodes").EnumerateArray().ToList();
         Assert.NotEmpty(nodes);

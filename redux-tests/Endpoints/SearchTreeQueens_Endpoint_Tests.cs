@@ -167,7 +167,7 @@ public class SearchTreeQueens_Endpoint_Tests : IClassFixture<AppFactory> {
         // n = 12: the search runs past the 150-step cap, so the Done step names the answer's path; every queen of it is drawn.
         var (_, body) = await Visualize($"visualization={Vis}&format=frames", "12");
         var frames = SearchTreeJson.Check(body, "N-Queens", "12");
-        Assert.EndsWith(" not shown)", frames[^1].GetProperty("caption").GetString());
+        Assert.EndsWith(" not shown).", frames[^1].GetProperty("caption").GetString());
         var green = SearchTreeJson.GreenPath(frames[^1]);
         Assert.Equal(13, green.Count);
         Assert.DoesNotContain(green, q => SearchTreeJson.Kind(q) == "hidden");
@@ -197,7 +197,7 @@ public class SearchTreeQueens_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudg
         Assert.True(frames.Count >= 2);
         var done = frames[^1];
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         // The tree so far, with nothing claimed: no answer path, nothing highlighted.
         var nodes = done.GetProperty("nodes").EnumerateArray().ToList();
         Assert.NotEmpty(nodes);

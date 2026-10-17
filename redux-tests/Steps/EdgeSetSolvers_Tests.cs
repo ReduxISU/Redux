@@ -174,9 +174,9 @@ public class EdgeSetSolvers_Tests {
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         Assert.True(steps[^1].Ok);
         Assert.Equal(steps[^1].Partial, steps[^2].Partial);
-        Assert.Matches(@"found after (\d+) tries\. \(\d+ not shown\)$", steps[^1].Caption);
+        Assert.Matches(@"found after (\d+) tries \(\d+ not shown\)\.$", steps[^1].Caption);
         int tried = int.Parse(Regex.Match(steps[^1].Caption, @"after (\d+) tries").Groups[1].Value);
-        Assert.EndsWith($"({tried - StepRecorder<EdgeSet>.DefaultCap - 1} not shown)", steps[^1].Caption);
+        Assert.EndsWith($"({tried - StepRecorder<EdgeSet>.DefaultCap - 1} not shown).", steps[^1].Caption);
         // Each combination once (#750): C(10,2) + C(10,3) + C(10,4) = 45 + 120 + 210 sets of 2 to 4 edges, then the
         // tree {2,1},{1,3},{3,5},{6,8},{6,1} is the 36th set of 5 (21 start 2,1 / 1,3 / 2,3, then 3,5 with the 15th
         // pair of the last six edges). Re-trying the last combination of each size made it 618.

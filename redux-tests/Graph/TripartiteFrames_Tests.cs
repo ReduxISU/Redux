@@ -230,7 +230,7 @@ public class TripartiteFrames_Tests {
         Assert.Equal(StepRecorder<ChosenTriples>.DefaultCap + 2, frames.Count);
         Assert.Equal("Try 149.", frames[^3].Caption);
         Assert.Equal(StepEvent.Accept, frames[^2].Event);
-        Assert.Equal("Found. (250 not shown)", frames[^1].Caption);
+        Assert.Equal("Found (250 not shown).", frames[^1].Caption);
         Assert.Equal("T1:Blocked T2:Solution T3:Blocked T4:Solution", States(frames[^1].Triples));
     }
 

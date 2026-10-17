@@ -156,7 +156,7 @@ public class ScheduleSolvers_Tests {
         Assert.Equal(["J2", "J3", "J4"], steps[4].Focus);
         // The order that works is kept past the cap, then Done says how many were not shown.
         Assert.Equal((StepEvent.Accept, "Try (1,3,5,4,0,2): jobs 0 and 2 finish late, penalty 4, within K = 4. It works."), (steps[^2].Event, steps[^2].Caption));
-        Assert.Equal("(1,3,5,4,0,2) is the first order that keeps the late penalty within K = 4, found after 191 orders. (40 not shown)", steps[^1].Caption);
+        Assert.Equal("(1,3,5,4,0,2) is the first order that keeps the late penalty within K = 4, found after 191 orders (40 not shown).", steps[^1].Caption);
         Assert.Equal(new JobOrder(["J1", "J3", "J5", "J4", "J0", "J2"]), steps[^1].Partial);
     }
 
@@ -195,7 +195,7 @@ public class ScheduleSolvers_Tests {
     public void JobSeq_ALongRun_ShowsItsFirstOrders_AndSaysHowManyWereNotShown() {
         var steps = Steps<JobOrder>("jobseqbruteforce", EightLate);
         Assert.Equal(StepRecorder<JobOrder>.DefaultCap + 1, steps.Count);
-        Assert.Equal("Checked all 40,320 orders. None keeps the late penalty within K = 6. (40170 not shown)", steps[^1].Caption);
+        Assert.Equal("Checked all 40,320 orders. None keeps the late penalty within K = 6 (40170 not shown).", steps[^1].Caption);
         Assert.Equal("Try (0,1,2,3,4,5,6,7): jobs 1, 2, 3, 4, 5, 6 and 7 finish late, penalty 7 > K = 6.", steps[0].Caption);
     }
 
