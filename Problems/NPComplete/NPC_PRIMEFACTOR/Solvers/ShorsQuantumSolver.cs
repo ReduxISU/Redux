@@ -48,20 +48,26 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSo
 
     public string solve(PRIMEFACTOR problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps: a Try that sends the number to the quantum server, an Accept with the factors it returns (a Reject when it
-    // gives none), and Done with the verdict. The server picks its own base a and circuit, and reports neither, so the
-    // steps apply none of the circuit the picture draws for the number.
+    // Steps: a Try that sends the number to the quantum server, a Try per column of the period-finding circuit the picture
+    // draws for the number (drawn, not simulated, and never asked of the server), an Accept with the factors the server
+    // returns (a Reject when it gives none), and Done with the verdict, so the finished picture shows the circuit as run
+    // (#903). The server picks its own base a and reports it not, so the drawn circuit is the textbook one for the
+    // smallest a that works; a number with no circuit to draw has no column steps.
     public string Solve(PRIMEFACTOR problem, StepRecorder<QuantumProgress> rec) {
         string number = problem.instance.Trim();
         rec.Try(() => new QuantumProgress(), () => $"Send {number} to the quantum server, which runs Shor's algorithm: a quantum circuit finds a period, and classical steps turn it into factors.");
+        var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.PrimeFactorization(problem.instance) : null;
+        if (spec != null) QuantumSteps.Columns(rec, spec);
         string answer = Ask(problem);
-        if (QuantumSteps.Recording(rec)) {
+        if (spec != null) {
+            int all = spec.Columns.Count;
+            string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
             bool factored = answer.StartsWith('(') && answer.EndsWith(')');
             if (factored)
-                rec.Accept(() => new QuantumProgress(result: answer), () => $"The quantum server answered {answer}.");
+                rec.Accept(() => new QuantumProgress(all, result: answer), () => $"The quantum server answered {answer}.", read);
             else
-                rec.Reject(() => new QuantumProgress(), () => $"The quantum server gave no factors: {answer}");
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(result: answer),
+                rec.Reject(() => new QuantumProgress(all), () => $"The quantum server gave no factors: {answer}");
+            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, result: answer),
                 ok => ok ? $"{number} = {string.Join(" × ", answer.Trim('(', ')').Split(','))}." : factored ? $"The answer {answer} is not correct." : "No answer: the quantum server did not give one.");
         }
         return answer;

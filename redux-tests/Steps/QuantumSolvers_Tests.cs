@@ -344,18 +344,43 @@ public class QuantumSolvers_Tests {
     }
 
     [Fact]
-    public void Shor_SendsTheNumber_AndReadsTheFactors_WithoutRunningTheDrawnCircuit() {
+    public void Shor_SendsTheNumber_AppliesTheDrawnCircuit_AndReadsTheFactors() {
+        // A Try per column of the drawn period-finding circuit (a = 2 for 15), so the Done frame shows it as run (#903).
         Assert.Equal([
             "Try: Send 15 to the quantum server, which runs Shor's algorithm: a quantum circuit finds a period, and classical steps turn it into factors.",
+            "Try: Set the work register to 1.",
+            "Try: Apply H to the 8 counting qubits: every exponent from 0 to 255 at once.",
+            "Try: If c7 is 1, multiply the work register by 2^1 mod 15 = 2.",
+            "Try: If c6 is 1, multiply the work register by 2^2 mod 15 = 4.",
+            "Try: If c5 is 1, multiply the work register by 2^4 mod 15 = 1. That is ×1, so nothing happens.",
+            "Try: If c4 is 1, multiply the work register by 2^8 mod 15 = 1. That is ×1, so nothing happens.",
+            "Try: If c3 is 1, multiply the work register by 2^16 mod 15 = 1. That is ×1, so nothing happens.",
+            "Try: If c2 is 1, multiply the work register by 2^32 mod 15 = 1. That is ×1, so nothing happens.",
+            "Try: If c1 is 1, multiply the work register by 2^64 mod 15 = 1. That is ×1, so nothing happens.",
+            "Try: If c0 is 1, multiply the work register by 2^128 mod 15 = 1. That is ×1, so nothing happens.",
+            "Try: Inverse quantum Fourier transform on the counting qubits: the period 4 shows up as evenly spaced peaks.",
+            "Try: Measure the counting qubits.",
             "Accept: The quantum server answered (3,5).",
             "Done: 15 = 3 × 5.",
         ], Captions("shorsquantumsolver", "15"));
         using var _ = FakeQuantumServer.Install(out var server);
         var run = Solver("shorsquantumsolver").Run("15", withSteps: true);
+        Assert.Single(server.Requests);
+        var steps = Steps(run);
+        Assert.Equal(Enumerable.Range(0, 13), steps.Take(13).Select(s => s.Partial.Applied));
+        Assert.Equal(["t11", "g11_0", "g11_1", "g11_2", "g11_3", "g11_4", "g11_5", "g11_6", "g11_7"], steps[12].Focus);
         var frames = Frames("shorsquantumsolver", "15", run);
-        Assert.Equal(12, frames[^1].Columns.Count);
-        Assert.All(frames[^1].Columns.Values, s => Assert.Equal(PictureState.Untraveled, s.State));
+        Assert.Equal(12, frames[^1].Applied);
+        Assert.Empty(frames[^1].Columns);
+        Assert.Equal(["t11"], frames[^2].Focus);
         Assert.Equal("(3,5)", frames[^1].Result);
+        Assert.Equal(true, frames[^1].Ok);
+        // A number the classical checks factor on their own has no circuit, so no column steps.
+        Assert.Equal([
+            "Try: Send 12 to the quantum server, which runs Shor's algorithm: a quantum circuit finds a period, and classical steps turn it into factors.",
+            "Accept: The quantum server answered (2,2,3).",
+            "Done: 12 = 2 × 2 × 3.",
+        ], Captions("shorsquantumsolver", "12"));
     }
 
     [Fact]
