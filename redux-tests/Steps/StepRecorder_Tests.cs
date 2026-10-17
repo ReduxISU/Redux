@@ -131,6 +131,17 @@ public class StepRecorder_Tests {
         Assert.Equal("finished (7 not shown)", rec.Steps[^1].Caption);
     }
 
+    // The note goes inside a caption's closing full stop, not after it (#901).
+    [Fact]
+    public void PastTheCap_TheNotShownNote_GoesBeforeTheFullStop() {
+        var rec = new StepRecorder<NodeSet>(cap: 1);
+        for (int i = 0; i < 3; i++) rec.Reject(() => Nodes("x"), () => "r");
+        rec.Done(Nodes("a"), true, "Found after 3 tries.");
+
+        Assert.Equal("Found after 3 tries (2 not shown).", rec.Steps[^1].Caption);
+        Assert.Equal(2, StepCaptions.NotShown(rec.Steps[^1].Caption));
+    }
+
     [Fact]
     public void UnderTheCap_IsUnchanged() {
         var rec = new StepRecorder<NodeSet>(cap: 10);
@@ -221,7 +232,7 @@ public class StepRecorder_Tests {
         Assert.Equal(StepEvent.Done, done.Event);
         Assert.False(done.Ok);
         // Under load the budget can run out on the very first step, so the count may be "1 step" with nothing hidden.
-        Assert.Matches(@"^Stopped after 0\.02 s and [\d,]+ steps?; the solver had not finished\.( \([\d,]+ not shown\))?$", done.Caption);
+        Assert.Matches(@"^Stopped after 0\.02 s and [\d,]+ steps?; the solver had not finished( \([\d,]+ not shown\))?\.$", done.Caption);
         // The solver had no answer, so its partial is the empty set, not the last candidate it looked at.
         Assert.Equal(Nodes(), done.Partial);
         Assert.NotEqual(steps[^2].Partial, done.Partial);

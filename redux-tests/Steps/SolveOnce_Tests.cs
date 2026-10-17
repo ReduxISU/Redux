@@ -211,6 +211,7 @@ public class SolveOnce_Tests {
     [Fact]
     public void StepCaptions_ReadsTheNotShownNote() {
         Assert.Equal(0, StepCaptions.NotShown("Accepted."));
-        Assert.Equal(12, StepCaptions.NotShown("Accepted." + StepCaptions.NotShownSuffix(12)));
+        Assert.Equal(12, StepCaptions.NotShown(StepCaptions.WithNotShown("Accepted.", 12)));
+        Assert.Equal(12, StepCaptions.NotShown("Accepted" + StepCaptions.NotShownSuffix(12)));
     }
 }

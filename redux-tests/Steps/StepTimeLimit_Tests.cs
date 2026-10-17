@@ -42,7 +42,7 @@ public class StepTimeLimit_Tests {
         Assert.Equal(StepEvent.Done, done.Event);
         Assert.False(done.Ok);
         Assert.StartsWith("Stopped after 0.05 s and ", done.Caption);
-        Assert.Contains("the solver had not finished.", done.Caption);
+        Assert.Matches(@"the solver had not finished( \(\d+ not shown\))?\.$", done.Caption);
         Assert.Equal(steps[^2].Partial, done.Partial);
         Assert.Single(steps, s => s.Event == StepEvent.Done);
     }
@@ -62,7 +62,7 @@ public class StepTimeLimit_Tests {
         Assert.False(run.TimedOut);
         var done = run.Steps.Cast<SolverStep<ActiveStates>>().Last();
         Assert.Equal(StepEvent.Done, done.Event);
-        Assert.StartsWith("Rejected: no run accepts the input.", done.Caption);
+        Assert.Matches(@"^Rejected: no run accepts the input( \(\d+ not shown\))?\.$", done.Caption);
     }
 
     // #764: the NFA table draws the runs in the recorded steps (#734), so a stopped solve gives the runs found before
