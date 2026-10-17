@@ -109,7 +109,7 @@ sealed class StepRecorder<TPartial> {
 
     /// <summary>
     /// Records the final step. Always kept, after the last Accept past the cap if there was one; its caption gets
-    /// " (n not shown)" when steps were hidden.
+    /// " (n not shown)" when steps were hidden, before its closing full stop if it has one.
     /// </summary>
     public void Done(TPartial answer, bool ok, string caption) => Done(answer, ok, caption, null);
 
@@ -126,7 +126,7 @@ sealed class StepRecorder<TPartial> {
         }
         int hidden = Hidden;
         _total++;
-        if (hidden > 0) caption += StepCaptions.NotShownSuffix(hidden);
+        if (hidden > 0) caption = StepCaptions.WithNotShown(caption, hidden);
         _steps.Add(new SolverStep<TPartial>(answer, StepEvent.Done, Array.Empty<string>(), caption) { Ok = ok, Tree = tree?.Invoke() });
     }
 
@@ -164,7 +164,7 @@ sealed class StepBudgetExceededException : Exception {
 
 /// <summary>What a Done caption says about steps the recorder did not keep, and about a run stopped by its time limit.</summary>
 static class StepCaptions {
-    private static readonly System.Text.RegularExpressions.Regex NotShownPattern = new(@" \((\d+) not shown\)$");
+    private static readonly System.Text.RegularExpressions.Regex NotShownPattern = new(@" \((\d+) not shown\)\.?$");
 
     /// <summary>How the caption of a Done step for a run stopped by its time limit begins.</summary>
     public const string StoppedPrefix = "Stopped after ";
@@ -174,6 +174,14 @@ static class StepCaptions {
 
     /// <summary>The note added to a Done caption when <paramref name="hidden"/> steps were not kept.</summary>
     public static string NotShownSuffix(int hidden) => $" ({hidden} not shown)";
+
+    /// <summary>
+    /// <paramref name="caption"/> with the note for <paramref name="hidden"/> steps not kept: before its closing full stop
+    /// if it has one ("found after 191 orders (40 not shown)."), else at the end.
+    /// </summary>
+    public static string WithNotShown(string caption, int hidden) => caption.EndsWith('.')
+        ? caption[..^1] + NotShownSuffix(hidden) + "."
+        : caption + NotShownSuffix(hidden);
 
     /// <summary>How many steps a Done caption says were not kept; 0 when it says nothing.</summary>
     public static int NotShown(string caption) {
