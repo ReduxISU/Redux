@@ -195,7 +195,7 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
                 bool complete = _path.Count == _n && Verifies();
                 int options = left;
                 _rec.Accept(() => TripartiteFrames.Chosen(Chosen()),
-                    () => $"{element} has {(options == 1 ? "one triple" : $"{options} triples")} left that use no element twice. Choose {TripartiteFrames.TripleLabel(Spec, triple)}.",
+                    () => $"{element} has {(options == 1 ? "one triple left that uses" : $"{options} triples left that use")} no element twice. Choose {TripartiteFrames.TripleLabel(Spec, triple)}.",
                     () => [TripartiteFrames.TripleId(triple)],
                     () => WithRoot(Node(id, parentId, triple, complete ? SearchNodeState.Solution : SearchNodeState.Explored)));
                 if (_path.Count == _n ? complete : Run()) return true;
