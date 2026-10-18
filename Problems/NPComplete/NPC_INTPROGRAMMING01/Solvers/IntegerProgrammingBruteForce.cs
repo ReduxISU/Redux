@@ -52,7 +52,8 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01, Assignment> {
     public string solve(INTPROGRAMMING01 intPrograming) => Solve(intPrograming, StepRecorder<Assignment>.Off);
 
     // Steps: one per assignment tried, in the counter's order (x1 flips fastest): a Reject naming the rows that go over
-    // their bounds, or the Accept of the first assignment every row allows; then Done. Focus: the Table picture's rows of
+    // their bounds, or the Accept of the first assignment every row allows; then Done, with the answer, or with the last
+    // assignment tried when none works. Focus: the Table picture's rows of
     // the constraints over their bounds (row 0 is the assignment, so constraint r is TableFrames.RowId(r + 1)), none for
     // the Accept.
     public string Solve(INTPROGRAMMING01 intPrograming, StepRecorder<Assignment> rec) {
@@ -65,21 +66,26 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01, Assignment> {
         Assignment Current() => new(binary.Select((v, j) => new KeyValuePair<string, string>(Variable(j), v.ToString())));
         List<int> Over() => Enumerable.Range(0, intPrograming.C.Count)
             .Where(r => r < intPrograming.d.Count && Total(intPrograming.C[r], binary) > intPrograming.d[r]).ToList();
-        for (int i = 0; i < Math.Pow(2, binary.Count); i++) {
+        double total = Math.Pow(2, binary.Count);
+        string last = "";
+        for (int i = 0; i < total; i++) {
             string certificate = BinaryToCertificate(binary);
+            last = certificate;
             tried++;
             if (intPrograming.defaultVerifier.verify(intPrograming, certificate)) {
                 rec.Accept(Current, () => $"Try {certificate}: every row stays within its bound.", () => []);
                 int count = tried;
-                rec.Done(Current(), true, $"{certificate} satisfies every row, found on try {count} of {Math.Pow(2, binary.Count)}.");
+                rec.Done(Current(), true, $"{certificate} satisfies every row, found on try {count} of {total}.");
                 return certificate;
             }
             rec.Reject(Current, () => $"Try {certificate}: {OverText(intPrograming, binary, Over())}",
                 () => Over().Select(r => TableFrames.RowId(r + 1)).ToArray());
-            nextBinary(binary);
-
+            // The last try is kept, not wrapped back to all zeros, so the Done below can show it.
+            if (i + 1 < total) nextBinary(binary);
         }
-        rec.Done(new Assignment([]), false, $"All {tried} assignments break some row, so no 0-1 solution exists.");
+        // The Done keeps the last assignment tried, so the Table picture closes on it with the rows it breaks (#905); the
+        // run's verdict is still no.
+        rec.Done(Current(), false, $"No 0-1 assignment satisfies every row: all {tried} were tried, the last {last}.");
         // No assignment works: "{}", the empty set every solver answers when there is no answer (#797).
         return "{}";
     }

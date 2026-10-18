@@ -214,14 +214,16 @@ public class TableSolvers_Tests {
     }
 
     [Fact]
-    public void IntProgramming_NoSolution_EndsWithTheEmptyAssignment_NotOk() {
+    public void IntProgramming_NoSolution_EndsWithTheLastTry_NotOk() {
         var steps = Steps<Assignment>("integerprogrammingbruteforce", "(-1 -1 0),(1 1 0),(0 0 1)<=(-2 1 1)");
         Assert.Equal(9, steps.Count);
         Assert.Equal("Try (1 1 0): row 2 adds up to 2, over its bound 1.", steps[3].Caption);
         var done = steps[^1];
         Assert.Equal((StepEvent.Done, false), (done.Event, done.Ok));
-        Assert.Equal("All 8 assignments break some row, so no 0-1 solution exists.", done.Caption);
-        Assert.Empty(done.Partial.Values);
+        Assert.Equal("No 0-1 assignment satisfies every row: all 8 were tried, the last (1 1 1).", done.Caption);
+        // The Done keeps the last try, as the last Reject drew it, not the empty assignment (#905).
+        Assert.Equal("x1=1 x2=1 x3=1", string.Join(" ", done.Partial.Values.Select(p => $"{p.Key}={p.Value}")));
+        Assert.Equal(steps[^2].Partial.Values, done.Partial.Values);
     }
 
     [Fact]
@@ -240,12 +242,22 @@ public class TableSolvers_Tests {
         Assert.All(done.Rows.Values.Concat(done.Cells.Values), s => Assert.Equal(PictureState.Solution, s.State));
         Assert.Equal(3, done.Rows.Count);
 
-        // No solution: the Done frame is the blank matrix.
+        // No solution: the Done frame keeps the last try, x Rejected, with the rows it breaks Rejected and the rows it meets
+        // Covered, as the try frames draw them (#905).
         var (_, none) = Picture("integerprogrammingbruteforce", "(1)<=(-1)");
-        Assert.Equal(["?", null, null, null], none[^1].Values[0]);
-        Assert.Equal(["1", null, "-1", null], none[^1].Values[1]);
-        Assert.Empty(none[^1].Rows);
-        Assert.Empty(none[^1].Cells);
+        Assert.Equal(["1", null, null, null], none[^1].Values[0]);
+        Assert.Equal(["1", "1", "-1", "no"], none[^1].Values[1]);
+        Assert.Equal("r1:Rejected", string.Join(" ", none[^1].Rows.Select(r => $"{r.Key}:{r.Value.State}")));
+        Assert.Equal("r0c0:Rejected", string.Join(" ", none[^1].Cells.Select(c => $"{c.Key}:{c.Value.State}")));
+        Assert.Empty(none[^1].Focus);
         Assert.False(none[^1].Ok);
+
+        var (_, broken) = Picture("integerprogrammingbruteforce", "(-1 -1 0),(1 1 0),(0 0 1)<=(-2 1 1)");
+        var last = broken[^1];
+        Assert.Equal(["1", "1", "1", null, null, null], last.Values[0]);
+        Assert.Equal("r1:Covered r2:Rejected r3:Covered", string.Join(" ", last.Rows.Select(r => $"{r.Key}:{r.Value.State}")));
+        Assert.All(last.Cells.Values, s => Assert.Equal(PictureState.Rejected, s.State));
+        Assert.Equal(broken[^2].Values, last.Values);
+        Assert.False(last.Ok);
     }
 }

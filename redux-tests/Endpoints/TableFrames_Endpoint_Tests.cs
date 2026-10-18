@@ -257,8 +257,14 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             var x = done.GetProperty("values")[0].EnumerateArray().Take(columns.Count - 3).Select(v => v.GetString());
             Assert.Equal(answer, "(" + string.Join(" ", x) + ")");
         } else {
-            Assert.Empty(done.GetProperty("rows").EnumerateObject());
-            Assert.Empty(done.GetProperty("cells").EnumerateObject());
+            // No solution: the Done keeps the last try (#905). Some row breaks and is Rejected, the rest are Covered, nothing
+            // is Solution, and the assignment's cells are Rejected.
+            var states = done.GetProperty("rows").EnumerateObject().Select(r => r.Value.GetProperty("state").GetString()).ToList();
+            Assert.Equal(rows.Count - 1, states.Count);
+            Assert.Contains("Rejected", states);
+            Assert.All(states, s => Assert.Contains(s, new[] { "Rejected", "Covered" }));
+            Assert.All(done.GetProperty("cells").EnumerateObject(), c => Assert.Equal("Rejected", c.Value.GetProperty("state").GetString()));
+            Assert.All(done.GetProperty("values")[0].EnumerateArray().Take(columns.Count - 3), v => Assert.Matches("^[01]$", v.GetString()));
         }
     }
 
