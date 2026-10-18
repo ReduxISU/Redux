@@ -71,10 +71,11 @@ class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJS
 
     // One step: the assignment is a candidate (ElementHighlight) while it is only tried, kept (Committed) in an Accept the run
     // goes on from, and the answer (Solution) in an Accept that ends the run or a correct Done (#886). A row over its bound is Rejected; a row that holds is Covered while the assignment is
-    // tried, and Solution once it is the answer.
+    // tried, and Solution once it is the answer. A Done with no solution keeps the last try (#905): its x is Rejected, its
+    // rows Rejected or Covered as in the try frames, so the run closes on what failed, not on the blank.
     private static TableDraft Draft(INTPROGRAMMING01 problem, int[]? x, StepEvent ev, bool? ok, bool incremental, IEnumerable<string> focus, bool endsRun = false) {
         var draft = Matrix(problem, x);
-        if (x != null && (ev != StepEvent.Done || ok == true)) {
+        if (x != null) {
             var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
             for (int j = 0; j < x.Length; j++) draft.MarkCell(0, j, picked);
             for (int r = 0; r < problem.C.Count && r < problem.d.Count; r++) {
