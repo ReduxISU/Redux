@@ -143,6 +143,42 @@ static class QuantumCircuits {
 
     private static string Plural(long n, string one, string many) => n == 1 ? one : many;
 
+    // "a", "a and b", "a, b and c".
+    private static string And(IReadOnlyList<string> names) =>
+        names.Count == 1 ? names[0] : $"{string.Join(", ", names.Take(names.Count - 1))} and {names[^1]}";
+
+    // At most this many tied outcomes are named; more are counted (#907).
+    private const int NamedTies = 4;
+
+    /// <summary>
+    /// The likeliest outcomes of <paramref name="d"/> as a Measure caption says them: <c>101 with probability 94.5%</c> when
+    /// one outcome is likeliest, and when several share the top probability, all of them, never one picked from the tie
+    /// (#907): <c>every item is equally likely (25% each)</c>, <c>01 and 10 are equally likely (50% each)</c>,
+    /// <c>6 outcomes are equally likely (12.5% each)</c>. <paramref name="name"/> names an outcome, and
+    /// <paramref name="what"/> is what an outcome is called (<c>item</c>, <c>outcome</c>).
+    /// </summary>
+    internal static string Likeliest(QuantumDistribution d, Func<long, string> name, string what) {
+        var top = d.Likeliest;
+        string p = Percent(d.Probabilities[top[0]]);
+        if (top.Count == 1) return $"{name(top[0])} with probability {p}";
+        if (top.Count == d.Probabilities.Length) return $"every {what} is equally likely ({p} each)";
+        if (top.Count <= NamedTies) return $"{And(top.Select(name).ToList())} are equally likely ({p} each)";
+        return $"{Count(top.Count)} {what}s are equally likely ({p} each)";
+    }
+
+    /// <summary>
+    /// The likeliest outcomes of <paramref name="d"/> as a step that changes the probabilities says them:
+    /// <c>101 now has probability 94.5%</c>, or on a tie <c>01 and 10 now have probability 50% each</c> (#907).
+    /// </summary>
+    internal static string NowLikeliest(QuantumDistribution d, Func<long, string> name, string what) {
+        var top = d.Likeliest;
+        string p = Percent(d.Probabilities[top[0]]);
+        if (top.Count == 1) return $"{name(top[0])} now has probability {p}";
+        if (top.Count == d.Probabilities.Length) return $"every {what} now has probability {p}";
+        if (top.Count <= NamedTies) return $"{And(top.Select(name).ToList())} now have probability {p} each";
+        return $"{Count(top.Count)} {what}s now have probability {p} each";
+    }
+
     // ---- Deutsch, Deutsch-Jozsa, Bernstein-Vazirani: phase kickback ----
 
     /// <summary>Deutsch: f given as (f(0), f(1)).</summary>
@@ -187,7 +223,7 @@ static class QuantumCircuits {
         string queryQubits = deutsch ? "x0" : "the query qubits";
         string inputs = deutsch ? "both inputs, 0 and 1," : $"all {Count(N)} inputs";
         var spec = default(QuantumCircuitSpec);
-        string Top(QuantumDistribution d) => spec!.Outcome(d.MostLikely);
+        string Outcome(long value) => spec!.Outcome(value);
         var columns = new List<QuantumColumn> {
             new([X(helper)], st => st.X(helper), _ => "Flip the helper qubit y to 1."),
             new(all.Select(H).ToList(), st => { foreach (int k in all) st.H(k); },
@@ -199,11 +235,11 @@ static class QuantumCircuits {
                 if (d == null) return start + ".";
                 return problem == "deutschJozsa"
                     ? $"{start}: the all-zero outcome {Bits(0, n)} now has probability {Percent(d.Probabilities[0])}."
-                    : $"{start}: {Top(d)} now has probability {Percent(d.Probabilities[d.MostLikely])}.";
+                    : $"{start}: {NowLikeliest(d, Outcome, "outcome")}.";
             }),
             new(data.Select(Meter).ToList(), null, d => d == null
                 ? $"Measure {queryQubits}."
-                : $"Measure {queryQubits}: {Top(d)} with probability {Percent(d.Probabilities[d.MostLikely])}."),
+                : $"Measure {queryQubits}: {Likeliest(d, Outcome, "outcome")}."),
         };
         var stages = new List<QuantumStage> { new("prepare", 0, 1), new("query once", 2, 2), new("interfere", 3, 3), new("read", 4, 4) };
         spec = new QuantumCircuitSpec(problem, wires, columns, stages, data, "bits", n);
@@ -288,7 +324,7 @@ static class QuantumCircuits {
         columns.Add(new(data.Select(Meter).ToList(), null, d => {
             if (M == 0) return "Measure. Nothing is marked, so every item is still equally likely: no outcome means anything.";
             if (d == null) return "Measure.";
-            return $"Measure: item {d.MostLikely} ({Bits(d.MostLikely, n)}) with probability {Percent(d.Probabilities[d.MostLikely])}.";
+            return $"Measure: {Likeliest(d, i => $"item {i} ({Bits(i, n)})", "item")}.";
         }));
         stages.Add(new("read", columns.Count - 1, columns.Count - 1));
         return new QuantumCircuitSpec("unstructuredSearch", wires, columns, stages, highFirst, "bits", n);
@@ -511,13 +547,24 @@ sealed class QuantumDistribution {
         Signs = signs;
     }
 
-    /// <summary>The most likely outcome (the smallest one on a tie).</summary>
+    /// <summary>The most likely outcome (the smallest one on a tie; see <see cref="Likeliest"/> for all of them).</summary>
     public long MostLikely {
         get {
             int best = 0;
             for (int i = 1; i < Probabilities.Length; i++)
                 if (Probabilities[i] > Probabilities[best] + 1e-9) best = i;
             return best;
+        }
+    }
+
+    /// <summary>Every outcome that shares the top probability, the smallest first (#907).</summary>
+    public IReadOnlyList<long> Likeliest {
+        get {
+            double top = Probabilities[MostLikely];
+            var tied = new List<long>();
+            for (int i = 0; i < Probabilities.Length; i++)
+                if (Probabilities[i] >= top - 1e-9) tied.Add(i);
+            return tied;
         }
     }
 }

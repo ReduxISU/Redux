@@ -216,6 +216,45 @@ public class QuantumCircuitFrames_Tests {
         Assert.Equal("Round 2: reflect every amplitude about the average. The marked item now has probability 94.5%.", new QuantumSimulation(grover).Caption(4));
     }
 
+    // The rounds drawn and simulated here are the rounds the quantum server runs: quantumsolver's grover_rounds (#24 there)
+    // tests the same table.
+    [Theory]
+    [InlineData(4, 1, 1)]
+    [InlineData(8, 1, 2)]
+    [InlineData(16, 1, 3)]
+    [InlineData(8, 2, 1)]
+    [InlineData(4, 2, 1)]
+    [InlineData(4, 3, 1)]
+    [InlineData(64, 4, 3)]
+    [InlineData(4, 0, 0)]
+    [InlineData(4, 4, 0)]
+    [InlineData(2, 2, 0)]
+    public void GroverRounds_MatchTheQuantumServer(int items, int marked, int rounds) =>
+        Assert.Equal(rounds, QuantumCircuits.GroverRounds(items, marked));
+
+    // #907: when outcomes share the top probability, the caption says so and never names one picked from the tie.
+    [Theory]
+    [InlineData("(0,1,0,0)", "Measure: item 1 (01) with probability 100%.")]
+    [InlineData("(0,1,1,0)", "Measure: every item is equally likely (25% each).")]
+    [InlineData("(1,1,1,1)", "Measure: every item is equally likely (25% each).")]
+    [InlineData("(0,1,0,0,0,0,1,0)", "Measure: item 1 (001) and item 6 (110) are equally likely (50% each).")]
+    [InlineData("(1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0)", "Measure: 5 items are equally likely (19.1% each).")]
+    public void Grover_MeasureCaption_SaysATieAsATie(string table, string caption) {
+        var spec = QuantumCircuits.UnstructuredSearch(Table(table));
+        Assert.Equal(caption, new QuantumSimulation(spec).Caption(spec.Columns.Count - 1));
+    }
+
+    [Fact]
+    public void PhaseKickback_Captions_SayATieAsATie() {
+        // Majority of 3 bits is balanced, and its four likeliest outcomes tie at 25% (#907).
+        var spec = QuantumCircuits.DeutschJozsa(Table("(0,0,0,1,0,1,1,1)"));
+        var sim = new QuantumSimulation(spec);
+        Assert.Equal("Measure the query qubits: 001, 010, 100 and 111 are equally likely (25% each).", sim.Caption(4));
+        var bv = QuantumCircuits.BernsteinVazirani(Table("(0,0,0,1,0,1,1,1)").Select(v => v == 1).ToArray());
+        Assert.Equal("Apply H to the query qubits again. The signs interfere: 001, 010, 100 and 111 now have probability 25% each.", new QuantumSimulation(bv).Caption(3));
+        Assert.Equal([0L, 2L], new QuantumDistribution([0.5, 0, 0.5, 0], null).Likeliest);
+    }
+
     [Fact]
     public void ACircuitTooBigToSimulate_HasNoBars_AndCaptionsWithoutNumbers() {
         var spec = QuantumCircuits.BernsteinVazirani(new bool[1 << 16]);

@@ -316,6 +316,24 @@ public class QuantumSolvers_Tests {
         Assert.Equal("Done: Item 1 is marked, found with 1 round of Grover's algorithm.", Captions("unstructuredgroversolver", "(0,1,0,0)")[^1]);
     }
 
+    // The Done caption after the server measured the unmarked item named by bits.
+    private static string MissedDone(string instance, string bits) {
+        using var _ = FakeQuantumServer.Install(out var server);
+        server.Canned = (HttpStatusCode.OK, $"{{\"qasm\": \"OPENQASM 2.0;\", \"answer_bitstring\": \"{bits}\"}}");
+        var steps = Steps(Solver("unstructuredgroversolver").Run(instance, withSteps: true));
+        Assert.False(steps[^1].Ok);
+        return steps[^1].Caption;
+    }
+
+    // #906: a miss says how often a run finds a marked item, from the simulation, never "usually".
+    [Theory]
+    [InlineData("(0,1,1,0)", "00", "Item 0 is not marked: the measurement missed. A run finds a marked item about 50% of the time.")]
+    [InlineData("(1,1,1,0)", "11", "Item 3 is not marked. With 3 of 4 items marked, the marked items end at 0% after 1 round of Grover's algorithm, so every run misses.")]
+    [InlineData("(0,1,0,0)", "01", "Item 2 is not marked: the measurement missed. The circuit drawn here finds a marked item every time, so the server's run went differently.")]
+    [InlineData("(0,1,0,0,0,0,1,0)", "000", "Item 0 is not marked: the measurement missed. The circuit drawn here finds a marked item every time, so the server's run went differently.")]
+    public void Grover_AMiss_SaysTheSimulatedChanceOfAHit(string instance, string bits, string caption) =>
+        Assert.Equal(caption, MissedDone(instance, bits));
+
     [Fact]
     public void TrialDivision_KeepsEachFactor_AndRejectsEachDivisorThatFails() {
         Assert.Equal([

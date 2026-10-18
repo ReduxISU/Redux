@@ -89,9 +89,28 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
             QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
                 ok => ok ? $"Item {answer} is marked, found with {Rounds(QuantumCircuits.GroverRounds(problem.funcValues.Count, problem.funcValues.Count(v => v != 0)))} of Grover's algorithm."
                     : problem.funcValues.All(v => v == 0) ? $"Nothing is marked, so item {answer} is not either: the answer should be no solution."
-                    : $"Item {answer} is not marked: the measurement missed. Running the circuit again usually finds a marked item.");
+                    : Missed(problem.funcValues, spec, answer));
         }
         return answer;
+    }
+
+    /// <summary>
+    /// Done's caption when the server measured an unmarked item: how often a run of the circuit drawn finds a marked item,
+    /// from simulating it (#906). Never "usually": with 2 of 4 marked it is 50%, and with 3 of 4 one round overshoots to
+    /// 0%. Nothing is said about the odds when the circuit is too big to simulate.
+    /// </summary>
+    public static string Missed(IReadOnlyList<int> table, QuantumCircuitSpec spec, string answer) {
+        string missed = $"Item {answer} is not marked: the measurement missed.";
+        var d = new QuantumSimulation(spec).After(spec.Columns.Count);
+        if (d == null) return missed;
+        var marked = Enumerable.Range(0, table.Count).Where(i => table[i] != 0).ToList();
+        string chance = QuantumCircuits.Percent(marked.Sum(i => d.Probabilities[i]));
+        string rounds = Rounds(QuantumCircuits.GroverRounds(table.Count, marked.Count));
+        return chance switch {
+            "0%" => $"Item {answer} is not marked. With {marked.Count} of {QuantumCircuits.Count(table.Count)} items marked, the marked items end at 0% after {rounds} of Grover's algorithm, so every run misses.",
+            "100%" => $"{missed} The circuit drawn here finds a marked item every time, so the server's run went differently.",
+            _ => $"{missed} A run finds a marked item about {chance} of the time.",
+        };
     }
 
     // "1 round", "2 rounds" (#902).
