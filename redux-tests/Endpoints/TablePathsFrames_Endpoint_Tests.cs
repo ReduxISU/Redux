@@ -78,11 +78,14 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             string ev = f.GetProperty("event").GetString()!;
             if (ev == "Accept") {
                 // The settled node is the focus, and earlier settled rows stay Committed (Dijkstra is incremental; #886), or
-                // Solution in an Accept that ends the run.
-                string kept = frames[i + 1].GetProperty("event").GetString() == "Done" && frames[i + 1].GetProperty("ok").GetBoolean() ? "Solution" : "Committed";
+                // Solution in an Accept that ends the run: every one for SSSP, only the path's for SPSP (#904).
+                bool endsRun = frames[i + 1].GetProperty("event").GetString() == "Done" && frames[i + 1].GetProperty("ok").GetBoolean();
+                var answerRows = frames[^1].GetProperty("rows").EnumerateObject()
+                    .Where(r => r.Value.GetProperty("state").GetString() == "Solution").Select(r => r.Name).ToHashSet();
+                string Kept(string r) => endsRun && (!pair || answerRows.Contains(r)) ? "Solution" : "Committed";
                 var focus = Assert.Single(f.GetProperty("focus").EnumerateArray()).GetString()!;
                 Assert.Equal("ElementHighlight", f.GetProperty("rows").GetProperty(focus).GetProperty("state").GetString());
-                Assert.All(settledOrder, r => Assert.Equal(kept, f.GetProperty("rows").GetProperty(r).GetProperty("state").GetString()));
+                Assert.All(settledOrder, r => Assert.Equal(Kept(r), f.GetProperty("rows").GetProperty(r).GetProperty("state").GetString()));
                 Assert.Equal($"#{settledOrder.Count + 1}", f.GetProperty("values")[int.Parse(focus[1..])][1].GetString());
                 settledOrder.Add(focus);
             }
@@ -150,6 +153,11 @@ public class TablePathsFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(["#1", "#2", "#3", "not yet", "#4"], Column(done, 1));
         Assert.Equal("r0:Solution r1:Solution r4:Solution", RowStates(done));
         Assert.True(done.GetProperty("ok").GetBoolean());
+        // The Accept that settles t ends the run, but only the path s, a, t is the answer: b, settled on the way, stays
+        // Committed, and t is the focus (#904).
+        var accept = root.GetProperty("frames").EnumerateArray().SkipLast(1).Last();
+        Assert.Equal("Accept", accept.GetProperty("event").GetString());
+        Assert.Equal("r0:Solution r1:Solution r2:Committed r4:ElementHighlight", RowStates(accept));
 
         var none = (await Visualize("visualization=spsptablevisualization&format=frames", "({1,2,3},{((1,2),1)},1,3)")).GetProperty("frames").EnumerateArray().Last();
         Assert.Equal(["#1", "#2", "unreachable"], Column(none, 1));
