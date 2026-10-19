@@ -26,11 +26,16 @@ jobs:
         run: dotnet test Redux.Library.Tests/Redux.Library.Tests.csproj -c Release --no-restore
 
       - name: Pack library
-        run: dotnet pack Redux.Library/Redux.Library.csproj -c Release --no-restore -o ./nupkgs
+        run: |
+          dotnet pack Redux.Library/Redux.Library.csproj \
+            -c Release \
+            --no-restore \
+            -p:PackageVersion=1.0.${{ github.run_number }} \
+            -o ./nupkgs
 
       - name: Upload NuGet artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Redux-NuGet-Package
+          name: Redux-NuGet-Package-${{ github.run_number }}
           path: ./nupkgs/*.nupkg
           if-no-files-found: error
