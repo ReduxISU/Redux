@@ -97,6 +97,19 @@ public class VisualizeRun_Endpoint_Tests : IClassFixture<AppFactory> {
         }
     }
 
+    // Frames responses are written on one line (#909): indentation was over half of a large picture's bytes.
+    [Theory]
+    [InlineData("visualizeRun", "solver=CliqueBruteForce")]
+    [InlineData("visualize", "visualization=CliqueDefaultVisualization&solver=CliqueBruteForce&format=frames")]
+    public async Task FramesResponses_AreNotIndented(string path, string query) {
+        var content = new StringContent(JsonSerializer.Serialize(DefaultInstance<CLIQUE>()), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync($"/ProblemProvider/{path}?{query}", content, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string text = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.DoesNotContain('\n', text);
+        Assert.Equal(Compact(JsonDocument.Parse(text).RootElement), text);
+    }
+
     [Fact]
     public async Task Clique_PictureIsTheVisualizeFramesResponse() {
         string instance = DefaultInstance<CLIQUE>();
