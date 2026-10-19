@@ -639,10 +639,13 @@ public partial class ProblemProvider : ControllerBase {
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
     /// <param name="solver" example = "CliqueBruteForceSolver">Optional. The TARGET problem's solver for the solve phase. Defaults to the target's default solver. Must solve the target problem</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
-    /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, source, target, gadgets, frames }</returns>
+    /// <param name="sourceVisualization" example = "Sat3DefaultVisualization">Optional. The visualization (class name) the SOURCE side is drawn with. Defaults to the source problem's default visualization. Must be a frames picture of the source problem whose steps the view can draw (400 <c>unknown_visualization</c>, <c>visualization_mismatch</c>, <c>no_source_picture</c>)</param>
+    /// <param name="targetVisualization" example = "CliqueDefaultVisualization">Optional. The visualization (class name) the TARGET side is drawn with. Defaults to the target problem's default visualization. Must be a frames picture of the target problem (400 <c>unknown_visualization</c>, <c>visualization_mismatch</c>, <c>no_target_picture</c>). Without <c>solver</c>, the solve phase runs that picture's own solver</param>
+    /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, source: { problem, instance, visualization, picture }, target: { ..., visualization, picture, buildOrder }, gadgets, frames }</returns>
     [HttpPost("reductionView")]
     [ProducesResponseType(400)]
-    public IActionResult reductionView(string reduction, [FromBody] string instance, string? solver = null) {
+    public IActionResult reductionView(string reduction, [FromBody] string instance, string? solver = null,
+        string? sourceVisualization = null, string? targetVisualization = null) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
@@ -651,21 +654,24 @@ public partial class ProblemProvider : ControllerBase {
                 return BadRequest(new { error = "no_build_steps", reduction });
             if (!red.hasBackwardMap())
                 return BadRequest(new { error = "no_backward_map", reduction });
-            if (red.reductionFrom.defaultVisualization is not IFramesVisualization sourceVis)
-                return BadRequest(new { error = "no_source_picture", reduction, problem = red.reductionFrom.problemName });
-            IVisualization targetVisualization = red.reductionTo.defaultVisualization;
-            if (targetVisualization is not IFramesVisualization targetVis)
-                return BadRequest(new { error = "no_target_picture", reduction, problem = red.reductionTo.problemName });
-            ISolver chosen = targetVisualization.solver;
+            if (ChooseViewPicture(red.reductionFrom, sourceVisualization, "source", reduction, out var sourceVis) is { } sourceError)
+                return sourceError;
+            if (ChooseViewPicture(red.reductionTo, targetVisualization, "target", reduction, out var targetVis) is { } targetError)
+                return targetError;
+            // The target picture's own solver draws it: the default picture's is the target's default solver.
+            ISolver chosen = targetVis.solver;
             if (!string.IsNullOrEmpty(solver)) {
                 if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
                     return BadRequest(new { error = "unknown_solver", received = solver });
-                if (!SolverMatchesVisualization(solverType, targetVisualization))
+                if (!SolverMatchesVisualization(solverType, targetVis))
                     return BadRequest(new { error = "solver_mismatch", received = solver, problem = red.reductionTo.problemName });
                 chosen = Solver(solver);
             }
             var view = ReductionView.Create(red, instance, buildSteps, chosen, sourceVis, targetVis, answer => MapSolutionsBack(red, answer, true), SolveTimeLimit,
                 ReductionView.SolveStepCap);
+            // Which picture each side was drawn with, so a client that asked for one can tell it got it (#912).
+            view["source"]!["visualization"] = sourceVis.GetType().Name;
+            view["target"]!["visualization"] = targetVis.GetType().Name;
             return Content(view.ToJsonString(FramesResponse.JsonOptions), "application/json");
         } catch (ReductionViewException ex) {
             return BadRequest(new { error = ex.Error, reduction, detail = ex.Message });
@@ -674,6 +680,33 @@ public partial class ProblemProvider : ControllerBase {
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
+    }
+
+    /// <summary>
+    /// The picture one side of the Reduction View is drawn with (#912): <paramref name="name"/>, or the problem's default when it is
+    /// omitted. Returns the 400 to answer with when it cannot be used: <c>unknown_visualization</c> (no such class),
+    /// <c>visualization_mismatch</c> (it draws another problem), or <c>no_source_picture</c> / <c>no_target_picture</c> (it has
+    /// no frames picture, or its frames draw no typed steps, so the view cannot draw it).
+    /// </summary>
+    private IActionResult? ChooseViewPicture(IProblem problem, string? name, string side, string reduction, out IFramesVisualization picture) {
+        picture = null!;
+        string noPicture = $"no_{side}_picture";
+        if (string.IsNullOrEmpty(name)) {
+            if (problem.defaultVisualization is not IFramesVisualization fallback)
+                return BadRequest(new { error = noPicture, reduction, problem = problem.problemName });
+            picture = fallback;
+            return null;
+        }
+        if (!Visualizers.TryGetValue(name.ToLower(), out var type))
+            return BadRequest(new { error = "unknown_visualization", received = name, side });
+        if (!VisualizationsOf(problem.GetType()).Contains(type.Name))
+            return BadRequest(new { error = "visualization_mismatch", received = name, side, problem = problem.problemName,
+                detail = $"{type.Name} does not draw {problem.problemName}." });
+        if (Visualization(type.Name) is not IFramesVisualization frames || frames.StepShape == null)
+            return BadRequest(new { error = noPicture, reduction, problem = problem.problemName, received = name,
+                detail = $"{type.Name} has no frames picture the Reduction View can draw." });
+        picture = frames;
+        return null;
     }
 
     /// <summary>
