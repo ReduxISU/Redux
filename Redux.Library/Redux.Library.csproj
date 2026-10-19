@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ReduxClient.cs" />
     <Compile Include="../Interfaces/**/*.cs" />
     <Compile Include="../Problems/**/*.cs" />
     <Compile Include="../Tools/QasmD3Scheduler.cs" />

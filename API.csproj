@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Remove="Redux.Library/**" />
     <Content Remove="Redux.Library/**" />
+    <Compile Remove="Redux.Library.Tests/**" />
     <None Remove="Redux.Library/**" />
     <EmbeddedResource Remove="Redux.Library/**" />
   </ItemGroup>
