@@ -61,9 +61,11 @@ sealed record FramesResponse(
     [property: JsonPropertyName("payload")] object Payload,
     [property: JsonPropertyName("frames")] IReadOnlyList<object> Frames) {
 
-    /// <summary>Serializer options for this response (camelCase names come from the records' attributes).</summary>
+    /// <summary>
+    /// Serializer options for this response (camelCase names come from the records' attributes). Not indented: a frames
+    /// response runs to hundreds of kilobytes, and indentation was over half of it (#909).
+    /// </summary>
     public static JsonSerializerOptions JsonOptions { get; } = new() {
-        WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
     };
 }
