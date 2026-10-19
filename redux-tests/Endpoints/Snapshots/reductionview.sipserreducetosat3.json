@@ -162,7 +162,8 @@
         "rule": "clique",
         "k": 3
       }
-    }
+    },
+    "visualization": "CliqueDefaultVisualization"
   },
   "target": {
     "problem": "3SAT",
@@ -398,7 +399,9 @@
         "c2-0~c2-2",
         "c2-1~c2-2"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "Sat3DefaultVisualization"
   },
   "gadgets": [
     {

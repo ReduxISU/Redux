@@ -52,7 +52,8 @@
         "rule": "independentSet",
         "k": 2
       }
-    }
+    },
+    "visualization": "IndependentSetDefaultVisualization"
   },
   "target": {
     "problem": "Clique",
@@ -115,7 +116,9 @@
         "a-d",
         "b-d"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "CliqueDefaultVisualization"
   },
   "gadgets": [
     {

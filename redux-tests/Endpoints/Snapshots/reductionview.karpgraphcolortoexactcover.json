@@ -43,7 +43,8 @@
         "rule": "coloring",
         "k": 2
       }
-    }
+    },
+    "visualization": "GraphColoringDefaultVisualization"
   },
   "target": {
     "problem": "Exact Cover",
@@ -385,7 +386,9 @@
         "e:c_b_c_1~S9",
         "e:c_b_c_2~S10"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "ExactCoverDefaultVisualization"
   },
   "gadgets": [
     {

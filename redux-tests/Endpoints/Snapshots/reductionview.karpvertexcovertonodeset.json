@@ -43,7 +43,8 @@
         "rule": "vertexCover",
         "k": 1
       }
-    }
+    },
+    "visualization": "VertexCoverDefaultVisualization"
   },
   "target": {
     "problem": "Feedback Node Set",
@@ -129,7 +130,9 @@
         "b\u003Ec",
         "c\u003Eb"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "NodeSetDefaultVisualization"
   },
   "gadgets": [
     {

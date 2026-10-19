@@ -57,7 +57,8 @@
         "rule": "clique",
         "k": 3
       }
-    }
+    },
+    "visualization": "CliqueDefaultVisualization"
   },
   "target": {
     "problem": "Vertex Cover",
@@ -114,7 +115,9 @@
         "a-d",
         "b-d"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "VertexCoverDefaultVisualization"
   },
   "gadgets": [
     {

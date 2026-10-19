@@ -43,7 +43,8 @@
         "rule": "vertexCover",
         "k": 1
       }
-    }
+    },
+    "visualization": "VertexCoverDefaultVisualization"
   },
   "target": {
     "problem": "Feedback Arc Set",
@@ -180,7 +181,9 @@
         "b1\u003Ec0",
         "c1\u003Eb0"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "ArcSetDefaultVisualization"
   },
   "gadgets": [
     {

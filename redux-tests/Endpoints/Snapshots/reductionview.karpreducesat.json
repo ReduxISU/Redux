@@ -43,7 +43,8 @@
         "rule": "coloring",
         "k": 2
       }
-    }
+    },
+    "visualization": "GraphColoringDefaultVisualization"
   },
   "target": {
     "problem": "SAT",
@@ -496,7 +497,9 @@
         "c8-0~c8-1",
         "c9-0~c9-1"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "SatDefaultVisualization"
   },
   "gadgets": [
     {

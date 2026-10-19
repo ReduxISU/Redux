@@ -97,7 +97,8 @@
           }
         ]
       }
-    }
+    },
+    "visualization": "ExactCoverDefaultVisualization"
   },
   "target": {
     "problem": "Subset Sum",
@@ -142,7 +143,9 @@
         "C1"
       ],
       "edges": []
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "SubsetSumVisualization"
   },
   "gadgets": [
     {

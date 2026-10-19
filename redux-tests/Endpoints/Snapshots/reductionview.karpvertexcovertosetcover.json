@@ -43,7 +43,8 @@
         "rule": "vertexCover",
         "k": 1
       }
-    }
+    },
+    "visualization": "VertexCoverDefaultVisualization"
   },
   "target": {
     "problem": "Set Cover",
@@ -128,7 +129,9 @@
         "e:b_c~S2",
         "e:b_c~S3"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "SetCoverDefaultVisualization"
   },
   "gadgets": [
     {

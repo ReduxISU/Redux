@@ -43,7 +43,8 @@
         ],
         "total": 35
       }
-    }
+    },
+    "visualization": "SubsetSumVisualization"
   },
   "target": {
     "problem": "Partition",
@@ -112,7 +113,9 @@
         "C2"
       ],
       "edges": []
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "PartitionDefaultVisualization"
   },
   "gadgets": [
     {

@@ -43,7 +43,8 @@
         "rule": "coloring",
         "k": 2
       }
-    }
+    },
+    "visualization": "GraphColoringDefaultVisualization"
   },
   "target": {
     "problem": "Clique Cover",
@@ -89,7 +90,9 @@
       "edges": [
         "a-c"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "CliqueCoverDefaultVisualization"
   },
   "gadgets": [
     {

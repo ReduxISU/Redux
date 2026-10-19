@@ -97,7 +97,8 @@
           }
         ]
       }
-    }
+    },
+    "visualization": "HittingSetDefaultVisualization"
   },
   "target": {
     "problem": "Exact Cover",
@@ -214,7 +215,9 @@
         "e:2~S4",
         "e:3~S4"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "ExactCoverDefaultVisualization"
   },
   "gadgets": [
     {

@@ -43,7 +43,8 @@
         ],
         "total": 35
       }
-    }
+    },
+    "visualization": "SubsetSumVisualization"
   },
   "target": {
     "problem": "Knapsack (Binary)",
@@ -99,7 +100,9 @@
         "C1"
       ],
       "edges": []
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "KnapsackVisualization"
   },
   "gadgets": [
     {

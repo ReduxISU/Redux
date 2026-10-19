@@ -47,7 +47,8 @@
         "shape": "tour",
         "rule": "hamiltonianCycle"
       }
-    }
+    },
+    "visualization": "DirectedHamiltonianDefaultVisualization"
   },
   "target": {
     "problem": "Hamiltonian Cycle",
@@ -170,7 +171,9 @@
         "23-31",
         "11-33"
       ]
-    }
+    },
+    "buildReveal": "pieces",
+    "visualization": "HamiltonianDefaultVisualization"
   },
   "gadgets": [
     {
