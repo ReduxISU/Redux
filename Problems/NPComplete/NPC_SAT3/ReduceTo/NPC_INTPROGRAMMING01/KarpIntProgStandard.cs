@@ -119,7 +119,8 @@ class KarpIntProgStandard : IReduction<SAT3, INTPROGRAMMING01> {
     public string mapSolutions(string problemFromSolution) {
         // Check if the colution is correct
         if (!reductionFrom.defaultVerifier.verify(reductionFrom, problemFromSolution)) {
-            return "Solution is inccorect";
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat,
+                "the assignment does not satisfy the 3SAT formula, so there is no 0-1 assignment to map it to");
         }
 
         //Parse problemFromSolution into a list of nodes

@@ -1,11 +1,12 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_STEINERTREE.Verifiers;
 
 
 class SteinerTreeVerifier : IVerifier<STEINERTREE> {
-    public const string CertificateGrammar = "{node,node},... | edges form a connected subgraph including every terminal node in R";
+    public const string CertificateGrammar = "{node,node},... | edges are distinct edges of G, at most K of them, forming a tree that includes every terminal node in R";
     public const string CertificateExample = "{{8,6},{6,1},{1,2},{2,3},{3,5}}";
 
     // --- Fields ---
@@ -96,17 +97,26 @@ class SteinerTreeVerifier : IVerifier<STEINERTREE> {
             return false;
         }
 
-        List<string> check = new List<string>(problem.terminals);
-        foreach (var edge in edges) {
-            check.Remove(edge.Key);
-            check.Remove(edge.Value);
+        List<(string, string)> certEdges = edges.Select(e => (e.Key, e.Value)).ToList();
+        List<(string, string)> graphEdges = problem.edges.Select(e => (e.Key, e.Value)).ToList();
+
+        // Every edge must exist in G and appear once; K bounds the number of edges.
+        if (!GraphCertificateChecks.EdgesExistAndDistinct(graphEdges, certEdges) || edges.Count > problem.K) {
+            return false;
         }
 
-        if (IsConnected(edges) && !check.Any()) {
-            return true;
+        // A tree: connected and acyclic, i.e. |E| = |V| - 1 for the vertices the edges touch.
+        HashSet<string> vertices = new HashSet<string>(edges.SelectMany(e => new[] { e.Key, e.Value }));
+        if (edges.Count == 0) {
+            // The empty edge set is a (single-vertex) tree only when there is nothing to connect.
+            return problem.terminals.Count <= 1;
+        }
+        if (edges.Count != vertices.Count - 1 || !IsConnected(edges)) {
+            return false;
         }
 
-        return false;
+        // Every terminal must be in the tree.
+        return problem.terminals.All(vertices.Contains);
     }
 
 }
