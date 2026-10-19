@@ -54,6 +54,16 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// each gives its two ends (the id is the one the picture would give that edge, never something to split).
 /// </para>
 /// <para>
+/// <b>Another picture (#912).</b> The endpoint lets the caller choose either side's picture (<c>source.visualization</c> and
+/// <c>target.visualization</c> say which was drawn). The construction steps name the pieces of the target problem's default
+/// picture, so <c>target.buildReveal</c> says how a build frame shows the target: <c>pieces</c> (by <c>buildOrder</c>, as
+/// above), or <c>whole</c> when the chosen picture lacks some of those pieces (a factor graph has no literal nodes, a search
+/// tree none of the instance): then <c>buildOrder</c> is empty, build frames carry no counts, and the picture is shown as it
+/// is while the steps' captions and focus still say what is built. A search tree is empty until the solve. A picture of the
+/// search (one that cannot draw an answer alone) keeps the solve's last pane through the map phase. Ids in the gadgets and
+/// the focus lists are the default pictures' ids, so another picture may not have them all.
+/// </para>
+/// <para>
 /// <b>Solve.</b> The chosen solver runs on the target; each of its steps is drawn by the target's picture and the source pane
 /// stays neutral. The last frame's <c>ok</c> is the target problem's own verifier on the solver's answer ("{}" included: a
 /// set-valued problem's verifier reads it as the empty set, which can be a real answer). A solver stopped by the time limit ends
@@ -139,13 +149,26 @@ static class ReductionView {
             sourceItems.Add(AtRest(sourceShape, emptySource, step.Partial.SourceFocus));
         }
 
+        // The construction steps name the target's pieces by the ids of its problem's default picture. Another picture the
+        // caller chose (#912) may draw other pieces (a factor graph has no literal nodes, a search tree none of the instance):
+        // unless it has every piece the steps add, it cannot be revealed piece by piece, so it is shown whole during the build
+        // (buildReveal "whole", an empty buildOrder and no counts) while the steps still say, and focus, what is built.
+        bool revealPieces = targetVis.GetType() == red.reductionTo.defaultVisualization?.GetType()
+            || PayloadIds(targetResponse.Payload) is var pictureIds && nodeOrder.Concat(edgeOrder).All(pictureIds.Contains);
+        if (!revealPieces) {
+            nodeOrder.Clear();
+            edgeOrder.Clear();
+        }
+
         var buildTargetPanes = buildSteps.Count == 0 ? new List<Rendered>() : Render(targetVis, targetInstance, targetItems, targetShape).Frames;
         var buildSourcePanes = buildSteps.Count == 0 ? new List<Rendered>() : Render(sourceVis, sourceInstance, sourceItems, sourceShape).Frames;
         for (int i = 0; i < buildSteps.Count; i++) {
             var step = buildSteps[i];
             var target = buildTargetPanes[i].Pane;
-            target["builtNodes"] = counts[i].Nodes;
-            target["builtEdges"] = counts[i].Edges;
+            if (revealPieces) {
+                target["builtNodes"] = counts[i].Nodes;
+                target["builtEdges"] = counts[i].Edges;
+            }
             if (step.Partial.Skipped.Length > 0)
                 target["skipped"] = new JsonArray(step.Partial.Skipped.Select(s => (JsonNode)new JsonObject { ["id"] = s.Id, ["a"] = s.A, ["b"] = s.B }).ToArray());
             var frame = Frame(Build, step.Event, step.Caption, i, step.Ok, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
@@ -182,7 +205,7 @@ static class ReductionView {
         if (solved.TimedOut) {
             frames.Add(Frame(Map, StepEvent.Done, $"The solver had not finished, so there is no {red.reductionTo.problemName} answer to map back.",
                 null, false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
-            return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
+            return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces, gadgets, frames);
         }
         SolveRun mapped;
         try {
@@ -207,7 +230,8 @@ static class ReductionView {
         var mapSourceFrames = Render(sourceVis, sourceInstance,
             mapSteps.Select((s, i) => NewStep(sourceShape, s.Partial, s.Event, sourceFocuses[i], s.Caption, s.Ok)).ToList(), sourceShape, mapped.Answer,
             incremental: true).Frames;
-        var mapTargetPanes = solvedPartial == null || mapSteps.Count == 0 ? null
+        // A picture of the search itself (the Search Tree) draws nothing from an answer alone, so it keeps the solve's last pane.
+        var mapTargetPanes = solvedPartial == null || mapSteps.Count == 0 || !targetVis.DrawsAnswerAlone() ? null
             // Drawn as the solve's Done step (with its ok), so the pane is the solved picture: a Try would draw it as a
             // candidate still being tried (highlighted), not as the answer.
             : Render(targetVis, targetInstance, mapSteps.Select((s, i) => NewStep(targetShape, solvedPartial, StepEvent.Done, mapTargetFocuses[i], "", solveFrames[^1].Ok)).ToList(), targetShape).Frames;
@@ -224,11 +248,11 @@ static class ReductionView {
             frames.Add(Frame(Map, StepEvent.Done, $"{red.reductionFrom.problemName} has the answer {mapped.Answer}.",
                 null, Verify(red.reductionFrom, sourceInstance, mapped.Answer), [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
 
-        return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, gadgets, frames);
+        return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces, gadgets, frames);
     }
 
     private static JsonObject Result(IReduction red, string sourceInstance, string targetInstance, ISolver solver,
-        FramesResponse sourceResponse, FramesResponse targetResponse, List<string> nodeOrder, List<string> edgeOrder,
+        FramesResponse sourceResponse, FramesResponse targetResponse, List<string> nodeOrder, List<string> edgeOrder, bool revealPieces,
         IReadOnlyList<Gadget> gadgets, JsonArray frames) =>
         new JsonObject {
             ["type"] = nameof(VisualizationType.Reduction),
@@ -246,6 +270,8 @@ static class ReductionView {
                 ["instance"] = targetInstance,
                 ["picture"] = Picture(targetResponse),
                 ["buildOrder"] = new JsonObject { ["nodes"] = ToArray(nodeOrder), ["edges"] = ToArray(edgeOrder) },
+                // "pieces" when buildOrder reveals the picture piece by piece, "whole" when it is shown whole (#912).
+                ["buildReveal"] = revealPieces ? "pieces" : "whole",
             },
             ["gadgets"] = new JsonArray(gadgets.Select(GadgetJson).ToArray()),
             ["frames"] = frames,
@@ -285,6 +311,26 @@ static class ReductionView {
 
     private static JsonObject Picture(FramesResponse response) =>
         new() { ["type"] = response.Type, ["payload"] = ToNode(response.Payload) };
+
+    /// <summary>Every <c>id</c> a picture payload names, at any depth: the pieces its renderer can show or hide.</summary>
+    private static HashSet<string> PayloadIds(object payload) {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var stack = new Stack<JsonNode?>([ToNode(payload)]);
+        while (stack.Count > 0) {
+            switch (stack.Pop()) {
+                case JsonObject o:
+                    foreach (var (key, value) in o) {
+                        if (key == "id" && value is JsonValue v && v.TryGetValue<string>(out var id)) ids.Add(id);
+                        else stack.Push(value);
+                    }
+                    break;
+                case JsonArray a:
+                    foreach (var item in a) stack.Push(item);
+                    break;
+            }
+        }
+        return ids;
+    }
 
     private static JsonNode ToNode(object value) =>
         JsonSerializer.SerializeToNode(value, value.GetType(), FramesResponse.JsonOptions)!;
