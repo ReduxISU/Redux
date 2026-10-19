@@ -38,4 +38,11 @@
   </ItemGroup>
 
 
+  <ItemGroup>
+    <Compile Remove="Redux.Library/**" />
+    <Content Remove="Redux.Library/**" />
+    <None Remove="Redux.Library/**" />
+    <EmbeddedResource Remove="Redux.Library/**" />
+  </ItemGroup>
+
 </Project>

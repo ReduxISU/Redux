@@ -1,0 +1,33 @@
+name: Build Redux NuGet Package
+
+on:
+  push:
+    branches:
+      - CSharpAPI
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore library
+        run: dotnet restore Redux.Library/Redux.Library.csproj
+
+      - name: Pack library
+        run: dotnet pack Redux.Library/Redux.Library.csproj -c Release --no-restore -o ./nupkgs
+
+      - name: Upload NuGet artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Redux-NuGet-Package
+          path: ./nupkgs/*.nupkg
+          if-no-files-found: error

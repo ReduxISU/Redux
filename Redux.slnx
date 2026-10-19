@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="API.csproj" />
   <Project Path="redux-tests/redux-tests.csproj" />
+  <Project Path="Redux.Library/Redux.Library.csproj" />
   <Project Path="Tools/ContributorStatsSync/ContributorStatsSync.csproj" />
 </Solution>

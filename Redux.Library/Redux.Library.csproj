@@ -1,0 +1,36 @@
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PackageId>Redux.Library</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Redux Contributors</Authors>
+    <Description>Redux computational problems, solvers, and reductions.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../Interfaces/**/*.cs" />
+    <Compile Include="../Problems/**/*.cs" />
+    <Compile Include="../Tools/QasmD3Scheduler.cs" />
+    <Compile Include="../Tools/QuantumServerAPI.cs" />
+    <Compile Include="../QuantumSolverSettings.cs" />
+    <Compile Include="../ProjectSourcePath.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="NCalc" Version="7.2.0" />
+    <PackageReference Include="SPADE" Version="0.1.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.AspNetCore.Http" />
+  </ItemGroup>
+
+</Project>
