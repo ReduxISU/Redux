@@ -10,6 +10,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     public string solverName { get; } = "Job Sequencing Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Job Sequencing problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.
@@ -18,7 +19,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     // Declared, not derived. GenerateCombinations eagerly materializes all p! permutations
     // of the job indices (p = number of jobs) before solve() iterates and verifies each
     // (verify is O(p)).
-    public string complexity { get; } = "O(p! * p), p = number of jobs";
+    public MathematicalFunction timeComplexity { get; } = new("p! * p", ", p = number of jobs");
 
     // --- Methods Including Constructors ---
     public JobSeqBruteForce() {

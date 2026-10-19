@@ -10,6 +10,7 @@ class TSPBruteForce : ISolver<TSP> {
     public string solverName { get; } = "Traveling Salesperson Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Traveling Salesperson problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.
@@ -18,7 +19,7 @@ class TSPBruteForce : ISolver<TSP> {
     // Declared, not derived. Enumerates all n! permutations; each is checked via defaultVerifier,
     // whose verify() does two O(m) edge-list scans per node visited in the tour (n per
     // permutation), so per-permutation cost is O(n * m).
-    public string complexity { get; } = "O(n! * n * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("n! * n * m", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public TSPBruteForce() {

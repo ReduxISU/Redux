@@ -105,6 +105,7 @@ Every solver implements the members in [Interfaces/SolverInterface.cs](../../Int
 | `solverName` | The name people see in the GUI. A test checks its shape (see section 5). | `"Subset Sum Brute Force"` |
 | `solverDefinition` | One sentence on how it works. | `"This is a brute force solver for Subset Sum"` |
 | `source` | A citation for where the algorithm comes from. May be empty for a plain brute force. | `""` |
+| `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
 | `contributors` | Names of the people who wrote it. | `{ "Caleb Eardley", "Garret Stouffer" }` |
 | `timerHasExpired` | A true/false flag that means "stop now". See step 3. | `{ get; set; }` |
 | `solverType` | The style of algorithm (see below). | `SolverType.BruteForce` |

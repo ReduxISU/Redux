@@ -15,13 +15,14 @@ class TwoApproximationVertexCover : ISolver<VERTEXCOVER> {
     + " removes all edges incident to either endpoint, until no edges remain. It returns a cover of size at"
     + " most 2n when the optimal solution is n.";
     public string source { get; } = "Cormen, Thomas H.; Leiserson, Charles E.; Rivest, Ronald L.; Stein, Clifford (2001) [1990]. 'Section 35.1: The vertex-cover problem'. Introduction to Algorithms (2nd ed.). MIT Press and McGraw-Hill. pp. 1024–1027. ISBN 0-262-03293-7.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://www.cs.mcgill.ca/~akroit/math/compsci/Cormen%20Introduction%20to%20Algorithms.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(E), E = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("E", ", E = |edges|");
 
     // --- Methods Including Constructors ---
     public TwoApproximationVertexCover() {

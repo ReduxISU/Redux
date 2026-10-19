@@ -13,6 +13,7 @@ class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET, API_Gr
     public string visualizationName { get; } = "Independent Set Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Independent Set";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphD3;
     public ISolver solver { get; } = new IndependentSetBruteForce();

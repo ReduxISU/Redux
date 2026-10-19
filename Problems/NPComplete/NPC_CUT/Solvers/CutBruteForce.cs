@@ -10,6 +10,7 @@ class CutBruteForce : ISolver<CUT> {
     public string solverName { get; } = "Cut Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the Cut problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -18,7 +19,7 @@ class CutBruteForce : ISolver<CUT> {
     // Declared, not derived. Enumerates subsets of size 1..K (K <= edges.Count, but K
     // can still be Theta(n)); each candidate costs O(n^2) to build (certificateToEdges)
     // plus O(m) to verify.
-    public string complexity { get; } = "O(2^n * n^2 * m), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
 
     public CutBruteForce() {
 

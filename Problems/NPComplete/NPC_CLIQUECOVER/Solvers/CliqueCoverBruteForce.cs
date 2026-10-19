@@ -10,6 +10,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
     public string solverName { get; } = "Clique Cover Brute Force";
     public string solverDefinition { get; } = "This is a brute force solver for the NP-Complete Clique Cover problem";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -25,7 +26,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
     // Theta((n+1)^n) -- asymptotically worse than n! (n^n / n! -> e^n), i.e. worse than the
     // existing SolverComplexityBucket.Factorial tier; Exponential is kept only because no
     // stronger bucket value exists.
-    public string complexity { get; } = "O((K+1)^n * n^2 * m), n = |nodes|, m = |edges|, K = target clique count";
+    public MathematicalFunction timeComplexity { get; } = new("(K+1)^n * n^2 * m", ", n = |nodes|, m = |edges|, K = target clique count");
 
     // --- Methods Including Constructors ---
     public CliqueCoverBruteForce() {

@@ -276,6 +276,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
         public string reductionName => "Fake";
         public string reductionDefinition => "";
         public string source => "";
+        public string sourceFile => "";
         public string[] contributors => Array.Empty<string>();
         public IVisualization visualization => null!;
         public List<API.Interfaces.JSON_Objects.Gadget> gadgets => new();

@@ -43,6 +43,7 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM, API_empty
         "Animates the 24-hour optimal pump schedule, showing per-hour pump states, " +
         "tank levels, and cumulative costs produced by the DAG dynamic programming solver.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.PumpSchedule;
     public ISolver solver { get; } = new PumpSchedulingCMSolver();

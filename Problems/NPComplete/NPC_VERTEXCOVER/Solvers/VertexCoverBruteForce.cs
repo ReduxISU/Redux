@@ -12,6 +12,7 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
     public string solverName { get; } = "Vertex Cover Brute Force";
     public string solverDefinition { get; } = "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration.
@@ -21,7 +22,7 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
     // Theta(2^n) at K ~ n/2 via nextComb); each candidate costs O(K*n) to check certificate
     // nodes belong to G plus O(K*m) to check every edge is incident to the set (VCVerifier),
     // i.e. O(K*(n+m)) per candidate.
-    public string complexity { get; } = "O(2^n * n * (n + m)), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("2^n * n * (n + m)", ", n = |nodes|, m = |edges|");
 
     // --- Methods Including Constructors ---
     public VertexCoverBruteForce() {

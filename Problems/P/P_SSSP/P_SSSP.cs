@@ -20,6 +20,7 @@ class SSSP : IGraphProblem<SSSPSolver, SSSPVerifier, SSSPVisualization, UtilColl
     public string inputDescription { get; } = "A weighted graph and a source vertex";
     public string outputDescription { get; } = "The shortest path from the source vertex to every other reachable vertex in the graph";
     public string source { get; } = "N/A";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "N/A";
     public const string InstanceGrammar = "(N,E,s) | N is set, E subset N unorderedcross N or N cross N (edges optionally weighted as (edge,weight), non-negative only), s in N";
     private static string _defaultInstance = "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1)";

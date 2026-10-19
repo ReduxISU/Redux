@@ -9,7 +9,7 @@ namespace API.Problems.NPHard.NPH_PUMPSCHEDULINGCM.Verifiers;
 class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
     public const string CertificateGrammar = "{(cost,S) | cost is string, S is list}";
     public const string CertificateExample =
-        "(29.72,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
+        "(62.32,((PumpA,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0)," +
         "(PumpB,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)," +
         "(PumpC,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0,0,0,0,0,1,1)))";
 
@@ -20,6 +20,7 @@ class PumpSchedulingCMVerifier : IVerifier<PUMPSCHEDULINGCM> {
         "using exact arithmetic, and accepts if: (1) the tank stays within [0, capacity] at every hour, " +
         "(2) the reported cost matches the computed energy and startup costs within $0.01 tolerance.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
 
     private const double CostTolerance = 0.01;

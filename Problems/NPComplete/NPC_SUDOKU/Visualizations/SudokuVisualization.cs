@@ -11,8 +11,9 @@ class SudokuVisualization : IVisualization<SUDOKU> {
     public string visualizationName { get; } = "Sudoku Visualization";
     public string visualizationDefinition { get; } = "This is the default visualization for Sudoku";
     public string source { get; } = "TODO";
-    public string[] contributors { get; } = { "Dani Sleight" };
-    public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
+    public string sourceFile { get; } = SourceFile.Path();
+    public string[] contributors { get; } = { "Eric Hill" };
+    public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
     public ISolver solver { get; } = new SudokuSolver();
 
     // --- Methods Including Constructors ---

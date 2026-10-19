@@ -14,13 +14,14 @@ class PPZ : ISolver<SAT3> {
     + " If no satisfying assignment is found after all trials are exhausted, the algorithm reports"
     + " failure without concluding the formula is unsatisfiable.";
     public string source { get; } = "R. Paturi, P. Pudlak and F. Zane, \"Satisfiability Coding Lemma,\" Proceedings 38th Annual Symposium on Foundations of Computer Science, Miami Beach, FL, USA, 1997, pp. 566-574, doi: 10.1109/SFCS.1997.646146.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://ieeexplore.ieee.org/document/646146";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } = "O(2^(2n/3)), n = number of variables";
+    public MathematicalFunction timeComplexity { get; } = new("2^(2n/3)", ", n = number of variables");
 
     // Hard cap on trials so an unsatisfiable or large instance cannot run for ~2^31 trials.
     private const int MaxTrials = 10_000;

@@ -109,6 +109,7 @@ Every verifier implements the members in [Interfaces/VerifierInterface.cs](../..
 | `verifierName` | The name people see in the GUI. A test checks it is exactly `Default <Problem Name> Verifier` (see section 5). | `"Default Subset Sum Verifier"` |
 | `verifierDefinition` | One sentence on what the verifier checks. | `"This is a verifier for Subset Sum"` |
 | `source` | A citation for where the checking rule comes from. May be empty when it is just the problem's own definition. | `""` |
+| `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
 | `contributors` | Names of the people who wrote it. | `{ "Garret Stouffer" }` |
 | `certificate` | A string property the interface requires. Existing verifiers keep it as an empty string and never use it. | `""` |
 | `verify(PROBLEM, string)` | **The actual check.** Returns `true` or `false`, or throws for malformed input. | see Step 3 |

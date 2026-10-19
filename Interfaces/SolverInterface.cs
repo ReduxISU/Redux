@@ -1,10 +1,14 @@
 
+using API.Interfaces.Steps;
+
 namespace API.Interfaces;
 
 interface ISolver {
     string solverName { get; }
     string solverDefinition { get; }
     string source { get; }
+    // Repo-relative path of the file declaring this class; see SourceFile.
+    string sourceFile { get; }
     string[] contributors { get; }
 
     bool timerHasExpired { get; set; }
@@ -18,13 +22,23 @@ interface ISolver {
     SolverType solverType { get => SolverType.Unclassified; }
 
     /// <summary>
-    /// Free-text runtime-complexity commentary (e.g. "O(n * W)"). Pre-existing ad-hoc
-    /// field promoted to the interface under its original name — see the header of
-    /// <see cref="API.Interfaces.ReductionCost"/> for why this differs from that type's
-    /// naming choice. Defaults to empty string; only populate with a confidently-known
-    /// Big-O string, never a guess.
+    /// Worst-case TIME growth, as an evaluable Big-O function of instance-size
+    /// variables (e.g. <c>new("n * W", ", n = |items|, W = capacity")</c> displays as
+    /// "O(n * W), n = |items|, W = capacity" and can also be evaluated for a concrete
+    /// n/W). Pre-existing ad-hoc field promoted to the interface under its original
+    /// name — see the header of <see cref="API.Interfaces.ReductionCost"/> for why this
+    /// differs from that type's naming choice. Defaults to <c>null</c> (undeclared);
+    /// only populate with a confidently-known Big-O function, never a guess.
     /// </summary>
-    string complexity { get => ""; }
+    MathematicalFunction? timeComplexity { get => null; }
+
+    /// <summary>
+    /// Worst-case SPACE growth, as an evaluable Big-O function of instance-size
+    /// variables — same shape and same "declare only when confidently known" rule as
+    /// <see cref="timeComplexity"/>, just for auxiliary memory instead of running time.
+    /// Defaults to <c>null</c> (undeclared).
+    /// </summary>
+    MathematicalFunction? spaceComplexity { get => null; }
 
     /// <summary>
     /// Coarse WORST-CASE growth class of this solver. Declared, not derived — see
@@ -50,6 +64,31 @@ interface ISolver {
     List<Object> GetSteps(string instance) {
         return new List<Object>();
     }
+
+    /// <summary>
+    /// Solves an instance, optionally recording steps, in one call. The default is the legacy behaviour:
+    /// <see cref="GetSteps(string)"/> and then <see cref="solve(string)"/>, untyped steps. That is one run only while
+    /// GetSteps does no solving of its own, so a solver that records steps implements <see cref="ISolver{T, TPartial}"/>
+    /// instead, which overrides this to run once with typed steps (SolveOnce_Tests checks both).
+    /// </summary>
+    SolveRun Run(string instance, bool withSteps) {
+        var steps = withSteps ? GetSteps(instance).ToList() : new List<Object>();
+        return new SolveRun(solve(instance), steps, null);
+    }
+}
+
+/// <summary>The result of <see cref="ISolver.Run"/>: the answer, the recorded steps, and the shape of their partial answers.</summary>
+/// <param name="Answer">The same string <c>solve</c> returns.</param>
+/// <param name="Steps">The steps, as objects. <see cref="SolverStep{TPartial}"/> for typed solvers, solver-specific objects for legacy ones.</param>
+/// <param name="StepShape">The <c>TPartial</c> of the typed steps, or null for legacy untyped steps.</param>
+sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepShape) {
+    /// <summary>
+    /// The steps to hand a visualization that draws <paramref name="visualizationShape"/>. If the shapes differ
+    /// (including one typed and one legacy) the steps cannot be drawn, so none are given: the response then
+    /// shows the initial and solved pictures instead of failing.
+    /// </summary>
+    public List<object> StepsFor(Type? visualizationShape) =>
+        StepShape == visualizationShape ? Steps.ToList() : new List<object>();
 }
 
 interface ISolver<T> : ISolver where T : IProblem {
@@ -74,5 +113,28 @@ interface ISolver<T> : ISolver where T : IProblem {
 
     List<Object> GetSteps(T problem) {
         return new List<Object>();
+    }
+}
+
+/// <summary>
+/// A solver whose steps are typed by the shape of its answer. Implement <see cref="Solve"/>; the plain
+/// <c>solve</c> runs it with recording off.
+/// </summary>
+interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
+    string Solve(T problem, StepRecorder<TPartial> rec);
+
+    string ISolver<T>.solve(T problem) => Solve(problem, StepRecorder<TPartial>.Off);
+
+    SolveRun ISolver.Run(string instance, bool withSteps) {
+        T parsed = ParseGuard.CreateProblem<T>(instance);
+        var rec = withSteps ? new StepRecorder<TPartial>() : StepRecorder<TPartial>.Off;
+        string answer = Solve(parsed, rec);
+        return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
+    }
+
+    List<Object> ISolver<T>.GetSteps(T problem) {
+        var rec = new StepRecorder<TPartial>();
+        Solve(problem, rec);
+        return rec.Steps.Cast<object>().ToList();
     }
 }

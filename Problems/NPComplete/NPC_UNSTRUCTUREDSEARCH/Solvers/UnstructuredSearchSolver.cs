@@ -8,6 +8,7 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
     public string solverName { get; } = "Unstructured Search Brute Force";
     public string solverDefinition { get; } = "This solver simply loops through all possible x until one f(x) = 1.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Jason L. Wright", "Alex Svancara" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Unpruned exhaustive enumeration. Natural parameter is oracle-bit-count n
@@ -18,7 +19,7 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // solve() linearly scans problem.funcValues (length 2^n) until it finds a 1, worst
     // case (or "no solution") requiring all 2^n oracle queries.
-    public string complexity { get; } = "O(2^n) queries";
+    public MathematicalFunction timeComplexity { get; } = new("2^n", " queries");
 
     // --- Methods Including Constructors ---
     public UnstructuredSearchSolver() { }

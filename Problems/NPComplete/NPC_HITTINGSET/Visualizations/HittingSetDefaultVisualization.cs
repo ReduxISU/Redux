@@ -10,6 +10,7 @@ class HittingSetDefaultVisualization : IVisualization<HITTINGSET, API_SET> {
     public string visualizationName { get; } = "Hitting Set Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Hitting Set";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
     public ISolver solver { get; } = new HittingSetBruteForce();

@@ -11,6 +11,7 @@ class PartitionDefaultVisualization : IVisualization<PARTITION, API_SET> {
     public string visualizationName { get; } = "Partition Visualization";
     public string visualizationDefinition { get; } = "This is a default visualization for Partition";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public VisualizationType visualizationType { get; } = VisualizationType.SetD3;
     public ISolver solver { get; } = new PartitionBruteForce();

@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.P.P_SPSP.Solvers;
@@ -10,9 +11,13 @@ class SPSPVisualization : IVisualization<SPSP, API_GraphJSON> {
     public string visualizationName { get; } = "Single Pair Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Pair Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt" };
     public VisualizationType visualizationType => VisualizationType.GraphD3;
     public ISolver solver { get; } = new SPSPSolver();
+
+    // Implemented explicitly so it is not a public member (and so not part of /info).
+    Type? IVisualization.StepShape => typeof(Distances);
 
     public SPSPVisualization() { }
 
@@ -65,9 +70,8 @@ class SPSPVisualization : IVisualization<SPSP, API_GraphJSON> {
     public List<API_JSON> StepsVisualization(SPSP problem, List<Object> steps) {
         var result = new List<API_JSON>();
 
-        for (int s = 0; s < steps.Count; s++) {
-            string? step = steps[s].ToString();
-
+        // One frame per settled node (the path to it), made from the run's typed steps (no second run).
+        foreach (string step in SPSPSolver.PathSteps(problem, steps)) {
             if (string.IsNullOrWhiteSpace(step) || step.Trim() == "{}") {
                 result.Add(visualize(problem));
                 continue;

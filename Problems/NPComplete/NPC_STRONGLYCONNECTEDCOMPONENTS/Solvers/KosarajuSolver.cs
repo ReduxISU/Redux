@@ -13,6 +13,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS> {
 
     public string source { get; } =
         "Swati Dhingra, Poorvi S. Dodwad, and Meghna Madan, \"Finding Strongly Connected Components in a Social Network Graph,\" International Journal of Computer Applications, Volume 136, No. 7, February 2016. Section 4.4 describes Kosaraju's algorithm.";
+    public string sourceFile { get; } = SourceFile.Path();
 
     public string sourceLink { get; } =
         "https://ijcaonline.org/research/volume136/number7/dhingra-2016-ijca-908481.pdf";
@@ -25,7 +26,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Builds proper adjacency and reverse-adjacency dictionaries (O(V + E)) and runs two DFS
     // passes over them, each O(V + E) — the standard bound, no linear edge-list rescans.
-    public string complexity { get; } = "O(V + E)";
+    public MathematicalFunction timeComplexity { get; } = new("V + E", "");
 
     public string solve(STRONGLYCONNECTEDCOMPONENTS problem) {
         var nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();

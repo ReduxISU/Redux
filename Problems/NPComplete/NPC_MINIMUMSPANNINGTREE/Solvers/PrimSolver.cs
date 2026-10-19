@@ -9,6 +9,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
     public string solverName { get; } = "Prim's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by repeatedly adding the lowest-weight edge that connects the growing tree to a new vertex.";
     public string source { get; } = "Prim, R. C. \"Shortest connection networks and some generalizations.\" Bell System Technical Journal 36, no. 6 (1957): 1389-1401.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.1002/j.1538-7305.1957.tb01515.x";
     public string[] contributors { get; } = { "Val Kimbrough" };
     public bool timerHasExpired { get; set; }
@@ -21,7 +22,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE> {
     // visited.SelectMany(node => adjacency[node]) — up to O(E) edges — and re-sorts that
     // whole list with OrderBy (O(E log E)) just to pick the minimum. That's O(V) iterations
     // times O(E log E) per iteration, not the textbook O(E log V) (heap) or O(V^2) (array).
-    public string complexity { get; } = "O(V * E log E)";
+    public MathematicalFunction timeComplexity { get; } = new("V * E log E", "");
 
     public string solve(MINIMUMSPANNINGTREE problem) {
         // Sort once so equal-weight instances still produce deterministic certificates.

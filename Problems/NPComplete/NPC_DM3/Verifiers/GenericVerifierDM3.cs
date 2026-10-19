@@ -8,6 +8,7 @@ class GenericVerifierDM3 : IVerifier<DM3> {
     public string verifierName { get; } = "Default 3-Dimensional Matching Verifier";
     public string verifierDefinition { get; } = "This verifier checks that a given certificate is the correct size, and contains all elements of X, Y and Z";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };
 
 

@@ -12,6 +12,7 @@ class KarpGraphColorToExactCover : IReduction<GRAPHCOLORING, EXACTCOVER> {
     public string reductionName { get; } = "Karp's Exact Cover Reduction";
     public string reductionDefinition { get; } = "Karp's Reduction from Exact Cover to Subset Sum";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     // The final gadget block ("foreach edge: for f1 in 1..K: for f2 in 1..K: build an

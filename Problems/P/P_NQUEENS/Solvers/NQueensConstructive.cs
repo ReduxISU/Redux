@@ -25,6 +25,7 @@ class NQueensConstructive : ISolver<NQUEENS> {
         + "for every n except 2 and 3, which have no solution.";
     public string source { get; } =
         "Explicit solution to the N-Queens problem (Hoffman, Loessi & Moore; see Wikipedia, \"Eight queens puzzle\").";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Eight_queens_puzzle#Explicit_solutions";
     public string[] contributors { get; } = { "Jason L. Wright" };
     public bool timerHasExpired { get; set; }
@@ -35,7 +36,7 @@ class NQueensConstructive : ISolver<NQUEENS> {
     public SolverType solverType { get; } = SolverType.Constructive;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
-    public string complexity { get; } = "O(n)";
+    public MathematicalFunction timeComplexity { get; } = new("n", "");
 
     // --- Solver ---
     public string solve(NQUEENS problem) {

@@ -9,6 +9,7 @@ class JobSeqVerifier : IVerifier<JOBSEQ> {
     public string verifierName { get; } = "Default Job Sequencing Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Job Sequencing";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
 
 
@@ -27,6 +28,17 @@ class JobSeqVerifier : IVerifier<JOBSEQ> {
     }
 
     public bool verify(JOBSEQ jobseq, List<int> indices) {
+        int n = jobseq.T.Count;
+        // The certificate must order every job exactly once.
+        if (jobseq.D.Count != n || jobseq.P.Count != n || indices.Count != n)
+            return false;
+        bool[] seen = new bool[n];
+        foreach (int i in indices) {
+            if (i < 0 || i >= n || seen[i])
+                return false;
+            seen[i] = true;
+        }
+
         int penaltySum = 0;
         int timePassed = 0;
         foreach (int i in indices) {
@@ -39,11 +51,12 @@ class JobSeqVerifier : IVerifier<JOBSEQ> {
     }
 
     public bool verify(JOBSEQ problem, string certificate) {
-        List<int> indices = certificate.TrimStart('(')
-                                       .TrimEnd(')')
-                                       .Split(',')
-                                       .Select(int.Parse)
-                                       .ToList();
+        List<int> indices = new();
+        foreach (string part in certificate.Trim().TrimStart('(').TrimEnd(')').Split(',')) {
+            if (!int.TryParse(part.Trim(), out int index))
+                return false;
+            indices.Add(index);
+        }
 
         return verify(problem, indices);
     }

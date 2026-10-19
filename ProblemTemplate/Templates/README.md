@@ -39,6 +39,7 @@ The `PROBLEMNAME_Class.cs` should implement the `IProblem` interface or one of i
 * `string inputDescription` : A short plain-English name for the problem's input, e.g. "Φ, a boolean formula"
 * `string outputDescription` : A short plain-English description of the problem's output, e.g. "True or False"
 * `string source` : A formal citation of the source material for the problem definition
+* `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string sourceLink` : (convention) A link to the formal citation
 * `string wikiName` : Deprecated and unused, but still a required member of the interface. Declare it as an empty string (`= ""`) and do not put anything in it.
 * `string defaultInstance` : A reasonably sized example of the problem, and the necessary format. *If the problem is of a similar form to an existing problem, such as a directed graph, the format should match the existing problems.*
@@ -61,6 +62,7 @@ The `ReduceTo/NPC_<TO>/` folder contains the reduction files from this problem t
 * `string reductionName` : Human readable name of reduction algorithm, this is what will appear in the GUI
 * `string reductionDefinition` : A brief description of the algorithm used to reduce the problem
 * `string source` : Formal citation of the source of the reduction algorithm
+* `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string sourceLink` : (convention) A link to the formal citation
 * `string[] contributors` : A list of names of all developers who have worked on the reduction
 * `List<Gadget> gadgets` : (optional, defaults to an empty list) A list of gadgets used in the reduction to visually represent the reduction elements
@@ -76,6 +78,7 @@ The Solvers folder should contain all solver files for that problem. Each of whi
 * `string solverName` : Human readable name of solving algorithm, this is what will appear in the GUI
 * `string solverDefinition` : A brief description of the algorithm used to solve the problem
 * `string source` : Formal citation of the source of the solving algorithm
+* `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string[] contributors` : A list of names of all developers who have worked on the solver
 * `bool timerHasExpired` : bool that says if the timer for a problem has expired. Check it now and then in long loops and return if it is true.
 * `SolverType solverType`, `SolverComplexityBucket complexityBucket` : Declared by a person. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way.
@@ -89,6 +92,7 @@ The Verifiers folder should contain all verifier files for that problem. Each of
 * `string verifierName` : Human readable name of verifier, this is what will appear in the GUI. It must be exactly `Default <Problem Name> Verifier` (checked by `NamingConvention_Tests`).
 * `string verifierDefinition` : A brief description of the algorithm used to verify the problem
 * `string source` : Formal citation of the source of the verifier algorithm
+* `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string sourceLink` : (convention) A link to the formal citation
 * `string certificate` : The certificate this verifier was last given. The template supplies it.
 * `string[] contributors` : A list of names of all developers who have worked on the verifier
@@ -102,6 +106,7 @@ The Visualizations folder should contain all visualization files for that proble
 * `string visualizationName` : Human readable name of visualization, this is what will appear in the GUI
 * `string visualizationDefinition` : A brief description of the visualization used to visualize the problem
 * `string source` : Formal citation of the source of the visualization algorithm
+* `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string sourceLink` : (convention) A link to the formal citation
 * `VisualizationType visualizationType` : Which renderer the GUI should use for the JSON you return. The template uses `Unimplemented`, and a test fails until you pick a real type. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead. Adding a new type means updating `Documentation/visualization-types.json` and adding a renderer in Redux_GUI.
 * `string[] contributors` : A list of names of all developers who have worked on the visualization

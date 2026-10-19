@@ -18,13 +18,14 @@ class ChibaNishizeki : ISolver<CLIQUE> {
     + " arboricity and m is the number of edges.";
     public string source { get; } = "Chiba, N., & Nishizeki, T. (1985). Arboricity and subgraph listing"
     + " algorithms. SIAM Journal on Computing, 14(1), 210-223. https://doi.org/10.1137/0214017";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } =
         "https://doi.org/10.1137/0214017";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } = "O(k * a^(k-2) * m), k = clique size, a = arboricity, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new("k * a^(k-2) * m", ", k = clique size, a = arboricity, m = |edges|");
 
     // --- Methods Including Constructors ---
     public ChibaNishizeki() {

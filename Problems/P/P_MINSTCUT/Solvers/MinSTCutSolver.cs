@@ -6,6 +6,7 @@ class MinSTCutSolver : ISolver<MINSTCUT> {
     public string solverName { get; } = "Edmonds-Karp Algorithm";
     public string solverDefinition { get; } = "Uses the Edmonds-Karp algorithm (BFS-based Ford-Fulkerson max-flow) to find the maximum s-t flow, then identifies the minimum cut S side via BFS on the residual graph from the source. Certificate format: {node1,node2,...} representing the S side of the minimum cut.";
     public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Michael Trosper" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Edmonds-Karp finds each augmenting path via a breadth-first
@@ -15,7 +16,7 @@ class MinSTCutSolver : ISolver<MINSTCUT> {
     // Standard Edmonds-Karp: BFS (O(V + E) via a proper adjacency-dictionary residual graph,
     // not a linear edge-list scan) finds a shortest augmenting path each round, and the
     // classic bound of O(V * E) augmentations gives O(V * E) BFS calls.
-    public string complexity { get; } = "O(V * E^2)";
+    public MathematicalFunction timeComplexity { get; } = new("V * E^2", "");
 
     public MinSTCutSolver() { }
 

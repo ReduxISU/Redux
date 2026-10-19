@@ -19,6 +19,7 @@ class MINSTCUT : IGraphProblem<MinSTCutSolver, MinSTCutVerifier, MinSTCutVisuali
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.NetworkDesign;
     public string source { get; } = "Ford, L. R.; Fulkerson, D. R. (1956). Maximal flow through a network. Canadian Journal of Mathematics, 8, 399–404.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.4153/CJM-1956-045-5";
     public string wikiName { get; } = "";
     public static string _defaultInstance { get; } = "({1,2,3,4},{((1,2),10),((1,3),2),((2,4),3),((3,4),5)},1,4)";

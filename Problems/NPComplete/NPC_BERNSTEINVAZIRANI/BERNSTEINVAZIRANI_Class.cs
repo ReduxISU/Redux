@@ -16,6 +16,7 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     public string inputDescription { get; } = "f, a boolean oracle function of the form f(x) = s * x (mod 2) for some hidden bit string s";
     public string outputDescription { get; } = "s, the hidden bit string encoded by f";
     public string source { get; } = "Bernstein, Ethan, and Umesh, Vazirani. Quantum complexity theory. Proceedings of the twenty-fifth annual ACM symposium on Theory of computing. 1993.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/167088.167097";
     public const string InstanceGrammar = "{f | f is list}";
     private static readonly string _defaultInstance = "(0,1,0,1,1,0,1,0)";

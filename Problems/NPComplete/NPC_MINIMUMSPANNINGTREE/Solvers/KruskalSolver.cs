@@ -12,6 +12,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
     public string solverName { get; } = "Kruskal's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by sorting edges by weight and adding each edge if it joins two different components.";
     public string source { get; } = "Kruskal, J. B. \"On the shortest spanning subtree of a graph and the traveling salesman problem.\" Proceedings of the American Mathematical Society 7, no. 1 (1956): 48-50.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://doi.org/10.2307/2033241";
     public string[] contributors { get; } = { "Andreas Kramer" };
     public bool timerHasExpired { get; set; }
@@ -21,7 +22,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // OrderBy sorts all E edges (O(E log E)); Union-Find uses path compression + union by
     // rank, near-O(1) amortized per operation, so the sort dominates.
-    public string complexity { get; } = "O(E log E)";
+    public MathematicalFunction timeComplexity { get; } = new("E log E", "");
 
     public string solve(MINIMUMSPANNINGTREE problem) {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();

@@ -9,6 +9,7 @@ class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
     public string verifierName { get; } = "{VERIFIER}";
     public string verifierDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "TODO";
     public string[] contributors { get; } = { "TODO" };
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

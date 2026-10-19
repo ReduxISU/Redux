@@ -11,6 +11,7 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
     public string reductionName { get; } = "Karp's Graph Coloring Reduction";
     public string reductionDefinition { get; } = "Karp's reduction converts each clause from a 3CNF into an OR gadgets to establish the truth assignments using labels.";
     public string source { get; } = "http://cs.bme.hu/thalg/3sat-to-3col.pdf.";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Daniel Igbokwe" };
     // The literal-negation loop iterates O(v^2) times but each distinct literal has at
     // most one negation partner, so real edges added there are O(v); clause-gadget
@@ -308,7 +309,8 @@ class KarpReduceGRAPHCOLORING : IReduction<SAT3, GRAPHCOLORING> {
     public string mapSolutions(string problemFromSolution) {
         //Check if the colution is correct
         if (!reductionFrom.defaultVerifier.verify(reductionFrom, problemFromSolution)) {
-            return "Solution is inccorect";
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat,
+                "the assignment does not satisfy the 3SAT formula, so there is no coloring to map it to");
         }
 
         //Parse problemFromSolution into a list of nodes

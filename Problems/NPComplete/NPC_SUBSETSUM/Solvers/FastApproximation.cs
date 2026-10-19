@@ -19,12 +19,13 @@ class FastApproximation : ISolver<SUBSETSUM> {
     + " returns {} whenever its best subset does not sum exactly to the target, even if an exact"
     + " subset exists.";
     public string source { get; } = "Oscar H. Ibarra and Chul E. Kim. 1975. Fast Approximation Algorithms for the Knapsack and Sum of Subset Problems. J. ACM 22, 4 (Oct. 1975), 463–468. https://doi.org/10.1145/321906.321909";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://dl.acm.org/doi/pdf/10.1145/321906.321909";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public string complexity { get; } = "O(n^2 * 1/e), n = |S|, e = error tolerance";
+    public MathematicalFunction timeComplexity { get; } = new("n^2 * 1/e", ", n = |S|, e = error tolerance");
 
     // Defining a standard 5% default error tolerance layer for the approximation scheme
     private readonly double _epsilon = 0.05;

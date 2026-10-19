@@ -16,6 +16,7 @@ class INDEPENDENTSET : IGraphProblem<IndependentSetBruteForce, IndependentSetVer
     public string inputDescription { get; } = "G, a graph, and K, the size of the independent set";
     public string outputDescription { get; } = "True or False, whether G has an independent set of size K";
     public string source { get; } = "Wikimedia Foundation. (2025, September 8). Independent set (graph theory). Wikipedia. ";
+    public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://en.wikipedia.org/wiki/Independent_set_(graph_theory)";
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private static string _defaultInstance = "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)";
