@@ -658,7 +658,7 @@ public partial class ProblemProvider : ControllerBase {
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
     /// <param name="solver" example = "CliqueBruteForceSolver">Optional. The TARGET problem's solver for the solve phase. Defaults to the solver the reduction names for its view (3SAT to Graph Coloring and to 3-Dimensional Matching name their backtracking solvers), else the target's default solver. Must solve the target problem</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
-    /// <param name="sourceVisualization" example = "Sat3DefaultVisualization">Optional. The visualization (class name) the SOURCE side is drawn with. Defaults to the source problem's default visualization. Must be a frames picture of the source problem whose steps the view can draw (400 <c>unknown_visualization</c>, <c>visualization_mismatch</c>, <c>no_source_picture</c>)</param>
+    /// <param name="sourceVisualization" example = "Sat3DefaultVisualization">Optional. The visualization (class name) the SOURCE side is drawn with. Defaults to the source problem's default visualization. Must be a frames picture of the source problem that draws answers, not a solver's search (400 <c>unknown_visualization</c>, <c>visualization_mismatch</c>, <c>no_source_picture</c>)</param>
     /// <param name="targetVisualization" example = "CliqueDefaultVisualization">Optional. The visualization (class name) the TARGET side is drawn with. Defaults to the target problem's default visualization. Must be a frames picture of the target problem (400 <c>unknown_visualization</c>, <c>visualization_mismatch</c>, <c>no_target_picture</c>). Without <c>solver</c>, the solve phase runs that picture's own solver</param>
     /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, source: { problem, instance, visualization, picture }, target: { ..., visualization, picture, buildOrder }, gadgets, frames }</returns>
     [HttpPost("reductionView")]
@@ -707,7 +707,8 @@ public partial class ProblemProvider : ControllerBase {
     /// The picture one side of the Reduction View is drawn with (#912): <paramref name="name"/>, or the problem's default when it is
     /// omitted. Returns the 400 to answer with when it cannot be used: <c>unknown_visualization</c> (no such class),
     /// <c>visualization_mismatch</c> (it draws another problem), or <c>no_source_picture</c> / <c>no_target_picture</c> (it has
-    /// no frames picture, or its frames draw no typed steps, so the view cannot draw it).
+    /// no frames picture, or its frames draw no typed steps, so the view cannot draw it; or, on the source side, it draws a
+    /// solver's search, which never runs there).
     /// </summary>
     private IActionResult? ChooseViewPicture(IProblem problem, string? name, string side, string reduction, out IFramesVisualization picture) {
         picture = null!;
@@ -726,6 +727,11 @@ public partial class ProblemProvider : ControllerBase {
         if (Visualization(type.Name) is not IFramesVisualization frames || frames.StepShape == null)
             return BadRequest(new { error = noPicture, reduction, problem = problem.problemName, received = name,
                 detail = $"{type.Name} has no frames picture the Reduction View can draw." });
+        // The source side runs no search: it shows the instance and the answer mapped back. A picture of a solver's search
+        // (the Search Tree) would stay empty there.
+        if (side == "source" && !frames.DrawsAnswerAlone())
+            return BadRequest(new { error = noPicture, reduction, problem = problem.problemName, received = name,
+                detail = $"{type.Name} draws a solver's search, and the source side runs no search." });
         picture = frames;
         return null;
     }
