@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_SAT3;
+using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
 using Xunit;
 
 namespace redux_tests;
@@ -43,7 +45,12 @@ public class ReductionView_PictureChoice_Tests : IClassFixture<AppFactory> {
     private static IReduction Build(string reduction) =>
         (IReduction)Activator.CreateInstance(ProblemProvider.Reductions[reduction.ToLower()])!;
 
-    private static string DefaultInstance(string reduction) => Build(reduction).reductionFrom.defaultInstance;
+    // Each reduction's source default instance, except Sipser's Clique to 3SAT, which reduces only the graphs Sipser's 3SAT to
+    // Clique builds.
+    private static string DefaultInstance(string reduction) =>
+        reduction.Equals("SipserReduceToSAT3", StringComparison.OrdinalIgnoreCase)
+            ? new SipserReduceToCliqueStandard(new SAT3("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)")).reductionTo.instance
+            : Build(reduction).reductionFrom.defaultInstance;
 
     private static string DefaultPicture(IProblem problem) => problem.defaultVisualization.GetType().Name;
 
