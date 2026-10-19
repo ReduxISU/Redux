@@ -701,16 +701,22 @@ public partial class ProblemProvider : ControllerBase {
         if (!Visualizers.TryGetValue(name.ToLower(), out var type))
             return BadRequest(new { error = "unknown_visualization", received = name, side });
         if (!VisualizationsOf(problem.GetType()).Contains(type.Name))
-            return BadRequest(new { error = "visualization_mismatch", received = name, side, problem = problem.problemName,
-                detail = $"{type.Name} does not draw {problem.problemName}." });
+            return BadRequest(new {
+                error = "visualization_mismatch", received = name, side, problem = problem.problemName,
+                detail = $"{type.Name} does not draw {problem.problemName}."
+            });
         if (Visualization(type.Name) is not IFramesVisualization frames || frames.StepShape == null)
-            return BadRequest(new { error = noPicture, reduction, problem = problem.problemName, received = name,
-                detail = $"{type.Name} has no frames picture the Reduction View can draw." });
+            return BadRequest(new {
+                error = noPicture, reduction, problem = problem.problemName, received = name,
+                detail = $"{type.Name} has no frames picture the Reduction View can draw."
+            });
         // The source side runs no search: it shows the instance and the answer mapped back. A picture of a solver's search
         // (the Search Tree) would stay empty there.
         if (side == "source" && !frames.DrawsAnswerAlone())
-            return BadRequest(new { error = noPicture, reduction, problem = problem.problemName, received = name,
-                detail = $"{type.Name} draws a solver's search, and the source side runs no search." });
+            return BadRequest(new {
+                error = noPicture, reduction, problem = problem.problemName, received = name,
+                detail = $"{type.Name} draws a solver's search, and the source side runs no search."
+            });
         picture = frames;
         return null;
     }
