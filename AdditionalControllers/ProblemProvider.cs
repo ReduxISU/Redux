@@ -684,7 +684,8 @@ public partial class ProblemProvider : ControllerBase {
                     return BadRequest(new { error = "solver_mismatch", received = solver, problem = red.reductionTo.problemName });
                 chosen = Solver(solver);
             }
-            var view = ReductionView.Create(red, instance, buildSteps, chosen, sourceVis, targetVis, answer => MapSolutionsBack(red, answer, true), SolveTimeLimit);
+            var view = ReductionView.Create(red, instance, buildSteps, chosen, sourceVis, targetVis, answer => MapSolutionsBack(red, answer, true), SolveTimeLimit,
+                ReductionView.SolveStepCap);
             return Content(view.ToJsonString(FramesResponse.JsonOptions), "application/json");
         } catch (ReductionViewException ex) {
             return BadRequest(new { error = ex.Error, reduction, detail = ex.Message });

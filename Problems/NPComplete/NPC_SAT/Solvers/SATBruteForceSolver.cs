@@ -49,9 +49,9 @@ public class SATBruteForceSolver : ISolver<SAT> {
 
     // Records typed steps through its own Run rather than ISolver<SAT, Assignment>, whose Solve(SAT, ...) would have
     // to be public on this public class while SAT is internal.
-    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
+    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit, int? stepCap) {
         CnfFormula formula = CheckedFormula(instance);
-        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec));
+        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec), stepCap);
     }
 
     // Tries every assignment, counting through them like a binary number with false = 0 and

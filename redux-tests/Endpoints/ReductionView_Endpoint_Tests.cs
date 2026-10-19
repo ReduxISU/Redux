@@ -750,6 +750,83 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Clique", error.GetProperty("problem").GetString(), ignoreCase: true);
     }
 
+    // ---- The solve phase's step cap (#910) ----
+
+    // Independent Set on 12 nodes where only j, k, l are pairwise non-adjacent, K = 3: Clique on the complement, whose only
+    // 3-clique is {j, k, l}, the last of the C(12,3) = 220 sets the brute force tries. So both caps are passed, and the answer
+    // is found past both.
+    private static string LateAnswerIndependentSet() {
+        var nodes = "abcdefghijkl".Select(c => c.ToString()).ToList();
+        var edges = from a in nodes from b in nodes
+                    where string.CompareOrdinal(a, b) < 0 && !("jkl".Contains(a) && "jkl".Contains(b))
+                    select $"{{{a},{b}}}";
+        return $"(({{{string.Join(",", nodes)}}},{{{string.Join(",", edges)}}}),3)";
+    }
+
+    private static int NotShown(string caption) {
+        var match = System.Text.RegularExpressions.Regex.Match(caption, @"\((\d+) not shown\)");
+        return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+    }
+
+    [Fact]
+    public async Task Solve_KeepsTheViewsCap_ThenTheLastAccept_AndDoneSaysHowManyWereNotShown() {
+        var view = await View(Is, LateAnswerIndependentSet(), "cliquebruteforce");
+        var solve = Phase(view, "solve");
+        // The first SolveStepCap decisions, the Accept that found the answer, and Done.
+        Assert.Equal(ReductionView.SolveStepCap + 2, solve.Count);
+        Assert.All(solve.Take(ReductionView.SolveStepCap), f => Assert.NotEqual("Accept", f.GetProperty("event").GetString()));
+        Assert.Equal("Accept", solve[^2].GetProperty("event").GetString());
+        Assert.Equal("Done", solve[^1].GetProperty("event").GetString());
+        Assert.True(solve[^1].GetProperty("ok").GetBoolean());
+        // Each frame indexes the kept steps of the run.
+        Assert.Equal(Enumerable.Range(0, solve.Count).Select(i => (int?)i), solve.Select(f => (int?)f.GetProperty("step").GetInt32()));
+        // 220 tries, 1 Accept kept past the cap: the other 220 - 20 - 1 are not shown.
+        string done = solve[^1].GetProperty("caption").GetString()!;
+        Assert.Equal(220 - ReductionView.SolveStepCap - 1, NotShown(done));
+    }
+
+    [Fact]
+    public async Task Solve_OutsideTheView_StillKeepsTheDefaultCap() {
+        var view = await View(Is, LateAnswerIndependentSet(), "cliquebruteforce");
+        string target = view.GetProperty("target").GetProperty("instance").GetString()!;
+        int viewHidden = NotShown(Phase(view, "solve")[^1].GetProperty("caption").GetString()!);
+
+        // The same solver on the same target through visualize?format=frames keeps 150 decisions, the Accept and Done.
+        var content = new StringContent(JsonSerializer.Serialize(target), Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=CliqueDefaultVisualization&solver=CliqueBruteForce&format=frames",
+            content, TestContext.Current.CancellationToken);
+        string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        Assert.True(response.StatusCode == HttpStatusCode.OK, body);
+        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
+        Assert.Equal(StepRecorder<object>.DefaultCap + 2, frames.Count);
+        Assert.Equal(StepRecorder<object>.DefaultCap, frames[^1].GetProperty("step").GetInt32() - 1);
+        int hidden = NotShown(frames[^1].GetProperty("caption").GetString()!);
+        Assert.Equal(220 - StepRecorder<object>.DefaultCap - 1, hidden);
+        // The view hides exactly the steps between its cap and the default one.
+        Assert.Equal(hidden + StepRecorder<object>.DefaultCap - ReductionView.SolveStepCap, viewHidden);
+
+        // And ISolver.Run without a cap keeps the default.
+        var run = ((ISolver)Activator.CreateInstance(ProblemProvider.Solvers["cliquebruteforce"])!).Run(target, withSteps: true);
+        Assert.Equal(StepRecorder<object>.DefaultCap + 2, run.Steps.Count);
+    }
+
+    [Fact]
+    public void Run_WithACap_KeepsThatManyDecisions_OnATypedSolver_AndALegacySolverIgnoresIt() {
+        string target = Build(Is, LateAnswerIndependentSet()).reductionTo.instance;
+        var typed = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["cliquebruteforce"])!;
+        var capped = typed.Run(target, withSteps: true, stepCap: 5);
+        Assert.Equal(5 + 2, capped.Steps.Count);
+        Assert.Equal(typed.Run(target, withSteps: false).Answer, capped.Answer);
+
+        // A legacy solver (WalkSAT, an untyped 3SAT solver) records no typed steps, so it has nothing to cap: the cap changes nothing.
+        var legacy = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["walksat"])!;
+        string formula = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
+        var plain = legacy.Run(formula, withSteps: true);
+        var legacyCapped = legacy.Run(formula, withSteps: true, stepCap: 1);
+        Assert.Null(legacyCapped.StepShape);
+        Assert.Equal(plain.Steps.Count, legacyCapped.Steps.Count);
+    }
+
     // ---- Old endpoints are untouched ----
 
     [Fact]

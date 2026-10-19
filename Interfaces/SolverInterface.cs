@@ -79,7 +79,12 @@ interface ISolver {
     /// when <paramref name="withSteps"/> is false, and none on this legacy default: an uninstrumented solver never
     /// calls a recorder, so it cannot be stopped this way (the general solve timeout is issue #523).
     /// </param>
-    SolveRun Run(string instance, bool withSteps, TimeSpan? timeLimit = null) {
+    /// <param name="stepCap">
+    /// Optional cap on the steps a typed solver's recorder keeps (see <see cref="StepRecorder{TPartial}"/>); null means
+    /// <see cref="StepRecorder{TPartial}.DefaultCap"/>. The Reduction View passes a smaller one for its solve phase (#910).
+    /// The legacy default ignores it: its steps come from <see cref="GetSteps(string)"/>, which has no recorder.
+    /// </param>
+    SolveRun Run(string instance, bool withSteps, TimeSpan? timeLimit = null, int? stepCap = null) {
         var steps = withSteps ? GetSteps(instance).ToList() : new List<Object>();
         return new SolveRun(solve(instance), steps, null);
     }
@@ -116,13 +121,13 @@ sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepSha
 
     /// <summary>
     /// Runs a typed solve: with recording off when <paramref name="withSteps"/> is false (no clock checks), else with
-    /// a recorder that has <paramref name="timeLimit"/>. A run that exceeds the limit is returned as stopped (see
-    /// <see cref="TimedOut"/>) instead of throwing.
+    /// a recorder that has <paramref name="timeLimit"/> and keeps <paramref name="stepCap"/> steps (null: the default cap). A run
+    /// that exceeds the limit is returned as stopped (see <see cref="TimedOut"/>) instead of throwing.
     /// </summary>
-    internal static SolveRun Record<TPartial>(bool withSteps, TimeSpan? timeLimit, Func<StepRecorder<TPartial>, string> solve) {
+    internal static SolveRun Record<TPartial>(bool withSteps, TimeSpan? timeLimit, Func<StepRecorder<TPartial>, string> solve, int? stepCap = null) {
         if (!withSteps)
             return new SolveRun(solve(StepRecorder<TPartial>.Off), new List<object>(), typeof(TPartial));
-        var rec = new StepRecorder<TPartial>(timeLimit: timeLimit);
+        var rec = new StepRecorder<TPartial>(stepCap ?? StepRecorder<TPartial>.DefaultCap, timeLimit);
         try {
             string answer = solve(rec);
             return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
@@ -176,9 +181,9 @@ interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
 
     string ISolver<T>.solve(T problem) => Solve(problem, StepRecorder<TPartial>.Off);
 
-    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
+    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit, int? stepCap) {
         T parsed = ParseGuard.CreateProblem<T>(instance);
-        return SolveRun.Record<TPartial>(withSteps, timeLimit, rec => Solve(parsed, rec)) with { Incremental = this is IIncrementalSolver };
+        return SolveRun.Record<TPartial>(withSteps, timeLimit, rec => Solve(parsed, rec), stepCap) with { Incremental = this is IIncrementalSolver };
     }
 
     List<Object> ISolver<T>.GetSteps(T problem) {
