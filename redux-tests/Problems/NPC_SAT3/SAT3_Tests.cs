@@ -252,7 +252,9 @@ public class SAT3_Tests {
         SipserReduceToCliqueStandard reduction = new SipserReduceToCliqueStandard(sat3);
 
         Assert.NotEmpty(reduction.gadgets);
-        Assert.All(reduction.gadgets, g => Assert.All(g.reductionToIds, n => Assert.Contains(n, reduction.reductionTo.nodes)));
+        // A node, or (#908) the edge an edge rule names between two of them.
+        var pieces = reduction.reductionTo.nodes.Concat(reduction.reductionTo.edges.Select(e => API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(e.Key, e.Value))).ToHashSet();
+        Assert.All(reduction.gadgets, g => Assert.All(g.reductionToIds, n => Assert.Contains(n, pieces)));
     }
 
     [Fact]

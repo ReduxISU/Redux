@@ -168,7 +168,8 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Clause C1 (x1 | !x2 | x3) becomes nodes x1_0, !x2_0, x3_0, with no edges between them.", steps[0].Caption);
         Assert.Equal(new[] { "c0", "c0-0", "c0-1", "c0-2" }, steps[0].Partial.SourceFocus);
         Assert.Equal(new[] { "x1_0", "!x2_0", "x3_0" }, steps[0].Partial.Nodes);
-        Assert.Equal(new[] { 0, 1, 2, 3 }, steps[0].Partial.Gadgets);
+        // Its three literals, its clause, and (#908) its rule that nodes of one clause are never joined, after the 9 + 3.
+        Assert.Equal(new[] { 0, 1, 2, 3, 12 }, steps[0].Partial.Gadgets);
         Assert.Equal(StepEvent.Accept, steps[0].Event);
 
         Assert.Equal("Join clauses C1 and C2: 8 edges. x1_0 and !x1_1 contradict each other, so no edge.", steps[3].Caption);
@@ -180,6 +181,29 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.Equal("K = 3, one node per clause: a clique of 3 nodes has to take one node from every clause.", steps[^1].Caption);
         Assert.Equal(3, steps[^1].Partial.Bound);
         Assert.Equal(StepEvent.Done, steps[^1].Event);
+    }
+
+    // #908: each pair-of-clauses step names its pair rules, one per pair of nodes it joins or leaves out; K names the bound.
+    [Fact]
+    public void ThreeSat_PairStepsNameTheirEdgeRules_AndTheKStepNamesTheBound() {
+        IReduction red = Build(Sat, new SAT3().defaultInstance);
+        ConstructionRun run = red.BuildRun(true)!;
+        var steps = run.Steps;
+        var c1c2 = steps[3];
+        Assert.Equal(9, c1c2.Partial.Gadgets.Length);
+        Assert.All(c1c2.Partial.Gadgets, i => Assert.Equal(GadgetKind.EdgeRule, run.Gadgets[i].gadgetKind));
+        // The 8 edges, each from its two literals, then the contradicting pair, to its two nodes.
+        var rules = c1c2.Partial.Gadgets.Select(i => run.Gadgets[i]).ToList();
+        Assert.Equal(c1c2.Partial.Edges.Select(e => e.Id).Order(), rules.Take(8).Select(g => Assert.Single(g.targetIds)).Order());
+        Assert.Equal(["c0-0", "c1-0"], rules[8].sourceIds);
+        Assert.Equal(["x1_0", "!x1_1"], rules[8].targetIds);
+        Assert.Equal("x1_0 and !x1_1 contradict each other, so they are not joined.", rules[8].note);
+        Assert.All(rules, g => Assert.All(g.sourceIds, id => Assert.Matches(@"^c[01]-\d+$", id)));
+
+        Gadget bound = run.Gadgets[Assert.Single(steps[^1].Partial.Gadgets)];
+        Assert.Equal(GadgetKind.Bound, bound.gadgetKind);
+        Assert.Equal(["c0", "c1", "c2"], bound.sourceIds);
+        Assert.Equal(["c0", "c1", "c2"], steps[^1].Partial.SourceFocus);
     }
 
     [Fact]

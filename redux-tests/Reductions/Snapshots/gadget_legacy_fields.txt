@@ -228,6 +228,37 @@ ElementHighlight | c2-0 | x2_2
 ElementHighlight | c2-1 | !x3_2
 ElementHighlight | c2-2 | !x1_2
 ClauseHighlight | c2 | x2_2,!x3_2,!x1_2
+ElementHighlight | c0 | x1_0,!x2_0,x3_0
+ElementHighlight | c1 | !x1_1,x3_1,x1_1
+ElementHighlight | c2 | x2_2,!x3_2,!x1_2
+ElementHighlight | c0-1,c1-0 | !x1_1-!x2_0
+ElementHighlight | c0-2,c1-0 | !x1_1-x3_0
+ElementHighlight | c0-1,c1-2 | !x2_0-x1_1
+ElementHighlight | c0-1,c1-1 | !x2_0-x3_1
+ElementHighlight | c0-0,c1-2 | x1_0-x1_1
+ElementHighlight | c0-0,c1-1 | x1_0-x3_1
+ElementHighlight | c0-2,c1-2 | x1_1-x3_0
+ElementHighlight | c0-2,c1-1 | x3_0-x3_1
+ElementHighlight | c0-0,c1-0 | x1_0,!x1_1
+ElementHighlight | c0-1,c2-2 | !x1_2-!x2_0
+ElementHighlight | c0-2,c2-2 | !x1_2-x3_0
+ElementHighlight | c0-1,c2-1 | !x2_0-!x3_2
+ElementHighlight | c0-0,c2-1 | !x3_2-x1_0
+ElementHighlight | c0-0,c2-0 | x1_0-x2_2
+ElementHighlight | c0-2,c2-0 | x2_2-x3_0
+ElementHighlight | c0-0,c2-2 | x1_0,!x1_2
+ElementHighlight | c0-1,c2-0 | !x2_0,x2_2
+ElementHighlight | c0-2,c2-1 | x3_0,!x3_2
+ElementHighlight | c1-0,c2-2 | !x1_1-!x1_2
+ElementHighlight | c1-0,c2-1 | !x1_1-!x3_2
+ElementHighlight | c1-0,c2-0 | !x1_1-x2_2
+ElementHighlight | c1-1,c2-2 | !x1_2-x3_1
+ElementHighlight | c1-2,c2-1 | !x3_2-x1_1
+ElementHighlight | c1-2,c2-0 | x1_1-x2_2
+ElementHighlight | c1-1,c2-0 | x2_2-x3_1
+ElementHighlight | c1-2,c2-2 | x1_1,!x1_2
+ElementHighlight | c1-1,c2-1 | x3_1,!x3_2
+ElementHighlight | c0,c1,c2 | 
 # SipserReduceToSAT3
 ClauseHighlight | x1_0,!x2_0,x3_0 | c0,c0-0,c0-1,c0-2
 ElementHighlight | x1_0 | c0-0

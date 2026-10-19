@@ -110,7 +110,8 @@ public class Gadget_Kinds_Tests {
         // #694: an edge rule per node that gets complement edges, and the bound.
         ["reduceToCLIQUE"] = "Element x7, EdgeRule x6, Bound x1",
         ["sipserReductionVertexCover"] = "Element x6, EdgeRule x3, Bound x1",
-        ["SipserReduceToCliqueStandard"] = "Element x9, Group x3",
+        // #908: an edge rule per clause (never joined inside) and per pair of nodes from different clauses, and K.
+        ["SipserReduceToCliqueStandard"] = "Element x9, Group x3, EdgeRule x30, Bound x1",
         ["SipserReduceToSAT3"] = "Element x9, Group x3",
         ["KarpVertexCoverToSetCover"] = "Element x10, Bound x1",
         ["KarpDirectedHamiltonianToUndirectedHamiltonian"] = "Element x11",
@@ -134,6 +135,8 @@ public class Gadget_Kinds_Tests {
         var red = new SipserReduceToCliqueStandard();
         var nodeNames = new HashSet<string>();
         foreach (var n in red.reduce().graph.Nodes) nodeNames.Add(n.ToString()!);
+        // An edge rule for a joined pair targets the edge between the two nodes (#908).
+        foreach (var e in red.reductionTo.edges) nodeNames.Add(API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(e.Key, e.Value));
 
         Assert.Contains(red.gadgets, g => g.gadgetKind == GadgetKind.Group && g.sourceIds.SequenceEqual(new[] { "c0" }));
         Assert.Contains(red.gadgets, g => g.gadgetKind == GadgetKind.Element && g.sourceIds.SequenceEqual(new[] { "c0-1" }));
@@ -199,6 +202,68 @@ public class Gadget_Kinds_Tests {
             int clause = ClauseId(Assert.Single(g.sourceIds));
             Assert.Equal(red.reductionFrom.clauses[clause].Select(l => l + "_" + clause), g.targetIds);
         }
+    }
+
+    // #908: the pair rule. Every pair of nodes from different clauses has exactly one edge rule, from its two literals: to the
+    // edge between them when the literals agree, or to the two nodes when they contradict (no edge, so no edge id to name).
+    [Theory]
+    [MemberData(nameof(ThreeSatInstances))]
+    [InlineData("(x1 | x1 | !x2) & (x2 | x3 | x4) & (!x4 | !x1 | x2) & (x3)")]
+    public void ThreeSatToClique_EdgeRules_NameTheTwoLiteralsOfEveryPairFromDifferentClauses(string instance) {
+        var red = new SipserReduceToCliqueStandard(instance);
+        var clauses = red.reductionFrom.clauses;
+        var edges = red.reductionTo.edges.Select(e => API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(e.Key, e.Value)).ToHashSet();
+        // The node each literal id became, from the element gadgets.
+        var nodeOf = red.gadgets.Where(g => g.gadgetKind == GadgetKind.Element).ToDictionary(g => Assert.Single(g.sourceIds), g => Assert.Single(g.targetIds));
+        var pairRules = red.gadgets.Where(g => g.gadgetKind == GadgetKind.EdgeRule && g.sourceIds.Count == 2).ToList();
+
+        int pairs = 0;
+        for (int c1 = 0; c1 < clauses.Count; c1++)
+            for (int c2 = c1 + 1; c2 < clauses.Count; c2++)
+                for (int l1 = 0; l1 < clauses[c1].Count; l1++)
+                    for (int l2 = 0; l2 < clauses[c2].Count; l2++) {
+                        pairs++;
+                        string a = $"c{c1}-{l1}", b = $"c{c2}-{l2}";
+                        Gadget rule = Assert.Single(pairRules, g => g.sourceIds.SequenceEqual([a, b]) || g.sourceIds.SequenceEqual([b, a]));
+                        string litA = clauses[c1][l1], litB = clauses[c2][l2];
+                        bool contradict = litA.TrimStart('!') == litB.TrimStart('!') && litA.StartsWith('!') != litB.StartsWith('!');
+                        string edge = API.Interfaces.Graphs.GraphSubsetFrames.EdgeId(nodeOf[a], nodeOf[b]);
+                        if (contradict) {
+                            Assert.DoesNotContain(edge, edges);
+                            Assert.Equal(new[] { nodeOf[a], nodeOf[b] }.Order(), rule.targetIds.Order());
+                            Assert.Contains("contradict", rule.note);
+                        } else {
+                            Assert.Contains(edge, edges);
+                            Assert.Equal([edge], rule.targetIds);
+                            Assert.Contains("joined", rule.note);
+                        }
+                    }
+        Assert.Equal(pairs, pairRules.Count);
+        // Every edge of the target is named by one pair rule.
+        Assert.Equal(edges.Order(), pairRules.SelectMany(g => g.targetIds).Where(edges.Contains).Order());
+    }
+
+    // #908: one edge rule per clause for the pairs inside it (never joined), from the clause to its nodes; and the bound, K = the
+    // number of clauses, from every clause (the clique graph has no piece for K).
+    [Theory]
+    [MemberData(nameof(ThreeSatInstances))]
+    public void ThreeSatToClique_SameClauseRules_AndTheBound(string instance) {
+        var red = new SipserReduceToCliqueStandard(instance);
+        var clauses = red.reductionFrom.clauses;
+        var sameClause = red.gadgets.Where(g => g.gadgetKind == GadgetKind.EdgeRule && g.sourceIds.Count == 1).ToList();
+        Assert.Equal(clauses.Count, sameClause.Count);
+        foreach (Gadget g in sameClause) {
+            int clause = ClauseId(Assert.Single(g.sourceIds));
+            Gadget group = Assert.Single(red.gadgets, x => x.gadgetKind == GadgetKind.Group && x.sourceIds.SequenceEqual(g.sourceIds));
+            Assert.Equal(group.targetIds, g.targetIds);
+            Assert.Contains("never joined", g.note);
+        }
+
+        Gadget bound = Assert.Single(red.gadgets, g => g.gadgetKind == GadgetKind.Bound);
+        Assert.Equal(Enumerable.Range(0, clauses.Count).Select(i => "c" + i), bound.sourceIds);
+        Assert.Empty(bound.targetIds);
+        Assert.Equal($"K = {clauses.Count}, the number of clauses", bound.note);
+        Assert.Equal(clauses.Count, red.reductionTo.K);
     }
 
     // One instance per clause length: 1 and 2 are padded to 3, 3 is copied, 4 and 5 are split with fresh variables.
