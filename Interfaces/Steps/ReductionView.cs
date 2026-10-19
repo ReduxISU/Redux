@@ -75,6 +75,14 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 static class ReductionView {
     public const string Build = "build", Solve = "solve", Map = "map";
 
+    /// <summary>
+    /// How many steps the endpoint keeps of the target solve (<see cref="ISolver.Run"/>'s step cap), against the
+    /// <see cref="StepRecorder{TPartial}.DefaultCap"/> of 150 everywhere else. The Solve phase was about 89% of a brute-force
+    /// view's bytes; 20 steps still show how the search goes, and past them the recorder keeps the last Accept and the Done
+    /// says how many were not shown (#910).
+    /// </summary>
+    public const int SolveStepCap = 20;
+
     /// <summary>The state fields a frame of a picture carries that are not the frame's own envelope.</summary>
     private static readonly string[] Envelope = ["event", "caption", "focus", "ok", "step"];
 
@@ -88,8 +96,11 @@ static class ReductionView {
     /// <param name="targetVis">The target problem's picture.</param>
     /// <param name="mapBack">Runs <see cref="IReduction.MapBackRun"/> with steps (the endpoint wraps certificate parse failures).</param>
     /// <param name="solveTimeLimit">The time budget of the solve phase (see <see cref="ISolver.Run"/>); null means no limit.</param>
+    /// <param name="solveStepCap">The step cap of the solve phase (see <see cref="ISolver.Run"/>); null means the recorder's default.
+    /// The endpoint passes <see cref="SolveStepCap"/>.</param>
     public static JsonObject Create(IReduction red, string sourceInstance, IReadOnlyList<SolverStep<BuildDelta>> buildSteps, ISolver solver,
-        IFramesVisualization sourceVis, IFramesVisualization targetVis, Func<string, SolveRun> mapBack, TimeSpan? solveTimeLimit = null) {
+        IFramesVisualization sourceVis, IFramesVisualization targetVis, Func<string, SolveRun> mapBack, TimeSpan? solveTimeLimit = null,
+        int? solveStepCap = null) {
         string targetInstance = red.reductionTo.instance;
         Type sourceShape = sourceVis.StepShape ?? throw new ReductionViewException("no_source_picture", $"{red.reductionFrom.problemName}'s picture draws no typed steps.");
         Type targetShape = targetVis.StepShape ?? throw new ReductionViewException("no_target_picture", $"{red.reductionTo.problemName}'s picture draws no typed steps.");
@@ -144,7 +155,7 @@ static class ReductionView {
         }
 
         // ---- Solve ----
-        SolveRun solved = solver.Run(targetInstance, withSteps: true, solveTimeLimit);
+        SolveRun solved = solver.Run(targetInstance, withSteps: true, solveTimeLimit, solveStepCap);
         var solveSteps = solved.StepsFor(targetShape);
         // A stopped run has no answer to draw: if its steps cannot be drawn either (another shape), keep just its stopped Done step.
         bool solveStepsDrawn = solveSteps.Count > 0;

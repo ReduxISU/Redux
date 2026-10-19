@@ -49,9 +49,9 @@ public class SATBruteForceSolver : ISolver {
 
     // Records typed steps without implementing ISolver<SAT, Assignment>: this solver has always implemented the
     // non-generic ISolver (see Nav_Solvers.cs), and the generic interface would add it to the navigation lists.
-    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit) {
+    SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit, int? stepCap) {
         CnfFormula formula = CheckedFormula(instance);
-        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec));
+        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec), stepCap);
     }
 
     // Tries every assignment, counting through them like a binary number with false = 0 and
