@@ -48,10 +48,10 @@
         "x3_0"
       ],
       "reductionToIds": [
-        "0",
-        "0-0",
-        "0-1",
-        "0-2"
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c0-2"
       ],
       "gadgetKind": "group",
       "sourceIds": [
@@ -73,7 +73,7 @@
         "x1_0"
       ],
       "reductionToIds": [
-        "0-0"
+        "c0-0"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -90,7 +90,7 @@
         "!x2_0"
       ],
       "reductionToIds": [
-        "0-1"
+        "c0-1"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -107,7 +107,7 @@
         "x3_0"
       ],
       "reductionToIds": [
-        "0-2"
+        "c0-2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -126,10 +126,10 @@
         "x1_1"
       ],
       "reductionToIds": [
-        "1",
-        "1-0",
-        "1-1",
-        "1-2"
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c1-2"
       ],
       "gadgetKind": "group",
       "sourceIds": [
@@ -151,7 +151,7 @@
         "!x1_1"
       ],
       "reductionToIds": [
-        "1-0"
+        "c1-0"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -168,7 +168,7 @@
         "x3_1"
       ],
       "reductionToIds": [
-        "1-1"
+        "c1-1"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -185,7 +185,7 @@
         "x1_1"
       ],
       "reductionToIds": [
-        "1-2"
+        "c1-2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -204,10 +204,10 @@
         "!x1_2"
       ],
       "reductionToIds": [
-        "2",
-        "2-0",
-        "2-1",
-        "2-2"
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c2-2"
       ],
       "gadgetKind": "group",
       "sourceIds": [
@@ -229,7 +229,7 @@
         "x2_2"
       ],
       "reductionToIds": [
-        "2-0"
+        "c2-0"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -246,7 +246,7 @@
         "!x3_2"
       ],
       "reductionToIds": [
-        "2-1"
+        "c2-1"
       ],
       "gadgetKind": "element",
       "sourceIds": [
@@ -263,7 +263,7 @@
         "!x1_2"
       ],
       "reductionToIds": [
-        "2-2"
+        "c2-2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
