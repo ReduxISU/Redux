@@ -28,7 +28,14 @@ class HittingSetVerifier : IVerifier<HITTINGSET> {
     }
 
     public bool verify(HITTINGSET problem, string certificate) {
+        // An empty answer names no set at all, so it is not a hitting set (#776).
+        if (string.IsNullOrWhiteSpace(certificate)) return false;
         UtilCollection choosenSet = new UtilCollection(certificate);
+        // W must be a subset of U (#776).
+        foreach (UtilCollection item in choosenSet) {
+            if (!problem.universalSet.Contains(item))
+                return false;
+        }
         foreach (UtilCollection set in problem.subSets) {
             if (set.Intersect(choosenSet).Count() != 1)
                 return false;

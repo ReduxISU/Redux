@@ -1,0 +1,809 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "sipserReductionVertexCover",
+  "reductionName": "Sipser\u0027s Vertex Cover Reduction",
+  "solver": "Vertex Cover Brute Force",
+  "source": {
+    "problem": "Clique",
+    "instance": "(({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          },
+          {
+            "id": "d",
+            "label": "d"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-b",
+            "a": "a",
+            "b": "b"
+          },
+          {
+            "id": "b-c",
+            "a": "b",
+            "b": "c"
+          },
+          {
+            "id": "a-c",
+            "a": "a",
+            "b": "c"
+          },
+          {
+            "id": "c-d",
+            "a": "c",
+            "b": "d"
+          }
+        ],
+        "shape": "subset",
+        "rule": "clique",
+        "k": 3
+      }
+    }
+  },
+  "target": {
+    "problem": "Vertex Cover",
+    "instance": "(({a,b,c,d},{{a,d},{b,d}}),1)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          },
+          {
+            "id": "d",
+            "label": "d"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-d",
+            "a": "a",
+            "b": "d"
+          },
+          {
+            "id": "b-d",
+            "a": "b",
+            "b": "d"
+          }
+        ],
+        "shape": "subset",
+        "rule": "vertexCover",
+        "k": 1
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "edges": [
+        "a-d",
+        "b-d"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-d"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K\u0027 = N - K = 4 - 3 = 1"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Copy every node of the clique graph (a, b, c, d) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing.",
+      "sourceFocus": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "targetFocus": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node a has no edge to d in the clique graph, so it gets that edge in the complement.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "a",
+        "d",
+        "a-d"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 1
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node b has no edge to d in the clique graph, so it gets that edge in the complement.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "b",
+        "d",
+        "b-d"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b-d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 2
+      },
+      "gadgets": [
+        5
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Reject",
+      "caption": "Node c is already joined to every later node in the clique graph, so it gets no new edges.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 2
+      }
+    },
+    {
+      "phase": "build",
+      "event": "Reject",
+      "caption": "Node d is the last node: the steps above already gave it its edges in the complement.",
+      "sourceFocus": [
+        "d"
+      ],
+      "targetFocus": [
+        "d"
+      ],
+      "source": {
+        "nodes": {
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 2
+      }
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "K\u0027 = N - K = 4 - 3 = 1. The clique graph has a clique of size 3 exactly when the complement has a vertex cover of size 1.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 2
+      },
+      "bound": 1,
+      "gadgets": [
+        6
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {a}: edge {b,d} isn\u0027t covered.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "a"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Rejected"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {b}: edge {a,d} isn\u0027t covered.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "b"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Rejected"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {c}: edge {a,d} isn\u0027t covered.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Rejected"
+          },
+          "b-d": {
+            "state": "Rejected"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try {d}. It covers every edge.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "d"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "{d} covers every edge, found after 4 tries.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "d": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node a is not in the vertex cover, so it is in the clique.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "a"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node b is not in the vertex cover, so it is in the clique.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "b"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node c is not in the vertex cover, so it is in the clique.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "b": {
+            "state": "Solution"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Solution"
+          },
+          "a-c": {
+            "state": "Solution"
+          },
+          "b-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Reject",
+      "caption": "Node d is in the vertex cover, so it is left out of the clique.",
+      "sourceFocus": [
+        "d"
+      ],
+      "targetFocus": [
+        "d"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "b": {
+            "state": "Solution"
+          },
+          "c": {
+            "state": "Solution"
+          },
+          "d": {
+            "state": "Rejected"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Solution"
+          },
+          "a-c": {
+            "state": "Solution"
+          },
+          "b-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{a,b,c} is a valid Clique answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "b": {
+            "state": "Solution"
+          },
+          "c": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Solution"
+          },
+          "a-c": {
+            "state": "Solution"
+          },
+          "b-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "d": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-d": {
+            "state": "Covered"
+          },
+          "b-d": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      }
+    }
+  ]
+}

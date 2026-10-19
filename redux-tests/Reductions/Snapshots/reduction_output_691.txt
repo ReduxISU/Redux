@@ -3123,6 +3123,72 @@
       "targetIds": [
         "6"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "1-3",
+        "1-5"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "1"
+      ],
+      "targetIds": [
+        "1-3",
+        "1-5"
+      ],
+      "note": "1 is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "2-6"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "2"
+      ],
+      "targetIds": [
+        "2-6"
+      ],
+      "note": "2 is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "5"
+      ],
+      "reductionToIds": [
+        "5-6"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "5"
+      ],
+      "targetIds": [
+        "5-6"
+      ],
+      "note": "5 is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K\u0027 = N - K = 6 - 4 = 2"
     }
   ],
   "reductionFrom": {
@@ -3402,6 +3468,72 @@
     "targetIds": [
       "6"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "1"
+    ],
+    "reductionToIds": [
+      "1-3",
+      "1-5"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "1"
+    ],
+    "targetIds": [
+      "1-3",
+      "1-5"
+    ],
+    "note": "1 is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "2"
+    ],
+    "reductionToIds": [
+      "2-6"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "2"
+    ],
+    "targetIds": [
+      "2-6"
+    ],
+    "note": "2 is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "5"
+    ],
+    "reductionToIds": [
+      "5-6"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "5"
+    ],
+    "targetIds": [
+      "5-6"
+    ],
+    "note": "5 is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K\u0027 = N - K = 6 - 4 = 2"
   }
 ]
 ### reduce sipserReductionVertexCover (({a,b,c,d},{{a,b},{b,c},{a,c},{c,d}}),3)
@@ -3514,6 +3646,52 @@
       "targetIds": [
         "d"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-d"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K\u0027 = N - K = 4 - 3 = 1"
     }
   ],
   "reductionFrom": {
@@ -3759,6 +3937,52 @@
     "targetIds": [
       "d"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a-d"
+    ],
+    "note": "a is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b-d"
+    ],
+    "note": "b is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K\u0027 = N - K = 4 - 3 = 1"
   }
 ]
 ### reduce sipserReductionVertexCover (({a,b,c,d},{{b,a},{c,b},{c,d}}),2)
@@ -3871,6 +4095,54 @@
       "targetIds": [
         "d"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a-c",
+        "a-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-c",
+        "a-d"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K\u0027 = N - K = 4 - 2 = 2"
     }
   ],
   "reductionFrom": {
@@ -4116,6 +4388,54 @@
     "targetIds": [
       "d"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a-c",
+      "a-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a-c",
+      "a-d"
+    ],
+    "note": "a is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b-d"
+    ],
+    "note": "b is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K\u0027 = N - K = 4 - 2 = 2"
   }
 ]
 ### reduce sipserReductionVertexCover (({a,b,c},{{a,b},{b,c},{a,c}}),3)
@@ -4211,6 +4531,16 @@
       "targetIds": [
         "c"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K\u0027 = N - K = 3 - 3 = 0"
     }
   ],
   "reductionFrom": {
@@ -4439,6 +4769,16 @@
     "targetIds": [
       "c"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K\u0027 = N - K = 3 - 3 = 0"
   }
 ]
 ### reduce sipserReductionVertexCover (({a,b,c,d,e},{}),1)
@@ -4568,6 +4908,100 @@
       "targetIds": [
         "e"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a-b",
+        "a-c",
+        "a-d",
+        "a-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-b",
+        "a-c",
+        "a-d",
+        "a-e"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-c",
+        "b-d",
+        "b-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-c",
+        "b-d",
+        "b-e"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c-d",
+        "c-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c-d",
+        "c-e"
+      ],
+      "note": "c is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d-e"
+      ],
+      "note": "d is joined to the nodes it has no edge to in the clique graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K\u0027 = N - K = 5 - 1 = 4"
     }
   ],
   "reductionFrom": {
@@ -4830,6 +5264,100 @@
     "targetIds": [
       "e"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a-b",
+      "a-c",
+      "a-d",
+      "a-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a-b",
+      "a-c",
+      "a-d",
+      "a-e"
+    ],
+    "note": "a is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b-c",
+      "b-d",
+      "b-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b-c",
+      "b-d",
+      "b-e"
+    ],
+    "note": "b is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c-d",
+      "c-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c-d",
+      "c-e"
+    ],
+    "note": "c is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d-e"
+    ],
+    "note": "d is joined to the nodes it has no edge to in the clique graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K\u0027 = N - K = 5 - 1 = 4"
   }
 ]
 ### reduce reduceToCLIQUE (({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)
@@ -4994,6 +5522,134 @@
       "targetIds": [
         "g"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a-f"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-f"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-d",
+        "b-e",
+        "b-f"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d",
+        "b-e",
+        "b-f"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c-d",
+        "c-e",
+        "c-f",
+        "c-g"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c-d",
+        "c-e",
+        "c-f",
+        "c-g"
+      ],
+      "note": "c is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d-g"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d-g"
+      ],
+      "note": "d is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e-g"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e-g"
+      ],
+      "note": "e is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "f"
+      ],
+      "reductionToIds": [
+        "f-g"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "f"
+      ],
+      "targetIds": [
+        "f-g"
+      ],
+      "note": "f is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
     }
   ],
   "reductionFrom": {
@@ -5288,6 +5944,134 @@
     "targetIds": [
       "g"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a-f"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a-f"
+    ],
+    "note": "a is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b-d",
+      "b-e",
+      "b-f"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b-d",
+      "b-e",
+      "b-f"
+    ],
+    "note": "b is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c-d",
+      "c-e",
+      "c-f",
+      "c-g"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c-d",
+      "c-e",
+      "c-f",
+      "c-g"
+    ],
+    "note": "c is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d-g"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d-g"
+    ],
+    "note": "d is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "e"
+    ],
+    "reductionToIds": [
+      "e-g"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "e"
+    ],
+    "targetIds": [
+      "e-g"
+    ],
+    "note": "e is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "f"
+    ],
+    "reductionToIds": [
+      "f-g"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "f"
+    ],
+    "targetIds": [
+      "f-g"
+    ],
+    "note": "f is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K stays 3"
   }
 ]
 ### reduce reduceToCLIQUE (({a,b,c,d},{{a,b},{b,c},{c,d}}),2)
@@ -5401,6 +6185,54 @@
       "targetIds": [
         "d"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a-c",
+        "a-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-c",
+        "a-d"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 2"
     }
   ],
   "reductionFrom": {
@@ -5644,6 +6476,54 @@
     "targetIds": [
       "d"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a-c",
+      "a-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a-c",
+      "a-d"
+    ],
+    "note": "a is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b-d"
+    ],
+    "note": "b is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K stays 2"
   }
 ]
 ### reduce reduceToCLIQUE (({a,b,c,d},{{b,a},{d,c}}),1)
@@ -5757,6 +6637,56 @@
       "targetIds": [
         "d"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a-c",
+        "a-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-c",
+        "a-d"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-c",
+        "b-d"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-c",
+        "b-d"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 1"
     }
   ],
   "reductionFrom": {
@@ -6000,6 +6930,56 @@
     "targetIds": [
       "d"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a-c",
+      "a-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a-c",
+      "a-d"
+    ],
+    "note": "a is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b-c",
+      "b-d"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b-c",
+      "b-d"
+    ],
+    "note": "b is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K stays 1"
   }
 ]
 ### reduce reduceToCLIQUE (({a,b,c},{{a,b},{b,c},{a,c}}),2)
@@ -6096,6 +7076,16 @@
       "targetIds": [
         "c"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 2"
     }
   ],
   "reductionFrom": {
@@ -6322,6 +7312,16 @@
     "targetIds": [
       "c"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K stays 2"
   }
 ]
 ### reduce reduceToCLIQUE (({a,b,c,d,e},{}),3)
@@ -6452,6 +7452,100 @@
       "targetIds": [
         "e"
       ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a-b",
+        "a-c",
+        "a-d",
+        "a-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-b",
+        "a-c",
+        "a-d",
+        "a-e"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-c",
+        "b-d",
+        "b-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-c",
+        "b-d",
+        "b-e"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c-d",
+        "c-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c-d",
+        "c-e"
+      ],
+      "note": "c is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d-e"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d-e"
+      ],
+      "note": "d is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
     }
   ],
   "reductionFrom": {
@@ -6712,5 +7806,99 @@
     "targetIds": [
       "e"
     ]
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "a"
+    ],
+    "reductionToIds": [
+      "a-b",
+      "a-c",
+      "a-d",
+      "a-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "a"
+    ],
+    "targetIds": [
+      "a-b",
+      "a-c",
+      "a-d",
+      "a-e"
+    ],
+    "note": "a is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "b"
+    ],
+    "reductionToIds": [
+      "b-c",
+      "b-d",
+      "b-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "b"
+    ],
+    "targetIds": [
+      "b-c",
+      "b-d",
+      "b-e"
+    ],
+    "note": "b is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "c"
+    ],
+    "reductionToIds": [
+      "c-d",
+      "c-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "c"
+    ],
+    "targetIds": [
+      "c-d",
+      "c-e"
+    ],
+    "note": "c is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [
+      "d"
+    ],
+    "reductionToIds": [
+      "d-e"
+    ],
+    "gadgetKind": "edgeRule",
+    "sourceIds": [
+      "d"
+    ],
+    "targetIds": [
+      "d-e"
+    ],
+    "note": "d is joined to the nodes it has no edge to in the graph."
+  },
+  {
+    "kind": "gadget",
+    "color": "ElementHighlight",
+    "reductionFromIds": [],
+    "reductionToIds": [],
+    "gadgetKind": "bound",
+    "sourceIds": [],
+    "targetIds": [],
+    "note": "K stays 3"
   }
 ]

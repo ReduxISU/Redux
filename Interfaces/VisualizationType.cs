@@ -65,4 +65,18 @@ public enum VisualizationType {
     /// <c>/ProblemProvider/visualize</c>; /info keeps the legacy type (<see cref="DynamicTable"/>).
     /// </summary>
     Table,
+    /// <summary>
+    /// The Layered Graph picture (Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components,
+    /// Single-Source and Single-Pair Shortest Path): a directed graph ranked left to right with its back edges marked; a
+    /// static payload plus one frame of named states per solver step. Like <see cref="Graph"/> it is reported only as the
+    /// <c>type</c> of the <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type.
+    /// </summary>
+    LayeredGraph,
+    /// <summary>
+    /// The Bipartite Graph picture (Set Cover, Exact Cover, Exact Hitting Set): elements in one column, sets in the other, an
+    /// edge per membership, a static payload plus one frame of named states per solver step. Like <see cref="Graph"/> it is
+    /// reported only as the <c>type</c> of the <c>format=frames</c> response of <c>/ProblemProvider/visualize</c>; /info keeps
+    /// the legacy <see cref="SetD3"/>.
+    /// </summary>
+    BipartiteGraph,
 }

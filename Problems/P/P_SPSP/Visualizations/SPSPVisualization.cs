@@ -1,3 +1,5 @@
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -6,7 +8,7 @@ using API.Problems.P.P_SPSP.Verifiers;
 
 namespace API.Problems.P.P_SPSP.Visualizations;
 
-class SPSPVisualization : IVisualization<SPSP, API_GraphJSON> {
+class SPSPVisualization : IVisualization<SPSP, API_GraphJSON>, ILayeredVisualization<SPSP> {
     public string visualizationName { get; } = "Single Pair Shortest Path Visualization";
     public string visualizationDefinition { get; } = "Visualizes the Single Pair Shortest Path problem for non-negative weighted directed cyclic graphs using Dijkstra's algorithm";
     public string source { get; } = "";
@@ -14,6 +16,18 @@ class SPSPVisualization : IVisualization<SPSP, API_GraphJSON> {
     public string[] contributors { get; } = { "Rajit Nilkar", "Scott Barfuss", "Tiger Sant", "Malaya Witt" };
     public VisualizationType visualizationType => VisualizationType.GraphD3;
     public ISolver solver { get; } = new SPSPSolver();
+
+    // The Layered Graph picture (format=frames only; /info keeps GraphD3). Implemented explicitly so it is not part of /info.
+    Type? IVisualization.StepShape => typeof(Distances);
+    LayeredSpec ILayeredVisualization<SPSP>.Describe(SPSP problem) => Spec(problem);
+    // The list format draws Dijkstra's legacy steps, which it makes itself from the typed run (see StepsVisualization), so it
+    // must still be called with the run's steps.
+    bool IFramesVisualization.ListReadsTypedSteps() => true;
+
+    /// <summary>The instance as the Layered Graph picture describes it.</summary>
+    internal static LayeredSpec Spec(SPSP problem) => new(
+        problem.nodes, problem.ListedEdges().Select(e => new LayeredEdgeInput(e.From, e.To, e.Weight)).ToList(),
+        LayeredRule.SinglePairShortestPath) { Directed = problem.isDirected, Source = problem.sourceNode, Target = problem.targetNode };
 
     public SPSPVisualization() { }
 
@@ -64,6 +78,9 @@ class SPSPVisualization : IVisualization<SPSP, API_GraphJSON> {
     }
 
     public List<API_JSON> StepsVisualization(SPSP problem, List<Object> steps) {
+        // A typed run (format=list since #667) carries the Layered Graph picture's steps; this list draws the legacy ones.
+        if (steps.Any(step => step is SolverStep<Distances>))
+            steps = new SPSPSolver().GetSteps(problem);
         var result = new List<API_JSON>();
 
         for (int s = 0; s < steps.Count; s++) {

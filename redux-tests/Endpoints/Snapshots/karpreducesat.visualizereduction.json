@@ -1148,7 +1148,7 @@
           {
             "id": "c0-2",
             "literal": "a2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1158,12 +1158,12 @@
           {
             "id": "c1-0",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c1-1",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1173,7 +1173,7 @@
           {
             "id": "c2-0",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c2-1",
@@ -1188,7 +1188,7 @@
           {
             "id": "c3-0",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c3-1",
@@ -1208,7 +1208,7 @@
           {
             "id": "c4-1",
             "literal": "b1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c4-2",
@@ -1223,7 +1223,7 @@
           {
             "id": "c5-0",
             "literal": "!b0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c5-1",
@@ -1238,12 +1238,12 @@
           {
             "id": "c6-0",
             "literal": "!b0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c6-1",
             "literal": "!b2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1258,7 +1258,7 @@
           {
             "id": "c7-1",
             "literal": "!b2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1268,7 +1268,7 @@
           {
             "id": "c8-0",
             "literal": "c0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c8-1",
@@ -1293,7 +1293,7 @@
           {
             "id": "c9-1",
             "literal": "!c1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1308,7 +1308,7 @@
           {
             "id": "c10-1",
             "literal": "!c2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1318,12 +1318,12 @@
           {
             "id": "c11-0",
             "literal": "!c1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c11-1",
             "literal": "!c2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1338,7 +1338,7 @@
           {
             "id": "c12-1",
             "literal": "d1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c12-2",
@@ -1353,7 +1353,7 @@
           {
             "id": "c13-0",
             "literal": "!d0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c13-1",
@@ -1368,12 +1368,12 @@
           {
             "id": "c14-0",
             "literal": "!d0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c14-1",
             "literal": "!d2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1388,7 +1388,7 @@
           {
             "id": "c15-1",
             "literal": "!d2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1398,7 +1398,7 @@
           {
             "id": "c16-0",
             "literal": "e0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c16-1",
@@ -1423,7 +1423,7 @@
           {
             "id": "c17-1",
             "literal": "!e1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1438,7 +1438,7 @@
           {
             "id": "c18-1",
             "literal": "!e2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1448,12 +1448,12 @@
           {
             "id": "c19-0",
             "literal": "!e1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c19-1",
             "literal": "!e2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1468,7 +1468,7 @@
           {
             "id": "c20-1",
             "literal": "f1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c20-2",
@@ -1483,7 +1483,7 @@
           {
             "id": "c21-0",
             "literal": "!f0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c21-1",
@@ -1498,12 +1498,12 @@
           {
             "id": "c22-0",
             "literal": "!f0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c22-1",
             "literal": "!f2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1518,7 +1518,7 @@
           {
             "id": "c23-1",
             "literal": "!f2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1528,7 +1528,7 @@
           {
             "id": "c24-0",
             "literal": "g0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c24-1",
@@ -1553,7 +1553,7 @@
           {
             "id": "c25-1",
             "literal": "!g1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1568,7 +1568,7 @@
           {
             "id": "c26-1",
             "literal": "!g2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1578,12 +1578,12 @@
           {
             "id": "c27-0",
             "literal": "!g1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c27-1",
             "literal": "!g2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1598,7 +1598,7 @@
           {
             "id": "c28-1",
             "literal": "h1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c28-2",
@@ -1613,7 +1613,7 @@
           {
             "id": "c29-0",
             "literal": "!h0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c29-1",
@@ -1628,12 +1628,12 @@
           {
             "id": "c30-0",
             "literal": "!h0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c30-1",
             "literal": "!h2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1648,7 +1648,7 @@
           {
             "id": "c31-1",
             "literal": "!h2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1658,7 +1658,7 @@
           {
             "id": "c32-0",
             "literal": "i0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c32-1",
@@ -1683,7 +1683,7 @@
           {
             "id": "c33-1",
             "literal": "!i1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1698,7 +1698,7 @@
           {
             "id": "c34-1",
             "literal": "!i2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1708,12 +1708,12 @@
           {
             "id": "c35-0",
             "literal": "!i1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c35-1",
             "literal": "!i2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1723,12 +1723,12 @@
           {
             "id": "c36-0",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c36-1",
             "literal": "!b0",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1738,7 +1738,7 @@
           {
             "id": "c37-0",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c37-1",
@@ -1758,7 +1758,7 @@
           {
             "id": "c38-1",
             "literal": "!b2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1768,7 +1768,7 @@
           {
             "id": "c39-0",
             "literal": "!b0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c39-1",
@@ -1788,7 +1788,7 @@
           {
             "id": "c40-1",
             "literal": "!c1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1798,12 +1798,12 @@
           {
             "id": "c41-0",
             "literal": "!b2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c41-1",
             "literal": "!c2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1813,7 +1813,7 @@
           {
             "id": "c42-0",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c42-1",
@@ -1828,12 +1828,12 @@
           {
             "id": "c43-0",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c43-1",
             "literal": "!c1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1848,7 +1848,7 @@
           {
             "id": "c44-1",
             "literal": "!c2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1858,12 +1858,12 @@
           {
             "id": "c45-0",
             "literal": "!d0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c45-1",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1878,7 +1878,7 @@
           {
             "id": "c46-1",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1888,7 +1888,7 @@
           {
             "id": "c47-0",
             "literal": "!d2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c47-1",
@@ -1903,7 +1903,7 @@
           {
             "id": "c48-0",
             "literal": "!d0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c48-1",
@@ -1923,7 +1923,7 @@
           {
             "id": "c49-1",
             "literal": "!e1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1933,12 +1933,12 @@
           {
             "id": "c50-0",
             "literal": "!d2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c50-1",
             "literal": "!e2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1948,7 +1948,7 @@
           {
             "id": "c51-0",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c51-1",
@@ -1963,12 +1963,12 @@
           {
             "id": "c52-0",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c52-1",
             "literal": "!e1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1983,7 +1983,7 @@
           {
             "id": "c53-1",
             "literal": "!e2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -1993,12 +1993,12 @@
           {
             "id": "c54-0",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c54-1",
             "literal": "!f0",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2008,7 +2008,7 @@
           {
             "id": "c55-0",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c55-1",
@@ -2028,7 +2028,7 @@
           {
             "id": "c56-1",
             "literal": "!f2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2038,7 +2038,7 @@
           {
             "id": "c57-0",
             "literal": "!f0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c57-1",
@@ -2058,7 +2058,7 @@
           {
             "id": "c58-1",
             "literal": "!g1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2068,12 +2068,12 @@
           {
             "id": "c59-0",
             "literal": "!f2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c59-1",
             "literal": "!g2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2088,7 +2088,7 @@
           {
             "id": "c60-1",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2098,12 +2098,12 @@
           {
             "id": "c61-0",
             "literal": "!g1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c61-1",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2113,7 +2113,7 @@
           {
             "id": "c62-0",
             "literal": "!g2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c62-1",
@@ -2128,12 +2128,12 @@
           {
             "id": "c63-0",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c63-1",
             "literal": "!h0",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2143,7 +2143,7 @@
           {
             "id": "c64-0",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c64-1",
@@ -2163,7 +2163,7 @@
           {
             "id": "c65-1",
             "literal": "!h2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2173,7 +2173,7 @@
           {
             "id": "c66-0",
             "literal": "!h0",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c66-1",
@@ -2193,7 +2193,7 @@
           {
             "id": "c67-1",
             "literal": "!i1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2203,12 +2203,12 @@
           {
             "id": "c68-0",
             "literal": "!h2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c68-1",
             "literal": "!i2",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2223,7 +2223,7 @@
           {
             "id": "c69-1",
             "literal": "!a0",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2233,12 +2233,12 @@
           {
             "id": "c70-0",
             "literal": "!i1",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c70-1",
             "literal": "!a1",
-            "color": "Background"
+            "color": "Solution"
           }
         ]
       },
@@ -2248,7 +2248,7 @@
           {
             "id": "c71-0",
             "literal": "!i2",
-            "color": "Background"
+            "color": "Solution"
           },
           {
             "id": "c71-1",

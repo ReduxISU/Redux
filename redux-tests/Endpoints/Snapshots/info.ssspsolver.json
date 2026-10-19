@@ -1,0 +1,1 @@
+{"solverName":"Dijkstra\u0027s Algorithm","solverDefinition":"","source":"","sourceFile":"Problems/P/P_SSSP/Solvers/SSSPSolver.cs","contributors":["Rajit Nilkar"],"timerHasExpired":false,"solverType":"Greedy","complexityBucket":"Polynomial","timeComplexity":{"Function":"(V \u002B E) log V","Description":"","VariableNames":["V","E"]}}

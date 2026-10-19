@@ -1,9 +1,14 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_SAT3.ReduceTo;
+using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo;
 using API.Problems.NPComplete.NPC_SAT;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_SAT;
 
-class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
+class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecordedReduction<GRAPHCOLORING, SAT> {
 
     #region Fields
     public string reductionName { get; } = "Karp's SAT Reduction";
@@ -67,18 +72,43 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
 
     #region Constructors
-    public KarpReduceSAT(GRAPHCOLORING from) {
+    public KarpReduceSAT(GRAPHCOLORING from) : this(from, StepRecorder<BuildDelta>.Off) { }
+
+    // The one place the target is built; rec is Off except when the construction steps are asked for.
+    private KarpReduceSAT(GRAPHCOLORING from, StepRecorder<BuildDelta> rec) {
         _reductionFrom = from;
-        _reductionTo = reduce();
+        _reductionTo = Build(rec);
     }
     public KarpReduceSAT(string instance) : this(new GRAPHCOLORING(instance)) { }
+    // Builds from the instance with rec recording the construction as it goes (IRecordedReduction).
+    public KarpReduceSAT(string instance, StepRecorder<BuildDelta> rec) : this(new GRAPHCOLORING(instance), rec) { }
     public KarpReduceSAT() : this(new GRAPHCOLORING()) { }
     #endregion
 
 
     #region Methods
 
-    public SAT reduce() {
+    /// <summary>
+    /// The gadgets (#694): per node a group (the node to its clauses), per node and color an element (the node to the variable
+    /// that says it takes that color), and per edge a group (the edge to its clauses). Ids are the Grouped Graph picture's.
+    /// </summary>
+    public List<Gadget> gadgets { get; } = new();
+
+    public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
+        var copy = new KarpReduceSAT(reductionFrom, rec);
+        return new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps);
+    }
+
+    public SAT reduce() => Build(StepRecorder<BuildDelta>.Off);
+
+    // Construction steps (see IRecordedReduction): one per node (its variables and clauses), one per edge (its clauses), then
+    // Done. The clauses are written as they always have been; each is filed under the node or edge that wrote it.
+    private SAT Build(StepRecorder<BuildDelta> rec) {
+        // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
+        gadgets.Clear();
+        RequireNodesAndColors();
+        var nodeClauses = new List<(string Node, int First, int Count)>();
+        var edgeClauses = new List<(string A, string B, int First, int Count)>();
 
         // List<string> reducedClauses = new List<string>();
         List<string> reducedNodeClauses = new List<string>();
@@ -86,6 +116,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
         // convert nodes to clauses
         foreach (string node in _reductionFrom.nodes) {
+            int firstOfNode = reducedNodeClauses.Count;
             string clause = "(";
             string currentNode = "";
             List<string> gadgetNodes = new List<string>();
@@ -118,6 +149,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
                     }
                 }
             }
+            nodeClauses.Add((node, firstOfNode, reducedNodeClauses.Count - firstOfNode));
 
 
 
@@ -127,6 +159,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
         List<string> reducedEdgesClauses = new List<string>();
 
         foreach (var edge in reductionFrom.edges) {
+            int firstOfEdge = reducedEdgesClauses.Count;
             for (int i = 0; i < _reductionFrom.K; i++) {
                 for (int j = 0; j < _reductionFrom.K; j++) {
                     if (i == j) {
@@ -139,6 +172,7 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
                     }
                 }
             }
+            edgeClauses.Add((edge.Key, edge.Value, reducedNodeClauses.Count + firstOfEdge, reducedEdgesClauses.Count - firstOfEdge));
         }
 
         List<string> reducedClauses = new List<string>();
@@ -152,7 +186,22 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
         }
         phiInstance += $"{reducedClauses[reducedClauses.Count - 1]}";
 
-        return new SAT(phiInstance);
+        var sat = new SAT(phiInstance);
+        RecordPieces(sat.clauses, nodeClauses, edgeClauses, rec);
+        return sat;
+    }
+
+    // The formula has a clause per node saying it takes one of the K colors. With no nodes there is no clause, and with K < 1
+    // the clause has no literal; SAT writes neither (an empty formula, an empty clause), so the reduction refuses them as
+    // input it cannot take: a 400 that says why, not a 500 or a parse error about a formula the caller never wrote (#827).
+    private void RequireNodesAndColors() {
+        GRAPHCOLORING g = _reductionFrom;
+        if (g.nodes.Count == 0)
+            throw new ReductionInputException(this, g.instance, g.instanceFormat,
+                "This reduction needs at least one node: a graph with no nodes gives SAT a formula with no clauses, which SAT cannot write.");
+        if (g.K < 1)
+            throw new ReductionInputException(this, g.instance, g.instanceFormat,
+                $"K must be at least 1 for this reduction, but it is {g.K}: each node's clause lists its K colors, and SAT cannot write an empty clause.");
     }
 
     private void DeMorgansLaw(List<string> clauses) {
@@ -167,8 +216,129 @@ class KarpReduceSAT : IReduction<GRAPHCOLORING, SAT> {
 
     }
 
+    // Each node's "takes a color" clause, by its index in the formula. Private, so it stays out of the JSON.
+    private readonly Dictionary<string, int> _nodeClause = new(StringComparer.Ordinal);
+
+    // The gadgets, and the construction steps when recording: one per node, then one per edge, each adding the clauses it
+    // wrote (with their literals, the variables they first mention and the Grouped Graph's edges, CnfPieces.ClausePieces).
+    private void RecordPieces(List<List<string>> clauses, List<(string Node, int First, int Count)> nodeClauses,
+        List<(string A, string B, int First, int Count)> edgeClauses, StepRecorder<BuildDelta> rec) {
+        int k = _reductionFrom.K;
+        List<string> ClauseIds(int first, int count) =>
+            Enumerable.Range(first, count).SelectMany(c => CnfPieces.ClauseIds(c, clauses[c].Count)).ToList();
+        string Variable(string node, int color) => $"{node}{color}";
+
+        var nodeGadgets = new List<(string Node, int First, int Count, int[] Gadgets)>();
+        _nodeClause.Clear();
+        foreach (var (node, first, count) in nodeClauses) {
+            _nodeClause.TryAdd(node, first);
+            var ids = ClauseIds(first, count);
+            var used = new List<int> { gadgets.Count };
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, ids, legacyToIds: CnfPieces.LegacyIds(ids, clauses)));
+            for (int color = 0; color < k; color++) {
+                string id = GroupedGraphFrames.VariableId(Variable(node, color));
+                used.Add(gadgets.Count);
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { id },
+                    legacyToIds: CnfPieces.LegacyIds([id], clauses), note: $"{Variable(node, color)} is true when {node} takes color {color}."));
+            }
+            nodeGadgets.Add((node, first, count, used.ToArray()));
+        }
+        var edgeGadgets = new List<(string A, string B, int First, int Count, int[] Gadgets)>();
+        foreach (var (a, b, first, count) in edgeClauses) {
+            int[] used = [];
+            if (count > 0) {
+                var ids = ClauseIds(first, count);
+                used = [gadgets.Count];
+                gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, ids,
+                    legacyToIds: CnfPieces.LegacyIds(ids, clauses)));
+            }
+            edgeGadgets.Add((a, b, first, count, used));
+        }
+        if (!rec.Enabled) return;
+
+        var builtVariables = new HashSet<string>(StringComparer.Ordinal);
+        (string[] Nodes, BuildEdge[] Edges) Pieces(int first, int count) {
+            var nodes = new List<string>();
+            var edges = new List<BuildEdge>();
+            for (int c = first; c < first + count; c++) {
+                var (n, e) = CnfPieces.ClausePieces(clauses, c, builtVariables);
+                nodes.AddRange(n);
+                edges.AddRange(e);
+            }
+            return (nodes.ToArray(), BuildEdge.Sorted(edges));
+        }
+        string Texts(int first, int count) => BuildCaptions.Names(Enumerable.Range(first, count).Select(c => CnfPieces.ClauseText(clauses[c])).ToList(), 4);
+
+        foreach (var (node, first, count, used) in nodeGadgets) {
+            var (nodes, edges) = Pieces(first, count);
+            string[] focus = nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray();
+            string variables = BuildCaptions.Names(Enumerable.Range(0, k).Select(c => Variable(node, c)).ToList());
+            rec.Accept(
+                () => new BuildDelta { SourceFocus = [node], Nodes = nodes, Edges = edges, Gadgets = used },
+                () => $"Node {node} becomes the {(k == 1 ? "variable" : "variables")} {variables}, one per color, and {BuildCaptions.Count(count, "clause")}: "
+                    + $"{CnfPieces.ClauseText(clauses[first])} says {node} takes a color"
+                    + (count > 1 ? $", and {Texts(first + 1, count - 1)} {(count == 2 ? "says" : "say")} it takes only one." : "."),
+                focus);
+        }
+        foreach (var (a, b, first, count, used) in edgeGadgets) {
+            string[] sourceFocus = a == b ? [a] : [GraphSubsetFrames.EdgeId(a, b), a, b];
+            if (count == 0) {
+                rec.Reject(() => new BuildDelta { SourceFocus = sourceFocus },
+                    () => $"Edge {{{a},{b}}} was already written the other way round, so it adds no clause.");
+                continue;
+            }
+            var (nodes, edges) = Pieces(first, count);
+            string[] focus = nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray();
+            rec.Accept(
+                () => new BuildDelta { SourceFocus = sourceFocus, Nodes = nodes, Edges = edges, Gadgets = used },
+                () => $"Edge {{{a},{b}}} becomes {BuildCaptions.Count(count, "clause")}, {Texts(first, count)}: {a} and {b} never take the same color.",
+                focus);
+        }
+        rec.Done(new BuildDelta(), true,
+            $"The formula can be satisfied exactly when the graph can be colored with {BuildCaptions.Count(k, "color")}: a node takes the color whose variable is true.");
+    }
+
+    public Groups EmptyAnswer() => new Groups([]);
+
+    // A SAT answer is an assignment, never "{}": the target keeps the default (no answer). The graph has a node (#827), so the
+    // empty coloring is never a Graph Coloring answer either.
+
+    /// <summary>
+    /// Backward map (#694): each node, in the graph's order, takes the first color whose variable the assignment makes
+    /// true. A node with none gets no color (a Reject on its "takes a color" clause), and Graph Coloring's verifier decides.
+    /// </summary>
+    public (string Answer, Groups Partial) MapBack(string problemToSolution, StepRecorder<Groups> rec) {
+        var clauses = reductionTo.clauses;
+        var values = CnfPieces.ReadAssignment(problemToSolution, CnfPieces.Variables(clauses), "SAT");
+        int k = _reductionFrom.K;
+        var color = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (string node in _reductionFrom.nodes) {
+            int own = _nodeClause[node];
+            int c = Enumerable.Range(0, k).FirstOrDefault(i => values.TryGetValue($"{node}{i}", out bool v) && v, -1);
+            if (c < 0) {
+                rec.Reject(() => new Groups(color), () => $"No variable of {node} is true, so {node} gets no color.", GroupedGraphFrames.ClauseId(own));
+                continue;
+            }
+            color[node] = c;
+            rec.Accept(() => new Groups(color), () => $"{node}{c} = True, so {node} takes color {c}.", GroupedGraphFrames.VariableId($"{node}{c}"));
+        }
+        string answer = "{" + string.Join(",", Enumerable.Range(0, k)
+            .Select(c => _reductionFrom.nodes.Where(n => color.TryGetValue(n, out int x) && x == c).ToList())
+            .Where(cls => cls.Count > 0)
+            .Select(cls => "{" + string.Join(",", cls) + "}")) + "}";
+        return (answer, new Groups(color));
+    }
+
+    // A K-coloring sets the variable of each node and its color True and the node's other color variables False: every
+    // node then has exactly one color (its clause and the at-most-one clauses hold), and no edge has both ends True for one
+    // color (#823).
     public string mapSolutions(string problemFromSolution) {
-        return "";
+        Dictionary<string, int> color = ColoringAnswer.Read(this, reductionFrom, problemFromSolution);
+        var values = new List<string>();
+        foreach (string node in reductionFrom.nodes)
+            for (int i = 0; i < reductionFrom.K; i++)
+                values.Add($"{node}{i}:{(color[node] == i ? "True" : "False")}");
+        return "(" + string.Join(",", values) + ")";
     }
     #endregion
 

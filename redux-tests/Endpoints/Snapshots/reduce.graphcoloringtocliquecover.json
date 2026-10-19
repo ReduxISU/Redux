@@ -1,0 +1,523 @@
+{
+  "reductionName": "Clique Cover Reduction",
+  "reductionDefinition": "Karp\u0027s Reduction from Graph Coloring to Clique Cover",
+  "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/ReduceTo/NPC_CLIQUECOVER/GraphColoringToCliqueCover.cs",
+  "contributors": [
+    "Andrija Sevaljevic"
+  ],
+  "visualization": {
+    "visualizationName": "Clique Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Clique Cover",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Visualizations/CliqueCoverDefaultVisualization.cs",
+    "contributors": [
+      "Andrija Sevaljevic",
+      "Russell Phillips"
+    ],
+    "solver": {
+      "solverName": "Clique Cover Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique Cover problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Solvers/CliqueCoverBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "(K\u002B1)^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|, K = target clique count",
+        "VariableNames": [
+          "K",
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "f"
+      ],
+      "reductionToIds": [
+        "f"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "f"
+      ],
+      "targetIds": [
+        "f"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "g"
+      ],
+      "reductionToIds": [
+        "g"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "g"
+      ],
+      "targetIds": [
+        "g"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "h"
+      ],
+      "reductionToIds": [
+        "h"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "h"
+      ],
+      "targetIds": [
+        "h"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "i"
+      ],
+      "reductionToIds": [
+        "i"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "i"
+      ],
+      "targetIds": [
+        "i"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "b-d",
+        "b-e",
+        "b-f",
+        "b-g",
+        "b-h",
+        "b-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d",
+        "b-e",
+        "b-f",
+        "b-g",
+        "b-h",
+        "b-i"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "c-d",
+        "c-e",
+        "c-f",
+        "c-g",
+        "c-h",
+        "c-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c-d",
+        "c-e",
+        "c-f",
+        "c-g",
+        "c-h",
+        "c-i"
+      ],
+      "note": "c is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "d-f",
+        "d-g",
+        "d-h",
+        "d-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d-f",
+        "d-g",
+        "d-h",
+        "d-i"
+      ],
+      "note": "d is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "e-f",
+        "e-g",
+        "e-h",
+        "e-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "e-f",
+        "e-g",
+        "e-h",
+        "e-i"
+      ],
+      "note": "e is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "f"
+      ],
+      "reductionToIds": [
+        "f-h",
+        "f-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "f"
+      ],
+      "targetIds": [
+        "f-h",
+        "f-i"
+      ],
+      "note": "f is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "g"
+      ],
+      "reductionToIds": [
+        "g-h",
+        "g-i"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "g"
+      ],
+      "targetIds": [
+        "g-h",
+        "g-i"
+      ],
+      "note": "g is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Graph Coloring",
+    "formalDefinition": "GRAPHCOLORING = {\u003CG,k\u003E | G is a graph that has a k-coloring}",
+    "problemDefinition": "An assignment of labels (e.g., colors) to the vertices of a graph such that no two adjacent vertices are of the same label. This is called a vertex coloring.",
+    "inputDescription": "G, a graph, and k, the number of colors",
+    "outputDescription": "True or False, whether G has a valid k-coloring",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/GRAPHCOLORING_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "instance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
+    "certificateFormat": "Format: {c1,...,cK} | color classes partition N, no edge in E has both endpoints in the same class Example: {{a},{b,d,f,h},{c,e,g,i}}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Daniel Igbokwe",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Graph Coloring Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Graph Coloring problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "(numColors\u002B1)^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+        "VariableNames": [
+          "numColors",
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Graph Coloring Verifier",
+      "verifierDefinition": "This is a verifier for Graph Coloring.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Verifiers/GraphColoringVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Graph Coloring Visualization",
+      "visualizationDefinition": "This is a default visualization for Graph Coloring",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Visualizations/GraphColoringDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic",
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Graph Coloring Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Graph Coloring problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "(numColors\u002B1)^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+          "VariableNames": [
+            "numColors",
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Clique Cover",
+    "formalDefinition": "Clique Cover = {\u003CG, k\u003E | G is a graph represnted by k or fewer cliques}",
+    "problemDefinition": "A clique cover is a partition of the vertices into cliques, subsets of vertices within which every two vertices are adjacent",
+    "inputDescription": "G, a graph, and k, the number of cliques allowed",
+    "outputDescription": "True or False, whether G\u0027s vertices can be partitioned into at most k cliques",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/CLIQUECOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8}}),3)",
+    "instance": "(({a,b,c,d,e,f,g,h,i},{{b,d},{b,e},{b,f},{b,g},{b,h},{b,i},{c,d},{c,e},{c,f},{c,g},{c,h},{c,i},{d,b},{d,c},{d,f},{d,g},{d,h},{d,i},{e,b},{e,c},{e,f},{e,g},{e,h},{e,i},{f,b},{f,c},{f,d},{f,e},{f,h},{f,i},{g,b},{g,c},{g,d},{g,e},{g,h},{g,i},{h,b},{h,c},{h,d},{h,e},{h,f},{h,g},{i,b},{i,c},{i,d},{i,e},{i,f},{i,g}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8}}),3)",
+    "certificateFormat": "Format: {clique1,...,cliqueM} | cliques partition N, M \u003C= K, each clique fully connected in E Example: {1,2,3},{4,5},{6,7,8}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Clique Cover Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Clique Cover problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Solvers/CliqueCoverBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "(K\u002B1)^n * n^2 * m",
+        "Description": ", n = |nodes|, m = |edges|, K = target clique count",
+        "VariableNames": [
+          "K",
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Clique Cover Verifier",
+      "verifierDefinition": "This is a verifier for the NP-Complete Clique Cover problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Verifiers/CliqueCoverVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Clique Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Clique Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Visualizations/CliqueCoverDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic",
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Clique Cover Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Clique Cover problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Solvers/CliqueCoverBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "(K\u002B1)^n * n^2 * m",
+          "Description": ", n = |nodes|, m = |edges|, K = target clique count",
+          "VariableNames": [
+            "K",
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Quadratic",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}

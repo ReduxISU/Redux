@@ -130,4 +130,18 @@ public class TOPOLOGICALSORT_Tests {
         var verifier = new TopologicalSortVerifier();
         Assert.True(verifier.verify(problem, TopologicalSortVerifier.CertificateExample));
     }
+
+    // #782: Kahn's Algorithm says "no order exists" with "()"; the solved picture must not draw that as a sorted graph.
+    [Fact]
+    public void Visualization_ACyclicGraphsEmptyAnswer_LeavesThePictureUnhighlighted() {
+        var problem = new TOPOLOGICALSORT("({1,2,3},{(1,2),(2,3),(3,2)})");
+        string answer = new KahnsAlgorithm().solve(problem);
+        Assert.Equal("()", answer);
+
+        var graph = (API.Interfaces.JSON_Objects.Graphs.API_GraphJSON)
+            new API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Visualizations.TopologicalSortDefaultVisualization().SolvedVisualization(problem, answer);
+
+        Assert.All(graph.nodes, n => Assert.Equal("", n.color));
+        Assert.All(graph.links, l => Assert.Equal("", l.color));
+    }
 }

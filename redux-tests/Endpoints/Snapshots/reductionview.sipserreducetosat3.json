@@ -1,0 +1,1367 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "SipserReduceToSAT3",
+  "reductionName": "Sipser\u0027s 3SAT Reduction",
+  "solver": "3SAT Backtracking",
+  "source": {
+    "problem": "Clique",
+    "instance": "(({x1_0,!x2_0,x3_0,!x1_1,x3_1,x1_1,x2_2,!x3_2,!x1_2},{{x1_0,x3_1},{x1_0,x1_1},{x1_0,x2_2},{x1_0,!x3_2},{!x2_0,!x1_1},{!x2_0,x3_1},{!x2_0,x1_1},{!x2_0,!x3_2},{!x2_0,!x1_2},{x3_0,!x1_1},{x3_0,x3_1},{x3_0,x1_1},{x3_0,x2_2},{x3_0,!x1_2},{!x1_1,!x2_0},{!x1_1,x3_0},{!x1_1,x2_2},{!x1_1,!x3_2},{!x1_1,!x1_2},{x3_1,x1_0},{x3_1,!x2_0},{x3_1,x3_0},{x3_1,x2_2},{x3_1,!x1_2},{x1_1,x1_0},{x1_1,!x2_0},{x1_1,x3_0},{x1_1,x2_2},{x1_1,!x3_2},{x2_2,x1_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,x3_1},{x2_2,x1_1},{!x3_2,x1_0},{!x3_2,!x2_0},{!x3_2,!x1_1},{!x3_2,x1_1},{!x1_2,!x2_0},{!x1_2,x3_0},{!x1_2,!x1_1},{!x1_2,x3_1}}),3)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "x1_0",
+            "label": "x1_0"
+          },
+          {
+            "id": "!x2_0",
+            "label": "!x2_0"
+          },
+          {
+            "id": "x3_0",
+            "label": "x3_0"
+          },
+          {
+            "id": "!x1_1",
+            "label": "!x1_1"
+          },
+          {
+            "id": "x3_1",
+            "label": "x3_1"
+          },
+          {
+            "id": "x1_1",
+            "label": "x1_1"
+          },
+          {
+            "id": "x2_2",
+            "label": "x2_2"
+          },
+          {
+            "id": "!x3_2",
+            "label": "!x3_2"
+          },
+          {
+            "id": "!x1_2",
+            "label": "!x1_2"
+          }
+        ],
+        "edges": [
+          {
+            "id": "x1_0-x3_1",
+            "a": "x1_0",
+            "b": "x3_1"
+          },
+          {
+            "id": "x1_0-x1_1",
+            "a": "x1_0",
+            "b": "x1_1"
+          },
+          {
+            "id": "x1_0-x2_2",
+            "a": "x1_0",
+            "b": "x2_2"
+          },
+          {
+            "id": "!x3_2-x1_0",
+            "a": "!x3_2",
+            "b": "x1_0"
+          },
+          {
+            "id": "!x1_1-!x2_0",
+            "a": "!x1_1",
+            "b": "!x2_0"
+          },
+          {
+            "id": "!x2_0-x3_1",
+            "a": "!x2_0",
+            "b": "x3_1"
+          },
+          {
+            "id": "!x2_0-x1_1",
+            "a": "!x2_0",
+            "b": "x1_1"
+          },
+          {
+            "id": "!x2_0-!x3_2",
+            "a": "!x2_0",
+            "b": "!x3_2"
+          },
+          {
+            "id": "!x1_2-!x2_0",
+            "a": "!x1_2",
+            "b": "!x2_0"
+          },
+          {
+            "id": "!x1_1-x3_0",
+            "a": "!x1_1",
+            "b": "x3_0"
+          },
+          {
+            "id": "x3_0-x3_1",
+            "a": "x3_0",
+            "b": "x3_1"
+          },
+          {
+            "id": "x1_1-x3_0",
+            "a": "x1_1",
+            "b": "x3_0"
+          },
+          {
+            "id": "x2_2-x3_0",
+            "a": "x2_2",
+            "b": "x3_0"
+          },
+          {
+            "id": "!x1_2-x3_0",
+            "a": "!x1_2",
+            "b": "x3_0"
+          },
+          {
+            "id": "!x1_1-x2_2",
+            "a": "!x1_1",
+            "b": "x2_2"
+          },
+          {
+            "id": "!x1_1-!x3_2",
+            "a": "!x1_1",
+            "b": "!x3_2"
+          },
+          {
+            "id": "!x1_1-!x1_2",
+            "a": "!x1_1",
+            "b": "!x1_2"
+          },
+          {
+            "id": "x2_2-x3_1",
+            "a": "x2_2",
+            "b": "x3_1"
+          },
+          {
+            "id": "!x1_2-x3_1",
+            "a": "!x1_2",
+            "b": "x3_1"
+          },
+          {
+            "id": "x1_1-x2_2",
+            "a": "x1_1",
+            "b": "x2_2"
+          },
+          {
+            "id": "!x3_2-x1_1",
+            "a": "!x3_2",
+            "b": "x1_1"
+          }
+        ],
+        "shape": "subset",
+        "rule": "clique",
+        "k": 3
+      }
+    }
+  },
+  "target": {
+    "problem": "3SAT",
+    "instance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
+    "picture": {
+      "type": "GroupedGraph",
+      "payload": {
+        "kind": "groupedGraph",
+        "layout": "ring",
+        "shape": "assignment",
+        "rule": "satisfiability",
+        "groups": [
+          {
+            "id": "c0",
+            "label": "C1",
+            "members": [
+              "c0-0",
+              "c0-1",
+              "c0-2"
+            ]
+          },
+          {
+            "id": "c1",
+            "label": "C2",
+            "members": [
+              "c1-0",
+              "c1-1",
+              "c1-2"
+            ]
+          },
+          {
+            "id": "c2",
+            "label": "C3",
+            "members": [
+              "c2-0",
+              "c2-1",
+              "c2-2"
+            ]
+          }
+        ],
+        "nodes": [
+          {
+            "id": "c0-0",
+            "label": "x1",
+            "variable": "v:x1",
+            "positive": true,
+            "group": "c0"
+          },
+          {
+            "id": "c0-1",
+            "label": "\u00ACx2",
+            "variable": "v:x2",
+            "positive": false,
+            "group": "c0"
+          },
+          {
+            "id": "c0-2",
+            "label": "x3",
+            "variable": "v:x3",
+            "positive": true,
+            "group": "c0"
+          },
+          {
+            "id": "c1-0",
+            "label": "\u00ACx1",
+            "variable": "v:x1",
+            "positive": false,
+            "group": "c1"
+          },
+          {
+            "id": "c1-1",
+            "label": "x3",
+            "variable": "v:x3",
+            "positive": true,
+            "group": "c1"
+          },
+          {
+            "id": "c1-2",
+            "label": "x1",
+            "variable": "v:x1",
+            "positive": true,
+            "group": "c1"
+          },
+          {
+            "id": "c2-0",
+            "label": "x2",
+            "variable": "v:x2",
+            "positive": true,
+            "group": "c2"
+          },
+          {
+            "id": "c2-1",
+            "label": "\u00ACx3",
+            "variable": "v:x3",
+            "positive": false,
+            "group": "c2"
+          },
+          {
+            "id": "c2-2",
+            "label": "\u00ACx1",
+            "variable": "v:x1",
+            "positive": false,
+            "group": "c2"
+          }
+        ],
+        "variables": [
+          {
+            "id": "v:x1",
+            "label": "x1"
+          },
+          {
+            "id": "v:x2",
+            "label": "x2"
+          },
+          {
+            "id": "v:x3",
+            "label": "x3"
+          }
+        ],
+        "edges": [
+          {
+            "id": "c0-0~c1-0",
+            "a": "c0-0",
+            "b": "c1-0"
+          },
+          {
+            "id": "c0-0~c2-2",
+            "a": "c0-0",
+            "b": "c2-2"
+          },
+          {
+            "id": "c0-1~c2-0",
+            "a": "c0-1",
+            "b": "c2-0"
+          },
+          {
+            "id": "c0-2~c2-1",
+            "a": "c0-2",
+            "b": "c2-1"
+          },
+          {
+            "id": "c1-1~c2-1",
+            "a": "c1-1",
+            "b": "c2-1"
+          },
+          {
+            "id": "c1-2~c2-2",
+            "a": "c1-2",
+            "b": "c2-2"
+          }
+        ],
+        "clauseEdges": [
+          {
+            "id": "c0-0~c0-1",
+            "a": "c0-0",
+            "b": "c0-1"
+          },
+          {
+            "id": "c0-0~c0-2",
+            "a": "c0-0",
+            "b": "c0-2"
+          },
+          {
+            "id": "c0-1~c0-2",
+            "a": "c0-1",
+            "b": "c0-2"
+          },
+          {
+            "id": "c1-0~c1-1",
+            "a": "c1-0",
+            "b": "c1-1"
+          },
+          {
+            "id": "c1-0~c1-2",
+            "a": "c1-0",
+            "b": "c1-2"
+          },
+          {
+            "id": "c1-1~c1-2",
+            "a": "c1-1",
+            "b": "c1-2"
+          },
+          {
+            "id": "c2-0~c2-1",
+            "a": "c2-0",
+            "b": "c2-1"
+          },
+          {
+            "id": "c2-0~c2-2",
+            "a": "c2-0",
+            "b": "c2-2"
+          },
+          {
+            "id": "c2-1~c2-2",
+            "a": "c2-1",
+            "b": "c2-2"
+          }
+        ]
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c0-2",
+        "v:x1",
+        "v:x2",
+        "v:x3",
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c1-2",
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c2-2"
+      ],
+      "edges": [
+        "c0-0~c0-1",
+        "c0-0~c0-2",
+        "c0-1~c0-2",
+        "c0-0~c1-0",
+        "c1-0~c1-1",
+        "c1-0~c1-2",
+        "c1-1~c1-2",
+        "c0-0~c2-2",
+        "c0-1~c2-0",
+        "c0-2~c2-1",
+        "c1-1~c2-1",
+        "c1-2~c2-2",
+        "c2-0~c2-1",
+        "c2-0~c2-2",
+        "c2-1~c2-2"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
+      ],
+      "targetIds": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c0-2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x1_0"
+      ],
+      "targetIds": [
+        "c0-0"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x2_0"
+      ],
+      "targetIds": [
+        "c0-1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x3_0"
+      ],
+      "targetIds": [
+        "c0-2"
+      ]
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
+      ],
+      "targetIds": [
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c1-2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x1_1"
+      ],
+      "targetIds": [
+        "c1-0"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x3_1"
+      ],
+      "targetIds": [
+        "c1-1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x1_1"
+      ],
+      "targetIds": [
+        "c1-2"
+      ]
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ],
+      "targetIds": [
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c2-2"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "x2_2"
+      ],
+      "targetIds": [
+        "c2-0"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x3_2"
+      ],
+      "targetIds": [
+        "c2-1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "!x1_2"
+      ],
+      "targetIds": [
+        "c2-2"
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Nodes x1_0, !x2_0, x3_0 of the clique graph all end in _0, so they become clause C1 (x1 | !x2 | x3): each node is the literal written before its _0.",
+      "sourceFocus": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
+      ],
+      "targetFocus": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c0-2",
+        "c0-0~c0-1",
+        "c0-0~c0-2",
+        "c0-1~c0-2"
+      ],
+      "source": {
+        "nodes": {
+          "!x2_0": {
+            "state": "ElementHighlight"
+          },
+          "x1_0": {
+            "state": "ElementHighlight"
+          },
+          "x3_0": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "ElementHighlight"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c0-2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 7,
+        "builtEdges": 3
+      },
+      "gadgets": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Nodes !x1_1, x3_1, x1_1 of the clique graph all end in _1, so they become clause C2 (!x1 | x3 | x1): each node is the literal written before its _1.",
+      "sourceFocus": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
+      ],
+      "targetFocus": [
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c1-2",
+        "c0-0~c1-0",
+        "c1-0~c1-1",
+        "c1-0~c1-2",
+        "c1-1~c1-2"
+      ],
+      "source": {
+        "nodes": {
+          "!x1_1": {
+            "state": "ElementHighlight"
+          },
+          "x1_1": {
+            "state": "ElementHighlight"
+          },
+          "x3_1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 11,
+        "builtEdges": 7
+      },
+      "gadgets": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Nodes x2_2, !x3_2, !x1_2 of the clique graph all end in _2, so they become clause C3 (x2 | !x3 | !x1): each node is the literal written before its _2.",
+      "sourceFocus": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ],
+      "targetFocus": [
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c2-2",
+        "c0-0~c2-2",
+        "c0-1~c2-0",
+        "c0-2~c2-1",
+        "c1-1~c2-1",
+        "c1-2~c2-2",
+        "c2-0~c2-1",
+        "c2-0~c2-2",
+        "c2-1~c2-2"
+      ],
+      "source": {
+        "nodes": {
+          "!x1_2": {
+            "state": "ElementHighlight"
+          },
+          "!x3_2": {
+            "state": "ElementHighlight"
+          },
+          "x2_2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 15,
+        "builtEdges": 15
+      },
+      "gadgets": [
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "The formula has 3 clauses. Sipser\u0027s construction joins two nodes exactly when they come from different clauses and do not contradict, so a clique with a node from every clause picks literals that can all be true at once. The clique graph asks for K = 3.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "groups": {},
+        "assignment": {},
+        "builtNodes": 15,
+        "builtEdges": 15
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Try",
+      "caption": "Try x1 = True.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "v:x1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "ElementHighlight"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Keep x1 = True: no clause has every literal false yet, so this branch is queued.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "v:x1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "ElementHighlight"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Try",
+      "caption": "Try x1 = False.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "v:x1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-2": {
+            "state": "False"
+          },
+          "c2-2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Keep x1 = False: no clause has every literal false yet, so this branch is queued.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "v:x1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-2": {
+            "state": "False"
+          },
+          "c2-2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Try",
+      "caption": "Try x2 = True after x1 = True.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "v:x2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Solution"
+          },
+          "c0-1": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "Solution"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true,
+          "v:x2": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Keep x2 = True: every clause now has a true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "v:x2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Solution"
+          },
+          "c0-1": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "Solution"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true,
+          "v:x2": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Every clause has a true literal under x1 = True, x2 = True, x3 = False.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Solution"
+          },
+          "c0-1": {
+            "state": "False"
+          },
+          "c0-2": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "Solution"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "Solution"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true,
+          "v:x2": true,
+          "v:x3": false
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "x1 = True, so x1 is true in clause C1: its node x1_0 is in the clique.",
+      "sourceFocus": [
+        "x1_0"
+      ],
+      "targetFocus": [
+        "c0-0"
+      ],
+      "source": {
+        "nodes": {
+          "x1_0": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "ElementHighlight"
+          },
+          "c0-1": {
+            "state": "False"
+          },
+          "c0-2": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "Solution"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "Solution"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true,
+          "v:x2": true,
+          "v:x3": false
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "x1 = True, so x1 is true in clause C2: its node x1_1 is in the clique.",
+      "sourceFocus": [
+        "x1_1"
+      ],
+      "targetFocus": [
+        "c1-2"
+      ],
+      "source": {
+        "nodes": {
+          "x1_0": {
+            "state": "Solution"
+          },
+          "x1_1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "x1_0-x1_1": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Solution"
+          },
+          "c0-1": {
+            "state": "False"
+          },
+          "c0-2": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "Solution"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true,
+          "v:x2": true,
+          "v:x3": false
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "x2 = True, so x2 is true in clause C3: its node x2_2 is in the clique.",
+      "sourceFocus": [
+        "x2_2"
+      ],
+      "targetFocus": [
+        "c2-0"
+      ],
+      "source": {
+        "nodes": {
+          "x1_0": {
+            "state": "Solution"
+          },
+          "x1_1": {
+            "state": "Solution"
+          },
+          "x2_2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "x1_0-x1_1": {
+            "state": "Solution"
+          },
+          "x1_0-x2_2": {
+            "state": "Solution"
+          },
+          "x1_1-x2_2": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Solution"
+          },
+          "c0-1": {
+            "state": "False"
+          },
+          "c0-2": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "Solution"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "Solution"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true,
+          "v:x2": true,
+          "v:x3": false
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{x1_0,x1_1,x2_2} is a valid Clique answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "x1_0": {
+            "state": "Solution"
+          },
+          "x1_1": {
+            "state": "Solution"
+          },
+          "x2_2": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "x1_0-x1_1": {
+            "state": "Solution"
+          },
+          "x1_0-x2_2": {
+            "state": "Solution"
+          },
+          "x1_1-x2_2": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Solution"
+          },
+          "c0-1": {
+            "state": "False"
+          },
+          "c0-2": {
+            "state": "False"
+          },
+          "c1-0": {
+            "state": "False"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c1-2": {
+            "state": "Solution"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "Solution"
+          },
+          "c2-2": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:x1": true,
+          "v:x2": true,
+          "v:x3": false
+        }
+      }
+    }
+  ]
+}

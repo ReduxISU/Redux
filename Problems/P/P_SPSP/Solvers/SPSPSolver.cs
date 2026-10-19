@@ -1,12 +1,15 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
+using API.Problems.P.P_SSSP.Solvers;
 using API.Interfaces.JSON_Objects;
 using SPADE;
 using System;
 
 namespace API.Problems.P.P_SPSP.Solvers;
 
-class SPSPSolver : ISolver<SPSP> {
+// Incremental: each step settles one more node for good, until the target is settled.
+class SPSPSolver : ISolver<SPSP, Distances>, IIncrementalSolver {
     // ----- Fields ----- //
     public string solverName { get; } = "Dijkstra's Algorithm";
     public string solverDefinition { get; } = "";
@@ -24,11 +27,14 @@ class SPSPSolver : ISolver<SPSP> {
     public MathematicalFunction timeComplexity { get; } = new("(V + E) log V", "");
     PriorityQueue<string, int>? pq;
 
-    public string solve(SPSP problem) {
+    public string solve(SPSP problem) => Solve(problem, StepRecorder<Distances>.Off);
+
+    public string Solve(SPSP problem, StepRecorder<Distances> rec) {
         UtilCollectionGraph graph = problem.graph;
         List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
 
         if (nodes.Count == 0) {
+            rec.Done(new Distances([], [], []), false, "The graph has no nodes, so there is no path.");
             return "{}"; // No nodes, return empty path
         }
 
@@ -36,6 +42,7 @@ class SPSPSolver : ISolver<SPSP> {
         string targetNode = problem.targetNode;
 
         if (!nodes.Contains(sourceNode) || !nodes.Contains(targetNode)) {
+            rec.Done(new Distances([], [], []), false, "The source or the target is not a node of the graph.");
             return "{}";
         }
 
@@ -45,13 +52,17 @@ class SPSPSolver : ISolver<SPSP> {
         var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
         pq = new PriorityQueue<string, int>();
+        Distances Partial() => Dijkstra.Partial(dist, prev, visited);
 
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
+        rec.Try(Partial, () => $"Start at {sourceNode} with distance 0. Every other node starts at ∞.", LayeredFrames.NodeId(sourceNode));
 
         while (pq.Count > 0) {
-            if (timerHasExpired)
+            if (timerHasExpired) {
+                rec.Done(new Distances([], [], []), false, "The solver ran out of time.");
                 return "{}";
+            }
 
             string current = pq.Dequeue();
 
@@ -59,31 +70,40 @@ class SPSPSolver : ISolver<SPSP> {
                 continue; // Skip if we've already visited this node
             visited.Add(current);
 
-            if (current == targetNode)
+            if (current == targetNode) {
+                rec.Accept(Partial, () => $"Settle {current} at distance {Dijkstra.Show(dist[current])}. It is the target, so the search stops.",
+                    LayeredFrames.NodeId(current));
                 break; // Stop if we've reached the target node
+            }
 
-            if (!adjacency.TryGetValue(current, out var neighbors))
-                continue; // No neighbors, so skip
-
-            foreach (var (next, weight) in neighbors) {
+            var relaxed = new List<string>();
+            var shorter = new List<string>();
+            foreach (var (next, weight) in adjacency.TryGetValue(current, out var neighbors) ? neighbors : []) {
                 if (visited.Contains(next))
                     continue; // Skip visited neighbors
 
                 if (dist[current] == int.MaxValue)
                     continue; // Skip if current node is unreachable
 
+                relaxed.Add(LayeredFrames.EdgeId(problem.isDirected, current, next));
                 int candidate = dist[current] + weight;
                 if (candidate < dist[next]) {
+                    shorter.Add($"{next}: {Dijkstra.Show(dist[next])} → {candidate}");
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
                 }
             }
+            rec.Accept(Partial, () => Dijkstra.SettleCaption(current, dist[current], shorter),
+                () => relaxed.Distinct().Prepend(LayeredFrames.NodeId(current)).ToArray());
         }
 
-        if (dist[targetNode] == int.MaxValue)
+        if (dist[targetNode] == int.MaxValue) {
+            rec.Done(Partial(), false, $"{targetNode} can't be reached from {sourceNode}, so there is no path.");
             return "{}"; // No path found
+        }
         List<string> path = ReconstructPath(prev, sourceNode, targetNode);
+        rec.Done(Partial(), true, $"The shortest path is {string.Join(" → ", path)}, with total {dist[targetNode]}.");
         return NodeListToCertificate(path);
     }
 

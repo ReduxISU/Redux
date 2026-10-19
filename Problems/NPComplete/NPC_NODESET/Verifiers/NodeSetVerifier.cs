@@ -96,6 +96,11 @@ class NodeSetVerifier : IVerifier<NODESET> {
         if (cert.Count() > problem.K) {
             return false;
         }
+        // Only the graph's own nodes can be removed (#784).
+        var nodes = graph.Nodes.ToList().ToHashSet();
+        if (!cert.ToList().All(nodes.Contains)) {
+            return false;
+        }
         graph = graph.removeEdges(edgesToRemove);
 
         return isACyclical(graph);

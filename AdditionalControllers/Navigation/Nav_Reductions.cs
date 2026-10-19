@@ -275,8 +275,7 @@ public static class ReductionGraphData {
             // being advertised as a navigable graph edge, instead of a hardcoded skip-list
             // here. Checked via the attribute (pure reflection over the type), not by
             // constructing an instance: a class excluded for this reason can have a default
-            // constructor that itself isn't safely callable (SipserReduceToSAT3's chains
-            // through `new CLIQUE()` and immediately calls reduce() on it).
+            // constructor that isn't safely callable (SipserReduceToSAT3's threw until #767).
             if (type.GetCustomAttributes(typeof(NotAGeneralReductionAttribute), inherit: false).Length > 0)
                 continue;
 

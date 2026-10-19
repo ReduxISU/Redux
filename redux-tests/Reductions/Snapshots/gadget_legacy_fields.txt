@@ -25,6 +25,47 @@ ElementHighlight | f | f
 ElementHighlight | g | g
 ElementHighlight | h | h
 ElementHighlight | i | i
+ElementHighlight | b | b-d,b-e,b-f,b-g,b-h,b-i
+ElementHighlight | c | c-d,c-e,c-f,c-g,c-h,c-i
+ElementHighlight | d | d-f,d-g,d-h,d-i
+ElementHighlight | e | e-f,e-g,e-h,e-i
+ElementHighlight | f | f-h,f-i
+ElementHighlight | g | g-h,g-i
+ElementHighlight |  | 
+# KarpDirectedHamiltonianToUndirectedHamiltonian
+ElementHighlight | 1 | 11,12,13,11-12,12-13
+ElementHighlight | 2 | 21,22,23,21-22,22-23
+ElementHighlight | 3 | 31,32,33,31-32,32-33
+ElementHighlight | 4 | 41,42,43,41-42,42-43
+ElementHighlight | 5 | 51,52,53,51-52,52-53
+ElementHighlight | 2>1 | 11-23
+ElementHighlight | 1>3 | 13-31
+ElementHighlight | 2>3 | 23-31
+ElementHighlight | 3>5 | 33-51
+ElementHighlight | 4>2 | 21-43
+ElementHighlight | 5>4 | 41-53
+# KarpGraphColorToExactCover
+ClauseHighlight | a | e:a,e:a_a_b_1,e:a_a_b_2,e:a_a_b_3,e:a_a_c_1,e:a_a_c_2,e:a_a_c_3,e:a_d_a_1,e:a_d_a_2,e:a_d_a_3,e:a_a_e_1,e:a_a_e_2,e:a_a_e_3,e:a_a_f_1,e:a_a_f_2,e:a_a_f_3,e:a_g_a_1,e:a_g_a_2,e:a_g_a_3,e:a_a_h_1,e:a_a_h_2,e:a_a_h_3,e:a_i_a_1,e:a_i_a_2,e:a_i_a_3,S1,S2,S3
+ClauseHighlight | b | e:b,e:b_a_b_1,e:b_a_b_2,e:b_a_b_3,e:b_b_c_1,e:b_b_c_2,e:b_b_c_3,S4,S5,S6
+ClauseHighlight | c | e:c,e:c_b_c_1,e:c_b_c_2,e:c_b_c_3,e:c_a_c_1,e:c_a_c_2,e:c_a_c_3,S7,S8,S9
+ClauseHighlight | d | e:d,e:d_d_a_1,e:d_d_a_2,e:d_d_a_3,e:d_d_e_1,e:d_d_e_2,e:d_d_e_3,S10,S11,S12
+ClauseHighlight | e | e:e,e:e_d_e_1,e:e_d_e_2,e:e_d_e_3,e:e_a_e_1,e:e_a_e_2,e:e_a_e_3,S13,S14,S15
+ClauseHighlight | f | e:f,e:f_a_f_1,e:f_a_f_2,e:f_a_f_3,e:f_f_g_1,e:f_f_g_2,e:f_f_g_3,S16,S17,S18
+ClauseHighlight | g | e:g,e:g_f_g_1,e:g_f_g_2,e:g_f_g_3,e:g_g_a_1,e:g_g_a_2,e:g_g_a_3,S19,S20,S21
+ClauseHighlight | h | e:h,e:h_a_h_1,e:h_a_h_2,e:h_a_h_3,e:h_h_i_1,e:h_h_i_2,e:h_h_i_3,S22,S23,S24
+ClauseHighlight | i | e:i,e:i_h_i_1,e:i_h_i_2,e:i_h_i_3,e:i_i_a_1,e:i_i_a_2,e:i_i_a_3,S25,S26,S27
+ClauseHighlight | a-b | e:a_b,S28,S29,S30,S31,S32,S33
+ClauseHighlight | b-c | e:b_c,S34,S35,S36,S37,S38,S39
+ClauseHighlight | a-c | e:a_c,S40,S41,S42,S43,S44,S45
+ClauseHighlight | a-d | e:d_a,S46,S47,S48,S49,S50,S51
+ClauseHighlight | d-e | e:d_e,S52,S53,S54,S55,S56,S57
+ClauseHighlight | a-e | e:a_e,S58,S59,S60,S61,S62,S63
+ClauseHighlight | a-f | e:a_f,S64,S65,S66,S67,S68,S69
+ClauseHighlight | f-g | e:f_g,S70,S71,S72,S73,S74,S75
+ClauseHighlight | a-g | e:g_a,S76,S77,S78,S79,S80,S81
+ClauseHighlight | a-h | e:a_h,S82,S83,S84,S85,S86,S87
+ClauseHighlight | h-i | e:h_i,S88,S89,S90,S91,S92,S93
+ClauseHighlight | a-i | e:i_a,S94,S95,S96,S97,S98,S99
 # KarpIntProgStandard
 ElementHighlight | c0-0,c1-0,c1-2,c2-2 | c0,r0c0
 ElementHighlight | c0-1,c2-0 | c1,r0c1
@@ -53,6 +94,55 @@ ElementHighlight | c0,c0-0,c0-1,c0-2 | C0N0,C0N1,C0N2,C0N3,C0N4,C0N5
 ElementHighlight | c1,c1-0,c1-1,c1-2 | C1N0,C1N1,C1N2,C1N3,C1N4,C1N5
 ElementHighlight | c2,c2-0,c2-1,c2-2 | C2N0,C2N1,C2N2,C2N3,C2N4,C2N5
 ElementHighlight |  | 
+# KarpReduceSAT
+ClauseHighlight | a | c0,c0-0,c0-1,c0-2,c1,c1-0,c1-1,c2,c2-0,c2-1,c3,c3-0,c3-1
+ElementHighlight | a | c0-0,c1-0,c2-0,c36-0,c42-0,c45-1,c51-0,c54-0,c60-1,c63-0,c69-1
+ElementHighlight | a | c0-1,c1-1,c3-0,c37-0,c43-0,c46-1,c52-0,c55-0,c61-1,c64-0,c70-1
+ElementHighlight | a | c0-2,c2-1,c3-1,c38-0,c44-0,c47-1,c53-0,c56-0,c62-1,c65-0,c71-1
+ClauseHighlight | b | c4,c4-0,c4-1,c4-2,c5,c5-0,c5-1,c6,c6-0,c6-1,c7,c7-0,c7-1
+ElementHighlight | b | c4-0,c5-0,c6-0,c36-1,c39-0
+ElementHighlight | b | c4-1,c5-1,c7-0,c37-1,c40-0
+ElementHighlight | b | c4-2,c6-1,c7-1,c38-1,c41-0
+ClauseHighlight | c | c8,c8-0,c8-1,c8-2,c9,c9-0,c9-1,c10,c10-0,c10-1,c11,c11-0,c11-1
+ElementHighlight | c | c8-0,c9-0,c10-0,c39-1,c42-1
+ElementHighlight | c | c8-1,c9-1,c11-0,c40-1,c43-1
+ElementHighlight | c | c8-2,c10-1,c11-1,c41-1,c44-1
+ClauseHighlight | d | c12,c12-0,c12-1,c12-2,c13,c13-0,c13-1,c14,c14-0,c14-1,c15,c15-0,c15-1
+ElementHighlight | d | c12-0,c13-0,c14-0,c45-0,c48-0
+ElementHighlight | d | c12-1,c13-1,c15-0,c46-0,c49-0
+ElementHighlight | d | c12-2,c14-1,c15-1,c47-0,c50-0
+ClauseHighlight | e | c16,c16-0,c16-1,c16-2,c17,c17-0,c17-1,c18,c18-0,c18-1,c19,c19-0,c19-1
+ElementHighlight | e | c16-0,c17-0,c18-0,c48-1,c51-1
+ElementHighlight | e | c16-1,c17-1,c19-0,c49-1,c52-1
+ElementHighlight | e | c16-2,c18-1,c19-1,c50-1,c53-1
+ClauseHighlight | f | c20,c20-0,c20-1,c20-2,c21,c21-0,c21-1,c22,c22-0,c22-1,c23,c23-0,c23-1
+ElementHighlight | f | c20-0,c21-0,c22-0,c54-1,c57-0
+ElementHighlight | f | c20-1,c21-1,c23-0,c55-1,c58-0
+ElementHighlight | f | c20-2,c22-1,c23-1,c56-1,c59-0
+ClauseHighlight | g | c24,c24-0,c24-1,c24-2,c25,c25-0,c25-1,c26,c26-0,c26-1,c27,c27-0,c27-1
+ElementHighlight | g | c24-0,c25-0,c26-0,c57-1,c60-0
+ElementHighlight | g | c24-1,c25-1,c27-0,c58-1,c61-0
+ElementHighlight | g | c24-2,c26-1,c27-1,c59-1,c62-0
+ClauseHighlight | h | c28,c28-0,c28-1,c28-2,c29,c29-0,c29-1,c30,c30-0,c30-1,c31,c31-0,c31-1
+ElementHighlight | h | c28-0,c29-0,c30-0,c63-1,c66-0
+ElementHighlight | h | c28-1,c29-1,c31-0,c64-1,c67-0
+ElementHighlight | h | c28-2,c30-1,c31-1,c65-1,c68-0
+ClauseHighlight | i | c32,c32-0,c32-1,c32-2,c33,c33-0,c33-1,c34,c34-0,c34-1,c35,c35-0,c35-1
+ElementHighlight | i | c32-0,c33-0,c34-0,c66-1,c69-0
+ElementHighlight | i | c32-1,c33-1,c35-0,c67-1,c70-0
+ElementHighlight | i | c32-2,c34-1,c35-1,c68-1,c71-0
+ClauseHighlight | a-b | c36,c36-0,c36-1,c37,c37-0,c37-1,c38,c38-0,c38-1
+ClauseHighlight | b-c | c39,c39-0,c39-1,c40,c40-0,c40-1,c41,c41-0,c41-1
+ClauseHighlight | a-c | c42,c42-0,c42-1,c43,c43-0,c43-1,c44,c44-0,c44-1
+ClauseHighlight | a-d | c45,c45-0,c45-1,c46,c46-0,c46-1,c47,c47-0,c47-1
+ClauseHighlight | d-e | c48,c48-0,c48-1,c49,c49-0,c49-1,c50,c50-0,c50-1
+ClauseHighlight | a-e | c51,c51-0,c51-1,c52,c52-0,c52-1,c53,c53-0,c53-1
+ClauseHighlight | a-f | c54,c54-0,c54-1,c55,c55-0,c55-1,c56,c56-0,c56-1
+ClauseHighlight | f-g | c57,c57-0,c57-1,c58,c58-0,c58-1,c59,c59-0,c59-1
+ClauseHighlight | a-g | c60,c60-0,c60-1,c61,c61-0,c61-1,c62,c62-0,c62-1
+ClauseHighlight | a-h | c63,c63-0,c63-1,c64,c64-0,c64-1,c65,c65-0,c65-1
+ClauseHighlight | h-i | c66,c66-0,c66-1,c67,c67-0,c67-1,c68,c68-0,c68-1
+ClauseHighlight | a-i | c69,c69-0,c69-1,c70,c70-0,c70-1,c71,c71-0,c71-1
 # KarpSATToSAT3
 ClauseHighlight | c0 | c0,c3,c4
 ElementHighlight | c0-0 | c0-0
@@ -80,12 +170,36 @@ ElementHighlight | b | b
 ElementHighlight | c | c
 ElementHighlight | d | d
 ElementHighlight | e | e
+ElementHighlight | a-b | a>b,b>a
+ElementHighlight | a-c | a>c,c>a
+ElementHighlight | a-e | a>e,e>a
+ElementHighlight | b-e | b>e,e>b
+ElementHighlight | c-d | c>d,d>c
+ElementHighlight |  | 
+# KarpVertexCoverToSetCover
+ElementHighlight | a | S1
+ElementHighlight | a-b | e:a_b
+ElementHighlight | a-c | e:a_c
+ElementHighlight | a-e | e:a_e
+ElementHighlight | b | S2
+ElementHighlight | b-e | e:b_e
+ElementHighlight | c | S3
+ElementHighlight | c-d | e:c_d
+ElementHighlight | d | S4
+ElementHighlight | e | S5
+ElementHighlight |  | 
 # LawlerKarp
 ElementHighlight | a | a0,a1
 ElementHighlight | b | b0,b1
 ElementHighlight | c | c0,c1
 ElementHighlight | d | d0,d1
 ElementHighlight | e | e0,e1
+ElementHighlight | a-b | a1>b0,b1>a0
+ElementHighlight | a-c | a1>c0,c1>a0
+ElementHighlight | a-e | a1>e0,e1>a0
+ElementHighlight | b-e | b1>e0,e1>b0
+ElementHighlight | c-d | c1>d0,d1>c0
+ElementHighlight |  | 
 # reduceToCLIQUE
 ElementHighlight | a | a
 ElementHighlight | b | b
@@ -94,6 +208,13 @@ ElementHighlight | d | d
 ElementHighlight | e | e
 ElementHighlight | f | f
 ElementHighlight | g | g
+ElementHighlight | a | a-f
+ElementHighlight | b | b-d,b-e,b-f
+ElementHighlight | c | c-d,c-e,c-f,c-g
+ElementHighlight | d | d-g
+ElementHighlight | e | e-g
+ElementHighlight | f | f-g
+ElementHighlight |  | 
 # SipserReduceToCliqueStandard
 ElementHighlight | c0-0 | x1_0
 ElementHighlight | c0-1 | !x2_0
@@ -107,6 +228,19 @@ ElementHighlight | c2-0 | x2_2
 ElementHighlight | c2-1 | !x3_2
 ElementHighlight | c2-2 | !x1_2
 ClauseHighlight | c2 | x2_2,!x3_2,!x1_2
+# SipserReduceToSAT3
+ClauseHighlight | x1_0,!x2_0,x3_0 | c0,c0-0,c0-1,c0-2
+ElementHighlight | x1_0 | c0-0
+ElementHighlight | !x2_0 | c0-1
+ElementHighlight | x3_0 | c0-2
+ClauseHighlight | !x1_1,x3_1,x1_1 | c1,c1-0,c1-1,c1-2
+ElementHighlight | !x1_1 | c1-0
+ElementHighlight | x3_1 | c1-1
+ElementHighlight | x1_1 | c1-2
+ClauseHighlight | x2_2,!x3_2,!x1_2 | c2,c2-0,c2-1,c2-2
+ElementHighlight | x2_2 | c2-0
+ElementHighlight | !x3_2 | c2-1
+ElementHighlight | !x1_2 | c2-2
 # sipserReductionVertexCover
 ElementHighlight | 1 | 1
 ElementHighlight | 2 | 2
@@ -114,3 +248,7 @@ ElementHighlight | 3 | 3
 ElementHighlight | 4 | 4
 ElementHighlight | 5 | 5
 ElementHighlight | 6 | 6
+ElementHighlight | 1 | 1-3,1-5
+ElementHighlight | 2 | 2-6
+ElementHighlight | 5 | 5-6
+ElementHighlight |  | 

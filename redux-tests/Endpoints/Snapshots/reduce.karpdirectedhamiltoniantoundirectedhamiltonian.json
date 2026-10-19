@@ -1,0 +1,434 @@
+{
+  "reductionName": "Karp\u0027s Hamiltonian Reduction",
+  "reductionDefinition": "TODO",
+  "source": "TODO",
+  "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/ReduceTo/NPC_HAMILTONIAN/KarpDirectedHamiltonianToUndirectedHamiltonian.cs",
+  "contributors": [
+    "Andrija Sevaljevic"
+  ],
+  "visualization": {
+    "visualizationName": "Hamiltonian Cycle Visualization",
+    "visualizationDefinition": "This is a default visualization for Hamiltonian Cycle",
+    "visualizationType": "GraphD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Visualizations/HamiltonianDefaultVisualization.cs",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Hamiltonian Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Hamiltonian Cycle problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Solvers/HamiltonianBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "n! * n * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Factorial"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1"
+      ],
+      "reductionToIds": [
+        "11",
+        "12",
+        "13",
+        "11-12",
+        "12-13"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1"
+      ],
+      "targetIds": [
+        "11",
+        "12",
+        "13",
+        "11-12",
+        "12-13"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2"
+      ],
+      "reductionToIds": [
+        "21",
+        "22",
+        "23",
+        "21-22",
+        "22-23"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2"
+      ],
+      "targetIds": [
+        "21",
+        "22",
+        "23",
+        "21-22",
+        "22-23"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3"
+      ],
+      "reductionToIds": [
+        "31",
+        "32",
+        "33",
+        "31-32",
+        "32-33"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3"
+      ],
+      "targetIds": [
+        "31",
+        "32",
+        "33",
+        "31-32",
+        "32-33"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "4"
+      ],
+      "reductionToIds": [
+        "41",
+        "42",
+        "43",
+        "41-42",
+        "42-43"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "4"
+      ],
+      "targetIds": [
+        "41",
+        "42",
+        "43",
+        "41-42",
+        "42-43"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "5"
+      ],
+      "reductionToIds": [
+        "51",
+        "52",
+        "53",
+        "51-52",
+        "52-53"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "5"
+      ],
+      "targetIds": [
+        "51",
+        "52",
+        "53",
+        "51-52",
+        "52-53"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2\u003E1"
+      ],
+      "reductionToIds": [
+        "11-23"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2\u003E1"
+      ],
+      "targetIds": [
+        "11-23"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "1\u003E3"
+      ],
+      "reductionToIds": [
+        "13-31"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1\u003E3"
+      ],
+      "targetIds": [
+        "13-31"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "2\u003E3"
+      ],
+      "reductionToIds": [
+        "23-31"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2\u003E3"
+      ],
+      "targetIds": [
+        "23-31"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3\u003E5"
+      ],
+      "reductionToIds": [
+        "33-51"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3\u003E5"
+      ],
+      "targetIds": [
+        "33-51"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "4\u003E2"
+      ],
+      "reductionToIds": [
+        "21-43"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "4\u003E2"
+      ],
+      "targetIds": [
+        "21-43"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "5\u003E4"
+      ],
+      "reductionToIds": [
+        "41-53"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "5\u003E4"
+      ],
+      "targetIds": [
+        "41-53"
+      ]
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Directed Hamiltonian Cycle",
+    "formalDefinition": "Directed Hamiltonian Cycle = {\u003CG\u003E | G is a directed graph with a cycle that follows the edge directions and visits every node exactly once}",
+    "problemDefinition": "Directed Hamiltonian Cycle is the problem of determining whether a directed graph has a Hamiltonian cycle: a cycle that follows the edge directions, visits every vertex exactly once, and returns to the vertex it started from.",
+    "inputDescription": "G, a directed graph",
+    "outputDescription": "True or False, whether G has a Hamiltonian cycle",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/DIRECTEDHAMILTONIAN_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "({1,2,3,4,5},{(2,1),(1,3),(2,3),(3,5),(4,2),(5,4)})",
+    "instance": "({1,2,3,4,5},{(2,1),(1,3),(2,3),(3,5),(4,2),(5,4)})",
+    "instanceFormat": "Format: {(N,E) | N is set, E subset N cross N} Example: ({1,2,3,4,5},{(2,1),(1,3),(2,3),(3,5),(4,2),(5,4)})",
+    "certificateFormat": "Format: {q0,...,qn,q0} | Hamiltonian cycle: every node exactly once, each (qi,qi\u002B1) in E, ends by repeating q0 Example: {2,1,3,5,4,2}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Directed Hamiltonian Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Directed Hamiltonian Cycle problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/Solvers/DirectedHamiltonianBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "n! * n * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Factorial"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Directed Hamiltonian Cycle Verifier",
+      "verifierDefinition": "This is a verifier for Directed Hamiltonian Cycle",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/Verifiers/DirectedHamiltonianVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Directed Hamiltonian Cycle Visualization",
+      "visualizationDefinition": "This is a default visualization for Directed Hamiltonian Cycle",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/Visualizations/DirectedHamiltonianDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Directed Hamiltonian Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Directed Hamiltonian Cycle problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/Solvers/DirectedHamiltonianBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "n! * n * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Factorial"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Hamiltonian Cycle",
+    "formalDefinition": "Hamiltonian Cycle = {\u003CG\u003E | G is an undirected graph with a cycle that visits every node exactly once}",
+    "problemDefinition": "Hamiltonian Cycle is the problem of determining whether an undirected graph has a Hamiltonian cycle: a cycle that visits every vertex exactly once and returns to the vertex it started from.",
+    "inputDescription": "G, a graph",
+    "outputDescription": "True or False, whether G has a Hamiltonian cycle",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/HAMILTONIAN_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}})",
+    "instance": "({11,12,13,21,22,23,31,32,33,41,42,43,51,52,53},{{11,12},{12,13},{21,22},{22,23},{31,32},{32,33},{41,42},{42,43},{51,52},{52,53},{23,11},{13,31},{23,31},{33,51},{43,21},{53,41}})",
+    "instanceFormat": "Format: {(N,E) | N is set, E subset N unorderedcross N} Example: ({1,2,3,4,5},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5}})",
+    "certificateFormat": "Format: {q0,...,qn} | Hamiltonian cycle: every node exactly once, each (qi,qi\u002B1) and (qn,q0) in E Example: {1,2,4,5,3}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Hamiltonian Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Hamiltonian Cycle problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Solvers/HamiltonianBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "n! * n * m",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Factorial"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Hamiltonian Cycle Verifier",
+      "verifierDefinition": "This is a verifier for Hamiltonian Cycle",
+      "source": " ",
+      "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Verifiers/HamiltonianVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Hamiltonian Cycle Visualization",
+      "visualizationDefinition": "This is a default visualization for Hamiltonian Cycle",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Visualizations/HamiltonianDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Hamiltonian Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Hamiltonian Cycle problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Solvers/HamiltonianBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "n! * n * m",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Factorial"
+      }
+    }
+  },
+  "cost": "Linear",
+  "reductionType": "LocalReplacement",
+  "complexityBucket": "Linear"
+}

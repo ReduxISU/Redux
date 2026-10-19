@@ -1,8 +1,11 @@
 ﻿using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Solvers;
 
-class KahnsAlgorithm : ISolver<TOPOLOGICALSORT> {
+// Incremental: each step places one more node, and the order placed so far is never undone.
+class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "Kahn's Algorithm";
     public string solverDefinition { get; } = "Kahn's algorithm is a BFS-based approach to topological sorting. It repeatedly removes vertices with zero in-degree from the graph, appending them to the output ordering. If all vertices are removed, the ordering is valid; otherwise, the graph contains a cycle and no topological sort exists.";
@@ -24,7 +27,9 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT> {
     public KahnsAlgorithm() { }
 
     // --- Methods ---
-    public string solve(TOPOLOGICALSORT problem) {
+    public string solve(TOPOLOGICALSORT problem) => Solve(problem, StepRecorder<Tour>.Off);
+
+    public string Solve(TOPOLOGICALSORT problem, StepRecorder<Tour> rec) {
         // Build in-degree map
         Dictionary<string, int> inDegree = new Dictionary<string, int>();
         foreach (var node in problem.nodes)
@@ -43,25 +48,44 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT> {
         }
 
         List<string> order = new List<string>();
+        rec.Try(() => new Tour([]),
+            () => queue.Count > 0
+                ? $"Ready to place (no incoming edges): {LayeredFrames.List(queue.ToList())}."
+                : "No node is free of incoming edges, so the graph has a cycle.");
 
         while (queue.Count > 0) {
             string current = queue.Dequeue();
             order.Add(current);
 
             // Reduce in-degree of neighbors
+            var freed = new List<string>();
             foreach (var edge in problem.edges) {
                 if (edge.Key == current) {
                     inDegree[edge.Value]--;
-                    if (inDegree[edge.Value] == 0)
+                    if (inDegree[edge.Value] == 0) {
                         queue.Enqueue(edge.Value);
+                        freed.Add(edge.Value);
+                    }
                 }
             }
+            rec.Accept(() => new Tour(order),
+                () => $"Place {current} at position {order.Count}."
+                    + (freed.Count > 0 ? $" That frees {LayeredFrames.List(freed)}." : "")
+                    + (queue.Count > 0 ? $" Ready: {LayeredFrames.List(queue.ToList())}." : ""),
+                LayeredFrames.NodeId(current));
         }
 
         // If not all nodes processed, graph has a cycle
-        if (order.Count != problem.nodes.Count)
+        if (order.Count != problem.nodes.Count) {
+            var stuck = problem.nodes.Where(n => !order.Contains(n)).ToList();
+            rec.Reject(() => new Tour(order),
+                () => $"{LayeredFrames.List(stuck)} never {(stuck.Count > 1 ? "lose their" : "loses its")} last incoming edge, because of a cycle.",
+                () => stuck.Select(LayeredFrames.NodeId).ToArray());
+            rec.Done(new Tour([]), false, "The graph has a cycle, so no topological order exists.");
             return "()";
+        }
 
+        rec.Done(new Tour(order), true, $"Every node is placed and every edge points forward: {string.Join(", ", order)}.");
         return "(" + string.Join(",", order) + ")";
     }
 }

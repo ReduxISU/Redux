@@ -2,13 +2,13 @@ using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Verifiers;
-using API.DummyClasses;
+using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Visualizations;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
 class STRONGLYCONNECTEDCOMPONENTS
-    : IGraphProblem<KosarajuSolver, SCCVerifier, DummyVisualization, UtilCollectionGraph> {
+    : IGraphProblem<KosarajuSolver, SCCVerifier, SCCVisualization, UtilCollectionGraph> {
     public string problemName { get; } = "Strongly Connected Components";
 
     public string problemLink { get; } =
@@ -62,7 +62,7 @@ class STRONGLYCONNECTEDCOMPONENTS
 
     public SCCVerifier defaultVerifier { get; } = new SCCVerifier();
 
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public SCCVisualization defaultVisualization { get; } = new SCCVisualization();
 
     public UtilCollectionGraph graph { get; set; }
 

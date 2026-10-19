@@ -1,0 +1,2089 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "KarpGraphColorToExactCover",
+  "reductionName": "Karp\u0027s Exact Cover Reduction",
+  "solver": "Knuth\u0027s Algorithm X",
+  "source": {
+    "problem": "Graph Coloring",
+    "instance": "(({a,b,c},{{a,b},{b,c}}),2)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-b",
+            "a": "a",
+            "b": "b"
+          },
+          {
+            "id": "b-c",
+            "a": "b",
+            "b": "c"
+          }
+        ],
+        "shape": "groups",
+        "rule": "coloring",
+        "k": 2
+      }
+    }
+  },
+  "target": {
+    "problem": "Exact Cover",
+    "instance": "({a,b,c,a_b,b_c,a_a_b_1,a_a_b_2,b_a_b_1,b_a_b_2,b_b_c_1,b_b_c_2,c_b_c_1,c_b_c_2},{{a,a_a_b_1},{a,a_a_b_2},{b,b_a_b_1,b_b_c_1},{b,b_a_b_2,b_b_c_2},{c,c_b_c_1},{c,c_b_c_2},{a_b,a_a_b_2,b_a_b_1},{a_b,a_a_b_1,b_a_b_2},{b_c,b_b_c_2,c_b_c_1},{b_c,b_b_c_1,c_b_c_2}})",
+    "picture": {
+      "type": "BipartiteGraph",
+      "payload": {
+        "kind": "bipartiteGraph",
+        "layout": "columns",
+        "pickSide": "sets",
+        "rule": "exactlyOnce",
+        "elements": [
+          {
+            "id": "e:a",
+            "label": "a"
+          },
+          {
+            "id": "e:b",
+            "label": "b"
+          },
+          {
+            "id": "e:c",
+            "label": "c"
+          },
+          {
+            "id": "e:a_b",
+            "label": "a_b"
+          },
+          {
+            "id": "e:b_c",
+            "label": "b_c"
+          },
+          {
+            "id": "e:a_a_b_1",
+            "label": "a_a_b_1"
+          },
+          {
+            "id": "e:a_a_b_2",
+            "label": "a_a_b_2"
+          },
+          {
+            "id": "e:b_a_b_1",
+            "label": "b_a_b_1"
+          },
+          {
+            "id": "e:b_a_b_2",
+            "label": "b_a_b_2"
+          },
+          {
+            "id": "e:b_b_c_1",
+            "label": "b_b_c_1"
+          },
+          {
+            "id": "e:b_b_c_2",
+            "label": "b_b_c_2"
+          },
+          {
+            "id": "e:c_b_c_1",
+            "label": "c_b_c_1"
+          },
+          {
+            "id": "e:c_b_c_2",
+            "label": "c_b_c_2"
+          }
+        ],
+        "sets": [
+          {
+            "id": "S1",
+            "label": "S1",
+            "members": [
+              "e:a",
+              "e:a_a_b_1"
+            ]
+          },
+          {
+            "id": "S2",
+            "label": "S2",
+            "members": [
+              "e:a",
+              "e:a_a_b_2"
+            ]
+          },
+          {
+            "id": "S3",
+            "label": "S3",
+            "members": [
+              "e:b",
+              "e:b_a_b_1",
+              "e:b_b_c_1"
+            ]
+          },
+          {
+            "id": "S4",
+            "label": "S4",
+            "members": [
+              "e:b",
+              "e:b_a_b_2",
+              "e:b_b_c_2"
+            ]
+          },
+          {
+            "id": "S5",
+            "label": "S5",
+            "members": [
+              "e:c",
+              "e:c_b_c_1"
+            ]
+          },
+          {
+            "id": "S6",
+            "label": "S6",
+            "members": [
+              "e:c",
+              "e:c_b_c_2"
+            ]
+          },
+          {
+            "id": "S7",
+            "label": "S7",
+            "members": [
+              "e:a_b",
+              "e:a_a_b_2",
+              "e:b_a_b_1"
+            ]
+          },
+          {
+            "id": "S8",
+            "label": "S8",
+            "members": [
+              "e:a_b",
+              "e:a_a_b_1",
+              "e:b_a_b_2"
+            ]
+          },
+          {
+            "id": "S9",
+            "label": "S9",
+            "members": [
+              "e:b_c",
+              "e:b_b_c_2",
+              "e:c_b_c_1"
+            ]
+          },
+          {
+            "id": "S10",
+            "label": "S10",
+            "members": [
+              "e:b_c",
+              "e:b_b_c_1",
+              "e:c_b_c_2"
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "id": "e:a~S1",
+            "a": "e:a",
+            "b": "S1"
+          },
+          {
+            "id": "e:a_a_b_1~S1",
+            "a": "e:a_a_b_1",
+            "b": "S1"
+          },
+          {
+            "id": "e:a~S2",
+            "a": "e:a",
+            "b": "S2"
+          },
+          {
+            "id": "e:a_a_b_2~S2",
+            "a": "e:a_a_b_2",
+            "b": "S2"
+          },
+          {
+            "id": "e:b~S3",
+            "a": "e:b",
+            "b": "S3"
+          },
+          {
+            "id": "e:b_a_b_1~S3",
+            "a": "e:b_a_b_1",
+            "b": "S3"
+          },
+          {
+            "id": "e:b_b_c_1~S3",
+            "a": "e:b_b_c_1",
+            "b": "S3"
+          },
+          {
+            "id": "e:b~S4",
+            "a": "e:b",
+            "b": "S4"
+          },
+          {
+            "id": "e:b_a_b_2~S4",
+            "a": "e:b_a_b_2",
+            "b": "S4"
+          },
+          {
+            "id": "e:b_b_c_2~S4",
+            "a": "e:b_b_c_2",
+            "b": "S4"
+          },
+          {
+            "id": "e:c~S5",
+            "a": "e:c",
+            "b": "S5"
+          },
+          {
+            "id": "e:c_b_c_1~S5",
+            "a": "e:c_b_c_1",
+            "b": "S5"
+          },
+          {
+            "id": "e:c~S6",
+            "a": "e:c",
+            "b": "S6"
+          },
+          {
+            "id": "e:c_b_c_2~S6",
+            "a": "e:c_b_c_2",
+            "b": "S6"
+          },
+          {
+            "id": "e:a_b~S7",
+            "a": "e:a_b",
+            "b": "S7"
+          },
+          {
+            "id": "e:a_a_b_2~S7",
+            "a": "e:a_a_b_2",
+            "b": "S7"
+          },
+          {
+            "id": "e:b_a_b_1~S7",
+            "a": "e:b_a_b_1",
+            "b": "S7"
+          },
+          {
+            "id": "e:a_b~S8",
+            "a": "e:a_b",
+            "b": "S8"
+          },
+          {
+            "id": "e:a_a_b_1~S8",
+            "a": "e:a_a_b_1",
+            "b": "S8"
+          },
+          {
+            "id": "e:b_a_b_2~S8",
+            "a": "e:b_a_b_2",
+            "b": "S8"
+          },
+          {
+            "id": "e:b_c~S9",
+            "a": "e:b_c",
+            "b": "S9"
+          },
+          {
+            "id": "e:b_b_c_2~S9",
+            "a": "e:b_b_c_2",
+            "b": "S9"
+          },
+          {
+            "id": "e:c_b_c_1~S9",
+            "a": "e:c_b_c_1",
+            "b": "S9"
+          },
+          {
+            "id": "e:b_c~S10",
+            "a": "e:b_c",
+            "b": "S10"
+          },
+          {
+            "id": "e:b_b_c_1~S10",
+            "a": "e:b_b_c_1",
+            "b": "S10"
+          },
+          {
+            "id": "e:c_b_c_2~S10",
+            "a": "e:c_b_c_2",
+            "b": "S10"
+          }
+        ]
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "e:a",
+        "e:a_a_b_1",
+        "e:a_a_b_2",
+        "S1",
+        "S2",
+        "e:b",
+        "e:b_a_b_1",
+        "e:b_a_b_2",
+        "e:b_b_c_1",
+        "e:b_b_c_2",
+        "S3",
+        "S4",
+        "e:c",
+        "e:c_b_c_1",
+        "e:c_b_c_2",
+        "S5",
+        "S6",
+        "e:a_b",
+        "S7",
+        "S8",
+        "e:b_c",
+        "S9",
+        "S10"
+      ],
+      "edges": [
+        "e:a_a_b_1~S1",
+        "e:a_a_b_2~S2",
+        "e:a~S1",
+        "e:a~S2",
+        "e:b_a_b_1~S3",
+        "e:b_a_b_2~S4",
+        "e:b_b_c_1~S3",
+        "e:b_b_c_2~S4",
+        "e:b~S3",
+        "e:b~S4",
+        "e:c_b_c_1~S5",
+        "e:c_b_c_2~S6",
+        "e:c~S5",
+        "e:c~S6",
+        "e:a_a_b_1~S8",
+        "e:a_a_b_2~S7",
+        "e:a_b~S7",
+        "e:a_b~S8",
+        "e:b_a_b_1~S7",
+        "e:b_a_b_2~S8",
+        "e:b_b_c_1~S10",
+        "e:b_b_c_2~S9",
+        "e:b_c~S10",
+        "e:b_c~S9",
+        "e:c_b_c_1~S9",
+        "e:c_b_c_2~S10"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "e:a",
+        "e:a_a_b_1",
+        "e:a_a_b_2",
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "e:b",
+        "e:b_a_b_1",
+        "e:b_a_b_2",
+        "e:b_b_c_1",
+        "e:b_b_c_2",
+        "S3",
+        "S4"
+      ]
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "e:c",
+        "e:c_b_c_1",
+        "e:c_b_c_2",
+        "S5",
+        "S6"
+      ]
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "e:a_b",
+        "S7",
+        "S8"
+      ]
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "b-c"
+      ],
+      "targetIds": [
+        "e:b_c",
+        "S9",
+        "S10"
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node a becomes the element a, 2 slots (one per edge at a and color) and 2 sets, one per color: the set for color j holds a and a\u0027s slots for color j. Exactly one of them covers a, so a gets one color.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "e:a",
+        "e:a_a_b_1",
+        "e:a_a_b_2",
+        "S1",
+        "S2",
+        "e:a_a_b_1~S1",
+        "e:a_a_b_2~S2",
+        "e:a~S1",
+        "e:a~S2"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "S2": {
+            "state": "ElementHighlight"
+          },
+          "e:a": {
+            "state": "ElementHighlight"
+          },
+          "e:a_a_b_1": {
+            "state": "ElementHighlight"
+          },
+          "e:a_a_b_2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:a_a_b_2~S2": {
+            "state": "ElementHighlight"
+          },
+          "e:a~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:a~S2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 5,
+        "builtEdges": 4
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node b becomes the element b, 4 slots (one per edge at b and color) and 2 sets, one per color: the set for color j holds b and b\u0027s slots for color j. Exactly one of them covers b, so b gets one color.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "e:b",
+        "e:b_a_b_1",
+        "e:b_a_b_2",
+        "e:b_b_c_1",
+        "e:b_b_c_2",
+        "S3",
+        "S4",
+        "e:b_a_b_1~S3",
+        "e:b_a_b_2~S4",
+        "e:b_b_c_1~S3",
+        "e:b_b_c_2~S4",
+        "e:b~S3",
+        "e:b~S4"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S3": {
+            "state": "ElementHighlight"
+          },
+          "S4": {
+            "state": "ElementHighlight"
+          },
+          "e:b": {
+            "state": "ElementHighlight"
+          },
+          "e:b_a_b_1": {
+            "state": "ElementHighlight"
+          },
+          "e:b_a_b_2": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_1": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:b_a_b_1~S3": {
+            "state": "ElementHighlight"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_1~S3": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:b~S3": {
+            "state": "ElementHighlight"
+          },
+          "e:b~S4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 12,
+        "builtEdges": 10
+      },
+      "gadgets": [
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node c becomes the element c, 2 slots (one per edge at c and color) and 2 sets, one per color: the set for color j holds c and c\u0027s slots for color j. Exactly one of them covers c, so c gets one color.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "e:c",
+        "e:c_b_c_1",
+        "e:c_b_c_2",
+        "S5",
+        "S6",
+        "e:c_b_c_1~S5",
+        "e:c_b_c_2~S6",
+        "e:c~S5",
+        "e:c~S6"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S5": {
+            "state": "ElementHighlight"
+          },
+          "S6": {
+            "state": "ElementHighlight"
+          },
+          "e:c": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_1": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_2": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:c_b_c_1~S5": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_2~S6": {
+            "state": "ElementHighlight"
+          },
+          "e:c~S5": {
+            "state": "ElementHighlight"
+          },
+          "e:c~S6": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 17,
+        "builtEdges": 14
+      },
+      "gadgets": [
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Edge {a,b} becomes the element a_b and 2 sets, one per pair of different colors (f, g): each holds a_b, a\u0027s slots for this edge except color f and b\u0027s except color g. One fits exactly when a and b have different colors.",
+      "sourceFocus": [
+        "a-b",
+        "a",
+        "b"
+      ],
+      "targetFocus": [
+        "e:a_b",
+        "S7",
+        "S8",
+        "e:a_a_b_1~S8",
+        "e:a_a_b_2~S7",
+        "e:a_b~S7",
+        "e:a_b~S8",
+        "e:b_a_b_1~S7",
+        "e:b_a_b_2~S8"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S7": {
+            "state": "ElementHighlight"
+          },
+          "S8": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S8": {
+            "state": "ElementHighlight"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b~S7": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b~S8": {
+            "state": "ElementHighlight"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "ElementHighlight"
+          },
+          "e:b_a_b_2~S8": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 20,
+        "builtEdges": 20
+      },
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Edge {b,c} becomes the element b_c and 2 sets, one per pair of different colors (f, g): each holds b_c, b\u0027s slots for this edge except color f and c\u0027s except color g. One fits exactly when b and c have different colors.",
+      "sourceFocus": [
+        "b-c",
+        "b",
+        "c"
+      ],
+      "targetFocus": [
+        "e:b_c",
+        "S9",
+        "S10",
+        "e:b_b_c_1~S10",
+        "e:b_b_c_2~S9",
+        "e:b_c~S10",
+        "e:b_c~S9",
+        "e:c_b_c_1~S9",
+        "e:c_b_c_2~S10"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b-c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S10": {
+            "state": "ElementHighlight"
+          },
+          "S9": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "e:b_b_c_1~S10": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_2~S9": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c~S10": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c~S9": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_1~S9": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {},
+        "builtNodes": 23,
+        "builtEdges": 26
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "An exact cover takes one color set per node and one set per edge, which fits only when the edge\u0027s two ends have different colors: the sets have an exact cover exactly when the graph can be colored with 2 colors.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "hits": {},
+        "builtNodes": 23,
+        "builtEdges": 26
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "a has the fewest options (2). Try S1 {a,a_a_b_1}.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:a~S1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "a_b has the fewest options (1). Try S7 {a_b,a_a_b_2,b_a_b_1}.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S7"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "ElementHighlight"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "ElementHighlight"
+          },
+          "e:a_b~S7": {
+            "state": "ElementHighlight"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b_a_b_1": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "b has the fewest options (1). Try S4 {b,b_a_b_2,b_b_c_2}.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S4"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "ElementHighlight"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:b~S4": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_2": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "b_c has the fewest options (1). Try S10 {b_c,b_b_c_1,c_b_c_2}.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S10"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S10": {
+            "state": "ElementHighlight"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Solution"
+          },
+          "S6": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_1": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          },
+          "e:c_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_b_c_1~S10": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_c~S10": {
+            "state": "ElementHighlight"
+          },
+          "e:b~S4": {
+            "state": "Solution"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_1": 1,
+          "e:b_b_c_2": 1,
+          "e:b_c": 1,
+          "e:c_b_c_2": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "c has the fewest options (1). Try S5 {c,c_b_c_1}.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "S5"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S10": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Solution"
+          },
+          "S5": {
+            "state": "ElementHighlight"
+          },
+          "S6": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_1": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          },
+          "e:c": {
+            "state": "Covered"
+          },
+          "e:c_b_c_1": {
+            "state": "Covered"
+          },
+          "e:c_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_b_c_1~S10": {
+            "state": "Solution"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_c~S10": {
+            "state": "Solution"
+          },
+          "e:b~S4": {
+            "state": "Solution"
+          },
+          "e:c_b_c_1~S5": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "Solution"
+          },
+          "e:c~S5": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_1": 1,
+          "e:b_b_c_2": 1,
+          "e:b_c": 1,
+          "e:c": 1,
+          "e:c_b_c_1": 1,
+          "e:c_b_c_2": 1
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Every element is covered by exactly one chosen set: {S1,S10,S4,S5,S7}.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S10": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Solution"
+          },
+          "S5": {
+            "state": "Solution"
+          },
+          "S6": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_1": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          },
+          "e:c": {
+            "state": "Covered"
+          },
+          "e:c_b_c_1": {
+            "state": "Covered"
+          },
+          "e:c_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_b_c_1~S10": {
+            "state": "Solution"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_c~S10": {
+            "state": "Solution"
+          },
+          "e:b~S4": {
+            "state": "Solution"
+          },
+          "e:c_b_c_1~S5": {
+            "state": "Solution"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "Solution"
+          },
+          "e:c~S5": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_1": 1,
+          "e:b_b_c_2": 1,
+          "e:b_c": 1,
+          "e:c": 1,
+          "e:c_b_c_1": 1,
+          "e:c_b_c_2": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Set S5 {c,c_b_c_1} is in the exact cover. It is c\u0027s set for color 1, so c takes color 1.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "S5"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "c": 0
+        }
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S10": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Solution"
+          },
+          "S5": {
+            "state": "ElementHighlight"
+          },
+          "S6": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_1": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          },
+          "e:c": {
+            "state": "Covered"
+          },
+          "e:c_b_c_1": {
+            "state": "Covered"
+          },
+          "e:c_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_b_c_1~S10": {
+            "state": "Solution"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_c~S10": {
+            "state": "Solution"
+          },
+          "e:b~S4": {
+            "state": "Solution"
+          },
+          "e:c_b_c_1~S5": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "Solution"
+          },
+          "e:c~S5": {
+            "state": "ElementHighlight"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_1": 1,
+          "e:b_b_c_2": 1,
+          "e:b_c": 1,
+          "e:c": 1,
+          "e:c_b_c_1": 1,
+          "e:c_b_c_2": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Set S4 {b,b_a_b_2,b_b_c_2} is in the exact cover. It is b\u0027s set for color 2, so b takes color 2.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "S4"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "b": 1,
+          "c": 0
+        }
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S10": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "ElementHighlight"
+          },
+          "S5": {
+            "state": "Solution"
+          },
+          "S6": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_1": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          },
+          "e:c": {
+            "state": "Covered"
+          },
+          "e:c_b_c_1": {
+            "state": "Covered"
+          },
+          "e:c_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:b_b_c_1~S10": {
+            "state": "Solution"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:b_c~S10": {
+            "state": "Solution"
+          },
+          "e:b~S4": {
+            "state": "ElementHighlight"
+          },
+          "e:c_b_c_1~S5": {
+            "state": "Solution"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "Solution"
+          },
+          "e:c~S5": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_1": 1,
+          "e:b_b_c_2": 1,
+          "e:b_c": 1,
+          "e:c": 1,
+          "e:c_b_c_1": 1,
+          "e:c_b_c_2": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Set S1 {a,a_a_b_1} is in the exact cover. It is a\u0027s set for color 1, so a takes color 1.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "S1"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "ElementHighlight"
+          },
+          "S10": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Solution"
+          },
+          "S5": {
+            "state": "Solution"
+          },
+          "S6": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_1": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          },
+          "e:c": {
+            "state": "Covered"
+          },
+          "e:c_b_c_1": {
+            "state": "Covered"
+          },
+          "e:c_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "ElementHighlight"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_b_c_1~S10": {
+            "state": "Solution"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_c~S10": {
+            "state": "Solution"
+          },
+          "e:b~S4": {
+            "state": "Solution"
+          },
+          "e:c_b_c_1~S5": {
+            "state": "Solution"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "Solution"
+          },
+          "e:c~S5": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_1": 1,
+          "e:b_b_c_2": 1,
+          "e:b_c": 1,
+          "e:c": 1,
+          "e:c_b_c_1": 1,
+          "e:c_b_c_2": 1
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{{a,c},{b}} is a valid Graph Coloring answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 0,
+          "b": 1,
+          "c": 0
+        }
+      },
+      "target": {
+        "nodes": {
+          "S1": {
+            "state": "Solution"
+          },
+          "S10": {
+            "state": "Solution"
+          },
+          "S2": {
+            "state": "Blocked"
+          },
+          "S3": {
+            "state": "Blocked"
+          },
+          "S4": {
+            "state": "Solution"
+          },
+          "S5": {
+            "state": "Solution"
+          },
+          "S6": {
+            "state": "Blocked"
+          },
+          "S7": {
+            "state": "Solution"
+          },
+          "S8": {
+            "state": "Blocked"
+          },
+          "S9": {
+            "state": "Blocked"
+          },
+          "e:a": {
+            "state": "Covered"
+          },
+          "e:a_a_b_1": {
+            "state": "Covered"
+          },
+          "e:a_a_b_2": {
+            "state": "Covered"
+          },
+          "e:a_b": {
+            "state": "Covered"
+          },
+          "e:b": {
+            "state": "Covered"
+          },
+          "e:b_a_b_1": {
+            "state": "Covered"
+          },
+          "e:b_a_b_2": {
+            "state": "Covered"
+          },
+          "e:b_b_c_1": {
+            "state": "Covered"
+          },
+          "e:b_b_c_2": {
+            "state": "Covered"
+          },
+          "e:b_c": {
+            "state": "Covered"
+          },
+          "e:c": {
+            "state": "Covered"
+          },
+          "e:c_b_c_1": {
+            "state": "Covered"
+          },
+          "e:c_b_c_2": {
+            "state": "Covered"
+          }
+        },
+        "edges": {
+          "e:a_a_b_1~S1": {
+            "state": "Solution"
+          },
+          "e:a_a_b_2~S7": {
+            "state": "Solution"
+          },
+          "e:a_b~S7": {
+            "state": "Solution"
+          },
+          "e:a~S1": {
+            "state": "Solution"
+          },
+          "e:b_a_b_1~S7": {
+            "state": "Solution"
+          },
+          "e:b_a_b_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_b_c_1~S10": {
+            "state": "Solution"
+          },
+          "e:b_b_c_2~S4": {
+            "state": "Solution"
+          },
+          "e:b_c~S10": {
+            "state": "Solution"
+          },
+          "e:b~S4": {
+            "state": "Solution"
+          },
+          "e:c_b_c_1~S5": {
+            "state": "Solution"
+          },
+          "e:c_b_c_2~S10": {
+            "state": "Solution"
+          },
+          "e:c~S5": {
+            "state": "Solution"
+          }
+        },
+        "hits": {
+          "e:a": 1,
+          "e:a_a_b_1": 1,
+          "e:a_a_b_2": 1,
+          "e:a_b": 1,
+          "e:b": 1,
+          "e:b_a_b_1": 1,
+          "e:b_a_b_2": 1,
+          "e:b_b_c_1": 1,
+          "e:b_b_c_2": 1,
+          "e:b_c": 1,
+          "e:c": 1,
+          "e:c_b_c_1": 1,
+          "e:c_b_c_2": 1
+        }
+      }
+    }
+  ]
+}

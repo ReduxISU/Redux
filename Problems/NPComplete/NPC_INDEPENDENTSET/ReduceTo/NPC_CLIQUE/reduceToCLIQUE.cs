@@ -102,7 +102,8 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
         bool recording = rec.Enabled;
-        List<(string Node, string[] Later)>? perNode = recording ? new() : null;
+        // The complement edges each node's turn adds; the edge-rule gadgets are made from them whether or not steps are recorded.
+        var perNodeEdges = new List<(string Node, string[] Later)>();
         foreach (var i in INDPENDENTSETInstance.nodes) {
             int before = edges.Count;
             foreach (var j in INDPENDENTSETInstance.nodes) {
@@ -112,13 +113,25 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
                     edges.Add(pairCheck1);
                 }
             }
-            if (recording) perNode!.Add((i, edges.Skip(before).Select(e => e.Value).ToArray()));
+            perNodeEdges.Add((i, edges.Skip(before).Select(e => e.Value).ToArray()));
         }
 
         //set up gadgets
         foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes) {
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
+        int elementGadgets = gadgets.Count;
+        // An edge rule per node that gets complement edges: the pairs the graph is missing, filed under the node whose turn
+        // added them, as the steps below do. Then the bound, K unchanged (#694).
+        var edgeRuleOf = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var (u, later) in perNodeEdges) {
+            if (later.Length == 0 || edgeRuleOf.ContainsKey(u)) continue;
+            edgeRuleOf[u] = gadgets.Count;
+            gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { u }, later.Select(v => new BuildEdge(u, v).Id).ToList(),
+                note: $"{u} is joined to the nodes it has no edge to in the graph."));
+        }
+        int boundGadget = gadgets.Count;
+        gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(), note: $"K stays {INDPENDENTSETInstance.K}"));
 
         // --- Generate G string for new CLIQUE ---
         string nodesString = "";
@@ -140,18 +153,19 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
 
         if (recording) {
             string[] all = INDPENDENTSETInstance.nodes.ToArray();
-            int[] gadgetIdx = Enumerable.Range(0, gadgets.Count).ToArray();
+            int[] gadgetIdx = Enumerable.Range(0, elementGadgets).ToArray();
             rec.Accept(
                 () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
                 () => all.Length > 0
                     ? $"Copy every node of the graph ({BuildCaptions.Names(all)}) into the clique graph, with the same names. Its edges will be the pairs the graph is missing."
                     : "The graph has no nodes, so the clique graph has none either.",
                 all);
-            for (int n = 0; n < perNode!.Count; n++) {
-                var (u, later) = perNode[n];
-                bool lastNode = n == perNode.Count - 1;
+            for (int n = 0; n < perNodeEdges.Count; n++) {
+                var (u, later) = perNodeEdges[n];
+                bool lastNode = n == perNodeEdges.Count - 1;
                 BuildEdge[] added = BuildEdge.Sorted(later.Select(v => new BuildEdge(u, v)));
-                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added };
+                int[] rule = edgeRuleOf.TryGetValue(u, out int r) && later.Length > 0 ? [r] : [];
+                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added, Gadgets = rule };
                 Func<string> caption = () => later.Length > 0
                     ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the original graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
                     : lastNode
@@ -161,7 +175,7 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
                 if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
             }
             int k = INDPENDENTSETInstance.K;
-            rec.Done(new BuildDelta { Bound = k }, true,
+            rec.Done(new BuildDelta { Bound = k, Gadgets = [boundGadget] }, true,
                 $"K stays {k}. {k} nodes with no edge between them in the original graph are {k} nodes joined to each other in the complement.");
         }
         return reducedCLIQUE;

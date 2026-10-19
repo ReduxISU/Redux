@@ -1,0 +1,4698 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "KarpReduceSAT",
+  "reductionName": "Karp\u0027s SAT Reduction",
+  "solver": "SAT Brute Force",
+  "source": {
+    "problem": "Graph Coloring",
+    "instance": "(({a,b,c},{{a,b},{b,c}}),2)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-b",
+            "a": "a",
+            "b": "b"
+          },
+          {
+            "id": "b-c",
+            "a": "b",
+            "b": "c"
+          }
+        ],
+        "shape": "groups",
+        "rule": "coloring",
+        "k": 2
+      }
+    }
+  },
+  "target": {
+    "problem": "SAT",
+    "instance": "(a0|a1)\u0026(!a0|!a1)\u0026(b0|b1)\u0026(!b0|!b1)\u0026(c0|c1)\u0026(!c0|!c1)\u0026(!a0|!b0)\u0026(!a1|!b1)\u0026(!b0|!c0)\u0026(!b1|!c1)",
+    "picture": {
+      "type": "GroupedGraph",
+      "payload": {
+        "kind": "groupedGraph",
+        "layout": "ring",
+        "shape": "assignment",
+        "rule": "satisfiability",
+        "groups": [
+          {
+            "id": "c0",
+            "label": "C1",
+            "members": [
+              "c0-0",
+              "c0-1"
+            ]
+          },
+          {
+            "id": "c1",
+            "label": "C2",
+            "members": [
+              "c1-0",
+              "c1-1"
+            ]
+          },
+          {
+            "id": "c2",
+            "label": "C3",
+            "members": [
+              "c2-0",
+              "c2-1"
+            ]
+          },
+          {
+            "id": "c3",
+            "label": "C4",
+            "members": [
+              "c3-0",
+              "c3-1"
+            ]
+          },
+          {
+            "id": "c4",
+            "label": "C5",
+            "members": [
+              "c4-0",
+              "c4-1"
+            ]
+          },
+          {
+            "id": "c5",
+            "label": "C6",
+            "members": [
+              "c5-0",
+              "c5-1"
+            ]
+          },
+          {
+            "id": "c6",
+            "label": "C7",
+            "members": [
+              "c6-0",
+              "c6-1"
+            ]
+          },
+          {
+            "id": "c7",
+            "label": "C8",
+            "members": [
+              "c7-0",
+              "c7-1"
+            ]
+          },
+          {
+            "id": "c8",
+            "label": "C9",
+            "members": [
+              "c8-0",
+              "c8-1"
+            ]
+          },
+          {
+            "id": "c9",
+            "label": "C10",
+            "members": [
+              "c9-0",
+              "c9-1"
+            ]
+          }
+        ],
+        "nodes": [
+          {
+            "id": "c0-0",
+            "label": "a0",
+            "variable": "v:a0",
+            "positive": true,
+            "group": "c0"
+          },
+          {
+            "id": "c0-1",
+            "label": "a1",
+            "variable": "v:a1",
+            "positive": true,
+            "group": "c0"
+          },
+          {
+            "id": "c1-0",
+            "label": "\u00ACa0",
+            "variable": "v:a0",
+            "positive": false,
+            "group": "c1"
+          },
+          {
+            "id": "c1-1",
+            "label": "\u00ACa1",
+            "variable": "v:a1",
+            "positive": false,
+            "group": "c1"
+          },
+          {
+            "id": "c2-0",
+            "label": "b0",
+            "variable": "v:b0",
+            "positive": true,
+            "group": "c2"
+          },
+          {
+            "id": "c2-1",
+            "label": "b1",
+            "variable": "v:b1",
+            "positive": true,
+            "group": "c2"
+          },
+          {
+            "id": "c3-0",
+            "label": "\u00ACb0",
+            "variable": "v:b0",
+            "positive": false,
+            "group": "c3"
+          },
+          {
+            "id": "c3-1",
+            "label": "\u00ACb1",
+            "variable": "v:b1",
+            "positive": false,
+            "group": "c3"
+          },
+          {
+            "id": "c4-0",
+            "label": "c0",
+            "variable": "v:c0",
+            "positive": true,
+            "group": "c4"
+          },
+          {
+            "id": "c4-1",
+            "label": "c1",
+            "variable": "v:c1",
+            "positive": true,
+            "group": "c4"
+          },
+          {
+            "id": "c5-0",
+            "label": "\u00ACc0",
+            "variable": "v:c0",
+            "positive": false,
+            "group": "c5"
+          },
+          {
+            "id": "c5-1",
+            "label": "\u00ACc1",
+            "variable": "v:c1",
+            "positive": false,
+            "group": "c5"
+          },
+          {
+            "id": "c6-0",
+            "label": "\u00ACa0",
+            "variable": "v:a0",
+            "positive": false,
+            "group": "c6"
+          },
+          {
+            "id": "c6-1",
+            "label": "\u00ACb0",
+            "variable": "v:b0",
+            "positive": false,
+            "group": "c6"
+          },
+          {
+            "id": "c7-0",
+            "label": "\u00ACa1",
+            "variable": "v:a1",
+            "positive": false,
+            "group": "c7"
+          },
+          {
+            "id": "c7-1",
+            "label": "\u00ACb1",
+            "variable": "v:b1",
+            "positive": false,
+            "group": "c7"
+          },
+          {
+            "id": "c8-0",
+            "label": "\u00ACb0",
+            "variable": "v:b0",
+            "positive": false,
+            "group": "c8"
+          },
+          {
+            "id": "c8-1",
+            "label": "\u00ACc0",
+            "variable": "v:c0",
+            "positive": false,
+            "group": "c8"
+          },
+          {
+            "id": "c9-0",
+            "label": "\u00ACb1",
+            "variable": "v:b1",
+            "positive": false,
+            "group": "c9"
+          },
+          {
+            "id": "c9-1",
+            "label": "\u00ACc1",
+            "variable": "v:c1",
+            "positive": false,
+            "group": "c9"
+          }
+        ],
+        "variables": [
+          {
+            "id": "v:a0",
+            "label": "a0"
+          },
+          {
+            "id": "v:a1",
+            "label": "a1"
+          },
+          {
+            "id": "v:b0",
+            "label": "b0"
+          },
+          {
+            "id": "v:b1",
+            "label": "b1"
+          },
+          {
+            "id": "v:c0",
+            "label": "c0"
+          },
+          {
+            "id": "v:c1",
+            "label": "c1"
+          }
+        ],
+        "edges": [
+          {
+            "id": "c0-0~c1-0",
+            "a": "c0-0",
+            "b": "c1-0"
+          },
+          {
+            "id": "c0-0~c6-0",
+            "a": "c0-0",
+            "b": "c6-0"
+          },
+          {
+            "id": "c0-1~c1-1",
+            "a": "c0-1",
+            "b": "c1-1"
+          },
+          {
+            "id": "c0-1~c7-0",
+            "a": "c0-1",
+            "b": "c7-0"
+          },
+          {
+            "id": "c2-0~c3-0",
+            "a": "c2-0",
+            "b": "c3-0"
+          },
+          {
+            "id": "c2-0~c6-1",
+            "a": "c2-0",
+            "b": "c6-1"
+          },
+          {
+            "id": "c2-0~c8-0",
+            "a": "c2-0",
+            "b": "c8-0"
+          },
+          {
+            "id": "c2-1~c3-1",
+            "a": "c2-1",
+            "b": "c3-1"
+          },
+          {
+            "id": "c2-1~c7-1",
+            "a": "c2-1",
+            "b": "c7-1"
+          },
+          {
+            "id": "c2-1~c9-0",
+            "a": "c2-1",
+            "b": "c9-0"
+          },
+          {
+            "id": "c4-0~c5-0",
+            "a": "c4-0",
+            "b": "c5-0"
+          },
+          {
+            "id": "c4-0~c8-1",
+            "a": "c4-0",
+            "b": "c8-1"
+          },
+          {
+            "id": "c4-1~c5-1",
+            "a": "c4-1",
+            "b": "c5-1"
+          },
+          {
+            "id": "c4-1~c9-1",
+            "a": "c4-1",
+            "b": "c9-1"
+          }
+        ],
+        "clauseEdges": [
+          {
+            "id": "c0-0~c0-1",
+            "a": "c0-0",
+            "b": "c0-1"
+          },
+          {
+            "id": "c1-0~c1-1",
+            "a": "c1-0",
+            "b": "c1-1"
+          },
+          {
+            "id": "c2-0~c2-1",
+            "a": "c2-0",
+            "b": "c2-1"
+          },
+          {
+            "id": "c3-0~c3-1",
+            "a": "c3-0",
+            "b": "c3-1"
+          },
+          {
+            "id": "c4-0~c4-1",
+            "a": "c4-0",
+            "b": "c4-1"
+          },
+          {
+            "id": "c5-0~c5-1",
+            "a": "c5-0",
+            "b": "c5-1"
+          },
+          {
+            "id": "c6-0~c6-1",
+            "a": "c6-0",
+            "b": "c6-1"
+          },
+          {
+            "id": "c7-0~c7-1",
+            "a": "c7-0",
+            "b": "c7-1"
+          },
+          {
+            "id": "c8-0~c8-1",
+            "a": "c8-0",
+            "b": "c8-1"
+          },
+          {
+            "id": "c9-0~c9-1",
+            "a": "c9-0",
+            "b": "c9-1"
+          }
+        ]
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "v:a0",
+        "v:a1",
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c2",
+        "c2-0",
+        "c2-1",
+        "v:b0",
+        "v:b1",
+        "c3",
+        "c3-0",
+        "c3-1",
+        "c4",
+        "c4-0",
+        "c4-1",
+        "v:c0",
+        "v:c1",
+        "c5",
+        "c5-0",
+        "c5-1",
+        "c6",
+        "c6-0",
+        "c6-1",
+        "c7",
+        "c7-0",
+        "c7-1",
+        "c8",
+        "c8-0",
+        "c8-1",
+        "c9",
+        "c9-0",
+        "c9-1"
+      ],
+      "edges": [
+        "c0-0~c0-1",
+        "c0-0~c1-0",
+        "c0-1~c1-1",
+        "c1-0~c1-1",
+        "c2-0~c2-1",
+        "c2-0~c3-0",
+        "c2-1~c3-1",
+        "c3-0~c3-1",
+        "c4-0~c4-1",
+        "c4-0~c5-0",
+        "c4-1~c5-1",
+        "c5-0~c5-1",
+        "c0-0~c6-0",
+        "c0-1~c7-0",
+        "c2-0~c6-1",
+        "c2-1~c7-1",
+        "c6-0~c6-1",
+        "c7-0~c7-1",
+        "c2-0~c8-0",
+        "c2-1~c9-0",
+        "c4-0~c8-1",
+        "c4-1~c9-1",
+        "c8-0~c8-1",
+        "c9-0~c9-1"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c1",
+        "c1-0",
+        "c1-1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "v:a0"
+      ],
+      "note": "a0 is true when a takes color 0."
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "v:a1"
+      ],
+      "note": "a1 is true when a takes color 1."
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c3",
+        "c3-0",
+        "c3-1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "v:b0"
+      ],
+      "note": "b0 is true when b takes color 0."
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "v:b1"
+      ],
+      "note": "b1 is true when b takes color 1."
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c4",
+        "c4-0",
+        "c4-1",
+        "c5",
+        "c5-0",
+        "c5-1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "v:c0"
+      ],
+      "note": "c0 is true when c takes color 0."
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "v:c1"
+      ],
+      "note": "c1 is true when c takes color 1."
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "c6",
+        "c6-0",
+        "c6-1",
+        "c7",
+        "c7-0",
+        "c7-1"
+      ]
+    },
+    {
+      "gadgetKind": "group",
+      "sourceIds": [
+        "b-c"
+      ],
+      "targetIds": [
+        "c8",
+        "c8-0",
+        "c8-1",
+        "c9",
+        "c9-0",
+        "c9-1"
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node a becomes the variables a0, a1, one per color, and 2 clauses: (a0 | a1) says a takes a color, and (!a0 | !a1) says it takes only one.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "c0",
+        "c0-0",
+        "c0-1",
+        "c1",
+        "c1-0",
+        "c1-1",
+        "c0-0~c0-1",
+        "c0-0~c1-0",
+        "c0-1~c1-1",
+        "c1-0~c1-1"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "ElementHighlight"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "ElementHighlight"
+          },
+          "c1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 8,
+        "builtEdges": 4
+      },
+      "gadgets": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node b becomes the variables b0, b1, one per color, and 2 clauses: (b0 | b1) says b takes a color, and (!b0 | !b1) says it takes only one.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "c2",
+        "c2-0",
+        "c2-1",
+        "c3",
+        "c3-0",
+        "c3-1",
+        "c2-0~c2-1",
+        "c2-0~c3-0",
+        "c2-1~c3-1",
+        "c3-0~c3-1"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c2": {
+            "state": "ElementHighlight"
+          },
+          "c3": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 16,
+        "builtEdges": 8
+      },
+      "gadgets": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node c becomes the variables c0, c1, one per color, and 2 clauses: (c0 | c1) says c takes a color, and (!c0 | !c1) says it takes only one.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c4",
+        "c4-0",
+        "c4-1",
+        "c5",
+        "c5-0",
+        "c5-1",
+        "c4-0~c4-1",
+        "c4-0~c5-0",
+        "c4-1~c5-1",
+        "c5-0~c5-1"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c4": {
+            "state": "ElementHighlight"
+          },
+          "c5": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 24,
+        "builtEdges": 12
+      },
+      "gadgets": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Edge {a,b} becomes 2 clauses, (!a0 | !b0), (!a1 | !b1): a and b never take the same color.",
+      "sourceFocus": [
+        "a-b",
+        "a",
+        "b"
+      ],
+      "targetFocus": [
+        "c6",
+        "c6-0",
+        "c6-1",
+        "c7",
+        "c7-0",
+        "c7-1",
+        "c0-0~c6-0",
+        "c0-1~c7-0",
+        "c2-0~c6-1",
+        "c2-1~c7-1",
+        "c6-0~c6-1",
+        "c7-0~c7-1"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c6": {
+            "state": "ElementHighlight"
+          },
+          "c7": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 30,
+        "builtEdges": 18
+      },
+      "gadgets": [
+        9
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Edge {b,c} becomes 2 clauses, (!b0 | !c0), (!b1 | !c1): b and c never take the same color.",
+      "sourceFocus": [
+        "b-c",
+        "b",
+        "c"
+      ],
+      "targetFocus": [
+        "c8",
+        "c8-0",
+        "c8-1",
+        "c9",
+        "c9-0",
+        "c9-1",
+        "c2-0~c8-0",
+        "c2-1~c9-0",
+        "c4-0~c8-1",
+        "c4-1~c9-1",
+        "c8-0~c8-1",
+        "c9-0~c9-1"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b-c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c8": {
+            "state": "ElementHighlight"
+          },
+          "c9": {
+            "state": "ElementHighlight"
+          }
+        },
+        "assignment": {},
+        "builtNodes": 36,
+        "builtEdges": 24
+      },
+      "gadgets": [
+        10
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "The formula can be satisfied exactly when the graph can be colored with 2 colors: a node takes the color whose variable is true.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {},
+        "groups": {},
+        "assignment": {},
+        "builtNodes": 36,
+        "builtEdges": 24
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "Rejected"
+          },
+          "c4-1": {
+            "state": "Rejected"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Rejected"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "False"
+          },
+          "c5-0": {
+            "state": "False"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": true,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = False, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "Rejected"
+          },
+          "c5-1": {
+            "state": "Rejected"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Rejected"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": true,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "Rejected"
+          },
+          "c4-1": {
+            "state": "Rejected"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "False"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Rejected"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": false,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "Rejected"
+          },
+          "c9-1": {
+            "state": "Rejected"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Rejected"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "False"
+          },
+          "c5-0": {
+            "state": "False"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "False"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": true,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = False, b1 = True, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "Rejected"
+          },
+          "c5-1": {
+            "state": "Rejected"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "Rejected"
+          },
+          "c9-1": {
+            "state": "Rejected"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Rejected"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Rejected"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": true,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "Rejected"
+          },
+          "c4-1": {
+            "state": "Rejected"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Rejected"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "False"
+          },
+          "c5-0": {
+            "state": "False"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "Rejected"
+          },
+          "c8-1": {
+            "state": "Rejected"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Rejected"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": true,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = False, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "Rejected"
+          },
+          "c5-1": {
+            "state": "Rejected"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "Rejected"
+          },
+          "c8-1": {
+            "state": "Rejected"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Rejected"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Rejected"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": true,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = False, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "Rejected"
+          },
+          "c3-1": {
+            "state": "Rejected"
+          },
+          "c4-0": {
+            "state": "Rejected"
+          },
+          "c4-1": {
+            "state": "Rejected"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "False"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Rejected"
+          },
+          "c4": {
+            "state": "Rejected"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": true,
+          "v:c0": false,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = False, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "Rejected"
+          },
+          "c3-1": {
+            "state": "Rejected"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "Rejected"
+          },
+          "c9-1": {
+            "state": "Rejected"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Rejected"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Rejected"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": true,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = True, c1 = False: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "Rejected"
+          },
+          "c3-1": {
+            "state": "Rejected"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "False"
+          },
+          "c5-0": {
+            "state": "False"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "Rejected"
+          },
+          "c8-1": {
+            "state": "Rejected"
+          },
+          "c9-0": {
+            "state": "False"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Rejected"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Rejected"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": true,
+          "v:c0": true,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = False, b0 = True, b1 = True, c0 = True, c1 = True: clause C1 (a0 | a1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "Rejected"
+          },
+          "c0-1": {
+            "state": "Rejected"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "ElementHighlight"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "Rejected"
+          },
+          "c3-1": {
+            "state": "Rejected"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "Rejected"
+          },
+          "c5-1": {
+            "state": "Rejected"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "ElementHighlight"
+          },
+          "c7-1": {
+            "state": "False"
+          },
+          "c8-0": {
+            "state": "Rejected"
+          },
+          "c8-1": {
+            "state": "Rejected"
+          },
+          "c9-0": {
+            "state": "Rejected"
+          },
+          "c9-1": {
+            "state": "Rejected"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Rejected"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Rejected"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Rejected"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Rejected"
+          },
+          "c9": {
+            "state": "Rejected"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": false,
+          "v:b0": true,
+          "v:b1": true,
+          "v:c0": true,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = False, c1 = False: clause C3 (b0 | b1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "Rejected"
+          },
+          "c4-1": {
+            "state": "Rejected"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Rejected"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = False, c1 = True: clause C3 (b0 | b1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = True, c1 = False: clause C3 (b0 | b1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "False"
+          },
+          "c5-0": {
+            "state": "False"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": true,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = False, c0 = True, c1 = True: clause C3 (b0 | b1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c2"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Rejected"
+          },
+          "c2-1": {
+            "state": "Rejected"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "Rejected"
+          },
+          "c5-1": {
+            "state": "Rejected"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Rejected"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Rejected"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": false,
+          "v:c0": true,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = False, c1 = False: clause C5 (c0 | c1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c4"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "Rejected"
+          },
+          "c4-1": {
+            "state": "Rejected"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "Rejected"
+          },
+          "c7-1": {
+            "state": "Rejected"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "False"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Rejected"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Rejected"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": false,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = False, c1 = True: clause C8 (!a1 | !b1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c7"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "Rejected"
+          },
+          "c7-1": {
+            "state": "Rejected"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "Rejected"
+          },
+          "c9-1": {
+            "state": "Rejected"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Rejected"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Rejected"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = True, c1 = False: clause C8 (!a1 | !b1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c7"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "False"
+          },
+          "c5-0": {
+            "state": "False"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "Rejected"
+          },
+          "c7-1": {
+            "state": "Rejected"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "False"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Rejected"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": true,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = False, b1 = True, c0 = True, c1 = True: clause C6 (!c0 | !c1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c5"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "False"
+          },
+          "c2-1": {
+            "state": "ElementHighlight"
+          },
+          "c3-0": {
+            "state": "ElementHighlight"
+          },
+          "c3-1": {
+            "state": "False"
+          },
+          "c4-0": {
+            "state": "ElementHighlight"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "Rejected"
+          },
+          "c5-1": {
+            "state": "Rejected"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "ElementHighlight"
+          },
+          "c7-0": {
+            "state": "Rejected"
+          },
+          "c7-1": {
+            "state": "Rejected"
+          },
+          "c8-0": {
+            "state": "ElementHighlight"
+          },
+          "c8-1": {
+            "state": "False"
+          },
+          "c9-0": {
+            "state": "Rejected"
+          },
+          "c9-1": {
+            "state": "Rejected"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Rejected"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Rejected"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Rejected"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": false,
+          "v:b1": true,
+          "v:c0": true,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try a0 = False, a1 = True, b0 = True, b1 = False, c0 = False, c1 = False: clause C5 (c0 | c1) has no true literal.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c4"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "ElementHighlight"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "ElementHighlight"
+          },
+          "c4-0": {
+            "state": "Rejected"
+          },
+          "c4-1": {
+            "state": "Rejected"
+          },
+          "c5-0": {
+            "state": "ElementHighlight"
+          },
+          "c5-1": {
+            "state": "ElementHighlight"
+          },
+          "c6-0": {
+            "state": "ElementHighlight"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "ElementHighlight"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "ElementHighlight"
+          },
+          "c9-0": {
+            "state": "ElementHighlight"
+          },
+          "c9-1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Rejected"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": false
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try a0 = False, a1 = True, b0 = True, b1 = False, c0 = False, c1 = True: every clause has a true literal.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "Solution"
+          },
+          "c1-0": {
+            "state": "Solution"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "Solution"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "Solution"
+          },
+          "c5-0": {
+            "state": "Solution"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "Solution"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "Solution"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "Solution"
+          },
+          "c9-0": {
+            "state": "Solution"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "The formula is satisfied by a0 = False, a1 = True, b0 = True, b1 = False, c0 = False, c1 = True.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {}
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "Solution"
+          },
+          "c1-0": {
+            "state": "Solution"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "Solution"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "Solution"
+          },
+          "c5-0": {
+            "state": "Solution"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "Solution"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "Solution"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "Solution"
+          },
+          "c9-0": {
+            "state": "Solution"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "a1 = True, so a takes color 1.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "v:a1"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 1
+        }
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "ElementHighlight"
+          },
+          "c1-0": {
+            "state": "Solution"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "Solution"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "Solution"
+          },
+          "c5-0": {
+            "state": "Solution"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "Solution"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "Solution"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "Solution"
+          },
+          "c9-0": {
+            "state": "Solution"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "b0 = True, so b takes color 0.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "v:b0"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 1,
+          "b": 0
+        }
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "Solution"
+          },
+          "c1-0": {
+            "state": "Solution"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "ElementHighlight"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "Solution"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "Solution"
+          },
+          "c5-0": {
+            "state": "Solution"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "Solution"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "Solution"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "Solution"
+          },
+          "c9-0": {
+            "state": "Solution"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "c1 = True, so c takes color 1.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "v:c1"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 1,
+          "b": 0,
+          "c": 1
+        }
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "Solution"
+          },
+          "c1-0": {
+            "state": "Solution"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "Solution"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "ElementHighlight"
+          },
+          "c5-0": {
+            "state": "Solution"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "Solution"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "Solution"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "Solution"
+          },
+          "c9-0": {
+            "state": "Solution"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{{b},{a,c}} is a valid Graph Coloring answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "groups": {
+          "a": 1,
+          "b": 0,
+          "c": 1
+        }
+      },
+      "target": {
+        "nodes": {
+          "c0-0": {
+            "state": "False"
+          },
+          "c0-1": {
+            "state": "Solution"
+          },
+          "c1-0": {
+            "state": "Solution"
+          },
+          "c1-1": {
+            "state": "False"
+          },
+          "c2-0": {
+            "state": "Solution"
+          },
+          "c2-1": {
+            "state": "False"
+          },
+          "c3-0": {
+            "state": "False"
+          },
+          "c3-1": {
+            "state": "Solution"
+          },
+          "c4-0": {
+            "state": "False"
+          },
+          "c4-1": {
+            "state": "Solution"
+          },
+          "c5-0": {
+            "state": "Solution"
+          },
+          "c5-1": {
+            "state": "False"
+          },
+          "c6-0": {
+            "state": "Solution"
+          },
+          "c6-1": {
+            "state": "False"
+          },
+          "c7-0": {
+            "state": "False"
+          },
+          "c7-1": {
+            "state": "Solution"
+          },
+          "c8-0": {
+            "state": "False"
+          },
+          "c8-1": {
+            "state": "Solution"
+          },
+          "c9-0": {
+            "state": "Solution"
+          },
+          "c9-1": {
+            "state": "False"
+          }
+        },
+        "groups": {
+          "c0": {
+            "state": "Covered"
+          },
+          "c1": {
+            "state": "Covered"
+          },
+          "c2": {
+            "state": "Covered"
+          },
+          "c3": {
+            "state": "Covered"
+          },
+          "c4": {
+            "state": "Covered"
+          },
+          "c5": {
+            "state": "Covered"
+          },
+          "c6": {
+            "state": "Covered"
+          },
+          "c7": {
+            "state": "Covered"
+          },
+          "c8": {
+            "state": "Covered"
+          },
+          "c9": {
+            "state": "Covered"
+          }
+        },
+        "assignment": {
+          "v:a0": false,
+          "v:a1": true,
+          "v:b0": true,
+          "v:b1": false,
+          "v:c0": false,
+          "v:c1": true
+        }
+      }
+    }
+  ]
+}

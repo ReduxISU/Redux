@@ -127,6 +127,21 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
         foreach (UtilCollection node in CLIQUEInstance.graph.Nodes) {
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
+        int elementGadgets = gadgets.Count;
+        // An edge rule per node that gets complement edges: the pairs the clique graph is missing, filed under their first
+        // node as the steps below add them. Then the bound, K' = N - K (#694).
+        var edgeRuleOf = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (string u in CLIQUEInstance.nodes.Distinct()) {
+            var missing = edges.Where(e => e.Key == u).Select(e => new BuildEdge(u, e.Value).Id).ToList();
+            if (missing.Count == 0) continue;
+            edgeRuleOf[u] = gadgets.Count;
+            gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { u }, missing,
+                note: $"{u} is joined to the nodes it has no edge to in the clique graph."));
+        }
+        int boundGadget = gadgets.Count;
+        int coverSize = CLIQUEInstance.nodes.Count - CLIQUEInstance.K;
+        gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(),
+            note: $"K' = N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {coverSize}"));
         // --- Generate G string for new CLIQUE ---
         string nodesString = "";
         foreach (string nodes in CLIQUEInstance.nodes) {
@@ -146,7 +161,7 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
         if (rec.Enabled) {
             string[] all = CLIQUEInstance.nodes.ToArray();
-            int[] gadgetIdx = Enumerable.Range(0, gadgets.Count).ToArray();
+            int[] gadgetIdx = Enumerable.Range(0, elementGadgets).ToArray();
             rec.Accept(
                 () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
                 () => all.Length > 0
@@ -158,7 +173,8 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
                 bool lastNode = n == all.Length - 1;
                 string[] later = edges.Where(e => e.Key == u).Select(e => e.Value).ToArray();
                 BuildEdge[] added = BuildEdge.Sorted(later.Select(v => new BuildEdge(u, v)));
-                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added };
+                int[] rule = edgeRuleOf.TryGetValue(u, out int r) && later.Length > 0 ? [r] : [];
+                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added, Gadgets = rule };
                 Func<string> caption = () => later.Length > 0
                     ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the clique graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
                     : lastNode
@@ -167,7 +183,7 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
                 string[] focus = new[] { u }.Concat(later).ToArray();
                 if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
             }
-            rec.Done(new BuildDelta { Bound = vertexKInt }, true,
+            rec.Done(new BuildDelta { Bound = vertexKInt, Gadgets = [boundGadget] }, true,
                 $"K' = N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {vertexKInt}. The clique graph has a clique of size {CLIQUEInstance.K} exactly when the complement has a vertex cover of size {vertexKInt}.");
         }
         return reducedVERTEXCOVER;

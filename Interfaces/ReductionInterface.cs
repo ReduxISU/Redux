@@ -6,11 +6,10 @@ namespace API.Interfaces;
 // Whether a reduction is valid for ANY instance of its FROM problem (the actual
 // mathematical definition of a reduction) is a fact about the CLASS, not about any
 // particular instance -- so this is a type-level attribute, not an instance property.
-// That matters concretely: a class whose default constructor is itself only valid on
-// specially-shaped input (e.g. SipserReduceToSAT3, whose default ctor chains through
-// `new CLIQUE()` and immediately calls reduce() on it) can't safely be
-// Activator.CreateInstance'd just to ask it "are you general?" -- an attribute answers
-// that via pure reflection over the type, no construction required. Apply to a
+// That matters concretely: a class whose reduce() is only valid on specially-shaped
+// input may not be safely Activator.CreateInstance'd just to ask it "are you general?"
+// (SipserReduceToSAT3's default ctor threw until #767) -- an attribute answers that via
+// pure reflection over the type, no construction required. Apply to a
 // concrete IReduction<,> class that implements the interface for some reason other than
 // "this reduces any FROM instance to a valid TO instance" -- e.g. a solution-mapping
 // companion to one specific other reduction (see SipserReduceToSAT3). Gates whether

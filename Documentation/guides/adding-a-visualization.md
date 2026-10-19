@@ -49,6 +49,8 @@ The list of types lives in [VisualizationType.cs](../../Interfaces/Visualization
 | `GroupedGraph` | not a list item: a `payload` plus `frames` of named states ([`GroupedGraphFrames`](../../Interfaces/graphs/GroupedGraphFrames.cs)) | none yet | SAT, 3SAT (the clause graph). Reported only as the `type` of `visualize?format=frames`; these visualizations still report `BooleanSatisfiability` in /info and in the default list format. See "The Grouped Graph picture" below |
 | `TripartiteMatching` | not a list item: a `payload` plus `frames` of named states ([`TripartiteFrames`](../../Interfaces/Tripartite/TripartiteFrames.cs)) | none yet | 3-Dimensional Matching. Reported only as the `type` of `visualize?format=frames`; its `DM3Visualization` reports `DynamicTable` in /info and in the default list format. See "The Tripartite Matching picture" below |
 | `Table` | not a list item: a `payload` plus `frames` of cell values and named states ([`TableFrames`](../../Interfaces/Table/TableFrames.cs)) | none yet | Edit Distance, 0-1 Integer Linear Programming. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `DynamicTable` in /info and in the default list format. See "The Table picture" below |
+| `LayeredGraph` | not a list item: a `payload` plus `frames` of named states ([`LayeredFrames`](../../Interfaces/graphs/LayeredFrames.cs)) | none yet | Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components, SSSP, SPSP. Reported only as the `type` of `visualize?format=frames`; these visualizations still report `GraphD3` (or `DynamicTable` for the tables, which are unchanged) in /info and in the default list format. See "The Layered Graph picture" below |
+| `BipartiteGraph` | not a list item: a `payload` plus `frames` of named states ([`BipartiteFrames`](../../Interfaces/graphs/BipartiteFrames.cs)) | none yet | Set Cover, Exact Cover, Hitting Set (exact). Reported only as the `type` of `visualize?format=frames`; these visualizations still report `SetD3` in /info and in the default list format. See "The Bipartite Graph picture" below |
 | `SetD3` | [`API_SET`](../../Interfaces/JSON_Objects/API_SET.cs) | [StandardSetSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSetSvgReact.js) | Set Cover, Exact Cover, Partition |
 | `BooleanSatisfiability` | [`API_SAT`](../../Interfaces/JSON_Objects/API_SAT.cs) | [StandardSATSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardSATSvgReact.js) | SAT, 3SAT |
 | `QuantumCircuitD3` | [`API_QUANTUMCIRCUIT`](../../Interfaces/JSON_Objects/API_QUANTUMCIRCUIT.cs) | [StandardCircuitSvgReact.js](https://github.com/ReduxISU/Redux_GUI/blob/ReduxAPI_GUI/components/Visualization/svgs/StandardCircuitSvgReact.js) | Deutsch (D3 view) |
@@ -228,6 +230,85 @@ To add a table:
    `Blank` is the instance with nothing worked out. `Solved` (optional) draws an answer when the steps cannot be drawn. A static `Spec(problem)` next to it lets tests build the same description.
 3. A table that is a second view of a problem that already has another frames picture (an automaton's run, Dijkstra's distances) is its own visualization. It draws the same solver's steps, so the solver is not changed, and the problem's other pictures and default stay as they are.
 4. Prove nothing changed for old clients: snapshot `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/table_solver_answers.tsv`, `TableFrames_Endpoint_Tests`, `TableSolvers_Tests`, `TableFrames_Tests`).
+
+### The Layered Graph picture (`format=frames`)
+
+Directed-graph problems serve the shared `LayeredGraph` picture: the graph ranked left to right so most edges point forward, with the edges that close a cycle drawn as curves under the rows. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the graph. Directed Hamiltonian Cycle is not one of them: it stays a directed tour in the Graph picture.
+
+The problem hands over `LayeredSpec(nodes, edges, rule)` with `Directed`, `K`, `Source` and `Target` where they apply. `edges` are `LayeredEdgeInput(from, to, weight?)` as the instance lists them, parallel edges included. `rule` is one of `TopologicalSort`, `FeedbackArcSet`, `FeedbackNodeSet`, `StronglyConnectedComponents`, `SingleSourceShortestPath`, `SinglePairShortestPath`.
+
+The payload (sent once) is `{ kind: "layeredGraph", layout: "ranked", shape, rule, directed, weighted, nodes, edges, layers, k?, source?, target? }`:
+
+- `shape` is `order` (Topological Sort), `removedSet` (Feedback Arc Set and Node Set), `groups` (Strongly Connected Components) or `distances` (SSSP, SPSP).
+- A node is `{ id, label, layer, row }`. `layers` lists each rank's node ids in row order, so `layers[layer][row]` is the node.
+- An edge is `{ id, a, b, back, weight?, label? }`. `back` is true when it closes a cycle in the layout (draw it under the rows). `weight` is the weight that counts: the lightest of parallel edges. `label` is there only for parallel edges and lists every listed weight in the order listed (`"5,2"`): draw `label` if present, else `weight` (#769). In a directed graph `a→b` and `b→a` are two edges.
+- `directed` is false only for a shortest-path instance written with `{u,v}` edges; then every edge goes both ways and has no arrowhead.
+
+Layout: break cycles by depth-first search (from the source first), rank by the longest path over the other edges, then order each rank by the average row of its neighbors (two down-and-up sweeps), as `mockups/layered.js` does.
+
+Each frame is `{ event, caption, focus, nodes, edges, <annotations>, ok? }`, where `nodes` and `edges` map an id to `{ state }` (absent means `Background`) and the annotations depend on the shape, present in every frame of that shape:
+
+| Shape | Annotations |
+| --- | --- |
+| `order` | `order`: the placed node ids in order (the order badges) |
+| `removedSet` | none |
+| `groups` | `groups`: node id to component index (0-based, in the order found); `finish`: the first pass's finish order (finish number *n* is the *n*-th id) |
+| `distances` | `dist`: every node id to its best known distance, `null` for ∞; `pred`: each reached node to the node it was reached from |
+
+| What | Id | Example |
+| --- | --- | --- |
+| Node `x` (a `\` before every `\`, `-` and `>` in the name) | `{x}` | `1`, `a\-b` |
+| Directed edge from `x` to `y` | `{id of x}>{id of y}` | `1>2` |
+| Undirected edge (shortest paths written with `{u,v}`) | `{smaller}-{larger}` | `1-2` |
+
+Build ids with `LayeredFrames.NodeId`, `ArcId` and `EdgeId`, never by hand. A node id never holds a bare separator and an edge id always does, so no two ids are equal. An id is a label, never something to split: every edge gives its ends as `a` and `b`.
+
+States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`, with `Untraveled` only where nothing else applies):
+
+- **order**: placed nodes `Solution` (Kahn's committed order), nodes ready to place `Covered`; an edge between placed nodes `Solution` (forward), one out of a placed node `Covered`. A `Done` with no order shows the nodes that can never be placed and one cycle among them `Rejected`.
+- **removedSet**: what a candidate removes is `ElementHighlight` while it is tried and `Solution` in an `Accept` or the answer (draw a removed edge dashed). Edges that go with a removed node are `Untraveled`. A cycle that survives is `Rejected`. The brute forces try removing nothing first (#789): that candidate is empty, so nothing is highlighted, and an acyclic graph is accepted at once with the answer `{}`.
+- **groups**: `groups` colors the nodes, so a node in a component has no state; a node visited but not yet in a component is `Covered`; an edge inside a component is `Solution`.
+- **distances**: settled nodes, and the edges they were settled through, `Solution`; reached but not settled `Covered`. In `Done`, nodes never reached are `Untraveled`; for a single pair only the path is `Solution` (the rest of what was settled is `Covered`) and an unreached target is `Rejected`.
+- The focus is `ElementHighlight`, or `Rejected` in a `Reject` of an incremental solver. A run stopped by the time limit ends with a `Done` frame, `ok: false`, every element `Background`; its answer string is never read.
+
+The solvers and their steps (partials hold node names; focus holds picture ids):
+
+- `KahnsAlgorithm` (`Tour`, incremental): a `Try` with the nodes ready to place, then an `Accept` per node placed (focus: that node). A cycle ends with a `Reject` of the nodes that are never freed, then a `Done` that is not ok.
+- `ArcSetBruteForce` (`EdgeSet` of edge ids) and `NodeSetBruteForce` (`NodeSet`), whole candidates: a `Reject` per removal that leaves a cycle (the caption names it), an `Accept` for the one that works.
+- `KosarajuSolver` (`Components`, incremental): pass 1 is a `Try` per visit and per finish; pass 2 an `Accept` per node joining a component (focus: the node and the edge followed backward).
+- `SSSPSolver` and `SPSPSolver` (`Distances`, incremental): a `Try` at the source, then an `Accept` per settled node (focus: the node and the edges it relaxed). SPSP stops when the target is settled.
+
+To add a directed-graph problem:
+
+1. Implement `ILayeredVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape` as `LayeredFrames.StepShape` of its rule.
+2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets solvers (for captions such as `LayeredFrames.SurvivingCycle`) and tests build the same description.
+3. If the list format draws steps of its own, return `true` from `IFramesVisualization.ListReadsTypedSteps()` so it is still called, and have it make its legacy steps itself (as `SSSPVisualization.StepsVisualization` does). A table that makes its own steps declares the typed `StepShape` for the same reason.
+4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/layered_*.tsv`, `LayeredFrames_Endpoint_Tests`, `LayeredSolvers_Tests`, `LayeredFrames_Tests`).
+
+### The Bipartite Graph picture (`format=frames`)
+
+A set problem whose answer picks sets (Set Cover, Exact Cover) or elements (Hitting Set, which is the exact version, #698) can serve the shared `BipartiteGraph` picture: elements in one column, sets in the other, one edge per membership. Like the Graph picture it is additive: `visualize` and `SolvedVisualization` stay as they are, and you add one interface plus a description of the problem.
+
+The problem hands over `BipartiteSpec(universe, sets, k, pick, rule)`: the element names, each set's elements, Set Cover's `K` (or null), the column the answer picks (`BipartitePick.Sets` or `Elements`) and the rule (`BipartiteRule.AtLeastOnce` or `ExactlyOnce`, how often every node of the other column must be hit).
+
+The payload (sent once) is `{ kind: "bipartiteGraph", layout: "columns", pickSide: "sets" | "elements", rule: "atLeastOnce" | "exactlyOnce", elements, sets, edges, k? }`. An element is `{ id, label }`, a set is `{ id, label, members }` (its element ids, in instance order) and an edge is `{ id, a, b }` with `a` the element and `b` the set. Each frame is `{ event, caption, focus, nodes, edges, hits, ok? }`: `nodes` (both columns) and `edges` map an id to `{ state }`, an id that is absent is `Background`, and `hits` maps each node of the other column that the picks hit to how many picks hit it (an annotation for the ×2 badge, not a state).
+
+| What | Id | Example |
+| --- | --- | --- |
+| Element `x` (a `\` before every `\`, `~` and `:` in the name) | `e:{x}` | `e:1`, `e:a\~b` |
+| Set `i` (1-based, instance order; sets are named by position, so two sets with the same elements are two nodes) | `S{i}` | `S2` |
+| The membership of element `x` in set `i` | `{element}~{set}` | `e:1~S2` |
+
+Build ids with `BipartiteFrames.ElementId`, `SetId` and `EdgeId`, never by hand. An id is a label, never something to split: every edge gives its ends as `a` and `b`, and every set lists its `members`.
+
+States: a picked node and its edges are `Solution` in a step that keeps the picks (`Accept`, `Backtrack`, `Done`, and every step of an `IIncrementalSolver`) and `ElementHighlight` in a `Try` or `Reject` of a whole candidate (a brute force). A node of the other column that the picks hit is `Covered`; under `exactlyOnce` one hit more than once is `Rejected` in every step. One that is not hit is `Rejected` only when a complete candidate is judged (`Done`, or a whole candidate's `Try` or `Reject`) and something is picked: while an answer is being built, and for the empty pick, nothing has failed yet. Under `exactlyOnce`, a pick that is not taken but would double up on a covered node is `Blocked` (not while a whole candidate is only being tried). The focus is `ElementHighlight`, or `Rejected` in a `Reject` of an incremental run; a pick in the focus marks its edges too. The order when several apply is `Rejected > ElementHighlight > Solution > Covered > Blocked > Background`. A run stopped by the time limit ends with a `Done` frame with `ok: false`, every element `Background` and no `hits`; its answer string is never read.
+
+To add a problem:
+
+1. Implement `IBipartiteVisualization<T>` on the default visualization, **explicitly**, so nothing new appears in `/info`, and declare the step shape: `Type? IVisualization.StepShape => typeof(ChosenSets);` for an answer that picks sets, `typeof(NodeSet)` for one that picks elements (`BipartiteFrames.StepShape`).
+2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets the solvers build captions from the same description.
+3. Make each solver implement `ISolver<T, ChosenSets>` (set ids, `S1`, `S2`, ...) or `ISolver<T, NodeSet>` (element names), and mark the ones that build an answer piece by piece with `IIncrementalSolver`. A brute force records each candidate as a `Reject` (or the winning `Accept`) with `BipartiteFrames.Why` in the caption ("Try {S1,S2}: 5 isn't covered."); a greedy records each pick as an `Accept` and a final `Reject` for a cover that is incomplete or over K; a backtracking search (Algorithm X) records `Accept` for a set it takes, `Reject` for an element no set can cover (focus: the element) or a budget it exceeds (focus: the set), and `Backtrack` for a set it undoes. Always end with `Done`, whose `ok` is the verifier's verdict on the answer (`{}` is the empty collection).
+4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer on seeded instances before touching code (`Endpoints/Snapshots/`, `BipartiteFrames_Endpoint_Tests`, `BipartiteSolvers_Tests`, `BipartiteFrames_Tests`).
 
 ## 3. How Redux finds your visualization
 

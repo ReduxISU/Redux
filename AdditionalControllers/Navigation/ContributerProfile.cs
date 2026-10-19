@@ -192,9 +192,8 @@ public class ContributorProfileController : ControllerBase {
         // Reflection-derived registry (ProblemProvider.Reductions) — the same mapping
         // ReductionGraphData.Build() (Nav_Reductions.cs) iterates to serve
         // /Navigation/Reductions, so this can never drift from what that endpoint
-        // considers a registered reduction. Some reductions (e.g. SipserReduceToSAT3)
-        // have no parameterless constructor and can't safely be Activator.CreateInstance'd
-        // on their own — skip them instead of failing the whole lookup, same as
+        // considers a registered reduction. A reduction whose parameterless constructor
+        // throws is skipped instead of failing the whole lookup, same as
         // ReductionCostCatalog.
         foreach (var type in ProblemProvider.Reductions.Values) {
             try {

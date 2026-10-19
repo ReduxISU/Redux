@@ -1,0 +1,645 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "reduceToCLIQUE",
+  "reductionName": "Clique Reduction",
+  "solver": "Clique Brute Force",
+  "source": {
+    "problem": "Independent Set",
+    "instance": "(({a,b,c,d},{{a,b},{b,c},{c,d}}),2)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          },
+          {
+            "id": "d",
+            "label": "d"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-b",
+            "a": "a",
+            "b": "b"
+          },
+          {
+            "id": "b-c",
+            "a": "b",
+            "b": "c"
+          },
+          {
+            "id": "c-d",
+            "a": "c",
+            "b": "d"
+          }
+        ],
+        "shape": "subset",
+        "rule": "independentSet",
+        "k": 2
+      }
+    }
+  },
+  "target": {
+    "problem": "Clique",
+    "instance": "(({a,b,c,d},{{a,c},{a,d},{b,d}}),2)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          },
+          {
+            "id": "d",
+            "label": "d"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-c",
+            "a": "a",
+            "b": "c"
+          },
+          {
+            "id": "a-d",
+            "a": "a",
+            "b": "d"
+          },
+          {
+            "id": "b-d",
+            "a": "b",
+            "b": "d"
+          }
+        ],
+        "shape": "subset",
+        "rule": "clique",
+        "k": 2
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "edges": [
+        "a-c",
+        "a-d",
+        "b-d"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "d"
+      ]
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a-c",
+        "a-d"
+      ],
+      "note": "a is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b-d"
+      ],
+      "note": "b is joined to the nodes it has no edge to in the graph."
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 2"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Copy every node of the graph (a, b, c, d) into the clique graph, with the same names. Its edges will be the pairs the graph is missing.",
+      "sourceFocus": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "targetFocus": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 0
+      },
+      "gadgets": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node a has no edge to c, d in the original graph, so it gets those edges in the complement.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "a",
+        "c",
+        "d",
+        "a-c",
+        "a-d"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "ElementHighlight"
+          },
+          "a-d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 2
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node b has no edge to d in the original graph, so it gets that edge in the complement.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "b",
+        "d",
+        "b-d"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b-d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 3
+      },
+      "gadgets": [
+        5
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Reject",
+      "caption": "Node c is already joined to every later node in the original graph, so it gets no new edges.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 3
+      }
+    },
+    {
+      "phase": "build",
+      "event": "Reject",
+      "caption": "Node d is the last node: the steps above already gave it its edges in the complement.",
+      "sourceFocus": [
+        "d"
+      ],
+      "targetFocus": [
+        "d"
+      ],
+      "source": {
+        "nodes": {
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "d": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 3
+      }
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "K stays 2. 2 nodes with no edge between them in the original graph are 2 nodes joined to each other in the complement.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": [],
+        "builtNodes": 4,
+        "builtEdges": 3
+      },
+      "bound": 2,
+      "gadgets": [
+        6
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try {a,b}: a and b aren\u0027t joined.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "a",
+        "b"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": [
+          {
+            "a": "a",
+            "b": "b",
+            "state": "Rejected"
+          }
+        ]
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try {a,c}. Every pair is joined.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "a",
+        "c"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "{a,c} is a clique, found after 2 tries.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "c": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node a is in the clique of the complement graph, so it shares no edge with the others in the original: it is in the independent set.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "a"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "Blocked"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Node c is in the clique of the complement graph, so it shares no edge with the others in the original: it is in the independent set.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "b": {
+            "state": "Blocked"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          },
+          "d": {
+            "state": "Blocked"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{a,c} is a valid Independent Set answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "b": {
+            "state": "Blocked"
+          },
+          "c": {
+            "state": "Solution"
+          },
+          "d": {
+            "state": "Blocked"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a": {
+            "state": "Solution"
+          },
+          "c": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-c": {
+            "state": "Solution"
+          }
+        },
+        "phantoms": []
+      }
+    }
+  ]
+}

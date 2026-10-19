@@ -4,6 +4,7 @@ using API.Problems.NPComplete.NPC_CLIQUE.Verifiers;
 using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
+using API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 using API.Interfaces;
 using SPADE;
 
@@ -62,6 +63,16 @@ public class CLIQUE_Tests {
         Assert.Equal(expected, verifier.verify(clique, certificate));
     }
 
+    [Theory] // repeated names count once, so a repeat cannot make a clique bigger (#766)
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),3)", "{1,1,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),2)", "{1,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),3)", "{1,2,1}", false)]
+    [InlineData("(({1,2,3},{{1,2},{2,3}}),2)", "{1,2,1}", true)]
+    public void CLIQUE_verifier_counts_repeated_nodes_once(string instance, string certificate, bool expected) {
+        CLIQUE clique = new CLIQUE(instance);
+        Assert.Equal(expected, new CliqueVerifier().verify(clique, certificate));
+    }
+
     [Fact]
     public void CLIQUE_verifier_rejects_empty_certificate() {
         CLIQUE clique = new CLIQUE();
@@ -118,6 +129,22 @@ public class CLIQUE_Tests {
         Assert.Equal(sat.clauses.Count, reduced.K);
         string certificate = reduced.defaultSolver.solve(reduced);
         Assert.True(reduced.defaultVerifier.verify(reduced, certificate));
+    }
+
+    [Fact] // the default constructor starts from 3SAT's default formula, Sipser-formatted (#767)
+    public void SipserReduceToSAT3_Default_Constructor_Reduces_The_Default_Instance() {
+        SipserReduceToSAT3 reduction = new SipserReduceToSAT3();
+        SAT3 sat = new SAT3();
+        CLIQUE expectedFrom = new SipserReduceToCliqueStandard(sat).reductionTo;
+
+        Assert.Equal(expectedFrom.instance, reduction.reductionFrom.instance);
+        Assert.Equal(sat.clauses.Count, reduction.reductionTo.clauses.Count);
+        Assert.Equal(reduction.reductionTo.instance, reduction.reduce().instance);
+
+        // A clique of the default instance maps back to an assignment that satisfies the formula.
+        string clique = reduction.reductionFrom.defaultSolver.solve(reduction.reductionFrom);
+        string assignment = reduction.mapSolutions(clique);
+        Assert.True(reduction.reductionTo.defaultVerifier.verify(reduction.reductionTo, assignment));
     }
 
     // -------------------------------------------------------------------------

@@ -1,0 +1,830 @@
+{
+  "type": "Reduction",
+  "kind": "reduction",
+  "reduction": "LawlerKarp",
+  "reductionName": "Lawler-Karp Arc Set Reduction",
+  "solver": "Arc Set Brute Force",
+  "source": {
+    "problem": "Vertex Cover",
+    "instance": "(({a,b,c},{{a,b},{b,c}}),1)",
+    "picture": {
+      "type": "Graph",
+      "payload": {
+        "kind": "graph",
+        "subtype": "undirected",
+        "layout": "force",
+        "nodes": [
+          {
+            "id": "a",
+            "label": "a"
+          },
+          {
+            "id": "b",
+            "label": "b"
+          },
+          {
+            "id": "c",
+            "label": "c"
+          }
+        ],
+        "edges": [
+          {
+            "id": "a-b",
+            "a": "a",
+            "b": "b"
+          },
+          {
+            "id": "b-c",
+            "a": "b",
+            "b": "c"
+          }
+        ],
+        "shape": "subset",
+        "rule": "vertexCover",
+        "k": 1
+      }
+    }
+  },
+  "target": {
+    "problem": "Feedback Arc Set",
+    "instance": "(({a0,a1,b0,b1,c0,c1},{(a1,b0),(b1,a0),(b1,c0),(c1,b0),(a0,a1),(b0,b1),(c0,c1)}),1)",
+    "picture": {
+      "type": "LayeredGraph",
+      "payload": {
+        "kind": "layeredGraph",
+        "layout": "ranked",
+        "shape": "removedSet",
+        "rule": "feedbackArcSet",
+        "directed": true,
+        "weighted": false,
+        "nodes": [
+          {
+            "id": "a0",
+            "label": "a0",
+            "layer": 0,
+            "row": 0
+          },
+          {
+            "id": "a1",
+            "label": "a1",
+            "layer": 1,
+            "row": 0
+          },
+          {
+            "id": "b0",
+            "label": "b0",
+            "layer": 2,
+            "row": 0
+          },
+          {
+            "id": "b1",
+            "label": "b1",
+            "layer": 3,
+            "row": 0
+          },
+          {
+            "id": "c0",
+            "label": "c0",
+            "layer": 4,
+            "row": 0
+          },
+          {
+            "id": "c1",
+            "label": "c1",
+            "layer": 5,
+            "row": 0
+          }
+        ],
+        "edges": [
+          {
+            "id": "a1\u003Eb0",
+            "a": "a1",
+            "b": "b0",
+            "back": false
+          },
+          {
+            "id": "b1\u003Ea0",
+            "a": "b1",
+            "b": "a0",
+            "back": true
+          },
+          {
+            "id": "b1\u003Ec0",
+            "a": "b1",
+            "b": "c0",
+            "back": false
+          },
+          {
+            "id": "c1\u003Eb0",
+            "a": "c1",
+            "b": "b0",
+            "back": true
+          },
+          {
+            "id": "a0\u003Ea1",
+            "a": "a0",
+            "b": "a1",
+            "back": false
+          },
+          {
+            "id": "b0\u003Eb1",
+            "a": "b0",
+            "b": "b1",
+            "back": false
+          },
+          {
+            "id": "c0\u003Ec1",
+            "a": "c0",
+            "b": "c1",
+            "back": false
+          }
+        ],
+        "layers": [
+          [
+            "a0"
+          ],
+          [
+            "a1"
+          ],
+          [
+            "b0"
+          ],
+          [
+            "b1"
+          ],
+          [
+            "c0"
+          ],
+          [
+            "c1"
+          ]
+        ],
+        "k": 1
+      }
+    },
+    "buildOrder": {
+      "nodes": [
+        "a0",
+        "a1",
+        "b0",
+        "b1",
+        "c0",
+        "c1"
+      ],
+      "edges": [
+        "a0\u003Ea1",
+        "b0\u003Eb1",
+        "c0\u003Ec1",
+        "a1\u003Eb0",
+        "b1\u003Ea0",
+        "b1\u003Ec0",
+        "c1\u003Eb0"
+      ]
+    }
+  },
+  "gadgets": [
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a0",
+        "a1",
+        "a0\u003Ea1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "b0",
+        "b1",
+        "b0\u003Eb1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "c0",
+        "c1",
+        "c0\u003Ec1"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "a1\u003Eb0",
+        "b1\u003Ea0"
+      ]
+    },
+    {
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-c"
+      ],
+      "targetIds": [
+        "b1\u003Ec0",
+        "c1\u003Eb0"
+      ]
+    },
+    {
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 1"
+    }
+  ],
+  "frames": [
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node a becomes two nodes, a0 and a1, joined by the arc a0 \u2192 a1. Removing that arc is how the arc set picks a.",
+      "sourceFocus": [
+        "a"
+      ],
+      "targetFocus": [
+        "a0",
+        "a1",
+        "a0\u003Ea1"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a0": {
+            "state": "ElementHighlight"
+          },
+          "a1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a0\u003Ea1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "builtNodes": 2,
+        "builtEdges": 1
+      },
+      "gadgets": [
+        0
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node b becomes two nodes, b0 and b1, joined by the arc b0 \u2192 b1. Removing that arc is how the arc set picks b.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "b0",
+        "b1",
+        "b0\u003Eb1"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "b0": {
+            "state": "ElementHighlight"
+          },
+          "b1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b0\u003Eb1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "builtNodes": 4,
+        "builtEdges": 2
+      },
+      "gadgets": [
+        1
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Node c becomes two nodes, c0 and c1, joined by the arc c0 \u2192 c1. Removing that arc is how the arc set picks c.",
+      "sourceFocus": [
+        "c"
+      ],
+      "targetFocus": [
+        "c0",
+        "c1",
+        "c0\u003Ec1"
+      ],
+      "source": {
+        "nodes": {
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "c0": {
+            "state": "ElementHighlight"
+          },
+          "c1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "c0\u003Ec1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "builtNodes": 6,
+        "builtEdges": 3
+      },
+      "gadgets": [
+        2
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Edge {a,b} becomes the arcs a1 \u2192 b0 and b1 \u2192 a0, closing the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0. Removing a0 \u2192 a1 or b0 \u2192 b1 breaks it, as a or b covers the edge.",
+      "sourceFocus": [
+        "a-b",
+        "a",
+        "b"
+      ],
+      "targetFocus": [
+        "a1",
+        "b0",
+        "b1",
+        "a0",
+        "a1\u003Eb0",
+        "b1\u003Ea0"
+      ],
+      "source": {
+        "nodes": {
+          "a": {
+            "state": "ElementHighlight"
+          },
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "a0": {
+            "state": "ElementHighlight"
+          },
+          "a1": {
+            "state": "ElementHighlight"
+          },
+          "b0": {
+            "state": "ElementHighlight"
+          },
+          "b1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a1\u003Eb0": {
+            "state": "ElementHighlight"
+          },
+          "b1\u003Ea0": {
+            "state": "ElementHighlight"
+          }
+        },
+        "builtNodes": 6,
+        "builtEdges": 5
+      },
+      "gadgets": [
+        3
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "Edge {b,c} becomes the arcs b1 \u2192 c0 and c1 \u2192 b0, closing the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0. Removing b0 \u2192 b1 or c0 \u2192 c1 breaks it, as b or c covers the edge.",
+      "sourceFocus": [
+        "b-c",
+        "b",
+        "c"
+      ],
+      "targetFocus": [
+        "b1",
+        "c0",
+        "c1",
+        "b0",
+        "b1\u003Ec0",
+        "c1\u003Eb0"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          },
+          "c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b-c": {
+            "state": "ElementHighlight"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {
+          "b0": {
+            "state": "ElementHighlight"
+          },
+          "b1": {
+            "state": "ElementHighlight"
+          },
+          "c0": {
+            "state": "ElementHighlight"
+          },
+          "c1": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "b1\u003Ec0": {
+            "state": "ElementHighlight"
+          },
+          "c1\u003Eb0": {
+            "state": "ElementHighlight"
+          }
+        },
+        "builtNodes": 6,
+        "builtEdges": 7
+      },
+      "gadgets": [
+        4
+      ]
+    },
+    {
+      "phase": "build",
+      "event": "Accept",
+      "caption": "K stays 1: removing at most 1 arc can leave no cycle exactly when at most 1 node can cover every edge.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {},
+        "builtNodes": 6,
+        "builtEdges": 7
+      },
+      "bound": 1,
+      "gadgets": [
+        5
+      ]
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try removing nothing: the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0 is there.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a0\u003Ea1": {
+            "state": "Rejected"
+          },
+          "a1\u003Eb0": {
+            "state": "Rejected"
+          },
+          "b0\u003Eb1": {
+            "state": "Rejected"
+          },
+          "b1\u003Ea0": {
+            "state": "Rejected"
+          }
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try removing {(a1,b0)}: the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0 is still there.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "a1\u003Eb0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a1\u003Eb0": {
+            "state": "ElementHighlight"
+          },
+          "b0\u003Eb1": {
+            "state": "Rejected"
+          },
+          "b1\u003Ec0": {
+            "state": "Rejected"
+          },
+          "c0\u003Ec1": {
+            "state": "Rejected"
+          },
+          "c1\u003Eb0": {
+            "state": "Rejected"
+          }
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try removing {(b1,a0)}: the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0 is still there.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "b1\u003Ea0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "b0\u003Eb1": {
+            "state": "Rejected"
+          },
+          "b1\u003Ea0": {
+            "state": "ElementHighlight"
+          },
+          "b1\u003Ec0": {
+            "state": "Rejected"
+          },
+          "c0\u003Ec1": {
+            "state": "Rejected"
+          },
+          "c1\u003Eb0": {
+            "state": "Rejected"
+          }
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try removing {(b1,c0)}: the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0 is still there.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "b1\u003Ec0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a0\u003Ea1": {
+            "state": "Rejected"
+          },
+          "a1\u003Eb0": {
+            "state": "Rejected"
+          },
+          "b0\u003Eb1": {
+            "state": "Rejected"
+          },
+          "b1\u003Ea0": {
+            "state": "Rejected"
+          },
+          "b1\u003Ec0": {
+            "state": "ElementHighlight"
+          }
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try removing {(c1,b0)}: the cycle a0 \u2192 a1 \u2192 b0 \u2192 b1 \u2192 a0 is still there.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "c1\u003Eb0"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a0\u003Ea1": {
+            "state": "Rejected"
+          },
+          "a1\u003Eb0": {
+            "state": "Rejected"
+          },
+          "b0\u003Eb1": {
+            "state": "Rejected"
+          },
+          "b1\u003Ea0": {
+            "state": "Rejected"
+          },
+          "c1\u003Eb0": {
+            "state": "ElementHighlight"
+          }
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Reject",
+      "caption": "Try removing {(a0,a1)}: the cycle b0 \u2192 b1 \u2192 c0 \u2192 c1 \u2192 b0 is still there.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "a0\u003Ea1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "a0\u003Ea1": {
+            "state": "ElementHighlight"
+          },
+          "b0\u003Eb1": {
+            "state": "Rejected"
+          },
+          "b1\u003Ec0": {
+            "state": "Rejected"
+          },
+          "c0\u003Ec1": {
+            "state": "Rejected"
+          },
+          "c1\u003Eb0": {
+            "state": "Rejected"
+          }
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Try removing {(b0,b1)}. No cycle is left.",
+      "sourceFocus": [],
+      "targetFocus": [
+        "b0\u003Eb1"
+      ],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "b0\u003Eb1": {
+            "state": "ElementHighlight"
+          }
+        }
+      }
+    },
+    {
+      "phase": "solve",
+      "event": "Accept",
+      "caption": "Removing {(b0,b1)} leaves no cycle, within K = 1. Found after 7 tries.",
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {},
+        "edges": {},
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "b0\u003Eb1": {
+            "state": "Solution"
+          }
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Accept",
+      "caption": "Arc b0 \u2192 b1 is removed. It is node b\u0027s own arc, so b is in the vertex cover.",
+      "sourceFocus": [
+        "b"
+      ],
+      "targetFocus": [
+        "b0\u003Eb1"
+      ],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "ElementHighlight"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Covered"
+          },
+          "b-c": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "b0\u003Eb1": {
+            "state": "ElementHighlight"
+          }
+        }
+      }
+    },
+    {
+      "phase": "map",
+      "event": "Done",
+      "caption": "{b} is a valid Vertex Cover answer.",
+      "ok": true,
+      "sourceFocus": [],
+      "targetFocus": [],
+      "source": {
+        "nodes": {
+          "b": {
+            "state": "Solution"
+          }
+        },
+        "edges": {
+          "a-b": {
+            "state": "Covered"
+          },
+          "b-c": {
+            "state": "Covered"
+          }
+        },
+        "phantoms": []
+      },
+      "target": {
+        "nodes": {},
+        "edges": {
+          "b0\u003Eb1": {
+            "state": "Solution"
+          }
+        }
+      }
+    }
+  ]
+}

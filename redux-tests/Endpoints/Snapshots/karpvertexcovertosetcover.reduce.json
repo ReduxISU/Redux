@@ -1,0 +1,389 @@
+{
+  "reductionName": "Karp\u0027s Set Cover Reduction",
+  "reductionDefinition": "",
+  "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+  "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/ReduceTo/NPC_SETCOVER/KarpVertexCoverToSetCover.cs",
+  "contributors": [
+    "Caleb Eardley"
+  ],
+  "visualization": {
+    "visualizationName": "Set Cover Visualization",
+    "visualizationDefinition": "This is a default visualization for Set Cover",
+    "visualizationType": "SetD3",
+    "source": "",
+    "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Visualizations/SetCoverDefaultVisualization.cs",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "solver": {
+      "solverName": "Set Cover Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Set Cover problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Solvers/SetCoverBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^m * u^2",
+        "Description": ", m = |subsets|, u = |universal|",
+        "VariableNames": [
+          "m",
+          "u"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    }
+  },
+  "gadgets": [
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a"
+      ],
+      "reductionToIds": [
+        "S1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "S1"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-b"
+      ],
+      "reductionToIds": [
+        "e:a_b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-b"
+      ],
+      "targetIds": [
+        "e:a_b"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-c"
+      ],
+      "reductionToIds": [
+        "e:a_c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-c"
+      ],
+      "targetIds": [
+        "e:a_c"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "a-e"
+      ],
+      "reductionToIds": [
+        "e:a_e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a-e"
+      ],
+      "targetIds": [
+        "e:a_e"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b"
+      ],
+      "reductionToIds": [
+        "S2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
+        "S2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "b-e"
+      ],
+      "reductionToIds": [
+        "e:b_e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b-e"
+      ],
+      "targetIds": [
+        "e:b_e"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c"
+      ],
+      "reductionToIds": [
+        "S3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
+        "S3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c-d"
+      ],
+      "reductionToIds": [
+        "e:c_d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c-d"
+      ],
+      "targetIds": [
+        "e:c_d"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d"
+      ],
+      "reductionToIds": [
+        "S4"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
+        "S4"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e"
+      ],
+      "reductionToIds": [
+        "S5"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
+        "S5"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [],
+      "reductionToIds": [],
+      "gadgetKind": "bound",
+      "sourceIds": [],
+      "targetIds": [],
+      "note": "K stays 3"
+    }
+  ],
+  "reductionFrom": {
+    "problemName": "Vertex Cover",
+    "formalDefinition": "VERTEXCOVER = {\u003CG, k\u003E | G in an undirected graph that has a k-node vertex cover}",
+    "problemDefinition": "A vertex cover is a subset of nodes S, such that every edge in the graph, G, touches a node in S.",
+    "inputDescription": "G, a graph, and k, the target vertex cover size",
+    "outputDescription": "True or False, whether the given set of nodes is a vertex cover of G",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
+    "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
+    "complexityClass": "NPComplete",
+    "problemType": "GraphTheory",
+    "contributors": [
+      "Janita Aamir",
+      "Alex Diviney"
+    ],
+    "defaultSolver": {
+      "solverName": "Vertex Cover Brute Force",
+      "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+      "contributors": [
+        "Caleb Eardley"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^n * n * (n \u002B m)",
+        "Description": ", n = |nodes|, m = |edges|",
+        "VariableNames": [
+          "n",
+          "m"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Vertex Cover Verifier",
+      "verifierDefinition": "This is a Vertex Cover Verifier.",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Janita Aamir",
+        "Alex Diviney"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Vertex Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Vertex Cover",
+      "visualizationType": "GraphD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+      "contributors": [
+        "Russell Phillips"
+      ],
+      "solver": {
+        "solverName": "Vertex Cover Brute Force",
+        "solverDefinition": "This solver simply tests combinations of nodes of size k until a solution is found, or all combinations are tested.",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBruteForce.cs",
+        "contributors": [
+          "Caleb Eardley"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "2^n * n * (n \u002B m)",
+          "Description": ", n = |nodes|, m = |edges|",
+          "VariableNames": [
+            "n",
+            "m"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "reductionTo": {
+    "problemName": "Set Cover",
+    "formalDefinition": "Sub Cover = {\u003CS,T,k\u003E | S is a set of elements, and there exists a grouping of k T subsetse equal to S}",
+    "problemDefinition": "Given a set of elements and a collection S of m sets whose union equals the universe, the set cover problem is to identify the smallest sub-collection of S whose union equals the universe",
+    "inputDescription": "U, a universe of elements, S, a collection of subsets of U, and k, the maximum number of subsets",
+    "outputDescription": "True or False, whether k subsets from S can be chosen whose union covers U",
+    "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
+    "sourceFile": "Problems/NPComplete/NPC_SETCOVER/SETCOVER_Class.cs",
+    "wikiName": "",
+    "defaultInstance": "({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)",
+    "instance": "({a_b,a_c,a_e,b_e,c_d},{{a_b,a_c,a_e},{a_b,b_e},{a_c,c_d},{c_d},{a_e,b_e}},3)",
+    "instanceFormat": "Format: {(U,S,K) | U is set, S subset {a | a subset U}} Example: ({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)",
+    "certificateFormat": "Format: {sub1,...,subK} subset S | union of chosen subsets covers the universal set U Example: {{1,2,3},{4,5}}",
+    "complexityClass": "NPComplete",
+    "problemType": "SetsAndPartitions",
+    "contributors": [
+      "Andrija Sevaljevic"
+    ],
+    "defaultSolver": {
+      "solverName": "Set Cover Brute Force",
+      "solverDefinition": "This is a brute force solver for the NP-Complete Set Cover problem",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Solvers/SetCoverBruteForce.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "timerHasExpired": false,
+      "solverType": "BruteForce",
+      "timeComplexity": {
+        "Function": "2^m * u^2",
+        "Description": ", m = |subsets|, u = |universal|",
+        "VariableNames": [
+          "m",
+          "u"
+        ]
+      },
+      "spaceComplexity": null,
+      "complexityBucket": "Exponential"
+    },
+    "defaultVerifier": {
+      "verifierName": "Default Set Cover Verifier",
+      "verifierDefinition": "This is a verifier for Set Cover",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Verifiers/SetCoverVerifier.cs",
+      "certificate": "",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ]
+    },
+    "defaultVisualization": {
+      "visualizationName": "Set Cover Visualization",
+      "visualizationDefinition": "This is a default visualization for Set Cover",
+      "visualizationType": "SetD3",
+      "source": "",
+      "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Visualizations/SetCoverDefaultVisualization.cs",
+      "contributors": [
+        "Andrija Sevaljevic"
+      ],
+      "solver": {
+        "solverName": "Set Cover Brute Force",
+        "solverDefinition": "This is a brute force solver for the NP-Complete Set Cover problem",
+        "source": "",
+        "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Solvers/SetCoverBruteForce.cs",
+        "contributors": [
+          "Andrija Sevaljevic"
+        ],
+        "timerHasExpired": false,
+        "solverType": "BruteForce",
+        "timeComplexity": {
+          "Function": "2^m * u^2",
+          "Description": ", m = |subsets|, u = |universal|",
+          "VariableNames": [
+            "m",
+            "u"
+          ]
+        },
+        "spaceComplexity": null,
+        "complexityBucket": "Exponential"
+      }
+    }
+  },
+  "cost": "Linear",
+  "reductionType": "Restriction",
+  "complexityBucket": "Polynomial"
+}

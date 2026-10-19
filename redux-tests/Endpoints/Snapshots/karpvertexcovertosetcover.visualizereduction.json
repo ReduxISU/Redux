@@ -1,0 +1,344 @@
+[
+  {
+    "kind": "set",
+    "data": {
+      "isOrdered": true,
+      "isValue": false,
+      "id": "r",
+      "list": [
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-0",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-a_b",
+              "value": "a_b",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-a_c",
+              "value": "a_c",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-a_e",
+              "value": "a_e",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-b_e",
+              "value": "b_e",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-c_d",
+              "value": "c_d",
+              "color": "Background"
+            }
+          ]
+        },
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-1",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_b,a_c,a_e}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,a_c,a_e}-a_b",
+                  "value": "a_b",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,a_c,a_e}-a_c",
+                  "value": "a_c",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,a_c,a_e}-a_e",
+                  "value": "a_e",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_b,b_e}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,b_e}-a_b",
+                  "value": "a_b",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,b_e}-b_e",
+                  "value": "b_e",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_c,c_d}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_c,c_d}-a_c",
+                  "value": "a_c",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_c,c_d}-c_d",
+                  "value": "c_d",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{c_d}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{c_d}-c_d",
+                  "value": "c_d",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_e,b_e}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_e,b_e}-a_e",
+                  "value": "a_e",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_e,b_e}-b_e",
+                  "value": "b_e",
+                  "color": "Background"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-2",
+          "value": "3",
+          "color": "Background"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "set",
+    "data": {
+      "isOrdered": true,
+      "isValue": false,
+      "id": "r",
+      "list": [
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-0",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-a_b",
+              "value": "a_b",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-a_c",
+              "value": "a_c",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-a_e",
+              "value": "a_e",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-b_e",
+              "value": "b_e",
+              "color": "Background"
+            },
+            {
+              "isOrdered": false,
+              "isValue": true,
+              "id": "r-0-c_d",
+              "value": "c_d",
+              "color": "Background"
+            }
+          ]
+        },
+        {
+          "isOrdered": false,
+          "isValue": false,
+          "id": "r-1",
+          "list": [
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_b,a_c,a_e}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,a_c,a_e}-a_b",
+                  "value": "a_b",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,a_c,a_e}-a_c",
+                  "value": "a_c",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,a_c,a_e}-a_e",
+                  "value": "a_e",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_b,b_e}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,b_e}-a_b",
+                  "value": "a_b",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_b,b_e}-b_e",
+                  "value": "b_e",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_c,c_d}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_c,c_d}-a_c",
+                  "value": "a_c",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_c,c_d}-c_d",
+                  "value": "c_d",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{c_d}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{c_d}-c_d",
+                  "value": "c_d",
+                  "color": "Background"
+                }
+              ]
+            },
+            {
+              "isOrdered": false,
+              "isValue": false,
+              "id": "r-1-{a_e,b_e}",
+              "list": [
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_e,b_e}-a_e",
+                  "value": "a_e",
+                  "color": "Background"
+                },
+                {
+                  "isOrdered": false,
+                  "isValue": true,
+                  "id": "r-1-{a_e,b_e}-b_e",
+                  "value": "b_e",
+                  "color": "Background"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "isOrdered": false,
+          "isValue": true,
+          "id": "r-2",
+          "value": "3",
+          "color": "Background"
+        }
+      ]
+    }
+  }
+]
