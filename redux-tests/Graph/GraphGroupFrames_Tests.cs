@@ -200,11 +200,11 @@ public class GraphGroupFrames_Tests {
     public void Serialization_AlwaysCarriesGroups_AndOmitsBackgroundAndAMissingOk() {
         string json = JsonSerializer.Serialize(GraphGroupFrames.Frame(Spec(GroupRule.Coloring), Of(("a", 0)), StepEvent.Accept, [], "x"), FramesResponse.JsonOptions);
         Assert.Contains("\"groups\"", json);
-        Assert.Contains("\"a\": 0", json);
+        Assert.Contains("\"a\":0", json);
         Assert.DoesNotContain("Background", json);
         Assert.DoesNotContain("\"ok\"", json);
         string empty = JsonSerializer.Serialize(GraphGroupFrames.Frame(Spec(GroupRule.Coloring), new Groups([]), StepEvent.Done, [], "x", false), FramesResponse.JsonOptions);
-        Assert.Contains("\"groups\": {}", empty);
+        Assert.Contains("\"groups\":{}", empty);
     }
 
     // ---- reading answers and captions ----

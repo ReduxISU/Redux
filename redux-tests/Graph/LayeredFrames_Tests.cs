@@ -217,7 +217,7 @@ public class LayeredFrames_Tests {
         Assert.Equal(new Dictionary<string, string> { ["2"] = "1", ["3"] = "1" }, f.Pred);
 
         var json = JsonSerializer.Serialize(f, FramesResponse.JsonOptions);
-        Assert.Contains("\"4\": null", json);
+        Assert.Contains("\"4\":null", json);
     }
 
     [Fact]

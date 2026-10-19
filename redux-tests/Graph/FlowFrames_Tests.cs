@@ -44,7 +44,7 @@ public class FlowFrames_Tests {
         Assert.Equal(["id", "label", "layer", "row"], doc.RootElement.GetProperty("nodes")[0].EnumerateObject().Select(p => p.Name));
         Assert.Equal(["id", "a", "b", "capacity", "label"], doc.RootElement.GetProperty("edges")[0].EnumerateObject().Select(p => p.Name));
         string single = Json(FlowFrames.Payload(Spec(["s", "t"], [("s", "t", 2)], "s", "t")));
-        Assert.DoesNotContain("\"label\": \"", single.Split("\"edges\"")[1]);
+        Assert.DoesNotContain("\"label\":\"", single.Split("\"edges\"")[1]);
     }
 
     [Fact]

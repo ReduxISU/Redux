@@ -201,7 +201,7 @@ public class GraphEdgeFrames_Tests {
         Assert.Empty(f.Edges);
         Assert.Empty(f.Groups!);
         Assert.False(f.Ok);
-        Assert.Contains("\"groups\": {}", JsonSerializer.Serialize(f, FramesResponse.JsonOptions));
+        Assert.Contains("\"groups\":{}", JsonSerializer.Serialize(f, FramesResponse.JsonOptions));
     }
 
     [Fact]
