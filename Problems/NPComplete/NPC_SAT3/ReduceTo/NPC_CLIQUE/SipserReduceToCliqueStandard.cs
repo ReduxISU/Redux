@@ -116,13 +116,20 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
     // Construction steps (see IRecordedReduction): one per clause (its literal nodes), one per pair of
     // clauses (the edges between them, and the contradictory pairs left without one), then K. They are
     // collected from the very decisions below, so what is recorded is what is built.
+    // Gadgets: an element per literal and a group per clause, then (#908) the edge rules (one per clause: its nodes are
+    // never joined; one per pair of nodes from different clauses: joined, or left out when they contradict), then K.
     private CLIQUE Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
         UtilCollection nodes = new("{}");
         UtilCollection edges = new("{}");
         bool recording = rec.Enabled;
-        List<string[]>? clauseNodes = recording ? new() : null;
+        int clauseCount = reductionFrom.clauses.Count;
+        List<string[]> clauseNodes = new();
+        // The literal id ("c{i}-{j}") each node stands for, so an edge rule names the two literals of its pair.
+        var literalIdOf = new Dictionary<string, string>(StringComparer.Ordinal);
+        // The same-clause rules come right after the elements and groups: one element per literal and one group per clause.
+        int sameClauseRules = reductionFrom.clauses.Sum(c => c.Count) + clauseCount;
         for (int i = 0; i < reductionFrom.clauses.Count; i++) {
             List<string> nodesInClause = new();
             int firstGadget = gadgets.Count;
@@ -135,17 +142,18 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
                 nodes.Add(new UtilCollection(nodeName));
 
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { "c" + i + "-" + j }, new List<string> { nodeName }));
+                literalIdOf[nodeName] = "c" + i + "-" + j;
                 nodesInClause.Add(nodeName);
             }
             gadgets.Add(new Gadget(GadgetKind.Group, new List<string>() { "c" + i }, nodesInClause));
+            clauseNodes.Add(nodesInClause.Distinct().ToArray());
 
             if (recording) {
                 int clause = i;
-                string[] clauseNames = nodesInClause.Distinct().ToArray();
-                clauseNodes!.Add(clauseNames);
+                string[] clauseNames = clauseNodes[clause];
                 string[] sourceIds = new[] { "c" + clause }
                     .Concat(Enumerable.Range(0, reductionFrom.clauses[clause].Count).Select(j => "c" + clause + "-" + j)).ToArray();
-                int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
+                int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).Append(sameClauseRules + clause).ToArray();
                 rec.Accept(
                     () => new BuildDelta { SourceFocus = sourceIds, Nodes = clauseNames, Gadgets = gadgetIdx },
                     () => $"Clause C{clause + 1} ({string.Join(" | ", reductionFrom.clauses[clause])}) becomes nodes {BuildCaptions.Names(clauseNames)}, with no edges between them.",
@@ -153,20 +161,18 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
             }
         }
 
-        // The edges and the contradictory pairs, bucketed by the pair of clauses they join (only when recording).
-        SortedDictionary<(int, int), (List<(string A, string B)> Edges, List<(string A, string B)> Skipped)>? byPair = recording ? new() : null;
+        // The edges and the contradictory pairs, bucketed by the pair of clauses they join (the edge rules and the steps use them).
+        SortedDictionary<(int, int), (List<(string A, string B)> Edges, List<(string A, string B)> Skipped)> byPair = new();
         foreach (UtilCollection node1 in nodes)
             foreach (UtilCollection node2 in nodes) {
                 if (node1.Equals(node2)) continue;
                 if (fromSameClause(node1, node2)) continue; //no edges between nodes of the same clause
                 bool inverse = isInverse(node1, node2);
-                if (recording) {
-                    int c1 = clauseOf(node1.ToString()), c2 = clauseOf(node2.ToString());
-                    // Every pair of nodes is visited twice; keep the visit that matches the edge's direction in the target.
-                    if (c1 < c2) {
-                        if (!byPair!.TryGetValue((c1, c2), out var bucket)) byPair[(c1, c2)] = bucket = (new(), new());
-                        (inverse ? bucket.Skipped : bucket.Edges).Add((node1.ToString(), node2.ToString()));
-                    }
+                int c1 = clauseOf(node1.ToString()), c2 = clauseOf(node2.ToString());
+                // Every pair of nodes is visited twice; keep the visit that matches the edge's direction in the target.
+                if (c1 < c2) {
+                    if (!byPair.TryGetValue((c1, c2), out var bucket)) byPair[(c1, c2)] = bucket = (new(), new());
+                    (inverse ? bucket.Skipped : bucket.Edges).Add((node1.ToString(), node2.ToString()));
                 }
                 if (inverse) continue; //no edges between literals that are always opposite of eachother
 
@@ -177,19 +183,48 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
             }
         reductionTo = new CLIQUE($"(({nodes},{edges}),{reductionFrom.clauses.Count})");
 
+        // The pair rule (#908). One edge rule per clause for the pairs inside it, which are never joined: from the clause to its nodes.
+        for (int i = 0; i < clauseCount; i++)
+            gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { "c" + i }, clauseNodes[i].ToList(),
+                note: $"Nodes from the same clause, C{i + 1}, are never joined."));
+        // Then one per pair of nodes from different clauses, from its two literals: to the edge between them when they are
+        // joined, or to the two nodes when they contradict and are left unjoined (that pair has no edge of its own to name).
+        // As many as the target has edges and missing pairs between clauses, like Weighted Cut's rule per pair of numbers.
+        List<string> LiteralIds(string a, string b) => new List<string> { literalIdOf[a], literalIdOf[b] };
+        var pairRules = new Dictionary<(int, int), int[]>();
+        foreach (var ((c1, c2), bucket) in byPair) {
+            var rules = new List<int>();
+            foreach (var (a, b) in bucket.Edges.OrderBy(e => new BuildEdge(e.A, e.B).Id, StringComparer.Ordinal)) {
+                rules.Add(gadgets.Count);
+                gadgets.Add(new Gadget(GadgetKind.EdgeRule, LiteralIds(a, b), new List<string> { new BuildEdge(a, b).Id },
+                    note: $"{a} and {b} are from different clauses and do not contradict each other, so they are joined."));
+            }
+            foreach (var (a, b) in bucket.Skipped.OrderBy(e => new BuildEdge(e.A, e.B).Id, StringComparer.Ordinal)) {
+                rules.Add(gadgets.Count);
+                gadgets.Add(new Gadget(GadgetKind.EdgeRule, LiteralIds(a, b), new List<string> { a, b },
+                    note: $"{a} and {b} contradict each other, so they are not joined."));
+            }
+            pairRules[(c1, c2)] = rules.ToArray();
+        }
+        // K, from the whole formula: one node per clause. The clique graph has no piece of its own for K.
+        int boundGadget = gadgets.Count;
+        var clauseIds = Enumerable.Range(0, clauseCount).Select(i => "c" + i).ToList();
+        gadgets.Add(new Gadget(GadgetKind.Bound, clauseIds, new List<string>(), note: $"K = {clauseCount}, the number of clauses"));
+
         if (recording) {
-            foreach (var ((c1, c2), bucket) in byPair!) {
-                string[] focus = clauseNodes![c1].Concat(clauseNodes[c2]).ToArray();
+            foreach (var ((c1, c2), bucket) in byPair) {
+                string[] focus = clauseNodes[c1].Concat(clauseNodes[c2]).ToArray();
                 BuildEdge[] added = BuildEdge.Sorted(bucket.Edges.Select(e => new BuildEdge(e.A, e.B)));
                 BuildEdge[] skipped = BuildEdge.Sorted(bucket.Skipped.Select(e => new BuildEdge(e.A, e.B)));
                 var contradictions = bucket.Skipped;
-                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { "c" + c1, "c" + c2 }, Edges = added, Skipped = skipped };
+                int[] rules = pairRules[(c1, c2)];
+                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { "c" + c1, "c" + c2 }, Edges = added, Skipped = skipped, Gadgets = rules };
                 Func<string> caption = () => $"Join clauses C{c1 + 1} and C{c2 + 1}: {BuildCaptions.Count(added.Length, "edge")}."
                     + string.Concat(contradictions.Select(e => $" {e.A} and {e.B} contradict each other, so no edge."));
                 if (added.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
             }
             int k = reductionFrom.clauses.Count;
-            rec.Done(new BuildDelta { Bound = k }, true,
+            rec.Done(new BuildDelta { SourceFocus = clauseIds.ToArray(), Bound = k, Gadgets = [boundGadget] }, true,
                 $"K = {k}, one node per clause: a clique of {k} nodes has to take one node from every clause.");
         }
         return reductionTo;
