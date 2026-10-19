@@ -1,4 +1,6 @@
+using System.IO.Compression;
 using System.Reflection;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi;
 using Microsoft.Extensions.Options;
@@ -14,6 +16,16 @@ builder.Services.AddHttpClient("quantum", (sp, client) => {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddControllers();
+// Compress responses for clients that ask (Accept-Encoding), Brotli first. Visualization and Reduction View responses run
+// to megabytes of JSON that compresses to a few percent, and the Fastest level costs a few milliseconds at most (#909).
+builder.Services.AddResponseCompression(options => {
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["application/problem+json"]);
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {
@@ -43,6 +55,9 @@ builder.Services.AddSwaggerGen(options => {
     options.OperationFilter<ReductionsResponseExampleFilter>();
 });
 var app = builder.Build();
+
+// First, so every response after it (static files, Swagger, controllers) can be compressed.
+app.UseResponseCompression();
 
 app.UseStaticFiles();
 
