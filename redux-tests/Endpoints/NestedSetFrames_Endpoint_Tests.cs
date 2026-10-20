@@ -94,7 +94,7 @@ public class NestedSetFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var json = JsonDocument.Parse(await _client.GetStringAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken)).RootElement;
         Assert.Equal(Row(vis).Name, json.GetProperty("visualizationName").GetString());
         Assert.Equal("SetD3", json.GetProperty("visualizationType").GetString());
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             json.EnumerateObject().Select(p => p.Name));
         // Its own solver is the Bipartite picture's.
         var bipartite = JsonDocument.Parse(await _client.GetStringAsync($"/ProblemProvider/info?interface={Row(vis).Bipartite}", TestContext.Current.CancellationToken)).RootElement;
