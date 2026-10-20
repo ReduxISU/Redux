@@ -4,6 +4,7 @@ This guide is for contributors who want a Redux problem to draw a picture, and f
 
 - To see what each picture type looks like and what it needs, read [PICTURE-TYPES.md](PICTURE-TYPES.md).
 - To port the mockups into the frontends, or to see what the backend has and what is still planned, read [README.md](README.md).
+- To write a visualization by hand that uses none of the picture types, read §8.
 
 > **Status.** The names below are the real ones on the integration branch. They reach `CSharpAPI` in small PRs (tracker #655): typed steps are merged (#734); most picture types, the Reduction View and the time limit are still in review or waiting. If a name isn't on your base branch yet, check the tracker.
 
@@ -81,7 +82,7 @@ Find your problem in the index of [PICTURE-TYPES.md](PICTURE-TYPES.md). If it's 
 - A grid of cells? **Board**.
 - A dynamic program, a constraint matrix or a trace? **Table**.
 
-If none fits, open an issue under the tracker (#655) with a sketch before writing code. New picture types are mocked up and approved first ([README.md](README.md) §1).
+If none fits, open an issue under the tracker (#655) with a sketch before writing code. New picture types are mocked up and approved first ([README.md](README.md) §1). To draw it by hand without a picture type in the meantime, see §8: a handwritten visualization is tagged "Unclassified" and still drawn wherever a frontend can draw it.
 
 ### 4.2 Implement the picture's interface
 
@@ -123,7 +124,7 @@ Don't override `BuildFrames`, `ListReadsTypedSteps`, `PictureType` or `DrawsAnsw
 
 ### 4.3 Register it
 
-1. Add the visualization to the problem's list of visualizations as today. Nothing else: the visualize endpoint finds the frames hook, and `/info` reports `pictureType` by itself.
+1. Put the class in the problem's `Visualizations/` folder. Nothing else: the server finds every `IVisualization` class by reflection and ties it to the problem its `IVisualization<TProblem>` names (§8.1 has the details), the visualize endpoint finds the frames hook, and `/info` reports `pictureType` by itself.
 2. If you added a new **picture type** (rare), add the `VisualizationType` value and the matching entry in `Documentation/visualization-types.json` in the same change; CI compares them. Redux_GUI keeps a vendored copy that needs the same entry.
 
 ### 4.4 Test the JSON
@@ -351,7 +352,275 @@ NFA uses the same `ActiveStates`. `NFASolver` is a depth-first search that recor
 - The `List<Object>` cast: steps are typed.
 - TikZ, once every frontend draws the Automaton picture (TikZ leaves Redux after every visualization is ported).
 
-## 8. Checklist for a pull request
+## 8. A custom visualization outside the picture types
+
+The picture types cover most problems, but a contributor can still write a visualization by hand that uses none of them. The project's rule: **a handwritten visualization is tagged "Unclassified", and it is still drawn wherever a frontend can draw it.** Nothing in the backend refuses one. This section says what the backend does with it, what each frontend does with a type it doesn't know, and how to make one draw.
+
+Prefer a picture type when one fits (§4.1): it is drawn by both frontends' shared renderers, its states follow the shared rules, and its frames line up with every other picture of the run. Write a custom one when no type fits and a new type isn't worth a mockup and an approval yet, or to try an idea out before proposing it as a type.
+
+### 8.1 Step 1: the backend, two ways
+
+**(a) A legacy list visualization.** Implement `IVisualization<TProblem>` (or `IVisualization<TProblem, TPayload>` to name the payload class) and serve the old flat list: `visualize` (the instance), `SolvedVisualization` (the answer) and, optionally, `StepsVisualization` (one item per step). Every item is an `API_JSON`.
+
+```csharp
+using API.Interfaces;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_JOBSEQ;
+using API.Problems.NPComplete.NPC_JOBSEQ.Solvers;
+
+// The payload. Use properties: the list format is written without IncludeFields, so a public field is silently dropped.
+class API_Lateness : API_JSON {
+    public string kind { get; } = "lateness";
+    public List<string> rows { get; set; } = new();
+}
+
+class JobSeqLatenessVisualization : IVisualization<JOBSEQ, API_Lateness> {
+    public string visualizationName { get; } = "Job Sequencing Lateness";
+    public string visualizationDefinition { get; } = "How late each job finishes, in the order the solver tries.";
+    public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
+    public string[] contributors { get; } = { "Your Name" };
+    public VisualizationType visualizationType { get; } = VisualizationType.DynamicTable; // see below
+    public ISolver solver { get; } = new JobSeqBruteForce();
+
+    public API_Lateness visualize(JOBSEQ problem) => new();
+    public API_JSON SolvedVisualization(JOBSEQ problem, string solution) => new API_Lateness { rows = { solution } };
+
+    // Optional: typed steps for the list. Declare the shape your solver records (explicitly, so /info doesn't show it);
+    // the list format then hands StepsVisualization that solver's SolverStep<JobOrder> objects.
+    Type? IVisualization.StepShape => typeof(JobOrder);
+    public List<API_JSON> StepsVisualization(JOBSEQ problem, List<object> steps) =>
+        steps.Cast<SolverStep<JobOrder>>().Select(s => (API_JSON)new API_Lateness { rows = { s.Caption } }).ToList();
+}
+```
+
+- **`visualizationType` is not a free string.** It is the `VisualizationType` enum, and it is what Redux_GUI picks its renderer by (§8.2). Declare the existing value whose renderer can draw your payload (an `API_TableJSON` under `DynamicTable`, an `API_GraphJSON` under `GraphD3`), or add a new value. A new value goes in three places in one change set (README §3.3): the enum, `Documentation/visualization-types.json` (`VisualizationType_Tests.ManifestMatchesEnum`), and Redux_GUI's vendored `visualizationTypes.json` plus a key in its `Visualizations.js`, which `npm run check:visualizations` requires for every manifest value. `Unimplemented` is allowed only for classes on `VisualizationType_Tests.UnimplementedAllowlist`, and neither frontend offers it (§8.2).
+- **Steps.** The list format gives a legacy visualization the solver's steps only when their shape matches its `StepShape`: `SolverStep<TPartial>` objects for a typed solver, the solver's own objects for an untyped one (`StepShape` null, the default). With another shape it gets none, and the response is the instance and the answer.
+- **Under `format=frames`** it gets the generic wrapping: `{ "type": "<its visualizationType>", "payload": <visualize(instance)>, "frames": [<each StepsVisualization item>, <SolvedVisualization(instance, answer)>] }`. `payload` is null when `visualize` returns `API_empty`, and empty items are left out. A run stopped by the time limit gets no closing item. The frames are your list items as they are: no `event`, `caption`, `focus`, `ok` or `step` unless your payload has fields by those names. This is the old list in an envelope, not a picture.
+- **`pictureType` is null** in `/info`, in the problem's `defaultVisualization` and in `allInfo` (`PictureTypes.Of` returns null for a visualization with no frames hook). That null means "no frames picture": `visualizeRun` lists the visualization in `unavailable` with reason `no_frames`, and the Reduction View can't draw a side with it (400 `no_source_picture` / `no_target_picture`).
+
+**(b) A frames visualization with its own picture type.** Implement `IFramesVisualization` and build the whole response yourself: a type name, a payload with a `kind`, and one frame per step.
+
+```csharp
+using System.Text.Json.Serialization;
+using API.Interfaces;
+using API.Interfaces.Graphs;    // GraphSubsetFrames: DrawnSteps, Picked, StoppedCaption; StateRef
+using API.Interfaces.Schedule;  // ScheduleFrames: JobId, Runs, ParseJobOrder; JobScheduleSpec
+using API.Interfaces.Steps;
+
+sealed record TimelinePayload(
+    [property: JsonPropertyName("kind")] string Kind,
+    [property: JsonPropertyName("jobs")] IReadOnlyList<string> Jobs);
+
+sealed record TimelineFrame(
+    [property: JsonPropertyName("event")] StepEvent Event,
+    [property: JsonPropertyName("caption")] string Caption,
+    [property: JsonPropertyName("focus")] string[] Focus,
+    [property: JsonPropertyName("jobs")] IReadOnlyDictionary<string, StateRef> Jobs) {
+    // Always written, null on a frame you add yourself (#895).
+    [JsonPropertyName("step")] [JsonIgnore(Condition = JsonIgnoreCondition.Never)] public int? Step { get; init; }
+    [JsonPropertyName("ok")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public bool? Ok { get; init; }
+}
+
+class JobSeqTimelineVisualization : IVisualization<JOBSEQ, API_TableJSON>, IFramesVisualization {
+    // ... the legacy members (visualizationName, ..., visualizationType, solver, visualize, SolvedVisualization) ...
+
+    Type? IVisualization.StepShape => typeof(JobOrder);
+
+    FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) { ... } // §8.5 has it in full
+}
+```
+
+- **The type name.** `FramesResponse.Type` is a plain string, and the visualize endpoint sends whatever you put there. On the integration branch, though, `PictureType_Endpoint_Tests` checks that every frames visualization's type is a `VisualizationType` name, so a new picture type name is a new enum value and manifest entry (the three places above). There is no "custom" escape value: that is a gap, and the test is where to change it if the project decides a free-form type name should pass.
+- **`pictureType`** in `/info` and `allInfo` is that type name. You don't declare it: the default `PictureType()` builds your frames once for the problem's default instance, from an empty stopped run (`SolveRun.TimedOutAnswer`, then `"{}"` if that throws), and reads `Type` off the response. So `BuildFrames` must cope with a run that has no steps, and the name in `/info` always matches what `format=frames` returns.
+- **`DrawsAnswerAlone()`.** Leave it true (the default) if your picture shows an answer: given the steps of another shape (`SolveRun.StepsFor` returns none), draw the payload and one Done frame from the answer, `step: null`. Return false only for a picture of the search itself; `VisualizeRun_Shape_Tests.OnlyTheSearchTree_CannotDrawTheAnswerAlone` currently allows that only for the Search Tree, so a second such picture means changing that test.
+- **Implement everything new explicitly** (`Type? IVisualization.StepShape`, `FramesResponse IFramesVisualization.BuildFrames`), so `/info` shows only the legacy members and `pictureType`. `/info` is written with `IncludeFields`: a public field on the visualization class appears in it, and a default interface member never does.
+- **Keep the list members.** They are not optional: `IVisualization` requires them, and they are what both frontends draw until they have a renderer for your type (§8.2). The simplest list format is another visualization's, by delegation, as `SatFactorGraphVisualization` reuses `SatDefaultVisualization`'s.
+
+**Registration and discovery** are the same for both:
+
+1. Put the class in `Problems/<class>/<problem>/Visualizations/`. Nothing lists it: at startup `ProblemProvider` scans the assembly for classes that implement `IVisualization` (`ScanTypes`), keyed by lower-cased class name, so the name must be unique among visualizations (a clash throws at startup).
+2. It belongs to the problem named by its `IVisualization<TProblem>`, or, failing that, by its own `solver`'s `ISolver<TProblem>` (`ProblemOfVisualization`). The Navigation endpoints (`Problem_VisualizationsRefactor`, `Batch/allVisualizations`, `allVisualizationTypes`, `allInfo`) and `visualizeRun` list it from then on. The problem's default stays the problem's `defaultVisualization`; an extra visualization changes nothing for old clients.
+3. It needs a public parameterless constructor (Navigation and `/info` create it with `Activator.CreateInstance`).
+
+**The step shape.** Steps come from the solver, typed by answer shape (§5): `ISolver<TProblem, TPartial>` records `SolverStep<TPartial>` through a `StepRecorder<TPartial>`, and `ISolver.Run` returns a `SolveRun` (`Answer`, `Steps`, `StepShape`, `TimedOut`, `Incremental`). Your visualization's `StepShape` must equal the solver's `TPartial` for its steps to reach it: `run.StepsFor(StepShape)` hands over the steps when the shapes match and nothing otherwise. Use an existing shape from `Shapes.cs` (here `JobOrder`) so every solver that already records it animates your picture with no change to the solver.
+
+### 8.2 Step 2: what each frontend does with a type it doesn't know
+
+**Redux_Frontend** (the renderers on `task/239-gadgets`; the catalog change is PR FE#269):
+
+- **Catalog cards and filter (FE#269).** The card's chip comes from `derivePictureTypeOption` (`data/taxonomy.js`): `pictureType` from `allInfo` if it is a string, else the legacy type. A `pictureType` the site has no entry for, or (with `pictureType` null) a legacy type it has no entry for, is the chip **Unclassified**, and the Visualization filter counts it under Unclassified like any other option. So a legacy visualization that declares `DynamicTable` is filed under that type's option, and one that declares a new value or a new picture type reads Unclassified. Only `Unimplemented` gets no chip and no count. Before FE#269 (`task/239-gadgets`), an unknown type got no chip at all.
+- **Problem page dropdown.** Every visualization of the problem is offered except a legacy `Unimplemented` one (`Workbench.js` drops only types the legacy map sends to null). An unknown type is tagged with its own name.
+- **Which request.** `lib/pictureRequest.js` asks for `format=frames` only when `pictureType` is unknown to it (`undefined`) or names a picture type with a renderer (`registry.js`, `PICTURE_RENDERERS`), and keeps the response only when its `type` is in `PICTURE_RENDERERS`. Otherwise it asks again without `format` and draws the flat list. So a custom frames picture with no renderer here is drawn from its **list format**, and so is the generic wrapping of a legacy visualization (its `type` is a legacy name, never a picture renderer). `visualizeRun` is used only for a visualization whose picture has a renderer; a run's picture with no renderer is listed as `no_renderer`, and its pane shows the instance with the note "… isn't drawn from this run, so it shows the instance."
+- **Drawing the list.** `VisualizationCanvas` picks a renderer with `resolveVisualizationType(visualizationType, frame)` (`data/visualizationTypes.js`): the frame's `kind` wins when it names one of the six universal types (`graph`, `quantumCircuit`, `booleanSatisfiability`, `recursiveSet`, `stepTable`, `pumpSchedule`), else the legacy type is mapped (`GraphD3` and `GraphLaTeX` to `graph`, `SetD3` to `recursiveSet`, `DynamicTable` to `stepTable`, …). If neither maps, it shows its cannot-render message, "This visualization type isn't supported yet." A frame that maps but doesn't validate shows "Cannot render: this frame's data doesn't match what this visualization type expects."
+
+**Redux_GUI** (`ReduxAPI_GUI`):
+
+- It never asks for `format=frames` and never reads `pictureType`: it calls `visualize` for the flat list and picks the renderer by the legacy `visualizationType` alone (`components/Visualization/svgs/Visualizations.js`, checked by `renderability.js` `isRenderable`). A frames picture of any type, built-in or custom, is drawn from its list format here.
+- **Dropdown** (`VisualizeRowReact.js`): every visualization is listed; one whose `visualizationType` has no key in `Visualizations.js`, or is `Unimplemented`, is disabled with "(no renderer available)" and never auto-selected, and its type tag reads "Unimplemented" (`visualizationCategories.js`). If it is drawn anyway, the pane says `<problem> declares type "<type>", which this interface can't render.` A renderer that throws shows "The <name> visualization (type "…") failed to render."
+- **Browse page filter and cards** group by the legacy type's category; an unknown type is counted only under "Unimplemented", and a card lists only renderable categories. Redux_GUI has no "Unclassified" chip.
+
+So in both frontends a custom visualization is **listed** whatever its type, and **drawn** exactly when its list format is something the frontend can already draw.
+
+### 8.3 Step 3: making a custom visualization draw
+
+There are two ways.
+
+**(i) Send a payload in a shape the frontends already draw.** For the list format (both frontends): return an existing payload class and declare its legacy type: `API_GraphJSON` (`kind: "graph"`) under `GraphD3`, `API_TableJSON` (`kind: "table"`) under `DynamicTable`, an `API_QUANTUMCIRCUIT` with a `d3` arm under `QuantumCircuitD3`, `API_SET` under `SetD3`, `API_SAT` under `BooleanSatisfiability`. Redux_GUI goes by the declared type; Redux_Frontend goes by a universal `kind` first (only `graph` and `quantumCircuit` among the backend's kinds; `table`, `sat` and `set` are mapped through the declared type). For `format=frames`, "an existing shape" means an existing picture type: if your drawing fits one, use it (§4) and you are back on the supported path. A frames response with a new `type` is never drawn by an existing renderer, whatever its payload looks like, because both renderer tables key on `type`.
+
+**(ii) Add a renderer.** This is a new picture type in all but name: mock it up and get it approved first (README §1).
+
+- Redux_Frontend, for a frames type (the steps are in the header of `components/pictures/registry.js`):
+  1. `components/pictures/<Type>Renderer.js`: SVG inside `DiagramZoom`, colors only from `pictureStates.js` `pictureStateStyle()`, gadget marks with `gadgetRings.js`, `data-*-id` on every piece.
+  2. `components/pictures/registry.js`: the renderer in `PICTURE_RENDERERS` under the exact `type`; optionally `PICTURE_ANNOTATIONS` (Legend entries), `LEGEND_BY_STEP`, `PICTURE_PLAIN_FRAMES`, `PICTURE_RUNS`.
+  3. `lib/reductionView.js`: `PIECE_ID_ATTRIBUTES` for a new `data-*-id`, and `viewPictureWorkable` if the Reduction View needs a rule for it.
+  4. `components/workbench/Legend.js` for a new swatch kind; `pictureStates.js` and `themeTokens.js` only for a new state (avoid one).
+  5. `data/taxonomy.js` (the type's label and its catalog option, `PICTURE_TYPE_MAP` after FE#269) and `data/pictureTypes.js` (`PICTURE_TYPE_INFO`). Until the type is in `PICTURE_TYPE_MAP` its card chip stays Unclassified.
+  6. A payload captured from the live API in `tests/e2e/picture-payloads.js`, covered in `tests/e2e/picture-renderers.spec.js`.
+
+  For a legacy list type, the old path instead: `VISUALIZATION_TYPE_MAP` in `data/visualizationTypes.js`, `RENDERERS` in `components/detail/visualizations/VisualizationCanvas.js`, and a validator for `validateFrame`.
+- Redux_GUI (legacy types only; it has no frames renderers at all):
+  1. `components/Visualization/svgs/<X>SvgReact.js`.
+  2. A render factory and a `["<VisualizationType>", factory]` entry in the `new Map([...])` of `Visualizations.js` (the key a double-quoted literal, first in its pair: the check reads it with a regex).
+  3. The value in the vendored `components/Visualization/svgs/visualizationTypes.json`, copied from Redux's `Documentation/visualization-types.json`.
+  4. Its category in `VISUALIZATION_TYPE_CATEGORIES` (`svgs/visualizationCategories.js`), or its tag and filter read "Unimplemented".
+  5. `npm run check:visualizations`.
+
+  A Redux_GUI renderer for a frames picture would first need the GUI to request `format=frames` at all. That doesn't exist yet: it is a gap for every picture type, not just custom ones.
+
+### 8.4 Step 4: draw the steps, or the answer alone
+
+Visualizations in Redux are expected to draw their problem's **default solver's steps** through the frames format: the project wants every solver and every reduction to show how it works, not just its answer. A custom visualization is no exception:
+
+- Pick its `StepShape` to be the answer shape the problem's default solver records (`problem.defaultSolver`, and the visualization's own `solver`), so the default run animates. Check with `visualize?format=frames` (no `solver=`) and with `visualizeRun?solver=<default solver>`.
+- Draw every step you are given, one frame each, in order, with `step` set to its index from `GraphSubsetFrames.DrawnSteps<TPartial>(run)` (never your own count), and follow the shared rules: `Solution` only on the confirmed answer, `Committed` for what an incremental solver keeps, the picks `Rejected` on a Done with `ok: false`, a blank Done after a time-limit stop (§5.3, `GraphSubsetFrames.Picked`).
+- **When it can't draw the steps** (a solver of another shape, an untyped legacy solver, a stopped run with nothing drawable), fall back to the answer alone: the payload and one added Done frame built from `run.Answer`, `step: null`, `ok` from the problem's own verifier. That is what `DrawsAnswerAlone() => true` promises, and `FrameStep_Tests.RunOfAnotherShape_OnlyAnAddedFrame_WithNoStep` checks it for every frames visualization.
+- A legacy list visualization can draw steps only through `StepsVisualization`, with the matching `StepShape` (§8.1); its frames have no `step`, so they can't line up with the other pictures of a run.
+
+### 8.5 Step 5: checklist and a worked example
+
+**Checklist**
+
+- [ ] No picture type fits (§4.1), and the visualization is an extra one: the problem's `defaultVisualization` is unchanged.
+- [ ] The class has a unique name, a parameterless constructor, and `IVisualization<TProblem>` naming its problem.
+- [ ] Its list format (`visualize`, `SolvedVisualization`) returns a payload an existing legacy renderer draws, under that renderer's `visualizationType`, unless you also add the renderers (§8.3).
+- [ ] Payload classes use properties, not fields, and carry a `kind`.
+- [ ] A frames type: every new member is explicit; the type name is a `VisualizationType` value in the manifest; `BuildFrames` works on an empty stopped run; every frame has `step`; the answer alone draws when the steps can't.
+- [ ] Its `StepShape` is what the default solver records, and the default run animates.
+- [ ] You read the real JSON: `/ProblemProvider/info?interface=<class>` (`visualizationType`, `pictureType`), `visualize` in both formats, and `visualizeRun`.
+- [ ] The full test suite passes (`FrameStep_Tests`, `VisualizeRun_Shape_Tests`, `PictureType_Endpoint_Tests` and `VisualizationType_Tests` cover a new visualization by reflection).
+
+**Worked example: a deadline timeline for Job Sequencing.** The Schedule picture already draws Job Sequencing's bars; suppose a teacher wants a simpler second view, one row per job in run order with its slack (deadline minus finish time) and the late ones marked. It reuses Job Sequencing's answer shape `JobOrder` (`J0`, `J1`, … in run order), so `JobSeqBruteForce` animates it with no change, and `ScheduleFrames.Runs` already works out each job's start, end and lateness. Its list format is the default visualization's job table (`DynamicTable`), so both frontends draw that table until one has a `Timeline` renderer.
+
+```csharp
+using System.Text.Json.Serialization;
+using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.JSON_Objects.Tables;
+using API.Interfaces.Schedule;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_JOBSEQ;
+using API.Problems.NPComplete.NPC_JOBSEQ.Solvers;
+using API.Problems.NPComplete.NPC_JOBSEQ.Visualizations;
+
+sealed record TimelineJob(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("label")] string Label,
+    [property: JsonPropertyName("deadline")] int Deadline,
+    [property: JsonPropertyName("penalty")] int Penalty);
+
+sealed record TimelinePayload(
+    [property: JsonPropertyName("kind")] string Kind,
+    [property: JsonPropertyName("k")] int K,
+    [property: JsonPropertyName("jobs")] IReadOnlyList<TimelineJob> Jobs);
+
+/// <summary>One frame: the jobs placed so far, in run order, each with its slack, and a state per job.</summary>
+sealed record TimelineFrame(
+    [property: JsonPropertyName("event")] StepEvent Event,
+    [property: JsonPropertyName("caption")] string Caption,
+    [property: JsonPropertyName("focus")] string[] Focus,
+    [property: JsonPropertyName("order")] IReadOnlyList<string> Order,
+    [property: JsonPropertyName("slack")] IReadOnlyDictionary<string, int> Slack,
+    [property: JsonPropertyName("jobs")] IReadOnlyDictionary<string, StateRef> Jobs) {
+    [JsonPropertyName("step")] [JsonIgnore(Condition = JsonIgnoreCondition.Never)] public int? Step { get; init; }
+    [JsonPropertyName("ok")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public bool? Ok { get; init; }
+}
+
+class JobSeqTimelineVisualization : IVisualization<JOBSEQ, API_TableJSON>, IFramesVisualization {
+    public string visualizationName { get; } = "Job Sequencing Timeline";
+    public string visualizationDefinition { get; } = "One row per job in the order it runs, with its slack: how long before its deadline it finishes. A late job is marked.";
+    public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
+    public string[] contributors { get; } = { "Your Name" };
+    public VisualizationType visualizationType { get; } = VisualizationType.DynamicTable;
+    public ISolver solver { get; } = new JobSeqBruteForce();
+
+    // The list format is the default visualization's table, so every frontend draws something today.
+    private readonly JobSeqVisualization _list = new();
+    public API_TableJSON visualize(JOBSEQ problem) => _list.visualize(problem);
+    public API_JSON SolvedVisualization(JOBSEQ problem, string solution) => _list.SolvedVisualization(problem, solution);
+
+    // --- The Timeline picture (format=frames only) ---
+    Type? IVisualization.StepShape => typeof(JobOrder);
+
+    FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
+        var problem = ParseGuard.CreateProblem<JOBSEQ>(instance);
+        var spec = JobSeqVisualization.Spec(problem);
+        var payload = new TimelinePayload("timeline", problem.K,
+            spec.Jobs.Select((j, i) => new TimelineJob(ScheduleFrames.JobId(i), $"Job {i}", j.Deadline, j.Penalty)).ToList());
+
+        var frames = new List<object>();
+        bool lastIsDone = false;
+        foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<JobOrder>(run)) {
+            frames.Add((run.TimedOut && step.Event == StepEvent.Done
+                ? Blank(step.Caption)
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
+            lastIsDone = step.Event == StepEvent.Done;
+        }
+        if (run.TimedOut) {
+            if (!lastIsDone) frames.Add(Blank(GraphSubsetFrames.StoppedCaption));
+        } else if (!lastIsDone) {
+            // The answer alone: steps of another shape, or a solver that records none.
+            bool ok;
+            try { ok = problem.defaultVerifier.verify(instance, run.Answer); } catch { ok = false; }
+            var answer = ScheduleFrames.ParseJobOrder(spec.Jobs.Count, run.Answer);
+            frames.Add(Frame(spec, answer, StepEvent.Done, [], ok ? "The answer." : "No order works.", ok));
+        }
+        return new FramesResponse("Timeline", payload, frames);
+    }
+
+    private static TimelineFrame Frame(JobScheduleSpec spec, JobOrder order, StepEvent ev, string[] focus, string caption,
+        bool? ok, bool incremental = false, bool endsRun = false) {
+        var index = Enumerable.Range(0, spec.Jobs.Count).ToDictionary(ScheduleFrames.JobId, i => i, StringComparer.Ordinal);
+        var runs = ScheduleFrames.Runs(spec, order.Order.Select(id => index[id]).ToList());
+        var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
+        var slack = new SortedDictionary<string, int>(StringComparer.Ordinal);
+        var jobs = new SortedDictionary<string, StateRef>(StringComparer.Ordinal);
+        foreach (var r in runs) {
+            slack[r.Job] = spec.Jobs[index[r.Job]].Deadline - r.End;
+            jobs[r.Job] = new StateRef(r.Late ? PictureState.Rejected : picked);
+        }
+        foreach (var id in focus)
+            if (index.ContainsKey(id) && !(jobs.TryGetValue(id, out var s) && s.State == PictureState.Rejected))
+                jobs[id] = new StateRef(PictureState.ElementHighlight);
+        return new TimelineFrame(ev, caption, focus, order.Order, slack, jobs) { Ok = ok };
+    }
+
+    private static TimelineFrame Blank(string caption) =>
+        new(StepEvent.Done, caption, [], [], new SortedDictionary<string, int>(), new SortedDictionary<string, StateRef>()) { Ok = false };
+}
+```
+
+What it takes beyond the class, as the code stands:
+
+- `"Timeline"` must be added to `VisualizationType` and `Documentation/visualization-types.json`, or `PictureType_Endpoint_Tests` fails for it (§8.1 (b)). Redux_GUI's vendored manifest then needs the value too, and its coverage check a key in `Visualizations.js`, although the GUI never sends `format=frames`: the manifest has no way to mark a type as frames-only yet. That is a gap.
+- Nothing else registers it. `/info?interface=JobSeqTimelineVisualization` reports `"visualizationType": "DynamicTable", "pictureType": "Timeline"`; `allInfo` and the Navigation lists include it; `visualizeRun?solver=JobSeqBruteForce` draws it next to the Schedule picture from the same run.
+- In Redux_Frontend its card chip reads Unclassified (FE#269) and the problem page draws the job table, since `Timeline` has no renderer; in Redux_GUI it is listed with its `DynamicTable` table. Adding a `TimelineRenderer` (§8.3 (ii)) and a `PICTURE_TYPE_MAP` entry turns it into a drawn, classified picture without any backend change.
+- `JobSeqVisualization.Spec` is `internal static`, so this compiles inside the API project. The captions here are placeholders; real ones follow §5.5 and come from the solver's steps.
+
+## 9. Checklist for a pull request
 
 - [ ] The problem uses a picture type from [PICTURE-TYPES.md](PICTURE-TYPES.md), and that type is Approved.
 - [ ] The visualization only implements `StepShape` and `Describe` (and `ParseAnswer` if needed), explicitly; no colors, coordinates or highlight loops.
@@ -365,7 +634,7 @@ NFA uses the same `ActiveStates`. `NFASolver` is a depth-first search that recor
 - [ ] Problem names and descriptions match what the code does.
 - [ ] The rbs report on the PR passes (read the report; the check can be green while it fails).
 
-## 9. Questions people ask
+## 10. Questions people ask
 
 **Do I need to know D3 or React?** No. Backend contributors never touch the frontend. Frontend contributors write one renderer per picture type, not per problem.
 

@@ -3,6 +3,7 @@
 What each Redux picture type looks like, which problems use it, what the backend sends, and how it animates. The screenshots come from the design mockup ([`mockups/design.html`](mockups/design.html)); open it in a browser to click through every example, solver and step. To see the real backend frames drawn the same way, run the frames viewer ([`viewer/README.md`](viewer/README.md)).
 
 - To add a visualization or record solver steps, read [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md).
+- To draw a problem with none of the types below, read [ADDING-A-VISUALIZATION.md §8](ADDING-A-VISUALIZATION.md#8-a-custom-visualization-outside-the-picture-types): such a visualization is tagged "Unclassified" and still drawn wherever a frontend can draw it.
 - To implement a picture type in a frontend, or to see what is merged and what is planned, read [README.md](README.md).
 
 All the types below are **Approved** as designs, except [Formula](#formula) and [Nested Set](#nested-set), which are **Proposed**: mockups built, waiting for review. They are additional visualizations, selectable next to the Grouped Graph, Factor Graph and Bipartite Graph, not replacements. Each type's open review questions are listed at the bottom of its tab in the mockup (and, for the two proposed types, in their sections here).

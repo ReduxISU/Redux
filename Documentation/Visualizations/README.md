@@ -13,6 +13,7 @@ The mockups were the specification. The backend now sends real frames, and the m
 | What | Where |
 | --- | --- |
 | How to add a visualization to a problem, and steps to a solver or reduction (contributor guide, with a DFA walkthrough) | [`ADDING-A-VISUALIZATION.md`](ADDING-A-VISUALIZATION.md) |
+| How to write a custom visualization that uses none of the picture types, and what each frontend does with it (tagged "Unclassified", drawn where it can be) | [`ADDING-A-VISUALIZATION.md`](ADDING-A-VISUALIZATION.md#8-a-custom-visualization-outside-the-picture-types) §8 |
 | What every picture type looks like, its problems, payload and states, with screenshots | [`PICTURE-TYPES.md`](PICTURE-TYPES.md) |
 | Design mockup (every picture type, one tab each) | [`mockups/design.html`](mockups/design.html), published at https://claude.ai/artifact/KZoqj8AqhHSBJYWMVLSzkx |
 | Redux_GUI mockup (the real page with every problem wired in) | [`mockups/redux-gui.html`](mockups/redux-gui.html), published at https://claude.ai/artifact/WGGHMS9UGDB8is4Bf1e4Mf |
@@ -127,7 +128,7 @@ A solver implements `ISolver<TProblem, TPartial>` and writes one method, `string
 
 ### 3.4 Shared frames builders
 
-Each picture type has one interface in `Interfaces/` that builds the frames. A visualization implements it and returns a spec record from `Describe`; the frames hook comes for free. For example `IGraphSubsetVisualization<CLIQUE>` with `GraphSubsetSpec(nodes, edges, K, SubsetRule.Clique)`. [PICTURE-TYPES.md](PICTURE-TYPES.md) lists each interface, its spec and its payload; [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md) shows how to write one.
+Each picture type has one interface in `Interfaces/` that builds the frames. A visualization implements it and returns a spec record from `Describe`; the frames hook comes for free. For example `IGraphSubsetVisualization<CLIQUE>` with `GraphSubsetSpec(nodes, edges, K, SubsetRule.Clique)`. [PICTURE-TYPES.md](PICTURE-TYPES.md) lists each interface, its spec and its payload; [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md) shows how to write one. A visualization that uses none of these interfaces is possible too: see [ADDING-A-VISUALIZATION.md §8](ADDING-A-VISUALIZATION.md#8-a-custom-visualization-outside-the-picture-types).
 
 Graph input rules that every builder follows:
 
