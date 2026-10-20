@@ -87,7 +87,7 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory> {
                 "DM3", "DOMINATINGSET", "EXACTCOVER", "GRAPHCOLORING", "HAMILTONIAN",
                 "HITTINGSET", "INDEPENDENTSET", "INTPROGRAMMING01", "JOBSEQ", "KNAPSACK",
                 "NODESET", "PARTITION", "SAT", "SAT3", "SETCOVER", "STEINERTREE",
-                "SUBSETSUM", "SUDOKU", "TSP", "VERTEXCOVER", "WEIGHTEDCUT",
+                "SUBSETSUM", "SUDOKU", "TSP", "VERTEXCOVER", "WEIGHTEDCUT", "UNRESTRICTEDLONGESTPATH",
             },
             StringComparer.OrdinalIgnoreCase);
 
