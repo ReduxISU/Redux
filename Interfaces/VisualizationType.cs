@@ -145,4 +145,12 @@ public enum VisualizationType {
     /// of <c>/ProblemProvider/visualize</c>; /info keeps the legacy type.
     /// </summary>
     SearchTree,
+    /// <summary>
+    /// The Formula picture (SAT, 3SAT), a second view next to the Grouped Graph: the CNF formula as it is written, clause
+    /// boxes joined by ∧ and literals by ∨, with an assignment strip of the variables (#925). The Grouped Graph's spec, ids and
+    /// states, plus the state of each variable; a static payload plus one frame of named states per solver step. Like
+    /// <see cref="Graph"/> it is reported only as the <c>type</c> of the <c>format=frames</c> response of
+    /// <c>/ProblemProvider/visualize</c>; /info keeps the legacy <see cref="BooleanSatisfiability"/>.
+    /// </summary>
+    Formula,
 }

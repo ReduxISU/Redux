@@ -60,7 +60,9 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// picture, so <c>target.buildReveal</c> says how a build frame shows the target: <c>pieces</c> (by <c>buildOrder</c>, as
 /// above), or <c>whole</c> when the chosen picture lacks some of those pieces (a factor graph has no literal nodes, a search
 /// tree none of the instance): then <c>buildOrder</c> is empty, build frames carry no counts, and the picture is shown as it
-/// is while the steps' captions and focus still say what is built. A search tree is empty until the solve. A picture of the
+/// is while the steps' captions and focus still say what is built. A picture that has every node the steps add and no edges at
+/// all (the Formula, #925) is revealed by its nodes alone: <c>pieces</c>, with no edges in <c>buildOrder</c> and
+/// <c>builtEdges</c> 0. A search tree is empty until the solve. A picture of the
 /// search (one that cannot draw an answer alone) keeps the solve's last pane through the map phase. Ids in the gadgets and
 /// the focus lists are the default pictures' ids, so another picture may not have them all.
 /// </para>
@@ -159,11 +161,20 @@ static class ReductionView {
         // caller chose (#912) may draw other pieces (a factor graph has no literal nodes, a search tree none of the instance):
         // unless it has every piece the steps add, it cannot be revealed piece by piece, so it is shown whole during the build
         // (buildReveal "whole", an empty buildOrder and no counts) while the steps still say, and focus, what is built.
-        bool revealPieces = targetVis.GetType() == red.reductionTo.defaultVisualization?.GetType()
-            || PayloadIds(targetResponse.Payload) is var pictureIds && nodeOrder.Concat(edgeOrder).All(pictureIds.Contains);
+        bool defaultPicture = targetVis.GetType() == red.reductionTo.defaultVisualization?.GetType();
+        var pictureIds = PayloadIds(targetResponse.Payload);
+        // A picture with no edges at all (the Formula: clauses, literals and variables, #925) that has every node the steps add
+        // is revealed by those nodes alone: the edges the steps add are not pieces of it, so buildOrder lists none of them and
+        // builtEdges stays 0.
+        bool nodesOnly = !defaultPicture && !nodeOrder.Concat(edgeOrder).All(pictureIds.Contains)
+            && !HasEdges(targetResponse.Payload) && nodeOrder.All(pictureIds.Contains);
+        bool revealPieces = defaultPicture || nodesOnly || nodeOrder.Concat(edgeOrder).All(pictureIds.Contains);
         if (!revealPieces) {
             nodeOrder.Clear();
             edgeOrder.Clear();
+        } else if (nodesOnly) {
+            edgeOrder.Clear();
+            counts = counts.Select(c => (c.Nodes, 0)).ToList();
         }
 
         var buildTargetPanes = buildSteps.Count == 0 ? new List<Rendered>() : Render(targetVis, targetInstance, targetItems, targetShape).Frames;
@@ -344,6 +355,9 @@ static class ReductionView {
         }
         return ids;
     }
+
+    /// <summary>Whether a picture payload has an <c>edges</c> list: a picture without one draws no edges to reveal.</summary>
+    private static bool HasEdges(object payload) => ToNode(payload) is JsonObject o && o.ContainsKey("edges");
 
     private static JsonNode ToNode(object value) =>
         JsonSerializer.SerializeToNode(value, value.GetType(), FramesResponse.JsonOptions)!;
