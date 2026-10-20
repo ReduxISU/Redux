@@ -241,7 +241,7 @@ Elements on one side, sets on the other, and an edge for every membership. The c
 | Literal | `ElementHighlight` | Its variable is being tried (in `focus`), or a brute force's whole candidate makes it true | thick amber outline |
 | Literal | `Committed` | True, kept so far by an incremental solver (DPLL, backtracking; #886) | dashed outline, lighter green |
 | Literal | `Solution` | True in the confirmed answer only (a correct Done, or an Accept that ends the run) | solid green fill |
-| Literal | `False` | False under the assignment (approved Oct 10). The tried variable's false literals stay `False` | struck through, dotted outline |
+| Literal | `False` | False under the assignment (approved Oct 10). The tried variable's false literals stay `False` | a strike through the letters only (never the subscript), dotted outline |
 | Literal | `Rejected` | In a clause whose literals are all false; or a true literal (a pick) on a Done with `ok: false` | thick red outline |
 | Clause | `Covered` | Has a true literal | light green, ✓ by its name |
 | Clause | `ElementHighlight` | In the focus of a Try | thick amber outline |
@@ -250,7 +250,7 @@ Elements on one side, sets on the other, and an edge for every membership. The c
 
 Green never appears on a run that found nothing. A run stopped by the time limit ends on a blank Done (every element `Background`, caption "Stopped after …"). Redux's SAT solvers end an unsatisfiable run with no assignment, so that Done is blank apart from its caption; a solver whose Done carries its last candidate gets that candidate drawn `Rejected` (the mockup's brute force does, to show the rule).
 
-**Layout** (pure arithmetic, ports to D3 or React as is): a literal's pill is as wide as its label; clauses pack left to right with ∨ (muted) between pills and a bold ∧ between boxes; a clause that doesn't fit the line starts the next one, with the ∧ leading it; a single clause wider than the line wraps at its ∨s inside a taller box. The clause name sits above its box. The strip wraps the same way.
+**Layout** (pure arithmetic, ports to D3 or React as is): a name of letters then digits (`x10`, `Bar7`) is drawn as its letters with the digits as a real subscript (a `tspan` at 78% of the label size, shifted down), and any other name (`a`, `foo_2`) is drawn plain; a literal's pill is as wide as its label; clauses pack left to right with ∨ (muted) between pills and a bold ∧ between boxes; a clause that doesn't fit the line starts the next one, with the ∧ leading it; a single clause wider than the line wraps at its ∨s inside a taller box. The clause name sits above its box. The strip wraps the same way.
 
 **Fallback.** None needed: the layout only ever adds lines. The mockup caps formulas at 60 clauses and 30 variables, like the other mockups' caps; a frontend can scroll.
 
@@ -324,7 +324,7 @@ A Done with `ok: false` draws its picks and the constraints they leave unhit `Re
 1. The dots go on a circle, in the order that keeps each set's elements next to each other: every order is tried for up to 9 elements (the first stays put), a barycentre sweep beyond that. Ties keep the first order found, so the same instance always lands the same way.
 2. A region is the convex hull of its dots grown by a padding: offset straight edges joined by arcs (one dot is a circle, two a capsule). Because every dot is on the circle, no hull can contain another dot.
 3. Padding: small sets first get the smallest; two sets that share an element never share a padding, so their outlines stay apart where they overlap.
-4. The set's name sits on its region's edge, on the side facing away from the centre, nudged round the edge until it clears every dot and every other name.
+4. The set's name sits on its region: candidates go round the hull every 15°, the side facing away from the centre first, each slid a little in or out across the edge; then, for a set nested in others (whose edge runs close to theirs), points inside the region on the line between two of its dots. The first candidate that clears every dot, keeps 6 px from every placed name and crosses no other region's outline wins. If a set has none, the regions don't fit and the set list is drawn ("no room for S2's label").
 5. Fills sit under all the outlines, and dots and names on top, so an overlap never hides a membership.
 
 **Fallback: the set list.** The regions are drawn only when all of these hold:
@@ -332,7 +332,7 @@ A Done with `ok: false` draws its picks and the constraints they leave unhit `Re
 - at most **12 elements** and **8 sets**;
 - no element in more than **4** sets that overlap (more nested outlines stop reading);
 - every region clears every dot outside it by **4 px** (dot radius plus padding);
-- every set's name finds room on its edge.
+- every set's name finds a free spot on its region (no other name, dot or outline under it).
 
 Otherwise the picture is the set list: U on top, then one row per set, its elements written out as chips inside braces (`S1 { 1 2 }`), each chip carrying that element's state. The header says why the regions didn't fit, and a Layout switch forces the list.
 
@@ -775,9 +775,9 @@ During Build, the target shows the first `builtNodes` nodes and `builtEdges` edg
 
 **Hover and color.** Hovering any piece on either side highlights what it became, through the gadget list. "Color gadgets" gives each gadget and its source a shared color.
 
-**SAT → 3SAT with both sides as formulas (proposed).** With the Formula picture, Karp's 3SAT Reduction can show both panes as formulas: each SAT clause becomes its 3SAT clauses (kept, padded by repeating a literal, or split into a chain joined by new variables), and the gadgets (a group per clause, an element per literal and per variable, and the new variables tied to the clause whose split made them) already use the Formula's ids on both sides. The mockup's Reduction tab has it.
+**SAT → 3SAT with both sides as formulas (proposed).** With the Formula picture, Karp's 3SAT Reduction can show both panes as formulas: each SAT clause becomes its 3SAT clauses (kept, padded by repeating a literal, or split into a chain joined by new variables), and the gadgets (a group per clause, an element per literal and per variable, and the new variables tied to the clause whose split made them) already use the Formula's ids on both sides. The frames follow `ReductionView.Create` and #840: the build ends on a plain "target built" Accept, the solve ends on an Accept (or a Reject when there is no answer), and only the last map frame is a Done with `ok`. The mockup's Reduction tab has it.
 
-<table><tr><td><img src="images/reduction--sat-3sat-build.png" alt="SAT to 3SAT, build" width="420"><br>Build: C1 has five literals, so it becomes C1, C4 and C5, chained by x₆ and x₇</td><td><img src="images/reduction--sat-3sat-map.png" alt="SAT to 3SAT, map back" width="420"><br>Map back, gadget colors on: the 3SAT answer sets the SAT variables one by one</td></tr></table>
+<table><tr><td><img src="images/reduction--sat-3sat-build.png" alt="SAT to 3SAT, build" width="420"><br>Build: C1 has five literals, so it becomes C1, C4 and C5, chained by x₆ and x₇</td><td><img src="images/reduction--sat-3sat-map.png" alt="SAT to 3SAT, map back" width="420"><br>The last frame (the map's Done), gadget colors on: the SAT answer agrees with the 3SAT answer on every original variable; x₆ and x₇ stay on the 3SAT side</td></tr></table>
 
 **Reductions with a Reduction View today:** Clique → 3SAT, Clique → Vertex Cover, Directed Hamiltonian → Hamiltonian, Exact Cover → Subset Sum, Graph Coloring → Clique Cover, Graph Coloring → Exact Cover, Graph Coloring → SAT, Hitting Set → Exact Cover, Independent Set → Clique, Partition → Weighted Cut, SAT → 3SAT, 3SAT → Clique, 3SAT → 3-Dimensional Matching, 3SAT → Graph Coloring, 3SAT → 0-1 Integer Programming, Subset Sum → Knapsack, Subset Sum → Partition, Vertex Cover → Feedback Arc Set, Vertex Cover → Feedback Node Set, Vertex Cover → Set Cover.
 

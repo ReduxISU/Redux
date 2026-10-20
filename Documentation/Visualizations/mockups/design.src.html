@@ -458,7 +458,7 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
           <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The variable being tried, on every literal it makes true, and its chip</small></div></div>
           <div class="row"><span class="sw com"></span><div>Committed<small>A true literal a step-by-step solver has kept so far. Dashed outline</small></div></div>
           <div class="row"><span class="sw sol"></span><div>Solution<small>A true literal of the confirmed answer only</small></div></div>
-          <div class="row"><span class="sw fmfal">x</span><div>False<small>The literal is false under the assignment. Struck through</small></div></div>
+          <div class="row"><span class="sw fmfal">x</span><div>False<small>The literal is false under the assignment. Its letters are struck through, the subscript left clear</small></div></div>
           <div class="row"><span class="sw cov"></span><div>Covered<small>A clause with a true literal. Marked ✓</small></div></div>
           <div class="row"><span class="sw rej"></span><div>Rejected<small>A clause whose literals are all false, with its literals. Marked ✗. On a run that found nothing, its picks</small></div></div>
         </div>
@@ -482,7 +482,7 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
   <span class="k">"groups"</span>: { "c0": { "state": "Covered" } },        <span class="c">// clauses</span>
   <span class="k">"assignment"</span>: { "v:x2": true },
   <span class="k">"variables"</span>:  { "v:x2": { "state": "Committed" } } }</pre>
-        <p>Layout is plain arithmetic, so it ports to D3 or React as is: literal width from its label, clauses packed left to right and wrapped at a clause boundary, a clause wider than a line wrapped at its ∨s. Every state carries a mark besides its color: dashes for Committed, a strike-through for False, ✓ and ✗ on the clause.</p>
+        <p>Layout is plain arithmetic, so it ports to D3 or React as is: literal width from its label, clauses packed left to right and wrapped at a clause boundary, a clause wider than a line wrapped at its ∨s. Every state carries a mark besides its color: dashes for Committed, a strike through the letters (not the subscript) for False, ✓ and ✗ on the clause.</p>
       </section>
 
       <section class="card panel">
@@ -801,7 +801,7 @@ frames: { chosen, trying?, focus?, missing?, trial?, caption }[]</pre>
   <span class="k">"nodes"</span>: { "S1": { "state": "Committed" }, "e:2": { "state": "Covered" } },
   <span class="k">"hits"</span>:  { "e:2": 2 } }                       <span class="c">// ×N badges</span></pre>
         <p><b>Layout.</b> Dots go on a circle in the order that keeps each set's elements together (every order is tried up to 9 elements, a barycentre sweep past that). A region is the convex hull of its dots grown by a padding: straight edges joined by arcs. Small sets get the smallest padding, and two sets that share an element never share one, so their outlines stay apart. Because every dot is on the circle, no region can swallow a dot; the check below makes sure none comes close.</p>
-        <p><b>Fallback threshold.</b> The regions are drawn only when all of these hold: at most 12 elements and 8 sets, no element in more than 4 overlapping sets, every region clears every dot outside it by 4 px, and every set's name finds room on its edge. Otherwise the set list is drawn, and the header says why. The Layout switch forces the set list.</p>
+        <p><b>Fallback threshold.</b> The regions are drawn only when all of these hold: at most 12 elements and 8 sets, no element in more than 4 overlapping sets, every region clears every dot outside it by 4 px, and every set's name finds a free spot on its region (no other name, dot or outline under it). Otherwise the set list is drawn, and the header says why. The Layout switch forces the set list.</p>
       </section>
 
       <section class="card panel">
