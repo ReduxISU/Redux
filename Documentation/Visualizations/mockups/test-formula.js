@@ -72,6 +72,21 @@ for (let t = 0; t < 250; t++) {
   const last = R.frames.at(-1);
   ok(!!last.ok === want, `the view ends ok=${last.ok}, want ${want}: ${str}`);
   ok(R.frames[0].phase === "build" && R.frames.some(f => f.phase === "solve"), "phases in order");
+  // #840 and ReductionView.Create: build ends on a plain Accept; only the last frame is a Done and carries ok
+  const lastBuild = R.frames.filter(f => f.phase === "build").at(-1);
+  ok(lastBuild.event === "Accept" && lastBuild.ok === undefined, "the build ends on a plain 'target built' frame: " + str);
+  ok(R.frames.slice(0, -1).every(f => f.event !== "Done" && f.ok === undefined && !f.done), "no frame before the last is a Done or has ok: " + str);
+  ok(last.event === "Done" && last.phase === "map", "the last frame is the map's Done: " + str);
+  ok(R.frames.filter(f => f.phase === "solve").every(f => f.event === "Accept" || f.event === "Reject"), "the solve ends on an Accept or a Reject, not a Done: " + str);
+  if (want) {
+    // the final frame: both sides agree on every original variable, the SAT side is the answer
+    const sa = last.src.assignment, ta = last.tgt.assignment;
+    ok(R.src.names.every(n => sa["v:" + n] !== undefined && sa["v:" + n] === ta["v:" + n]), "both sides agree on every original variable: " + str);
+    ok(Object.keys(sa).length === R.src.names.length, "the SAT side has only its own variables: " + Object.keys(sa));
+    ok(Object.values(last.src.groups).length === R.src.clauses.length && Object.values(last.src.groups).every(x => x === "Covered"), "every SAT clause ✓ in the final frame: " + str);
+    ok(Object.values(last.src.nodes).every(x => x === "Solution" || x === "False") && Object.values(last.src.nodes).includes("Solution"), "the SAT side's true literals are Solution: " + str);
+    ok(Object.values(last.src.variables).every(x => x === "Solution" || x === "False"), "the SAT side's chips are the answer: " + str);
+  }
   const ids = new Set([...R.Pt.groups.map(g => "t:" + g.id), ...R.Pt.nodes.map(x => "t:" + x.id), ...R.Pt.variables.map(v => "t:" + v.id), ...R.Ps.groups.map(g => "s:" + g.id), ...R.Ps.nodes.map(x => "s:" + x.id), ...R.Ps.variables.map(v => "s:" + v.id)]);
   ok(R.gadgets.every(g => [...g.from, ...g.to].every(id => ids.has(id))), "every gadget id is a piece of one of the two pictures: " + str);
   ok(R.Ps.nodes.every(x => R.gadgets.some(g => g.kind === "element" && g.from.includes("s:" + x.id) && g.to.length)), "every source literal maps to a target literal: " + str);

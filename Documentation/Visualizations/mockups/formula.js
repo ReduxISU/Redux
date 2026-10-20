@@ -32,18 +32,20 @@ const FormulaView = (() => {
 .fm-lit { cursor: pointer; }
 .fm-lit:focus { outline: none; }
 .fm-lit rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
-.fm-lit text { font-size: 15px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
+.fm-lit text { font-size: 15px; text-anchor: start; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .fm-lit.ElementHighlight rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .fm-lit.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .fm-lit.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .fm-lit.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .fm-lit.Committed text { fill: var(--av-com-ink); font-weight: 600; }
-.fm-lit.False rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; } .fm-lit.False text { fill: var(--av-muted); text-decoration: line-through; }
+.fm-lit .strike { display: none; }
+.fm-lit.False rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; } .fm-lit.False text { fill: var(--av-muted); }
+.fm-lit.False .strike { display: inline; stroke: var(--av-muted); stroke-width: 1.6; }
 .fm-lit.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .fm-lit.Rejected text { fill: var(--av-rej-ink); font-weight: 600; }
 .fm-lit.trace rect, .fm-lit:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
 .fm-lit.faint { filter: grayscale(1); } .fm-lit.faint rect { stroke-dasharray: 3 3; }
 .fm-var { cursor: pointer; }
 .fm-var:focus { outline: none; }
 .fm-var rect { fill: var(--av-surface); stroke: var(--av-ctrl); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
-.fm-var text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
+.fm-var text { font-size: 14px; text-anchor: start; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
 .fm-var text .val { font-weight: 700; }
 .fm-var.ElementHighlight rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .fm-var.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .fm-var.Committed text { fill: var(--av-com-ink); }
@@ -270,11 +272,24 @@ const FormulaView = (() => {
   /* ---------- layout: pure math, (payload, width) → boxes ---------- */
 
   const CW = 9, PH = 30, PAD = 9, BH = PH + 2 * PAD, OR_W = 24, AND_W = 34, LABEL_H = 18, ROW_GAP = 16, VW = 66, VH = 30;
-  const pillW = label => Math.max(34, label.length * CW + 18);
+  // Labels: a name of letters then digits (x10) is drawn as its letters with the digits as a real subscript, at SUBF of the
+  // label size; any other name (a, foo_2) is drawn plain. Mono, so a width is characters × CW (CW at the 15 px literal size).
+  const LIT_PX = 15, VAR_PX = 14, SUBF = 0.78;
+  const split = nm => { const m = /^([A-Za-z]+)(\d+)$/.exec(nm); return m ? { base: m[1], sub: m[2] } : { base: nm, sub: "" }; };
+  const labelW = (neg, nm, px = LIT_PX) => { const p = split(nm); return ((neg ? 1 : 0) + p.base.length + p.sub.length * SUBF) * CW * px / LIT_PX; };
+  const pillW = (neg, nm) => Math.max(34, labelW(neg, nm) + 18);
+  /** Writes a label into a <text> drawn from its left edge x0: base (with ¬), then the subscript a little lower. */
+  function drawLabel(t, neg, nm, px) {
+    t.textContent = "";
+    const p = split(nm), shift = +(0.32 * px).toFixed(1);
+    mk("tspan", { class: "base" }, t).textContent = (neg ? "¬" : "") + p.base;
+    if (p.sub) mk("tspan", { class: "sub", "font-size": +(SUBF * px).toFixed(1), dy: shift }, t).textContent = p.sub;
+    return { p, shift: p.sub ? shift : 0 };
+  }
 
   function layout(P, width, top = 34) {
     const left = 12, right = width - 12;
-    const lits = new Map(P.nodes.map(n => [n.id, { ...n, text: n.positive ? pretty(n.label) : "¬" + pretty(n.label.slice(1)) }]));
+    const lits = new Map(P.nodes.map(n => { const name = n.positive ? n.label : n.label.slice(1); return [n.id, { ...n, text: n.label, neg: !n.positive, name, pw: pillW(!n.positive, name) }]; }));
     const clauses = [], ands = [], ors = [];
     let x = left, y = top, rowH = 0, rowStart = true;
     P.groups.forEach((g, i) => {
@@ -283,11 +298,11 @@ const FormulaView = (() => {
       const maxInner = right - left - 2 * PAD - AND_W, rows = [[]];
       let w = 0;
       ms.forEach(m => {
-        const need = (rows.at(-1).length ? OR_W : 0) + pillW(m.text);
+        const need = (rows.at(-1).length ? OR_W : 0) + m.pw;
         if (rows.at(-1).length && w + need > maxInner) { rows.push([]); w = 0; }
-        w += (rows.at(-1).length ? OR_W : 0) + pillW(m.text); rows.at(-1).push(m);
+        w += (rows.at(-1).length ? OR_W : 0) + m.pw; rows.at(-1).push(m);
       });
-      const rowWs = rows.map((r, k) => r.reduce((a, m, q) => a + pillW(m.text) + (q || k ? OR_W : 0), 0));
+      const rowWs = rows.map((r, k) => r.reduce((a, m, q) => a + m.pw + (q || k ? OR_W : 0), 0));
       const bw = 2 * PAD + Math.max(...rowWs), bh = BH + (rows.length - 1) * (PH + 8);
       const need = (i ? AND_W : 0) + bw;
       if (!rowStart && x + need > right) { y += rowH + ROW_GAP; x = left; rowH = 0; rowStart = true; }
@@ -299,8 +314,8 @@ const FormulaView = (() => {
         if (k) ors.push({ x: x + PAD + OR_W / 2, y: py + PH / 2, clause: g.id });
         r.forEach((m, q) => {
           if (q) { ors.push({ x: px + OR_W / 2, y: py + PH / 2, clause: g.id }); px += OR_W; }
-          Object.assign(m, { x: px, y: py, w: pillW(m.text), h: PH });
-          px += pillW(m.text);
+          Object.assign(m, { x: px, y: py, w: m.pw, h: PH });
+          px += m.pw;
         });
       });
       clauses.push(box);
@@ -310,7 +325,7 @@ const FormulaView = (() => {
     const vars = [];
     let vx = left;
     P.variables.forEach(v => {
-      const w = Math.max(VW, (pretty(v.label).length + 2) * CW + 18);
+      const w = Math.max(VW, labelW(false, v.label, VAR_PX) + 2 * CW * VAR_PX / LIT_PX + 18);
       if (vx + w > right) { vx = left; vy += VH + 10; }
       vars.push({ ...v, x: vx, y: vy, w, h: VH });
       vx += w + 8;
@@ -339,15 +354,21 @@ const FormulaView = (() => {
     L.lits.forEach((m, id) => {
       const g = mk("g", { class: "fm-lit", tabindex: "0", role: "button", "aria-label": `${m.text} in clause ${+m.group.slice(1) + 1}` }, root);
       mk("rect", { x: m.x, y: m.y, width: m.w, height: m.h, rx: 7 }, g);
-      mk("text", { x: m.x + m.w / 2, y: m.y + m.h / 2 }, g).textContent = m.text;
+      // drawn from the left edge (not centred) so the False strike can end exactly where the base letters end
+      const lw = labelW(m.neg, m.name), x0 = m.x + (m.w - lw) / 2, cy = m.y + m.h / 2;
+      const t = mk("text", { x: x0, y: cy }, g);
+      const { p } = drawLabel(t, m.neg, m.name, LIT_PX);
+      // False's mark besides color: a strike through the letters only, never through the subscript
+      const baseW = ((m.neg ? 1 : 0) + p.base.length) * CW * 0.9;
+      mk("line", { x1: x0 - 1, y1: cy + 1, x2: x0 + baseW, y2: cy + 1, class: "strike" }, g);
       els.lits.set(id, { g, m });
       hookup(g, id);
     });
     L.vars.forEach(v => {
       const g = mk("g", { class: "fm-var", tabindex: "0", role: "button", "aria-label": `Variable ${v.label}` }, root);
       mk("rect", { x: v.x, y: v.y, width: v.w, height: v.h, rx: 7 }, g);
-      const t = mk("text", { x: v.x + v.w / 2, y: v.y + v.h / 2 }, g);
-      t.textContent = pretty(v.label) + " –";
+      const t = mk("text", { x: v.x + 9, y: v.y + v.h / 2, class: "lab" }, g);
+      t.textContent = v.label + " –";
       els.vars.set(v.id, { g, t, v });
       hookup(g, v.id);
     });
@@ -392,9 +413,8 @@ const FormulaView = (() => {
       if (hot) cls += hot.has(id) ? " trace" : " faint";
       if (shown && shown.vars && !shown.vars.has(id)) cls += " fm-hidden";
       o.g.setAttribute("class", cls);
-      o.t.textContent = "";
-      mk("tspan", {}, o.t).textContent = pretty(o.v.label) + " ";
-      mk("tspan", { class: "val" }, o.t).textContent = a === undefined ? "–" : a ? "T" : "F";
+      const { shift } = drawLabel(o.t, false, o.v.label, VAR_PX);
+      mk("tspan", { class: "val", dx: 7, ...(shift ? { dy: -shift } : {}) }, o.t).textContent = a === undefined ? "–" : a ? "T" : "F";
     });
   }
 
@@ -504,32 +524,38 @@ const FormulaView = (() => {
       if (k === 3) caption = `C${i + 1} (${txt}) already has three literals, so it is copied as it is.`;
       else if (k < 3) caption = `C${i + 1} (${txt}) has ${k === 1 ? "one literal" : "two literals"}, so ${k === 1 ? "it is written three times" : "its first literal is repeated"}: x ∨ x is still x.`;
       else caption = `C${i + 1} (${txt}) has ${k} literals, so it is split into ${mine.length} clauses chained by the new variable${helpers.length > 1 ? "s" : ""} ${helpers.map(pretty).join(", ")}. Each new variable says "the rest of the clause is true".`;
-      frames.push({ phase: "build", shown: new Set(shownC), shownV: new Set(shownV), focusSrc, focusTgt, caption,
+      frames.push({ phase: "build", event: "Try", shown: new Set(shownC), shownV: new Set(shownV), focusSrc, focusTgt, caption,
         src: frame(src, { ...empty, focus: focusSrc }), tgt: frame(tgt, { ...empty, focus: focusTgt }) });
     });
-    frames.push({ phase: "build", shown: new Set(shownC), shownV: new Set(shownV), focusSrc: [], focusTgt: [], src: null, tgt: null,
+    // The construction's end is a plain "target built" frame (an Accept), never a verdict (#840).
+    frames.push({ phase: "build", event: "Accept", shown: new Set(shownC), shownV: new Set(shownV), focusSrc: [], focusTgt: [], src: null, tgt: null,
       caption: `Done building: ${T.length} clauses of exactly three literals. The 3SAT formula is satisfiable exactly when the SAT formula is.` });
 
     // Solve B with the backtracking solver; map its answer back variable by variable.
+    // As ReductionView.Create (local/viz-integration) does: the solve phase never ends the view, so its last frame is an Accept
+    // or a Reject; only the last frame of the map phase is a Done, and only it carries ok (#840).
     const solved = solveDpll(tgt);
     if (!solved.ok) {
-      frames.push({ phase: "solve", done: true, ok: false, src: null, tgt: frame(tgt, { event: "Done", partial: {}, focus: [], ok: false, caption: "" }),
-        caption: "The 3SAT backtracking solver finds no satisfying assignment, so the SAT formula has none either." });
+      frames.push({ phase: "solve", event: "Reject", src: null, tgt: frame(tgt, { event: "Reject", partial: {}, focus: [], caption: "" }),
+        caption: "The 3SAT backtracking solver finds no satisfying assignment." });
+      frames.push({ phase: "map", event: "Done", done: true, ok: false, focusSrc: [], focusTgt: [], src: null, tgt: frame(tgt, { event: "Reject", partial: {}, focus: [], caption: "" }),
+        caption: "There is no 3SAT answer to map back, so the SAT formula has no satisfying assignment either." });
     } else {
       const tAsg = toPartial(tgt, solved.solution), tDone = frame(tgt, { event: "Done", partial: tAsg, focus: [], ok: true, caption: "" });
-      frames.push({ phase: "solve", src: null, tgt: tDone, caption: `Solve the 3SAT formula with the backtracking solver: ${tgt.names.map(n => `${pretty(n)}=${tAsg[n] ? "T" : "F"}`).join(", ")}.` });
+      frames.push({ phase: "solve", event: "Accept", src: null, tgt: tDone, caption: `Solve the 3SAT formula with the backtracking solver: ${tgt.names.map(n => `${pretty(n)}=${tAsg[n] ? "T" : "F"}`).join(", ")}.` });
       const sAsg = {};
       src.names.forEach((n, k) => {
         sAsg[n] = tAsg[n];
-        frames.push({ phase: "map", focusSrc: [vSrc(n)], focusTgt: [vSrc(n)], tgt: tDone,
+        // the target keeps its solution and highlights the variable being read
+        frames.push({ phase: "map", event: "Accept", focusSrc: [vSrc(n)], focusTgt: [vSrc(n)], tgt: frame(tgt, { event: "Done", partial: tAsg, focus: [vSrc(n)], ok: true, caption: "" }),
           src: frame(src, { event: "Accept", partial: { ...sAsg }, focus: [vSrc(n)], caption: "" }, { incremental: true }),
           caption: `${pretty(n)} is ${tAsg[n] ? "T" : "F"} in the 3SAT answer, so ${pretty(n)} = ${tAsg[n] ? "T" : "F"} in the SAT answer.` + (k === 0 ? " The original variables keep their values." : "") });
       });
-      if (helperOf.size) frames.push({ phase: "map", focusSrc: [], focusTgt: [...helperOf.keys()].map(vSrc), tgt: tDone,
+      if (helperOf.size) frames.push({ phase: "map", event: "Accept", focusSrc: [], focusTgt: [...helperOf.keys()].map(vSrc), tgt: frame(tgt, { event: "Done", partial: tAsg, focus: [...helperOf.keys()].map(vSrc), ok: true, caption: "" }),
         src: frame(src, { event: "Accept", partial: { ...sAsg }, focus: [], caption: "" }, { incremental: true }),
         caption: `${[...helperOf.keys()].map(pretty).join(", ")} ${helperOf.size > 1 ? "are" : "is"} the reduction's own, so ${helperOf.size > 1 ? "they are" : "it is"} dropped.` });
       const ok = src.clauses.every(c => c.some(l => (l > 0 ? sAsg[src.names[l - 1]] : !sAsg[src.names[-l - 1]])));
-      frames.push({ phase: "map", done: true, ok, focusSrc: [], focusTgt: [], tgt: tDone,
+      frames.push({ phase: "map", event: "Done", done: true, ok, focusSrc: [], focusTgt: [], tgt: tDone,
         src: frame(src, { event: "Done", partial: { ...sAsg }, focus: [], ok, caption: "" }),
         caption: ok ? `Every SAT clause has a true literal: ${src.names.map(n => `${pretty(n)}=${sAsg[n] ? "T" : "F"}`).join(", ")} satisfies the formula.` : "The mapped assignment doesn't satisfy the formula." });
     }
@@ -618,7 +644,7 @@ const FormulaView = (() => {
         { label: "Every 3SAT clause has exactly three literals", ok: fr ? R.tgt.clauses.every(c => c.length === 3) : null }];
       if (fr && (fr.phase === "solve" || fr.phase === "map")) {
         const s = R.frames.find(x => x.phase === "solve");
-        out.push({ label: `3SAT answer: ${s && !s.done ? "found" : "none exists"}`, ok: !!(s && !s.done) });
+        out.push({ label: `3SAT answer: ${s && s.event === "Accept" ? "found" : "none exists"}`, ok: !!(s && s.event === "Accept") });
       }
       if (fr && fr.done) out.push({ label: "Mapped back to a valid SAT answer", ok: !!fr.ok });
       return out;
