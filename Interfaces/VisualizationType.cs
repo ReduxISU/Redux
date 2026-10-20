@@ -153,4 +153,12 @@ public enum VisualizationType {
     /// <c>/ProblemProvider/visualize</c>; /info keeps the legacy <see cref="BooleanSatisfiability"/>.
     /// </summary>
     Formula,
+    /// <summary>
+    /// The Nested Set picture (Set Cover, Exact Cover, Exact Hitting Set), a second view next to the Bipartite Graph: every
+    /// element a dot and every set a region around its own elements, or a list of the sets when the regions would not read
+    /// (#926). The Bipartite Graph's spec, ids and states without its edges; a static payload plus one frame of named states per
+    /// solver step. Like <see cref="Graph"/> it is reported only as the <c>type</c> of the <c>format=frames</c> response of
+    /// <c>/ProblemProvider/visualize</c>; /info keeps the legacy <see cref="SetD3"/>.
+    /// </summary>
+    NestedSet,
 }
