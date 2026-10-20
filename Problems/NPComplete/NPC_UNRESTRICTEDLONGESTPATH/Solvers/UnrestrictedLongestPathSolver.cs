@@ -20,8 +20,10 @@ class UnrestrictedLongestPathSolver : ISolver<UNRESTRICTEDLONGESTPATH> {
     public string[] contributors { get; } = { "Alice Giola", "Sadman Hasan", "Javier Rodriguez Lopez" };
     public SolverType solverType { get; } = SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public string complexity { get; } =
-        "O(2^(K+1) * (n + m) * (K+1)^(K+1)/(K+1)!), n = |nodes|, m = |edges|";
+    public MathematicalFunction timeComplexity { get; } = new(
+        "2^(K+1) * (n + m) * (K+1)^(K+1) / (K+1)!",
+        ", n = |nodes|, m = |edges|, K = required number of edges"
+    );
     public bool timerHasExpired { get; set; }
 
     public string sourceFile { get; } = SourceFile.Path();
