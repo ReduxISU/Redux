@@ -37,5 +37,38 @@ const cls = el => el.getAttribute("class") || "";
   ok(r.layout === "list" && /more than 8 sets/.test(r.why), "nine sets fall back to the set list on their own: " + r.why);
   ok(s.querySelector("text.ns-head").textContent.includes("SET LIST"), "the header says so");
 }
+// Every example of both mockups (the design tab's and the GUI's), every solver and every frame: no two set labels
+// intersect, no label covers an element dot, and every outside dot is at least 4 px clear of each region.
+{
+  const EX = {
+    SETCOVER: ["({1,2,3,4,5},{{1,2,3},{2,4},{3,4},{4,5}},3)", "({1,2,3,4,5,6},{{1,2,3},{4,5,6},{1,2,4,5}},2)", "({1,2,3,4,7},{{1,2},{3,4},{2,3}},3)", "({1,2,3,4,5,6,7,8},{{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,1},{1,5},{3,7}},4)"],
+    EXACTCOVER: ["({1,2,3,4},{{1,2,3},{2,3},{4,1}})", "({1,2,3,4,5,6},{{1,2},{1,3},{2,4},{3,5,6},{4,5,6},{4,6},{5,6}})", "({1,2,3},{{1,2},{2,3},{1,3}})", "({1,2,3,4,5,6,7,8},{{1,2},{3,4},{5,6},{7,8},{2,3},{4,5},{6,7},{8,1},{1,5}})"],
+    HITTINGSET: ["({1,2,3,4},{{1,3},{2,3,4},{1,4}})", "({1,2,3,4,5},{{1,2},{2,3},{3,4},{4,5}})", "({1,2,3},{{1,2},{2,3},{1,3}})", "({1,2,3,4,5,6,7,8},{{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,1},{1,5}})"],
+  };
+  const SOLV = { SETCOVER: ["greedy", "brute"], EXACTCOVER: ["x", "brute"], HITTINGSET: ["brute", "x"] };
+  const inter = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const rectOf = r => ({ x: +r.getAttribute("x"), y: +r.getAttribute("y"), w: +r.getAttribute("width"), h: +r.getAttribute("height") });
+  let frames = 0, regionsDrawn = 0;
+  for (const [kind, list] of Object.entries(EX)) for (const str of list) for (const solver of SOLV[kind]) {
+    const s = svg(), v = NV.create({ svg: s }), r = v.load(str, kind, solver);
+    if (r.layout === "regions") {
+      regionsDrawn++;
+      const R = NV.regions(r.payload);
+      r.payload.sets.forEach(set => {
+        const reg = R.regs.find(x => x.id === set.id), pts = set.members.map(m => R.pos.get(m));
+        r.payload.elements.forEach(e => { if (!set.members.includes(e.id)) ok(NV._distToHull(R.pos.get(e.id), pts) - reg.pad - 16 >= 4, `${e.id} is 4 px clear of ${set.id}'s region in ${str}`); });
+      });
+    }
+    for (let i = 0; i < r.frames.length; i++) {
+      v.show(i); frames++;
+      const tags = s.querySelectorAll("g.ns-tag rect").map(rectOf);
+      const dots = s.querySelectorAll("g.ns-dot circle.body").map(c => ({ x: +c.getAttribute("cx") - 16, y: +c.getAttribute("cy") - 16, w: 32, h: 32, cx: +c.getAttribute("cx"), cy: +c.getAttribute("cy") }));
+      tags.forEach((a, p) => tags.forEach((b, q) => { if (p < q) ok(!inter(a, b), `labels ${p} and ${q} intersect in ${kind} ${str} frame ${i}`); }));
+      tags.forEach(a => dots.forEach(d => ok(Math.hypot(Math.max(a.x - d.cx, 0, d.cx - a.x - a.w), Math.max(a.y - d.cy, 0, d.cy - a.y - a.h)) >= 16, `a label covers a dot in ${kind} ${str} frame ${i}`)));
+    }
+  }
+  ok(regionsDrawn >= 14, "most examples draw as regions: " + regionsDrawn);
+  console.log(`  checked ${frames} frames, ${regionsDrawn} example runs drawn as regions`);
+}
 console.log(fails ? `${fails} FAILURES` : "ALL PASS");
 process.exit(fails ? 1 : 0);

@@ -237,7 +237,8 @@ const NestedSetView = (() => {
   /* ---------- layout: regions on a circle, or the set list ---------- */
 
   const LIMITS = { elements: 12, sets: 8, perElement: 4, clearance: 4 };
-  const PAD0 = DOT + 9, PADSTEP = 9;
+  const LABEL_GAP = 6;
+  const PAD0 = DOT + 9, PADSTEP = 12;
 
   // Order the elements round the circle so each set's members sit together: every order is tried for up to 9 elements
   // (the first stays put), a barycentre sweep beyond that. Ties keep the first order found, so the layout is deterministic.
@@ -327,7 +328,7 @@ const NestedSetView = (() => {
     });
     const deepest = Math.max(1, ...lv.values());
     if (deepest > LIMITS.perElement) return { ok: false, why: `an element sits in more than ${LIMITS.perElement} overlapping sets` };
-    const perm = order(P), R = Math.max(118, 40 * n / Math.PI + 30 + 6 * deepest);
+    const perm = order(P), R = Math.max(130, 48 * n / Math.PI + 30 + 6 * deepest);
     const padMax = PAD0 + PADSTEP * (deepest - 1), M = padMax + 44;
     const W = Math.max(640, 2 * (R + M)), H = 2 * (R + M) + 20, cx = W / 2, cy = H / 2 + 10;
     const pos = new Map();
@@ -340,27 +341,44 @@ const NestedSetView = (() => {
       for (const e of P.elements) if (!s.members.includes(e.id) && distToHull(pos.get(e.id), pts) < pad + DOT + LIMITS.clearance) return { ok: false, why: `${s.id}'s region would run into ${e.label}` };
       regs.push({ id: s.id, d: regionPath(pts, pad), area: s.members.length * 1000 + pad, pad, pts });
     }
-    // labels: on each region's edge, as far out from the centre as possible, clear of dots and of each other
+    // Labels: each sits on its own region's edge. Candidates go round the hull (every 15°, nearest the side facing away from
+    // the centre first, each slid a little in or out along the edge's normal); the first one that is inside the picture, clear
+    // of every dot, at least LABEL_GAP from every placed label, and off every other region's outline wins. If a set has no
+    // free candidate, the regions don't fit and the set list is drawn instead.
     const dots = [...pos.values()];
     const clearOf = (p, b) => Math.hypot(Math.max(b.x - p.x, 0, p.x - b.x - b.w), Math.max(b.y - p.y, 0, p.y - b.y - b.h));
-    const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-    for (const r of regs) {
+    const near = (a, b, m) => a.x - m < b.x + b.w && b.x - m < a.x + a.w && a.y - m < b.y + b.h && b.y - m < a.y + a.h;
+    const samples = b => { const out = []; for (const fx of [0, 0.25, 0.5, 0.75, 1]) for (const fy of [0, 0.5, 1]) out.push({ x: b.x - 2 + fx * (b.w + 4), y: b.y - 2 + fy * (b.h + 4) }); return out; };
+    // a box crosses a region's outline when some of it is near the outline (outline = the hull grown by its pad)
+    const onOutline = (b, r) => samples(b).some(p => Math.abs(distToHull(p, r.pts) - r.pad) < 4) || (() => { const d = samples(b).map(p => distToHull(p, r.pts) - r.pad); return Math.min(...d) < 0 && Math.max(...d) > 0; })();
+    const ANG = Array.from({ length: 24 }, (_, k) => (k * Math.PI) / 12);
+    for (const r of P.sets.map(s => regs.find(x => x.id === s.id))) {
       const c = r.pts.reduce((a, p) => ({ x: a.x + p.x / r.pts.length, y: a.y + p.y / r.pts.length }), { x: 0, y: 0 });
       let base = Math.atan2(c.y - cy, c.x - cx);
       if (Math.hypot(c.x - cx, c.y - cy) < 8) base = -Math.PI / 2;
+      const gap = a => { const d = Math.abs(((a - base) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI); return d; };
       const w = 12 + r.id.length * 8.5, h = 22;
+      // candidates: on the region's own edge round the hull, then (for a set nested in others, whose edge runs close to
+      // theirs) inside the region, on the line between two of its dots, or at its middle
+      const cands = [];
+      for (const a of ANG.slice().sort((p, q) => gap(p) - gap(q) || p - q)) {
+        const ux = Math.cos(a), uy = Math.sin(a);
+        const sp = r.pts.reduce((b, p) => (p.x * ux + p.y * uy > b.x * ux + b.y * uy + 1e-9 ? p : b));
+        for (const t of [r.pad, r.pad + 4, r.pad - 4, r.pad + 8, r.pad - 8, r.pad + 12, r.pad + 16]) cands.push({ x: sp.x + t * ux, y: sp.y + t * uy });
+      }
+      const hp = hull(r.pts);
+      hp.forEach((p, i) => { const q = hp[(i + 1) % hp.length]; if (q !== p) for (const f of [0.5, 0.35, 0.65]) cands.push({ x: p.x + f * (q.x - p.x), y: p.y + f * (q.y - p.y) }); });
+      cands.push(c);
       let placed = null;
-      for (const off of [0, 0.3, -0.3, 0.6, -0.6, 0.9, -0.9, 1.2, -1.2, 1.6, -1.6, 2.0, -2.0, 2.5, -2.5, Math.PI]) {
-        const a = base + off, ux = Math.cos(a), uy = Math.sin(a);
-        const sp = r.pts.reduce((b, p) => (p.x * ux + p.y * uy > b.x * ux + b.y * uy ? p : b));
-        // slide out from the edge just far enough to clear the dots; the label still straddles the edge
-        for (let t = r.pad; t <= r.pad + 12 && !placed; t += 3) {
-          const x = sp.x + t * ux, y = sp.y + t * uy, box = { x: x - w / 2, y: y - h / 2, w, h };
-          if (box.x < 2 || box.y < 34 || box.x + w > W - 2 || box.y + h > H - 2) continue;
-          if (dots.some(p => clearOf(p, box) < DOT + 3) || labels.some(l => hit(l.box, box))) continue;
-          placed = { id: r.id, x, y, w, h, box };
-        }
-        if (placed) break;
+      for (const { x, y } of cands) {
+        const box = { x: x - w / 2, y: y - h / 2, w, h };
+        if (box.x < 2 || box.y < 34 || box.x + w > W - 2 || box.y + h > H - 2) continue;
+        if (dots.some(p => clearOf(p, box) < DOT + 3)) continue;
+        if (labels.some(l => near(l.box, box, LABEL_GAP))) continue;
+        if (regs.some(o => o.id !== r.id && onOutline(box, o))) continue;
+        // and it must be on its own region: across its edge, or inside it
+        if (!onOutline(box, r) && !samples(box).every(p => distToHull(p, r.pts) <= r.pad)) continue;
+        placed = { id: r.id, x, y, w, h, box }; break;
       }
       if (!placed) return { ok: false, why: `no room for ${r.id}'s label` };
       labels.push(placed);
