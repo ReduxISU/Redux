@@ -106,6 +106,9 @@
 .sw.cov { background: var(--s-sol-fill); border-color: var(--s-sol); }
 .sw.com { background: var(--s-com-fill); border-color: var(--s-com); border-style: dashed; border-width: 2.2px; }
 .sw.blk { background: transparent; border-style: dashed; border-color: var(--s-bg-stroke); }
+.chip.prop { border-color: var(--accent); color: var(--accent); }
+.sw.fmfal { border-radius: 5px; background: var(--surface); border: 1.6px dashed var(--s-bg-stroke); display: grid; place-items: center; font: 600 12px var(--mono); color: var(--muted); text-decoration: line-through; }
+.sw.cnt { border: 0; background: var(--s-rej); color: var(--on-rej); display: grid; place-items: center; font: 700 10px var(--mono); }
 .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
 .checks li { display: flex; gap: 8px; align-items: baseline; }
 .checks li::before { content: "○"; color: var(--muted); }
@@ -240,7 +243,7 @@ pre .k { color: var(--accent); }
 @media (max-width: 700px) {
   .dscroll { overflow-x: auto; overscroll-behavior-x: contain; }
   .dscroll > svg { min-width: 560px; }
-  .dscroll > svg#rd-g, .dscroll > svg#rdg { min-width: 960px; }
+  .dscroll > svg#rd-g, .dscroll > svg#rdg, .dscroll > svg#rdf-g { min-width: 960px; }
   .dscroll::after { content: "Swipe the diagram sideways to see all of it."; display: block; position: sticky; left: 0; font-size: 12px; padding-top: 4px; }
 }
 .dscroll::after { color: var(--muted); }
@@ -270,10 +273,12 @@ pre .k { color: var(--accent); }
 <div class="wrap">
   <div class="tabs" role="tablist" aria-label="Visualization">
     <button role="tab" id="t-clause" aria-selected="true" aria-controls="tab-clause">SAT <small>Clause Graph, Factor Graph</small></button>
+    <button role="tab" id="t-formula" aria-selected="false" aria-controls="tab-formula">Formula <small>SAT, 3SAT · proposed</small></button>
     <button role="tab" id="t-auto" aria-selected="false" aria-controls="tab-auto">Automaton <small>DFA, NFA</small></button>
     <button role="tab" id="t-graph" aria-selected="false" aria-controls="tab-graph">Graph <small>Clique, Vertex Cover, MST, TSP, +11</small></button>
     <button role="tab" id="t-flow" aria-selected="false" aria-controls="tab-flow">Flow Network <small>Minimum S-T Cut</small></button>
     <button role="tab" id="t-bip" aria-selected="false" aria-controls="tab-bip">Bipartite Graph <small>Set Cover, Exact Cover, Exact Hitting Set</small></button>
+    <button role="tab" id="t-nested" aria-selected="false" aria-controls="tab-nested">Nested Set <small>Set Cover, Exact Cover, Exact Hitting Set · proposed</small></button>
     <button role="tab" id="t-layered" aria-selected="false" aria-controls="tab-layered">Layered Graph <small>Topological Sort, Shortest Paths, +5</small></button>
     <button role="tab" id="t-packing" aria-selected="false" aria-controls="tab-packing">Packing <small>Partition, Subset Sum, Knapsack, +2</small></button>
     <button role="tab" id="t-schedule" aria-selected="false" aria-controls="tab-schedule">Schedule <small>Job Sequencing, Pump Scheduling</small></button>
@@ -394,6 +399,102 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
       </ol>
     </section>
   </div>
+  </div>
+
+  <div class="tab" id="tab-formula" role="tabpanel" aria-labelledby="t-formula" hidden>
+    <header>
+      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Formula</b> · SAT, 3SAT · a second picture next to the Clause Graph and Factor Graph</div>
+      <div class="title-row"><h1>Formula</h1><span class="chip prop">proposed · for review</span></div>
+      <p class="lede">The formula itself, the way it is written. Each clause is a box, the literals inside it are joined by ∨, and the boxes are joined by ∧. A long formula wraps onto more lines between clauses. The strip underneath shows each variable's value so far. It uses the Clause Graph's ids and frames, so the three SAT pictures color the same literal the same way. Hover a literal, a clause or a variable to trace it.</p>
+    </header>
+
+    <div class="instbox" id="fm-box">
+      <textarea id="fm-inst" rows="2" spellcheck="false" aria-label="Formula instance"></textarea>
+      <div class="err" id="fm-err" hidden></div>
+      <div class="fmt" id="fm-fmt"></div>
+    </div>
+
+    <div class="bench">
+      <div class="card graph-card">
+        <div class="controls">
+          <div class="seg" role="group" aria-label="View">
+            <button id="fm-m-instance" aria-pressed="true">Instance</button>
+            <button id="fm-m-solution" aria-pressed="false">Solved</button>
+            <button id="fm-m-steps" aria-pressed="false">Steps</button>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <label class="sel">Problem
+              <select id="fm-prob">
+                <option value="SAT">SAT</option>
+                <option value="SAT3">3SAT</option>
+              </select>
+            </label>
+            <label class="sel">Solver <select id="fm-solver-sel"></select></label>
+            <label class="sel">Example <select id="fm-ex"></select></label>
+          </div>
+        </div>
+        <svg id="fm-g" role="img" aria-label="The formula, clause by clause, with the assignment"></svg>
+      </div>
+
+      <aside class="card side">
+        <div class="stepper" id="fm-stepper" hidden>
+          <h3 id="fm-solver">Solver</h3>
+          <div class="btns">
+            <button id="fm-prev" aria-label="Previous step">◀</button>
+            <button id="fm-play">Play</button>
+            <button id="fm-next" aria-label="Next step">▶</button>
+            <span class="count" id="fm-count"></span>
+          </div>
+          <input type="range" id="fm-scrub" min="0" value="0" aria-label="Step">
+          <div class="caption" id="fm-caption"></div>
+        </div>
+        <div style="display:grid; gap:6px">
+          <h3>Checks</h3>
+          <ul class="checks" id="fm-checks"></ul>
+        </div>
+        <div class="legend">
+          <h3>Key</h3>
+          <div class="row"><span class="sw bg"></span><div>Background<small>A literal whose variable isn't assigned yet</small></div></div>
+          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The variable being tried, on every literal it makes true, and its chip</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>A true literal a step-by-step solver has kept so far. Dashed outline</small></div></div>
+          <div class="row"><span class="sw sol"></span><div>Solution<small>A true literal of the confirmed answer only</small></div></div>
+          <div class="row"><span class="sw fmfal">x</span><div>False<small>The literal is false under the assignment. Struck through</small></div></div>
+          <div class="row"><span class="sw cov"></span><div>Covered<small>A clause with a true literal. Marked ✓</small></div></div>
+          <div class="row"><span class="sw rej"></span><div>Rejected<small>A clause whose literals are all false, with its literals. Marked ✗. On a run that found nothing, its picks</small></div></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="lower">
+      <section class="card panel">
+        <h2>Input contract</h2>
+        <p>SAT and 3SAT already hand over <code>GroupedGraphSpec(Clauses, Variables)</code> for the Clause Graph and the Factor Graph. The Formula picture reads the same spec and the same <code>Assignment</code> steps, so every SAT solver animates on it with no extra code. Proposed classes: <code>SatFormulaVisualization</code> and <code>Sat3FormulaVisualization</code>, selectable next to the default.</p>
+<pre><span class="c">// payload: the Grouped Graph's groups, nodes and variables, without its edges</span>
+{ <span class="k">"kind"</span>: "formula", <span class="k">"layout"</span>: "cnf", "shape": "assignment", "rule": "satisfiability",
+  <span class="k">"groups"</span>:    [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"] }],
+  <span class="k">"nodes"</span>:     [{ "id": "c0-1", "label": "¬x2", "variable": "v:x2",
+                 "positive": false, "group": "c0" }],
+  <span class="k">"variables"</span>: [{ "id": "v:x2", "label": "x2" }] }
+
+<span class="c">// frame: the Grouped Graph frame, plus one map for the strip</span>
+{ "event", "caption", "focus", "step", "ok"?,
+  <span class="k">"nodes"</span>:  { "c0-1": { "state": "False" } },        <span class="c">// literals</span>
+  <span class="k">"groups"</span>: { "c0": { "state": "Covered" } },        <span class="c">// clauses</span>
+  <span class="k">"assignment"</span>: { "v:x2": true },
+  <span class="k">"variables"</span>:  { "v:x2": { "state": "Committed" } } }</pre>
+        <p>Layout is plain arithmetic, so it ports to D3 or React as is: literal width from its label, clauses packed left to right and wrapped at a clause boundary, a clause wider than a line wrapped at its ∨s. Every state carries a mark besides its color: dashes for Committed, a strike-through for False, ✓ and ✗ on the clause.</p>
+      </section>
+
+      <section class="card panel">
+        <h2>Open questions for review</h2>
+        <ol>
+          <li><b>Default view.</b> Should Formula become SAT's and 3SAT's default visualization, ahead of the Clause Graph? It is the picture students already know from the textbook.</li>
+          <li><b>The variables map.</b> The frame adds <code>variables</code> for the strip. Keep it, or have the frontend work the chips out from <code>assignment</code> and <code>focus</code>?</li>
+          <li><b>Repeated literals.</b> A clause like (x1 ∨ x1 ∨ x2) is drawn as written, one pill per occurrence, because the ids are per occurrence. Merge them instead?</li>
+          <li><b>Failed runs.</b> Redux's SAT solvers end an unsatisfiable run with no assignment, so that last frame is drawn blank apart from its caption. Should it mark every clause Rejected instead? (The mockup's brute force ends on its last candidate, to show the Rejected rule.)</li>
+        </ol>
+      </section>
+    </div>
   </div>
 
   <div class="tab" id="tab-auto" role="tabpanel" aria-labelledby="t-auto" hidden>
@@ -604,6 +705,113 @@ frames: { chosen, trying?, focus?, missing?, trial?, caption }[]</pre>
           <li><b>Steps come from the solver.</b> Each solver emits its own frames, and the visualization only draws them. Pick Greedy or Brute Force for Set Cover to see the difference. Greedy now reports its own overshoot instead of quietly swapping in another answer.</li>
           <li><b>Covered and Blocked join the shared states.</b> The ×2 badge is a count drawn on a node, not a state. See State vocabulary below.</li>
           <li><b>SAT factor graph.</b> Added as a second visualization for SAT and 3-SAT, on the SAT tab.</li>
+        </ol>
+      </section>
+    </div>
+  </div>
+
+  <div class="tab" id="tab-nested" role="tabpanel" aria-labelledby="t-nested" hidden>
+    <header>
+      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Nested Set</b> · Set Cover, Exact Cover, Exact Hitting Set · a second picture next to the Bipartite Graph</div>
+      <div class="title-row"><h1>Nested Set</h1><span class="chip prop">proposed · for review</span></div>
+      <p class="lede">The sets drawn as sets. Every element of U is a dot on a circle, and every set is a rounded region around its own elements, so overlaps and subsets show directly. Each set's name sits on its edge. When the regions can't be drawn cleanly, the picture switches to the set list: one row per set, its elements written out. It uses the Bipartite Graph's ids and frames, so both pictures color the same element and set the same way. Hover a dot or a set to trace it.</p>
+    </header>
+
+    <div class="instbox" id="ns-box">
+      <textarea id="ns-inst" rows="2" spellcheck="false" aria-label="Set problem instance"></textarea>
+      <div class="err" id="ns-err" hidden></div>
+      <div class="fmt" id="ns-fmt"></div>
+    </div>
+
+    <div class="bench">
+      <div class="card graph-card">
+        <div class="controls">
+          <div class="seg" role="group" aria-label="View">
+            <button id="ns-m-instance" aria-pressed="true">Instance</button>
+            <button id="ns-m-solution" aria-pressed="false">Solved</button>
+            <button id="ns-m-steps" aria-pressed="false">Steps</button>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <label class="sel">Problem
+              <select id="ns-prob">
+                <option value="SETCOVER">Set Cover</option>
+                <option value="EXACTCOVER">Exact Cover</option>
+                <option value="HITTINGSET">Exact Hitting Set</option>
+              </select>
+            </label>
+            <label class="sel">Solver <select id="ns-solver-sel"></select></label>
+            <label class="sel">Example <select id="ns-ex"></select></label>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Layout">
+            <button id="ns-lay-auto" aria-pressed="true">Regions (auto)</button>
+            <button id="ns-lay-list" aria-pressed="false">Set list</button>
+          </div>
+          <span class="fmt" id="ns-why" style="font-size:12px; color:var(--muted)"></span>
+        </div>
+        <svg id="ns-g" role="img" aria-label="Each set as a region around its elements"></svg>
+      </div>
+
+      <aside class="card side">
+        <div class="stepper" id="ns-stepper" hidden>
+          <h3 id="ns-solver">Solver</h3>
+          <div class="btns">
+            <button id="ns-prev" aria-label="Previous step">◀</button>
+            <button id="ns-play">Play</button>
+            <button id="ns-next" aria-label="Next step">▶</button>
+            <span class="count" id="ns-count"></span>
+          </div>
+          <input type="range" id="ns-scrub" min="0" value="0" aria-label="Step">
+          <div class="caption" id="ns-caption"></div>
+        </div>
+        <div style="display:grid; gap:8px">
+          <h3>Chosen</h3>
+          <div class="active-list" id="ns-chosen"></div>
+        </div>
+        <div style="display:grid; gap:6px">
+          <h3>Checks</h3>
+          <ul class="checks" id="ns-checks"></ul>
+        </div>
+        <div class="legend">
+          <h3>Key</h3>
+          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The pick the solver is trying now (a whole candidate, for a brute force)</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>Kept so far by a step-by-step solver. Dashed outline</small></div></div>
+          <div class="row"><span class="sw sol"></span><div>Solution<small>The confirmed answer only. The header says which side is ● PICKED</small></div></div>
+          <div class="row"><span class="sw cov"></span><div>Covered<small>Hit by the picks the required number of times</small></div></div>
+          <div class="row"><span class="sw blk"></span><div>Blocked<small>Exactly-once only: would double up on something already covered. Dashed</small></div></div>
+          <div class="row"><span class="sw rej"></span><div>Rejected<small>Covered twice, left uncovered when an answer is judged, or a pick of a run that found nothing</small></div></div>
+          <div class="row"><span class="sw cnt">×2</span><div>×N badge<small>How many picks hit it. A count, not a state</small></div></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="lower">
+      <section class="card panel">
+        <h2>Input contract</h2>
+        <p>The three problems already hand over <code>BipartiteSpec(Universe, Sets, K, Pick, Rule)</code>. The Nested Set picture reads the same spec and the same steps (<code>ChosenSets</code> for Set Cover and Exact Cover, <code>NodeSet</code> for Exact Hitting Set), and its frames are the Bipartite frames without <code>edges</code>. Proposed classes: <code>SetCoverNestedSetVisualization</code>, <code>ExactCoverNestedSetVisualization</code> and <code>HittingSetNestedSetVisualization</code>, selectable next to the default.</p>
+<pre><span class="c">// payload: the Bipartite Graph's elements and sets, without its edges</span>
+{ <span class="k">"kind"</span>: "nestedSet", <span class="k">"layout"</span>: "regions",
+  "pickSide": "sets" | "elements", "rule": "atLeastOnce" | "exactlyOnce", "k"?,
+  <span class="k">"elements"</span>: [{ "id": "e:1", "label": "1" }],
+  <span class="k">"sets"</span>:     [{ "id": "S1", "label": "S1", "members": ["e:1", "e:2"] }] }
+
+<span class="c">// frame: the Bipartite frame without edges</span>
+{ "event", "caption", "focus", "step", "ok"?,
+  <span class="k">"nodes"</span>: { "S1": { "state": "Committed" }, "e:2": { "state": "Covered" } },
+  <span class="k">"hits"</span>:  { "e:2": 2 } }                       <span class="c">// ×N badges</span></pre>
+        <p><b>Layout.</b> Dots go on a circle in the order that keeps each set's elements together (every order is tried up to 9 elements, a barycentre sweep past that). A region is the convex hull of its dots grown by a padding: straight edges joined by arcs. Small sets get the smallest padding, and two sets that share an element never share one, so their outlines stay apart. Because every dot is on the circle, no region can swallow a dot; the check below makes sure none comes close.</p>
+        <p><b>Fallback threshold.</b> The regions are drawn only when all of these hold: at most 12 elements and 8 sets, no element in more than 4 overlapping sets, every region clears every dot outside it by 4 px, and every set's name finds room on its edge. Otherwise the set list is drawn, and the header says why. The Layout switch forces the set list.</p>
+      </section>
+
+      <section class="card panel">
+        <h2>Open questions for review</h2>
+        <ol>
+          <li><b>Fallback threshold.</b> Is 12 elements, 8 sets and 4 overlaps per element the right place to switch to the set list, or should the list be the default and the regions an option?</li>
+          <li><b>Doubled elements.</b> An element covered twice under exactly-once is <code>Rejected</code> with a ×2 badge here, as in the Bipartite Graph's backend. The brief for this picture said <code>Blocked</code> with a ×2 badge. Keep Rejected so both pictures agree?</li>
+          <li><b>Packing problems.</b> Should Bin Packing, Knapsack, Partition and Subset Sum get a Nested Set picture too? The recommendation is no: the Packing picture already draws their items to scale in their containers.</li>
+          <li><b>Empty failed answers.</b> Exact Cover and Exact Hitting Set end a run that finds nothing with no picks, so that frame is blank apart from its caption (the Bipartite rule: nothing is judged without picks). Should it mark every element Rejected instead?</li>
+          <li><b>Default view.</b> Should Nested Set replace the Bipartite Graph as the default for any of the three problems?</li>
         </ol>
       </section>
     </div>
@@ -1651,6 +1859,7 @@ frames:   { filled, cell?, splits?, treeShown?, caption }[]</pre>
         </div>
       </div>
       <svg id="rd-g" role="img" aria-label="Source instance and the instance the reduction builds, side by side"></svg>
+      <svg id="rdf-g" role="img" aria-label="The SAT formula and the 3SAT formula the reduction builds, side by side" hidden></svg>
     </div>
 
     <div class="bench">
@@ -2068,6 +2277,8 @@ frames: { mapping: {from,to}[], trying?: {from,to},
         <tr class="this"><td>Grouped Graph</td><td>Layout: nodes placed inside group hulls; <code>key</code> links across groups</td><td>SAT, 3-SAT (clause graph); later, reduction gadgets</td></tr>
         <tr class="this"><td>Automaton</td><td>Drawing rules: start arrow, double-ring accept, merged edge labels, input tape. Layout: layered from start</td><td>DFA, NFA</td></tr>
         <tr class="this"><td>Bipartite Graph</td><td>Layout: two columns, one side picked by the certificate. Rule: cover at least once or exactly once</td><td>Set Cover, Exact Cover, Exact Hitting Set; SAT factor graph</td></tr>
+        <tr class="this"><td>Formula <small>(proposed)</small></td><td>Not a graph: the CNF as written, clause boxes joined by ∧, literals by ∨, an assignment strip. The Grouped Graph's spec, ids and frames</td><td>SAT, 3SAT (second view); both sides of SAT ↦ 3SAT</td></tr>
+        <tr class="this"><td>Nested Set <small>(proposed)</small></td><td>Layout: elements on a circle, each set a padded hull round its elements; a set list when the hulls don't fit. The Bipartite Graph's spec, ids and frames</td><td>Set Cover, Exact Cover, Exact Hitting Set (second view)</td></tr>
         <tr class="this"><td>Layered Graph</td><td>Layout: ranks left to right; edges that point backward (closing a cycle) curve under the rows. Answer shapes: an order, a removed set, groups, or distances</td><td>Topological Sort, Feedback Arc Set, Feedback Node Set, Directed Hamiltonian Cycle, Strongly Connected Components, SSSP, SPSP</td></tr>
         <tr class="this"><td>Flow Network</td><td>Data: capacity and flow per edge. Layout: source left, sink right, hops from the source in between</td><td>Minimum S-T Cut</td></tr>
         <tr class="this"><td>Packing</td><td>Not a graph: items in a pool, containers drawn to scale with a target or limit line. Answer shape: which container each item goes in</td><td>Partition, Subset Sum, Subset Product, Knapsack (Binary), Bin Packing</td></tr>
@@ -3433,6 +3644,1350 @@ $("b-solver-sel").addEventListener("change", e => {
 let bTimer;
 $("b-inst").addEventListener("input", e => { clearTimeout(bTimer); bTimer = setTimeout(() => bLoad(e.target.value), 350); });
 bProblem("SETCOVER");
+
+/* ---- Formula view (SAT, 3SAT): the CNF itself, shared by both mockups ----
+   Clause boxes joined by ∧, literals inside a clause joined by ∨, negation written ¬x, and an assignment strip under it.
+   Long formulas wrap at clause boundaries; a clause too long for one line wraps at its ∨s.
+   Ids and frames are the Grouped Graph's (clause c{i}, literal occurrence c{i}-{j}, variable v:{name}), so the Grouped Graph,
+   the Factor Graph and this picture color together and the Reduction View matches gadgets on them. A frame adds one map,
+   `variables`, for the assignment strip. Also the SAT ↦ 3SAT Reduction View pair (Karp's 3SAT Reduction), both sides drawn
+   as formulas. Pages supply --av-* tokens. */
+const FormulaView = (() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const SUBS = "₀₁₂₃₄₅₆₇₈₉";
+  const pretty = nm => { const m = /^([A-Za-z_]+)(\d+)$/.exec(nm); return m ? m[1] + m[2].split("").map(d => SUBS[d]).join("") : nm; };
+
+  const css = `
+.fm-svg { width: 100%; height: auto; display: block; }
+.fm-svg text { font-family: var(--av-mono); }
+.fm-head { font-size: 11px; font-weight: 600; letter-spacing: .08em; fill: var(--av-muted); }
+.fm-clause { cursor: pointer; }
+.fm-clause:focus { outline: none; }
+.fm-clause .box { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.6; transition: fill .2s, stroke .2s; }
+.fm-clause .cid { font-size: 11px; font-weight: 600; fill: var(--av-muted); dominant-baseline: central; }
+.fm-clause .mark { font-size: 12px; font-weight: 700; dominant-baseline: central; }
+.fm-clause.Covered .box { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
+.fm-clause.Covered .mark { fill: var(--av-sol-ink); }
+.fm-clause.ElementHighlight .box { stroke: var(--av-hl); stroke-width: 3; }
+.fm-clause.Rejected .box { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
+.fm-clause.Rejected .cid, .fm-clause.Rejected .mark { fill: var(--av-rej-ink); }
+.fm-clause.trace .box, .fm-clause:focus-visible .box { stroke: var(--av-hot); stroke-width: 3; }
+.fm-clause.faint { filter: grayscale(1); } .fm-clause.faint .box { stroke-dasharray: 3 3; }
+.fm-op { font-size: 14px; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.fm-and { font-size: 17px; font-weight: 600; fill: var(--av-ink); text-anchor: middle; dominant-baseline: central; }
+.fm-lit { cursor: pointer; }
+.fm-lit:focus { outline: none; }
+.fm-lit rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
+.fm-lit text { font-size: 15px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
+.fm-lit.ElementHighlight rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
+.fm-lit.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .fm-lit.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.fm-lit.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .fm-lit.Committed text { fill: var(--av-com-ink); font-weight: 600; }
+.fm-lit.False rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; } .fm-lit.False text { fill: var(--av-muted); text-decoration: line-through; }
+.fm-lit.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .fm-lit.Rejected text { fill: var(--av-rej-ink); font-weight: 600; }
+.fm-lit.trace rect, .fm-lit:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
+.fm-lit.faint { filter: grayscale(1); } .fm-lit.faint rect { stroke-dasharray: 3 3; }
+.fm-var { cursor: pointer; }
+.fm-var:focus { outline: none; }
+.fm-var rect { fill: var(--av-surface); stroke: var(--av-ctrl); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
+.fm-var text { font-size: 13px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
+.fm-var text .val { font-weight: 700; }
+.fm-var.ElementHighlight rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
+.fm-var.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .fm-var.Committed text { fill: var(--av-com-ink); }
+.fm-var.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .fm-var.Solution text { fill: var(--av-on-sol); }
+.fm-var.False rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; } .fm-var.False text { fill: var(--av-muted); }
+.fm-var.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .fm-var.Rejected text { fill: var(--av-rej-ink); }
+.fm-var.trace rect, .fm-var:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
+.fm-var.faint { filter: grayscale(1); } .fm-var.faint rect { stroke-dasharray: 3 3; }
+.fm-hidden { visibility: hidden; }
+.fm-clause.g0 .box { stroke: var(--av-g0s); stroke-width: 2.8; } .fm-clause.g1 .box { stroke: var(--av-g1s); stroke-width: 2.8; }
+.fm-clause.g2 .box { stroke: var(--av-g2s); stroke-width: 2.8; } .fm-clause.g3 .box { stroke: var(--av-g3s); stroke-width: 2.8; }
+.fm-clause.g4 .box { stroke: var(--av-g4s); stroke-width: 2.8; } .fm-clause.g5 .box { stroke: var(--av-g5s); stroke-width: 2.8; }
+.fm-pane-title { font-size: 11.5px; font-weight: 600; letter-spacing: .07em; fill: var(--av-muted); }
+.fm-arrow { font-size: 26px; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; }
+.fm-link { fill: none; stroke: var(--av-hot); stroke-width: 1.4; stroke-dasharray: 2 3; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .fm-clause .box, .fm-lit rect, .fm-var rect { transition: none; } }`;
+
+  function addStyle() {
+    if (!document.getElementById("fm-style")) { const st = document.createElement("style"); st.id = "fm-style"; st.textContent = css; document.head.appendChild(st); }
+  }
+
+  /* ---------- the instance ---------- */
+
+  // Names in natural order (x2 before x10), as GroupedGraphSpec.FromLiterals numbers them.
+  function naturalCompare(a, b) {
+    const ra = a.match(/\d+|\D+/g) || [], rb = b.match(/\d+|\D+/g) || [];
+    for (let i = 0; i < Math.min(ra.length, rb.length); i++) {
+      const x = ra[i], y = rb[i], dx = /^\d/.test(x), dy = /^\d/.test(y);
+      let c;
+      if (dx && dy) { const vx = x.replace(/^0+/, ""), vy = y.replace(/^0+/, ""); c = vx.length !== vy.length ? vx.length - vy.length : vx < vy ? -1 : vx > vy ? 1 : x < y ? -1 : x > y ? 1 : 0; }
+      else if (dx !== dy) c = dx ? -1 : 1;
+      else c = x < y ? -1 : x > y ? 1 : 0;
+      if (c) return Math.sign(c);
+    }
+    return ra.length - rb.length;
+  }
+  // GroupedGraphFrames.EscapeName: a backslash before \ ~ - : inside a name.
+  const escapeName = n => n.replace(/[\\~\-:]/g, m => "\\" + m);
+  const varId = name => "v:" + escapeName(name);
+  const clauseId = i => "c" + i;
+  const litId = (i, j) => `c${i}-${j}`;
+
+  /** Redux's SAT format, `(x1 | !x2 | x3) & (!x1 | x3)`, to { clauses (signed 1-based variable indices), names }. */
+  function parse(str, kind = "SAT") {
+    const s = str.trim();
+    if (!s) throw new Error("Enter a formula like (x1 | !x2 | x3) & (!x1 | x3).");
+    const written = s.split("&").map((part, i) => {
+      const inner = part.trim().replace(/^\(/, "").replace(/\)$/, "");
+      if (/[()]/.test(inner) || !inner.trim()) throw new Error(`Clause ${i + 1} is malformed.`);
+      return inner.split("|").map(tok => {
+        let t = tok.trim(), neg = false;
+        while (/^[!~¬]/.test(t)) { neg = !neg; t = t.slice(1).trim(); }
+        if (!/^[A-Za-z_]\w*$/.test(t)) throw new Error(`"${tok.trim()}" isn't a literal.`);
+        return { neg, name: t };
+      });
+    });
+    if (kind === "SAT3" && written.some(c => c.length > 3)) throw new Error("3SAT clauses have at most three literals.");
+    if (written.length > 60) throw new Error("This mockup draws up to 60 clauses.");
+    const names = [...new Set(written.flat().map(l => l.name))].sort(naturalCompare);
+    if (names.length > 30) throw new Error("This mockup draws up to 30 variables.");
+    const index = new Map(names.map((n, i) => [n, i + 1]));
+    return { clauses: written.map(c => c.map(l => (l.neg ? -1 : 1) * index.get(l.name))), names };
+  }
+  const textOf = spec => spec.clauses.map(c => "(" + c.map(l => (l < 0 ? "!" : "") + spec.names[Math.abs(l) - 1]).join(" | ") + ")").join(" & ");
+
+  /** The payload: the Grouped Graph's groups, nodes and variables, without its edges. */
+  function payload(spec) {
+    const groups = [], nodes = [];
+    spec.clauses.forEach((c, i) => {
+      const members = [];
+      c.forEach((l, j) => {
+        const name = spec.names[Math.abs(l) - 1];
+        members.push(litId(i, j));
+        nodes.push({ id: litId(i, j), label: (l > 0 ? "" : "¬") + name, variable: varId(name), positive: l > 0, group: clauseId(i) });
+      });
+      groups.push({ id: clauseId(i), label: "C" + (i + 1), members });
+    });
+    return { kind: "formula", layout: "cnf", shape: "assignment", rule: "satisfiability", groups, nodes, variables: spec.names.map(n => ({ id: varId(n), label: n })) };
+  }
+
+  /* ---------- frames: GroupedGraphFrames.Frame, plus the variables map ---------- */
+
+  const RANK = ["Background", "False", "Blocked", "Covered", "Committed", "Solution", "ElementHighlight", "Rejected"];
+  const raise = (map, id, st) => { if (RANK.indexOf(st) > RANK.indexOf(map[id] || "Background")) map[id] = st; };
+  // GraphSubsetFrames.Picked: what a true literal (a pick) is in a step.
+  const picked = (ev, incremental, endsRun, ok) =>
+    ev === "Done" ? (ok ? "Solution" : "Rejected") : ev === "Accept" && endsRun ? "Solution" : (ev === "Try" || ev === "Reject") && !incremental ? "ElementHighlight" : "Committed";
+
+  /** One step ({ event, partial: { name: bool }, focus: [ids], caption, ok? }) as the frame the backend would send. */
+  function frame(spec, step, { incremental = false, endsRun = false, index = null } = {}) {
+    const values = new Map(), assignment = {};
+    spec.names.forEach((n, i) => { if (step.partial && n in step.partial) { values.set(i + 1, !!step.partial[n]); assignment[varId(n)] = !!step.partial[n]; } });
+    const pick = picked(step.event, incremental, endsRun, step.ok === true);
+    const nodes = {}, groups = {}, variables = {}, litsOf = new Map();
+    spec.clauses.forEach((c, i) => {
+      let trues = 0, falses = 0;
+      c.forEach((l, j) => {
+        const id = litId(i, j), v = Math.abs(l), vid = varId(spec.names[v - 1]);
+        if (!litsOf.has(vid)) litsOf.set(vid, []);
+        litsOf.get(vid).push(id);
+        if (!values.has(v)) return;
+        if (values.get(v) === l > 0) { trues++; raise(nodes, id, pick); } else { falses++; raise(nodes, id, "False"); }
+      });
+      if (trues) raise(groups, clauseId(i), "Covered");
+      else if (c.length && falses === c.length) { raise(groups, clauseId(i), "Rejected"); c.forEach((_, j) => raise(nodes, litId(i, j), "Rejected")); }
+    });
+    // The strip: a true variable takes the pick's state, a false one is False.
+    values.forEach((val, v) => raise(variables, varId(spec.names[v - 1]), val ? pick : "False"));
+    const hiLit = id => { if (nodes[id] !== "False") raise(nodes, id, "ElementHighlight"); };
+    const clauseMark = step.event === "Reject" ? "Rejected" : "ElementHighlight";
+    (step.focus || []).forEach(id => {
+      if (litsOf.has(id)) { litsOf.get(id).forEach(hiLit); raise(variables, id, "ElementHighlight"); }
+      else if (/^c\d+$/.test(id) && +id.slice(1) < spec.clauses.length) raise(groups, id, clauseMark);
+      else if (/^c\d+-\d+$/.test(id)) hiLit(id);
+      else if (id.startsWith("v:")) raise(variables, id, "ElementHighlight");
+    });
+    const out = { event: step.event, caption: step.caption, focus: step.focus || [], step: index, nodes, groups, assignment, variables };
+    if (step.ok !== undefined) out.ok = step.ok;
+    return out;
+  }
+  const stoppedFrame = (caption, index = null) => ({ event: "Done", caption, focus: [], step: index, nodes: {}, groups: {}, assignment: {}, variables: {}, ok: false, stopped: true });
+  const baseFrame = caption => ({ event: null, caption, focus: [], step: null, nodes: {}, groups: {}, assignment: {}, variables: {}, base: true });
+
+  /** The whole run as frames, as GroupedGraphFrames.Build does: each step with whether it is an Accept that ends the run. */
+  function build(spec, run) {
+    const frames = run.steps.map((s, k) => {
+      const next = run.steps[k + 1];
+      if (run.stopped && s.event === "Done") return stoppedFrame(s.caption, k);
+      return frame(spec, s, { incremental: run.incremental, endsRun: s.event === "Accept" && next && next.event === "Done" && next.ok === true, index: k });
+    });
+    return frames;
+  }
+
+  /* ---------- reference solvers (test oracles; the backend records the real steps) ---------- */
+
+  const nameOf = (spec, v) => spec.names[v - 1];
+  const show = (spec, v) => pretty(nameOf(spec, v));
+  const litShow = (spec, l) => (l < 0 ? "¬" : "") + show(spec, Math.abs(l));
+  const valOf = (asg, l) => { const a = asg[Math.abs(l)]; return a === undefined ? undefined : l > 0 ? a : !a; };
+  const toPartial = (spec, asg) => Object.fromEntries(Object.entries(asg).map(([v, b]) => [nameOf(spec, +v), b]));
+
+  // Backtracking with unit propagation (DPLL). Incremental: what it has decided so far is kept (Committed).
+  function solveDpll(spec, { limit = Infinity } = {}) {
+    const steps = [], asg = {}, n = spec.names.length;
+    const push = (event, focus, caption) => steps.push({ event, partial: toPartial(spec, asg), focus, caption });
+    const falsified = () => spec.clauses.findIndex(c => c.every(l => valOf(asg, l) === false));
+    const satisfied = () => spec.clauses.every(c => c.some(l => valOf(asg, l) === true));
+    function propagate(trail) {
+      for (;;) {
+        if (steps.length >= limit) return "stop";
+        const bad = falsified();
+        if (bad >= 0) { push("Reject", [clauseId(bad)], `C${bad + 1} has no true literal left, so this branch fails.`); return "conflict"; }
+        const unit = spec.clauses.findIndex(c => !c.some(l => valOf(asg, l) === true) && c.filter(l => valOf(asg, l) === undefined).length === 1);
+        if (unit < 0) return "ok";
+        const l = spec.clauses[unit].find(x => valOf(asg, x) === undefined), v = Math.abs(l);
+        asg[v] = l > 0; trail.push(v);
+        push("Accept", [varId(nameOf(spec, v))], `C${unit + 1} has one literal left that can be true, ${litShow(spec, l)}, so ${show(spec, v)} = ${l > 0 ? "T" : "F"}.`);
+      }
+    }
+    let stopped = false;
+    function rec() {
+      if (satisfied()) return true;
+      let v = 1; while (v <= n && asg[v] !== undefined) v++;
+      if (v > n) return false;
+      for (const b of [true, false]) {
+        if (steps.length >= limit) { stopped = true; return false; }
+        asg[v] = b;
+        push("Try", [varId(nameOf(spec, v))], `${b ? "Try" : "Now try"} ${show(spec, v)} = ${b ? "T" : "F"}.`);
+        const trail = [], r = propagate(trail);
+        if (r === "stop") { stopped = true; return false; }
+        if (r === "ok" && rec()) return true;
+        if (stopped) return false;
+        trail.forEach(u => delete asg[u]);
+        delete asg[v];
+        if (b) push("Backtrack", [varId(nameOf(spec, v))], `${show(spec, v)} = T fails, so undo it${trail.length ? " and what it forced" : ""}.`);
+      }
+      push("Backtrack", [varId(nameOf(spec, v))], `Both values of ${show(spec, v)} fail, so back up.`);
+      return false;
+    }
+    const trail0 = [], r0 = propagate(trail0);
+    const ok = r0 === "ok" && rec();
+    if (stopped || r0 === "stop") {
+      steps.push({ event: "Done", partial: {}, focus: [], caption: "Stopped after 10 s: the time limit ran out before the solver finished.", ok: false });
+      return { steps, incremental: true, stopped: true, ok: false, solution: null };
+    }
+    if (ok) {
+      const free = spec.names.map((_, i) => i + 1).filter(v => asg[v] === undefined);
+      free.forEach(v => (asg[v] = false));
+      steps.push({ event: "Done", partial: toPartial(spec, asg), focus: [], ok: true,
+        caption: `Every clause has a true literal: satisfiable.${free.length ? ` ${free.map(v => show(spec, v)).join(", ")} ${free.length > 1 ? "were" : "was"} never needed, so ${free.length > 1 ? "they are" : "it is"} set to F.` : ""}` });
+    } else steps.push({ event: "Done", partial: {}, focus: [], ok: false, caption: "Every branch failed, so no assignment satisfies the formula: unsatisfiable." });
+    return { steps, incremental: true, ok, solution: ok ? { ...asg } : null };
+  }
+
+  // Brute force: every whole assignment in turn. Not incremental, so each candidate is only highlighted.
+  const SHOW_TRIES = 64;
+  function solveBrute(spec) {
+    const steps = [], n = spec.names.length;
+    if (n > 12) return { steps: [{ event: "Done", partial: {}, focus: [], ok: false, caption: "Too many variables for the mockup to brute-force. Use the backtracking solver." }], incremental: false, ok: false, solution: null };
+    let found = null, tried = 0, last = null;
+    for (let m = 0; m < 1 << n; m++) {
+      const asg = {}; for (let v = 1; v <= n; v++) asg[v] = !(m & (1 << (n - v)));
+      last = asg; tried++;
+      const bad = spec.clauses.findIndex(c => c.every(l => valOf(asg, l) === false));
+      const txt = spec.names.map((_, i) => `${show(spec, i + 1)}=${asg[i + 1] ? "T" : "F"}`).join(" ");
+      if (tried <= SHOW_TRIES || bad < 0) steps.push(bad < 0
+        ? { event: "Accept", partial: toPartial(spec, asg), focus: [], caption: `Try ${txt}: every clause has a true literal.` }
+        : { event: "Reject", partial: toPartial(spec, asg), focus: [clauseId(bad)], caption: `Try ${txt}: C${bad + 1} is false.` });
+      if (bad < 0) { found = asg; break; }
+    }
+    const hidden = tried > SHOW_TRIES ? ` (${tried - SHOW_TRIES} tries not shown)` : "";
+    // The mockup's brute force ends an unsatisfiable run on its last candidate, to show that a Done with ok = false draws its picks Rejected.
+    if (found) steps.push({ event: "Done", partial: toPartial(spec, found), focus: [], ok: true, caption: `Satisfiable, found after ${tried} tries${hidden}.` });
+    else steps.push({ event: "Done", partial: toPartial(spec, last), focus: [], ok: false, caption: `Checked all ${tried} assignments${hidden}; none satisfies every clause. The last one tried is drawn red.` });
+    return { steps, incremental: false, ok: !!found, solution: found };
+  }
+
+  const SOLVERS = {
+    dpll: { label: "Backtracking (DPLL)", run: spec => solveDpll(spec) },
+    brute: { label: "Brute Force", run: spec => solveBrute(spec) },
+    stopped: { label: "Backtracking, stopped by the time limit", run: spec => solveDpll(spec, { limit: 5 }) },
+  };
+
+  /* ---------- layout: pure math, (payload, width) → boxes ---------- */
+
+  const CW = 9, PH = 30, PAD = 9, BH = PH + 2 * PAD, OR_W = 24, AND_W = 34, LABEL_H = 18, ROW_GAP = 16, VW = 66, VH = 30;
+  const pillW = label => Math.max(34, label.length * CW + 18);
+
+  function layout(P, width, top = 34) {
+    const left = 12, right = width - 12;
+    const lits = new Map(P.nodes.map(n => [n.id, { ...n, text: n.positive ? pretty(n.label) : "¬" + pretty(n.label.slice(1)) }]));
+    const clauses = [], ands = [], ors = [];
+    let x = left, y = top, rowH = 0, rowStart = true;
+    P.groups.forEach((g, i) => {
+      const ms = g.members.map(id => lits.get(id));
+      // pack the clause's literals into rows no wider than the line (a long SAT clause wraps at its ∨s)
+      const maxInner = right - left - 2 * PAD - AND_W, rows = [[]];
+      let w = 0;
+      ms.forEach(m => {
+        const need = (rows.at(-1).length ? OR_W : 0) + pillW(m.text);
+        if (rows.at(-1).length && w + need > maxInner) { rows.push([]); w = 0; }
+        w += (rows.at(-1).length ? OR_W : 0) + pillW(m.text); rows.at(-1).push(m);
+      });
+      const rowWs = rows.map((r, k) => r.reduce((a, m, q) => a + pillW(m.text) + (q || k ? OR_W : 0), 0));
+      const bw = 2 * PAD + Math.max(...rowWs), bh = BH + (rows.length - 1) * (PH + 8);
+      const need = (i ? AND_W : 0) + bw;
+      if (!rowStart && x + need > right) { y += rowH + ROW_GAP; x = left; rowH = 0; rowStart = true; }
+      if (i) { ands.push({ x: x + AND_W / 2, y: y + LABEL_H + BH / 2, after: g.id }); x += AND_W; }
+      const box = { id: g.id, label: g.label, x, y: y + LABEL_H, w: bw, h: bh, members: g.members };
+      rows.forEach((r, k) => {
+        let px = x + PAD + (k ? OR_W : 0);
+        const py = box.y + PAD + k * (PH + 8);
+        if (k) ors.push({ x: x + PAD + OR_W / 2, y: py + PH / 2, clause: g.id });
+        r.forEach((m, q) => {
+          if (q) { ors.push({ x: px + OR_W / 2, y: py + PH / 2, clause: g.id }); px += OR_W; }
+          Object.assign(m, { x: px, y: py, w: pillW(m.text), h: PH });
+          px += pillW(m.text);
+        });
+      });
+      clauses.push(box);
+      x += bw; rowH = Math.max(rowH, LABEL_H + bh); rowStart = false;
+    });
+    let vy = y + rowH + 40;
+    const vars = [];
+    let vx = left;
+    P.variables.forEach(v => {
+      const w = Math.max(VW, (pretty(v.label).length + 2) * CW + 18);
+      if (vx + w > right) { vx = left; vy += VH + 10; }
+      vars.push({ ...v, x: vx, y: vy, w, h: VH });
+      vx += w + 8;
+    });
+    return { clauses, lits, ands, ors, vars, headY: top - 12, stripY: y + rowH + 22, height: vy + VH + 14 };
+  }
+
+  /* ---------- drawing one formula into a group ---------- */
+
+  function drawFormula(root, P, L, hookup, { head = true } = {}) {
+    if (head) {
+      mk("text", { x: 12, y: L.headY, class: "fm-head" }, root).textContent = "FORMULA · CNF";
+      mk("text", { x: 12, y: L.stripY, class: "fm-head" }, root).textContent = "ASSIGNMENT";
+    }
+    const els = { clauses: new Map(), lits: new Map(), vars: new Map(), ands: [], P, L };
+    L.clauses.forEach(c => {
+      const g = mk("g", { class: "fm-clause", tabindex: "0", role: "button", "aria-label": `Clause ${c.label}: ${c.members.map(id => L.lits.get(id).text).join(" or ")}` }, root);
+      mk("rect", { x: c.x, y: c.y, width: c.w, height: c.h, rx: 9, class: "box" }, g);
+      mk("text", { x: c.x + 2, y: c.y - 9, class: "cid" }, g).textContent = c.label;
+      const mark = mk("text", { x: c.x + 6 + c.label.length * 7.4, y: c.y - 9, class: "mark" }, g);
+      els.clauses.set(c.id, { g, mark, box: c });
+      hookup(g, c.id);
+    });
+    L.ands.forEach(a => { const t = mk("text", { x: a.x, y: a.y, class: "fm-and" }, root); t.textContent = "∧"; els.ands.push({ el: t, after: a.after }); });
+    L.ors.forEach(o => { const t = mk("text", { x: o.x, y: o.y, class: "fm-op" }, root); t.textContent = "∨"; o.el = t; });
+    L.lits.forEach((m, id) => {
+      const g = mk("g", { class: "fm-lit", tabindex: "0", role: "button", "aria-label": `${m.text} in clause ${+m.group.slice(1) + 1}` }, root);
+      mk("rect", { x: m.x, y: m.y, width: m.w, height: m.h, rx: 7 }, g);
+      mk("text", { x: m.x + m.w / 2, y: m.y + m.h / 2 }, g).textContent = m.text;
+      els.lits.set(id, { g, m });
+      hookup(g, id);
+    });
+    L.vars.forEach(v => {
+      const g = mk("g", { class: "fm-var", tabindex: "0", role: "button", "aria-label": `Variable ${v.label}` }, root);
+      mk("rect", { x: v.x, y: v.y, width: v.w, height: v.h, rx: 7 }, g);
+      const t = mk("text", { x: v.x + v.w / 2, y: v.y + v.h / 2 }, g);
+      t.textContent = pretty(v.label) + " –";
+      els.vars.set(v.id, { g, t, v });
+      hookup(g, v.id);
+    });
+    return els;
+  }
+
+  // What a hovered id lights up: a variable traces its literals; a literal its variable's literals; a clause its literals.
+  function traceSet(P, id) {
+    const hot = new Set([id]);
+    if (!id) return hot;
+    const node = P.nodes.find(n => n.id === id);
+    const vid = id.startsWith("v:") ? id : node ? node.variable : null;
+    if (vid) { hot.add(vid); P.nodes.forEach(n => { if (n.variable === vid) hot.add(n.id); }); }
+    const grp = P.groups.find(g => g.id === id);
+    if (grp) grp.members.forEach(m => { hot.add(m); hot.add(P.nodes.find(n => n.id === m).variable); });
+    return hot;
+  }
+
+  function paintFormula(els, f, { hot = null, shown = null, colorOf = null } = {}) {
+    // a state is a name here, or a { state } ref as the backend writes it
+    const st = (map, id) => { const v = f && f[map] && f[map][id]; return (v && v.state) || v || "Background"; };
+    els.clauses.forEach((o, id) => {
+      const s = st("groups", id);
+      let cls = "fm-clause " + s;
+      if (colorOf) { const c = colorOf(id); if (c !== null) cls += " g" + c; }
+      if (hot) cls += hot.has(id) ? " trace" : " faint";
+      if (shown && !shown.has(id)) cls += " fm-hidden";
+      o.g.setAttribute("class", cls);
+      o.mark.textContent = s === "Covered" ? "✓" : s === "Rejected" ? "✗" : "";
+    });
+    els.ands.forEach(a => a.el.setAttribute("class", "fm-and" + (shown && !shown.has(a.after) ? " fm-hidden" : "")));
+    els.L.ors.forEach(o => o.el.setAttribute("class", "fm-op" + (shown && !shown.has(o.clause) ? " fm-hidden" : "")));
+    els.lits.forEach((o, id) => {
+      let cls = "fm-lit " + st("nodes", id);
+      if (hot) cls += hot.has(id) ? " trace" : " faint";
+      if (shown && !shown.has(o.m.group)) cls += " fm-hidden";
+      o.g.setAttribute("class", cls);
+    });
+    els.vars.forEach((o, id) => {
+      const a = f && f.assignment ? f.assignment[id] : undefined;
+      let cls = "fm-var " + st("variables", id);
+      if (hot) cls += hot.has(id) ? " trace" : " faint";
+      if (shown && shown.vars && !shown.vars.has(id)) cls += " fm-hidden";
+      o.g.setAttribute("class", cls);
+      o.t.textContent = "";
+      mk("tspan", {}, o.t).textContent = pretty(o.v.label) + " ";
+      mk("tspan", { class: "val" }, o.t).textContent = a === undefined ? "–" : a ? "T" : "F";
+    });
+  }
+
+  /* ---------- the Formula picture ---------- */
+
+  function create({ svg }) {
+    addStyle();
+    svg.classList.add("fm-svg");
+    let spec, P, run, frames, frame0 = null, els, hover = null, kind = "SAT";
+
+    function draw() {
+      svg.innerHTML = "";
+      const W = 800, L = layout(P, W);
+      svg.setAttribute("viewBox", `0 0 ${W} ${L.height}`);
+      const hookup = (g, id) => {
+        const on = () => { hover = id; paint(); }, off = () => { hover = null; paint(); };
+        g.addEventListener("pointerenter", on); g.addEventListener("pointerleave", off);
+        g.addEventListener("focus", on); g.addEventListener("blur", off);
+        g.addEventListener("click", () => { hover = hover === id ? null : id; paint(); });
+      };
+      els = drawFormula(svg, P, L, hookup);
+    }
+    function paint() { paintFormula(els, frame0, { hot: hover ? traceSet(P, hover) : null }); }
+
+    function checks(f) {
+      const total = spec.clauses.length, a = f ? f.assignment : {};
+      const covered = f ? Object.values(f.groups).filter(s => s === "Covered").length : 0;
+      const failed = f ? Object.values(f.groups).filter(s => s === "Rejected").length : 0;
+      return [
+        { label: `Clauses with a true literal: ${covered} / ${total}`, ok: f ? covered === total : null },
+        { label: `Clauses with every literal false: ${failed}`, ok: f ? failed === 0 : null },
+        { label: `Variables assigned: ${Object.keys(a).length} / ${spec.names.length}`, ok: f ? Object.keys(a).length === spec.names.length : null },
+      ];
+    }
+
+    return {
+      // kind: "SAT" or "SAT3"; solver: a key of SOLVERS
+      load(str, k = "SAT", solver = "dpll") {
+        kind = k; spec = parse(str, k); P = payload(spec);
+        run = SOLVERS[solver].run(spec);
+        frames = [baseFrame("Step 0: the formula, nothing assigned. Step forward to watch the solver."), ...build(spec, run)];
+        frame0 = null; hover = null;
+        draw(); paint();
+        return { frames, ok: run.ok, solution: run.solution ? spec.names.map((n, i) => `${n}=${run.solution[i + 1] ? "T" : "F"}`) : null, incremental: run.incremental, payload: P };
+      },
+      // Viewer hook: draw a payload and frames built elsewhere (the backend's), without running a mockup solver.
+      loadFrames(payloadIn, fr) { P = payloadIn; spec = { clauses: P.groups.map(g => g.members), names: P.variables.map(v => v.label) }; frames = fr; frame0 = null; hover = null; draw(); paint(); return { frames }; },
+      show(i) { frame0 = i === null ? null : frames[i]; paint(); return frame0; },
+      checks(i) { return checks(i === null ? null : frames[i]); },
+      resetHover() { hover = null; paint(); },
+    };
+  }
+
+  /* ---------- Karp's 3SAT Reduction (SAT ↦ 3SAT), as KarpSATToSAT3 builds it ---------- */
+
+  function karp(str) {
+    const src = parse(str, "SAT");
+    if (src.clauses.length > 8) throw new Error("This mockup draws up to 8 clauses for this reduction.");
+    const lit = l => (l < 0 ? "!" : "") + src.names[Math.abs(l) - 1];
+    // Each target clause keeps its literal strings and, parallel to them, the source literal id each came from (null for new ones).
+    const T = src.clauses.map((c, i) => ({ lits: c.map(lit), from: c.map((_, j) => litId(i, j)), origin: i }));
+    const used = new Set(src.names);
+    let fresh = "x1";
+    const chain = [], helperOf = new Map(), splits = [];
+    for (let idx = T.findIndex(c => c.lits.length > 3); idx >= 0; idx = T.findIndex(c => c.lits.length > 3)) {
+      while (used.has(fresh)) fresh = "x" + (+fresh.slice(1) + 1);
+      used.add(fresh);
+      const c = T[idx], n = c.lits.length;
+      const moved = { lits: [c.lits[n - 2], c.lits[n - 1], fresh], from: [c.from[n - 2], c.from[n - 1], null], origin: c.origin };
+      splits.push({ y: fresh, a: c.lits[n - 2], b: c.lits[n - 1] });
+      T.push(moved); chain.push([idx, T.length - 1]); helperOf.set(fresh, c.origin);
+      c.lits.splice(n - 2, 2, "!" + fresh); c.from.splice(n - 2, 2, null);
+    }
+    const padded = new Map();
+    T.forEach((c, t) => {
+      if (c.lits.length === 2) { padded.set(t, 2); c.lits.push(c.lits[0]); c.from.push(c.from[0]); }
+      else if (c.lits.length === 1) { padded.set(t, 1); c.lits.push(c.lits[0], c.lits[0]); c.from.push(c.from[0], c.from[0]); }
+    });
+    const tgtStr = T.map(c => "(" + c.lits.join(" | ") + ")").join(" & ");
+    const tgt = parse(tgtStr, "SAT3");
+    const Ps = payload(src), Pt = payload(tgt);
+    const vSrc = n => varId(n);
+
+    // gadgets: a group per source clause (it and every clause it became), an element per literal, a variable per variable,
+    // and an element for each new variable (from the clause whose split made it), as KarpSATToSAT3 lists them.
+    const gadgets = [];
+    src.clauses.forEach((c, i) => {
+      gadgets.push({ kind: "group", from: ["s:" + clauseId(i)], to: T.map((x, t) => (x.origin === i ? "t:" + clauseId(t) : null)).filter(Boolean) });
+      c.forEach((_, j) => gadgets.push({ kind: "element", from: ["s:" + litId(i, j)], to: T.flatMap((x, t) => x.from.map((f, q) => (f === litId(i, j) ? "t:" + litId(t, q) : null))).filter(Boolean) }));
+    });
+    src.names.forEach(n => gadgets.push({ kind: "element", from: ["s:" + vSrc(n)], to: ["t:" + vSrc(n)] }));
+    helperOf.forEach((origin, y) => gadgets.push({ kind: "element", from: ["s:" + clauseId(origin)], to: ["t:" + vSrc(y)], note: `${pretty(y)} is new: it links the clauses C${origin + 1} is split into` }));
+
+    const frames = [];
+    const shownC = new Set(), shownV = new Set();
+    const empty = { event: "Try", partial: {}, caption: "" };
+    src.clauses.forEach((c, i) => {
+      const mine = T.map((x, t) => (x.origin === i ? t : -1)).filter(t => t >= 0);
+      mine.forEach(t => shownC.add(clauseId(t)));
+      const newVars = [...new Set(mine.flatMap(t => T[t].lits.map(l => l.replace(/^!/, ""))))].filter(n => !shownV.has(vSrc(n)));
+      newVars.forEach(n => shownV.add(vSrc(n)));
+      const focusSrc = [clauseId(i), ...c.map((_, j) => litId(i, j))];
+      const focusTgt = mine.flatMap(t => [clauseId(t), ...T[t].lits.map((_, q) => litId(t, q))]).concat(newVars.map(vSrc));
+      const k = c.length, txt = c.map(l => litShow(src, l)).join(" ∨ ");
+      const helpers = mine.slice(1).map(t => T[t].lits[2]);
+      let caption;
+      if (k === 3) caption = `C${i + 1} (${txt}) already has three literals, so it is copied as it is.`;
+      else if (k < 3) caption = `C${i + 1} (${txt}) has ${k === 1 ? "one literal" : "two literals"}, so ${k === 1 ? "it is written three times" : "its first literal is repeated"}: x ∨ x is still x.`;
+      else caption = `C${i + 1} (${txt}) has ${k} literals, so it is split into ${mine.length} clauses chained by the new variable${helpers.length > 1 ? "s" : ""} ${helpers.map(pretty).join(", ")}. Each new variable says "the rest of the clause is true".`;
+      frames.push({ phase: "build", shown: new Set(shownC), shownV: new Set(shownV), focusSrc, focusTgt, caption,
+        src: frame(src, { ...empty, focus: focusSrc }), tgt: frame(tgt, { ...empty, focus: focusTgt }) });
+    });
+    frames.push({ phase: "build", shown: new Set(shownC), shownV: new Set(shownV), focusSrc: [], focusTgt: [], src: null, tgt: null,
+      caption: `Done building: ${T.length} clauses of exactly three literals. The 3SAT formula is satisfiable exactly when the SAT formula is.` });
+
+    // Solve B with the backtracking solver; map its answer back variable by variable.
+    const solved = solveDpll(tgt);
+    if (!solved.ok) {
+      frames.push({ phase: "solve", done: true, ok: false, src: null, tgt: frame(tgt, { event: "Done", partial: {}, focus: [], ok: false, caption: "" }),
+        caption: "The 3SAT backtracking solver finds no satisfying assignment, so the SAT formula has none either." });
+    } else {
+      const tAsg = toPartial(tgt, solved.solution), tDone = frame(tgt, { event: "Done", partial: tAsg, focus: [], ok: true, caption: "" });
+      frames.push({ phase: "solve", src: null, tgt: tDone, caption: `Solve the 3SAT formula with the backtracking solver: ${tgt.names.map(n => `${pretty(n)}=${tAsg[n] ? "T" : "F"}`).join(", ")}.` });
+      const sAsg = {};
+      src.names.forEach((n, k) => {
+        sAsg[n] = tAsg[n];
+        frames.push({ phase: "map", focusSrc: [vSrc(n)], focusTgt: [vSrc(n)], tgt: tDone,
+          src: frame(src, { event: "Accept", partial: { ...sAsg }, focus: [vSrc(n)], caption: "" }, { incremental: true }),
+          caption: `${pretty(n)} is ${tAsg[n] ? "T" : "F"} in the 3SAT answer, so ${pretty(n)} = ${tAsg[n] ? "T" : "F"} in the SAT answer.` + (k === 0 ? " The original variables keep their values." : "") });
+      });
+      if (helperOf.size) frames.push({ phase: "map", focusSrc: [], focusTgt: [...helperOf.keys()].map(vSrc), tgt: tDone,
+        src: frame(src, { event: "Accept", partial: { ...sAsg }, focus: [], caption: "" }, { incremental: true }),
+        caption: `${[...helperOf.keys()].map(pretty).join(", ")} ${helperOf.size > 1 ? "are" : "is"} the reduction's own, so ${helperOf.size > 1 ? "they are" : "it is"} dropped.` });
+      const ok = src.clauses.every(c => c.some(l => (l > 0 ? sAsg[src.names[l - 1]] : !sAsg[src.names[-l - 1]])));
+      frames.push({ phase: "map", done: true, ok, focusSrc: [], focusTgt: [], tgt: tDone,
+        src: frame(src, { event: "Done", partial: { ...sAsg }, focus: [], ok, caption: "" }),
+        caption: ok ? `Every SAT clause has a true literal: ${src.names.map(n => `${pretty(n)}=${sAsg[n] ? "T" : "F"}`).join(", ")} satisfies the formula.` : "The mapped assignment doesn't satisfy the formula." });
+    }
+    // every frame after the build shows the whole target
+    const allC = new Set(T.map((_, t) => clauseId(t))), allV = new Set(tgt.names.map(vSrc));
+    frames.forEach(f => { if (!f.shown) { f.shown = allC; f.shownV = allV; } });
+    return { src, tgt, Ps, Pt, gadgets, frames, targetInstance: tgtStr, splits, padded };
+  }
+
+  const REDUCTIONS = {
+    KARP_SAT3: { label: "Karp's 3SAT Reduction", from: "SAT", to: "SAT3", fromLabel: "SAT", toLabel: "3SAT", run: karp,
+      def: "Karp's reduction keeps every clause of three literals, pads shorter ones by repeating a literal, and splits longer ones into a chain of three-literal clauses joined by new variables.",
+      source: "Karp, Reducibility among combinatorial problems (1972)", contributors: "Andrija Sevaljevic",
+      examples: [["Mixed widths", "(x1 | !x2 | x3 | x4 | !x5) & (!x1 | x2) & (x3)"], ["Redux default", "(x1 | !x2 | x3) & (!x1 | x3 | x4) & (x2 | !x3 | !x4 | x5)"], ["Unsatisfiable", "(x1 | x2) & (x1 | !x2) & (!x1 | x2) & (!x1 | !x2)"]] },
+  };
+
+  /* ---------- the Reduction View pair: both sides as formulas ---------- */
+
+  function createPair({ svg }) {
+    addStyle();
+    svg.classList.add("fm-svg");
+    let R, red, f = null, colors = false, hoverId = null, S, T, links, gIndex;
+    const W = 1080, SW = 500, TX = 560, TW = 520;
+
+    function draw() {
+      svg.innerHTML = "";
+      const Ls = layout(R.Ps, SW, 62), Lt = layout(R.Pt, TW, 62);
+      const H = Math.max(Ls.height, Lt.height, 300);
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      mk("text", { x: 12, y: 24, class: "fm-pane-title" }, svg).textContent = `${red.fromLabel.toUpperCase()} · THE INSTANCE YOU GAVE`;
+      mk("text", { x: TX + 12, y: 24, class: "fm-pane-title" }, svg).textContent = `${red.toLabel.toUpperCase()} · BUILT BY THE REDUCTION`;
+      mk("line", { class: "rd-sep", x1: TX - 30, y1: 40, x2: TX - 30, y2: H - 20, stroke: "var(--av-line)", "stroke-dasharray": "2 5" }, svg);
+      mk("text", { x: TX - 30, y: H / 2 - 12, class: "fm-arrow" }, svg).textContent = "↦";
+      const hook = side => (g, id) => {
+        const key = side + id;
+        const on = () => { hoverId = key; paint(); }, off = () => { hoverId = null; paint(); };
+        g.addEventListener("pointerenter", on); g.addEventListener("pointerleave", off);
+        g.addEventListener("focus", on); g.addEventListener("blur", off);
+        g.addEventListener("click", () => { hoverId = hoverId === key ? null : key; paint(); });
+      };
+      const gs = mk("g", {}, svg), gt = mk("g", { transform: `translate(${TX},0)` }, svg);
+      S = drawFormula(gs, R.Ps, Ls, hook("s:"));
+      T = drawFormula(gt, R.Pt, Lt, hook("t:"));
+      links = mk("g", {}, svg);
+      gIndex = new Map();
+      R.gadgets.forEach((gd, gi) => [...gd.from, ...gd.to].forEach(id => { if (!gIndex.has(id)) gIndex.set(id, []); gIndex.get(id).push(gi); }));
+    }
+    // where a link meets a piece: its right edge on the source side, its left edge on the target side
+    function anchor(id) {
+      const side = id.slice(0, 2), raw = id.slice(2), E = side === "s:" ? S : T, dx = side === "s:" ? 0 : TX;
+      const box = E.clauses.get(raw)?.box || E.lits.get(raw)?.m || E.vars.get(raw)?.v;
+      if (!box) return null;
+      return { x: dx + (side === "s:" ? box.x + box.w : box.x), y: box.y + box.h / 2 };
+    }
+    function paint() {
+      const hot = new Set(), pairs = [];
+      if (hoverId) {
+        hot.add(hoverId);
+        const side = hoverId.slice(0, 2), raw = hoverId.slice(2);
+        traceSet(side === "s:" ? R.Ps : R.Pt, raw).forEach(x => hot.add(side + x));
+        [...hot].forEach(id => (gIndex.get(id) || []).forEach(gi => {
+          const gd = R.gadgets[gi];
+          gd.from.forEach(a => hot.add(a)); gd.to.forEach(b => hot.add(b));
+          gd.from.forEach(a => gd.to.forEach(b => { if (pairs.length < 16) pairs.push([a, b]); }));
+        }));
+      }
+      const groupList = R.gadgets.filter(g => g.kind === "group");
+      const colorOf = side => colors ? id => { const gi = groupList.findIndex(g => (side === "s:" ? g.from : g.to).includes(side + id)); return gi < 0 ? null : gi % 6; } : null;
+      const pick = side => hoverId ? new Set([...hot].filter(x => x.startsWith(side)).map(x => x.slice(2))) : null;
+      const shownT = f ? Object.assign(new Set(f.shown), { vars: f.shownV }) : null;
+      paintFormula(S, f && f.src, { hot: pick("s:"), colorOf: colorOf("s:") });
+      paintFormula(T, f && f.tgt, { hot: pick("t:"), shown: shownT, colorOf: colorOf("t:") });
+      links.innerHTML = "";
+      pairs.forEach(([a, b]) => {
+        const raw = b.slice(2);
+        if (shownT && (raw.startsWith("v:") ? !shownT.vars.has(raw) : !shownT.has(raw.split("-")[0]))) return;
+        const p = anchor(a), q = anchor(b);
+        if (!p || !q) return;
+        const mx = (p.x + q.x) / 2;
+        mk("path", { d: `M${p.x},${p.y} C${mx},${p.y} ${mx},${q.y} ${q.x},${q.y}`, class: "fm-link" }, links);
+      });
+    }
+    function checks(fr) {
+      const total = R.Pt.groups.length, built = fr ? fr.shown.size : total;
+      const out = [{ label: `3SAT clauses built: ${built} / ${total}`, ok: fr ? built === total : null },
+        { label: "Every 3SAT clause has exactly three literals", ok: fr ? R.tgt.clauses.every(c => c.length === 3) : null }];
+      if (fr && (fr.phase === "solve" || fr.phase === "map")) {
+        const s = R.frames.find(x => x.phase === "solve");
+        out.push({ label: `3SAT answer: ${s && !s.done ? "found" : "none exists"}`, ok: !!(s && !s.done) });
+      }
+      if (fr && fr.done) out.push({ label: "Mapped back to a valid SAT answer", ok: !!fr.ok });
+      return out;
+    }
+    return {
+      load(src, key = "KARP_SAT3") {
+        red = REDUCTIONS[key]; R = red.run(src); f = null; hoverId = null;
+        draw(); paint();
+        return { frames: R.frames, ok: R.frames.at(-1).ok, targetInstance: R.targetInstance, gadgets: R.gadgets, reduction: red };
+      },
+      show(i) { f = i === null ? null : R.frames[i]; paint(); return f; },
+      checks(i) { return checks(i === null ? null : R.frames[i]); },
+      setGadgetColors(on) { colors = !!on; if (R) paint(); },
+      resetHover() { hoverId = null; if (R) paint(); },
+    };
+  }
+
+  return { create, createPair, parse, payload, frame, build, SOLVERS, REDUCTIONS, layout, textOf, _karp: karp, _naturalCompare: naturalCompare };
+})();
+
+
+/* ---- Formula tab ---- */
+const FM_EX = {
+  SAT: [
+    ["Mixed widths", "(x1 | !x2 | x3 | !x4) & (!x1 | x2) & (!x3 | x4 | x5) & (!x2 | !x5) & (x4 | !x1)"],
+    ["A long formula (wraps)", "(x1 | x2 | !x3) & (!x1 | x4) & (x2 | !x4 | x5 | x6) & (!x2 | x3) & (!x5 | !x6) & (x3 | x6 | !x7) & (x7 | !x8) & (!x3 | x8 | x1) & (x5 | x7) & (!x6 | !x7 | x8) & (x4 | !x8) & (!x4 | x6 | x2)"],
+    ["Unsatisfiable", "(x1 | x2) & (x1 | !x2) & (!x1 | x2) & (!x1 | !x2)"],
+  ],
+  SAT3: [
+    ["Redux default", "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)"],
+    ["Needs backtracking", "(!x1 | x2 | x3) & (!x1 | !x2 | x4) & (!x1 | !x3 | !x4) & (!x1 | !x2 | x3) & (!x1 | x2 | x4) & (x1 | x2 | !x4) & (x1 | !x3 | x4)"],
+    ["Unsatisfiable", "(x1 | x2 | x3) & (x1 | x2 | !x3) & (x1 | !x2 | x3) & (x1 | !x2 | !x3) & (!x1 | x2 | x3) & (!x1 | x2 | !x3) & (!x1 | !x2 | x3) & (!x1 | !x2 | !x3)"],
+  ],
+};
+const FM_INFO = {
+  SAT: "Redux format: <code>(x1 | !x2 | x3 | x4) &amp; (…)</code>. Clauses of any width.",
+  SAT3: "Redux format: <code>(x1 | !x2 | x3) &amp; (…)</code>. At most three literals per clause.",
+};
+const FMV = FormulaView.create({ svg: $("fm-g") });
+const FMS = { prob: "SAT", solver: "dpll", mode: "instance", step: 0, playing: null, run: null };
+function fmStop() { if (FMS.playing) { clearInterval(FMS.playing); FMS.playing = null; } }
+function fmLoad(str) {
+  try {
+    FMS.run = FMV.load(str, FMS.prob, FMS.solver); FMS.step = 0;
+    $("fm-box").classList.remove("bad"); $("fm-err").hidden = true;
+    fmSetMode(FMS.mode);
+  } catch (e) { $("fm-box").classList.add("bad"); $("fm-err").hidden = false; $("fm-err").textContent = e.message; }
+}
+function fmPaint() {
+  const last = FMS.run.frames.length - 1;
+  const idx = FMS.mode === "instance" ? null : FMS.mode === "solution" ? last : FMS.step;
+  const f = FMV.show(idx);
+  const ul = $("fm-checks"); ul.innerHTML = "";
+  FMV.checks(idx).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const stepping = FMS.mode === "steps";
+  $("fm-stepper").hidden = !stepping;
+  if (stepping) {
+    const cap = $("fm-caption");
+    cap.textContent = f.caption;
+    cap.className = "caption" + (f.event === "Done" ? (f.ok ? " ok" : " rej") : f.event === "Reject" ? " rej" : "");
+    $("fm-count").textContent = `${FMS.step + 1} / ${last + 1}`;
+    $("fm-scrub").max = last; $("fm-scrub").value = FMS.step;
+    $("fm-prev").disabled = FMS.step === 0; $("fm-next").disabled = FMS.step === last;
+    $("fm-play").textContent = FMS.playing ? "Pause" : "Play";
+  }
+}
+function fmSetMode(m) {
+  FMS.mode = m; fmStop();
+  ["instance", "solution", "steps"].forEach(k => $("fm-m-" + k).setAttribute("aria-pressed", String(k === m)));
+  if (FMS.run) fmPaint();
+}
+$("fm-m-instance").onclick = () => fmSetMode("instance");
+$("fm-m-solution").onclick = () => fmSetMode("solution");
+$("fm-m-steps").onclick = () => fmSetMode("steps");
+$("fm-prev").onclick = () => { fmStop(); FMS.step = Math.max(0, FMS.step - 1); fmPaint(); };
+$("fm-next").onclick = () => { fmStop(); FMS.step = Math.min(FMS.run.frames.length - 1, FMS.step + 1); fmPaint(); };
+$("fm-scrub").oninput = e => { fmStop(); FMS.step = +e.target.value; fmPaint(); };
+$("fm-play").onclick = () => {
+  if (FMS.playing) { fmStop(); fmPaint(); return; }
+  if (FMS.step >= FMS.run.frames.length - 1) FMS.step = 0;
+  FMS.playing = setInterval(() => {
+    if (FMS.step >= FMS.run.frames.length - 1) { fmStop(); fmPaint(); return; }
+    FMS.step++; fmPaint();
+  }, 1000);
+  fmPaint();
+};
+function fmProblem(p) {
+  FMS.prob = p;
+  $("fm-fmt").innerHTML = FM_INFO[p];
+  const sv = $("fm-solver-sel"); sv.innerHTML = "";
+  Object.entries(FormulaView.SOLVERS).forEach(([k, s]) => { const o = document.createElement("option"); o.value = k; o.textContent = s.label; sv.appendChild(o); });
+  FMS.solver = "dpll"; sv.value = "dpll";
+  $("fm-solver").textContent = FormulaView.SOLVERS.dpll.label;
+  const ex = $("fm-ex"); ex.innerHTML = "";
+  FM_EX[p].forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
+  fmExample(0);
+}
+function fmExample(i) { const s = FM_EX[FMS.prob][i][1]; $("fm-inst").value = s; fmLoad(s); }
+$("fm-prob").addEventListener("change", e => fmProblem(e.target.value));
+$("fm-ex").addEventListener("change", e => fmExample(+e.target.value));
+$("fm-solver-sel").addEventListener("change", e => { FMS.solver = e.target.value; $("fm-solver").textContent = e.target.selectedOptions[0].textContent; fmLoad($("fm-inst").value); });
+let fmTimer;
+$("fm-inst").addEventListener("input", e => { clearTimeout(fmTimer); fmTimer = setTimeout(() => fmLoad(e.target.value), 350); });
+fmProblem("SAT");
+
+/* ---- Nested Set view (Set Cover, Exact Cover, Exact Hitting Set), shared by both mockups ----
+   Every element of U is a labelled dot on a circle; every set is a padded, rounded region around its members (an Euler-style
+   hull), with its name on its edge. When the regions can't be drawn cleanly, the picture falls back to the set list: one
+   row per set, its members written out as chips (the old Redux_GUI nested-set picture).
+   Ids and frames are the Bipartite Graph's (element e:{x}, set S{i+1}, hits for ×N badges), so both pictures color together.
+   Pages supply --av-* tokens. */
+const NestedSetView = (() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const DOT = 16;
+
+  const css = `
+.ns-svg { width: 100%; height: auto; display: block; }
+.ns-svg text { font-family: var(--av-mono); }
+.ns-head { font-size: 11px; font-weight: 600; letter-spacing: .08em; fill: var(--av-muted); }
+.ns-head .pick { fill: var(--av-hot); }
+.ns-region { cursor: pointer; }
+.ns-region .fill { fill: transparent; stroke: none; }
+.ns-region .edge { fill: none; stroke: var(--av-edge); stroke-width: 1.8; transition: stroke .2s; }
+.ns-region.Solution .fill, .ns-region.Covered .fill { fill: var(--av-sol-fill); }
+.ns-region.Solution .edge { stroke: var(--av-sol); stroke-width: 3.2; }
+.ns-region.Covered .edge { stroke: var(--av-sol); stroke-width: 2.4; }
+.ns-region.Committed .fill { fill: var(--av-com-fill); }
+.ns-region.Committed .edge { stroke: var(--av-com); stroke-width: 2.8; stroke-dasharray: 7 4; }
+.ns-region.ElementHighlight .fill { fill: var(--av-hl-fill); }
+.ns-region.ElementHighlight .edge { stroke: var(--av-hl); stroke-width: 3.2; }
+.ns-region.Rejected .edge { stroke: var(--av-rej); stroke-width: 3.2; }
+.ns-region.Blocked .edge { stroke: var(--av-edge); stroke-dasharray: 4 4; }
+.ns-region.trace .edge { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
+.ns-region.faint { filter: grayscale(1); } .ns-region.faint .edge { stroke: var(--av-edge-dim); stroke-dasharray: 3 3; }
+.ns-tag { cursor: pointer; }
+.ns-tag:focus { outline: none; }
+.ns-tag rect { fill: var(--av-surface); stroke: var(--av-edge); stroke-width: 1.4; }
+.ns-tag text { font-size: 12.5px; font-weight: 600; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
+.ns-tag text.sub { font-size: 11.5px; font-weight: 400; fill: var(--av-muted); text-anchor: start; }
+.ns-tag.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .ns-tag.Solution text { fill: var(--av-on-sol); }
+.ns-tag.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.2; stroke-dasharray: 5 3; } .ns-tag.Committed text { fill: var(--av-com-ink); }
+.ns-tag.Covered rect { fill: var(--av-sol-fill); stroke: var(--av-sol); } .ns-tag.Covered text { fill: var(--av-sol-ink); }
+.ns-tag.ElementHighlight rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
+.ns-tag.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .ns-tag.Rejected text { fill: var(--av-rej-ink); }
+.ns-tag.Blocked rect { fill: var(--av-surface); stroke: var(--av-edge); stroke-dasharray: 4 3; } .ns-tag.Blocked text { fill: var(--av-muted); }
+.ns-tag.trace rect, .ns-tag:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
+.ns-tag.faint { filter: grayscale(1); } .ns-tag.faint rect { stroke-dasharray: 3 3; }
+.ns-dot { cursor: pointer; }
+.ns-dot:focus { outline: none; }
+.ns-dot .body { fill: var(--av-bg); stroke: var(--av-edge); stroke-width: 1.8; transition: fill .2s, stroke .2s; }
+.ns-dot text { font-size: 13.5px; text-anchor: middle; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
+.ns-dot.Covered .body { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; } .ns-dot.Covered text { fill: var(--av-sol-ink); font-weight: 600; }
+.ns-dot.Solution .body { fill: var(--av-sol); stroke: var(--av-sol); } .ns-dot.Solution text { fill: var(--av-on-sol); font-weight: 600; }
+.ns-dot.Committed .body { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .ns-dot.Committed text { fill: var(--av-com-ink); font-weight: 600; }
+.ns-dot.ElementHighlight .body { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
+.ns-dot.Rejected .body { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .ns-dot.Rejected text:not(.ns-count-t) { fill: var(--av-rej-ink); font-weight: 600; }
+.ns-dot.Blocked .body { fill: var(--av-surface); stroke: var(--av-edge); stroke-dasharray: 4 3; } .ns-dot.Blocked text { fill: var(--av-muted); }
+.ns-dot.trace .body, .ns-dot:focus-visible .body { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
+.ns-dot.faint { filter: grayscale(1); } .ns-dot.faint .body { stroke-dasharray: 3 3; }
+.ns-count-bg { fill: var(--av-rej); }
+.ns-svg text.ns-count-t { font-size: 11px; font-weight: 700; text-anchor: middle; dominant-baseline: central; fill: var(--av-on-rej); }
+.ns-row .box { fill: var(--av-bg); stroke: var(--av-edge); stroke-width: 1.6; }
+.ns-row.Solution .box { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 3; }
+.ns-row.Covered .box { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.4; }
+.ns-row.Committed .box { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.6; stroke-dasharray: 7 4; }
+.ns-row.ElementHighlight .box { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
+.ns-row.Rejected .box { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
+.ns-row.Blocked .box { fill: var(--av-surface); stroke: var(--av-edge); stroke-dasharray: 4 4; }
+.ns-row.trace .box { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
+.ns-row.faint { filter: grayscale(1); } .ns-row.faint .box { stroke-dasharray: 3 3; }
+.ns-brace { font-size: 20px; fill: var(--av-ink); dominant-baseline: central; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .ns-dot .body, .ns-region .edge { transition: none; } }`;
+
+  const KINDS = {
+    SETCOVER:   { cand: "sets", rule: "atLeastOnce", needK: true },
+    EXACTCOVER: { cand: "sets", rule: "exactlyOnce" },
+    HITTINGSET: { cand: "elements", rule: "exactlyOnce" },
+  };
+
+  /* ---------- the instance (the same format and ids as bipartite.js) ---------- */
+
+  function parse(str, kind) {
+    const s = str.replace(/\s+/g, "");
+    const m = /^\(\{([^{}]*)\},\{(.*)\}(?:,(\d+))?\)$/.exec(s);
+    if (!m) throw new Error(KINDS[kind].needK ? "Expected ({U},{{S1},{S2},…},K)." : "Expected ({U},{{S1},{S2},…}).");
+    if (KINDS[kind].needK && m[3] === undefined) throw new Error("Set Cover needs a budget K at the end, like ({1,2},{{1},{2}},2).");
+    if (!KINDS[kind].needK && m[3] !== undefined) throw new Error("This problem doesn't take a K. Remove the trailing number.");
+    const U = m[1] ? m[1].split(",") : [];
+    if (!U.length || new Set(U).size !== U.length) throw new Error("U must be a non-empty set with no repeats.");
+    const re = /\{([^{}]*)\}/g;
+    if (m[2].replace(re, "").replace(/,/g, "")) throw new Error("S must be a list of sets, like {{1,2},{3}}.");
+    const sets = [];
+    let t;
+    while ((t = re.exec(m[2]))) {
+      const items = t[1] ? t[1].split(",") : [];
+      for (const x of items) if (!U.includes(x)) throw new Error(`Element ${x} in S${sets.length + 1} is not in U.`);
+      sets.push([...new Set(items)]);
+    }
+    if (!sets.length) throw new Error("S needs at least one set.");
+    if (sets.length > 24 || U.length > 30) throw new Error("This mockup draws up to 30 elements and 24 sets.");
+    return { U, sets, K: m[3] === undefined ? null : Number(m[3]), kind };
+  }
+  const escapeName = n => n.replace(/[\\~:]/g, c => "\\" + c);
+  const elId = x => "e:" + escapeName(x);
+  const setId = i => "S" + (i + 1);
+
+  /** The payload: the Bipartite Graph's elements and sets, without its edges. */
+  function payload(I) {
+    const K = KINDS[I.kind];
+    return { kind: "nestedSet", layout: "regions", pickSide: K.cand, rule: K.rule, ...(I.K !== null ? { k: I.K } : {}),
+      elements: I.U.map(x => ({ id: elId(x), label: x })),
+      sets: I.sets.map((items, i) => ({ id: setId(i), label: setId(i), members: items.map(elId) })) };
+  }
+  function model(P) {
+    const pickSets = P.pickSide === "sets";
+    const hits = new Map([...P.elements.map(e => [e.id, []]), ...P.sets.map(s => [s.id, []])]);
+    P.sets.forEach(s => s.members.forEach(e => { hits.get(s.id).push(e); hits.get(e).push(s.id); }));
+    return { P, pickSets, picks: pickSets ? P.sets.map(s => s.id) : P.elements.map(e => e.id), cons: pickSets ? P.elements.map(e => e.id) : P.sets.map(s => s.id), hits, exact: P.rule === "exactlyOnce" };
+  }
+
+  /* ---------- frames: BipartiteFrames.Frame without the edges ---------- */
+
+  const RANK = ["Background", "False", "Blocked", "Covered", "Committed", "Solution", "ElementHighlight", "Rejected"];
+  const raise = (map, id, st) => { if (RANK.indexOf(st) > RANK.indexOf(map[id] || "Background")) map[id] = st; };
+  const pickedState = (ev, incremental, endsRun, ok) =>
+    ev === "Done" ? (ok ? "Solution" : "Rejected") : ev === "Accept" && endsRun ? "Solution" : (ev === "Try" || ev === "Reject") && !incremental ? "ElementHighlight" : "Committed";
+
+  /** One step ({ event, picks: [ids], focus, caption, ok? }) as the frame the backend would send. */
+  function frame(M, step, { incremental = false, endsRun = false, index = null } = {}) {
+    const chosen = new Set((step.picks || []).filter(p => M.picks.includes(p)));
+    const count = new Map(M.cons.map(c => [c, 0]));
+    chosen.forEach(p => M.hits.get(p).forEach(c => count.set(c, count.get(c) + 1)));
+    const nodes = {}, pick = pickedState(step.event, incremental, endsRun, step.ok === true);
+    chosen.forEach(p => raise(nodes, p, pick));
+    const judged = chosen.size > 0 && (step.event === "Done" || (!incremental && (step.event === "Try" || step.event === "Reject")));
+    M.cons.forEach(c => {
+      const k = count.get(c);
+      if (M.exact && k > 1) raise(nodes, c, "Rejected");
+      else if (k > 0) raise(nodes, c, "Covered");
+      else if (judged) raise(nodes, c, "Rejected");
+    });
+    if (M.exact && pick !== "ElementHighlight")
+      M.picks.forEach(p => { if (!chosen.has(p) && M.hits.get(p).some(c => count.get(c) > 0)) raise(nodes, p, "Blocked"); });
+    const mark = incremental && step.event === "Reject" ? "Rejected" : "ElementHighlight";
+    (step.focus || []).forEach(id => { if (M.hits.has(id)) raise(nodes, id, mark); });
+    const hits = {};
+    count.forEach((k, c) => { if (k > 0) hits[c] = k; });
+    const out = { event: step.event, caption: step.caption, focus: step.focus || [], step: index, nodes, hits, picks: [...chosen] };
+    if (step.ok !== undefined) out.ok = step.ok;
+    return out;
+  }
+  const build = (M, run) => run.steps.map((s, k) => {
+    if (run.stopped && s.event === "Done") return { event: "Done", caption: s.caption, focus: [], step: k, nodes: {}, hits: {}, picks: [], ok: false };
+    const next = run.steps[k + 1];
+    return frame(M, s, { incremental: run.incremental, endsRun: s.event === "Accept" && next && next.event === "Done" && next.ok === true, index: k });
+  });
+
+  /* ---------- reference solvers (test oracles; the backend records the real steps) ---------- */
+
+  const name = id => (id.startsWith("e:") ? id.slice(2) : id);
+  const fmt = ids => "{" + ids.map(name).join(",") + "}";
+  const nice = (M, id) => (id.startsWith("e:") ? `element ${name(id)}` : `${id} ${fmt(M.hits.get(id))}`);
+
+  // Set Cover: greedy, incremental (each pick is kept; the next is tried).
+  function solveGreedy(M, K) {
+    const steps = [], chosen = [], covered = new Set();
+    for (;;) {
+      let best = null, gain = 0;
+      M.picks.forEach(p => { if (chosen.includes(p)) return; const g = M.hits.get(p).filter(c => !covered.has(c)).length; if (g > gain) { best = p; gain = g; } });
+      if (!best) break;
+      steps.push({ event: "Try", picks: [...chosen, best], focus: [best], caption: `Try ${nice(M, best)}: it covers ${gain} new element${gain === 1 ? "" : "s"}, the most of any set left.` });
+      chosen.push(best); M.hits.get(best).forEach(c => covered.add(c));
+      steps.push({ event: "Accept", picks: [...chosen], focus: [], caption: `Keep ${best}. Covered so far: ${covered.size} of ${M.cons.length}.` });
+    }
+    const missing = M.cons.filter(c => !covered.has(c));
+    let ok, caption;
+    if (missing.length) { ok = false; caption = `${missing.map(name).join(", ")} ${missing.length > 1 ? "are" : "is"} in no set, so no cover exists. Greedy's picks are drawn red.`; }
+    else if (chosen.length <= K) { ok = true; caption = `All of U is covered with ${chosen.length} set${chosen.length > 1 ? "s" : ""}, within K = ${K}.`; }
+    else { ok = false; caption = `Greedy's cover uses ${chosen.length} sets, more than K = ${K}. Greedy doesn't always find the smallest cover; try the brute-force solver.`; }
+    steps.push({ event: "Done", picks: [...chosen], focus: [], ok, caption });
+    return { steps, incremental: true, ok, solution: ok ? chosen : null };
+  }
+
+  // Exact Cover / Exact Hitting Set: Algorithm X, incremental (pick the constraint with the fewest options, branch, undo).
+  function solveX(M) {
+    const steps = [], chosen = [], covered = new Set(), noun = M.pickSets ? "set" : "element";
+    const fits = p => M.hits.get(p).every(c => !covered.has(c));
+    function rec() {
+      const open = M.cons.filter(c => !covered.has(c));
+      if (!open.length) return true;
+      let best = null, opts = null;
+      for (const c of open) { const o = M.picks.filter(p => !chosen.includes(p) && M.hits.get(p).includes(c) && fits(p)); if (!opts || o.length < opts.length) { best = c; opts = o; } }
+      if (!opts.length) { steps.push({ event: "Reject", picks: [...chosen], focus: [best], caption: `No ${noun} left can take ${nice(M, best)} without doubling up somewhere, so undo.` }); return false; }
+      for (const p of opts) {
+        chosen.push(p); M.hits.get(p).forEach(c => covered.add(c));
+        steps.push({ event: "Try", picks: [...chosen], focus: [p], caption: `${nice(M, best).replace(/^./, ch => ch.toUpperCase())} has the fewest options (${opts.length}). Try ${nice(M, p)}.` });
+        if (rec()) return true;
+        chosen.pop(); M.hits.get(p).forEach(c => covered.delete(c));
+        steps.push({ event: "Backtrack", picks: [...chosen], focus: [p], caption: `Take ${name(p)} back out.` });
+      }
+      return false;
+    }
+    const ok = rec();
+    const what = M.pickSets ? "Every element is covered by exactly one chosen set." : "Every set contains exactly one chosen element.";
+    steps.push({ event: "Done", picks: ok ? [...chosen] : [], focus: [], ok, caption: ok ? `${what} Solution: ${fmt(chosen)}.` : `Every branch was undone. No ${M.pickSets ? "exact cover" : "hitting set"} exists.` });
+    return { steps, incremental: true, ok, solution: ok ? [...chosen] : null };
+  }
+
+  // Brute force: every combination, smallest first. Not incremental, so each candidate is only highlighted.
+  const SHOW_TRIES = 120;
+  function* combos(n, k, start = 0, acc = []) { if (acc.length === k) { yield acc.slice(); return; } for (let i = start; i <= n - (k - acc.length); i++) { acc.push(i); yield* combos(n, k, i + 1, acc); acc.pop(); } }
+  function solveBrute(M, K) {
+    const steps = [], n = M.picks.length;
+    if (n > 16) return { steps: [{ event: "Done", picks: [], focus: [], ok: false, caption: "Too many candidates for the mockup to brute-force. Use another solver." }], incremental: false, ok: false, solution: null };
+    let tried = 0, found = null;
+    outer: for (let size = 1; size <= (K === null ? n : Math.min(K, n)); size++) for (const c of combos(n, size)) {
+      const pick = c.map(i => M.picks[i]), cnt = new Map(M.cons.map(x => [x, 0]));
+      pick.forEach(p => M.hits.get(p).forEach(x => cnt.set(x, cnt.get(x) + 1)));
+      const missing = M.cons.filter(x => cnt.get(x) === 0), doubled = M.exact ? M.cons.filter(x => cnt.get(x) > 1) : [];
+      const good = !missing.length && !doubled.length;
+      tried++;
+      if (tried <= SHOW_TRIES || good) {
+        const why = [];
+        if (missing.length) why.push(`${missing.map(name).join(", ")} ${M.pickSets ? "not covered" : "not hit"}`);
+        if (doubled.length) why.push(`${doubled.map(name).join(", ")} ${M.pickSets ? "covered" : "hit"} twice`);
+        steps.push(good ? { event: "Accept", picks: pick, focus: [], caption: `Try ${fmt(pick)}. It works.` } : { event: "Reject", picks: pick, focus: [], caption: `Try ${fmt(pick)}: ${why.join("; ")}.` });
+      }
+      if (good) { found = pick; break outer; }
+    }
+    const hidden = tried > SHOW_TRIES ? ` (${tried - SHOW_TRIES} tries not shown)` : "";
+    steps.push(found ? { event: "Done", picks: found, focus: [], ok: true, caption: `${fmt(found)} is the first combination that works, after ${tried} tries${hidden}.` }
+      : { event: "Done", picks: [], focus: [], ok: false, caption: `Checked all ${tried} combinations${K !== null ? ` of up to K = ${K} sets` : ""}${hidden}. None works.` });
+    return { steps, incremental: false, ok: !!found, solution: found };
+  }
+  const SOLVERS = {
+    greedy: { label: "Greedy Set Cover", run: (M, I) => solveGreedy(M, I.K) },
+    x: { label: "Algorithm X", run: M => solveX(M) },
+    brute: { label: "Brute Force", run: (M, I) => solveBrute(M, I.K) },
+  };
+
+  /* ---------- layout: regions on a circle, or the set list ---------- */
+
+  const LIMITS = { elements: 12, sets: 8, perElement: 4, clearance: 4 };
+  const PAD0 = DOT + 9, PADSTEP = 9;
+
+  // Order the elements round the circle so each set's members sit together: every order is tried for up to 9 elements
+  // (the first stays put), a barycentre sweep beyond that. Ties keep the first order found, so the layout is deterministic.
+  function order(P) {
+    const n = P.elements.length, idx = new Map(P.elements.map((e, i) => [e.id, i]));
+    const sets = P.sets.map(s => s.members.map(m => idx.get(m)));
+    const cost = perm => {
+      const at = new Array(n); perm.forEach((e, p) => (at[e] = p));
+      let c = 0;
+      for (const s of sets) {
+        if (s.length < 2) continue;
+        const on = new Array(n).fill(false); s.forEach(e => (on[at[e]] = true));
+        let runs = 0; for (let p = 0; p < n; p++) if (on[p] && !on[(p + n - 1) % n]) runs++;
+        c += (Math.max(1, runs) - 1) * 1000;
+        const ps = s.map(e => at[e]).sort((a, b) => a - b);
+        let gap = 0; for (let k = 0; k < ps.length; k++) gap = Math.max(gap, ((ps[(k + 1) % ps.length] - ps[k]) + n) % n || n);
+        c += n - gap;
+      }
+      return c;
+    };
+    if (n <= 9) {
+      let best = null, bestC = Infinity;
+      const rest = P.elements.map((_, i) => i).slice(1), perm = [0], used = new Array(n).fill(false);
+      const rec = () => {
+        if (perm.length === n) { const c = cost(perm); if (c < bestC) { bestC = c; best = perm.slice(); } return; }
+        for (const e of rest) if (!used[e]) { used[e] = true; perm.push(e); rec(); perm.pop(); used[e] = false; }
+      };
+      rec();
+      return best;
+    }
+    let perm = P.elements.map((_, i) => i);
+    for (let it = 0; it < 4; it++) {
+      const at = new Map(perm.map((e, p) => [e, p]));
+      const bc = e => { const ss = sets.filter(s => s.includes(e)); return ss.length ? ss.reduce((a, s) => a + s.reduce((b, x) => b + at.get(x), 0) / s.length, 0) / ss.length : at.get(e); };
+      perm = perm.slice().sort((a, b) => bc(a) - bc(b) || a - b);
+    }
+    return perm;
+  }
+
+  // Padded hull: the convex hull of the member dots grown by `pad`, as straight edges joined by circular arcs.
+  function hull(points) {
+    const pts = points.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    if (pts.length < 3) return pts;
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lo = [], up = [];
+    for (const p of pts) { while (lo.length >= 2 && cross(lo.at(-2), lo.at(-1), p) <= 0) lo.pop(); lo.push(p); }
+    for (const p of pts.slice().reverse()) { while (up.length >= 2 && cross(up.at(-2), up.at(-1), p) <= 0) up.pop(); up.push(p); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  }
+  function regionPath(points, pad) {
+    if (points.length === 1) { const p = points[0]; return `M${p.x - pad},${p.y} a${pad},${pad} 0 1,0 ${2 * pad},0 a${pad},${pad} 0 1,0 ${-2 * pad},0Z`; }
+    let h = hull(points);
+    // clockwise on screen (y down), so every corner arc turns the same way (sweep 1) and normals point out
+    const area = h.reduce((a, p, i) => { const q = h[(i + 1) % h.length]; return a + p.x * q.y - q.x * p.y; }, 0);
+    if (h.length > 2 && area < 0) h = h.slice().reverse();
+    const m = h.length, seg = [];
+    for (let i = 0; i < m; i++) {
+      const a = h[i], b = h[(i + 1) % m], dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, nx = dy / L, ny = -dx / L;
+      seg.push({ a: { x: a.x + pad * nx, y: a.y + pad * ny }, b: { x: b.x + pad * nx, y: b.y + pad * ny } });
+    }
+    const f = v => v.toFixed(1);
+    let d = `M${f(seg[0].a.x)},${f(seg[0].a.y)}`;
+    for (let i = 0; i < m; i++) { const s = seg[i], nx = seg[(i + 1) % m].a; d += ` L${f(s.b.x)},${f(s.b.y)} A${pad},${pad} 0 0,1 ${f(nx.x)},${f(nx.y)}`; }
+    return d + "Z";
+  }
+  // Distance from point p to the convex hull of `points` (0 inside).
+  function distToHull(p, points) {
+    const h = hull(points);
+    const dSeg = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1, t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / L2)); return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy); };
+    if (h.length === 1) return Math.hypot(p.x - h[0].x, p.y - h[0].y);
+    if (h.length === 2) return dSeg(h[0], h[1]);
+    const inside = h.every((a, i) => { const b = h[(i + 1) % h.length]; return (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x) >= 0; }) || h.every((a, i) => { const b = h[(i + 1) % h.length]; return (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x) <= 0; });
+    return inside ? 0 : Math.min(...h.map((a, i) => dSeg(a, h[(i + 1) % h.length])));
+  }
+
+  /** Regions layout, or { ok: false, why } when the regions can't be drawn cleanly (then the set list is used). */
+  function regions(P) {
+    const n = P.elements.length;
+    if (n > LIMITS.elements) return { ok: false, why: `more than ${LIMITS.elements} elements` };
+    if (P.sets.length > LIMITS.sets) return { ok: false, why: `more than ${LIMITS.sets} sets` };
+    // nesting level: small sets inside, and two sets that share an element never share a level
+    const lv = new Map();
+    P.sets.map((s, i) => i).sort((a, b) => P.sets[a].members.length - P.sets[b].members.length || a - b).forEach(i => {
+      const taken = new Set(P.sets.filter((t, j) => lv.has(j) && t.members.some(m => P.sets[i].members.includes(m))).map(t => lv.get(P.sets.indexOf(t))));
+      let l = 1; while (taken.has(l)) l++;
+      lv.set(i, l);
+    });
+    const deepest = Math.max(1, ...lv.values());
+    if (deepest > LIMITS.perElement) return { ok: false, why: `an element sits in more than ${LIMITS.perElement} overlapping sets` };
+    const perm = order(P), R = Math.max(118, 40 * n / Math.PI + 30 + 6 * deepest);
+    const padMax = PAD0 + PADSTEP * (deepest - 1), M = padMax + 44;
+    const W = Math.max(640, 2 * (R + M)), H = 2 * (R + M) + 20, cx = W / 2, cy = H / 2 + 10;
+    const pos = new Map();
+    perm.forEach((e, p) => { const a = -Math.PI / 2 + (2 * Math.PI * p) / n; pos.set(P.elements[e].id, { x: cx + (n === 1 ? 0 : R * Math.cos(a)), y: cy + (n === 1 ? 0 : R * Math.sin(a)) }); });
+    const regs = [], labels = [];
+    for (let i = 0; i < P.sets.length; i++) {
+      const s = P.sets[i], pad = PAD0 + PADSTEP * (lv.get(i) - 1);
+      if (!s.members.length) return { ok: false, why: `${s.id} is empty` };
+      const pts = s.members.map(m => pos.get(m));
+      for (const e of P.elements) if (!s.members.includes(e.id) && distToHull(pos.get(e.id), pts) < pad + DOT + LIMITS.clearance) return { ok: false, why: `${s.id}'s region would run into ${e.label}` };
+      regs.push({ id: s.id, d: regionPath(pts, pad), area: s.members.length * 1000 + pad, pad, pts });
+    }
+    // labels: on each region's edge, as far out from the centre as possible, clear of dots and of each other
+    const dots = [...pos.values()];
+    const clearOf = (p, b) => Math.hypot(Math.max(b.x - p.x, 0, p.x - b.x - b.w), Math.max(b.y - p.y, 0, p.y - b.y - b.h));
+    const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+    for (const r of regs) {
+      const c = r.pts.reduce((a, p) => ({ x: a.x + p.x / r.pts.length, y: a.y + p.y / r.pts.length }), { x: 0, y: 0 });
+      let base = Math.atan2(c.y - cy, c.x - cx);
+      if (Math.hypot(c.x - cx, c.y - cy) < 8) base = -Math.PI / 2;
+      const w = 12 + r.id.length * 8.5, h = 22;
+      let placed = null;
+      for (const off of [0, 0.3, -0.3, 0.6, -0.6, 0.9, -0.9, 1.2, -1.2, 1.6, -1.6, 2.0, -2.0, 2.5, -2.5, Math.PI]) {
+        const a = base + off, ux = Math.cos(a), uy = Math.sin(a);
+        const sp = r.pts.reduce((b, p) => (p.x * ux + p.y * uy > b.x * ux + b.y * uy ? p : b));
+        // slide out from the edge just far enough to clear the dots; the label still straddles the edge
+        for (let t = r.pad; t <= r.pad + 12 && !placed; t += 3) {
+          const x = sp.x + t * ux, y = sp.y + t * uy, box = { x: x - w / 2, y: y - h / 2, w, h };
+          if (box.x < 2 || box.y < 34 || box.x + w > W - 2 || box.y + h > H - 2) continue;
+          if (dots.some(p => clearOf(p, box) < DOT + 3) || labels.some(l => hit(l.box, box))) continue;
+          placed = { id: r.id, x, y, w, h, box };
+        }
+        if (placed) break;
+      }
+      if (!placed) return { ok: false, why: `no room for ${r.id}'s label` };
+      labels.push(placed);
+    }
+    return { ok: true, W, H, pos, regs: regs.sort((a, b) => b.area - a.area), labels };
+  }
+
+  // The set list: U on top, then one row per set with its members as chips (wrapped).
+  function list(P, W = 760) {
+    const chipW = e => Math.max(2 * DOT, String(e.label).length * 8.4 + 16), lab = P.elements.reduce((m, e) => m.set(e.id, e), new Map());
+    const rows = [], tagW = 64;
+    let y = 46;
+    const place = (id, label, members) => {
+      let x = tagW + 30, line = 0;
+      const chips = members.map(m => {
+        const w = chipW(lab.get(m));
+        if (x + w > W - 30) { x = tagW + 30; line++; }
+        const c = { id: m, x, y: y + 8 + line * 40, w, h: 2 * DOT };
+        x += w + 10; return c;
+      });
+      const h = 16 + (line + 1) * 40 - 8;
+      rows.push({ id, label, x: 10, y, w: W - 20, h, chips });
+      y += h + 12;
+    };
+    place("U", "U", P.elements.map(e => e.id));
+    y += 10;
+    P.sets.forEach(s => place(s.id, s.label, s.members));
+    return { W, H: y + 6, rows };
+  }
+
+  /* ---------- drawing ---------- */
+
+  function create({ svg }) {
+    if (!document.getElementById("ns-style")) { const st = document.createElement("style"); st.id = "ns-style"; st.textContent = css; document.head.appendChild(st); }
+    svg.classList.add("ns-svg");
+    let I, P, M, run, frames, f = null, hover = null, mode = "auto", L, els, used = "regions";
+
+    function hookup(g, id) {
+      const on = () => { hover = id; paint(); }, off = () => { hover = null; paint(); };
+      g.addEventListener("pointerenter", on); g.addEventListener("pointerleave", off);
+      g.addEventListener("focus", on); g.addEventListener("blur", off);
+      g.addEventListener("click", () => { hover = hover === id ? null : id; paint(); });
+    }
+    function head(W) {
+      const t = mk("text", { x: 12, y: 22, class: "ns-head" }, svg);
+      t.textContent = used === "regions" ? "SETS AS REGIONS ROUND THEIR ELEMENTS" : "SET LIST";
+      const p = mk("tspan", { class: "pick" }, t); p.textContent = `  ● PICKED: ${M.pickSets ? "SETS" : "ELEMENTS"}`;
+      if (used === "list" && L.why) { const w = mk("text", { x: W - 12, y: 22, class: "ns-head", "text-anchor": "end" }, svg); w.textContent = mode === "list" ? "CHOSEN BY HAND" : `REGIONS DON'T FIT: ${L.why.toUpperCase()}`; }
+    }
+    function badge(g, x, y) {
+      const b = mk("g", { visibility: "hidden" }, g);
+      mk("circle", { cx: x, cy: y, r: 9, class: "ns-count-bg" }, b);
+      const t = mk("text", { x, y, class: "ns-count-t" }, b);
+      return { b, t };
+    }
+    function draw() {
+      svg.innerHTML = "";
+      const R = mode === "list" ? { ok: false, why: "set list chosen" } : regions(P);
+      used = R.ok ? "regions" : "list";
+      els = { regions: new Map(), tags: new Map(), dots: new Map(), rows: new Map(), chips: [] };
+      if (R.ok) {
+        L = R;
+        svg.setAttribute("viewBox", `0 0 ${R.W} ${R.H}`);
+        head(R.W);
+        const gF = mk("g", {}, svg), gE = mk("g", {}, svg), gD = mk("g", {}, svg), gT = mk("g", {}, svg);
+        // two layers, every fill under every edge; each path sits in a <g class="ns-region STATE"> of its own
+        R.regs.forEach(r => {
+          const gf = mk("g", { class: "ns-region" }, gF), ge = mk("g", { class: "ns-region" }, gE);
+          mk("path", { d: r.d, class: "fill" }, gf);
+          const edge = mk("path", { d: r.d, class: "edge" }, ge);
+          els.regions.set(r.id, { gf, ge, edge });
+        });
+        P.elements.forEach(e => {
+          const p = R.pos.get(e.id);
+          const g = mk("g", { class: "ns-dot", tabindex: "0", role: "button", "aria-label": `Element ${e.label}, in ${P.sets.filter(s => s.members.includes(e.id)).map(s => s.id).join(", ") || "no set"}` }, gD);
+          mk("circle", { cx: p.x, cy: p.y, r: DOT, class: "body" }, g);
+          const t = mk("text", { x: p.x, y: p.y }, g); t.textContent = e.label; if (String(e.label).length > 2) t.style.fontSize = "10.5px";
+          els.dots.set(e.id, [{ g, ...badge(g, p.x + DOT - 2, p.y - DOT + 2) }]);
+          hookup(g, e.id);
+        });
+        R.labels.forEach(l => {
+          const s = P.sets.find(x => x.id === l.id);
+          const g = mk("g", { class: "ns-tag", tabindex: "0", role: "button", "aria-label": `Set ${s.label} {${s.members.map(m => P.elements.find(e => e.id === m).label).join(",")}}` }, gT);
+          mk("rect", { x: l.box.x, y: l.box.y, width: l.w, height: l.h, rx: 11 }, g);
+          mk("text", { x: l.x, y: l.y }, g).textContent = s.label;
+          els.tags.set(l.id, { g, ...badge(g, l.box.x + l.w, l.box.y + 1) });
+          hookup(g, l.id);
+          // the region itself answers hover too
+          const r = els.regions.get(l.id); hookup(r.edge, l.id); r.edge.style.pointerEvents = "stroke";
+        });
+      } else {
+        L = { ...list(P), why: R.why };
+        svg.setAttribute("viewBox", `0 0 ${L.W} ${L.H}`);
+        head(L.W);
+        L.rows.forEach((r, k) => {
+          const isU = r.id === "U";
+          const g = mk("g", { class: "ns-row" + (isU ? " U" : ""), ...(isU ? {} : { tabindex: "0", role: "button", "aria-label": `Set ${r.label}` }) }, svg);
+          if (!isU) mk("rect", { x: r.x, y: r.y, width: r.w, height: r.h, rx: 10, class: "box" }, g);
+          const tag = mk("g", { class: "ns-tag" }, g);
+          mk("rect", { x: r.x + 10, y: r.y + r.h / 2 - 11, width: 52, height: 22, rx: 11 }, tag);
+          mk("text", { x: r.x + 36, y: r.y + r.h / 2 }, tag).textContent = r.label;
+          mk("text", { x: r.x + 70, y: r.y + r.h / 2, class: "ns-brace" }, g).textContent = "{";
+          mk("text", { x: r.x + r.w - 16, y: r.y + r.h / 2, class: "ns-brace" }, g).textContent = "}";
+          if (!isU) { els.rows.set(r.id, { g, tag, ...badge(tag, r.x + 62, r.y + r.h / 2 - 10) }); hookup(g, r.id); }
+          r.chips.forEach(c => {
+            const e = P.elements.find(x => x.id === c.id);
+            const cg = mk("g", { class: "ns-dot", tabindex: "0", role: "button", "aria-label": `Element ${e.label}${isU ? "" : " in " + r.label}` }, svg);
+            mk("rect", { x: c.x, y: c.y, width: c.w, height: c.h, rx: DOT, class: "body" }, cg);
+            mk("text", { x: c.x + c.w / 2, y: c.y + c.h / 2 }, cg).textContent = e.label;
+            if (!els.dots.has(c.id)) els.dots.set(c.id, []);
+            els.dots.get(c.id).push({ g: cg, ...badge(cg, c.x + c.w - 2, c.y + 2), inU: isU });
+            hookup(cg, c.id);
+          });
+        });
+      }
+    }
+    function paint() {
+      const st = id => { const v = f && f.nodes[id]; return (v && v.state) || v || "Background"; }; // a name, or the backend's { state } ref
+      const near = new Set();
+      if (hover) { near.add(hover); M.hits.get(hover).forEach(x => near.add(x)); }
+      const deco = id => (hover ? (id === hover ? " trace" : near.has(id) ? "" : " faint") : "");
+      const showBadge = (o, id) => { const k = f && f.hits ? f.hits[id] || 0 : 0; const on = k > 1 && M.cons.includes(id); o.b.setAttribute("visibility", on ? "visible" : "hidden"); if (on) o.t.textContent = "×" + k; };
+      els.regions.forEach((r, id) => { const cls = "ns-region " + st(id) + deco(id); r.gf.setAttribute("class", cls); r.ge.setAttribute("class", cls); });
+      els.tags.forEach((o, id) => { o.g.setAttribute("class", "ns-tag " + st(id) + deco(id)); showBadge(o, id); });
+      els.rows.forEach((o, id) => { o.g.setAttribute("class", "ns-row " + st(id) + deco(id)); o.tag.setAttribute("class", "ns-tag " + st(id)); showBadge(o, id); });
+      els.dots.forEach((list, id) => list.forEach(o => { o.g.setAttribute("class", "ns-dot " + st(id) + deco(id)); showBadge(o, id); }));
+    }
+    function checks(fr) {
+      const hits = fr ? fr.hits : {}, chosen = fr ? fr.picks : [];
+      const once = M.cons.filter(c => hits[c] === 1).length, any = M.cons.filter(c => hits[c] > 0).length, total = M.cons.length;
+      if (I.kind === "SETCOVER") return [{ label: `Elements covered: ${any} / ${total}`, ok: fr ? any === total : null }, { label: `Sets used: ${chosen.length} (K = ${I.K})`, ok: fr ? chosen.length <= I.K : null }];
+      if (I.kind === "EXACTCOVER") return [{ label: `Elements covered exactly once: ${once} / ${total}`, ok: fr ? once === total : null }];
+      return [{ label: `Sets hit exactly once: ${once} / ${total}`, ok: fr ? once === total : null }];
+    }
+
+    return {
+      load(str, kind, solver) {
+        I = parse(str, kind); P = payload(I); M = model(P);
+        const s = solver || (kind === "SETCOVER" ? "greedy" : kind === "EXACTCOVER" ? "x" : "brute");
+        run = SOLVERS[s].run(M, I);
+        frames = [{ event: null, caption: "Step 0: nothing chosen yet. Step forward to watch the solver.", focus: [], step: null, nodes: {}, hits: {}, picks: [], base: true }, ...build(M, run)];
+        f = null; hover = null; draw(); paint();
+        return { frames, ok: run.ok, solution: run.solution ? run.solution.map(name) : null, K: I.K, layout: used, why: L.why || null, payload: P };
+      },
+      // Viewer hook: draw a payload and frames built elsewhere (the backend's Bipartite frames work as they are).
+      loadFrames(p, fr, kind) { P = p; M = model(P); I = { kind: kind || (P.pickSide === "elements" ? "HITTINGSET" : P.k !== undefined ? "SETCOVER" : "EXACTCOVER"), K: P.k ?? null }; // backend frames carry no picks list: a pick drawn in a picked state is one
+        const sv = v => (v && v.state) || v;
+        frames = fr.map(x => x.picks ? x : { ...x, picks: M.picks.filter(p => ["Solution", "Committed", "ElementHighlight", "Rejected"].includes(sv(x.nodes[p]))) });
+        f = null; hover = null; draw(); paint(); return { frames, layout: used }; },
+      show(i) { f = i === null ? null : frames[i]; paint(); return f; },
+      checks(i) { return checks(i === null ? null : frames[i]); },
+      chosenLabels(i) { return i === null ? [] : frames[i].picks.map(name); },
+      setLayout(m) { mode = m === "list" ? "list" : "auto"; if (P) { draw(); paint(); } return used; },
+      layoutUsed() { return { layout: used, why: L ? L.why || null : null }; },
+      resetHover() { hover = null; paint(); },
+    };
+  }
+
+  return { create, parse, payload, model, frame, build, SOLVERS, LIMITS, regions, list, KINDS, _hull: hull, _distToHull: distToHull };
+})();
+
+
+/* ---- Nested Set tab ---- */
+const NS_EX = {
+  SETCOVER: [...BIP_EX.SETCOVER, ["Many sets (set list)", "({1,2,3,4,5,6,7,8},{{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,1},{1,5},{3,7}},4)"]],
+  EXACTCOVER: [...BIP_EX.EXACTCOVER, ["Many sets (set list)", "({1,2,3,4,5,6,7,8},{{1,2},{3,4},{5,6},{7,8},{2,3},{4,5},{6,7},{8,1},{1,5}})"]],
+  HITTINGSET: [...BIP_EX.HITTINGSET, ["Many sets (set list)", "({1,2,3,4,5,6,7,8},{{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,1},{1,5}})"]],
+};
+const NS_SOLVERS = {
+  SETCOVER: [["greedy", "Greedy Set Cover"], ["brute", "Set Cover Brute Force"]],
+  EXACTCOVER: [["x", "Dancing Links"], ["brute", "Exact Cover Brute Force"]],
+  HITTINGSET: [["brute", "Hitting Set Brute Force"], ["x", "Algorithm X (not in Redux yet)"]],
+};
+const NSV = NestedSetView.create({ svg: $("ns-g") });
+const NSS = { prob: "SETCOVER", solver: "greedy", mode: "instance", step: 0, playing: null, run: null, layout: "auto" };
+function nsStop() { if (NSS.playing) { clearInterval(NSS.playing); NSS.playing = null; } }
+function nsWhy() { const u = NSV.layoutUsed(); $("ns-why").textContent = u.layout === "regions" ? "Drawn as regions." : NSS.layout === "list" ? "Set list, chosen by hand." : `Set list: ${u.why}.`; }
+function nsLoad(str) {
+  try {
+    NSV.setLayout(NSS.layout);
+    NSS.run = NSV.load(str, NSS.prob, NSS.solver); NSS.step = 0;
+    $("ns-box").classList.remove("bad"); $("ns-err").hidden = true;
+    nsWhy(); nsSetMode(NSS.mode);
+  } catch (e) { $("ns-box").classList.add("bad"); $("ns-err").hidden = false; $("ns-err").textContent = e.message; }
+}
+function nsPaint() {
+  const last = NSS.run.frames.length - 1;
+  const idx = NSS.mode === "instance" ? null : NSS.mode === "solution" ? last : NSS.step;
+  const f = NSV.show(idx);
+  const ch = $("ns-chosen"); ch.innerHTML = "";
+  const labels = NSV.chosenLabels(idx);
+  if (idx === null) ch.innerHTML = "<em>Nothing yet. Choose Solved or Steps.</em>";
+  else if (!labels.length) ch.innerHTML = f.event === "Done" ? "<em>No valid choice exists.</em>" : "<em>Nothing chosen yet.</em>";
+  else labels.forEach(l => { const s = document.createElement("span"); s.textContent = l; s.className = f.event === "Done" ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("ns-checks"); ul.innerHTML = "";
+  NSV.checks(idx).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const stepping = NSS.mode === "steps";
+  $("ns-stepper").hidden = !stepping;
+  if (stepping) {
+    const cap = $("ns-caption");
+    cap.textContent = f.caption;
+    cap.className = "caption" + (f.event === "Done" ? (f.ok ? " ok" : " rej") : f.event === "Reject" ? " rej" : "");
+    $("ns-count").textContent = `${NSS.step + 1} / ${last + 1}`;
+    $("ns-scrub").max = last; $("ns-scrub").value = NSS.step;
+    $("ns-prev").disabled = NSS.step === 0; $("ns-next").disabled = NSS.step === last;
+    $("ns-play").textContent = NSS.playing ? "Pause" : "Play";
+  }
+}
+function nsSetMode(m) {
+  NSS.mode = m; nsStop();
+  ["instance", "solution", "steps"].forEach(k => $("ns-m-" + k).setAttribute("aria-pressed", String(k === m)));
+  if (NSS.run) nsPaint();
+}
+$("ns-m-instance").onclick = () => nsSetMode("instance");
+$("ns-m-solution").onclick = () => nsSetMode("solution");
+$("ns-m-steps").onclick = () => nsSetMode("steps");
+$("ns-prev").onclick = () => { nsStop(); NSS.step = Math.max(0, NSS.step - 1); nsPaint(); };
+$("ns-next").onclick = () => { nsStop(); NSS.step = Math.min(NSS.run.frames.length - 1, NSS.step + 1); nsPaint(); };
+$("ns-scrub").oninput = e => { nsStop(); NSS.step = +e.target.value; nsPaint(); };
+$("ns-play").onclick = () => {
+  if (NSS.playing) { nsStop(); nsPaint(); return; }
+  if (NSS.step >= NSS.run.frames.length - 1) NSS.step = 0;
+  NSS.playing = setInterval(() => {
+    if (NSS.step >= NSS.run.frames.length - 1) { nsStop(); nsPaint(); return; }
+    NSS.step++; nsPaint();
+  }, 1100);
+  nsPaint();
+};
+const nsSetLayout = m => {
+  NSS.layout = m;
+  $("ns-lay-auto").setAttribute("aria-pressed", String(m === "auto")); $("ns-lay-list").setAttribute("aria-pressed", String(m === "list"));
+  if (NSS.run) { NSV.setLayout(m); nsWhy(); nsPaint(); }
+};
+$("ns-lay-auto").onclick = () => nsSetLayout("auto");
+$("ns-lay-list").onclick = () => nsSetLayout("list");
+function nsProblem(p) {
+  NSS.prob = p;
+  $("ns-fmt").innerHTML = BIP_INFO[p].fmt;
+  const sv = $("ns-solver-sel"); sv.innerHTML = "";
+  NS_SOLVERS[p].forEach(([v, name]) => { const o = document.createElement("option"); o.value = v; o.textContent = name; sv.appendChild(o); });
+  NSS.solver = NS_SOLVERS[p][0][0];
+  $("ns-solver").textContent = NS_SOLVERS[p][0][1];
+  const ex = $("ns-ex"); ex.innerHTML = "";
+  NS_EX[p].forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
+  nsExample(0);
+}
+function nsExample(i) { const s = NS_EX[NSS.prob][i][1]; $("ns-inst").value = s; nsLoad(s); }
+$("ns-prob").addEventListener("change", e => nsProblem(e.target.value));
+$("ns-ex").addEventListener("change", e => nsExample(+e.target.value));
+$("ns-solver-sel").addEventListener("change", e => { NSS.solver = e.target.value; $("ns-solver").textContent = e.target.selectedOptions[0].textContent; nsLoad($("ns-inst").value); });
+let nsTimer;
+$("ns-inst").addEventListener("input", e => { clearTimeout(nsTimer); nsTimer = setTimeout(() => nsLoad(e.target.value), 350); });
+nsProblem("SETCOVER");
+
 
 /* ---- Base graph view: one renderer for every plain graph problem ----
    A problem supplies the graph and declares its certificate (subset, partition or tour) plus a rule.
@@ -11359,15 +12914,21 @@ const ReductionView = (() => {
 
 /* ---- Reduction tab ---- */
 const RDV1 = ReductionView.create({ svg: $("rd-g") });
+// SAT ↦ 3SAT draws both sides as formulas (formula.js); it plays through the same controls.
+const RDV2 = FormulaView.createPair({ svg: $("rdf-g") });
+const rdRed = k => ReductionView.REDUCTIONS[k] || FormulaView.REDUCTIONS[k];
+const rdV = () => (FormulaView.REDUCTIONS[RDS.key] ? RDV2 : RDV1);
 const RDS = { key: "SIPSER_CLIQUE", step: 0, playing: null, run: null };
 const RD_FMT = {
   SAT3: "Source format (3SAT): <code>(x1 | !x2 | x3) &amp; (…)</code>. Up to 7 clauses.",
+  SAT: "Source format (SAT): <code>(x1 | !x2 | x3 | x4) &amp; (…)</code>, clauses of any width. Up to 8 clauses.",
   CLIQUE: "Source format (Clique): <code>(({N},{{a,b},…}),K)</code>, up to 10 nodes.",
 };
 function rdStop() { if (RDS.playing) { clearInterval(RDS.playing); RDS.playing = null; } }
 function rdLoad(str) {
   try {
-    RDS.run = RDV1.load(str, RDS.key); RDS.step = 0; rdStop();
+    const two = rdV() === RDV2; $("rd-g").toggleAttribute("hidden", two); $("rdf-g").toggleAttribute("hidden", !two);
+    RDS.run = rdV().load(str, RDS.key); RDS.step = 0; rdStop();
     $("rd-box").classList.remove("bad"); $("rd-err").hidden = true;
     const ul = $("rd-gadgets"); ul.innerHTML = "";
     const kinds = {};
@@ -11382,7 +12943,7 @@ function rdLoad(str) {
   } catch (e) { $("rd-box").classList.add("bad"); $("rd-err").hidden = false; $("rd-err").textContent = e.message; }
 }
 function rdPaint() {
-  const last = RDS.run.frames.length - 1, f = RDV1.show(RDS.step);
+  const last = RDS.run.frames.length - 1, f = rdV().show(RDS.step);
   const cap = $("rd-caption");
   cap.textContent = f.caption;
   cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : "");
@@ -11392,7 +12953,7 @@ function rdPaint() {
   $("rd-prev").disabled = RDS.step === 0; $("rd-next").disabled = RDS.step === last;
   $("rd-play").textContent = RDS.playing ? "Pause" : "Play";
   const ul = $("rd-checks"); ul.innerHTML = "";
-  RDV1.checks(RDS.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  rdV().checks(RDS.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
 }
 $("rd-prev").onclick = () => { rdStop(); RDS.step = Math.max(0, RDS.step - 1); rdPaint(); };
 $("rd-next").onclick = () => { rdStop(); RDS.step = Math.min(RDS.run.frames.length - 1, RDS.step + 1); rdPaint(); };
@@ -11410,19 +12971,19 @@ document.querySelectorAll("#rd-phases button").forEach(b => b.addEventListener("
   const i = RDS.run.frames.findIndex(f => f.phase === b.dataset.phase);
   if (i >= 0) { rdStop(); RDS.step = i; rdPaint(); }
 }));
-const rdSetColors = on => { $("rd-c-on").setAttribute("aria-pressed", String(on)); $("rd-c-off").setAttribute("aria-pressed", String(!on)); RDV1.setGadgetColors(on); };
+const rdSetColors = on => { $("rd-c-on").setAttribute("aria-pressed", String(on)); $("rd-c-off").setAttribute("aria-pressed", String(!on)); RDV1.setGadgetColors(on); RDV2.setGadgetColors(on); };
 $("rd-c-on").onclick = () => rdSetColors(true);
 $("rd-c-off").onclick = () => rdSetColors(false);
-for (const [k, r] of Object.entries(ReductionView.REDUCTIONS)) { const o = document.createElement("option"); o.value = k; o.textContent = `${r.fromLabel} ↦ ${r.toLabel} · ${r.label}`; $("rd-red").appendChild(o); }
+for (const [k, r] of Object.entries({ ...ReductionView.REDUCTIONS, ...FormulaView.REDUCTIONS })) { const o = document.createElement("option"); o.value = k; o.textContent = `${r.fromLabel} ↦ ${r.toLabel} · ${r.label}`; $("rd-red").appendChild(o); }
 function rdReduction(k) {
-  RDS.key = k; const r = ReductionView.REDUCTIONS[k];
+  RDS.key = k; const r = rdRed(k);
   $("rd-name").textContent = r.label;
   $("rd-fmt").innerHTML = RD_FMT[r.from] + " " + r.def;
   const ex = $("rd-ex"); ex.innerHTML = "";
   r.examples.forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
   rdExample(0);
 }
-function rdExample(i) { const s = ReductionView.REDUCTIONS[RDS.key].examples[i][1]; $("rd-inst").value = s; rdLoad(s); }
+function rdExample(i) { const s = rdRed(RDS.key).examples[i][1]; $("rd-inst").value = s; rdLoad(s); }
 $("rd-red").addEventListener("change", e => rdReduction(e.target.value));
 $("rd-ex").addEventListener("change", e => rdExample(+e.target.value));
 let rdTimer;
@@ -13848,11 +15409,13 @@ stProblem("SAT3");
 
 /* ---- tabs ---- */
 function showTab(id) {
-  ["clause", "auto", "bip", "graph", "flow", "layered", "packing", "schedule", "quantum", "board", "table", "misc", "cgram", "reduction", "machine", "dmap", "search"].forEach(k => { $("t-" + k).setAttribute("aria-selected", String(k === id)); $("tab-" + k).hidden = k !== id; });
-  stop(); aStop(); stStop(); dmStop(); mcStop(); rdStop(); cgStop(); msStop(); tbStop(); bdStop(); qcStop(); scStop(); pkStop(); lStop(); flStop(); bStop(); gStop();
+  ["clause", "formula", "auto", "bip", "nested", "graph", "flow", "layered", "packing", "schedule", "quantum", "board", "table", "misc", "cgram", "reduction", "machine", "dmap", "search"].forEach(k => { $("t-" + k).setAttribute("aria-selected", String(k === id)); $("tab-" + k).hidden = k !== id; });
+  stop(); fmStop(); nsStop(); aStop(); stStop(); dmStop(); mcStop(); rdStop(); cgStop(); msStop(); tbStop(); bdStop(); qcStop(); scStop(); pkStop(); lStop(); flStop(); bStop(); gStop();
   try { localStorage.setItem("viz-tab", id); } catch (e) {}
 }
 $("t-clause").onclick = () => showTab("clause");
+$("t-formula").onclick = () => showTab("formula");
+$("t-nested").onclick = () => showTab("nested");
 $("t-dmap").onclick = () => showTab("dmap");
 $("t-machine").onclick = () => showTab("machine");
 $("t-reduction").onclick = () => showTab("reduction");
@@ -13869,7 +15432,9 @@ $("t-layered").onclick = () => showTab("layered");
 $("t-bip").onclick = () => showTab("bip");
 $("t-flow").onclick = () => showTab("flow");
 $("t-graph").onclick = () => showTab("graph");
-if (location.hash === "#automaton") showTab("auto");
+if (location.hash === "#formula") showTab("formula");
+else if (location.hash === "#nested") showTab("nested");
+else if (location.hash === "#automaton") showTab("auto");
 else if (location.hash === "#dominoes") showTab("dmap");
 else if (location.hash === "#machines") showTab("machine");
 else if (location.hash === "#reduction") showTab("reduction");
@@ -13885,7 +15450,7 @@ else if (location.hash === "#packing") showTab("packing");
 else if (location.hash === "#board") showTab("board");
 else if (location.hash === "#table") showTab("table");
 else if (location.hash === "#search") showTab("search");
-else { try { const t = localStorage.getItem("viz-tab"); if (t === "search" || t === "table" || t === "board" || t === "quantum" || t === "packing" || t === "layered" || t === "auto" || t === "bip" || t === "graph" || t === "flow" || t === "schedule" || t === "misc" || t === "cgram" || t === "reduction" || t === "machine" || t === "dmap") showTab(t); } catch (e) {} }
+else { try { const t = localStorage.getItem("viz-tab"); if (t === "formula" || t === "nested" || t === "search" || t === "table" || t === "board" || t === "quantum" || t === "packing" || t === "layered" || t === "auto" || t === "bip" || t === "graph" || t === "flow" || t === "schedule" || t === "misc" || t === "cgram" || t === "reduction" || t === "machine" || t === "dmap") showTab(t); } catch (e) {} }
 
 /* ---- phone: wide diagrams scroll on their own ---- */
 (() => {

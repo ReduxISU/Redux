@@ -106,6 +106,9 @@
 .sw.cov { background: var(--s-sol-fill); border-color: var(--s-sol); }
 .sw.com { background: var(--s-com-fill); border-color: var(--s-com); border-style: dashed; border-width: 2.2px; }
 .sw.blk { background: transparent; border-style: dashed; border-color: var(--s-bg-stroke); }
+.chip.prop { border-color: var(--accent); color: var(--accent); }
+.sw.fmfal { border-radius: 5px; background: var(--surface); border: 1.6px dashed var(--s-bg-stroke); display: grid; place-items: center; font: 600 12px var(--mono); color: var(--muted); text-decoration: line-through; }
+.sw.cnt { border: 0; background: var(--s-rej); color: var(--on-rej); display: grid; place-items: center; font: 700 10px var(--mono); }
 .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
 .checks li { display: flex; gap: 8px; align-items: baseline; }
 .checks li::before { content: "○"; color: var(--muted); }
@@ -240,7 +243,7 @@ pre .k { color: var(--accent); }
 @media (max-width: 700px) {
   .dscroll { overflow-x: auto; overscroll-behavior-x: contain; }
   .dscroll > svg { min-width: 560px; }
-  .dscroll > svg#rd-g, .dscroll > svg#rdg { min-width: 960px; }
+  .dscroll > svg#rd-g, .dscroll > svg#rdg, .dscroll > svg#rdf-g { min-width: 960px; }
   .dscroll::after { content: "Swipe the diagram sideways to see all of it."; display: block; position: sticky; left: 0; font-size: 12px; padding-top: 4px; }
 }
 .dscroll::after { color: var(--muted); }
@@ -270,10 +273,12 @@ pre .k { color: var(--accent); }
 <div class="wrap">
   <div class="tabs" role="tablist" aria-label="Visualization">
     <button role="tab" id="t-clause" aria-selected="true" aria-controls="tab-clause">SAT <small>Clause Graph, Factor Graph</small></button>
+    <button role="tab" id="t-formula" aria-selected="false" aria-controls="tab-formula">Formula <small>SAT, 3SAT · proposed</small></button>
     <button role="tab" id="t-auto" aria-selected="false" aria-controls="tab-auto">Automaton <small>DFA, NFA</small></button>
     <button role="tab" id="t-graph" aria-selected="false" aria-controls="tab-graph">Graph <small>Clique, Vertex Cover, MST, TSP, +11</small></button>
     <button role="tab" id="t-flow" aria-selected="false" aria-controls="tab-flow">Flow Network <small>Minimum S-T Cut</small></button>
     <button role="tab" id="t-bip" aria-selected="false" aria-controls="tab-bip">Bipartite Graph <small>Set Cover, Exact Cover, Exact Hitting Set</small></button>
+    <button role="tab" id="t-nested" aria-selected="false" aria-controls="tab-nested">Nested Set <small>Set Cover, Exact Cover, Exact Hitting Set · proposed</small></button>
     <button role="tab" id="t-layered" aria-selected="false" aria-controls="tab-layered">Layered Graph <small>Topological Sort, Shortest Paths, +5</small></button>
     <button role="tab" id="t-packing" aria-selected="false" aria-controls="tab-packing">Packing <small>Partition, Subset Sum, Knapsack, +2</small></button>
     <button role="tab" id="t-schedule" aria-selected="false" aria-controls="tab-schedule">Schedule <small>Job Sequencing, Pump Scheduling</small></button>
@@ -394,6 +399,102 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
       </ol>
     </section>
   </div>
+  </div>
+
+  <div class="tab" id="tab-formula" role="tabpanel" aria-labelledby="t-formula" hidden>
+    <header>
+      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Formula</b> · SAT, 3SAT · a second picture next to the Clause Graph and Factor Graph</div>
+      <div class="title-row"><h1>Formula</h1><span class="chip prop">proposed · for review</span></div>
+      <p class="lede">The formula itself, the way it is written. Each clause is a box, the literals inside it are joined by ∨, and the boxes are joined by ∧. A long formula wraps onto more lines between clauses. The strip underneath shows each variable's value so far. It uses the Clause Graph's ids and frames, so the three SAT pictures color the same literal the same way. Hover a literal, a clause or a variable to trace it.</p>
+    </header>
+
+    <div class="instbox" id="fm-box">
+      <textarea id="fm-inst" rows="2" spellcheck="false" aria-label="Formula instance"></textarea>
+      <div class="err" id="fm-err" hidden></div>
+      <div class="fmt" id="fm-fmt"></div>
+    </div>
+
+    <div class="bench">
+      <div class="card graph-card">
+        <div class="controls">
+          <div class="seg" role="group" aria-label="View">
+            <button id="fm-m-instance" aria-pressed="true">Instance</button>
+            <button id="fm-m-solution" aria-pressed="false">Solved</button>
+            <button id="fm-m-steps" aria-pressed="false">Steps</button>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <label class="sel">Problem
+              <select id="fm-prob">
+                <option value="SAT">SAT</option>
+                <option value="SAT3">3SAT</option>
+              </select>
+            </label>
+            <label class="sel">Solver <select id="fm-solver-sel"></select></label>
+            <label class="sel">Example <select id="fm-ex"></select></label>
+          </div>
+        </div>
+        <svg id="fm-g" role="img" aria-label="The formula, clause by clause, with the assignment"></svg>
+      </div>
+
+      <aside class="card side">
+        <div class="stepper" id="fm-stepper" hidden>
+          <h3 id="fm-solver">Solver</h3>
+          <div class="btns">
+            <button id="fm-prev" aria-label="Previous step">◀</button>
+            <button id="fm-play">Play</button>
+            <button id="fm-next" aria-label="Next step">▶</button>
+            <span class="count" id="fm-count"></span>
+          </div>
+          <input type="range" id="fm-scrub" min="0" value="0" aria-label="Step">
+          <div class="caption" id="fm-caption"></div>
+        </div>
+        <div style="display:grid; gap:6px">
+          <h3>Checks</h3>
+          <ul class="checks" id="fm-checks"></ul>
+        </div>
+        <div class="legend">
+          <h3>Key</h3>
+          <div class="row"><span class="sw bg"></span><div>Background<small>A literal whose variable isn't assigned yet</small></div></div>
+          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The variable being tried, on every literal it makes true, and its chip</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>A true literal a step-by-step solver has kept so far. Dashed outline</small></div></div>
+          <div class="row"><span class="sw sol"></span><div>Solution<small>A true literal of the confirmed answer only</small></div></div>
+          <div class="row"><span class="sw fmfal">x</span><div>False<small>The literal is false under the assignment. Struck through</small></div></div>
+          <div class="row"><span class="sw cov"></span><div>Covered<small>A clause with a true literal. Marked ✓</small></div></div>
+          <div class="row"><span class="sw rej"></span><div>Rejected<small>A clause whose literals are all false, with its literals. Marked ✗. On a run that found nothing, its picks</small></div></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="lower">
+      <section class="card panel">
+        <h2>Input contract</h2>
+        <p>SAT and 3SAT already hand over <code>GroupedGraphSpec(Clauses, Variables)</code> for the Clause Graph and the Factor Graph. The Formula picture reads the same spec and the same <code>Assignment</code> steps, so every SAT solver animates on it with no extra code. Proposed classes: <code>SatFormulaVisualization</code> and <code>Sat3FormulaVisualization</code>, selectable next to the default.</p>
+<pre><span class="c">// payload: the Grouped Graph's groups, nodes and variables, without its edges</span>
+{ <span class="k">"kind"</span>: "formula", <span class="k">"layout"</span>: "cnf", "shape": "assignment", "rule": "satisfiability",
+  <span class="k">"groups"</span>:    [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"] }],
+  <span class="k">"nodes"</span>:     [{ "id": "c0-1", "label": "¬x2", "variable": "v:x2",
+                 "positive": false, "group": "c0" }],
+  <span class="k">"variables"</span>: [{ "id": "v:x2", "label": "x2" }] }
+
+<span class="c">// frame: the Grouped Graph frame, plus one map for the strip</span>
+{ "event", "caption", "focus", "step", "ok"?,
+  <span class="k">"nodes"</span>:  { "c0-1": { "state": "False" } },        <span class="c">// literals</span>
+  <span class="k">"groups"</span>: { "c0": { "state": "Covered" } },        <span class="c">// clauses</span>
+  <span class="k">"assignment"</span>: { "v:x2": true },
+  <span class="k">"variables"</span>:  { "v:x2": { "state": "Committed" } } }</pre>
+        <p>Layout is plain arithmetic, so it ports to D3 or React as is: literal width from its label, clauses packed left to right and wrapped at a clause boundary, a clause wider than a line wrapped at its ∨s. Every state carries a mark besides its color: dashes for Committed, a strike-through for False, ✓ and ✗ on the clause.</p>
+      </section>
+
+      <section class="card panel">
+        <h2>Open questions for review</h2>
+        <ol>
+          <li><b>Default view.</b> Should Formula become SAT's and 3SAT's default visualization, ahead of the Clause Graph? It is the picture students already know from the textbook.</li>
+          <li><b>The variables map.</b> The frame adds <code>variables</code> for the strip. Keep it, or have the frontend work the chips out from <code>assignment</code> and <code>focus</code>?</li>
+          <li><b>Repeated literals.</b> A clause like (x1 ∨ x1 ∨ x2) is drawn as written, one pill per occurrence, because the ids are per occurrence. Merge them instead?</li>
+          <li><b>Failed runs.</b> Redux's SAT solvers end an unsatisfiable run with no assignment, so that last frame is drawn blank apart from its caption. Should it mark every clause Rejected instead? (The mockup's brute force ends on its last candidate, to show the Rejected rule.)</li>
+        </ol>
+      </section>
+    </div>
   </div>
 
   <div class="tab" id="tab-auto" role="tabpanel" aria-labelledby="t-auto" hidden>
@@ -604,6 +705,113 @@ frames: { chosen, trying?, focus?, missing?, trial?, caption }[]</pre>
           <li><b>Steps come from the solver.</b> Each solver emits its own frames, and the visualization only draws them. Pick Greedy or Brute Force for Set Cover to see the difference. Greedy now reports its own overshoot instead of quietly swapping in another answer.</li>
           <li><b>Covered and Blocked join the shared states.</b> The ×2 badge is a count drawn on a node, not a state. See State vocabulary below.</li>
           <li><b>SAT factor graph.</b> Added as a second visualization for SAT and 3-SAT, on the SAT tab.</li>
+        </ol>
+      </section>
+    </div>
+  </div>
+
+  <div class="tab" id="tab-nested" role="tabpanel" aria-labelledby="t-nested" hidden>
+    <header>
+      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Nested Set</b> · Set Cover, Exact Cover, Exact Hitting Set · a second picture next to the Bipartite Graph</div>
+      <div class="title-row"><h1>Nested Set</h1><span class="chip prop">proposed · for review</span></div>
+      <p class="lede">The sets drawn as sets. Every element of U is a dot on a circle, and every set is a rounded region around its own elements, so overlaps and subsets show directly. Each set's name sits on its edge. When the regions can't be drawn cleanly, the picture switches to the set list: one row per set, its elements written out. It uses the Bipartite Graph's ids and frames, so both pictures color the same element and set the same way. Hover a dot or a set to trace it.</p>
+    </header>
+
+    <div class="instbox" id="ns-box">
+      <textarea id="ns-inst" rows="2" spellcheck="false" aria-label="Set problem instance"></textarea>
+      <div class="err" id="ns-err" hidden></div>
+      <div class="fmt" id="ns-fmt"></div>
+    </div>
+
+    <div class="bench">
+      <div class="card graph-card">
+        <div class="controls">
+          <div class="seg" role="group" aria-label="View">
+            <button id="ns-m-instance" aria-pressed="true">Instance</button>
+            <button id="ns-m-solution" aria-pressed="false">Solved</button>
+            <button id="ns-m-steps" aria-pressed="false">Steps</button>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <label class="sel">Problem
+              <select id="ns-prob">
+                <option value="SETCOVER">Set Cover</option>
+                <option value="EXACTCOVER">Exact Cover</option>
+                <option value="HITTINGSET">Exact Hitting Set</option>
+              </select>
+            </label>
+            <label class="sel">Solver <select id="ns-solver-sel"></select></label>
+            <label class="sel">Example <select id="ns-ex"></select></label>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Layout">
+            <button id="ns-lay-auto" aria-pressed="true">Regions (auto)</button>
+            <button id="ns-lay-list" aria-pressed="false">Set list</button>
+          </div>
+          <span class="fmt" id="ns-why" style="font-size:12px; color:var(--muted)"></span>
+        </div>
+        <svg id="ns-g" role="img" aria-label="Each set as a region around its elements"></svg>
+      </div>
+
+      <aside class="card side">
+        <div class="stepper" id="ns-stepper" hidden>
+          <h3 id="ns-solver">Solver</h3>
+          <div class="btns">
+            <button id="ns-prev" aria-label="Previous step">◀</button>
+            <button id="ns-play">Play</button>
+            <button id="ns-next" aria-label="Next step">▶</button>
+            <span class="count" id="ns-count"></span>
+          </div>
+          <input type="range" id="ns-scrub" min="0" value="0" aria-label="Step">
+          <div class="caption" id="ns-caption"></div>
+        </div>
+        <div style="display:grid; gap:8px">
+          <h3>Chosen</h3>
+          <div class="active-list" id="ns-chosen"></div>
+        </div>
+        <div style="display:grid; gap:6px">
+          <h3>Checks</h3>
+          <ul class="checks" id="ns-checks"></ul>
+        </div>
+        <div class="legend">
+          <h3>Key</h3>
+          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The pick the solver is trying now (a whole candidate, for a brute force)</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>Kept so far by a step-by-step solver. Dashed outline</small></div></div>
+          <div class="row"><span class="sw sol"></span><div>Solution<small>The confirmed answer only. The header says which side is ● PICKED</small></div></div>
+          <div class="row"><span class="sw cov"></span><div>Covered<small>Hit by the picks the required number of times</small></div></div>
+          <div class="row"><span class="sw blk"></span><div>Blocked<small>Exactly-once only: would double up on something already covered. Dashed</small></div></div>
+          <div class="row"><span class="sw rej"></span><div>Rejected<small>Covered twice, left uncovered when an answer is judged, or a pick of a run that found nothing</small></div></div>
+          <div class="row"><span class="sw cnt">×2</span><div>×N badge<small>How many picks hit it. A count, not a state</small></div></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="lower">
+      <section class="card panel">
+        <h2>Input contract</h2>
+        <p>The three problems already hand over <code>BipartiteSpec(Universe, Sets, K, Pick, Rule)</code>. The Nested Set picture reads the same spec and the same steps (<code>ChosenSets</code> for Set Cover and Exact Cover, <code>NodeSet</code> for Exact Hitting Set), and its frames are the Bipartite frames without <code>edges</code>. Proposed classes: <code>SetCoverNestedSetVisualization</code>, <code>ExactCoverNestedSetVisualization</code> and <code>HittingSetNestedSetVisualization</code>, selectable next to the default.</p>
+<pre><span class="c">// payload: the Bipartite Graph's elements and sets, without its edges</span>
+{ <span class="k">"kind"</span>: "nestedSet", <span class="k">"layout"</span>: "regions",
+  "pickSide": "sets" | "elements", "rule": "atLeastOnce" | "exactlyOnce", "k"?,
+  <span class="k">"elements"</span>: [{ "id": "e:1", "label": "1" }],
+  <span class="k">"sets"</span>:     [{ "id": "S1", "label": "S1", "members": ["e:1", "e:2"] }] }
+
+<span class="c">// frame: the Bipartite frame without edges</span>
+{ "event", "caption", "focus", "step", "ok"?,
+  <span class="k">"nodes"</span>: { "S1": { "state": "Committed" }, "e:2": { "state": "Covered" } },
+  <span class="k">"hits"</span>:  { "e:2": 2 } }                       <span class="c">// ×N badges</span></pre>
+        <p><b>Layout.</b> Dots go on a circle in the order that keeps each set's elements together (every order is tried up to 9 elements, a barycentre sweep past that). A region is the convex hull of its dots grown by a padding: straight edges joined by arcs. Small sets get the smallest padding, and two sets that share an element never share one, so their outlines stay apart. Because every dot is on the circle, no region can swallow a dot; the check below makes sure none comes close.</p>
+        <p><b>Fallback threshold.</b> The regions are drawn only when all of these hold: at most 12 elements and 8 sets, no element in more than 4 overlapping sets, every region clears every dot outside it by 4 px, and every set's name finds room on its edge. Otherwise the set list is drawn, and the header says why. The Layout switch forces the set list.</p>
+      </section>
+
+      <section class="card panel">
+        <h2>Open questions for review</h2>
+        <ol>
+          <li><b>Fallback threshold.</b> Is 12 elements, 8 sets and 4 overlaps per element the right place to switch to the set list, or should the list be the default and the regions an option?</li>
+          <li><b>Doubled elements.</b> An element covered twice under exactly-once is <code>Rejected</code> with a ×2 badge here, as in the Bipartite Graph's backend. The brief for this picture said <code>Blocked</code> with a ×2 badge. Keep Rejected so both pictures agree?</li>
+          <li><b>Packing problems.</b> Should Bin Packing, Knapsack, Partition and Subset Sum get a Nested Set picture too? The recommendation is no: the Packing picture already draws their items to scale in their containers.</li>
+          <li><b>Empty failed answers.</b> Exact Cover and Exact Hitting Set end a run that finds nothing with no picks, so that frame is blank apart from its caption (the Bipartite rule: nothing is judged without picks). Should it mark every element Rejected instead?</li>
+          <li><b>Default view.</b> Should Nested Set replace the Bipartite Graph as the default for any of the three problems?</li>
         </ol>
       </section>
     </div>
@@ -1651,6 +1859,7 @@ frames:   { filled, cell?, splits?, treeShown?, caption }[]</pre>
         </div>
       </div>
       <svg id="rd-g" role="img" aria-label="Source instance and the instance the reduction builds, side by side"></svg>
+      <svg id="rdf-g" role="img" aria-label="The SAT formula and the 3SAT formula the reduction builds, side by side" hidden></svg>
     </div>
 
     <div class="bench">
@@ -2068,6 +2277,8 @@ frames: { mapping: {from,to}[], trying?: {from,to},
         <tr class="this"><td>Grouped Graph</td><td>Layout: nodes placed inside group hulls; <code>key</code> links across groups</td><td>SAT, 3-SAT (clause graph); later, reduction gadgets</td></tr>
         <tr class="this"><td>Automaton</td><td>Drawing rules: start arrow, double-ring accept, merged edge labels, input tape. Layout: layered from start</td><td>DFA, NFA</td></tr>
         <tr class="this"><td>Bipartite Graph</td><td>Layout: two columns, one side picked by the certificate. Rule: cover at least once or exactly once</td><td>Set Cover, Exact Cover, Exact Hitting Set; SAT factor graph</td></tr>
+        <tr class="this"><td>Formula <small>(proposed)</small></td><td>Not a graph: the CNF as written, clause boxes joined by ∧, literals by ∨, an assignment strip. The Grouped Graph's spec, ids and frames</td><td>SAT, 3SAT (second view); both sides of SAT ↦ 3SAT</td></tr>
+        <tr class="this"><td>Nested Set <small>(proposed)</small></td><td>Layout: elements on a circle, each set a padded hull round its elements; a set list when the hulls don't fit. The Bipartite Graph's spec, ids and frames</td><td>Set Cover, Exact Cover, Exact Hitting Set (second view)</td></tr>
         <tr class="this"><td>Layered Graph</td><td>Layout: ranks left to right; edges that point backward (closing a cycle) curve under the rows. Answer shapes: an order, a removed set, groups, or distances</td><td>Topological Sort, Feedback Arc Set, Feedback Node Set, Directed Hamiltonian Cycle, Strongly Connected Components, SSSP, SPSP</td></tr>
         <tr class="this"><td>Flow Network</td><td>Data: capacity and flow per edge. Layout: source left, sink right, hops from the source in between</td><td>Minimum S-T Cut</td></tr>
         <tr class="this"><td>Packing</td><td>Not a graph: items in a pool, containers drawn to scale with a target or limit line. Answer shape: which container each item goes in</td><td>Partition, Subset Sum, Subset Product, Knapsack (Binary), Bin Packing</td></tr>
@@ -2557,6 +2768,187 @@ $("b-solver-sel").addEventListener("change", e => {
 let bTimer;
 $("b-inst").addEventListener("input", e => { clearTimeout(bTimer); bTimer = setTimeout(() => bLoad(e.target.value), 350); });
 bProblem("SETCOVER");
+
+/*@@FORMULA@@*/
+
+/* ---- Formula tab ---- */
+const FM_EX = {
+  SAT: [
+    ["Mixed widths", "(x1 | !x2 | x3 | !x4) & (!x1 | x2) & (!x3 | x4 | x5) & (!x2 | !x5) & (x4 | !x1)"],
+    ["A long formula (wraps)", "(x1 | x2 | !x3) & (!x1 | x4) & (x2 | !x4 | x5 | x6) & (!x2 | x3) & (!x5 | !x6) & (x3 | x6 | !x7) & (x7 | !x8) & (!x3 | x8 | x1) & (x5 | x7) & (!x6 | !x7 | x8) & (x4 | !x8) & (!x4 | x6 | x2)"],
+    ["Unsatisfiable", "(x1 | x2) & (x1 | !x2) & (!x1 | x2) & (!x1 | !x2)"],
+  ],
+  SAT3: [
+    ["Redux default", "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)"],
+    ["Needs backtracking", "(!x1 | x2 | x3) & (!x1 | !x2 | x4) & (!x1 | !x3 | !x4) & (!x1 | !x2 | x3) & (!x1 | x2 | x4) & (x1 | x2 | !x4) & (x1 | !x3 | x4)"],
+    ["Unsatisfiable", "(x1 | x2 | x3) & (x1 | x2 | !x3) & (x1 | !x2 | x3) & (x1 | !x2 | !x3) & (!x1 | x2 | x3) & (!x1 | x2 | !x3) & (!x1 | !x2 | x3) & (!x1 | !x2 | !x3)"],
+  ],
+};
+const FM_INFO = {
+  SAT: "Redux format: <code>(x1 | !x2 | x3 | x4) &amp; (…)</code>. Clauses of any width.",
+  SAT3: "Redux format: <code>(x1 | !x2 | x3) &amp; (…)</code>. At most three literals per clause.",
+};
+const FMV = FormulaView.create({ svg: $("fm-g") });
+const FMS = { prob: "SAT", solver: "dpll", mode: "instance", step: 0, playing: null, run: null };
+function fmStop() { if (FMS.playing) { clearInterval(FMS.playing); FMS.playing = null; } }
+function fmLoad(str) {
+  try {
+    FMS.run = FMV.load(str, FMS.prob, FMS.solver); FMS.step = 0;
+    $("fm-box").classList.remove("bad"); $("fm-err").hidden = true;
+    fmSetMode(FMS.mode);
+  } catch (e) { $("fm-box").classList.add("bad"); $("fm-err").hidden = false; $("fm-err").textContent = e.message; }
+}
+function fmPaint() {
+  const last = FMS.run.frames.length - 1;
+  const idx = FMS.mode === "instance" ? null : FMS.mode === "solution" ? last : FMS.step;
+  const f = FMV.show(idx);
+  const ul = $("fm-checks"); ul.innerHTML = "";
+  FMV.checks(idx).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const stepping = FMS.mode === "steps";
+  $("fm-stepper").hidden = !stepping;
+  if (stepping) {
+    const cap = $("fm-caption");
+    cap.textContent = f.caption;
+    cap.className = "caption" + (f.event === "Done" ? (f.ok ? " ok" : " rej") : f.event === "Reject" ? " rej" : "");
+    $("fm-count").textContent = `${FMS.step + 1} / ${last + 1}`;
+    $("fm-scrub").max = last; $("fm-scrub").value = FMS.step;
+    $("fm-prev").disabled = FMS.step === 0; $("fm-next").disabled = FMS.step === last;
+    $("fm-play").textContent = FMS.playing ? "Pause" : "Play";
+  }
+}
+function fmSetMode(m) {
+  FMS.mode = m; fmStop();
+  ["instance", "solution", "steps"].forEach(k => $("fm-m-" + k).setAttribute("aria-pressed", String(k === m)));
+  if (FMS.run) fmPaint();
+}
+$("fm-m-instance").onclick = () => fmSetMode("instance");
+$("fm-m-solution").onclick = () => fmSetMode("solution");
+$("fm-m-steps").onclick = () => fmSetMode("steps");
+$("fm-prev").onclick = () => { fmStop(); FMS.step = Math.max(0, FMS.step - 1); fmPaint(); };
+$("fm-next").onclick = () => { fmStop(); FMS.step = Math.min(FMS.run.frames.length - 1, FMS.step + 1); fmPaint(); };
+$("fm-scrub").oninput = e => { fmStop(); FMS.step = +e.target.value; fmPaint(); };
+$("fm-play").onclick = () => {
+  if (FMS.playing) { fmStop(); fmPaint(); return; }
+  if (FMS.step >= FMS.run.frames.length - 1) FMS.step = 0;
+  FMS.playing = setInterval(() => {
+    if (FMS.step >= FMS.run.frames.length - 1) { fmStop(); fmPaint(); return; }
+    FMS.step++; fmPaint();
+  }, 1000);
+  fmPaint();
+};
+function fmProblem(p) {
+  FMS.prob = p;
+  $("fm-fmt").innerHTML = FM_INFO[p];
+  const sv = $("fm-solver-sel"); sv.innerHTML = "";
+  Object.entries(FormulaView.SOLVERS).forEach(([k, s]) => { const o = document.createElement("option"); o.value = k; o.textContent = s.label; sv.appendChild(o); });
+  FMS.solver = "dpll"; sv.value = "dpll";
+  $("fm-solver").textContent = FormulaView.SOLVERS.dpll.label;
+  const ex = $("fm-ex"); ex.innerHTML = "";
+  FM_EX[p].forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
+  fmExample(0);
+}
+function fmExample(i) { const s = FM_EX[FMS.prob][i][1]; $("fm-inst").value = s; fmLoad(s); }
+$("fm-prob").addEventListener("change", e => fmProblem(e.target.value));
+$("fm-ex").addEventListener("change", e => fmExample(+e.target.value));
+$("fm-solver-sel").addEventListener("change", e => { FMS.solver = e.target.value; $("fm-solver").textContent = e.target.selectedOptions[0].textContent; fmLoad($("fm-inst").value); });
+let fmTimer;
+$("fm-inst").addEventListener("input", e => { clearTimeout(fmTimer); fmTimer = setTimeout(() => fmLoad(e.target.value), 350); });
+fmProblem("SAT");
+
+/*@@NESTEDSET@@*/
+
+/* ---- Nested Set tab ---- */
+const NS_EX = {
+  SETCOVER: [...BIP_EX.SETCOVER, ["Many sets (set list)", "({1,2,3,4,5,6,7,8},{{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,1},{1,5},{3,7}},4)"]],
+  EXACTCOVER: [...BIP_EX.EXACTCOVER, ["Many sets (set list)", "({1,2,3,4,5,6,7,8},{{1,2},{3,4},{5,6},{7,8},{2,3},{4,5},{6,7},{8,1},{1,5}})"]],
+  HITTINGSET: [...BIP_EX.HITTINGSET, ["Many sets (set list)", "({1,2,3,4,5,6,7,8},{{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,1},{1,5}})"]],
+};
+const NS_SOLVERS = {
+  SETCOVER: [["greedy", "Greedy Set Cover"], ["brute", "Set Cover Brute Force"]],
+  EXACTCOVER: [["x", "Dancing Links"], ["brute", "Exact Cover Brute Force"]],
+  HITTINGSET: [["brute", "Hitting Set Brute Force"], ["x", "Algorithm X (not in Redux yet)"]],
+};
+const NSV = NestedSetView.create({ svg: $("ns-g") });
+const NSS = { prob: "SETCOVER", solver: "greedy", mode: "instance", step: 0, playing: null, run: null, layout: "auto" };
+function nsStop() { if (NSS.playing) { clearInterval(NSS.playing); NSS.playing = null; } }
+function nsWhy() { const u = NSV.layoutUsed(); $("ns-why").textContent = u.layout === "regions" ? "Drawn as regions." : NSS.layout === "list" ? "Set list, chosen by hand." : `Set list: ${u.why}.`; }
+function nsLoad(str) {
+  try {
+    NSV.setLayout(NSS.layout);
+    NSS.run = NSV.load(str, NSS.prob, NSS.solver); NSS.step = 0;
+    $("ns-box").classList.remove("bad"); $("ns-err").hidden = true;
+    nsWhy(); nsSetMode(NSS.mode);
+  } catch (e) { $("ns-box").classList.add("bad"); $("ns-err").hidden = false; $("ns-err").textContent = e.message; }
+}
+function nsPaint() {
+  const last = NSS.run.frames.length - 1;
+  const idx = NSS.mode === "instance" ? null : NSS.mode === "solution" ? last : NSS.step;
+  const f = NSV.show(idx);
+  const ch = $("ns-chosen"); ch.innerHTML = "";
+  const labels = NSV.chosenLabels(idx);
+  if (idx === null) ch.innerHTML = "<em>Nothing yet. Choose Solved or Steps.</em>";
+  else if (!labels.length) ch.innerHTML = f.event === "Done" ? "<em>No valid choice exists.</em>" : "<em>Nothing chosen yet.</em>";
+  else labels.forEach(l => { const s = document.createElement("span"); s.textContent = l; s.className = f.event === "Done" ? (f.ok ? "acc" : "rej") : ""; ch.appendChild(s); });
+  const ul = $("ns-checks"); ul.innerHTML = "";
+  NSV.checks(idx).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  const stepping = NSS.mode === "steps";
+  $("ns-stepper").hidden = !stepping;
+  if (stepping) {
+    const cap = $("ns-caption");
+    cap.textContent = f.caption;
+    cap.className = "caption" + (f.event === "Done" ? (f.ok ? " ok" : " rej") : f.event === "Reject" ? " rej" : "");
+    $("ns-count").textContent = `${NSS.step + 1} / ${last + 1}`;
+    $("ns-scrub").max = last; $("ns-scrub").value = NSS.step;
+    $("ns-prev").disabled = NSS.step === 0; $("ns-next").disabled = NSS.step === last;
+    $("ns-play").textContent = NSS.playing ? "Pause" : "Play";
+  }
+}
+function nsSetMode(m) {
+  NSS.mode = m; nsStop();
+  ["instance", "solution", "steps"].forEach(k => $("ns-m-" + k).setAttribute("aria-pressed", String(k === m)));
+  if (NSS.run) nsPaint();
+}
+$("ns-m-instance").onclick = () => nsSetMode("instance");
+$("ns-m-solution").onclick = () => nsSetMode("solution");
+$("ns-m-steps").onclick = () => nsSetMode("steps");
+$("ns-prev").onclick = () => { nsStop(); NSS.step = Math.max(0, NSS.step - 1); nsPaint(); };
+$("ns-next").onclick = () => { nsStop(); NSS.step = Math.min(NSS.run.frames.length - 1, NSS.step + 1); nsPaint(); };
+$("ns-scrub").oninput = e => { nsStop(); NSS.step = +e.target.value; nsPaint(); };
+$("ns-play").onclick = () => {
+  if (NSS.playing) { nsStop(); nsPaint(); return; }
+  if (NSS.step >= NSS.run.frames.length - 1) NSS.step = 0;
+  NSS.playing = setInterval(() => {
+    if (NSS.step >= NSS.run.frames.length - 1) { nsStop(); nsPaint(); return; }
+    NSS.step++; nsPaint();
+  }, 1100);
+  nsPaint();
+};
+const nsSetLayout = m => {
+  NSS.layout = m;
+  $("ns-lay-auto").setAttribute("aria-pressed", String(m === "auto")); $("ns-lay-list").setAttribute("aria-pressed", String(m === "list"));
+  if (NSS.run) { NSV.setLayout(m); nsWhy(); nsPaint(); }
+};
+$("ns-lay-auto").onclick = () => nsSetLayout("auto");
+$("ns-lay-list").onclick = () => nsSetLayout("list");
+function nsProblem(p) {
+  NSS.prob = p;
+  $("ns-fmt").innerHTML = BIP_INFO[p].fmt;
+  const sv = $("ns-solver-sel"); sv.innerHTML = "";
+  NS_SOLVERS[p].forEach(([v, name]) => { const o = document.createElement("option"); o.value = v; o.textContent = name; sv.appendChild(o); });
+  NSS.solver = NS_SOLVERS[p][0][0];
+  $("ns-solver").textContent = NS_SOLVERS[p][0][1];
+  const ex = $("ns-ex"); ex.innerHTML = "";
+  NS_EX[p].forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
+  nsExample(0);
+}
+function nsExample(i) { const s = NS_EX[NSS.prob][i][1]; $("ns-inst").value = s; nsLoad(s); }
+$("ns-prob").addEventListener("change", e => nsProblem(e.target.value));
+$("ns-ex").addEventListener("change", e => nsExample(+e.target.value));
+$("ns-solver-sel").addEventListener("change", e => { NSS.solver = e.target.value; $("ns-solver").textContent = e.target.selectedOptions[0].textContent; nsLoad($("ns-inst").value); });
+let nsTimer;
+$("ns-inst").addEventListener("input", e => { clearTimeout(nsTimer); nsTimer = setTimeout(() => nsLoad(e.target.value), 350); });
+nsProblem("SETCOVER");
+
 
 /*@@GRAPHBASE@@*/
 
@@ -3364,15 +3756,21 @@ cgProblem("CVP");
 
 /* ---- Reduction tab ---- */
 const RDV1 = ReductionView.create({ svg: $("rd-g") });
+// SAT ↦ 3SAT draws both sides as formulas (formula.js); it plays through the same controls.
+const RDV2 = FormulaView.createPair({ svg: $("rdf-g") });
+const rdRed = k => ReductionView.REDUCTIONS[k] || FormulaView.REDUCTIONS[k];
+const rdV = () => (FormulaView.REDUCTIONS[RDS.key] ? RDV2 : RDV1);
 const RDS = { key: "SIPSER_CLIQUE", step: 0, playing: null, run: null };
 const RD_FMT = {
   SAT3: "Source format (3SAT): <code>(x1 | !x2 | x3) &amp; (…)</code>. Up to 7 clauses.",
+  SAT: "Source format (SAT): <code>(x1 | !x2 | x3 | x4) &amp; (…)</code>, clauses of any width. Up to 8 clauses.",
   CLIQUE: "Source format (Clique): <code>(({N},{{a,b},…}),K)</code>, up to 10 nodes.",
 };
 function rdStop() { if (RDS.playing) { clearInterval(RDS.playing); RDS.playing = null; } }
 function rdLoad(str) {
   try {
-    RDS.run = RDV1.load(str, RDS.key); RDS.step = 0; rdStop();
+    const two = rdV() === RDV2; $("rd-g").toggleAttribute("hidden", two); $("rdf-g").toggleAttribute("hidden", !two);
+    RDS.run = rdV().load(str, RDS.key); RDS.step = 0; rdStop();
     $("rd-box").classList.remove("bad"); $("rd-err").hidden = true;
     const ul = $("rd-gadgets"); ul.innerHTML = "";
     const kinds = {};
@@ -3387,7 +3785,7 @@ function rdLoad(str) {
   } catch (e) { $("rd-box").classList.add("bad"); $("rd-err").hidden = false; $("rd-err").textContent = e.message; }
 }
 function rdPaint() {
-  const last = RDS.run.frames.length - 1, f = RDV1.show(RDS.step);
+  const last = RDS.run.frames.length - 1, f = rdV().show(RDS.step);
   const cap = $("rd-caption");
   cap.textContent = f.caption;
   cap.className = "caption" + (f.done ? (f.ok ? " ok" : " rej") : "");
@@ -3397,7 +3795,7 @@ function rdPaint() {
   $("rd-prev").disabled = RDS.step === 0; $("rd-next").disabled = RDS.step === last;
   $("rd-play").textContent = RDS.playing ? "Pause" : "Play";
   const ul = $("rd-checks"); ul.innerHTML = "";
-  RDV1.checks(RDS.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
+  rdV().checks(RDS.step).forEach(c => { const li = document.createElement("li"); li.textContent = c.label; li.className = c.ok === null ? "" : c.ok ? "ok" : "bad"; ul.appendChild(li); });
 }
 $("rd-prev").onclick = () => { rdStop(); RDS.step = Math.max(0, RDS.step - 1); rdPaint(); };
 $("rd-next").onclick = () => { rdStop(); RDS.step = Math.min(RDS.run.frames.length - 1, RDS.step + 1); rdPaint(); };
@@ -3415,19 +3813,19 @@ document.querySelectorAll("#rd-phases button").forEach(b => b.addEventListener("
   const i = RDS.run.frames.findIndex(f => f.phase === b.dataset.phase);
   if (i >= 0) { rdStop(); RDS.step = i; rdPaint(); }
 }));
-const rdSetColors = on => { $("rd-c-on").setAttribute("aria-pressed", String(on)); $("rd-c-off").setAttribute("aria-pressed", String(!on)); RDV1.setGadgetColors(on); };
+const rdSetColors = on => { $("rd-c-on").setAttribute("aria-pressed", String(on)); $("rd-c-off").setAttribute("aria-pressed", String(!on)); RDV1.setGadgetColors(on); RDV2.setGadgetColors(on); };
 $("rd-c-on").onclick = () => rdSetColors(true);
 $("rd-c-off").onclick = () => rdSetColors(false);
-for (const [k, r] of Object.entries(ReductionView.REDUCTIONS)) { const o = document.createElement("option"); o.value = k; o.textContent = `${r.fromLabel} ↦ ${r.toLabel} · ${r.label}`; $("rd-red").appendChild(o); }
+for (const [k, r] of Object.entries({ ...ReductionView.REDUCTIONS, ...FormulaView.REDUCTIONS })) { const o = document.createElement("option"); o.value = k; o.textContent = `${r.fromLabel} ↦ ${r.toLabel} · ${r.label}`; $("rd-red").appendChild(o); }
 function rdReduction(k) {
-  RDS.key = k; const r = ReductionView.REDUCTIONS[k];
+  RDS.key = k; const r = rdRed(k);
   $("rd-name").textContent = r.label;
   $("rd-fmt").innerHTML = RD_FMT[r.from] + " " + r.def;
   const ex = $("rd-ex"); ex.innerHTML = "";
   r.examples.forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
   rdExample(0);
 }
-function rdExample(i) { const s = ReductionView.REDUCTIONS[RDS.key].examples[i][1]; $("rd-inst").value = s; rdLoad(s); }
+function rdExample(i) { const s = rdRed(RDS.key).examples[i][1]; $("rd-inst").value = s; rdLoad(s); }
 $("rd-red").addEventListener("change", e => rdReduction(e.target.value));
 $("rd-ex").addEventListener("change", e => rdExample(+e.target.value));
 let rdTimer;
@@ -3700,11 +4098,13 @@ stProblem("SAT3");
 
 /* ---- tabs ---- */
 function showTab(id) {
-  ["clause", "auto", "bip", "graph", "flow", "layered", "packing", "schedule", "quantum", "board", "table", "misc", "cgram", "reduction", "machine", "dmap", "search"].forEach(k => { $("t-" + k).setAttribute("aria-selected", String(k === id)); $("tab-" + k).hidden = k !== id; });
-  stop(); aStop(); stStop(); dmStop(); mcStop(); rdStop(); cgStop(); msStop(); tbStop(); bdStop(); qcStop(); scStop(); pkStop(); lStop(); flStop(); bStop(); gStop();
+  ["clause", "formula", "auto", "bip", "nested", "graph", "flow", "layered", "packing", "schedule", "quantum", "board", "table", "misc", "cgram", "reduction", "machine", "dmap", "search"].forEach(k => { $("t-" + k).setAttribute("aria-selected", String(k === id)); $("tab-" + k).hidden = k !== id; });
+  stop(); fmStop(); nsStop(); aStop(); stStop(); dmStop(); mcStop(); rdStop(); cgStop(); msStop(); tbStop(); bdStop(); qcStop(); scStop(); pkStop(); lStop(); flStop(); bStop(); gStop();
   try { localStorage.setItem("viz-tab", id); } catch (e) {}
 }
 $("t-clause").onclick = () => showTab("clause");
+$("t-formula").onclick = () => showTab("formula");
+$("t-nested").onclick = () => showTab("nested");
 $("t-dmap").onclick = () => showTab("dmap");
 $("t-machine").onclick = () => showTab("machine");
 $("t-reduction").onclick = () => showTab("reduction");
@@ -3721,7 +4121,9 @@ $("t-layered").onclick = () => showTab("layered");
 $("t-bip").onclick = () => showTab("bip");
 $("t-flow").onclick = () => showTab("flow");
 $("t-graph").onclick = () => showTab("graph");
-if (location.hash === "#automaton") showTab("auto");
+if (location.hash === "#formula") showTab("formula");
+else if (location.hash === "#nested") showTab("nested");
+else if (location.hash === "#automaton") showTab("auto");
 else if (location.hash === "#dominoes") showTab("dmap");
 else if (location.hash === "#machines") showTab("machine");
 else if (location.hash === "#reduction") showTab("reduction");
@@ -3737,7 +4139,7 @@ else if (location.hash === "#packing") showTab("packing");
 else if (location.hash === "#board") showTab("board");
 else if (location.hash === "#table") showTab("table");
 else if (location.hash === "#search") showTab("search");
-else { try { const t = localStorage.getItem("viz-tab"); if (t === "search" || t === "table" || t === "board" || t === "quantum" || t === "packing" || t === "layered" || t === "auto" || t === "bip" || t === "graph" || t === "flow" || t === "schedule" || t === "misc" || t === "cgram" || t === "reduction" || t === "machine" || t === "dmap") showTab(t); } catch (e) {} }
+else { try { const t = localStorage.getItem("viz-tab"); if (t === "formula" || t === "nested" || t === "search" || t === "table" || t === "board" || t === "quantum" || t === "packing" || t === "layered" || t === "auto" || t === "bip" || t === "graph" || t === "flow" || t === "schedule" || t === "misc" || t === "cgram" || t === "reduction" || t === "machine" || t === "dmap") showTab(t); } catch (e) {} }
 
 /* ---- phone: wide diagrams scroll on their own ---- */
 (() => {

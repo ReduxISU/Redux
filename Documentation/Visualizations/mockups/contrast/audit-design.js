@@ -4,7 +4,7 @@
 const path = require("path"), fs = require("fs");
 const { chromium } = require(process.env.PLAYWRIGHT || "playwright");
 const [file = path.join(__dirname, "..", "design.html"), outFile] = process.argv.slice(2);
-const TABS = [["clause", ""], ["auto", "a-"], ["bip", "b-"], ["graph", "g-"], ["flow", "fl-"], ["layered", "l-"], ["packing", "pk-"], ["schedule", "sc-"],
+const TABS = [["clause", ""], ["formula", "fm-"], ["auto", "a-"], ["bip", "b-"], ["nested", "ns-"], ["graph", "g-"], ["flow", "fl-"], ["layered", "l-"], ["packing", "pk-"], ["schedule", "sc-"],
   ["quantum", "qc-"], ["board", "bd-"], ["table", "tb-"], ["misc", "ms-"], ["cgram", "cg-"], ["reduction", "rd-"], ["machine", "mc-"], ["dmap", "dm-"], ["search", "st-"]];
 const only = process.env.TABS ? process.env.TABS.split(",") : null;
 
