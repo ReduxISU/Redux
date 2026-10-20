@@ -27,7 +27,7 @@ Nothing in a problem, solver or reduction mentions colors, coordinates or SVG. T
 
 | Word | Meaning |
 | --- | --- |
-| **Picture type** | A family of drawings with one renderer per frontend: Graph, Grouped Graph, Bipartite Graph, Automaton, Layered Graph, Flow Network, Packing, Schedule, Board, Table, Quantum Circuit, Tripartite Matching, Geometry, Code Tree, Search Tree and Reduction. See [PICTURE-TYPES.md](PICTURE-TYPES.md). It is the `type` of a frames response, and `pictureType` in `/info`. |
+| **Picture type** | A family of drawings with one renderer per frontend: Graph, Grouped Graph, Bipartite Graph, Automaton, Layered Graph, Flow Network, Packing, Schedule, Board, Table, Quantum Circuit, Tripartite Matching, Geometry, Code Tree, Search Tree and Reduction; Formula and Nested Set are proposed (additional selectable views for SAT/3SAT and the set problems, next to Grouped Graph / Factor Graph / Bipartite Graph). See [PICTURE-TYPES.md](PICTURE-TYPES.md). It is the `type` of a frames response, and `pictureType` in `/info`. |
 | **Shape** | A variant within a picture type that changes how the answer reads, such as subset, edges, cut, groups or tour in the Graph type. |
 | **Spec** | The record a visualization returns from `Describe`: the problem's data in the picture type's terms, such as `GraphSubsetSpec`. |
 | **Payload** | The JSON a picture type sends once per response. It has a `kind` field. |
@@ -75,7 +75,8 @@ Find your problem in the index of [PICTURE-TYPES.md](PICTURE-TYPES.md). If it's 
 
 - Does the answer pick nodes, edges, a split, groups or a tour on a graph? **Graph**.
 - Directed, and the answer is an order, a removed set, components or shortest paths? **Layered Graph**.
-- Two kinds of things and memberships between them? **Bipartite Graph**.
+- Two kinds of things and memberships between them? **Bipartite Graph** (and, once approved, **Nested Set** as a second view drawn from the same spec).
+- A CNF formula? **Grouped Graph** (and, once approved, **Formula** as a second view drawn from the same spec).
 - Numbers filling containers up to a line? **Packing**.
 - A grid of cells? **Board**.
 - A dynamic program, a constraint matrix or a trace? **Table**.

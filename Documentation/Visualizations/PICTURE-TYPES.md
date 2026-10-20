@@ -5,7 +5,7 @@ What each Redux picture type looks like, which problems use it, what the backend
 - To add a visualization or record solver steps, read [ADDING-A-VISUALIZATION.md](ADDING-A-VISUALIZATION.md).
 - To implement a picture type in a frontend, or to see what is merged and what is planned, read [README.md](README.md).
 
-All the types below are **Approved** as designs. Each type's open review questions are listed at the bottom of its tab in the mockup.
+All the types below are **Approved** as designs, except [Formula](#formula) and [Nested Set](#nested-set), which are **Proposed**: mockups built, waiting for review. They are additional visualizations, selectable next to the Grouped Graph, Factor Graph and Bipartite Graph, not replacements. Each type's open review questions are listed at the bottom of its tab in the mockup (and, for the two proposed types, in their sections here).
 
 ## How to read this page
 
@@ -52,6 +52,8 @@ frame = { "event": "Try" | "Accept" | "Reject" | "Backtrack" | "Done", "caption"
 | [Graph](#graph) (`Graph`) | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set, Minimum Spanning Tree, Steiner Tree, Cut, Weighted Cut, Max Cut, Minimum Cut, Graph Coloring, Clique Cover, Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson | `IGraphSubsetVisualization`, `IGraphEdgesVisualization`, `IGraphCutVisualization`, `IGraphGroupsVisualization`, `IGraphTourVisualization` |
 | [Grouped Graph](#grouped-graph-clause-graph) (`GroupedGraph`) | SAT, 3SAT | `IGroupedGraphVisualization` |
 | [Bipartite Graph](#bipartite-graph) (`BipartiteGraph`) | Set Cover, Exact Cover, Hitting Set; SAT and 3SAT as the Factor Graph | `IBipartiteVisualization`, `IFactorGraphVisualization` |
+| [Formula](#formula) (`Formula`) | SAT, 3SAT (a second view, next to the Grouped Graph and Factor Graph) | *Proposed:* `IFormulaVisualization` |
+| [Nested Set](#nested-set) (`NestedSet`) | Set Cover, Exact Cover, Hitting Set (a second view, next to the Bipartite Graph) | *Proposed:* `INestedSetVisualization` |
 | [Automaton](#automaton) (`Automaton`) | DFA, NFA | `IAutomatonVisualization` |
 | [Layered Graph](#layered-graph) (`LayeredGraph`) | Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components, Single-Source and Single-Pair Shortest Path | `ILayeredVisualization` |
 | [Flow Network](#flow-network) (`FlowNetwork`) | Minimum S-T Cut | `IFlowVisualization` |
@@ -200,6 +202,160 @@ Elements on one side, sets on the other, and an edge for every membership. The c
 <img src="images/clause--factor-graph-solved.png" alt="SAT factor graph" width="640">
 
 **Wire change.** The set problems still send their nested set list in the old list format. The node-link payload is only under `format=frames`.
+
+---
+
+## Formula
+
+*Proposed (mockup built, for review).* The formula itself, the way it is written: one box per clause, the literals inside a clause joined by ∨, the boxes joined by ∧, negation written ¬x. A long formula wraps onto more lines between clauses. A strip underneath shows each variable's value so far (–, T or F). It is an additional visualization for SAT and 3SAT, selectable next to the Grouped Graph (the default) and the Factor Graph; it replaces nothing. It brings back what the old list-format SAT view (`kind: "sat"`) showed, which the frames revamp dropped when `SatDefaultVisualization` moved to the Grouped Graph.
+
+<table><tr>
+<td><img src="images/formula--3sat-steps.png" alt="Formula, 3SAT, mid-run" width="420"></td>
+<td><img src="images/formula--3sat-rejected.png" alt="Formula, 3SAT, a clause fails" width="420"></td>
+</tr><tr><td>Steps: x₁ and x₂ kept (Committed), the forced x₄ highlighted</td><td>Steps: C4 has no true literal left, so it and its literals are Rejected</td></tr>
+<tr>
+<td><img src="images/formula--3sat-solved.png" alt="Formula, 3SAT, solved" width="420"></td>
+<td><img src="images/formula--sat-failed.png" alt="Formula, SAT, a run that found nothing" width="420"></td>
+</tr><tr><td>Solved: the confirmed answer is green</td><td>Done with ok = false: the picks are Rejected, never green</td></tr></table>
+
+**Backend (proposed):** `IFormulaVisualization`, the same spec as the Grouped Graph (`GroupedGraphSpec(Clauses, Variables)`, usually `GroupedGraphSpec.FromLiterals(problem.clauses)`), step shape `Assignment`. Classes: `SatFormulaVisualization` and `Sat3FormulaVisualization`. Every SAT and 3SAT solver that draws on the Grouped Graph draws on the Formula with no extra code. New `VisualizationType` value `Formula` (in all three places, [README.md](README.md) §3.3).
+
+**Payload:** the Grouped Graph's groups, nodes and variables, without its edges.
+
+```
+{ "kind": "formula", "layout": "cnf", "shape": "assignment", "rule": "satisfiability",
+  "groups":    [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"] }],
+  "nodes":     [{ "id": "c0-1", "label": "¬x2", "variable": "v:x2", "positive": false, "group": "c0" }],
+  "variables": [{ "id": "v:x2", "label": "x2" }] }
+```
+
+**Frame:** the Grouped Graph frame (`event, caption, focus, step, ok?`, `nodes` = literal states, `groups` = clause states, `assignment`), plus `variables: { variableId: state }` for the strip. `GroupedGraphFrames.Frame` builds everything except `variables`.
+
+**Ids** are the Grouped Graph's exactly: clause `c{i}`, literal occurrence `c{i}-{j}` (0-based, one per occurrence, so a literal written twice is two pills), variable `v:{name}` (escaped). So the Grouped Graph, the Factor Graph and the Formula color the same literal the same way, and the Reduction View matches gadgets on these ids.
+
+**States** (the Grouped Graph's rules, so the three SAT pictures always agree):
+
+| Element | State | When | Mark besides color |
+| --- | --- | --- | --- |
+| Literal | `Background` | Its variable is unassigned | plain outline |
+| Literal | `ElementHighlight` | Its variable is being tried (in `focus`), or a brute force's whole candidate makes it true | thick amber outline |
+| Literal | `Committed` | True, kept so far by an incremental solver (DPLL, backtracking; #886) | dashed outline, lighter green |
+| Literal | `Solution` | True in the confirmed answer only (a correct Done, or an Accept that ends the run) | solid green fill |
+| Literal | `False` | False under the assignment (approved Oct 10). The tried variable's false literals stay `False` | struck through, dotted outline |
+| Literal | `Rejected` | In a clause whose literals are all false; or a true literal (a pick) on a Done with `ok: false` | thick red outline |
+| Clause | `Covered` | Has a true literal | light green, ✓ by its name |
+| Clause | `ElementHighlight` | In the focus of a Try | thick amber outline |
+| Clause | `Rejected` | All its literals false, or the focus of a Reject | light red, ✗ by its name |
+| Variable chip | `ElementHighlight` / `Committed` / `Solution` / `Rejected` | As its true literals; a false variable is `False`, an unassigned one `Background` | the value letter T, F or – |
+
+Green never appears on a run that found nothing. A run stopped by the time limit ends on a blank Done (every element `Background`, caption "Stopped after …"). Redux's SAT solvers end an unsatisfiable run with no assignment, so that Done is blank apart from its caption; a solver whose Done carries its last candidate gets that candidate drawn `Rejected` (the mockup's brute force does, to show the rule).
+
+**Layout** (pure arithmetic, ports to D3 or React as is): a literal's pill is as wide as its label; clauses pack left to right with ∨ (muted) between pills and a bold ∧ between boxes; a clause that doesn't fit the line starts the next one, with the ∧ leading it; a single clause wider than the line wraps at its ∨s inside a taller box. The clause name sits above its box. The strip wraps the same way.
+
+**Fallback.** None needed: the layout only ever adds lines. The mockup caps formulas at 60 clauses and 30 variables, like the other mockups' caps; a frontend can scroll.
+
+**Hover** a literal or a chip to trace its variable everywhere, or a clause to trace its literals and their variables; everything else turns grey with a dashed outline.
+
+<details><summary>More Formula frames</summary>
+
+<table>
+<tr><td><img src="images/formula--sat-instance.png" alt="Formula, SAT, instance" width="420"><br>Instance: a long SAT formula wraps between clauses</td><td><img src="images/formula--sat-stopped.png" alt="Formula, stopped by the time limit" width="420"><br>Stopped by the time limit: the Done stays blank</td></tr>
+</table>
+</details>
+
+**Open questions for review**
+
+1. Should Formula become SAT's and 3SAT's default visualization, ahead of the Clause Graph? It is the picture students know from the textbook.
+2. Keep the extra `variables` map in the frame, or have frontends work the chips out from `assignment`, `focus` and the literal states?
+3. A repeated literal (x1 ∨ x1 ∨ x2) is drawn as written, one pill per occurrence, because the ids are per occurrence. Merge repeats instead?
+4. An unsatisfiable run's Done is blank apart from its caption (the solvers send no assignment). Should it mark every clause `Rejected` instead?
+
+---
+
+## Nested Set
+
+*Proposed (mockup built, for review).* The sets drawn as sets. Every element of U is a labelled dot on a circle, and every set is a padded, rounded region around its own elements (an Euler-style hull), with its name on its edge, so overlaps and subsets show directly. It is an additional visualization for Set Cover, Exact Cover and Hitting Set (as implemented, Exact Hitting Set, #698), selectable next to the Bipartite Graph (the default); it replaces nothing. It brings back a set-shaped picture: the old list-format view (`kind: "set"`, Redux_GUI's `StandardSetSvgReact.js`) wrote the sets out as nested boxes, and that look survives as this picture's fallback.
+
+<table><tr>
+<td><img src="images/nested--set-cover-steps.png" alt="Set Cover, greedy steps" width="420"></td>
+<td><img src="images/nested--exact-cover-steps.png" alt="Exact Cover, Algorithm X conflict" width="420"></td>
+</tr><tr><td>Set Cover, Steps: S1 kept (Committed), S4 tried</td><td>Exact Cover, Steps: S1 and S4 kept, the sets that would double up Blocked, element 4 out of options (Rejected)</td></tr>
+<tr>
+<td><img src="images/nested--exact-cover-solved.png" alt="Exact Cover, solved" width="420"></td>
+<td><img src="images/nested--exact-hitting-set-conflict.png" alt="Exact Hitting Set, a set hit twice" width="420"></td>
+</tr><tr><td>Exact Cover, Solved</td><td>Exact Hitting Set, brute force: {1,2} hits S1 twice (Rejected, ×2 badge)</td></tr></table>
+
+**Backend (proposed):** `INestedSetVisualization`, the same spec as the Bipartite Graph (`BipartiteSpec(Universe, Sets, K, BipartitePick, BipartiteRule)`) and the same step shapes: `ChosenSets` for Set Cover and Exact Cover, `NodeSet` for Hitting Set. Classes: `SetCoverNestedSetVisualization`, `ExactCoverNestedSetVisualization`, `HittingSetNestedSetVisualization`. New `VisualizationType` value `NestedSet`.
+
+| Problem | `pickSide` | `rule` | Step shape |
+| --- | --- | --- | --- |
+| Set Cover | `sets` | `atLeastOnce` | `ChosenSets` |
+| Exact Cover | `sets` | `exactlyOnce` | `ChosenSets` |
+| Hitting Set (exactly once) | `elements` | `exactlyOnce` | `NodeSet` |
+
+**Payload:** the Bipartite Graph's elements and sets, without its edges.
+
+```
+{ "kind": "nestedSet", "layout": "regions", "pickSide", "rule", "k"?,
+  "elements": [{ "id": "e:1", "label": "1" }],
+  "sets":     [{ "id": "S1", "label": "S1", "members": ["e:1", "e:2"] }] }
+```
+
+**Frame:** the Bipartite frame without `edges`: `event, caption, focus, step, ok?`, `nodes` (elements and sets), `hits: { id: count }` (×N badges). `BipartiteFrames.Frame` builds it as is.
+
+**Ids** are the Bipartite Graph's exactly: element `e:{x}` (escaped), set `S{i+1}` by position. Both pictures color the same element and set the same way.
+
+**States** (the Bipartite Graph's rules):
+
+| Element | State | When |
+| --- | --- | --- |
+| Pick (a set, or an element in Hitting Set) | `ElementHighlight` | Being tried; every pick of a brute force's whole candidate |
+| Pick | `Committed` | Kept so far by an incremental solver (greedy, Algorithm X). Dashed outline |
+| Pick | `Solution` | The confirmed answer only |
+| Pick | `Blocked` | Exactly-once only: not picked, and would double up on something already covered. Dashed grey |
+| Pick | `Rejected` | A pick on a Done with `ok: false`; the focus of an incremental Reject |
+| Constraint (an element, or a set in Hitting Set) | `Covered` | Hit by the picks the required number of times |
+| Constraint | `Rejected` | Hit more than once under exactly-once (with a ×N badge, an annotation, not a state); unhit when a whole answer is judged |
+
+A Done with `ok: false` draws its picks and the constraints they leave unhit `Rejected`; green never appears on a run that found nothing. As in the Bipartite Graph, an empty failed answer (Exact Cover and Hitting Set send none) is judged as nothing, so that Done is blank apart from its caption. A run stopped by the time limit ends blank. Set Cover's rule is at least once, so it never has `Blocked`; its conflicts are an element in no set, or greedy going over K (both a Done with `ok: false`).
+
+**Layout** (pure arithmetic, ports to D3 as is):
+
+1. The dots go on a circle, in the order that keeps each set's elements next to each other: every order is tried for up to 9 elements (the first stays put), a barycentre sweep beyond that. Ties keep the first order found, so the same instance always lands the same way.
+2. A region is the convex hull of its dots grown by a padding: offset straight edges joined by arcs (one dot is a circle, two a capsule). Because every dot is on the circle, no hull can contain another dot.
+3. Padding: small sets first get the smallest; two sets that share an element never share a padding, so their outlines stay apart where they overlap.
+4. The set's name sits on its region's edge, on the side facing away from the centre, nudged round the edge until it clears every dot and every other name.
+5. Fills sit under all the outlines, and dots and names on top, so an overlap never hides a membership.
+
+**Fallback: the set list.** The regions are drawn only when all of these hold:
+
+- at most **12 elements** and **8 sets**;
+- no element in more than **4** sets that overlap (more nested outlines stop reading);
+- every region clears every dot outside it by **4 px** (dot radius plus padding);
+- every set's name finds room on its edge.
+
+Otherwise the picture is the set list: U on top, then one row per set, its elements written out as chips inside braces (`S1 { 1 2 }`), each chip carrying that element's state. The header says why the regions didn't fit, and a Layout switch forces the list.
+
+<img src="images/nested--set-list.png" alt="Nested Set, set-list fallback" width="640">
+
+**Hover** a dot to trace it and every set it is in, or a set to trace its region and its elements.
+
+<details><summary>More Nested Set frames</summary>
+
+<table>
+<tr><td><img src="images/nested--set-cover-instance.png" alt="Set Cover, instance" width="420"><br>Set Cover, Instance</td><td><img src="images/nested--set-cover-solved.png" alt="Set Cover, solved" width="420"><br>Set Cover, Solved</td></tr>
+<tr><td><img src="images/nested--set-cover-failed.png" alt="Set Cover, greedy over K" width="420"><br>Set Cover, Done with ok = false: greedy uses 3 sets, K = 2, so its picks are Rejected</td><td><img src="images/nested--exact-cover-failed.png" alt="Exact Cover, no exact cover" width="420"><br>Exact Cover, Done with ok = false and no picks: blank apart from the caption</td></tr>
+<tr><td><img src="images/nested--exact-hitting-set-solved.png" alt="Exact Hitting Set, solved" width="420"><br>Exact Hitting Set, Solved</td><td><img src="images/nested--exact-hitting-set-failed.png" alt="Exact Hitting Set, none exists" width="420"><br>Exact Hitting Set, Done with ok = false</td></tr>
+</table>
+</details>
+
+**Open questions for review**
+
+1. Is the fallback threshold right (12 elements, 8 sets, 4 overlapping sets per element), or should the set list be the default and the regions an option?
+2. An element covered twice under exactly-once is `Rejected` with a ×2 badge here, as in the Bipartite Graph's backend. The brief for this picture said `Blocked` with a ×2 badge. Keep `Rejected` so both pictures agree?
+3. Should the Packing problems (Bin Packing, Knapsack, Partition, Subset Sum) get a Nested Set picture too? Recommendation: no, the Packing picture already draws their items to scale in their containers.
+4. An empty failed answer (Exact Cover, Hitting Set) draws blank. Should it mark every constraint `Rejected` instead?
+5. Should Nested Set replace the Bipartite Graph as the default for any of the three problems?
 
 ---
 
@@ -618,6 +774,10 @@ Only the last frame is a Done with `ok`: the source's verifier on the mapped-bac
 During Build, the target shows the first `builtNodes` nodes and `builtEdges` edges of `buildOrder`, so any frame renders on its own when scrubbed to. Each pane's state fields are exactly that picture's own frame fields (`nodes`, `edges`, `groups`, `assignment`, …).
 
 **Hover and color.** Hovering any piece on either side highlights what it became, through the gadget list. "Color gadgets" gives each gadget and its source a shared color.
+
+**SAT → 3SAT with both sides as formulas (proposed).** With the Formula picture, Karp's 3SAT Reduction can show both panes as formulas: each SAT clause becomes its 3SAT clauses (kept, padded by repeating a literal, or split into a chain joined by new variables), and the gadgets (a group per clause, an element per literal and per variable, and the new variables tied to the clause whose split made them) already use the Formula's ids on both sides. The mockup's Reduction tab has it.
+
+<table><tr><td><img src="images/reduction--sat-3sat-build.png" alt="SAT to 3SAT, build" width="420"><br>Build: C1 has five literals, so it becomes C1, C4 and C5, chained by x₆ and x₇</td><td><img src="images/reduction--sat-3sat-map.png" alt="SAT to 3SAT, map back" width="420"><br>Map back, gadget colors on: the 3SAT answer sets the SAT variables one by one</td></tr></table>
 
 **Reductions with a Reduction View today:** Clique → 3SAT, Clique → Vertex Cover, Directed Hamiltonian → Hamiltonian, Exact Cover → Subset Sum, Graph Coloring → Clique Cover, Graph Coloring → Exact Cover, Graph Coloring → SAT, Hitting Set → Exact Cover, Independent Set → Clique, Partition → Weighted Cut, SAT → 3SAT, 3SAT → Clique, 3SAT → 3-Dimensional Matching, 3SAT → Graph Coloring, 3SAT → 0-1 Integer Programming, Subset Sum → Knapsack, Subset Sum → Partition, Vertex Cover → Feedback Arc Set, Vertex Cover → Feedback Node Set, Vertex Cover → Set Cover.
 

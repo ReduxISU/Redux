@@ -122,7 +122,7 @@ A solver implements `ISolver<TProblem, TPartial>` and writes one method, `string
 ### 3.3 Picture types and the manifest
 
 - `Interfaces/VisualizationType.cs` is checked by CI against `Documentation/visualization-types.json`. Redux_GUI keeps a vendored copy (`components/Visualization/svgs/visualizationTypes.json`) cross-checked daily. Add new values in all three places in the same change set.
-- The new types are `Graph`, `GroupedGraph`, `BipartiteGraph`, `Automaton`, `LayeredGraph`, `FlowNetwork`, `Packing`, `Table`, `Board`, `Schedule`, `TripartiteMatching`, `Geometry`, `CodeTree`, `QuantumCircuit`, `SearchTree` and `Reduction`. They appear only as the `type` of a frames response (and as `pictureType` in `/info`). Each visualization keeps its legacy `visualizationType` in `/info`.
+- The new types are `Graph`, `GroupedGraph`, `BipartiteGraph`, `Automaton`, `LayeredGraph`, `FlowNetwork`, `Packing`, `Table`, `Board`, `Schedule`, `TripartiteMatching`, `Geometry`, `CodeTree`, `QuantumCircuit`, `SearchTree` and `Reduction`. Two more are proposed and not built: `Formula` and `NestedSet` (§5). They appear only as the `type` of a frames response (and as `pictureType` in `/info`). Each visualization keeps its legacy `visualizationType` in `/info`.
 - Every payload carries a `kind` discriminator (see #524). It is not always the type name: an automaton's `kind` is `dfa` or `nfa`.
 
 ### 3.4 Shared frames builders
@@ -206,7 +206,7 @@ The viewer's adapters (`viewer/adapters/*.js`) show, per picture type, how the r
 - **Pick the renderer from `pictureType`** in `/info`, and request `format=frames` for those visualizations.
 - **Highlight gadgets** is currently gated on a hard-coded `#highlightGadgets` checkbox id. Drive it from state instead.
 - **Retire TikZ last:** once DFA, NFA and Clique's LaTeX view are on the new renderers, remove `LaTeXGraphSvgReact.js` and `node-tikzjax`. Its `svgo` dependency carries the advisories listed in the proposal.
-- **Match the mockup's GUI page** (`mockups/redux-gui.html`): visualization picker with type tags in Title Case ("Grouped Graph"), second views ("Factor Graph", "Trace Table", "Search Tree") as extra picker entries, and menu groups by class.
+- **Match the mockup's GUI page** (`mockups/redux-gui.html`): visualization picker with type tags in Title Case ("Grouped Graph"), second views ("Factor Graph", "Trace Table", "Search Tree", and the proposed "Formula" and "Nested Set") as extra picker entries, and menu groups by class.
 - The tour (`components/tour/steps.js`) points at `data-tour-id="viz-controls"`. Keep that id.
 
 ### 4.4 Redux_Frontend specifics
@@ -230,6 +230,8 @@ Each row lists the response `type`, the backend interface, the mockup module and
 | Graph (`Graph`) | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set; Minimum Spanning Tree, Steiner Tree; Cut, Weighted Cut, Max Cut, Minimum Cut; Graph Coloring, Clique Cover; Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson | `IGraphSubsetVisualization`, `IGraphEdgesVisualization`, `IGraphCutVisualization`, `IGraphGroupsVisualization`, `IGraphTourVisualization` | `graphbase.js` | Five shapes: subset, edges, cut, groups, tour. Cut and groups stay separate shapes. Directed Hamiltonian Cycle is a directed tour. |
 | Grouped Graph (`GroupedGraph`) | SAT, 3SAT | `IGroupedGraphVisualization` | inline in `design.src.html` and `redux-gui.src.html` | Clusters on a ring, complement edges, `False` literals. |
 | Bipartite Graph (`BipartiteGraph`) | Set Cover, Exact Cover, Hitting Set (exactly once); SAT and 3SAT Factor Graph | `IBipartiteVisualization`, `IFactorGraphVisualization` | `bipartite.js` | Two columns, `pickSide`, hits counts. A new node-link payload; the old set payload stays in the list format. |
+| Formula (`Formula`) | SAT, 3SAT, as an additional selectable view (`SatFormulaVisualization`, `Sat3FormulaVisualization`) | *proposed:* `IFormulaVisualization` | `formula.js` | Clause boxes joined by ∧, literals by ∨, an assignment strip. The Grouped Graph's spec, ids and frames, plus a `variables` map. Also draws both sides of SAT → 3SAT in the Reduction View. Not approved yet. |
+| Nested Set (`NestedSet`) | Set Cover, Exact Cover, Hitting Set, as an additional selectable view (`SetCoverNestedSetVisualization`, `ExactCoverNestedSetVisualization`, `HittingSetNestedSetVisualization`) | *proposed:* `INestedSetVisualization` | `nestedset.js` | Dots on a circle, each set a padded hull; falls back to a set list past 12 elements, 8 sets or 4 overlaps per element. The Bipartite spec, ids and frames, without edges. Not approved yet. |
 | Automaton (`Automaton`) | DFA, NFA | `IAutomatonVisualization` | `automaton.js` | Layers from the start state, merged arrows, Garbage state for a DFA's missing moves, NFA runs for the one-path picker. |
 | Layered Graph (`LayeredGraph`) | Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components, SSSP, SPSP | `ILayeredVisualization` | `layered.js` | Ranked left to right, back edges marked, distances under nodes. |
 | Flow Network (`FlowNetwork`) | Minimum S-T Cut | `IFlowVisualization` | `flow.js` | Source left, sink right, flow/capacity, one augmenting path per step, S/T sides and cut at the end. |
