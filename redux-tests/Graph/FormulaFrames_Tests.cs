@@ -32,7 +32,7 @@ public class FormulaFrames_Tests {
         Assert.Equal("assignment", formula.Shape);
         Assert.Equal("satisfiability", formula.Rule);
         Assert.Equal(JsonSerializer.Serialize(graph.Groups), JsonSerializer.Serialize(formula.Groups));
-        Assert.Equal(JsonSerializer.Serialize(graph.Nodes), JsonSerializer.Serialize(formula.Nodes));
+        Assert.Equal(JsonSerializer.Serialize(graph.Nodes), JsonSerializer.Serialize(formula.Nodes!));
         Assert.Equal(JsonSerializer.Serialize(graph.Variables), JsonSerializer.Serialize(formula.Variables));
     }
 
@@ -51,8 +51,8 @@ public class FormulaFrames_Tests {
     [Fact]
     public void Payload_ARepeatedLiteral_IsOnePillPerOccurrence() {
         var p = FormulaFrames.Payload(GroupedGraphSpec.FromLiterals([["x1", "x1", "x2"]]));
-        Assert.Equal(["c0-0", "c0-1", "c0-2"], p.Nodes.Select(n => n.Id));
-        Assert.Equal(["v:x1", "v:x1", "v:x2"], p.Nodes.Select(n => n.Variable));
+        Assert.Equal(["c0-0", "c0-1", "c0-2"], p.Nodes!.Select(n => n.Id));
+        Assert.Equal(["v:x1", "v:x1", "v:x2"], p.Nodes!.Select(n => n.Variable));
     }
 
     // ---- frames: the Grouped Graph's states ----

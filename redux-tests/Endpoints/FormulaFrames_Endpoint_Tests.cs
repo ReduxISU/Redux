@@ -88,14 +88,19 @@ public class FormulaFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [Theory]
     [InlineData("SAT", "SatDefaultVisualization", SatVis)]
     [InlineData("SAT3", "Sat3DefaultVisualization", Sat3Vis)]
-    public async Task TheProblemsDefault_IsUnchanged_AndTheFormulaIsListedBesideIt(string problem, string defaultVis, string vis) {
+    public async Task TheProblemsDefault_IsUnchanged_AndTheFormulaIsListedBesideIt_OnlyForClientsThatOptIn(string problem, string defaultVis, string vis) {
         var info = JsonDocument.Parse(await _client.GetStringAsync($"/ProblemProvider/info?interface={problem}", TestContext.Current.CancellationToken)).RootElement;
         var own = (IVisualization)Activator.CreateInstance(ProblemProvider.Visualizers[defaultVis.ToLower()])!;
         Assert.Equal(own.visualizationName, info.GetProperty("defaultVisualization").GetProperty("visualizationName").GetString());
-        var listed = JsonDocument.Parse(await _client.GetStringAsync($"/Navigation/Problem_VisualizationsRefactor?chosenProblem={problem}", TestContext.Current.CancellationToken))
+        async Task<List<string?>> Listed(string extra) => JsonDocument.Parse(await _client.GetStringAsync($"/Navigation/Problem_VisualizationsRefactor?chosenProblem={problem}{extra}", TestContext.Current.CancellationToken))
             .RootElement.EnumerateArray().Select(e => e.GetString()).ToList();
+        // Redux_GUI's list (no opt-in) does not show the Formula: it has no renderer for it (#929).
+        var listed = await Listed("");
         Assert.Contains(defaultVis, listed);
-        Assert.Contains(vis, listed);
+        Assert.DoesNotContain(vis, listed);
+        var withPictures = await Listed("&includePictures=true");
+        Assert.Contains(defaultVis, withPictures);
+        Assert.Contains(vis, withPictures);
     }
 
     // ---- format=frames ----
