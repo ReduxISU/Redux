@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_SUBSETSUM.Visualizations;
 /// target line T, step by step for the selected solver. The list format draws the set of numbers, the chosen ones marked
 /// Solution. It is the problem's default visualization.
 /// </summary>
-class SubsetSumVisualization : IVisualization<SUBSETSUM, API_SET>, IPackingVisualization<SUBSETSUM> {
+class SubsetSumVisualization : IVisualization<SUBSETSUM, API_SET>, IPackingVisualization<SUBSETSUM>, IOptInVisualization {
     public string visualizationName { get; } = "Subset Sum Visualization";
     public string visualizationDefinition { get; } = "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.";
     public string source { get; } = "";

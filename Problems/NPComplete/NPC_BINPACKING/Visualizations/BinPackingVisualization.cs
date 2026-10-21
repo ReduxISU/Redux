@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_BINPACKING.Visualizations;
 /// for the selected solver. The list format draws the list of sizes, all marked Solution once they are packed. It is the
 /// problem's default visualization.
 /// </summary>
-class BinPackingVisualization : IVisualization<BINPACKING, API_SET>, IPackingVisualization<BINPACKING> {
+class BinPackingVisualization : IVisualization<BINPACKING, API_SET>, IPackingVisualization<BINPACKING>, IOptInVisualization {
     public string visualizationName { get; } = "Bin Packing Visualization";
     public string visualizationDefinition { get; } = "Draws the item sizes and the bins, each with its capacity C, and shows the selected solver putting each item in a bin.";
     public string source { get; } = "";

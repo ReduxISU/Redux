@@ -78,6 +78,8 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // ---- Subset Sum, Knapsack and Bin Packing moved off DummyVisualization: the only thing that may change. ----
+    // The new views are opt-in (IOptInVisualization), so only a client that asks with includePictures=true sees them as the
+    // defaults; Redux_GUI still sees the placeholder (GuiView_Endpoint_Tests).
 
     // What embeds one of their defaultVisualizations: the three problems, and the reductions into or out of them (Exact
     // Cover to Subset Sum, Subset Sum to Knapsack, Subset Sum to Partition). Their snapshots were taken after the rewire;
@@ -89,7 +91,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [Theory]
     [MemberData(nameof(EmbedsAPackingDefault))]
     public async Task Rewire_Info_ShowsThePackingVisualizations_AndNothingElse(string name) {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
@@ -103,13 +105,13 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData("knapsack", "knapsackvisualization", "Knapsack Visualization", "Knapsack Brute Force")]
     [InlineData("binpacking", "binpackingvisualization", "Bin Packing Visualization", "Bin Packing Brute Force")]
     public async Task Rewire_ProblemInfo_ReportsItsPackingVisualization(string problem, string vis, string name, string solver) {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={problem}", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={problem}&includePictures=true", TestContext.Current.CancellationToken);
         var nested = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement.GetProperty("defaultVisualization");
         Assert.Equal(name, nested.GetProperty("visualizationName").GetString());
         Assert.Equal("SetD3", nested.GetProperty("visualizationType").GetString());
         Assert.Equal(solver, nested.GetProperty("solver").GetProperty("solverName").GetString());
         // The same object the visualization reports about itself.
-        var own = await _client.GetAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken);
+        var own = await _client.GetAsync($"/ProblemProvider/info?interface={vis}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(nested.GetRawText()));
     }
 
@@ -119,7 +121,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData("subsetsumtopartitionreduction", "({1,7,12,15},28)")]
     public async Task Rewire_Reduce_ChangesOnlyTheNestedVisualization(string reduction, string instance) {
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync($"/ProblemProvider/reduce?reduction={reduction}", content, TestContext.Current.CancellationToken);
+        var response = await _client.PostAsync($"/ProblemProvider/reduce?reduction={reduction}&includePictures=true", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(ReadSnapshot($"{reduction}.reduce.json"), (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
     }
@@ -132,7 +134,7 @@ public class PackingFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData("fengreduction", "{1,12,15}", "({1,7,12,15},28)")]
     public async Task Rewire_VisualizeReduction_IntoSubsetSumOrKnapsack_NowReturnsThePicture(string reduction, string solution, string instance) {
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction={reduction}&solution={Uri.EscapeDataString(solution)}", content, TestContext.Current.CancellationToken);
+        var response = await _client.PostAsync($"/ProblemProvider/visualizeReduction?reduction={reduction}&solution={Uri.EscapeDataString(solution)}&includePictures=true", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot($"{reduction}.visualizereduction.json"), body);
