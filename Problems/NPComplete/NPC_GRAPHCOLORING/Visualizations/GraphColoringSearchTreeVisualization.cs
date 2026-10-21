@@ -13,7 +13,7 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Visualizations;
 /// by <c>format=frames</c> (type <c>SearchTree</c>). The list format, which old frontends read, is exactly
 /// <see cref="GraphColoringDefaultVisualization"/>'s. The problem's default visualization is unchanged.
 /// </summary>
-class GraphColoringSearchTreeVisualization : IVisualization<GRAPHCOLORING>, ISearchTreeVisualization<GRAPHCOLORING, Groups> {
+class GraphColoringSearchTreeVisualization : IVisualization<GRAPHCOLORING>, ISearchTreeVisualization<GRAPHCOLORING, Groups>, IOptInVisualization {
     public string visualizationName { get; } = "Graph Coloring Search Tree";
     public string visualizationDefinition { get; } = "The choices of Graph Coloring Backtracking as a tree: each level gives one node a color (\"a=1\"), a red dashed node is a color a neighbour already uses, and a solid red node is a color taken back because the nodes below it could not all be colored. With format=frames, the tree grows step by step and the path to the answer turns green.";
     public string source { get; } = "";
