@@ -13,7 +13,7 @@ namespace API.Problems.NPComplete.NPC_DM3.Visualizations;
 /// format, which old frontends read, is exactly <see cref="DM3Visualization"/>'s. The problem's default visualization is
 /// unchanged.
 /// </summary>
-class DM3SearchTreeVisualization : IVisualization<DM3>, ISearchTreeVisualization<DM3, ChosenTriples> {
+class DM3SearchTreeVisualization : IVisualization<DM3>, ISearchTreeVisualization<DM3, ChosenTriples>, IOptInVisualization {
     public string visualizationName { get; } = "3-Dimensional Matching Search Tree";
     public string visualizationDefinition { get; } = "The choices of 3-Dimensional Matching Backtracking as a tree: each level chooses a triple (\"T2\") for the element with the fewest triples left, a red dashed node is a triple that would use an element twice, and a solid red node is a triple taken back because no matching of the rest went with it. With format=frames, the tree grows step by step and the path to the answer turns green.";
     public string source { get; } = "";
