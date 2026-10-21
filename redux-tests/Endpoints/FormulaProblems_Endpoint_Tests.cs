@@ -305,9 +305,12 @@ public class FormulaProblems_Endpoint_Tests : IClassFixture<AppFactory> {
         async Task<List<string?>> Listed(string extra) => JsonDocument.Parse(await _client.GetStringAsync($"/Navigation/Problem_VisualizationsRefactor?chosenProblem={problem}{extra}", TestContext.Current.CancellationToken))
             .RootElement.EnumerateArray().Select(e => e.GetString()).ToList();
         var listed = await Listed("");
-        Assert.Contains(defaultVis, listed);
+        // The default is listed for Redux_GUI only if it is not an opt-in view itself (0-1 ILP's and Subset Sum's are).
+        Assert.Equal(!OptInVisualizations.IsOptIn(p.defaultVisualization.GetType()), listed.Contains(defaultVis));
         Assert.DoesNotContain(vis, listed);
-        Assert.Contains(vis, await Listed("&includePictures=true"));
+        var withPictures = await Listed("&includePictures=true");
+        Assert.Contains(defaultVis, withPictures);
+        Assert.Contains(vis, withPictures);
     }
 
     [Fact]

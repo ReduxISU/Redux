@@ -33,8 +33,10 @@ internal static class ListPictureGadgetIds {
         var source = Frames(await Post(client, $"visualize?visualization={visualization}", instance));
         string solution = await Post(client, $"solve?solver={solver}", instance);
         try { solution = JsonSerializer.Deserialize<string>(solution) ?? solution; } catch (JsonException) { }
-        var target = Frames(await Post(client, $"visualizeReduction?reduction={reduction}&solution={Uri.EscapeDataString(solution)}", instance));
-        using var reduced = JsonDocument.Parse(await Post(client, $"reduce?reduction={reduction}", instance));
+        // Asked with includePictures=true, as the workbench does: a target whose default is an opt-in view (Subset Sum's,
+        // Knapsack's) is drawn as the placeholder for Redux_GUI (GuiView).
+        var target = Frames(await Post(client, $"visualizeReduction?reduction={reduction}&includePictures=true&solution={Uri.EscapeDataString(solution)}", instance));
+        using var reduced = JsonDocument.Parse(await Post(client, $"reduce?reduction={reduction}&includePictures=true", instance));
         var gadgets = reduced.RootElement.GetProperty("gadgets").EnumerateArray().Select(g => g.Clone()).ToList();
         return new Pictures(instance, source, target, gadgets);
     }
