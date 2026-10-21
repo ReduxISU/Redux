@@ -77,7 +77,7 @@ Find your problem in the index of [PICTURE-TYPES.md](PICTURE-TYPES.md). If it's 
 - Does the answer pick nodes, edges, a split, groups or a tour on a graph? **Graph**.
 - Directed, and the answer is an order, a removed set, components or shortest paths? **Layered Graph**.
 - Two kinds of things and memberships between them? **Bipartite Graph** (and, once approved, **Nested Set** as a second view drawn from the same spec).
-- A CNF formula? **Grouped Graph** (and, once approved, **Formula** as a second view drawn from the same spec). An equation, a system of linear constraints or another formula written out? The proposed generalized **Formula** (`rows` / `equation` layouts, expression trees, operators by name; pending approval, see [PICTURE-TYPES.md](PICTURE-TYPES.md#formula-generalized-proposed-pending-approval)).
+- A CNF formula? **Grouped Graph** (and, once approved, **Formula** as a second view drawn from the same spec). An equation, a system of linear constraints or another formula written out? The generalized **Formula** (`rows` / `equation` layouts, expression trees, operators by name; implement `IFormulaExprVisualization`, see [PICTURE-TYPES.md](PICTURE-TYPES.md#formula-generalized)). A view whose picture Redux_GUI cannot draw must be opt-in (`IOptInVisualization`; the Formula and Nested Set interfaces already are), so the GUI's listings leave it out unless a client passes `includePictures=true`.
 - Numbers filling containers up to a line? **Packing**.
 - A grid of cells? **Board**.
 - A dynamic program, a constraint matrix or a trace? **Table**.
