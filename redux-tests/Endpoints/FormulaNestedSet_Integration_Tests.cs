@@ -37,7 +37,8 @@ public class FormulaNestedSet_Integration_Tests : IClassFixture<AppFactory> {
         Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
             info.EnumerateObject().Select(p => p.Name));
         Assert.Equal((legacy, picture), (info.GetProperty("visualizationType").GetString(), info.GetProperty("pictureType").GetString()));
-        var all = JsonDocument.Parse(await _client.GetStringAsync("/Navigation/Batch/allInfo", TestContext.Current.CancellationToken)).RootElement;
+        // allInfo lists these picture-type views only for clients that opt in (#929).
+        var all = JsonDocument.Parse(await _client.GetStringAsync("/Navigation/Batch/allInfo?includePictures=true", TestContext.Current.CancellationToken)).RootElement;
         Assert.Equal((legacy, picture), (all.GetProperty(vis).GetProperty("visualizationType").GetString(), all.GetProperty(vis).GetProperty("pictureType").GetString()));
     }
 
