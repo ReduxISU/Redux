@@ -89,9 +89,11 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     // Job Sequencing's default visualization moved off DummyVisualization to JobSeqVisualization. Its /info snapshot was
     // retaken after the rewire; the diff against the pre-change capture is only that nested object. No reduction goes into
     // or out of Job Sequencing, so nothing else embeds it.
+    // The view is opt-in (IOptInVisualization), so it is the default only for a client that asks with includePictures=true;
+    // Redux_GUI still sees the placeholder (GuiView_Endpoint_Tests).
     [Fact]
     public async Task Rewire_JobSeqInfo_ShowsJobSeqVisualization_AndNothingElse() {
-        var response = await _client.GetAsync("/ProblemProvider/info?interface=jobseq", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=jobseq&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot("info.jobseq.json"), body.ReplaceLineEndings("\n"));
@@ -101,7 +103,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Job Sequencing Schedule Visualization", vis.GetProperty("visualizationName").GetString());
         Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
         Assert.Equal("Job Sequencing Brute Force", vis.GetProperty("solver").GetProperty("solverName").GetString());
-        var own = await _client.GetAsync("/ProblemProvider/info?interface=jobseqvisualization", TestContext.Current.CancellationToken);
+        var own = await _client.GetAsync("/ProblemProvider/info?interface=jobseqvisualization&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(vis.GetRawText()));
     }
 

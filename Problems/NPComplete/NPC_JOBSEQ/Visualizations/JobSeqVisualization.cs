@@ -13,7 +13,7 @@ namespace API.Problems.NPComplete.NPC_JOBSEQ.Visualizations;
 /// time, deadline and penalty and, once solved, when it runs and whether it is late. It is the problem's default
 /// visualization.
 /// </summary>
-class JobSeqVisualization : IVisualization<JOBSEQ, API_TableJSON>, IJobScheduleVisualization<JOBSEQ> {
+class JobSeqVisualization : IVisualization<JOBSEQ, API_TableJSON>, IJobScheduleVisualization<JOBSEQ>, IOptInVisualization {
     public string visualizationName { get; } = "Job Sequencing Schedule Visualization";
     public string visualizationDefinition { get; } = "Draws the jobs on one time axis, run back to back in the order the solver tries, each with its deadline. A job that ends after its deadline is late and its penalty counts; an order works when the late penalties add up to at most K.";
     public string source { get; } = "";
