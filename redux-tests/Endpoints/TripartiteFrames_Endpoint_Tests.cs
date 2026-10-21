@@ -67,6 +67,8 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // ---- 3-Dimensional Matching moved off DummyVisualization: the only thing that may change. ----
+    // The view is opt-in (IOptInVisualization), so only a client that asks with includePictures=true sees it as the default;
+    // Redux_GUI still sees the placeholder (GuiView_Endpoint_Tests).
 
     // What embeds its defaultVisualization: the problem and the reduction into it (3SAT to 3DM, Garey and Johnson). Their
     // snapshots were taken after the rewire; the diff against the pre-change capture is only the nested defaultVisualization
@@ -77,7 +79,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData("dm3")]
     [InlineData("gareyjohnson")]
     public async Task Rewire_Info_ShowsDM3Visualization_AndNothingElse(string name) {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ReplaceLineEndings("\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
@@ -88,17 +90,17 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Rewire_Dm3Info_ReportsDM3VisualizationAndItsSolver() {
-        var response = await _client.GetAsync("/ProblemProvider/info?interface=dm3", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=dm3&includePictures=true", TestContext.Current.CancellationToken);
         var vis = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement.GetProperty("defaultVisualization");
         Assert.Equal("3-Dimensional Matching Tripartite Visualization", vis.GetProperty("visualizationName").GetString());
         Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
-        var own = await _client.GetAsync("/ProblemProvider/info?interface=dm3visualization", TestContext.Current.CancellationToken);
+        var own = await _client.GetAsync("/ProblemProvider/info?interface=dm3visualization&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(JsonSerializer.Serialize(JsonDocument.Parse(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement), JsonSerializer.Serialize(vis));
     }
 
     [Fact]
     public async Task Rewire_Reduce_Sat3To3DM_ChangesOnlyTheNestedVisualization() {
-        var (status, body) = await Post("reduce?reduction=gareyjohnson", JsonSerializer.Serialize(Sat3Default));
+        var (status, body) = await Post("reduce?reduction=gareyjohnson&includePictures=true", JsonSerializer.Serialize(Sat3Default));
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(ReadSnapshot("gareyjohnson.reduce.json"), body);
     }
@@ -108,7 +110,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     // triples, one for each element of X.
     [Fact]
     public async Task Rewire_VisualizeReduction_Sat3To3DM_NowReturnsTheTriples() {
-        var (status, body) = await Post("visualizeReduction?reduction=gareyjohnson&solution=" + Uri.EscapeDataString("(x1:True,x2:True,x3:False)"), JsonSerializer.Serialize(Sat3Default));
+        var (status, body) = await Post("visualizeReduction?reduction=gareyjohnson&includePictures=true&solution=" + Uri.EscapeDataString("(x1:True,x2:True,x3:False)"), JsonSerializer.Serialize(Sat3Default));
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(ReadSnapshot("gareyjohnson.visualizereduction.json"), body);
         var items = JsonDocument.Parse(body).RootElement.EnumerateArray().ToList();
