@@ -63,6 +63,8 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     // ---- Edit Distance and 0-1 ILP moved off DummyVisualization: the only thing that may change. ----
+    // The new views are opt-in (IOptInVisualization), so only a client that asks with includePictures=true sees them as the
+    // defaults; Redux_GUI still sees the placeholder (GuiView_Endpoint_Tests).
 
     // What embeds one of their defaultVisualizations: the two problems and the reduction into 0-1 ILP (3SAT to 0-1 ILP).
     // No reduction goes into or out of Edit Distance. Their snapshots were taken after the rewire; the diff against the
@@ -74,7 +76,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [Theory]
     [MemberData(nameof(EmbedsATableDefault))]
     public async Task Rewire_Info_ShowsTheTableVisualizations_AndNothingElse(string name) {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
@@ -87,20 +89,20 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData("editdistance", "editdistancevisualization", "Edit Distance Table Visualization", "Edit Distance Dynamic Programming")]
     [InlineData("intprogramming01", "intprogrammingvisualization", "0-1 Integer Programming Table Visualization", "0-1 ILP Brute Force")]
     public async Task Rewire_ProblemInfo_ReportsItsTableVisualization(string problem, string vis, string name, string solver) {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={problem}", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={problem}&includePictures=true", TestContext.Current.CancellationToken);
         var nested = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).RootElement.GetProperty("defaultVisualization");
         Assert.Equal(name, nested.GetProperty("visualizationName").GetString());
         Assert.Equal("DynamicTable", nested.GetProperty("visualizationType").GetString());
         Assert.Equal(solver, nested.GetProperty("solver").GetProperty("solverName").GetString());
         // The same object the visualization reports about itself.
-        var own = await _client.GetAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken);
+        var own = await _client.GetAsync($"/ProblemProvider/info?interface={vis}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(nested.GetRawText()));
     }
 
     [Fact]
     public async Task Rewire_Reduce_Sat3ToIlp_ChangesOnlyTheNestedVisualization() {
         var content = new StringContent(JsonSerializer.Serialize(Sat3Default), Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=karpintprogstandard", content, TestContext.Current.CancellationToken);
+        var response = await _client.PostAsync("/ProblemProvider/reduce?reduction=karpintprogstandard&includePictures=true", content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(ReadSnapshot("karpintprogstandard.reduce.json"), (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n"));
     }
@@ -110,7 +112,7 @@ public class TableFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [Fact]
     public async Task Rewire_VisualizeReduction_Sat3ToIlp_NowReturnsTheMatrix() {
         var content = new StringContent(JsonSerializer.Serialize(Sat3Default), Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=karpintprogstandard&solution=" + Uri.EscapeDataString("(x1:True,x2:True,x3:False)"), content, TestContext.Current.CancellationToken);
+        var response = await _client.PostAsync("/ProblemProvider/visualizeReduction?reduction=karpintprogstandard&includePictures=true&solution=" + Uri.EscapeDataString("(x1:True,x2:True,x3:False)"), content, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot("karpintprogstandard.visualizereduction.json"), body);

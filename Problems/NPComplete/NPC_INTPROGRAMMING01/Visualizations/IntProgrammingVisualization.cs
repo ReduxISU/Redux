@@ -14,7 +14,7 @@ namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Visualizations;
 /// constraint with its coefficients, its total under the assignment, its bound and whether it holds, step by step for the
 /// selected solver. The list format draws the matrix before and after. It is the problem's default visualization.
 /// </summary>
-class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJSON>, ITableVisualization<INTPROGRAMMING01, Assignment> {
+class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJSON>, ITableVisualization<INTPROGRAMMING01, Assignment>, IOptInVisualization {
     public string visualizationName { get; } = "0-1 Integer Programming Table Visualization";
     public string visualizationDefinition { get; } = "Draws the constraint matrix: the assignment x on top, then one row per inequality with its coefficients, its total Cx under the assignment and its bound d. A row that holds is met; a row over its bound fails.";
     public string source { get; } = "";
