@@ -53,7 +53,7 @@ frame = { "event": "Try" | "Accept" | "Reject" | "Backtrack" | "Done", "caption"
 | [Graph](#graph) (`Graph`) | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set, Minimum Spanning Tree, Steiner Tree, Cut, Weighted Cut, Max Cut, Minimum Cut, Graph Coloring, Clique Cover, Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson | `IGraphSubsetVisualization`, `IGraphEdgesVisualization`, `IGraphCutVisualization`, `IGraphGroupsVisualization`, `IGraphTourVisualization` |
 | [Grouped Graph](#grouped-graph-clause-graph) (`GroupedGraph`) | SAT, 3SAT | `IGroupedGraphVisualization` |
 | [Bipartite Graph](#bipartite-graph) (`BipartiteGraph`) | Set Cover, Exact Cover, Hitting Set; SAT and 3SAT as the Factor Graph | `IBipartiteVisualization`, `IFactorGraphVisualization` |
-| [Formula](#formula) (`Formula`) | SAT, 3SAT (a second view, next to the Grouped Graph and Factor Graph) | *Proposed:* `IFormulaVisualization` |
+| [Formula](#formula) (`Formula`) | SAT, 3SAT (a second view, next to the Grouped Graph and Factor Graph); a proposed generalization adds Prime Factorization, 0-1 Integer Linear Programming and Subset Sum | *Proposed:* `IFormulaVisualization` |
 | [Nested Set](#nested-set) (`NestedSet`) | Set Cover, Exact Cover, Hitting Set (a second view, next to the Bipartite Graph) | *Proposed:* `INestedSetVisualization` |
 | [Automaton](#automaton) (`Automaton`) | DFA, NFA | `IAutomatonVisualization` |
 | [Layered Graph](#layered-graph) (`LayeredGraph`) | Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components, Single-Source and Single-Pair Shortest Path | `ILayeredVisualization` |
@@ -251,9 +251,11 @@ Elements on one side, sets on the other, and an edge for every membership. The c
 
 Green never appears on a run that found nothing. A run stopped by the time limit ends on a blank Done (every element `Background`, caption "Stopped after …"). Redux's SAT solvers end an unsatisfiable run with no assignment, so that Done is blank apart from its caption; a solver whose Done carries its last candidate gets that candidate drawn `Rejected` (the mockup's brute force does, to show the rule).
 
-**Layout** (pure arithmetic, ports to D3 or React as is): a name of letters then digits (`x10`, `Bar7`) is drawn as its letters with the digits as a real subscript (a `tspan` at 78% of the label size, shifted down), and any other name (`a`, `foo_2`) is drawn plain; a literal's pill is as wide as its label; clauses pack left to right with ∨ (muted) between pills and a bold ∧ between boxes; a clause that doesn't fit the line starts the next one, with the ∧ leading it; a single clause wider than the line wraps at its ∨s inside a taller box. The clause name sits above its box. The strip wraps the same way.
+**Layout** (pure arithmetic, ports to D3 or React as is): a name of letters then digits (`x10`, `Bar7`) is drawn as its letters with the digits as a real subscript (a `tspan` at 78% of the label size, shifted down), and any other name (`a`, `foo_2`) is drawn plain; a literal's pill is as wide as its label; clauses pack left to right with ∨ (muted) between pills and a bold ∧ between boxes; a clause that doesn't fit the line starts the next one, with the ∧ leading it; a single clause wider than the line wraps at its ∨s inside a taller box. The clause name sits above its box. The strip wraps the same way, with its ASSIGNMENT label.
 
-**Fallback.** None needed: the layout only ever adds lines. The mockup caps formulas at 60 clauses and 30 variables, like the other mockups' caps; a frontend can scroll.
+**Text belongs to a piece.** Every piece of text in the picture is drawn inside the group of the piece it belongs to, so it moves with that piece: a clause's name, ✓/✗ mark, its ∨s and the ∧ that leads it sit in the clause's group; a literal's label in its pill; the ASSIGNMENT label in the strip's group with the chips. There is no free-floating heading: the "FORMULA · CNF" heading over the formula is gone (*proposed, pending approval, Oct 20*), and what it said goes in the legend under the picture, outside the SVG, which is worded from the layout and operators ("Boxes are clauses, joined by ∧; the literals inside are joined by ∨ (CNF). Every clause must hold: a clause holds when one of its literals is true."). In the SAT ↦ 3SAT pair each pane's title sits in its pane's group and the ↦ with the separator. The screenshots on this page still show the old heading (see the note below).
+
+**Fallback.** None needed: the layout only ever adds lines. The mockup caps formulas at 60 clauses and 30 variables, like the other mockups' caps; a frontend can scroll. The layout runs at the picture's box width, clamped to 320–800, so a phone wraps the formula instead of shrinking it.
 
 **Hover** a literal or a chip to trace its variable everywhere, or a clause to trace its literals and their variables; everything else turns grey with a dashed outline.
 
@@ -270,6 +272,96 @@ Green never appears on a run that found nothing. A run stopped by the time limit
 2. Keep the extra `variables` map in the frame, or have frontends work the chips out from `assignment`, `focus` and the literal states?
 3. A repeated literal (x1 ∨ x1 ∨ x2) is drawn as written, one pill per occurrence, because the ids are per occurrence. Merge repeats instead?
 4. An unsatisfiable run's Done is blank apart from its caption (the solvers send no assignment). Should it mark every clause `Rejected` instead?
+
+> **Stale screenshots.** The six `formula--*.png` images above, and `reduction--sat-3sat-build.png` / `reduction--sat-3sat-map.png` under [Reduction](#reduction), predate the heading removal: they still show "FORMULA · CNF" over the formula (and over each pane of the pair). The mockup no longer draws it. There is no scripted capture on this branch, so they are listed here to retake.
+
+### Formula, generalized (proposed, pending approval)
+
+*Proposed Oct 20, mockup built, not approved; nothing in the backend or the frontends implements it yet.* The same picture, driven entirely by its payload so the frontend has no problem-specific knowledge: the payload says how to lay the formula out, what its pieces are and which operators join them, and the frontend draws whatever it is given. Today's SAT/3SAT payload (`layout: "cnf"`, above) stays valid and draws exactly as before; everything below is optional and added on top. The mockup's Formula tab draws every example in this section (Problem: DNF, Prime Factorization, 0-1 Integer Linear Programming, Subset Sum).
+
+**Layouts** (`layout`):
+
+| `layout` | Draws | Extra fields |
+| --- | --- | --- |
+| `rows` | Groups as boxes joined by an outer operator, each group's content joined by an inner operator (a literal list) or given as an expression tree (`expr`). Boxes flow left to right and wrap at group boundaries (`arrange: "flow"`, the default), or take a line each (`"stack"`), the outer operator leading every later box. | `outer`, `inner` (operator names; default `and`, `or`), `arrange`, `noun` (what a group is called in the legend: "constraint") |
+| `cnf` | A preset of `rows`: `outer: "and"`, `inner: "or"`, groups called clauses. Today's payload. | none |
+| `dnf` | A preset of `rows`: `outer: "or"`, `inner: "and"`, groups called terms. | none |
+| `equation` | Each group is one expression on its own line(s), unboxed until it has a state, wrapped at its top-level operators first. | none |
+| `tree` | Reserved for nested formulas drawn as a tree. Not designed; drawn as `equation` until it is. | none |
+
+```
+// rows, stacked: 0-1 ILP's constraints, one per line, joined by ∧
+{ "kind": "formula", "layout": "rows", "outer": "and", "arrange": "stack", "noun": "constraint",
+  "shape": "assignment", "rule": "constraints",
+  "groups": [{ "id": "r0", "label": "R1", "expr":
+    { "id": "r0-rel", "op": "le", "args": [
+      { "id": "r0-s0", "op": "plus", "args": [
+        { "id": "r0-m0", "op": "mul", "args": [{ "id": "r0-c0", "num": 2, "variable": "v:x1" }, { "id": "r0-x0", "var": "v:x1" }] },
+        { "id": "r0-x1", "var": "v:x2" }] },
+      { "id": "r0-d", "num": 5 }] } }],
+  "variables": [{ "id": "v:x1", "label": "x1", "type": "int", "range": [0, 1] }, { "id": "v:x2", "label": "x2", "type": "int", "range": [0, 1] }] }
+
+// equation: Subset Sum as Σ(chosen) = T
+{ "kind": "formula", "layout": "equation", "noun": "equation", "shape": "assignment", "rule": "subsetSum",
+  "groups": [{ "id": "e0", "label": "", "expr": { "id": "eq", "op": "eq", "args": [
+    { "id": "sum", "op": "sum", "args": [{ "id": "s0", "num": 1, "variable": "v:x1" }, { "id": "s1", "num": 7, "variable": "v:x2" }] },
+    { "id": "T", "num": 28 }] } }],
+  "variables": [{ "id": "v:x1", "label": "x1", "type": "int", "range": [0, 1] }, { "id": "v:x2", "label": "x2", "type": "int", "range": [0, 1] }] }
+
+// dnf: exactly the cnf payload with "layout": "dnf" (groups D1, D2, …)
+```
+
+**Expression pieces.** A group holds either `members` (today's literal list, the inner operator over its literals) or `expr`, a tree of:
+
+| Piece | Drawn as |
+| --- | --- |
+| `{ "id", "var": "v:x1" }` | A variable occurrence: a pill with the variable's label |
+| `{ "id", "num": 7, "variable"?: "v:x2" }` | A number, plain text until it has a state (then a pill in that state's colors). `variable` ties it to a chip, so hover traces it and it can share the chip's state |
+| `{ "id", "label": "?", "variable"? }` | A placeholder, drawn like a number |
+| `{ "id"?, "op": "plus", "args": [ … ] }` | An operator node, by name, n-ary where the operator is. `not` over a variable occurrence folds into one ¬x pill, as CNF draws it |
+
+Every piece that can change state has an id that stays the same from frame to frame (as `c{i}-{j}` does for a literal), so step states, gadget links and the verifier's "show where it fails" can target it. An operator node's id owns its symbols (∨, the parentheses, the commas); its symbols are drawn inside its group.
+
+**One operator table.** The frontend keeps a single table, referenced by name (`OPS` in `formula.js`):
+
+| Name | Symbol | Fixity | Precedence |
+| --- | --- | --- | --- |
+| `eq`, `le`, `ge`, `lt`, `gt` | = ≤ ≥ < > | infix, never chained without parentheses | 0 |
+| `or` | ∨ | infix, associative | 1 |
+| `and` | ∧ | infix, associative | 2 |
+| `plus`, `minus` | + − | infix (`plus` associative) | 3 |
+| `times` | × | infix, associative | 4 |
+| `mul` | (none: 2x) | juxtaposition | 4 |
+| `not`, `neg` | ¬ − | prefix | 6 |
+| `sum` | Σ(a, b, …) | call | 9 |
+| anything else | `name(a, b, …)` | call | 9 |
+
+A child that binds looser than its parent gets parentheses; a same-precedence child on the right does too unless both are the same associative operator (so a + b + c, but a − (b − c)). An unknown name is drawn generically as `name(a, b)` and named in the legend, never an error. Wrapping: a run that fits stays on the line; one wider than a line is cut at its shallowest operators first (a sum of products breaks at +, never inside a product; Σ(…) = T breaks at =), and the operator at a break leads the new line. A flat CNF clause packs exactly as today.
+
+**Variables.** Each variable has a `type`: `bool` (the default: a chip `x₁ T`, `F` or `–`, as today) or `int` (`x₁ = 1`, `rest = 15`), with an optional `range: [lo, hi]` the layout sizes the chip from. The frame's `assignment` holds a boolean or a number. The strip is labelled ASSIGNMENT when every variable is boolean, VALUES otherwise, and the label is part of the strip.
+
+**Frame additions.** `nodes` keys any piece id; a group's state may carry a `note` (`"groups": { "r0": { "state": "Rejected", "note": "total 6 > 5" } }`), drawn after its label inside its group; and `exprs: { groupId: expr }` replaces a group's expression for that frame, for a solver that builds the formula as it goes (Prime Factorization). The states and their rules are the shared vocabulary: `Covered` for a group that holds (✓), `Rejected` for one that fails (✗), `False` for a false literal, a number left out or a 0 variable (struck through), `ElementHighlight` for what the step is trying, `Committed` for what an incremental solver has kept, `Solution` only on the confirmed answer. A DNF term with a false literal is `False`; when every term is, all are `Rejected`.
+
+**The legend** is worded from the payload alone and drawn outside the picture: the layout and its operators ("Boxes are terms, joined by ∨; the literals inside are joined by ∧ (DNF). One term that holds is enough: a term holds when all its literals are true."; "Each box is a constraint, joined by ∧, one per line. Every constraint must hold."; "One equation, wrapped at its top-level operators; it holds when both sides are equal."), any operator that needs a word (Σ, unknown names), and what the strip's values are.
+
+**Examples in the mockup** (names as Redux has them; steps follow each solver's recorded steps on `local/viz-integration`):
+
+| Problem | Layout | Solver the frames follow | What it shows |
+| --- | --- | --- | --- |
+| SAT, 3SAT | `cnf` | Backtracking (DPLL), Brute Force (mockup reference solvers, as before) | Unchanged apart from the heading moving to the legend |
+| DNF (not a Redux problem) | `dnf` | A brute force written for the mockup | The layout with its operators swapped. No Redux problem takes a DNF formula; it is labelled as an illustration |
+| Prime Factorization | `equation` | Prime Factorization Trial Division (`PrimeFactorSolver`): a Reject when i does not divide what is left, an Accept per division, an Accept for a last prime over 1, Done | `60 = ?` built up to `60 = 2 × 2 × 3 × 5`, one frame per step through `exprs`: the factors found so far (`Committed`, the new one highlighted) times what is left; integer chips `i` and `rest`. Its recorded step today carries only the factors (`QuantumProgress`); the divisor and what is left would have to be added to a Formula step |
+| 0-1 Integer Linear Programming | `rows`, `stack` | 0-1 ILP Brute Force (`IntegerProgrammingBruteForce`): every 0/1 vector from all zeros, x₁ flipping fastest; a Reject naming the rows over their bounds, the Accept of the first that passes, Done (with no answer, the last try, #905) | One constraint per line (`2x₁ + 3x₂ − x₃ ≤ 5`), a broken row `Rejected` with its total as the note, 0/1 chips |
+| Subset Sum | `equation` | Subset Sum Brute Force (`SubsetSumBruteForce`): every non-empty subset in mask order; an Accept for the one that adds up to T, a Reject for every other; with none, a blank Done | `Σ(1, 7, 12, 15) = 28`, the numbers left out struck through, the equation `Covered` or `Rejected` with its sum as the note |
+
+The defaults stay as they are (Quantum Circuit for Prime Factorization, Table for 0-1 ILP, Packing for Subset Sum); the Formula would be a selectable second view, like SAT's.
+
+**Open questions for the generalization**
+
+1. Approve `rows` / `equation`, expression trees and the operator table as the Formula contract? Design `tree` later?
+2. Which of Prime Factorization, 0-1 ILP and Subset Sum get the Formula as a second view?
+3. Their solvers record `QuantumProgress`, `Assignment` and `Placement` steps. A Formula frames builder would add the row notes and the `exprs` replacement; Prime Factorization's steps would also need the divisor and what is left.
+4. A group's note sits after its label. In the flowing layout a long note could run into the next box; keep notes to stacked rows and equations?
 
 ---
 
