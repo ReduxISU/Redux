@@ -12,12 +12,33 @@ internal static class VisualizationTypeCatalog {
     internal static string[] All() =>
         Enum.GetNames(typeof(VisualizationType)).OrderBy(n => n, StringComparer.Ordinal).ToArray();
 
+    // The wire values Redux_GUI has a renderer for (or, for Unimplemented, an explicit "not renderable" state): the
+    // vocabulary from before the visualization redesign. Documentation/visualization-types.json mirrors this list, since
+    // Redux_GUI's manifest-drift job compares its own copy against that file. A member added since (a picture type served
+    // only under format=frames) is left out until Redux_GUI can draw it, and then added here and to the manifest together.
+    internal static readonly IReadOnlySet<string> GuiWireValues = new HashSet<string>(StringComparer.Ordinal) {
+        nameof(VisualizationType.Unimplemented), nameof(VisualizationType.GraphD3), nameof(VisualizationType.GraphLaTeX),
+        nameof(VisualizationType.SetD3), nameof(VisualizationType.BooleanSatisfiability), nameof(VisualizationType.QuantumCircuitD3),
+        nameof(VisualizationType.QuantumCircuitQjs), nameof(VisualizationType.PumpSchedule), nameof(VisualizationType.DynamicTable),
+    };
+
+    // Sorted wire values a client that has not opted in (includePictures=true) is shown: GuiWireValues.
+    internal static string[] Gui() => All().Where(GuiWireValues.Contains).ToArray();
+
     // className -> declared visualizationType's wire value. Built by instantiating every
     // reflected visualizer inside a per-type try/catch, exactly like Nav_Batch.cs's
     // InfoJson: one visualizer with a throwing/missing default constructor must not take
     // down navigation at startup. Deliberately Lazy<>, never a static readonly field
     // initializer, for the same reason.
     internal static readonly Lazy<Dictionary<string, string>> ByClassName = new(Build);
+
+    // className -> the wire value a client that has not opted in is told (GuiView.LegacyType), for the visualizations that
+    // declare a LegacyVisualizationTypeAttribute; every other class reports its ByClassName value to every client.
+    internal static readonly Lazy<Dictionary<string, string>> LegacyByClassName = new(() =>
+        ProblemProvider.Visualizers.Values
+            .Select(t => (t.Name, Legacy: GuiView.LegacyType(t)))
+            .Where(p => p.Legacy != null)
+            .ToDictionary(p => p.Name, p => p.Legacy!.Value.ToString(), StringComparer.OrdinalIgnoreCase));
 
     private static Dictionary<string, string> Build() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -91,13 +112,14 @@ public class Problem_VisualizationsRefactorController : ControllerBase {
 public class VisualizationTypesController : ControllerBase {
 #pragma warning restore CS1591
 
-    ///<summary>Returns every VisualizationType wire value, sorted. This is the closed vocabulary the GUI's renderer registry must cover.</summary>
+    ///<summary>Returns the VisualizationType wire values, sorted. By default the closed vocabulary Redux_GUI's renderer registry must cover; with includePictures=true every member, the picture types included.</summary>
+    ///<param name="includePictures">True to list every member, the picture types served under format=frames included. Default false: the list Redux_GUI reads.</param>
     ///<response code="200">Returns a sorted string array of VisualizationType member names</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
-    public IActionResult Get() {
+    public IActionResult Get([FromQuery] bool includePictures = false) {
         var options = new JsonSerializerOptions { WriteIndented = true };
-        return Content(JsonSerializer.Serialize(VisualizationTypeCatalog.All(), options), "application/json");
+        return Content(JsonSerializer.Serialize(includePictures ? VisualizationTypeCatalog.All() : VisualizationTypeCatalog.Gui(), options), "application/json");
     }
 }
