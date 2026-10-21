@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_DM3.Visualizations;
 /// line through its three elements, set by set as the selected solver tries them. The list format is a table with one row
 /// per triple and, once solved, whether it is in the matching. It is the problem's default visualization.
 /// </summary>
-class DM3Visualization : IVisualization<DM3, API_TableJSON>, ITripartiteVisualization<DM3> {
+class DM3Visualization : IVisualization<DM3, API_TableJSON>, ITripartiteVisualization<DM3>, IOptInVisualization {
     public string visualizationName { get; } = "3-Dimensional Matching Tripartite Visualization";
     public string visualizationDefinition { get; } = "Draws X, Y and Z as three columns and each triple of M as a line through one element of each. A perfect matching picks triples that together use every element exactly once; a set of triples that uses an element twice fails.";
     public string source { get; } = "";
