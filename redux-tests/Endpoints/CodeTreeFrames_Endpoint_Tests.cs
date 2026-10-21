@@ -95,11 +95,13 @@ public class CodeTreeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     // /info for the problem and its visualization, retaken after the list format became the code table: the only difference
     // from the pre-change capture is the visualization's visualizationType (Unimplemented to DynamicTable) and its
     // visualizationDefinition (was "TODO").
+    // Only a client that asks with includePictures=true is told DynamicTable: the view declares its legacy type
+    // ([LegacyVisualizationType(Unimplemented)]), which Redux_GUI is still told (GuiView_Endpoint_Tests).
     [Theory]
     [InlineData("losslessdatacompression")]
     [InlineData("losslessdatacompressionvisualization")]
     public async Task List_Info_ReportsDynamicTable_AndNothingOfThePicture(string name) {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).ReplaceLineEndings("\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
