@@ -13,7 +13,7 @@ namespace API.Problems.P.P_NQUEENS.Visualizations;
 /// row linked back to the queen attacking them, step by step for the selected solver. The list format is a table with one
 /// row per board row and the column of its queen. It is the problem's default visualization.
 /// </summary>
-class NQueensVisualization : IVisualization<NQUEENS, API_TableJSON>, IBoardVisualization<NQUEENS> {
+class NQueensVisualization : IVisualization<NQUEENS, API_TableJSON>, IBoardVisualization<NQUEENS>, IOptInVisualization {
     public string visualizationName { get; } = "N-Queens Board Visualization";
     public string visualizationDefinition { get; } = "Draws the n x n chessboard and places the queens row by row as the selected solver does. A square the solver skips because a queen already attacks it is crossed out and linked to that queen; a row with no safe square sends the solver back to move the queen above.";
     public string source { get; } = "";
