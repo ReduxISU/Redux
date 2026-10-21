@@ -40,8 +40,19 @@ internal static class VisualizationNavigationData {
     internal static readonly List<NavigationEntry> Entries =
         InterfaceNavigationData.Build(ProblemProvider.Visualizers, typeof(IVisualization<>));
 
-    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) =>
-        InterfaceNavigationData.FindWithoutExtension(Entries, problemName, problemTypePrefix);
+    // Class names of the opt-in visualizations (IOptInVisualization), which a listing shows only on request.
+    internal static readonly HashSet<string> OptInClassNames = ProblemProvider.Visualizers.Values
+        .Where(OptInVisualizations.IsOptIn).Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Whether a listing shows the visualization class <paramref name="className"/> (see <see cref="IOptInVisualization"/>).</summary>
+    internal static bool Listed(string className, bool includePictures) => includePictures || !OptInClassNames.Contains(className);
+
+    /// <summary>The entries a listing shows: all of them when the client opts in, else all but the opt-in ones.</summary>
+    internal static List<NavigationEntry> ListedEntries(bool includePictures) =>
+        Entries.Where(e => Listed(e.className, includePictures)).ToList();
+
+    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix, bool includePictures = false) =>
+        InterfaceNavigationData.FindWithoutExtension(ListedEntries(includePictures), problemName, problemTypePrefix);
 }
 
 // Get all Visualizations for a specific problem\
@@ -56,16 +67,17 @@ public class Problem_VisualizationsRefactorController : ControllerBase {
     ///<summary>Returns all Visualizations available for a given problem </summary>
     ///<param name="chosenProblem" example="SAT3">Problem name</param>
     ///<param name="problemType" example="NPC">Problem type (optional; ignored — problem names are unique across complexity classes)</param>
+    ///<param name="includePictures">True to also list the visualizations only picture-type clients can draw (IOptInVisualization: the Formula and Nested Set views). Default false: the list Redux_GUI reads.</param>
     ///<response code="200">Returns string array of Visualizations</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
-    public String getDefault([FromQuery] string chosenProblem, [FromQuery] string? problemType = null) {
+    public String getDefault([FromQuery] string chosenProblem, [FromQuery] string? problemType = null, [FromQuery] bool includePictures = false) {
         var options = new JsonSerializerOptions { WriteIndented = true };
 
         // Returns an empty array when the problem has no visualizations (preserved
         // not-found contract; this endpoint never returned an error string).
-        List<string> subFilesList = VisualizationNavigationData.FindWithoutExtension(chosenProblem, problemType);
+        List<string> subFilesList = VisualizationNavigationData.FindWithoutExtension(chosenProblem, problemType, includePictures);
         return JsonSerializer.Serialize(subFilesList, options);
     }
 }
