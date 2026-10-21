@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_TSP.Visualizations;
 /// <c>format=frames</c> (type <c>SearchTree</c>). Its own solver is the branch and bound (the brute force does not branch).
 /// The list format, which old frontends read, is exactly <see cref="TSPDefaultVisualization"/>'s for the same solver.
 /// </summary>
-class TSPSearchTreeVisualization : IVisualization<TSP>, ISearchTreeVisualization<TSP, Tour> {
+class TSPSearchTreeVisualization : IVisualization<TSP>, ISearchTreeVisualization<TSP, Tour>, IOptInVisualization {
     public string visualizationName { get; } = "Traveling Salesperson Search Tree";
     public string visualizationDefinition { get; } = "The choices of Traveling Salesperson Branch and Bound as a tree: each node extends a partial tour by one city and shows its lower bound, a red dashed node is an extension cut because its bound can't beat the best tour so far, and the numbers show the order in which queued paths were taken. With format=frames, the tree grows step by step and the best tour's path turns green.";
     public string source { get; } = "";
