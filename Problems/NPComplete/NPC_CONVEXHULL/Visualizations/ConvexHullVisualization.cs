@@ -15,6 +15,7 @@ namespace API.Problems.NPComplete.NPC_CONVEXHULL.Visualizations;
 /// (<c>DynamicTable</c>): one row per point with its x and y and, once solved, its place among the hull's corners in
 /// counterclockwise order, the corners marked Solution.
 /// </summary>
+[LegacyVisualizationType(VisualizationType.Unimplemented)]
 class ConvexHullVisualization : IVisualization<CONVEXHULL, API_TableJSON>, IGeometryVisualization<CONVEXHULL> {
     public string visualizationName { get; } = "Convex Hull Visualization";
     public string visualizationDefinition { get; } = "Lists the points with their x and y. Once solved, each corner of the convex hull is numbered in counterclockwise order and shown in the Solution color; points inside the hull or on an edge between two corners are left unnumbered.";
