@@ -1,49 +1,57 @@
+
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-      <!-- <EnableDefaultItems>false</EnableDefaultItems> -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- <NoWarn>$(NoWarn);1591</NoWarn> -->
   </PropertyGroup>
-
 
   <ItemGroup>
     <PackageReference Include="NCalc" Version="7.2.0" />
     <PackageReference Include="SPADE" Version="0.1.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+
     <Content Include="Problems\**" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="ProblemTemplate\Templates\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="ProblemTemplate\Templates\**"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Tests live in their own project (redux-tests/redux-tests.csproj). The
-       Sdk.Web globs would otherwise pull redux-tests/**/*.cs into API.dll and
-       copy redux-tests/**/*.json (e.g. obj/project.assets.json) to the output. -->
+  <!-- Exclude standalone test projects -->
   <ItemGroup>
     <Compile Remove="redux-tests/**" />
     <Content Remove="redux-tests/**" />
     <None Remove="redux-tests/**" />
   </ItemGroup>
 
-  <!-- The contributor stats sync tool lives in its own console project (Tools/ContributorStatsSync).
-       Same reasoning as redux-tests above: the Sdk.Web glob would otherwise pull its Program.cs
-       (which has its own Main and references Octokit, not part of API.csproj) into API.dll. -->
+  <!-- Exclude contributor statistics console application -->
   <ItemGroup>
     <Compile Remove="Tools/ContributorStatsSync/**" />
     <Content Remove="Tools/ContributorStatsSync/**" />
     <None Remove="Tools/ContributorStatsSync/**" />
   </ItemGroup>
 
-
+  <!-- Exclude NuGet library and its tests -->
   <ItemGroup>
     <Compile Remove="Redux.Library/**" />
     <Content Remove="Redux.Library/**" />
-    <Compile Remove="Redux.Library.Tests/**" />
     <None Remove="Redux.Library/**" />
     <EmbeddedResource Remove="Redux.Library/**" />
+
+    <Compile Remove="Redux.Library.Tests/**" />
+    <Content Remove="Redux.Library.Tests/**" />
+    <None Remove="Redux.Library.Tests/**" />
+    <EmbeddedResource Remove="Redux.Library.Tests/**" />
+  </ItemGroup>
+
+  <!-- Exclude demo application if created inside Redux -->
+  <ItemGroup>
+    <Compile Remove="ReduxDemo/**" />
+    <Content Remove="ReduxDemo/**" />
+    <None Remove="ReduxDemo/**" />
   </ItemGroup>
 
 </Project>

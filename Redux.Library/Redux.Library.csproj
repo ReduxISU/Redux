@@ -1,17 +1,23 @@
 
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+<PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
     <PackageId>Redux.Library</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.101</Version>
     <Authors>Redux Contributors</Authors>
-    <Description>Redux computational problems, solvers, and reductions.</Description>
-  </PropertyGroup>
+    <Description>A .NET library for computational problems, solvers, verifiers, reductions, and visualizations.</Description>
+
+    <PackageProjectUrl>https://github.com/prashant9711/Redux</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/prashant9711/Redux</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>algorithms;redux;computer-science;graph-theory</PackageTags>
+</PropertyGroup>
 
   <ItemGroup>
     <Compile Include="ReduxClient.cs" />
