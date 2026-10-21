@@ -11,7 +11,7 @@ using API.Problems.NPComplete.NPC_SAT3.Solvers;
 /// frontends read, is exactly <see cref="Sat3DefaultVisualization"/>'s, so this entry renders like the default 3SAT
 /// picture until a frontend draws the factor graph.
 /// </summary>
-class Sat3FactorGraphVisualization : IVisualization<SAT3>, IFactorGraphVisualization<SAT3> {
+class Sat3FactorGraphVisualization : IVisualization<SAT3>, IFactorGraphVisualization<SAT3>, IOptInVisualization {
     public string visualizationName { get; } = "3SAT Factor Graph";
     public string visualizationDefinition { get; } = "The factor graph of a 3SAT formula: variables on one side, clauses on the other, and an edge for every literal (dashed when negated). With format=frames, the edges an assignment makes true turn green, step by step.";
     public string source { get; } = "";
