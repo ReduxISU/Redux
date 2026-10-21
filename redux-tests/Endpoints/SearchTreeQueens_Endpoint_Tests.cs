@@ -48,10 +48,12 @@ public class SearchTreeQueens_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // ---- What old frontends read must not change. ----
 
+    // Asked with includePictures=true, since N-Queens' default (NQueensVisualization) is an opt-in view: Redux_GUI sees the
+    // placeholder default instead (GuiView_Endpoint_Tests).
     [Theory]
     [MemberData(nameof(TouchedInterfaces))]
     public async Task Info_IsUnchangedByTheSearchTree(string name) {
-        var body = await _client.GetStringAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var body = await _client.GetStringAsync($"/ProblemProvider/info?interface={name}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
         Assert.DoesNotContain("SearchTree", body);
     }
