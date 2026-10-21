@@ -85,6 +85,9 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
 
+    // The reduce endpoint's options, one object so GuiView.Options makes its copy once.
+    private static readonly JsonSerializerOptions ReduceJsonOptions = new() { WriteIndented = true };
+
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
         return Activator.CreateInstance(Problems[name.ToLower()]) as IProblem; // guaranteed success by `IsAssignableFrom`
@@ -254,17 +257,18 @@ public class ProblemProvider : ControllerBase {
     /// Gets info about a particular object
     /// </summary>
     /// <param name="interface" example = "SAT3">the name of the object to get the info of</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations: a problem's default and a visualization's type are its own. Default false, what Redux_GUI reads: what they were before the redesign (see GuiView).</param>
     /// <returns>an object instance</returns>
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(400)]
     [HttpGet("info")]
-    public IActionResult info(string @interface) {
+    public IActionResult info(string @interface, [FromQuery] bool includePictures = false) {
         if (string.IsNullOrEmpty(@interface) || !Interfaces.TryGetValue(@interface.ToLower(), out var type))
             return BadRequest(new { error = "unknown_interface", received = @interface });
         object? obj = Activator.CreateInstance(type);
         // Serialize by the runtime type: System.Text.Json serializes by the declared type, and `object`/`IProblem`
         // would emit an empty `{}` instead of the concrete object's members.
-        return Content(JsonSerializer.Serialize(obj, obj?.GetType() ?? type, ReflectedObjectJsonOptions), "application/json");
+        return Content(JsonSerializer.Serialize(obj, obj?.GetType() ?? type, GuiView.Options(ReflectedObjectJsonOptions, includePictures)), "application/json");
     }
 
     /// <summary>
@@ -272,16 +276,17 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="problem" example = "3SAT">problem name</param>
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance string</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations; default false, what Redux_GUI reads (see GuiView).</param>
     /// <returns>object instance</returns>
     [ProducesResponseType(typeof(IProblem), 200)]
     [ProducesResponseType(400)]
     [HttpPost("problemInstance")]
-    public IActionResult problemInstance(string problem, [FromBody] string problemInstance) {
+    public IActionResult problemInstance(string problem, [FromBody] string problemInstance, [FromQuery] bool includePictures = false) {
         try {
             IProblem p = ProblemInstance(problem, problemInstance);
             // Serialize by the runtime type; see the note in `info`.
             return Content(
-                JsonSerializer.Serialize(p, p.GetType(), ReflectedObjectJsonOptions),
+                JsonSerializer.Serialize(p, p.GetType(), GuiView.Options(ReflectedObjectJsonOptions, includePictures)),
                 "application/json");
         } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
             return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
@@ -354,10 +359,11 @@ public class ProblemProvider : ControllerBase {
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">List of reductions to use, separated by a dash. Can use a single reduction</param>
     /// <param name="solution" example = "(x1:True,x2:True)">The solution to visualize</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance string of the problem</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations: the target's own default is drawn. Default false, what Redux_GUI reads: an opt-in default is drawn as the placeholder (see GuiView).</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
     [ProducesResponseType(400)]
-    public IActionResult visualizeReduction(string reduction, string solution, [FromBody] string instance) {
+    public IActionResult visualizeReduction(string reduction, string solution, [FromBody] string instance, [FromQuery] bool includePictures = false) {
         List<string> reds = reduction.Split("-").ToList();
         foreach (string r in reds)
             if (!Reductions.TryGetValue(r.ToLower(), out _))
@@ -377,7 +383,7 @@ public class ProblemProvider : ControllerBase {
         if (red is null)
             return BadRequest(new { error = "no_reductions_provided" });
 
-        return Content(getVisualize(red.visualization, new List<Object>(), solution, instance), "application/json");
+        return Content(getVisualize(GuiView.Shown(red.visualization, includePictures), new List<Object>(), solution, instance), "application/json");
     }
 
     /// <summary>
@@ -385,14 +391,15 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">the reduction to use</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of a problem</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations; default false, what Redux_GUI reads (see GuiView).</param>
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
     [ProducesResponseType(400)]
-    public IActionResult reduce(string reduction, [FromBody] string instance) {
+    public IActionResult reduce(string reduction, [FromBody] string instance, [FromQuery] bool includePictures = false) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            return Content(JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+            return Content(JsonSerializer.Serialize(Reduction(reduction, instance), GuiView.Options(ReduceJsonOptions, includePictures)), "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
