@@ -88,9 +88,11 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     // N-Queens' default visualization moved off DummyVisualization to NQueensVisualization. Its /info snapshot was retaken
     // after the rewire; the diff against the pre-change capture is only that nested object. No reduction goes into or out
     // of N-Queens, so nothing else embeds it.
+    // The view is opt-in (IOptInVisualization), so it is the default only for a client that asks with includePictures=true;
+    // Redux_GUI still sees the placeholder (GuiView_Endpoint_Tests).
     [Fact]
     public async Task Rewire_NQueensInfo_ShowsNQueensVisualization_AndNothingElse() {
-        var response = await _client.GetAsync("/ProblemProvider/info?interface=nqueens", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=nqueens&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot("info.nqueens.json"), body);
@@ -100,7 +102,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("N-Queens Board Visualization", vis.GetProperty("visualizationName").GetString());
         Assert.Equal("DynamicTable", vis.GetProperty("visualizationType").GetString());
         Assert.Equal("N-Queens Backtracking", vis.GetProperty("solver").GetProperty("solverName").GetString());
-        var own = await _client.GetAsync("/ProblemProvider/info?interface=nqueensvisualization", TestContext.Current.CancellationToken);
+        var own = await _client.GetAsync("/ProblemProvider/info?interface=nqueensvisualization&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(Compact(await own.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)), Compact(vis.GetRawText()));
     }
 
@@ -116,11 +118,13 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // /info for Sudoku and its visualization, retaken after the change: the only difference from the pre-change capture is
     // the visualization's visualizationType (Unimplemented to DynamicTable) and its visualizationDefinition (was "TODO").
+    // Only a client that asks with includePictures=true is told DynamicTable: the view declares its legacy type
+    // ([LegacyVisualizationType(Unimplemented)]), which Redux_GUI is still told (GuiView_Endpoint_Tests).
     [Theory]
     [InlineData("sudoku")]
     [InlineData("sudokuvisualization")]
     public async Task SudokuList_Info_ReportsDynamicTable_AndNothingOfThePicture(string name) {
-        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot($"info.{name}.json"), body);
