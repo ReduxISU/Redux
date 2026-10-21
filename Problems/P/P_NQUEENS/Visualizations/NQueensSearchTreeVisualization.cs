@@ -14,7 +14,7 @@ namespace API.Problems.P.P_NQUEENS.Visualizations;
 /// <see cref="NQueensVisualization"/>'s, the board picture for the same solver. The problem's default visualization is still
 /// <c>DummyVisualization</c>.
 /// </summary>
-class NQueensSearchTreeVisualization : IVisualization<NQUEENS>, ISearchTreeVisualization<NQUEENS, BoardCells> {
+class NQueensSearchTreeVisualization : IVisualization<NQUEENS>, ISearchTreeVisualization<NQUEENS, BoardCells>, IOptInVisualization {
     public string visualizationName { get; } = "N-Queens Search Tree";
     public string visualizationDefinition { get; } = "The choices of N-Queens Backtracking as a tree: each level places one row's queen, a red dashed node is a square a queen above already attacks, and a solid red node is a queen taken back because no square below it was safe. With format=frames, the tree grows step by step and the path to the answer turns green.";
     public string source { get; } = "";
