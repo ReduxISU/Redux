@@ -487,6 +487,10 @@ sealed record OracleQuery(
 /// <item><see cref="Counts"/>: how often each outcome came up, when a quantum server reported it; empty otherwise.</item>
 /// <item><see cref="Result"/>: the answer as the solver has it so far (<c>balanced</c>, <c>(1,0,1)</c>, <c>(2,2)</c>);
 /// null until it has one. The last step's is the solver's answer.</item>
+/// <item><see cref="Divisor"/> and <see cref="Remaining"/>: Prime Factorization's trial division only (#929), the divisor
+/// i the step tried and the cofactor left to factor after it (the number divided by every factor found so far), as
+/// decimal strings; null for every other solver, and left out of the JSON then. The Formula picture draws them as the
+/// strip's <c>i</c> and <c>rest</c>.</item>
 /// </list>
 /// </summary>
 sealed class QuantumProgress : IEquatable<QuantumProgress> {
@@ -495,6 +499,16 @@ sealed class QuantumProgress : IEquatable<QuantumProgress> {
     [JsonPropertyName("outcome")] public long? Outcome { get; }
     [JsonPropertyName("counts")] public IReadOnlyDictionary<string, long> Counts { get; }
     [JsonPropertyName("result")] public string? Result { get; }
+
+    /// <summary>The trial divisor this step tried (Prime Factorization's trial division, #929); null otherwise.</summary>
+    [JsonPropertyName("divisor")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Divisor { get; init; }
+
+    /// <summary>What is left to factor after this step (Prime Factorization's trial division, #929); null otherwise.</summary>
+    [JsonPropertyName("remaining")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Remaining { get; init; }
 
     public QuantumProgress(int applied = 0, IEnumerable<OracleQuery>? queries = null, long? outcome = null,
         IEnumerable<KeyValuePair<string, long>>? counts = null, string? result = null) {
@@ -508,9 +522,9 @@ sealed class QuantumProgress : IEquatable<QuantumProgress> {
     public bool Equals(QuantumProgress? other) =>
         other != null && Applied == other.Applied && Queries.SequenceEqual(other.Queries) && Outcome == other.Outcome
             && Counts.Count == other.Counts.Count && Counts.All(p => other.Counts.TryGetValue(p.Key, out var v) && v == p.Value)
-            && Result == other.Result;
+            && Result == other.Result && Divisor == other.Divisor && Remaining == other.Remaining;
     public override bool Equals(object? obj) => Equals(obj as QuantumProgress);
-    public override int GetHashCode() => HashCode.Combine(Applied, Queries.Length, Outcome, Counts.Count, Result);
+    public override int GetHashCode() => HashCode.Combine(Applied, Queries.Length, Outcome, Counts.Count, Result, Divisor, Remaining);
 }
 
 /// <summary>Empty answers of each shape.</summary>

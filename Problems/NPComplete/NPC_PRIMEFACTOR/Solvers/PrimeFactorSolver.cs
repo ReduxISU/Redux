@@ -33,9 +33,11 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
 
     public string solve(PRIMEFACTOR problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps (the Quantum Circuit picture, which this solver never runs): a Reject for each trial divisor that does not
-    // divide what is left, an Accept for each division that does (the factors so far are the result), an Accept for a last
-    // prime factor, and Done with the verifier's verdict.
+    // Steps (the Quantum Circuit picture, which this solver never runs, and the Formula picture, #929): a Reject for each
+    // trial divisor that does not divide what is left, an Accept for each division that does (the factors so far are the
+    // result), an Accept for a last prime factor, and Done with the verifier's verdict. A Reject and a division's Accept
+    // also carry the divisor i and what is left after the step (Divisor, Remaining); the last prime's Accept and the Done
+    // carry what is left, 1 once every factor is found, and no divisor, since no division happens there.
     public string Solve(PRIMEFACTOR problem, StepRecorder<QuantumProgress> rec) {
         var numberToFactor = BigInteger.Parse(problem.instance);
         var original = numberToFactor;
@@ -52,7 +54,8 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
             if (numberToFactor % i != 0) {
                 var divisor = i;
                 var left = numberToFactor;
-                rec.Reject(() => new QuantumProgress(result: Factors()), () => $"{N(divisor)} does not divide {N(left)}.");
+                rec.Reject(() => new QuantumProgress(result: Factors()) { Divisor = divisor.ToString(), Remaining = left.ToString() },
+                    () => $"{N(divisor)} does not divide {N(left)}.");
             }
             while (numberToFactor % i == 0) {
                 var before = numberToFactor;
@@ -60,7 +63,8 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
                 numberToFactor /= i;
                 var divisor = i;
                 var after = numberToFactor;
-                rec.Accept(() => new QuantumProgress(result: Factors()), () => $"{N(before)} ÷ {N(divisor)} = {N(after)}, so {N(divisor)} is a prime factor.");
+                rec.Accept(() => new QuantumProgress(result: Factors()) { Divisor = divisor.ToString(), Remaining = after.ToString() },
+                    () => $"{N(before)} ÷ {N(divisor)} = {N(after)}, so {N(divisor)} is a prime factor.");
             }
             i++;
         }
@@ -68,13 +72,14 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
         if (numberToFactor > 1) {
             factors.Add(numberToFactor);
             var last = numberToFactor;
-            rec.Accept(() => new QuantumProgress(result: Factors()), () => factors.Count == 1
+            rec.Accept(() => new QuantumProgress(result: Factors()) { Remaining = "1" }, () => factors.Count == 1
                 ? $"No number from 2 to √{N(last)} divides {N(last)}, so {N(last)} is prime."
                 : $"No number from 2 to √{N(last)} divides {N(last)}, so {N(last)} is prime: the last factor.");
         }
 
         string answer = Factors();
-        QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(result: answer),
+        string remaining = (numberToFactor > 1 ? BigInteger.One : numberToFactor).ToString();
+        QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(result: answer) { Remaining = remaining },
             ok => ok ? (factors.Count == 0 ? $"{N(original)} is the empty product: it has no prime factors."
                     : factors.Count == 1 ? $"{N(original)} is prime." : $"{N(original)} = {string.Join(" × ", factors.Select(N))}.")
                 : factors.Count == 0 ? $"No answer: {N(original)} has no prime factorization." : $"The answer {answer} is not correct.");
