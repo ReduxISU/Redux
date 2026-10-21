@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_KNAPSACK.Visualizations;
 /// limit W and value goal V, step by step for the selected solver. The list format draws the set of items, the chosen ones
 /// marked Solution. It is the problem's default visualization.
 /// </summary>
-class KnapsackVisualization : IVisualization<KNAPSACK, API_SET>, IPackingVisualization<KNAPSACK> {
+class KnapsackVisualization : IVisualization<KNAPSACK, API_SET>, IPackingVisualization<KNAPSACK>, IOptInVisualization {
     public string visualizationName { get; } = "Knapsack Visualization";
     public string visualizationDefinition { get; } = "Draws the items with their weights and values, and the knapsack's weight against W and value against V, and shows the selected solver choosing the items.";
     public string source { get; } = "";
