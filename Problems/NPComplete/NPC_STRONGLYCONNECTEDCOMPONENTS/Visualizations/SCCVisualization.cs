@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Visualizations
 /// of the first and the components of the second. The list format draws the graph, and its solved picture the edges that
 /// lie inside a component. It is the problem's default visualization.
 /// </summary>
-class SCCVisualization : IVisualization<STRONGLYCONNECTEDCOMPONENTS, API_GraphJSON>, ILayeredVisualization<STRONGLYCONNECTEDCOMPONENTS> {
+class SCCVisualization : IVisualization<STRONGLYCONNECTEDCOMPONENTS, API_GraphJSON>, ILayeredVisualization<STRONGLYCONNECTEDCOMPONENTS>, IOptInVisualization {
     public string visualizationName { get; } = "Strongly Connected Components Visualization";
     public string visualizationDefinition { get; } = "Draws the directed graph in ranks, left to right, and shows Kosaraju's Algorithm finding the strongly connected components: the first pass numbers the nodes as it finishes them, and the second pass collects each component.";
     public string source { get; } = "";
