@@ -105,13 +105,18 @@ public class NestedSetFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData("SETCOVER", "SetCoverDefaultVisualization", "SetCoverNestedSetVisualization")]
     [InlineData("EXACTCOVER", "ExactCoverDefaultVisualization", "ExactCoverNestedSetVisualization")]
     [InlineData("HITTINGSET", "HittingSetDefaultVisualization", "HittingSetNestedSetVisualization")]
-    public async Task TheProblemsDefault_IsUnchanged_AndTheNestedSetIsListedBesideIt(string problem, string defaultVis, string vis) {
+    public async Task TheProblemsDefault_IsUnchanged_AndTheNestedSetIsListedBesideIt_OnlyForClientsThatOptIn(string problem, string defaultVis, string vis) {
         var p = (IProblem)Activator.CreateInstance(ProblemProvider.Problems[problem.ToLower()])!;
         Assert.Equal(defaultVis, p.defaultVisualization.GetType().Name);
-        var listed = JsonDocument.Parse(await _client.GetStringAsync($"/Navigation/Problem_VisualizationsRefactor?chosenProblem={problem}", TestContext.Current.CancellationToken))
+        async Task<List<string?>> Listed(string extra) => JsonDocument.Parse(await _client.GetStringAsync($"/Navigation/Problem_VisualizationsRefactor?chosenProblem={problem}{extra}", TestContext.Current.CancellationToken))
             .RootElement.EnumerateArray().Select(e => e.GetString()).ToList();
+        // Redux_GUI's list (no opt-in) does not show the Nested Set: it has no renderer for it (#929).
+        var listed = await Listed("");
         Assert.Contains(defaultVis, listed);
-        Assert.Contains(vis, listed);
+        Assert.DoesNotContain(vis, listed);
+        var withPictures = await Listed("&includePictures=true");
+        Assert.Contains(defaultVis, withPictures);
+        Assert.Contains(vis, withPictures);
     }
 
     // ---- format=frames ----

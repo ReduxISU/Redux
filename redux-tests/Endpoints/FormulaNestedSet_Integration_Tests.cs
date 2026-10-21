@@ -40,6 +40,8 @@ public class FormulaNestedSet_Integration_Tests : IClassFixture<AppFactory> {
         // allInfo lists these picture-type views only for clients that opt in (#929).
         var all = JsonDocument.Parse(await _client.GetStringAsync("/Navigation/Batch/allInfo?includePictures=true", TestContext.Current.CancellationToken)).RootElement;
         Assert.Equal((legacy, picture), (all.GetProperty(vis).GetProperty("visualizationType").GetString(), all.GetProperty(vis).GetProperty("pictureType").GetString()));
+        var gui = JsonDocument.Parse(await _client.GetStringAsync("/Navigation/Batch/allInfo", TestContext.Current.CancellationToken)).RootElement;
+        Assert.False(gui.TryGetProperty(vis, out _), $"{vis} is in the allInfo Redux_GUI reads");
     }
 
     // ---- SAT to 3SAT, both sides as formulas ----

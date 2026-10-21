@@ -157,8 +157,11 @@ public class SolverReplay_Tests {
         }
         if (lastPartial is QuantumProgress quantum) {
             // A quantum problem's answer is the certificate itself; the rest (columns applied, oracle calls, the outcome read)
-            // is the run's own, checked in QuantumSolvers_Tests.
-            return new QuantumProgress(quantum.Applied, quantum.Queries, quantum.Outcome, quantum.Counts, answer);
+            // is the run's own, checked in QuantumSolvers_Tests, as are trial division's divisor and what is left (#929), checked in
+            // FormulaProblems_Endpoint_Tests.
+            return new QuantumProgress(quantum.Applied, quantum.Queries, quantum.Outcome, quantum.Counts, answer) {
+                Divisor = quantum.Divisor, Remaining = quantum.Remaining,
+            };
         }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");

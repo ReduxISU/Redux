@@ -91,9 +91,10 @@ static class NestedSetFrames {
 /// <see cref="IBipartiteVisualization{TProblem}"/> it declares only what the problem is (<see cref="Describe"/>), and the frames
 /// hook comes for free. Implement members explicitly so nothing new appears in /info, and declare
 /// <c>Type? IVisualization.StepShape</c> as the Bipartite picture of the same problem does (<see cref="BipartiteFrames.StepShape"/>),
-/// so every solver that draws on the Bipartite Graph draws on the Nested Set too.
+/// so every solver that draws on the Bipartite Graph draws on the Nested Set too. It is an <see cref="IOptInVisualization"/>:
+/// listed only for clients that ask with <c>includePictures=true</c>, since Redux_GUI cannot draw it yet (#929).
 /// </summary>
-interface INestedSetVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+interface INestedSetVisualization<TProblem> : IFramesVisualization, IOptInVisualization where TProblem : IProblem {
     BipartiteSpec Describe(TProblem problem);
 
     /// <summary>
