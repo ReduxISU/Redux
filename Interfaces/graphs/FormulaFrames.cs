@@ -133,9 +133,10 @@ static class FormulaFrames {
 /// A visualization that draws a CNF problem (SAT, 3SAT) as its formula (#925). Like <see cref="IGroupedGraphVisualization{TProblem}"/>
 /// it declares only what the problem is (<see cref="Describe"/>: its clauses), and the frames hook comes for free. Implement
 /// members explicitly so nothing new appears in /info, and declare <c>Type? IVisualization.StepShape =&gt; typeof(Assignment)</c>,
-/// so every solver that draws on the Grouped Graph draws on the Formula too.
+/// so every solver that draws on the Grouped Graph draws on the Formula too. It is an <see cref="IOptInVisualization"/>: listed
+/// only for clients that ask with <c>includePictures=true</c>, since Redux_GUI cannot draw it yet.
 /// </summary>
-interface IFormulaVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+interface IFormulaVisualization<TProblem> : IFramesVisualization, IOptInVisualization where TProblem : IProblem {
     GroupedGraphSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as an assignment. The default accepts <c>(x1:True,x2:False)</c>.</summary>
