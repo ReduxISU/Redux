@@ -1,6 +1,8 @@
 // Drawing tests for formula.js: one pill per literal occurrence, ∧ between clauses and ∨ inside them (not the other way
 // round), state classes read from the frame, the ✓/✗ clause marks, the strip, backend frames through loadFrames, and the
-// SAT ↦ 3SAT pair (hidden clauses during the build, gadget colors).
+// SAT ↦ 3SAT pair (hidden clauses during the build, gadget colors). The proposed generalization: no free-floating text (every
+// <text> inside a g[data-piece]; no FORMULA heading; ASSIGNMENT inside the strip), DNF, an unknown operator, the equation
+// layout with integer chips and frames that rebuild it, 0-1 ILP rows with a Rejected row and its note, and Subset Sum.
 const { load, svg } = require("./dom-shim.js");
 const FV = load("formula.js", "FormulaView");
 let fails = 0;
@@ -67,6 +69,90 @@ const cls = el => el.getAttribute("class") || "";
   v.setGadgetColors(true); v.show(r.frames.length - 1);
   ok(s.querySelectorAll("g.fm-clause").filter(c => / g\d/.test(cls(c))).length === 6, "gadget colors on every clause of both sides");
   ok(r.ok === true && r.frames.at(-1).phase === "map", "the view ends on the mapped answer");
+}
+// The hard rule: every <text> belongs to a piece (an ancestor <g data-piece>) and moves with it; no free-floating heading.
+const floating = s => s.querySelectorAll("text").filter(t => { for (let p = t.parentNode; p && p.tagName !== "svg"; p = p.parentNode) if (p.tagName === "g" && p.getAttribute("data-piece")) return false; return true; });
+const owner = t => { for (let p = t.parentNode; p; p = p.parentNode) if (p.getAttribute && p.getAttribute("data-piece")) return p; return null; };
+{
+  const s = svg(), v = FV.create({ svg: s });
+  v.load("(x1 | !x2) & (x2) & (!x1 | !x2)", "SAT", "dpll");
+  ok(!s.querySelectorAll("text").some(t => /FORMULA/.test(t.textContent)) && !s.querySelectorAll("text.fm-head").length, "no FORMULA · CNF heading");
+  ok(floating(s).length === 0, "every text in the CNF picture belongs to a piece: " + floating(s).map(t => t.textContent).join(" | "));
+  const lab = s.querySelectorAll("text.fm-slabel")[0];
+  ok(lab && lab.textContent === "ASSIGNMENT" && owner(lab).getAttribute("data-piece") === "strip" && owner(lab).querySelectorAll("g.fm-var").length === 2, "ASSIGNMENT is drawn inside the strip, with its chips");
+  const ands = s.querySelectorAll("text.fm-and"), ors = s.querySelectorAll("text.fm-op");
+  ok(ands.every(t => owner(t).getAttribute("data-piece") === "c1" || owner(t).getAttribute("data-piece") === "c2"), "each ∧ belongs to the clause it leads");
+  ok(ors.every(t => /^c\d+$/.test(owner(t).getAttribute("data-piece"))), "each ∨ belongs to its clause");
+  ok(s.querySelectorAll("g.fm-clause")[0].querySelector("text.cid").textContent === "C1", "the clause label stays with its clause");
+}
+{
+  const s = svg(), v = FV.create({ svg: s });
+  const r = v.load("(x1 & !x2) | (!x1 & x3 & x2) | (x2 & !x3)", "DNF", "brute");
+  ok(s.querySelectorAll("text.fm-and").map(t => t.textContent).join() === "∨,∨" && s.querySelectorAll("text.fm-op").map(t => t.textContent).join() === "∧,∧,∧,∧", "DNF draws ∨ between terms and ∧ inside them");
+  ok(s.querySelectorAll("g.fm-clause")[1].querySelector("text.cid").textContent === "D2" && /joined by ∨; the literals inside are joined by ∧ \(DNF\)/.test(r.legend), "DNF labels and legend");
+  v.show(r.frames.length - 1);
+  const C = s.querySelectorAll("g.fm-clause");
+  ok(C.some(c => cls(c) === "fm-clause Covered") && C.some(c => cls(c) === "fm-clause False"), "the true term Covered, the others False: " + C.map(cls).join(" | "));
+  ok(floating(s).length === 0, "DNF: no floating text");
+}
+{
+  // an unknown operator, drawn from a payload alone
+  const s = svg(), v = FV.create({ svg: s });
+  const P = { kind: "formula", layout: "rows", outer: "and", noun: "constraint", groups: [{ id: "g0", label: "G1", expr: { id: "o", op: "xor", args: [{ id: "a1", var: "v:a" }, { id: "b1", var: "v:b" }] } }], variables: [{ id: "v:a", label: "a" }, { id: "v:b", label: "b" }] };
+  v.loadFrames(P, [{ event: "Try", caption: "", focus: [], nodes: { a1: "ElementHighlight" }, groups: {}, assignment: { "v:a": true }, variables: { "v:a": "ElementHighlight" } }]);
+  v.show(0);
+  ok(s.querySelectorAll("g.fm-clause text.fm-op").map(t => t.textContent).join(" ") === "xor( , )" && s.querySelectorAll("g.fm-lit").length === 2, "xor(a, b) is drawn generically");
+  ok(cls(s.querySelectorAll("g.fm-lit")[0]) === "fm-lit ElementHighlight", "its pieces take frame states by id");
+  ok(floating(s).length === 0, "unknown operator: no floating text");
+}
+{
+  // the equation layout with integer chips, and a frame that rebuilds the expression
+  const s = svg(), v = FV.create({ svg: s });
+  const r = v.load("60", "PRIMEFACTOR");
+  ok(s.querySelectorAll("g.fm-lit").map(g => g.querySelector("text").textContent).join(" ") === "60 ?" && s.querySelectorAll("text.fm-op").map(t => t.textContent).join() === "=", "instance: 60 = ?");
+  ok(s.querySelectorAll("g.fm-clause.fm-eq").length === 1 && s.querySelectorAll("g.fm-lit.fm-num").length === 2, "an unboxed equation of numbers");
+  v.show(2);
+  ok(s.querySelectorAll("g.fm-lit").map(g => g.querySelector("text").textContent).join(" ") === "60 2 2 15" && s.querySelectorAll("text.fm-op").map(t => t.textContent).join(" ") === "= × ×", "step 2: 60 = 2 × 2 × 15");
+  const V = s.querySelectorAll("g.fm-var");
+  ok(V.map(g => g.querySelector("text").textContent).join(" | ") === "i= 2 | rest= 15", "integer chips: " + V.map(g => g.querySelector("text").textContent).join(" | "));
+  ok(cls(s.querySelectorAll("g.fm-lit")[2]) === "fm-lit fm-num ElementHighlight" && cls(s.querySelectorAll("g.fm-lit")[1]) === "fm-lit fm-num Committed", "the new factor highlighted, the kept one Committed");
+  v.show(r.frames.length - 1);
+  ok(s.querySelectorAll("g.fm-lit").map(g => g.querySelector("text").textContent).join(" ") === "60 2 2 3 5" && s.querySelectorAll("g.fm-clause")[0].querySelector("text.mark").textContent === "✓", "Done: 60 = 2 × 2 × 3 × 5 ✓");
+  ok(floating(s).length === 0, "equation: no floating text");
+  v.show(null);
+  ok(s.querySelectorAll("g.fm-lit").length === 2, "back to the instance: the payload's own expression");
+}
+{
+  // 0-1 ILP: stacked rows, a Rejected row with its note, 0/1 chips
+  const s = svg(), v = FV.create({ svg: s });
+  const r = v.load("(2 3 -1),(-1 -1 0),(1 0 4)<=(5 -1 4)", "INTPROGRAMMING01");
+  v.show(1);
+  const C = s.querySelectorAll("g.fm-clause");
+  ok(cls(C[1]) === "fm-clause Rejected" && C[1].querySelector("text.mark").textContent === "✗" && C[1].querySelector("text.note").textContent === "total 0 > −1", "row 2 Rejected, with ✗ and its total");
+  ok(cls(C[0]) === "fm-clause Covered" && C[0].querySelector("text.note").textContent === "total 0 ≤ 5", "row 1 holds");
+  ok(s.querySelectorAll("g.fm-var").every(g => g.querySelector("tspan.val").textContent === "= 0") && s.querySelectorAll("g.fm-var").every(g => cls(g) === "fm-var False"), "every chip = 0, False");
+  ok(C[0].querySelector("text.fm-and") === null && C[1].querySelector("text.fm-and").textContent === "∧", "∧ leads each later row, inside it");
+  v.show(r.frames.length - 1);
+  ok(s.querySelectorAll("g.fm-clause").every(c => cls(c) === "fm-clause Covered"), "the answer: every row Covered");
+  ok(floating(s).length === 0, "ILP: no floating text");
+}
+{
+  // Subset Sum: Σ(…) = T
+  const s = svg(), v = FV.create({ svg: s });
+  v.load("({1,7,12,15},28)", "SUBSETSUM");
+  ok(s.querySelectorAll("text.fm-op").map(t => t.textContent).join(" ") === "Σ( , , , ) =", "Σ(1, 7, 12, 15) = 28");
+  v.show(3);
+  const L = s.querySelectorAll("g.fm-lit");
+  ok(cls(L[2]) === "fm-lit fm-num False on-rej" && cls(L[0]) === "fm-lit fm-num ElementHighlight", "a number left out is False (struck; on-rej in a failed equation), a chosen one highlighted: " + cls(L[2]));
+  ok(floating(s).length === 0, "Subset Sum: no floating text");
+}
+{
+  // the SAT ↦ 3SAT pair: pane titles and the arrow belong to their pane / the separator
+  const s = svg(), v = FV.createPair({ svg: s });
+  v.load("(x1 | x2 | x3 | x4 | x5) & (x1)", "KARP_SAT3");
+  ok(floating(s).length === 0, "the pair: no floating text: " + floating(s).map(t => t.textContent).join(" | "));
+  ok(!s.querySelectorAll("text").some(t => /FORMULA/.test(t.textContent)), "the pair: no FORMULA · CNF headings");
+  ok(s.querySelectorAll("text.fm-pane-title").every(t => /^pane:/.test(owner(t).getAttribute("data-piece"))), "pane titles inside their panes");
 }
 console.log(fails ? `${fails} FAILURES` : "ALL PASS");
 process.exit(fails ? 1 : 0);

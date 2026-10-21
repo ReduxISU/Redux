@@ -1852,7 +1852,7 @@ function showVizBlock() {
   const vz = (p.vizzes || [[null, p.viz, p.vizType]]).find(v => v[0] === null || v[0] === satView) || [null, p.viz, p.vizType];
   $("vizVal").textContent = vz[1]; $("vizTag").textContent = vz[2];
   $("pv-title").textContent = vz[1]; $("pv-type").textContent = vz[2];
-  if (isFormula()) $("pv-def").textContent = "The formula as written: clause boxes joined by ∧, literals inside a clause joined by ∨. The strip under it shows each variable's value. Proposed.";
+  if (isFormula()) $("pv-def").textContent = "The formula as written. " + (FMR ? FMR.legend : FormulaView.legend({ kind: "formula", layout: "cnf", groups: [], variables: [{ id: "v:x1", label: "x1" }] })) + " Proposed.";
   else if (isNested()) $("pv-def").textContent = "Elements as dots on a circle, each set a rounded region around its own elements. Falls back to a set list when the regions can't be drawn cleanly. Proposed.";
   else if (P === "SAT3") $("pv-def").textContent = satView === "factor"
     ? "Variables on the left, clauses on the right. A solid edge means the clause contains x, and a dashed edge means it contains ¬x. Edges a variable makes true turn green."

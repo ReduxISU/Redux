@@ -49,6 +49,8 @@
 .instbox .err { color: var(--s-rej); font-size: 13px; }
 .instbox.bad textarea { border-color: var(--s-rej); }
 .instbox .fmt { font-size: 12px; color: var(--muted); }
+.fm-legend { font-size: 13px; color: var(--muted); max-width: 80ch; margin: 0 4px; }
+#fm-note { font-size: 12px; }
 .active-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .active-list span { font: 13px var(--mono); border: 1px solid var(--s-hl); border-radius: 7px; padding: 3px 10px; }
 .active-list span.acc { border-color: var(--s-sol); color: var(--s-sol); }
@@ -244,6 +246,8 @@ pre .k { color: var(--accent); }
   .dscroll { overflow-x: auto; overscroll-behavior-x: contain; }
   .dscroll > svg { min-width: 560px; }
   .dscroll > svg#rd-g, .dscroll > svg#rdg, .dscroll > svg#rdf-g { min-width: 960px; }
+  .dscroll > svg#fm-g { min-width: 0; }
+  .dscroll:has(> svg#fm-g)::after { content: none; }
   .dscroll::after { content: "Swipe the diagram sideways to see all of it."; display: block; position: sticky; left: 0; font-size: 12px; padding-top: 4px; }
 }
 .dscroll::after { color: var(--muted); }
@@ -273,7 +277,7 @@ pre .k { color: var(--accent); }
 <div class="wrap">
   <div class="tabs" role="tablist" aria-label="Visualization">
     <button role="tab" id="t-clause" aria-selected="true" aria-controls="tab-clause">SAT <small>Clause Graph, Factor Graph</small></button>
-    <button role="tab" id="t-formula" aria-selected="false" aria-controls="tab-formula">Formula <small>SAT, 3SAT · proposed</small></button>
+    <button role="tab" id="t-formula" aria-selected="false" aria-controls="tab-formula">Formula <small>SAT, 3SAT, 0-1 ILP, +2 · proposed</small></button>
     <button role="tab" id="t-auto" aria-selected="false" aria-controls="tab-auto">Automaton <small>DFA, NFA</small></button>
     <button role="tab" id="t-graph" aria-selected="false" aria-controls="tab-graph">Graph <small>Clique, Vertex Cover, MST, TSP, +11</small></button>
     <button role="tab" id="t-flow" aria-selected="false" aria-controls="tab-flow">Flow Network <small>Minimum S-T Cut</small></button>
@@ -403,9 +407,10 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
 
   <div class="tab" id="tab-formula" role="tabpanel" aria-labelledby="t-formula" hidden>
     <header>
-      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Formula</b> · SAT, 3SAT · a second picture next to the Clause Graph and Factor Graph</div>
+      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Formula</b> · SAT, 3SAT, Prime Factorization, 0-1 Integer Linear Programming, Subset Sum · a second picture next to each problem's default</div>
       <div class="title-row"><h1>Formula</h1><span class="chip prop">proposed · for review</span></div>
-      <p class="lede">The formula itself, the way it is written. Each clause is a box, the literals inside it are joined by ∨, and the boxes are joined by ∧. A long formula wraps onto more lines between clauses. The strip underneath shows each variable's value so far. It uses the Clause Graph's ids and frames, so the three SAT pictures color the same literal the same way. Hover a literal, a clause or a variable to trace it.</p>
+      <p class="lede">The formula itself, the way it is written, drawn from the payload alone: the frontend knows no problem. The payload's <code>layout</code> picks the drawing (<code>cnf</code> and <code>dnf</code> are presets of <code>rows</code>; <code>equation</code> writes one expression per line), its groups hold literal lists or expression trees with an id on every piece, and its operators are names drawn from one shared table. The strip underneath shows each variable's value so far, true/false or a number. SAT and 3SAT keep the Clause Graph's ids and frames, so the three SAT pictures color the same literal the same way. Hover a piece, a group or a variable to trace it.</p>
+      <p class="lede"><b>Proposed generalization, pending approval.</b> The SAT/3SAT payload the backend sends today (<code>layout: "cnf"</code>) draws exactly as before; the other examples need the extended payload described under Input contract.</p>
     </header>
 
     <div class="instbox" id="fm-box">
@@ -424,16 +429,15 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap">
             <label class="sel">Problem
-              <select id="fm-prob">
-                <option value="SAT">SAT</option>
-                <option value="SAT3">3SAT</option>
-              </select>
+              <select id="fm-prob"></select>
             </label>
             <label class="sel">Solver <select id="fm-solver-sel"></select></label>
             <label class="sel">Example <select id="fm-ex"></select></label>
           </div>
         </div>
-        <svg id="fm-g" role="img" aria-label="The formula, clause by clause, with the assignment"></svg>
+        <svg id="fm-g" role="img" aria-label="The formula, piece by piece, with the variables' values"></svg>
+        <p class="fm-legend" id="fm-legend"></p>
+        <p class="fm-legend" id="fm-note" hidden></p>
       </div>
 
       <aside class="card side">
@@ -454,35 +458,54 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
         </div>
         <div class="legend">
           <h3>Key</h3>
-          <div class="row"><span class="sw bg"></span><div>Background<small>A literal whose variable isn't assigned yet</small></div></div>
-          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The variable being tried, on every literal it makes true, and its chip</small></div></div>
-          <div class="row"><span class="sw com"></span><div>Committed<small>A true literal a step-by-step solver has kept so far. Dashed outline</small></div></div>
-          <div class="row"><span class="sw sol"></span><div>Solution<small>A true literal of the confirmed answer only</small></div></div>
-          <div class="row"><span class="sw fmfal">x</span><div>False<small>The literal is false under the assignment. Its letters are struck through, the subscript left clear</small></div></div>
-          <div class="row"><span class="sw cov"></span><div>Covered<small>A clause with a true literal. Marked ✓</small></div></div>
-          <div class="row"><span class="sw rej"></span><div>Rejected<small>A clause whose literals are all false, with its literals. Marked ✗. On a run that found nothing, its picks</small></div></div>
+          <div class="row"><span class="sw bg"></span><div>Background<small>A literal whose variable isn't assigned yet; a number drawn plain</small></div></div>
+          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>What the step is trying: the variable on every literal it makes true and its chip, a candidate's chosen numbers, a factor just found</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>Kept so far by a step-by-step solver (a true literal, a factor found). Dashed outline</small></div></div>
+          <div class="row"><span class="sw sol"></span><div>Solution<small>Part of the confirmed answer only</small></div></div>
+          <div class="row"><span class="sw fmfal">x</span><div>False<small>A false literal, a number left out, a 0 variable, a DNF term with a false literal. Letters struck through, the subscript left clear</small></div></div>
+          <div class="row"><span class="sw cov"></span><div>Covered<small>A clause, term, constraint or equation that holds. Marked ✓</small></div></div>
+          <div class="row"><span class="sw rej"></span><div>Rejected<small>A clause with every literal false, a constraint over its bound, an equation that fails, a divisor that doesn't divide. Marked ✗. On a run that found nothing, its picks</small></div></div>
         </div>
       </aside>
     </div>
 
     <div class="lower">
       <section class="card panel">
-        <h2>Input contract</h2>
-        <p>SAT and 3SAT already hand over <code>GroupedGraphSpec(Clauses, Variables)</code> for the Clause Graph and the Factor Graph. The Formula picture reads the same spec and the same <code>Assignment</code> steps, so every SAT solver animates on it with no extra code. Proposed classes: <code>SatFormulaVisualization</code> and <code>Sat3FormulaVisualization</code>, selectable next to the default.</p>
-<pre><span class="c">// payload: the Grouped Graph's groups, nodes and variables, without its edges</span>
+        <h2>Input contract <span class="chip prop">proposed · pending approval</span></h2>
+        <p>Today SAT and 3SAT hand over <code>GroupedGraphSpec(Clauses, Variables)</code> and the Formula reads it with <code>layout: "cnf"</code>; that payload still draws exactly as before. The proposal generalizes the payload so any formula-shaped problem can use the picture with no problem-specific frontend code. Everything new is optional, so today's payload stays valid.</p>
+<pre><span class="c">// today (unchanged): groups = clauses, nodes = literal occurrences</span>
 { <span class="k">"kind"</span>: "formula", <span class="k">"layout"</span>: "cnf", "shape": "assignment", "rule": "satisfiability",
   <span class="k">"groups"</span>:    [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"] }],
-  <span class="k">"nodes"</span>:     [{ "id": "c0-1", "label": "¬x2", "variable": "v:x2",
-                 "positive": false, "group": "c0" }],
+  <span class="k">"nodes"</span>:     [{ "id": "c0-1", "label": "¬x2", "variable": "v:x2", "positive": false, "group": "c0" }],
   <span class="k">"variables"</span>: [{ "id": "v:x2", "label": "x2" }] }
 
-<span class="c">// frame: the Grouped Graph frame, plus one map for the strip</span>
+<span class="c">// "dnf": the same, operators swapped. "rows": explicit operators, and groups may hold an expression tree</span>
+{ "kind": "formula", <span class="k">"layout"</span>: "rows", <span class="k">"outer"</span>: "and", <span class="k">"inner"</span>: "or",
+  <span class="k">"arrange"</span>: "stack", <span class="k">"noun"</span>: "constraint",          <span class="c">// "flow" (default) packs boxes left to right</span>
+  "groups": [{ "id": "r0", "label": "R1",
+    <span class="k">"expr"</span>: { "id": "r0-rel", "op": "le", "args": [
+      { "id": "r0-s0", "op": "plus", "args": [
+        { "op": "mul", "args": [{ "id": "r0-c0", "num": 2, "variable": "v:x1" }, { "id": "r0-x0", "var": "v:x1" }] },
+        { "id": "r0-x1", "var": "v:x2" }] },
+      { "id": "r0-d", "num": 5 }] } }],
+  "variables": [{ "id": "v:x1", "label": "x1", <span class="k">"type"</span>: "int", <span class="k">"range"</span>: [0, 1] }] }
+
+<span class="c">// "equation": one expression per line, no box until it has a state ("tree" is reserved, drawn like this for now)</span>
+{ "kind": "formula", <span class="k">"layout"</span>: "equation",
+  "groups": [{ "id": "e0", "label": "", "expr": { "id": "eq", "op": "eq", "args": [
+    { "id": "sum", "op": "sum", "args": [{ "id": "s0", "num": 1, "variable": "v:x1" }, …] }, { "id": "T", "num": 28 }] } }],
+  "variables": [{ "id": "v:x1", "label": "x1", "type": "int", "range": [0, 1] }] }
+
+<span class="c">// frame: as today, plus a note per group and, optionally, a replacement expression per group</span>
 { "event", "caption", "focus", "step", "ok"?,
-  <span class="k">"nodes"</span>:  { "c0-1": { "state": "False" } },        <span class="c">// literals</span>
-  <span class="k">"groups"</span>: { "c0": { "state": "Covered" } },        <span class="c">// clauses</span>
-  <span class="k">"assignment"</span>: { "v:x2": true },
-  <span class="k">"variables"</span>:  { "v:x2": { "state": "Committed" } } }</pre>
-        <p>Layout is plain arithmetic, so it ports to D3 or React as is: literal width from its label, clauses packed left to right and wrapped at a clause boundary, a clause wider than a line wrapped at its ∨s. Every state carries a mark besides its color: dashes for Committed, a strike through the letters (not the subscript) for False, ✓ and ✗ on the clause.</p>
+  <span class="k">"nodes"</span>:  { "r0-x0": { "state": "Rejected" } },          <span class="c">// any piece id</span>
+  <span class="k">"groups"</span>: { "r0": { "state": "Rejected", <span class="k">"note"</span>: "total 6 > 5" } },
+  <span class="k">"assignment"</span>: { "v:x1": 1 },                           <span class="c">// bool or number</span>
+  <span class="k">"variables"</span>:  { "v:x1": { "state": "ElementHighlight" } },
+  <span class="k">"exprs"</span>?: { "e0": { … } } }                              <span class="c">// a solver that builds the formula</span></pre>
+        <p><b>Expression pieces.</b> <code>{ id, var }</code> a variable occurrence (a pill), <code>{ id, num, variable? }</code> a number (plain until it has a state; <code>variable</code> ties it to a chip), <code>{ id, label }</code> a placeholder, <code>{ id?, op, args }</code> an operator. A piece keeps its id across frames, so states, gadgets and the verifier's "where it fails" can target it.</p>
+        <p><b>One operator table</b> (<code>OPS</code> in formula.js): <code>or</code> ∨, <code>and</code> ∧, <code>not</code> ¬, <code>plus</code> +, <code>minus</code> −, <code>times</code> ×, <code>mul</code> (juxtaposition, 2x), <code>neg</code> −, <code>eq</code> =, <code>le</code> ≤, <code>ge</code> ≥, <code>lt</code> &lt;, <code>gt</code> &gt;, <code>sum</code> Σ(…). Each has a fixity (infix, prefix, juxtaposition, call) and a precedence that decides parentheses. An unknown name is drawn <code>name(a, b)</code>, never an error.</p>
+        <p>Layout is plain arithmetic, so it ports to D3 or React as is: piece width from its label, groups packed left to right (or stacked) and wrapped at group boundaries; a group or equation wider than a line wraps at its shallowest operators first, the operator leading the new line. The legend under the picture is derived from the layout and operators. No text floats in the picture: every label, mark, note and operator symbol is drawn inside the piece it belongs to.</p>
       </section>
 
       <section class="card panel">
@@ -492,6 +515,10 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
           <li><b>The variables map.</b> The frame adds <code>variables</code> for the strip. Keep it, or have the frontend work the chips out from <code>assignment</code> and <code>focus</code>?</li>
           <li><b>Repeated literals.</b> A clause like (x1 ∨ x1 ∨ x2) is drawn as written, one pill per occurrence, because the ids are per occurrence. Merge them instead?</li>
           <li><b>Failed runs.</b> Redux's SAT solvers end an unsatisfiable run with no assignment, so that last frame is drawn blank apart from its caption. Should it mark every clause Rejected instead? (The mockup's brute force ends on its last candidate, to show the Rejected rule.)</li>
+          <li><b>Generalized payload.</b> Approve <code>rows</code> / <code>equation</code>, expression trees and the operator table as the Formula contract? <code>tree</code> (nested formulas drawn as a tree) is reserved but not designed.</li>
+          <li><b>Which problems get it.</b> Prime Factorization, 0-1 Integer Linear Programming and Subset Sum are shown here as second views (their defaults stay Quantum Circuit, Table and Packing). Worth it for all three?</li>
+          <li><b>Formula steps for those solvers.</b> They record <code>QuantumProgress</code>, <code>Assignment</code> and <code>Placement</code> steps. Prime Factorization's would also need the divisor i and what is left; the frames builder would emit the <code>exprs</code> replacement and the row notes.</li>
+          <li><b>Group notes.</b> A note (like "total 6 &gt; 5") sits after a group's label. In the flowing layout a long note could reach the next box; keep notes to stacked rows and equations?</li>
         </ol>
       </section>
     </div>
@@ -3645,47 +3672,65 @@ let bTimer;
 $("b-inst").addEventListener("input", e => { clearTimeout(bTimer); bTimer = setTimeout(() => bLoad(e.target.value), 350); });
 bProblem("SETCOVER");
 
-/* ---- Formula view (SAT, 3SAT): the CNF itself, shared by both mockups ----
-   Clause boxes joined by ∧, literals inside a clause joined by ∨, negation written ¬x, and an assignment strip under it.
-   Long formulas wrap at clause boundaries; a clause too long for one line wraps at its ∨s.
-   Ids and frames are the Grouped Graph's (clause c{i}, literal occurrence c{i}-{j}, variable v:{name}), so the Grouped Graph,
-   the Factor Graph and this picture color together and the Reduction View matches gadgets on them. A frame adds one map,
-   `variables`, for the assignment strip. Also the SAT ↦ 3SAT Reduction View pair (Karp's 3SAT Reduction), both sides drawn
-   as formulas. Pages supply --av-* tokens. */
+/* ---- Formula view: a formula drawn from its payload alone (proposed generalization, pending approval) ----
+   The renderer knows no problem. The payload's `layout` picks the drawing:
+     "rows"      groups as boxes joined by an OUTER operator, each group's content joined by an INNER operator (or given
+                 as an expression tree); boxes flow left to right and wrap ("flow"), or take a line each ("stack").
+     "cnf"/"dnf" presets of "rows": CNF = ∧ outside, ∨ inside; DNF = ∨ outside, ∧ inside.
+     "equation"  each group is one expression on its own line(s), wrapped at its top-level operators.
+     "tree"      reserved for nested formulas; drawn as "equation" until it is built.
+   Operators are referenced by name and drawn from ONE table (OPS); an unknown name is written name(a, b).
+   Every piece that can change state has a stable id, so frames, gadgets and the verifier can target it. A frame may also
+   replace a group's expression (`exprs`), for solvers that build the formula as they go (Prime Factorization).
+   Every <text> belongs to a piece's <g> (data-piece) and moves with it; picture-wide facts are in legend(P), drawn
+   outside the SVG. SAT/3SAT keep the Grouped Graph's ids and frames (clause c{i}, literal occurrence c{i}-{j}, variable
+   v:{name}), so the Grouped Graph, the Factor Graph and this picture color together. Also the SAT ↦ 3SAT Reduction View
+   pair (Karp's 3SAT Reduction), both sides drawn as formulas. Pages supply --av-* tokens.
+
+   Sections: styles · operators · payload model (normalize) · legend · layout · drawing · SAT/3SAT/DNF (parse, frames,
+   reference solvers) · Prime Factorization · 0-1 ILP · Subset Sum · problem catalog · the picture · Karp's reduction pair. */
 const FormulaView = (() => {
   const NS = "http://www.w3.org/2000/svg";
   const mk = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
   const SUBS = "₀₁₂₃₄₅₆₇₈₉";
   const pretty = nm => { const m = /^([A-Za-z_]+)(\d+)$/.exec(nm); return m ? m[1] + m[2].split("").map(d => SUBS[d]).join("") : nm; };
+  // Numbers as drawn: a real minus sign. Captions follow Redux's N0 format (thousands separators).
+  const fmtNum = n => (n < 0 ? "−" + -n : String(n));
+  const N0 = n => n.toLocaleString("en-US");
 
   const css = `
 .fm-svg { width: 100%; height: auto; display: block; }
 .fm-svg text { font-family: var(--av-mono); }
-.fm-head { font-size: 11px; font-weight: 600; letter-spacing: .08em; fill: var(--av-muted); }
+.fm-slabel { font-size: 11px; font-weight: 600; letter-spacing: .08em; fill: var(--av-muted); }
 .fm-clause { cursor: pointer; }
 .fm-clause:focus { outline: none; }
 .fm-clause .box { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.6; transition: fill .2s, stroke .2s; }
+.fm-clause.fm-eq .box { fill: none; stroke: none; pointer-events: all; }
 .fm-clause .cid { font-size: 11px; font-weight: 600; fill: var(--av-muted); dominant-baseline: central; }
 .fm-clause .mark { font-size: 12px; font-weight: 700; dominant-baseline: central; }
+.fm-clause .note { font-size: 11.5px; fill: var(--av-muted); dominant-baseline: central; }
 .fm-clause.Covered .box { fill: var(--av-sol-fill); stroke: var(--av-sol); stroke-width: 2.2; }
-.fm-clause.Covered .mark { fill: var(--av-sol-ink); }
+.fm-clause.Covered .mark, .fm-clause.Covered .note { fill: var(--av-sol-ink); }
+.fm-clause.False .box { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; }
 .fm-clause.ElementHighlight .box { stroke: var(--av-hl); stroke-width: 3; }
 .fm-clause.Rejected .box { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; }
-.fm-clause.Rejected .cid, .fm-clause.Rejected .mark { fill: var(--av-rej-ink); }
+.fm-clause.Rejected .cid, .fm-clause.Rejected .mark, .fm-clause.Rejected .note { fill: var(--av-rej-ink); }
 .fm-clause.trace .box, .fm-clause:focus-visible .box { stroke: var(--av-hot); stroke-width: 3; }
 .fm-clause.faint { filter: grayscale(1); } .fm-clause.faint .box { stroke-dasharray: 3 3; }
 .fm-op { font-size: 14px; fill: var(--av-muted); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-.fm-and { font-size: 17px; font-weight: 600; fill: var(--av-ink); text-anchor: middle; dominant-baseline: central; }
+.fm-and { font-size: 17px; font-weight: 600; fill: var(--av-ink); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .fm-lit { cursor: pointer; }
 .fm-lit:focus { outline: none; }
 .fm-lit rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.4; transition: fill .2s, stroke .2s; }
 .fm-lit text { font-size: 15px; text-anchor: start; dominant-baseline: central; fill: var(--av-ink); pointer-events: none; }
+.fm-lit.fm-num.Background rect { fill: none; stroke: none; }
 .fm-lit.ElementHighlight rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; }
 .fm-lit.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .fm-lit.Solution text { fill: var(--av-on-sol); font-weight: 600; }
 .fm-lit.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .fm-lit.Committed text { fill: var(--av-com-ink); font-weight: 600; }
 .fm-lit .strike { display: none; }
 .fm-lit.False rect { fill: var(--av-surface); stroke: var(--av-stroke); stroke-dasharray: 2 3; } .fm-lit.False text { fill: var(--av-muted); }
 .fm-lit.False .strike { display: inline; stroke: var(--av-muted); stroke-width: 1.6; }
+.fm-lit.False.on-rej rect { stroke: var(--av-muted); }
 .fm-lit.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 2.6; } .fm-lit.Rejected text { fill: var(--av-rej-ink); font-weight: 600; }
 .fm-lit.trace rect, .fm-lit:focus-visible rect { stroke: var(--av-hot); stroke-width: 3; stroke-dasharray: none; }
 .fm-lit.faint { filter: grayscale(1); } .fm-lit.faint rect { stroke-dasharray: 3 3; }
@@ -3714,7 +3759,337 @@ const FormulaView = (() => {
     if (!document.getElementById("fm-style")) { const st = document.createElement("style"); st.id = "fm-style"; st.textContent = css; document.head.appendChild(st); }
   }
 
-  /* ---------- the instance ---------- */
+  /* ---------- operators: the one shared table ---------- */
+
+  // fix: "infix" (a ∨ b ∨ c, n-ary), "prefix" (¬a), "juxt" (2x, no symbol), "call" (Σ(a, b)). prec decides parentheses:
+  // a child binding looser than its parent is wrapped; relations (prec 0) never chain unwrapped. assoc: a same-operator
+  // child on the right needs no parentheses. rel: how the legend reads a relation.
+  const OPS = {
+    or:    { sym: "∨", fix: "infix", prec: 1, assoc: true, word: "or" },
+    and:   { sym: "∧", fix: "infix", prec: 2, assoc: true, word: "and" },
+    eq:    { sym: "=", fix: "infix", prec: 0, rel: "both sides are equal" },
+    le:    { sym: "≤", fix: "infix", prec: 0, rel: "the left side is at most the right side" },
+    ge:    { sym: "≥", fix: "infix", prec: 0, rel: "the left side is at least the right side" },
+    lt:    { sym: "<", fix: "infix", prec: 0, rel: "the left side is less than the right side" },
+    gt:    { sym: ">", fix: "infix", prec: 0, rel: "the left side is more than the right side" },
+    plus:  { sym: "+", fix: "infix", prec: 3, assoc: true },
+    minus: { sym: "−", fix: "infix", prec: 3 },
+    times: { sym: "×", fix: "infix", prec: 4, assoc: true },
+    mul:   { sym: "", fix: "juxt", prec: 4 },
+    not:   { sym: "¬", fix: "prefix", prec: 6 },
+    neg:   { sym: "−", fix: "prefix", prec: 6 },
+    sum:   { sym: "Σ", fix: "call", prec: 9, says: "Σ(…) adds up what is inside" },
+  };
+  const opInfo = name => OPS[name] || { sym: String(name), fix: "call", prec: 9, unknown: true };
+  // the layout presets: CNF and DNF are "rows" with their operators fixed
+  const PRESETS = { cnf: { outer: "and", inner: "or", noun: "clause" }, dnf: { outer: "or", inner: "and", noun: "term" } };
+
+  /* ---------- sizes ---------- */
+
+  const CW = 9, PH = 30, PAD = 9, BH = PH + 2 * PAD, OR_W = 24, AND_W = 34, LABEL_H = 18, ROW_GAP = 16, VW = 66, VH = 30;
+  const PRE_W = 12, PAREN_W = 10, COMMA_W = 12, OP_CW = 8.4; // operator text is 14 px mono: 8.4 per character
+  const TOP = 10, MIN_W = 320, MAX_W = 800;
+  // Labels: a name of letters then digits (x10) is drawn as its letters with the digits as a real subscript, at SUBF of the
+  // label size; any other name (a, foo_2, 60) is drawn plain. Mono, so a width is characters × CW (CW at the 15 px size).
+  const LIT_PX = 15, VAR_PX = 14, SUBF = 0.78;
+  const split = nm => { const m = /^([A-Za-z]+)(\d+)$/.exec(nm); return m ? { base: m[1], sub: m[2] } : { base: nm, sub: "" }; };
+  const labelW = (neg, nm, px = LIT_PX) => { const p = split(nm); return ((neg ? 1 : 0) + p.base.length + p.sub.length * SUBF) * CW * px / LIT_PX; };
+  const pillW = (neg, nm) => Math.max(34, labelW(neg, nm) + 18);
+  const numW = text => Math.max(22, labelW(false, text) + 12);
+  /** Writes a label into a <text> drawn from its left edge x0: base (with ¬), then the subscript a little lower. */
+  function drawLabel(t, neg, nm, px) {
+    t.textContent = "";
+    const p = split(nm), shift = +(0.32 * px).toFixed(1);
+    mk("tspan", { class: "base" }, t).textContent = (neg ? "¬" : "") + p.base;
+    if (p.sub) mk("tspan", { class: "sub", "font-size": +(SUBF * px).toFixed(1), dy: shift }, t).textContent = p.sub;
+    return { p, shift: p.sub ? shift : 0 };
+  }
+
+  /* ---------- the payload model: any layout to groups of tokens ---------- */
+
+  // An expression is a tree of
+  //   { id, var: "v:x1" }                 a variable occurrence (a pill, labelled with the variable's label)
+  //   { id, num: 7, variable?: "v:x2" }    a number (plain text until it has a state); `variable` ties it to a chip
+  //   { id, label: "?", variable? }        a placeholder, drawn like a number
+  //   { id?, op: "plus", args: [...] }     an operator node, by name; `not` over a variable occurrence folds into one ¬x pill
+  // A group with `members` (the CNF/DNF literal list) is the same as an `inner` operator over its literals.
+  // Tokens: pieces ({ t: "piece", kind: "lit"|"num", id, ... }) and symbols ({ t: "sym", text, w, owner, brk }). `brk` is
+  // the nesting depth a line may break at, before that token: the formula wraps at its shallowest operators first.
+  function exprTokens(expr, varIndex, gid) {
+    const out = []; let auto = 0;
+    const leaf = n => {
+      if (n.node) { const neg = n.node.positive === false, name = neg ? String(n.node.label).slice(1) : String(n.node.label); return { t: "piece", kind: "lit", id: n.node.id, name, neg, text: String(n.node.label), variable: n.node.variable || null, w: pillW(neg, name) }; }
+      if (n.var !== undefined) { const v = varIndex.get(n.var), name = String(n.label ?? (v ? v.label : n.var)); return { t: "piece", kind: "lit", id: n.id, name, neg: false, text: name, variable: n.var, w: pillW(false, name) }; }
+      const text = n.num !== undefined && n.num !== null ? fmtNum(n.num) : String(n.label ?? "?");
+      return { t: "piece", kind: "num", id: n.id, name: text, neg: false, text, variable: n.variable || null, w: numW(text) };
+    };
+    const sym = (text, w, owner, brk) => { const s = { t: "sym", text, w, owner }; if (brk !== undefined) s.brk = brk; out.push(s); return s; };
+    function walk(n, depth) {
+      if (!n.op) { out.push(leaf(n)); return; }
+      const info = opInfo(n.op), owner = n.id || `${gid}/op${auto++}`, args = n.args || [];
+      if (n.op === "not" && args.length === 1 && !args[0].op && (args[0].var !== undefined || args[0].node)) {
+        const p = leaf(args[0]); p.neg = !p.neg; p.text = (p.neg ? "¬" : "") + p.name; p.w = pillW(p.neg, p.name); out.push(p); return;
+      }
+      const sub = (c, k) => {
+        const ci = c.op ? opInfo(c.op) : null;
+        let paren = false;
+        if (ci && info.fix !== "call") {
+          if (ci.prec < info.prec) paren = true;
+          else if (ci.prec === info.prec && info.fix === "infix") paren = info.prec === 0 || (k > 0 && !(info.assoc && c.op === n.op));
+          else if (ci.prec === info.prec && info.fix === "juxt") paren = k > 0;
+        }
+        // same-precedence chains (a + b − c) are one level, so they wrap together
+        const d = info.fix === "call" || paren || (ci && ci.prec !== info.prec) ? depth + 1 : depth;
+        if (paren) sym("(", PAREN_W, owner);
+        walk(c, d);
+        if (paren) sym(")", PAREN_W, owner);
+      };
+      if (info.fix === "infix") args.forEach((c, k) => { if (k) sym(info.sym, OR_W, owner, depth); sub(c, k); });
+      else if (info.fix === "prefix") { sym(info.sym, PRE_W, owner); args.forEach(sub); }
+      else if (info.fix === "juxt") args.forEach(sub);
+      else {
+        sym(info.sym + "(", info.sym.length * OP_CW + PAREN_W, owner);
+        args.forEach((c, k) => {
+          if (k) sym(",", COMMA_W, owner);
+          const at = out.length;
+          sub(c, k);
+          if (k && out[at] && out[at].brk === undefined) out[at].brk = depth + 1; // a call wraps after its commas
+        });
+        sym(")", PAREN_W, owner);
+      }
+    }
+    walk(expr, 0);
+    return out;
+  }
+
+  const NORM = new WeakMap();
+  /** The payload as layout reads it: { layout: "rows" | "equation", outer, inner, arrange, noun, groups: [{ id, label, tokens }], vars }. */
+  function normalize(P) {
+    if (NORM.has(P)) return NORM.get(P);
+    const preset = PRESETS[P.layout] || null;
+    const eq = P.layout === "equation" || P.layout === "tree";
+    const outer = eq ? null : P.outer || (preset && preset.outer) || "and";
+    const inner = P.inner || (preset && preset.inner) || "or";
+    const vars = (P.variables || []).map(v => ({ ...v, type: v.type || "bool" }));
+    const varIndex = new Map(vars.map(v => [v.id, v]));
+    const nodeIndex = new Map((P.nodes || []).map(n => [n.id, n]));
+    const groups = (P.groups || []).map(g => {
+      let expr = g.expr;
+      if (!expr) {
+        const leaves = (g.members || []).map(id => nodeIndex.get(id)).filter(Boolean).map(node => ({ node }));
+        expr = leaves.length === 1 ? leaves[0] : { id: g.id + "/inner", op: inner, args: leaves };
+      }
+      return { id: g.id, label: g.label ?? "", tokens: exprTokens(expr, varIndex, g.id), expr };
+    });
+    const M = { layout: eq ? "equation" : "rows", preset: preset ? P.layout : null, outer, inner, arrange: eq ? "stack" : P.arrange || "flow",
+      noun: P.noun || (preset && preset.noun) || (eq ? "equation" : "group"), groups, vars, varIndex, flat: (P.groups || []).every(g => !g.expr) };
+    NORM.set(P, M);
+    return M;
+  }
+
+  /* ---------- the legend: how to read the picture, from the layout and operators (drawn outside the SVG) ---------- */
+
+  function legend(P) {
+    const M = normalize(P), out = [], sym = op => opInfo(op).sym, Noun = M.noun;
+    const used = new Set(), walkOps = e => { if (e && e.op) { used.add(e.op); (e.args || []).forEach(walkOps); } };
+    M.groups.forEach(g => walkOps(g.expr));
+    if (M.layout === "rows") {
+      const tag = M.preset ? ` (${M.preset.toUpperCase()})` : "";
+      const all = M.outer === "and" ? `Every ${Noun} must hold` : M.outer === "or" ? `One ${Noun} that holds is enough` : `The ${Noun}s are combined by ${sym(M.outer)}`;
+      if (M.flat) {
+        const each = M.inner === "or" ? `a ${Noun} holds when one of its literals is true` : M.inner === "and" ? `a ${Noun} holds when all its literals are true` : `a ${Noun} is its literals combined by ${sym(M.inner)}`;
+        out.push(`Boxes are ${Noun}s, joined by ${sym(M.outer)}; the literals inside are joined by ${sym(M.inner)}${tag}. ${all}: ${each}.`);
+      } else out.push(`Each box is a ${Noun}, joined by ${sym(M.outer)}${M.arrange === "stack" ? ", one per line" : ""}. ${all}.`);
+    } else {
+      const rels = [...new Set(M.groups.map(g => g.expr && g.expr.op).filter(op => op && opInfo(op).rel))];
+      const holds = rels.length === 1 ? `; it holds when ${opInfo(rels[0]).rel}` : "";
+      out.push(`${M.groups.length > 1 ? "One equation per line" : "One equation"}, wrapped at its top-level operators${holds}.`);
+    }
+    const says = [...used].map(op => (OPS[op] ? OPS[op].says : `${op}(…) is the operator "${op}", written by name`)).filter(Boolean);
+    if (says.length) out.push(says.join("; ") + ".");
+    if (M.vars.length) {
+      const types = new Set(M.vars.map(v => v.type));
+      const what = types.has("int") && types.has("bool") ? "T, F or a number" : types.has("int") ? "a number" : "T or F";
+      out.push(`The strip shows each variable's value (${what}; – while it is not set).`);
+    }
+    return out.join(" ");
+  }
+
+  /* ---------- layout: pure math, (payload, width) → boxes ---------- */
+
+  /** Breaks a token list into lines no wider than maxW. A run that fits goes on the current line, or else starts the next;
+      a run wider than a line is cut at its shallowest operators and each part placed the same way, so a formula breaks
+      at its top-level operators first and inside a sub-expression only when that sub-expression can't fit a line. The
+      operator at a break leads the new line. A flat CNF clause (one level) packs exactly as before. */
+  function pack(tokens, maxW) {
+    const levels = [...new Set(tokens.filter((t, i) => i && t.brk !== undefined).map(t => t.brk))].sort((a, b) => a - b);
+    const lines = [[]]; let w = 0;
+    const width = toks => toks.reduce((a, t) => a + t.w, 0);
+    function place(toks, li) {
+      const tw = width(toks), line = lines.at(-1);
+      if (w + tw <= maxW || (!line.length && li >= levels.length)) { line.push(...toks); w += tw; return; }
+      if (tw <= maxW || li >= levels.length) { if (line.length) { lines.push([]); w = 0; } lines.at(-1).push(...toks); w = tw; return; }
+      const parts = [];
+      toks.forEach((t, i) => { if (!parts.length || (i && t.brk !== undefined && t.brk <= levels[li])) parts.push([]); parts.at(-1).push(t); });
+      parts.forEach(p => place(p, li + 1));
+    }
+    place(tokens, 0);
+    return lines;
+  }
+
+  const valChars = v => {
+    if (v.type !== "int") return 1;
+    const r = v.range || [0, 999];
+    return 2 + Math.max(...r.map(x => fmtNum(x).length));
+  };
+
+  function layout(P, width = MAX_W, top = TOP) {
+    const M = normalize(P);
+    width = Math.min(MAX_W, Math.max(MIN_W, width));
+    const left = 12, right = width - 12;
+    const joinSym = M.outer ? opInfo(M.outer).sym : null;
+    const groups = [], pieces = new Map(), joins = [], ops = [];
+    const maxInner = right - left - 2 * PAD - (M.layout === "equation" ? 0 : AND_W);
+    let x = left, y = top, rowH = 0, rowStart = true;
+    M.groups.forEach((g, i) => {
+      const lines = pack(g.tokens, maxInner);
+      const lineWs = lines.map(l => l.reduce((a, t) => a + t.w, 0));
+      const bw = 2 * PAD + Math.max(0, ...lineWs), bh = BH + (lines.length - 1) * (PH + 8);
+      if (M.arrange === "flow") {
+        const need = (i ? AND_W : 0) + bw;
+        if (!rowStart && x + need > right) { y += rowH + ROW_GAP; x = left; rowH = 0; rowStart = true; }
+        if (i) { joins.push({ x: x + AND_W / 2, y: y + LABEL_H + BH / 2, text: joinSym, after: g.id }); x += AND_W; }
+      } else {
+        if (i) { y += rowH + ROW_GAP; rowH = 0; }
+        x = left + (joinSym ? AND_W : 0);
+        if (i && joinSym) joins.push({ x: left + AND_W / 2, y: y + LABEL_H + BH / 2, text: joinSym, after: g.id });
+      }
+      const box = { id: g.id, label: g.label, x, y: y + LABEL_H, w: bw, h: bh, members: [], plain: M.layout === "equation", lines: lines.length };
+      lines.forEach((line, k) => {
+        let px = x + PAD;
+        const py = box.y + PAD + k * (PH + 8);
+        line.forEach(t => {
+          if (t.t === "sym") ops.push({ x: px + t.w / 2, y: py + PH / 2, text: t.text, group: g.id, owner: t.owner });
+          else { pieces.set(t.id, { ...t, group: g.id, x: px, y: py, h: PH }); box.members.push(t.id); }
+          px += t.w;
+        });
+      });
+      groups.push(box);
+      x += bw; rowH = Math.max(rowH, LABEL_H + bh); rowStart = false;
+    });
+    let vy = y + rowH + 40;
+    const vars = [];
+    let vx = left;
+    M.vars.forEach(v => {
+      const w = Math.max(VW, labelW(false, v.label, VAR_PX) + (1 + valChars(v)) * CW * VAR_PX / LIT_PX + 18);
+      if (vx + w > right) { vx = left; vy += VH + 10; }
+      vars.push({ ...v, x: vx, y: vy, w, h: VH });
+      vx += w + 8;
+    });
+    const stripLabel = M.vars.every(v => v.type === "bool") ? "ASSIGNMENT" : "VALUES";
+    return { M, width, groups, pieces, joins, ops, vars, stripLabel, stripY: y + rowH + 22, height: M.vars.length ? vy + VH + 14 : y + rowH + 14 };
+  }
+
+  /* ---------- drawing one formula into a group ---------- */
+
+  // Every <text> is drawn inside the <g> of the piece it belongs to (data-piece): a group's label, mark, note, operator
+  // symbols and the joining operator before it; a pill's label; the strip's label with its chips.
+  function drawFormula(root, P, L, hookup) {
+    const M = L.M, noun = M.noun, Noun = noun[0].toUpperCase() + noun.slice(1);
+    const els = { clauses: new Map(), lits: new Map(), vars: new Map(), P, L };
+    const word = t => (t === "∨" ? "or" : t === "∧" ? "and" : t);
+    L.groups.forEach(c => {
+      const mg = M.groups.find(g => g.id === c.id);
+      const spoken = mg.tokens.map(t => (t.t === "sym" ? word(t.text) : t.text)).join(" ");
+      const g = mk("g", { class: "fm-clause" + (c.plain ? " fm-eq" : ""), "data-piece": c.id, tabindex: "0", role: "button", "aria-label": `${Noun}${c.label ? " " + c.label : ""}: ${spoken}` }, root);
+      const j = L.joins.find(a => a.after === c.id);
+      if (j) mk("text", { x: j.x, y: j.y, class: "fm-and" }, g).textContent = j.text;
+      mk("rect", { x: c.x, y: c.y, width: c.w, height: c.h, rx: 9, class: "box" }, g);
+      mk("text", { x: c.x + 2, y: c.y - 9, class: "cid" }, g).textContent = c.label;
+      const mx = c.x + 6 + c.label.length * 7.4;
+      const mark = mk("text", { x: mx, y: c.y - 9, class: "mark" }, g);
+      const note = mk("text", { x: mx + 16, y: c.y - 9, class: "note" }, g);
+      L.ops.filter(o => o.group === c.id).forEach(o => { mk("text", { x: o.x, y: o.y, class: "fm-op", "data-op": o.owner }, g).textContent = o.text; });
+      els.clauses.set(c.id, { g, mark, note, box: c });
+      hookup(g, c.id);
+    });
+    L.pieces.forEach((m, id) => {
+      const grp = L.groups.find(c => c.id === m.group);
+      const g = mk("g", { class: "fm-lit" + (m.kind === "num" ? " fm-num" : ""), "data-piece": id, tabindex: "0", role: "button", "aria-label": `${m.text} in ${noun}${grp.label ? " " + grp.label : ""}` }, root);
+      mk("rect", { x: m.x, y: m.y, width: m.w, height: m.h, rx: 7 }, g);
+      // drawn from the left edge (not centred) so the False strike can end exactly where the base letters end
+      const lw = labelW(m.neg, m.name), x0 = m.x + (m.w - lw) / 2, cy = m.y + m.h / 2;
+      const t = mk("text", { x: x0, y: cy }, g);
+      const { p } = drawLabel(t, m.neg, m.name, LIT_PX);
+      // False's mark besides color: a strike through the letters only, never through the subscript
+      const baseW = ((m.neg ? 1 : 0) + p.base.length) * CW * 0.9;
+      mk("line", { x1: x0 - 1, y1: cy + 1, x2: x0 + baseW, y2: cy + 1, class: "strike" }, g);
+      els.lits.set(id, { g, m });
+      hookup(g, id);
+    });
+    // the strip: its label is part of it, so it moves with it
+    const strip = mk("g", { class: "fm-strip", "data-piece": "strip" }, root);
+    if (L.vars.length) mk("text", { x: 12, y: L.stripY, class: "fm-slabel" }, strip).textContent = L.stripLabel;
+    L.vars.forEach(v => {
+      const g = mk("g", { class: "fm-var", "data-piece": v.id, tabindex: "0", role: "button", "aria-label": `Variable ${v.label}` }, strip);
+      mk("rect", { x: v.x, y: v.y, width: v.w, height: v.h, rx: 7 }, g);
+      const t = mk("text", { x: v.x + 9, y: v.y + v.h / 2, class: "lab" }, g);
+      t.textContent = v.label + " –";
+      els.vars.set(v.id, { g, t, v });
+      hookup(g, v.id);
+    });
+    return els;
+  }
+
+  // What a hovered id lights up: a variable traces its pieces; a piece its variable's pieces; a group its pieces.
+  function traceSet(P, id) {
+    const hot = new Set([id]);
+    if (!id) return hot;
+    const M = normalize(P);
+    const all = M.groups.flatMap(g => g.tokens.filter(t => t.t === "piece").map(t => ({ ...t, group: g.id })));
+    const piece = all.find(t => t.id === id);
+    const vid = M.varIndex.has(id) || id.startsWith("v:") ? id : piece ? piece.variable : null;
+    if (vid) { hot.add(vid); all.forEach(t => { if (t.variable === vid) hot.add(t.id); }); }
+    if (M.groups.some(g => g.id === id)) all.forEach(t => { if (t.group === id) { hot.add(t.id); if (t.variable) hot.add(t.variable); } });
+    return hot;
+  }
+
+  function paintFormula(els, f, { hot = null, shown = null, colorOf = null } = {}) {
+    // a state is a name here, or a { state } ref as the backend writes it
+    const raw = (map, id) => f && f[map] && f[map][id];
+    const st = (map, id) => { const v = raw(map, id); return (v && v.state) || v || "Background"; };
+    els.clauses.forEach((o, id) => {
+      const s = st("groups", id), v = raw("groups", id);
+      let cls = "fm-clause" + (o.box.plain ? " fm-eq" : "") + " " + s;
+      if (colorOf) { const c = colorOf(id); if (c !== null) cls += " g" + c; }
+      if (hot) cls += hot.has(id) ? " trace" : " faint";
+      if (shown && !shown.has(id)) cls += " fm-hidden";
+      o.g.setAttribute("class", cls);
+      o.mark.textContent = s === "Covered" ? "✓" : s === "Rejected" ? "✗" : "";
+      o.note.textContent = (v && v.note) || "";
+    });
+    els.lits.forEach((o, id) => {
+      const s = st("nodes", id);
+      let cls = "fm-lit" + (o.m.kind === "num" ? " fm-num" : "") + " " + s;
+      // a False piece inside a Rejected group (a 0 in a broken row): its dotted outline darkens to stay visible on the red fill
+      if (s === "False" && st("groups", o.m.group) === "Rejected") cls += " on-rej";
+      if (hot) cls += hot.has(id) ? " trace" : " faint";
+      if (shown && !shown.has(o.m.group)) cls += " fm-hidden";
+      o.g.setAttribute("class", cls);
+    });
+    els.vars.forEach((o, id) => {
+      const a = f && f.assignment ? f.assignment[id] : undefined;
+      let cls = "fm-var " + st("variables", id);
+      if (hot) cls += hot.has(id) ? " trace" : " faint";
+      if (shown && shown.vars && !shown.vars.has(id)) cls += " fm-hidden";
+      o.g.setAttribute("class", cls);
+      const { shift } = drawLabel(o.t, false, o.v.label, VAR_PX);
+      const val = o.v.type === "int" ? "= " + (a === undefined || a === null ? "–" : fmtNum(+a)) : a === undefined ? "–" : a ? "T" : "F";
+      mk("tspan", { class: "val", dx: 7, ...(shift ? { dy: -shift } : {}) }, o.t).textContent = val;
+    });
+  }
+
+  /* ================= SAT, 3SAT (CNF) and the DNF illustration ================= */
 
   // Names in natural order (x2 before x10), as GroupedGraphSpec.FromLiterals numbers them.
   function naturalCompare(a, b) {
@@ -3735,14 +4110,15 @@ const FormulaView = (() => {
   const clauseId = i => "c" + i;
   const litId = (i, j) => `c${i}-${j}`;
 
-  /** Redux's SAT format, `(x1 | !x2 | x3) & (!x1 | x3)`, to { clauses (signed 1-based variable indices), names }. */
+  /** Redux's SAT format, `(x1 | !x2 | x3) & (!x1 | x3)`, to { clauses (signed 1-based variable indices), names }.
+      kind "DNF" reads the mirror image, `(x1 & !x2) | (!x1 & x3)`, for the layout illustration. */
   function parse(str, kind = "SAT") {
-    const s = str.trim();
-    if (!s) throw new Error("Enter a formula like (x1 | !x2 | x3) & (!x1 | x3).");
-    const written = s.split("&").map((part, i) => {
+    const s = str.trim(), dnf = kind === "DNF", OUT = dnf ? "|" : "&", IN = dnf ? "&" : "|";
+    if (!s) throw new Error(dnf ? "Enter a formula like (x1 & !x2) | (!x1 & x3)." : "Enter a formula like (x1 | !x2 | x3) & (!x1 | x3).");
+    const written = s.split(OUT).map((part, i) => {
       const inner = part.trim().replace(/^\(/, "").replace(/\)$/, "");
-      if (/[()]/.test(inner) || !inner.trim()) throw new Error(`Clause ${i + 1} is malformed.`);
-      return inner.split("|").map(tok => {
+      if (/[()]/.test(inner) || !inner.trim()) throw new Error(`${dnf ? "Term" : "Clause"} ${i + 1} is malformed.`);
+      return inner.split(IN).map(tok => {
         let t = tok.trim(), neg = false;
         while (/^[!~¬]/.test(t)) { neg = !neg; t = t.slice(1).trim(); }
         if (!/^[A-Za-z_]\w*$/.test(t)) throw new Error(`"${tok.trim()}" isn't a literal.`);
@@ -3754,13 +4130,16 @@ const FormulaView = (() => {
     const names = [...new Set(written.flat().map(l => l.name))].sort(naturalCompare);
     if (names.length > 30) throw new Error("This mockup draws up to 30 variables.");
     const index = new Map(names.map((n, i) => [n, i + 1]));
-    return { clauses: written.map(c => c.map(l => (l.neg ? -1 : 1) * index.get(l.name))), names };
+    const spec = { clauses: written.map(c => c.map(l => (l.neg ? -1 : 1) * index.get(l.name))), names };
+    if (dnf) Object.assign(spec, { kind: "DNF", outer: "or", inner: "and" });
+    return spec;
   }
-  const textOf = spec => spec.clauses.map(c => "(" + c.map(l => (l < 0 ? "!" : "") + spec.names[Math.abs(l) - 1]).join(" | ") + ")").join(" & ");
+  const isDnf = spec => spec.inner === "and";
+  const textOf = spec => { const [o, i] = isDnf(spec) ? [" | ", " & "] : [" & ", " | "]; return spec.clauses.map(c => "(" + c.map(l => (l < 0 ? "!" : "") + spec.names[Math.abs(l) - 1]).join(i) + ")").join(o); };
 
   /** The payload: the Grouped Graph's groups, nodes and variables, without its edges. */
   function payload(spec) {
-    const groups = [], nodes = [];
+    const groups = [], nodes = [], dnf = isDnf(spec);
     spec.clauses.forEach((c, i) => {
       const members = [];
       c.forEach((l, j) => {
@@ -3768,9 +4147,9 @@ const FormulaView = (() => {
         members.push(litId(i, j));
         nodes.push({ id: litId(i, j), label: (l > 0 ? "" : "¬") + name, variable: varId(name), positive: l > 0, group: clauseId(i) });
       });
-      groups.push({ id: clauseId(i), label: "C" + (i + 1), members });
+      groups.push({ id: clauseId(i), label: (dnf ? "D" : "C") + (i + 1), members });
     });
-    return { kind: "formula", layout: "cnf", shape: "assignment", rule: "satisfiability", groups, nodes, variables: spec.names.map(n => ({ id: varId(n), label: n })) };
+    return { kind: "formula", layout: dnf ? "dnf" : "cnf", shape: "assignment", rule: "satisfiability", groups, nodes, variables: spec.names.map(n => ({ id: varId(n), label: n })) };
   }
 
   /* ---------- frames: GroupedGraphFrames.Frame, plus the variables map ---------- */
@@ -3781,9 +4160,11 @@ const FormulaView = (() => {
   const picked = (ev, incremental, endsRun, ok) =>
     ev === "Done" ? (ok ? "Solution" : "Rejected") : ev === "Accept" && endsRun ? "Solution" : (ev === "Try" || ev === "Reject") && !incremental ? "ElementHighlight" : "Committed";
 
-  /** One step ({ event, partial: { name: bool }, focus: [ids], caption, ok? }) as the frame the backend would send. */
+  /** One step ({ event, partial: { name: bool }, focus: [ids], caption, ok? }) as the frame the backend would send.
+      CNF: a clause with a true literal is Covered, one with every literal false Rejected (with its literals).
+      DNF: a term with every literal true is Covered, one with a false literal False; when every term is False, all are Rejected. */
   function frame(spec, step, { incremental = false, endsRun = false, index = null } = {}) {
-    const values = new Map(), assignment = {};
+    const values = new Map(), assignment = {}, dnf = isDnf(spec);
     spec.names.forEach((n, i) => { if (step.partial && n in step.partial) { values.set(i + 1, !!step.partial[n]); assignment[varId(n)] = !!step.partial[n]; } });
     const pick = picked(step.event, incremental, endsRun, step.ok === true);
     const nodes = {}, groups = {}, variables = {}, litsOf = new Map();
@@ -3796,9 +4177,11 @@ const FormulaView = (() => {
         if (!values.has(v)) return;
         if (values.get(v) === l > 0) { trues++; raise(nodes, id, pick); } else { falses++; raise(nodes, id, "False"); }
       });
-      if (trues) raise(groups, clauseId(i), "Covered");
+      if (dnf) { if (c.length && trues === c.length) raise(groups, clauseId(i), "Covered"); else if (falses) raise(groups, clauseId(i), "False"); }
+      else if (trues) raise(groups, clauseId(i), "Covered");
       else if (c.length && falses === c.length) { raise(groups, clauseId(i), "Rejected"); c.forEach((_, j) => raise(nodes, litId(i, j), "Rejected")); }
     });
+    if (dnf && spec.clauses.length && spec.clauses.every((_, i) => groups[clauseId(i)] === "False")) spec.clauses.forEach((_, i) => raise(groups, clauseId(i), "Rejected"));
     // The strip: a true variable takes the pick's state, a false one is False.
     values.forEach((val, v) => raise(variables, varId(spec.names[v - 1]), val ? pick : "False"));
     const hiLit = id => { if (nodes[id] !== "False") raise(nodes, id, "ElementHighlight"); };
@@ -3834,7 +4217,7 @@ const FormulaView = (() => {
   const valOf = (asg, l) => { const a = asg[Math.abs(l)]; return a === undefined ? undefined : l > 0 ? a : !a; };
   const toPartial = (spec, asg) => Object.fromEntries(Object.entries(asg).map(([v, b]) => [nameOf(spec, +v), b]));
 
-  // Backtracking with unit propagation (DPLL). Incremental: what it has decided so far is kept (Committed).
+  // Backtracking with unit propagation (DPLL). Incremental: what it has decided so far is kept (Committed). CNF only.
   function solveDpll(spec, { limit = Infinity } = {}) {
     const steps = [], asg = {}, n = spec.names.length;
     const push = (event, focus, caption) => steps.push({ event, partial: toPartial(spec, asg), focus, caption });
@@ -3887,26 +4270,35 @@ const FormulaView = (() => {
     return { steps, incremental: true, ok, solution: ok ? { ...asg } : null };
   }
 
-  // Brute force: every whole assignment in turn. Not incremental, so each candidate is only highlighted.
+  // Brute force: every whole assignment in turn. Not incremental, so each candidate is only highlighted. CNF or DNF.
   const SHOW_TRIES = 64;
   function solveBrute(spec) {
-    const steps = [], n = spec.names.length;
+    const steps = [], n = spec.names.length, dnf = isDnf(spec);
     if (n > 12) return { steps: [{ event: "Done", partial: {}, focus: [], ok: false, caption: "Too many variables for the mockup to brute-force. Use the backtracking solver." }], incremental: false, ok: false, solution: null };
     let found = null, tried = 0, last = null;
     for (let m = 0; m < 1 << n; m++) {
       const asg = {}; for (let v = 1; v <= n; v++) asg[v] = !(m & (1 << (n - v)));
       last = asg; tried++;
-      const bad = spec.clauses.findIndex(c => c.every(l => valOf(asg, l) === false));
       const txt = spec.names.map((_, i) => `${show(spec, i + 1)}=${asg[i + 1] ? "T" : "F"}`).join(" ");
-      if (tried <= SHOW_TRIES || bad < 0) steps.push(bad < 0
-        ? { event: "Accept", partial: toPartial(spec, asg), focus: [], caption: `Try ${txt}: every clause has a true literal.` }
-        : { event: "Reject", partial: toPartial(spec, asg), focus: [clauseId(bad)], caption: `Try ${txt}: C${bad + 1} is false.` });
-      if (bad < 0) { found = asg; break; }
+      let good, step;
+      if (dnf) {
+        const win = spec.clauses.findIndex(c => c.every(l => valOf(asg, l) === true));
+        good = win >= 0;
+        step = good ? { event: "Accept", partial: toPartial(spec, asg), focus: [], caption: `Try ${txt}: every literal of D${win + 1} is true.` }
+          : { event: "Reject", partial: toPartial(spec, asg), focus: [], caption: `Try ${txt}: every term has a false literal.` };
+      } else {
+        const bad = spec.clauses.findIndex(c => c.every(l => valOf(asg, l) === false));
+        good = bad < 0;
+        step = good ? { event: "Accept", partial: toPartial(spec, asg), focus: [], caption: `Try ${txt}: every clause has a true literal.` }
+          : { event: "Reject", partial: toPartial(spec, asg), focus: [clauseId(bad)], caption: `Try ${txt}: C${bad + 1} is false.` };
+      }
+      if (tried <= SHOW_TRIES || good) steps.push(step);
+      if (good) { found = asg; break; }
     }
     const hidden = tried > SHOW_TRIES ? ` (${tried - SHOW_TRIES} tries not shown)` : "";
     // The mockup's brute force ends an unsatisfiable run on its last candidate, to show that a Done with ok = false draws its picks Rejected.
     if (found) steps.push({ event: "Done", partial: toPartial(spec, found), focus: [], ok: true, caption: `Satisfiable, found after ${tried} tries${hidden}.` });
-    else steps.push({ event: "Done", partial: toPartial(spec, last), focus: [], ok: false, caption: `Checked all ${tried} assignments${hidden}; none satisfies every clause. The last one tried is drawn red.` });
+    else steps.push({ event: "Done", partial: toPartial(spec, last), focus: [], ok: false, caption: `Checked all ${tried} assignments${hidden}; none ${dnf ? "makes a term true" : "satisfies every clause"}. The last one tried is drawn red.` });
     return { steps, incremental: false, ok: !!found, solution: found };
   }
 
@@ -3916,201 +4308,333 @@ const FormulaView = (() => {
     stopped: { label: "Backtracking, stopped by the time limit", run: spec => solveDpll(spec, { limit: 5 }) },
   };
 
-  /* ---------- layout: pure math, (payload, width) → boxes ---------- */
-
-  const CW = 9, PH = 30, PAD = 9, BH = PH + 2 * PAD, OR_W = 24, AND_W = 34, LABEL_H = 18, ROW_GAP = 16, VW = 66, VH = 30;
-  // Labels: a name of letters then digits (x10) is drawn as its letters with the digits as a real subscript, at SUBF of the
-  // label size; any other name (a, foo_2) is drawn plain. Mono, so a width is characters × CW (CW at the 15 px literal size).
-  const LIT_PX = 15, VAR_PX = 14, SUBF = 0.78;
-  const split = nm => { const m = /^([A-Za-z]+)(\d+)$/.exec(nm); return m ? { base: m[1], sub: m[2] } : { base: nm, sub: "" }; };
-  const labelW = (neg, nm, px = LIT_PX) => { const p = split(nm); return ((neg ? 1 : 0) + p.base.length + p.sub.length * SUBF) * CW * px / LIT_PX; };
-  const pillW = (neg, nm) => Math.max(34, labelW(neg, nm) + 18);
-  /** Writes a label into a <text> drawn from its left edge x0: base (with ¬), then the subscript a little lower. */
-  function drawLabel(t, neg, nm, px) {
-    t.textContent = "";
-    const p = split(nm), shift = +(0.32 * px).toFixed(1);
-    mk("tspan", { class: "base" }, t).textContent = (neg ? "¬" : "") + p.base;
-    if (p.sub) mk("tspan", { class: "sub", "font-size": +(SUBF * px).toFixed(1), dy: shift }, t).textContent = p.sub;
-    return { p, shift: p.sub ? shift : 0 };
+  function satChecks(spec, f) {
+    const total = spec.clauses.length, a = f ? f.assignment : {};
+    const covered = f ? Object.values(f.groups).filter(s => s === "Covered").length : 0;
+    const failed = f ? Object.values(f.groups).filter(s => s === "Rejected").length : 0;
+    if (isDnf(spec)) return [
+      { label: `Terms with every literal true: ${covered} / ${total}`, ok: f ? covered > 0 : null },
+      { label: `Variables assigned: ${Object.keys(a).length} / ${spec.names.length}`, ok: f ? Object.keys(a).length === spec.names.length : null },
+    ];
+    return [
+      { label: `Clauses with a true literal: ${covered} / ${total}`, ok: f ? covered === total : null },
+      { label: `Clauses with every literal false: ${failed}`, ok: f ? failed === 0 : null },
+      { label: `Variables assigned: ${Object.keys(a).length} / ${spec.names.length}`, ok: f ? Object.keys(a).length === spec.names.length : null },
+    ];
+  }
+  function satRun(spec, solver) {
+    const run = (SOLVERS[solver] || SOLVERS.brute).run(spec);
+    return { frames: [baseFrame("Step 0: the formula, nothing assigned. Step forward to watch the solver."), ...build(spec, run)], ok: run.ok, incremental: run.incremental,
+      solution: run.solution ? spec.names.map((n, i) => `${n}=${run.solution[i + 1] ? "T" : "F"}`) : null };
   }
 
-  function layout(P, width, top = 34) {
-    const left = 12, right = width - 12;
-    const lits = new Map(P.nodes.map(n => { const name = n.positive ? n.label : n.label.slice(1); return [n.id, { ...n, text: n.label, neg: !n.positive, name, pw: pillW(!n.positive, name) }]; }));
-    const clauses = [], ands = [], ors = [];
-    let x = left, y = top, rowH = 0, rowStart = true;
-    P.groups.forEach((g, i) => {
-      const ms = g.members.map(id => lits.get(id));
-      // pack the clause's literals into rows no wider than the line (a long SAT clause wraps at its ∨s)
-      const maxInner = right - left - 2 * PAD - AND_W, rows = [[]];
-      let w = 0;
-      ms.forEach(m => {
-        const need = (rows.at(-1).length ? OR_W : 0) + m.pw;
-        if (rows.at(-1).length && w + need > maxInner) { rows.push([]); w = 0; }
-        w += (rows.at(-1).length ? OR_W : 0) + m.pw; rows.at(-1).push(m);
-      });
-      const rowWs = rows.map((r, k) => r.reduce((a, m, q) => a + m.pw + (q || k ? OR_W : 0), 0));
-      const bw = 2 * PAD + Math.max(...rowWs), bh = BH + (rows.length - 1) * (PH + 8);
-      const need = (i ? AND_W : 0) + bw;
-      if (!rowStart && x + need > right) { y += rowH + ROW_GAP; x = left; rowH = 0; rowStart = true; }
-      if (i) { ands.push({ x: x + AND_W / 2, y: y + LABEL_H + BH / 2, after: g.id }); x += AND_W; }
-      const box = { id: g.id, label: g.label, x, y: y + LABEL_H, w: bw, h: bh, members: g.members };
-      rows.forEach((r, k) => {
-        let px = x + PAD + (k ? OR_W : 0);
-        const py = box.y + PAD + k * (PH + 8);
-        if (k) ors.push({ x: x + PAD + OR_W / 2, y: py + PH / 2, clause: g.id });
-        r.forEach((m, q) => {
-          if (q) { ors.push({ x: px + OR_W / 2, y: py + PH / 2, clause: g.id }); px += OR_W; }
-          Object.assign(m, { x: px, y: py, w: m.pw, h: PH });
-          px += m.pw;
-        });
-      });
-      clauses.push(box);
-      x += bw; rowH = Math.max(rowH, LABEL_H + bh); rowStart = false;
-    });
-    let vy = y + rowH + 40;
-    const vars = [];
-    let vx = left;
-    P.variables.forEach(v => {
-      const w = Math.max(VW, labelW(false, v.label, VAR_PX) + 2 * CW * VAR_PX / LIT_PX + 18);
-      if (vx + w > right) { vx = left; vy += VH + 10; }
-      vars.push({ ...v, x: vx, y: vy, w, h: VH });
-      vx += w + 8;
-    });
-    return { clauses, lits, ands, ors, vars, headY: top - 12, stripY: y + rowH + 22, height: vy + VH + 14 };
+  /* ================= Prime Factorization: the equation layout ================= */
+
+  // PrimeFactorSolver.Solve ("Prime Factorization Trial Division", local/viz-integration): for i = 2, 3, … while
+  // i·i ≤ what is left, a Reject when i does not divide it, else an Accept for each division; then an Accept for a last
+  // prime factor over 1, and Done. Incremental: the factors found are kept. Its real steps are QuantumProgress (the factors
+  // so far); the Formula needs i and what is left too, so a Formula step shape would carry them.
+  function parsePrime(str) {
+    const s = str.trim().replace(/,/g, "");
+    if (!/^\d+$/.test(s)) throw new Error("Enter a positive integer, like 60.");
+    const n = +s;
+    if (n < 2) throw new Error("Enter an integer of at least 2: 1 is the empty product.");
+    if (n > 1e6) throw new Error("This mockup factors numbers up to 1,000,000.");
+    return { n };
   }
-
-  /* ---------- drawing one formula into a group ---------- */
-
-  function drawFormula(root, P, L, hookup, { head = true } = {}) {
-    if (head) {
-      mk("text", { x: 12, y: L.headY, class: "fm-head" }, root).textContent = "FORMULA · CNF";
-      mk("text", { x: 12, y: L.stripY, class: "fm-head" }, root).textContent = "ASSIGNMENT";
+  // the right side: the factors found so far, times what is left (dropped once it is a factor itself, or 1)
+  const primeExpr = (n, factors, rest) => {
+    const right = [...factors.map((f, k) => ({ id: "f" + k, num: f })), ...(rest === null ? [] : [{ id: "rest", num: rest, variable: "v:rest" }])];
+    return { id: "eq", op: "eq", args: [{ id: "n", num: n }, right.length === 1 ? right[0] : { id: "prod", op: "times", args: right }] };
+  };
+  function primePayload(spec) {
+    const n = spec.n;
+    return { kind: "formula", layout: "equation", noun: "equation", shape: "values", rule: "factorization",
+      groups: [{ id: "e0", label: "", expr: { id: "eq", op: "eq", args: [{ id: "n", num: n }, { id: "rest", label: "?", variable: "v:rest" }] } }],
+      variables: [{ id: "v:i", label: "i", type: "int", range: [2, Math.floor(Math.sqrt(n)) + 1] }, { id: "v:rest", label: "rest", type: "int", range: [1, n] }] };
+  }
+  function solvePrime(spec) {
+    const n = spec.n, factors = [], frames = [baseFrame(`Step 0: ${N0(n)}, not factored yet. Step forward to watch trial division.`)];
+    let rest = n, i = 2;
+    const push = (event, caption, { fresh = false, iState = null, restState = null, keepRest = true, done = false, focus = [] } = {}) => {
+      const nodes = {};
+      factors.forEach((_, k) => { nodes["f" + k] = done ? "Solution" : "Committed"; });
+      if (fresh) nodes["f" + (factors.length - 1)] = "ElementHighlight";
+      if (restState && keepRest) nodes.rest = restState;
+      const variables = {};
+      if (iState) variables["v:i"] = iState;
+      if (restState) variables["v:rest"] = restState;
+      frames.push({ event, caption, focus, step: frames.length - 1, nodes, groups: done ? { e0: "Covered" } : {}, assignment: { "v:i": i, "v:rest": rest }, variables,
+        exprs: { e0: primeExpr(n, factors, keepRest ? rest : null) }, ...(done ? { ok: true } : {}), mock: { factors: [...factors], rest: keepRest ? rest : 1 } }); // mock: for the page's checks only, not part of the frame
+    };
+    while (i * i <= rest) {
+      if (rest % i !== 0) push("Reject", `${N0(i)} does not divide ${N0(rest)}.`, { iState: "Rejected", focus: ["v:i"] });
+      while (rest % i === 0) {
+        const before = rest;
+        factors.push(i); rest /= i;
+        push("Accept", `${N0(before)} ÷ ${N0(i)} = ${N0(rest)}, so ${N0(i)} is a prime factor.`, { fresh: true, iState: "ElementHighlight", restState: "ElementHighlight", focus: ["f" + (factors.length - 1)] });
+      }
+      i++;
     }
-    const els = { clauses: new Map(), lits: new Map(), vars: new Map(), ands: [], P, L };
-    L.clauses.forEach(c => {
-      const g = mk("g", { class: "fm-clause", tabindex: "0", role: "button", "aria-label": `Clause ${c.label}: ${c.members.map(id => L.lits.get(id).text).join(" or ")}` }, root);
-      mk("rect", { x: c.x, y: c.y, width: c.w, height: c.h, rx: 9, class: "box" }, g);
-      mk("text", { x: c.x + 2, y: c.y - 9, class: "cid" }, g).textContent = c.label;
-      const mark = mk("text", { x: c.x + 6 + c.label.length * 7.4, y: c.y - 9, class: "mark" }, g);
-      els.clauses.set(c.id, { g, mark, box: c });
-      hookup(g, c.id);
-    });
-    L.ands.forEach(a => { const t = mk("text", { x: a.x, y: a.y, class: "fm-and" }, root); t.textContent = "∧"; els.ands.push({ el: t, after: a.after }); });
-    L.ors.forEach(o => { const t = mk("text", { x: o.x, y: o.y, class: "fm-op" }, root); t.textContent = "∨"; o.el = t; });
-    L.lits.forEach((m, id) => {
-      const g = mk("g", { class: "fm-lit", tabindex: "0", role: "button", "aria-label": `${m.text} in clause ${+m.group.slice(1) + 1}` }, root);
-      mk("rect", { x: m.x, y: m.y, width: m.w, height: m.h, rx: 7 }, g);
-      // drawn from the left edge (not centred) so the False strike can end exactly where the base letters end
-      const lw = labelW(m.neg, m.name), x0 = m.x + (m.w - lw) / 2, cy = m.y + m.h / 2;
-      const t = mk("text", { x: x0, y: cy }, g);
-      const { p } = drawLabel(t, m.neg, m.name, LIT_PX);
-      // False's mark besides color: a strike through the letters only, never through the subscript
-      const baseW = ((m.neg ? 1 : 0) + p.base.length) * CW * 0.9;
-      mk("line", { x1: x0 - 1, y1: cy + 1, x2: x0 + baseW, y2: cy + 1, class: "strike" }, g);
-      els.lits.set(id, { g, m });
-      hookup(g, id);
-    });
-    L.vars.forEach(v => {
-      const g = mk("g", { class: "fm-var", tabindex: "0", role: "button", "aria-label": `Variable ${v.label}` }, root);
-      mk("rect", { x: v.x, y: v.y, width: v.w, height: v.h, rx: 7 }, g);
-      const t = mk("text", { x: v.x + 9, y: v.y + v.h / 2, class: "lab" }, g);
-      t.textContent = v.label + " –";
-      els.vars.set(v.id, { g, t, v });
-      hookup(g, v.id);
-    });
-    return els;
+    if (rest > 1) {
+      factors.push(rest);
+      push("Accept", factors.length === 1 ? `No number from 2 to √${N0(rest)} divides ${N0(rest)}, so ${N0(rest)} is prime.`
+        : `No number from 2 to √${N0(rest)} divides ${N0(rest)}, so ${N0(rest)} is prime: the last factor.`, { fresh: true, keepRest: false, focus: ["f" + (factors.length - 1)] });
+    }
+    push("Done", factors.length === 1 ? `${N0(n)} is prime.` : `${N0(n)} = ${factors.map(N0).join(" × ")}.`, { keepRest: false, done: true });
+    return { frames, ok: true, incremental: true, solution: [`(${factors.join(",")})`] };
+  }
+  function primeChecks(spec, f) {
+    const m = f && f.mock;
+    const prod = m ? m.factors.reduce((a, b) => a * b, 1) : null;
+    return [
+      { label: `Factors found: ${m && m.factors.length ? m.factors.join(" × ") : "none yet"}`, ok: null },
+      { label: `Factors × what is left = ${N0(spec.n)}`, ok: m ? prod * m.rest === spec.n : null },
+      { label: "Every factor is prime", ok: m ? m.factors.every(p => { for (let d = 2; d * d <= p; d++) if (p % d === 0) return false; return p > 1; }) : null },
+    ];
   }
 
-  // What a hovered id lights up: a variable traces its literals; a literal its variable's literals; a clause its literals.
-  function traceSet(P, id) {
-    const hot = new Set([id]);
-    if (!id) return hot;
-    const node = P.nodes.find(n => n.id === id);
-    const vid = id.startsWith("v:") ? id : node ? node.variable : null;
-    if (vid) { hot.add(vid); P.nodes.forEach(n => { if (n.variable === vid) hot.add(n.id); }); }
-    const grp = P.groups.find(g => g.id === id);
-    if (grp) grp.members.forEach(m => { hot.add(m); hot.add(P.nodes.find(n => n.id === m).variable); });
-    return hot;
+  /* ================= 0-1 Integer Linear Programming: stacked rows of linear constraints ================= */
+
+  // Redux's format: (row1),…,(rowM)<=(d1 … dM), each row one row of C; every constraint is Cx ≤ d.
+  function parseILP(str) {
+    const m = /^(.*)<=(.*)$/.exec(str.trim());
+    if (!m) throw new Error("Write it as (row1),…,(rowM)<=(d1 … dM), like (-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0).");
+    const ints = t => t.replace(/[()]/g, " ").trim().split(/\s+/).filter(Boolean).map(x => { if (!/^-?\d+$/.test(x)) throw new Error(`"${x}" isn't an integer.`); return +x; });
+    const C = m[1].split(",").map(ints), d = ints(m[2]);
+    if (!C.length || C.some(r => !r.length)) throw new Error("Every row needs coefficients.");
+    const n = C[0].length;
+    if (C.some(r => r.length !== n)) throw new Error("Every row needs the same number of coefficients.");
+    if (d.length !== C.length) throw new Error(`d has ${d.length} bound${d.length === 1 ? "" : "s"} for ${C.length} rows.`);
+    if (n > 8) throw new Error("This mockup draws up to 8 variables.");
+    if (C.length > 12) throw new Error("This mockup draws up to 12 constraints.");
+    return { C, d, n };
+  }
+  const xv = j => "v:x" + (j + 1);
+  // One row's left side as an expression: −x₁ + x₂ − 2x₃. Ids: r{i}-x{j} the occurrence of x_{j+1}, r{i}-c{j} its
+  // coefficient (when not ±1), r{i}-d the bound.
+  function ilpRow(row, i) {
+    const terms = row.map((c, j) => ({ c, j })).filter(t => t.c);
+    if (!terms.length) return { id: `r${i}-zero`, num: 0 };
+    const term = (c, j) => {
+      const x = { id: `r${i}-x${j}`, var: xv(j) };
+      if (c === 1) return x;
+      if (c === -1) return { id: `r${i}-n${j}`, op: "neg", args: [x] };
+      return { id: `r${i}-m${j}`, op: "mul", args: [{ id: `r${i}-c${j}`, num: c, variable: xv(j) }, x] };
+    };
+    // a run of + (or of −) is one n-ary node; ids r{i}-s{k} for the k-th such node, left to right
+    let e = term(terms[0].c, terms[0].j), k = 0, chain = false;
+    terms.slice(1).forEach(t => {
+      const op = t.c < 0 ? "minus" : "plus", rhs = term(Math.abs(t.c), t.j);
+      if (chain && e.op === op) e.args.push(rhs); else { e = { id: `r${i}-s${k++}`, op, args: [e, rhs] }; chain = true; }
+    });
+    return e;
+  }
+  function ilpPayload(spec) {
+    return { kind: "formula", layout: "rows", outer: "and", arrange: "stack", noun: "constraint", shape: "assignment", rule: "constraints",
+      groups: spec.C.map((row, i) => ({ id: "r" + i, label: "R" + (i + 1), expr: { id: `r${i}-rel`, op: "le", args: [ilpRow(row, i), { id: `r${i}-d`, num: spec.d[i] }] } })),
+      variables: Array.from({ length: spec.n }, (_, j) => ({ id: xv(j), label: "x" + (j + 1), type: "int", range: [0, 1] })) };
+  }
+  const ilpTotal = (row, x) => row.reduce((a, c, j) => a + c * x[j], 0);
+  /** A try as a frame: rows that hold Covered, rows over their bound Rejected, each with its total as the note; a chosen
+      variable's occurrences take the pick's state (Rejected inside a row it breaks), an unchosen one is False. */
+  function ilpFrame(spec, x, { event, caption, focus = [], pick, ok, index }) {
+    const nodes = {}, groups = {}, variables = {}, assignment = {};
+    x.forEach((b, j) => { assignment[xv(j)] = b; variables[xv(j)] = b ? pick : "False"; });
+    spec.C.forEach((row, i) => {
+      const t = ilpTotal(row, x), holds = t <= spec.d[i];
+      groups["r" + i] = { state: holds ? "Covered" : "Rejected", note: `total ${fmtNum(t)} ${holds ? "≤" : ">"} ${fmtNum(spec.d[i])}` };
+      row.forEach((c, j) => {
+        if (!c) return;
+        const s = !x[j] ? "False" : holds ? pick : "Rejected";
+        nodes[`r${i}-x${j}`] = s;
+        if (Math.abs(c) !== 1) nodes[`r${i}-c${j}`] = s;
+      });
+    });
+    const out = { event, caption, focus, step: index, nodes, groups, assignment, variables, mock: { x: [...x] } }; // mock: page checks only
+    if (ok !== undefined) out.ok = ok;
+    return out;
+  }
+  // IntegerProgrammingBruteForce.Solve (local/viz-integration): the 0/1 counter from all zeros, x₁ flipping fastest; a Reject
+  // naming the rows over their bounds, or the Accept of the first assignment every row allows; Done with the answer, or with
+  // the last assignment tried when none works (#905). Not incremental.
+  function solveILP(spec) {
+    const frames = [baseFrame("Step 0: the constraints, nothing tried yet. Step forward to watch the brute force.")];
+    const x = Array(spec.n).fill(0), total = 2 ** spec.n;
+    const cert = () => `(${x.join(" ")})`;
+    let tried = 0, last = "";
+    for (let k = 0; k < total; k++) {
+      const c = cert(); last = c; tried++;
+      const over = spec.C.map((_, r) => r).filter(r => ilpTotal(spec.C[r], x) > spec.d[r]);
+      if (!over.length) {
+        frames.push(ilpFrame(spec, x, { event: "Accept", caption: `Try ${c}: every row stays within its bound.`, pick: "Solution", index: frames.length - 1 }));
+        frames.push(ilpFrame(spec, x, { event: "Done", caption: `${c} satisfies every row, found on try ${tried} of ${total}.`, pick: "Solution", ok: true, index: frames.length - 1 }));
+        return { frames, ok: true, incremental: false, solution: [c] };
+      }
+      const part = r => `row ${r + 1} adds up to ${ilpTotal(spec.C[r], x)}, over its bound ${spec.d[r]}`;
+      frames.push(ilpFrame(spec, x, { event: "Reject", caption: `Try ${c}: ${over.map(part).join("; ")}.`, focus: over.map(r => "r" + r), pick: "ElementHighlight", index: frames.length - 1 }));
+      if (k + 1 < total) { for (let j = 0; j < x.length; j++) { if (x[j] === 0) { x[j] = 1; break; } x[j] = 0; } }
+    }
+    frames.push(ilpFrame(spec, x, { event: "Done", caption: `No 0-1 assignment satisfies every row: all ${tried} were tried, the last ${last}.`, pick: "Rejected", ok: false, index: frames.length - 1 }));
+    return { frames, ok: false, incremental: false, solution: null };
+  }
+  function ilpChecks(spec, f) {
+    const g = f && f.groups ? Object.values(f.groups).map(v => (v && v.state) || v) : [];
+    const held = g.filter(s => s === "Covered").length, set = f && f.assignment ? Object.keys(f.assignment).length : 0;
+    return [
+      { label: `Constraints that hold: ${held} / ${spec.C.length}`, ok: f && set ? held === spec.C.length : null },
+      { label: `Variables set to 0 or 1: ${set} / ${spec.n}`, ok: f ? set === spec.n : null },
+    ];
   }
 
-  function paintFormula(els, f, { hot = null, shown = null, colorOf = null } = {}) {
-    // a state is a name here, or a { state } ref as the backend writes it
-    const st = (map, id) => { const v = f && f[map] && f[map][id]; return (v && v.state) || v || "Background"; };
-    els.clauses.forEach((o, id) => {
-      const s = st("groups", id);
-      let cls = "fm-clause " + s;
-      if (colorOf) { const c = colorOf(id); if (c !== null) cls += " g" + c; }
-      if (hot) cls += hot.has(id) ? " trace" : " faint";
-      if (shown && !shown.has(id)) cls += " fm-hidden";
-      o.g.setAttribute("class", cls);
-      o.mark.textContent = s === "Covered" ? "✓" : s === "Rejected" ? "✗" : "";
-    });
-    els.ands.forEach(a => a.el.setAttribute("class", "fm-and" + (shown && !shown.has(a.after) ? " fm-hidden" : "")));
-    els.L.ors.forEach(o => o.el.setAttribute("class", "fm-op" + (shown && !shown.has(o.clause) ? " fm-hidden" : "")));
-    els.lits.forEach((o, id) => {
-      let cls = "fm-lit " + st("nodes", id);
-      if (hot) cls += hot.has(id) ? " trace" : " faint";
-      if (shown && !shown.has(o.m.group)) cls += " fm-hidden";
-      o.g.setAttribute("class", cls);
-    });
-    els.vars.forEach((o, id) => {
-      const a = f && f.assignment ? f.assignment[id] : undefined;
-      let cls = "fm-var " + st("variables", id);
-      if (hot) cls += hot.has(id) ? " trace" : " faint";
-      if (shown && shown.vars && !shown.vars.has(id)) cls += " fm-hidden";
-      o.g.setAttribute("class", cls);
-      const { shift } = drawLabel(o.t, false, o.v.label, VAR_PX);
-      mk("tspan", { class: "val", dx: 7, ...(shift ? { dy: -shift } : {}) }, o.t).textContent = a === undefined ? "–" : a ? "T" : "F";
-    });
+  /* ================= Subset Sum: Σ(chosen) = T ================= */
+
+  function parseSubsetSum(str) {
+    const m = /^\(\s*\{([^}]*)\}\s*,\s*(-?\d+)\s*\)$/.exec(str.trim());
+    if (!m) throw new Error("Write it as ({S},T), like ({1,7,12,15},28).");
+    const S = m[1].split(",").map(s => s.trim()).filter(Boolean).map(s => { if (!/^-?\d+$/.test(s)) throw new Error(`'${s}' is not a valid integer in S`); return +s; });
+    if (!S.length) throw new Error("S needs at least one number.");
+    if (S.length > 10) throw new Error("This mockup draws up to 10 numbers.");
+    return { S, T: +m[2] };
+  }
+  // One equation: Σ over every number of S (ids s{i}, each tied to its chip x{i+1}) = T (id T).
+  function subsetPayload(spec) {
+    return { kind: "formula", layout: "equation", noun: "equation", shape: "assignment", rule: "subsetSum",
+      groups: [{ id: "e0", label: "", expr: { id: "eq", op: "eq", args: [{ id: "sum", op: "sum", args: spec.S.map((a, i) => ({ id: "s" + i, num: a, variable: xv(i) })) }, { id: "T", num: spec.T }] } }],
+      variables: spec.S.map((_, i) => ({ id: xv(i), label: "x" + (i + 1), type: "int", range: [0, 1] })) };
+  }
+  function subsetFrame(spec, chosen, { event, caption, pick, ok, index, blank = false }) {
+    const nodes = {}, variables = {}, assignment = {}, groups = {};
+    if (!blank) {
+      const s = spec.S.reduce((a, v, i) => a + (chosen[i] ? v : 0), 0), holds = s === spec.T;
+      spec.S.forEach((_, i) => { nodes["s" + i] = chosen[i] ? pick : "False"; variables[xv(i)] = chosen[i] ? pick : "False"; assignment[xv(i)] = chosen[i] ? 1 : 0; });
+      groups.e0 = { state: holds ? "Covered" : "Rejected", note: `sum ${fmtNum(s)} ${holds ? "=" : "≠"} ${fmtNum(spec.T)}` };
+    }
+    const out = { event, caption, focus: chosen.map((c, i) => (c ? "s" + i : null)).filter(Boolean), step: index, nodes, groups, assignment, variables, mock: { chosen: [...chosen] } };
+    if (ok !== undefined) out.ok = ok;
+    return out;
+  }
+  // SubsetSumBruteForce.Solve (local/viz-integration): every subset in mask order from 1 (bit i picks the i-th number; the
+  // empty set is skipped); an Accept for the subset that adds up to T, a Reject for every other; Done with that subset, or
+  // with nothing picked when none works. Not incremental.
+  function solveSubsetSum(spec) {
+    const frames = [baseFrame("Step 0: the numbers and the target, nothing chosen yet. Step forward to watch the brute force.")];
+    const picked = spec.S.map(() => false), n = spec.S.length;
+    const next = () => { for (let i = 0; i < n; i++) { picked[i] = !picked[i]; if (picked[i]) return true; } return false; };
+    const members = () => spec.S.filter((_, i) => picked[i]);
+    const set = () => "{" + members().join(",") + "}";
+    const adds = () => { const m = members(); return m.length === 0 ? "0" : m.length === 1 ? String(m[0]) : m.join(" + ") + " = " + m.reduce((a, b) => a + b, 0); };
+    const tries = k => (k === 1 ? "1 subset" : `${k} subsets`);
+    let tried = 0;
+    while (next()) {
+      tried++;
+      const s = members().reduce((a, b) => a + b, 0);
+      if (s === spec.T) {
+        frames.push(subsetFrame(spec, picked, { event: "Accept", caption: `Try ${set()}: ${adds()}. That's T.`, pick: "Solution", index: frames.length - 1 }));
+        frames.push(subsetFrame(spec, picked, { event: "Done", caption: `${set()} adds up to exactly ${spec.T}, found after ${tries(tried)}.`, pick: "Solution", ok: true, index: frames.length - 1 }));
+        return { frames, ok: true, incremental: false, solution: [set()] };
+      }
+      frames.push(subsetFrame(spec, picked, { event: "Reject", caption: `Try ${set()}: ${adds()}, not ${spec.T}.`, pick: "ElementHighlight", index: frames.length - 1 }));
+    }
+    const empty = spec.T === 0;
+    frames.push(subsetFrame(spec, picked, { event: "Done", blank: true, ok: empty, index: frames.length - 1,
+      caption: empty ? `Checked all ${tries(tried)} that hold something. None adds up to ${spec.T}, but the empty set does, so it is the answer.` : `Checked all ${tries(tried)}. None adds up to ${spec.T}.` }));
+    return { frames, ok: empty, incremental: false, solution: empty ? ["{}"] : null };
+  }
+  function subsetChecks(spec, f) {
+    const c = f && f.mock ? f.mock.chosen : null;
+    const s = c ? spec.S.reduce((a, v, i) => a + (c[i] ? v : 0), 0) : null;
+    const blank = f && !Object.keys(f.groups || {}).length;
+    return [
+      { label: `Chosen: ${c && !blank ? "{" + spec.S.filter((_, i) => c[i]).join(", ") + "}" : "nothing yet"}`, ok: null },
+      { label: `Sum of the chosen numbers: ${c && !blank ? s : "–"} (target ${spec.T})`, ok: c && !blank ? s === spec.T : null },
+    ];
   }
 
-  /* ---------- the Formula picture ---------- */
+  /* ================= the problem catalog the mockup page reads ================= */
 
-  function create({ svg }) {
+  // Problem names, solver names and default instances are Redux's (Problems/NPComplete on CSharpAPI; steps from the solvers on
+  // local/viz-integration). DNF is not a Redux problem: it only illustrates the dnf layout.
+  const PROBLEMS = {
+    SAT: { label: "SAT", parse: s => parse(s, "SAT"), payload, run: satRun, checks: satChecks, solvers: { dpll: SOLVERS.dpll.label, brute: SOLVERS.brute.label, stopped: SOLVERS.stopped.label }, solver: "dpll",
+      info: "Redux format: <code>(x1 | !x2 | x3 | x4) &amp; (…)</code>. Clauses of any width. Layout <code>cnf</code>.",
+      examples: [["Mixed widths", "(x1 | !x2 | x3 | !x4) & (!x1 | x2) & (!x3 | x4 | x5) & (!x2 | !x5) & (x4 | !x1)"],
+        ["A long formula (wraps)", "(x1 | x2 | !x3) & (!x1 | x4) & (x2 | !x4 | x5 | x6) & (!x2 | x3) & (!x5 | !x6) & (x3 | x6 | !x7) & (x7 | !x8) & (!x3 | x8 | x1) & (x5 | x7) & (!x6 | !x7 | x8) & (x4 | !x8) & (!x4 | x6 | x2)"],
+        ["Unsatisfiable", "(x1 | x2) & (x1 | !x2) & (!x1 | x2) & (!x1 | !x2)"]] },
+    SAT3: { label: "3SAT", parse: s => parse(s, "SAT3"), payload, run: satRun, checks: satChecks, solvers: { dpll: SOLVERS.dpll.label, brute: SOLVERS.brute.label, stopped: SOLVERS.stopped.label }, solver: "dpll",
+      info: "Redux format: <code>(x1 | !x2 | x3) &amp; (…)</code>. At most three literals per clause. Layout <code>cnf</code>.",
+      examples: [["Redux default", "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)"],
+        ["Needs backtracking", "(!x1 | x2 | x3) & (!x1 | !x2 | x4) & (!x1 | !x3 | !x4) & (!x1 | !x2 | x3) & (!x1 | x2 | x4) & (x1 | x2 | !x4) & (x1 | !x3 | x4)"],
+        ["Unsatisfiable", "(x1 | x2 | x3) & (x1 | x2 | !x3) & (x1 | !x2 | x3) & (x1 | !x2 | !x3) & (!x1 | x2 | x3) & (!x1 | x2 | !x3) & (!x1 | !x2 | x3) & (!x1 | !x2 | !x3)"]] },
+    DNF: { label: "DNF (layout illustration)", parse: s => parse(s, "DNF"), payload, run: satRun, checks: satChecks, solvers: { brute: "Brute Force (illustration)" }, solver: "brute",
+      note: "Not a Redux problem: no Redux problem takes a formula in DNF. This shows the dnf layout, the mirror image of cnf (terms joined by ∨, literals inside joined by ∧), with a brute force written for the mockup.",
+      info: "Mockup format: <code>(x1 &amp; !x2) | (…)</code>. Layout <code>dnf</code>.",
+      examples: [["Three terms", "(x1 & !x2) | (!x1 & x3 & x2) | (x2 & !x3)"], ["Only the last term can be true", "(x1 & !x1) | (x2 & !x2 & x3) | (!x1 & !x2 & x3)"], ["Every term contradicts itself", "(x1 & !x1) | (x2 & !x2)"]] },
+    PRIMEFACTOR: { label: "Prime Factorization", parse: parsePrime, payload: primePayload, run: spec => solvePrime(spec), checks: primeChecks, solvers: { trial: "Prime Factorization Trial Division" }, solver: "trial",
+      note: "Steps follow Prime Factorization Trial Division as recorded on the viz branch (a Reject when i does not divide what is left, an Accept per division, an Accept for a last prime). Its recorded step carries only the factors so far; the strip's i and rest are what its loop holds, which a Formula step shape would have to add. Redux's default solver for this problem is Shor's (the Quantum Circuit picture).",
+      info: "Redux format: one positive integer, like <code>60</code>. Layout <code>equation</code>; each frame replaces the right side (<code>exprs</code>).",
+      examples: [["60 = 2 × 2 × 3 × 5", "60"], ["Redux default (12)", "12"], ["1,001: divisors that fail", "1001"], ["A prime: 97", "97"]] },
+    INTPROGRAMMING01: { label: "0-1 Integer Linear Programming", parse: parseILP, payload: ilpPayload, run: spec => solveILP(spec), checks: ilpChecks, solvers: { brute: "0-1 ILP Brute Force" }, solver: "brute",
+      note: "Steps follow 0-1 ILP Brute Force as recorded on the viz branch: every 0/1 vector from all zeros with x₁ flipping fastest, each checked against every row; with no answer the Done keeps the last try (#905).",
+      info: "Redux format: <code>(row1),…,(rowM)&lt;=(d1 … dM)</code>, each constraint Cx ≤ d. Layout <code>rows</code>, joined by ∧, one per line.",
+      examples: [["Redux default", "(-1 1 -1),(0 0 -1),(-1 -1 1)<=(0 0 0)"], ["Needs several tries", "(-1 -1 -1 -1),(1 1 0 0),(0 0 1 1),(1 0 1 0)<=(-2 1 1 1)"],
+        ["Coefficients", "(2 3 -1),(-1 -1 0),(1 0 4)<=(5 -1 4)"], ["No 0-1 solution", "(-1 -1 0),(1 1 0),(0 0 1)<=(-2 1 1)"]] },
+    SUBSETSUM: { label: "Subset Sum", parse: parseSubsetSum, payload: subsetPayload, run: spec => solveSubsetSum(spec), checks: subsetChecks, solvers: { brute: "Subset Sum Brute Force" }, solver: "brute",
+      note: "Steps follow Subset Sum Brute Force as recorded on the viz branch: every non-empty subset in mask order (bit i picks the i-th number), stopping at the first that adds up to T; with none, the Done is blank. Subset Sum's default picture stays the Packing picture.",
+      info: "Redux format: <code>({S},T)</code>, like <code>({1,7,12,15},28)</code>. Layout <code>equation</code> with Σ.",
+      examples: [["Redux default", "({1,7,12,15},28)"], ["No subset adds up", "({3,5,9},7)"]] },
+  };
+
+  /* ================= the Formula picture ================= */
+
+  // width: a number, or a function the picture asks before each layout (the box it is drawn in), clamped to MIN_W..MAX_W
+  function create({ svg, width = MAX_W }) {
     addStyle();
+    const W = () => Math.min(MAX_W, Math.max(MIN_W, (typeof width === "function" ? width() : width) || MAX_W));
     svg.classList.add("fm-svg");
-    let spec, P, run, frames, frame0 = null, els, hover = null, kind = "SAT";
+    let prob = null, spec, P, Pdrawn, drawnKey = null, frames, frame0 = null, els, hover = null;
 
+    const hookup = (g, id) => {
+      const on = () => { hover = id; paint(); }, off = () => { hover = null; paint(); };
+      g.addEventListener("pointerenter", on); g.addEventListener("pointerleave", off);
+      g.addEventListener("focus", on); g.addEventListener("blur", off);
+      g.addEventListener("click", () => { hover = hover === id ? null : id; paint(); });
+    };
+    // a frame may replace a group's expression (a solver that builds the formula as it goes)
+    function effective(f) { return f && f.exprs ? { ...P, groups: P.groups.map(g => (f.exprs[g.id] ? { ...g, expr: f.exprs[g.id] } : g)) } : P; }
     function draw() {
+      const w = W(), Pe = effective(frame0), key = w + ":" + (Pe === P ? "base" : JSON.stringify(Pe.groups.map(g => g.expr || null)));
+      if (key === drawnKey && els) return;
       svg.innerHTML = "";
-      const W = 800, L = layout(P, W);
-      svg.setAttribute("viewBox", `0 0 ${W} ${L.height}`);
-      const hookup = (g, id) => {
-        const on = () => { hover = id; paint(); }, off = () => { hover = null; paint(); };
-        g.addEventListener("pointerenter", on); g.addEventListener("pointerleave", off);
-        g.addEventListener("focus", on); g.addEventListener("blur", off);
-        g.addEventListener("click", () => { hover = hover === id ? null : id; paint(); });
-      };
-      els = drawFormula(svg, P, L, hookup);
+      const L = layout(Pe, w);
+      svg.setAttribute("viewBox", `0 0 ${L.width} ${L.height}`);
+      els = drawFormula(svg, Pe, L, hookup);
+      Pdrawn = Pe; drawnKey = key;
     }
-    function paint() { paintFormula(els, frame0, { hot: hover ? traceSet(P, hover) : null }); }
-
-    function checks(f) {
-      const total = spec.clauses.length, a = f ? f.assignment : {};
-      const covered = f ? Object.values(f.groups).filter(s => s === "Covered").length : 0;
-      const failed = f ? Object.values(f.groups).filter(s => s === "Rejected").length : 0;
-      return [
-        { label: `Clauses with a true literal: ${covered} / ${total}`, ok: f ? covered === total : null },
-        { label: `Clauses with every literal false: ${failed}`, ok: f ? failed === 0 : null },
-        { label: `Variables assigned: ${Object.keys(a).length} / ${spec.names.length}`, ok: f ? Object.keys(a).length === spec.names.length : null },
-      ];
-    }
+    function paint() { paintFormula(els, frame0, { hot: hover ? traceSet(Pdrawn, hover) : null }); }
+    function fresh() { frame0 = null; hover = null; drawnKey = null; els = null; draw(); paint(); }
 
     return {
-      // kind: "SAT" or "SAT3"; solver: a key of SOLVERS
-      load(str, k = "SAT", solver = "dpll") {
-        kind = k; spec = parse(str, k); P = payload(spec);
-        run = SOLVERS[solver].run(spec);
-        frames = [baseFrame("Step 0: the formula, nothing assigned. Step forward to watch the solver."), ...build(spec, run)];
-        frame0 = null; hover = null;
-        draw(); paint();
-        return { frames, ok: run.ok, solution: run.solution ? spec.names.map((n, i) => `${n}=${run.solution[i + 1] ? "T" : "F"}`) : null, incremental: run.incremental, payload: P };
+      // kind: a key of PROBLEMS ("SAT", "SAT3", "DNF", "PRIMEFACTOR", "INTPROGRAMMING01", "SUBSETSUM"); solver: one of its solvers
+      load(str, k = "SAT", solver) {
+        prob = PROBLEMS[k]; spec = prob.parse(str); P = prob.payload(spec);
+        const run = prob.run(spec, solver && prob.solvers[solver] ? solver : prob.solver);
+        frames = run.frames;
+        fresh();
+        return { frames, ok: run.ok, solution: run.solution, incremental: run.incremental, payload: P, legend: legend(P) };
       },
       // Viewer hook: draw a payload and frames built elsewhere (the backend's), without running a mockup solver.
-      loadFrames(payloadIn, fr) { P = payloadIn; spec = { clauses: P.groups.map(g => g.members), names: P.variables.map(v => v.label) }; frames = fr; frame0 = null; hover = null; draw(); paint(); return { frames }; },
-      show(i) { frame0 = i === null ? null : frames[i]; paint(); return frame0; },
-      checks(i) { return checks(i === null ? null : frames[i]); },
+      loadFrames(payloadIn, fr) { prob = null; P = payloadIn; spec = null; frames = fr; fresh(); return { frames, legend: legend(P) }; },
+      show(i) { frame0 = i === null ? null : frames[i]; draw(); paint(); return frame0; },
+      checks(i) {
+        const f = i === null ? null : frames[i];
+        if (prob) return prob.checks(spec, f);
+        const g = f ? Object.values(f.groups || {}).map(v => (v && v.state) || v) : [];
+        return [{ label: `Groups that hold: ${g.filter(s => s === "Covered").length} / ${P.groups.length}`, ok: null }];
+      },
+      legend() { return P ? legend(P) : ""; },
+      // the box changed width: lay out again (a no-op when the clamped width is the same)
+      relayout() { if (P) { draw(); paint(); } },
       resetHover() { hover = null; paint(); },
     };
   }
@@ -4225,17 +4749,13 @@ const FormulaView = (() => {
     addStyle();
     svg.classList.add("fm-svg");
     let R, red, f = null, colors = false, hoverId = null, S, T, links, gIndex;
-    const W = 1080, SW = 500, TX = 560, TW = 520;
+    const W = 1080, SW = 500, TX = 560, TW = 520, PTOP = 44;
 
     function draw() {
       svg.innerHTML = "";
-      const Ls = layout(R.Ps, SW, 62), Lt = layout(R.Pt, TW, 62);
+      const Ls = layout(R.Ps, SW, PTOP), Lt = layout(R.Pt, TW, PTOP);
       const H = Math.max(Ls.height, Lt.height, 300);
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      mk("text", { x: 12, y: 24, class: "fm-pane-title" }, svg).textContent = `${red.fromLabel.toUpperCase()} · THE INSTANCE YOU GAVE`;
-      mk("text", { x: TX + 12, y: 24, class: "fm-pane-title" }, svg).textContent = `${red.toLabel.toUpperCase()} · BUILT BY THE REDUCTION`;
-      mk("line", { class: "rd-sep", x1: TX - 30, y1: 40, x2: TX - 30, y2: H - 20, stroke: "var(--av-line)", "stroke-dasharray": "2 5" }, svg);
-      mk("text", { x: TX - 30, y: H / 2 - 12, class: "fm-arrow" }, svg).textContent = "↦";
       const hook = side => (g, id) => {
         const key = side + id;
         const on = () => { hoverId = key; paint(); }, off = () => { hoverId = null; paint(); };
@@ -4243,7 +4763,13 @@ const FormulaView = (() => {
         g.addEventListener("focus", on); g.addEventListener("blur", off);
         g.addEventListener("click", () => { hoverId = hoverId === key ? null : key; paint(); });
       };
-      const gs = mk("g", {}, svg), gt = mk("g", { transform: `translate(${TX},0)` }, svg);
+      // each pane's title is part of its pane, and the ↦ part of the separator, so each moves with what it names
+      const gs = mk("g", { class: "fm-pane", "data-piece": "pane:s" }, svg), gt = mk("g", { class: "fm-pane", "data-piece": "pane:t", transform: `translate(${TX},0)` }, svg);
+      mk("text", { x: 12, y: 24, class: "fm-pane-title" }, gs).textContent = `${red.fromLabel.toUpperCase()} · THE INSTANCE YOU GAVE`;
+      mk("text", { x: 12, y: 24, class: "fm-pane-title" }, gt).textContent = `${red.toLabel.toUpperCase()} · BUILT BY THE REDUCTION`;
+      const sep = mk("g", { class: "fm-sep", "data-piece": "sep" }, svg);
+      mk("line", { class: "rd-sep", x1: TX - 30, y1: 40, x2: TX - 30, y2: H - 20, stroke: "var(--av-line)", "stroke-dasharray": "2 5" }, sep);
+      mk("text", { x: TX - 30, y: H / 2 - 12, class: "fm-arrow" }, sep).textContent = "↦";
       S = drawFormula(gs, R.Ps, Ls, hook("s:"));
       T = drawFormula(gt, R.Pt, Lt, hook("t:"));
       links = mk("g", {}, svg);
@@ -4300,7 +4826,7 @@ const FormulaView = (() => {
       load(src, key = "KARP_SAT3") {
         red = REDUCTIONS[key]; R = red.run(src); f = null; hoverId = null;
         draw(); paint();
-        return { frames: R.frames, ok: R.frames.at(-1).ok, targetInstance: R.targetInstance, gadgets: R.gadgets, reduction: red };
+        return { frames: R.frames, ok: R.frames.at(-1).ok, targetInstance: R.targetInstance, gadgets: R.gadgets, reduction: red, legend: legend(R.Ps) };
       },
       show(i) { f = i === null ? null : R.frames[i]; paint(); return f; },
       checks(i) { return checks(i === null ? null : R.frames[i]); },
@@ -4309,34 +4835,25 @@ const FormulaView = (() => {
     };
   }
 
-  return { create, createPair, parse, payload, frame, build, SOLVERS, REDUCTIONS, layout, textOf, _karp: karp, _naturalCompare: naturalCompare };
+  return { create, createPair, parse, payload, frame, build, SOLVERS, PROBLEMS, REDUCTIONS, OPS, layout, legend, normalize, textOf,
+    MIN_W, MAX_W, _karp: karp, _naturalCompare: naturalCompare, _pack: pack, _exprTokens: exprTokens };
 })();
 
 
 /* ---- Formula tab ---- */
-const FM_EX = {
-  SAT: [
-    ["Mixed widths", "(x1 | !x2 | x3 | !x4) & (!x1 | x2) & (!x3 | x4 | x5) & (!x2 | !x5) & (x4 | !x1)"],
-    ["A long formula (wraps)", "(x1 | x2 | !x3) & (!x1 | x4) & (x2 | !x4 | x5 | x6) & (!x2 | x3) & (!x5 | !x6) & (x3 | x6 | !x7) & (x7 | !x8) & (!x3 | x8 | x1) & (x5 | x7) & (!x6 | !x7 | x8) & (x4 | !x8) & (!x4 | x6 | x2)"],
-    ["Unsatisfiable", "(x1 | x2) & (x1 | !x2) & (!x1 | x2) & (!x1 | !x2)"],
-  ],
-  SAT3: [
-    ["Redux default", "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)"],
-    ["Needs backtracking", "(!x1 | x2 | x3) & (!x1 | !x2 | x4) & (!x1 | !x3 | !x4) & (!x1 | !x2 | x3) & (!x1 | x2 | x4) & (x1 | x2 | !x4) & (x1 | !x3 | x4)"],
-    ["Unsatisfiable", "(x1 | x2 | x3) & (x1 | x2 | !x3) & (x1 | !x2 | x3) & (x1 | !x2 | !x3) & (!x1 | x2 | x3) & (!x1 | x2 | !x3) & (!x1 | !x2 | x3) & (!x1 | !x2 | !x3)"],
-  ],
-};
-const FM_INFO = {
-  SAT: "Redux format: <code>(x1 | !x2 | x3 | x4) &amp; (…)</code>. Clauses of any width.",
-  SAT3: "Redux format: <code>(x1 | !x2 | x3) &amp; (…)</code>. At most three literals per clause.",
-};
-const FMV = FormulaView.create({ svg: $("fm-g") });
+// Problems, examples, solvers and formats come from FormulaView.PROBLEMS; the picture itself reads only the payload.
+const FMP = FormulaView.PROBLEMS;
+for (const [k, p] of Object.entries(FMP)) { const o = document.createElement("option"); o.value = k; o.textContent = p.label; $("fm-prob").appendChild(o); }
+// laid out at the card's width (320–800), so a phone wraps the formula instead of shrinking it
+const FMV = FormulaView.create({ svg: $("fm-g"), width: () => ($("fm-g").parentElement || {}).clientWidth });
+if (window.ResizeObserver) new ResizeObserver(() => FMV.relayout()).observe($("fm-g").parentElement);
 const FMS = { prob: "SAT", solver: "dpll", mode: "instance", step: 0, playing: null, run: null };
 function fmStop() { if (FMS.playing) { clearInterval(FMS.playing); FMS.playing = null; } }
 function fmLoad(str) {
   try {
     FMS.run = FMV.load(str, FMS.prob, FMS.solver); FMS.step = 0;
     $("fm-box").classList.remove("bad"); $("fm-err").hidden = true;
+    $("fm-legend").textContent = FMS.run.legend;
     fmSetMode(FMS.mode);
   } catch (e) { $("fm-box").classList.add("bad"); $("fm-err").hidden = false; $("fm-err").textContent = e.message; }
 }
@@ -4380,16 +4897,18 @@ $("fm-play").onclick = () => {
 };
 function fmProblem(p) {
   FMS.prob = p;
-  $("fm-fmt").innerHTML = FM_INFO[p];
+  const P = FMP[p];
+  $("fm-fmt").innerHTML = P.info;
+  $("fm-note").hidden = !P.note; $("fm-note").textContent = P.note || "";
   const sv = $("fm-solver-sel"); sv.innerHTML = "";
-  Object.entries(FormulaView.SOLVERS).forEach(([k, s]) => { const o = document.createElement("option"); o.value = k; o.textContent = s.label; sv.appendChild(o); });
-  FMS.solver = "dpll"; sv.value = "dpll";
-  $("fm-solver").textContent = FormulaView.SOLVERS.dpll.label;
+  Object.entries(P.solvers).forEach(([k, label]) => { const o = document.createElement("option"); o.value = k; o.textContent = label; sv.appendChild(o); });
+  FMS.solver = P.solver; sv.value = P.solver;
+  $("fm-solver").textContent = P.solvers[P.solver];
   const ex = $("fm-ex"); ex.innerHTML = "";
-  FM_EX[p].forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
+  P.examples.forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
   fmExample(0);
 }
-function fmExample(i) { const s = FM_EX[FMS.prob][i][1]; $("fm-inst").value = s; fmLoad(s); }
+function fmExample(i) { const s = FMP[FMS.prob].examples[i][1]; $("fm-inst").value = s; fmLoad(s); }
 $("fm-prob").addEventListener("change", e => fmProblem(e.target.value));
 $("fm-ex").addEventListener("change", e => fmExample(+e.target.value));
 $("fm-solver-sel").addEventListener("change", e => { FMS.solver = e.target.value; $("fm-solver").textContent = e.target.selectedOptions[0].textContent; fmLoad($("fm-inst").value); });

@@ -49,6 +49,8 @@
 .instbox .err { color: var(--s-rej); font-size: 13px; }
 .instbox.bad textarea { border-color: var(--s-rej); }
 .instbox .fmt { font-size: 12px; color: var(--muted); }
+.fm-legend { font-size: 13px; color: var(--muted); max-width: 80ch; margin: 0 4px; }
+#fm-note { font-size: 12px; }
 .active-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .active-list span { font: 13px var(--mono); border: 1px solid var(--s-hl); border-radius: 7px; padding: 3px 10px; }
 .active-list span.acc { border-color: var(--s-sol); color: var(--s-sol); }
@@ -244,6 +246,8 @@ pre .k { color: var(--accent); }
   .dscroll { overflow-x: auto; overscroll-behavior-x: contain; }
   .dscroll > svg { min-width: 560px; }
   .dscroll > svg#rd-g, .dscroll > svg#rdg, .dscroll > svg#rdf-g { min-width: 960px; }
+  .dscroll > svg#fm-g { min-width: 0; }
+  .dscroll:has(> svg#fm-g)::after { content: none; }
   .dscroll::after { content: "Swipe the diagram sideways to see all of it."; display: block; position: sticky; left: 0; font-size: 12px; padding-top: 4px; }
 }
 .dscroll::after { color: var(--muted); }
@@ -273,7 +277,7 @@ pre .k { color: var(--accent); }
 <div class="wrap">
   <div class="tabs" role="tablist" aria-label="Visualization">
     <button role="tab" id="t-clause" aria-selected="true" aria-controls="tab-clause">SAT <small>Clause Graph, Factor Graph</small></button>
-    <button role="tab" id="t-formula" aria-selected="false" aria-controls="tab-formula">Formula <small>SAT, 3SAT · proposed</small></button>
+    <button role="tab" id="t-formula" aria-selected="false" aria-controls="tab-formula">Formula <small>SAT, 3SAT, 0-1 ILP, +2 · proposed</small></button>
     <button role="tab" id="t-auto" aria-selected="false" aria-controls="tab-auto">Automaton <small>DFA, NFA</small></button>
     <button role="tab" id="t-graph" aria-selected="false" aria-controls="tab-graph">Graph <small>Clique, Vertex Cover, MST, TSP, +11</small></button>
     <button role="tab" id="t-flow" aria-selected="false" aria-controls="tab-flow">Flow Network <small>Minimum S-T Cut</small></button>
@@ -403,9 +407,10 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
 
   <div class="tab" id="tab-formula" role="tabpanel" aria-labelledby="t-formula" hidden>
     <header>
-      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Formula</b> · SAT, 3SAT · a second picture next to the Clause Graph and Factor Graph</div>
+      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Formula</b> · SAT, 3SAT, Prime Factorization, 0-1 Integer Linear Programming, Subset Sum · a second picture next to each problem's default</div>
       <div class="title-row"><h1>Formula</h1><span class="chip prop">proposed · for review</span></div>
-      <p class="lede">The formula itself, the way it is written. Each clause is a box, the literals inside it are joined by ∨, and the boxes are joined by ∧. A long formula wraps onto more lines between clauses. The strip underneath shows each variable's value so far. It uses the Clause Graph's ids and frames, so the three SAT pictures color the same literal the same way. Hover a literal, a clause or a variable to trace it.</p>
+      <p class="lede">The formula itself, the way it is written, drawn from the payload alone: the frontend knows no problem. The payload's <code>layout</code> picks the drawing (<code>cnf</code> and <code>dnf</code> are presets of <code>rows</code>; <code>equation</code> writes one expression per line), its groups hold literal lists or expression trees with an id on every piece, and its operators are names drawn from one shared table. The strip underneath shows each variable's value so far, true/false or a number. SAT and 3SAT keep the Clause Graph's ids and frames, so the three SAT pictures color the same literal the same way. Hover a piece, a group or a variable to trace it.</p>
+      <p class="lede"><b>Proposed generalization, pending approval.</b> The SAT/3SAT payload the backend sends today (<code>layout: "cnf"</code>) draws exactly as before; the other examples need the extended payload described under Input contract.</p>
     </header>
 
     <div class="instbox" id="fm-box">
@@ -424,16 +429,15 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap">
             <label class="sel">Problem
-              <select id="fm-prob">
-                <option value="SAT">SAT</option>
-                <option value="SAT3">3SAT</option>
-              </select>
+              <select id="fm-prob"></select>
             </label>
             <label class="sel">Solver <select id="fm-solver-sel"></select></label>
             <label class="sel">Example <select id="fm-ex"></select></label>
           </div>
         </div>
-        <svg id="fm-g" role="img" aria-label="The formula, clause by clause, with the assignment"></svg>
+        <svg id="fm-g" role="img" aria-label="The formula, piece by piece, with the variables' values"></svg>
+        <p class="fm-legend" id="fm-legend"></p>
+        <p class="fm-legend" id="fm-note" hidden></p>
       </div>
 
       <aside class="card side">
@@ -454,35 +458,54 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
         </div>
         <div class="legend">
           <h3>Key</h3>
-          <div class="row"><span class="sw bg"></span><div>Background<small>A literal whose variable isn't assigned yet</small></div></div>
-          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The variable being tried, on every literal it makes true, and its chip</small></div></div>
-          <div class="row"><span class="sw com"></span><div>Committed<small>A true literal a step-by-step solver has kept so far. Dashed outline</small></div></div>
-          <div class="row"><span class="sw sol"></span><div>Solution<small>A true literal of the confirmed answer only</small></div></div>
-          <div class="row"><span class="sw fmfal">x</span><div>False<small>The literal is false under the assignment. Its letters are struck through, the subscript left clear</small></div></div>
-          <div class="row"><span class="sw cov"></span><div>Covered<small>A clause with a true literal. Marked ✓</small></div></div>
-          <div class="row"><span class="sw rej"></span><div>Rejected<small>A clause whose literals are all false, with its literals. Marked ✗. On a run that found nothing, its picks</small></div></div>
+          <div class="row"><span class="sw bg"></span><div>Background<small>A literal whose variable isn't assigned yet; a number drawn plain</small></div></div>
+          <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>What the step is trying: the variable on every literal it makes true and its chip, a candidate's chosen numbers, a factor just found</small></div></div>
+          <div class="row"><span class="sw com"></span><div>Committed<small>Kept so far by a step-by-step solver (a true literal, a factor found). Dashed outline</small></div></div>
+          <div class="row"><span class="sw sol"></span><div>Solution<small>Part of the confirmed answer only</small></div></div>
+          <div class="row"><span class="sw fmfal">x</span><div>False<small>A false literal, a number left out, a 0 variable, a DNF term with a false literal. Letters struck through, the subscript left clear</small></div></div>
+          <div class="row"><span class="sw cov"></span><div>Covered<small>A clause, term, constraint or equation that holds. Marked ✓</small></div></div>
+          <div class="row"><span class="sw rej"></span><div>Rejected<small>A clause with every literal false, a constraint over its bound, an equation that fails, a divisor that doesn't divide. Marked ✗. On a run that found nothing, its picks</small></div></div>
         </div>
       </aside>
     </div>
 
     <div class="lower">
       <section class="card panel">
-        <h2>Input contract</h2>
-        <p>SAT and 3SAT already hand over <code>GroupedGraphSpec(Clauses, Variables)</code> for the Clause Graph and the Factor Graph. The Formula picture reads the same spec and the same <code>Assignment</code> steps, so every SAT solver animates on it with no extra code. Proposed classes: <code>SatFormulaVisualization</code> and <code>Sat3FormulaVisualization</code>, selectable next to the default.</p>
-<pre><span class="c">// payload: the Grouped Graph's groups, nodes and variables, without its edges</span>
+        <h2>Input contract <span class="chip prop">proposed · pending approval</span></h2>
+        <p>Today SAT and 3SAT hand over <code>GroupedGraphSpec(Clauses, Variables)</code> and the Formula reads it with <code>layout: "cnf"</code>; that payload still draws exactly as before. The proposal generalizes the payload so any formula-shaped problem can use the picture with no problem-specific frontend code. Everything new is optional, so today's payload stays valid.</p>
+<pre><span class="c">// today (unchanged): groups = clauses, nodes = literal occurrences</span>
 { <span class="k">"kind"</span>: "formula", <span class="k">"layout"</span>: "cnf", "shape": "assignment", "rule": "satisfiability",
   <span class="k">"groups"</span>:    [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"] }],
-  <span class="k">"nodes"</span>:     [{ "id": "c0-1", "label": "¬x2", "variable": "v:x2",
-                 "positive": false, "group": "c0" }],
+  <span class="k">"nodes"</span>:     [{ "id": "c0-1", "label": "¬x2", "variable": "v:x2", "positive": false, "group": "c0" }],
   <span class="k">"variables"</span>: [{ "id": "v:x2", "label": "x2" }] }
 
-<span class="c">// frame: the Grouped Graph frame, plus one map for the strip</span>
+<span class="c">// "dnf": the same, operators swapped. "rows": explicit operators, and groups may hold an expression tree</span>
+{ "kind": "formula", <span class="k">"layout"</span>: "rows", <span class="k">"outer"</span>: "and", <span class="k">"inner"</span>: "or",
+  <span class="k">"arrange"</span>: "stack", <span class="k">"noun"</span>: "constraint",          <span class="c">// "flow" (default) packs boxes left to right</span>
+  "groups": [{ "id": "r0", "label": "R1",
+    <span class="k">"expr"</span>: { "id": "r0-rel", "op": "le", "args": [
+      { "id": "r0-s0", "op": "plus", "args": [
+        { "op": "mul", "args": [{ "id": "r0-c0", "num": 2, "variable": "v:x1" }, { "id": "r0-x0", "var": "v:x1" }] },
+        { "id": "r0-x1", "var": "v:x2" }] },
+      { "id": "r0-d", "num": 5 }] } }],
+  "variables": [{ "id": "v:x1", "label": "x1", <span class="k">"type"</span>: "int", <span class="k">"range"</span>: [0, 1] }] }
+
+<span class="c">// "equation": one expression per line, no box until it has a state ("tree" is reserved, drawn like this for now)</span>
+{ "kind": "formula", <span class="k">"layout"</span>: "equation",
+  "groups": [{ "id": "e0", "label": "", "expr": { "id": "eq", "op": "eq", "args": [
+    { "id": "sum", "op": "sum", "args": [{ "id": "s0", "num": 1, "variable": "v:x1" }, …] }, { "id": "T", "num": 28 }] } }],
+  "variables": [{ "id": "v:x1", "label": "x1", "type": "int", "range": [0, 1] }] }
+
+<span class="c">// frame: as today, plus a note per group and, optionally, a replacement expression per group</span>
 { "event", "caption", "focus", "step", "ok"?,
-  <span class="k">"nodes"</span>:  { "c0-1": { "state": "False" } },        <span class="c">// literals</span>
-  <span class="k">"groups"</span>: { "c0": { "state": "Covered" } },        <span class="c">// clauses</span>
-  <span class="k">"assignment"</span>: { "v:x2": true },
-  <span class="k">"variables"</span>:  { "v:x2": { "state": "Committed" } } }</pre>
-        <p>Layout is plain arithmetic, so it ports to D3 or React as is: literal width from its label, clauses packed left to right and wrapped at a clause boundary, a clause wider than a line wrapped at its ∨s. Every state carries a mark besides its color: dashes for Committed, a strike through the letters (not the subscript) for False, ✓ and ✗ on the clause.</p>
+  <span class="k">"nodes"</span>:  { "r0-x0": { "state": "Rejected" } },          <span class="c">// any piece id</span>
+  <span class="k">"groups"</span>: { "r0": { "state": "Rejected", <span class="k">"note"</span>: "total 6 > 5" } },
+  <span class="k">"assignment"</span>: { "v:x1": 1 },                           <span class="c">// bool or number</span>
+  <span class="k">"variables"</span>:  { "v:x1": { "state": "ElementHighlight" } },
+  <span class="k">"exprs"</span>?: { "e0": { … } } }                              <span class="c">// a solver that builds the formula</span></pre>
+        <p><b>Expression pieces.</b> <code>{ id, var }</code> a variable occurrence (a pill), <code>{ id, num, variable? }</code> a number (plain until it has a state; <code>variable</code> ties it to a chip), <code>{ id, label }</code> a placeholder, <code>{ id?, op, args }</code> an operator. A piece keeps its id across frames, so states, gadgets and the verifier's "where it fails" can target it.</p>
+        <p><b>One operator table</b> (<code>OPS</code> in formula.js): <code>or</code> ∨, <code>and</code> ∧, <code>not</code> ¬, <code>plus</code> +, <code>minus</code> −, <code>times</code> ×, <code>mul</code> (juxtaposition, 2x), <code>neg</code> −, <code>eq</code> =, <code>le</code> ≤, <code>ge</code> ≥, <code>lt</code> &lt;, <code>gt</code> &gt;, <code>sum</code> Σ(…). Each has a fixity (infix, prefix, juxtaposition, call) and a precedence that decides parentheses. An unknown name is drawn <code>name(a, b)</code>, never an error.</p>
+        <p>Layout is plain arithmetic, so it ports to D3 or React as is: piece width from its label, groups packed left to right (or stacked) and wrapped at group boundaries; a group or equation wider than a line wraps at its shallowest operators first, the operator leading the new line. The legend under the picture is derived from the layout and operators. No text floats in the picture: every label, mark, note and operator symbol is drawn inside the piece it belongs to.</p>
       </section>
 
       <section class="card panel">
@@ -492,6 +515,10 @@ frames: { assignment, tried?: int, rejectedClause?: int, caption }[]</pre>
           <li><b>The variables map.</b> The frame adds <code>variables</code> for the strip. Keep it, or have the frontend work the chips out from <code>assignment</code> and <code>focus</code>?</li>
           <li><b>Repeated literals.</b> A clause like (x1 ∨ x1 ∨ x2) is drawn as written, one pill per occurrence, because the ids are per occurrence. Merge them instead?</li>
           <li><b>Failed runs.</b> Redux's SAT solvers end an unsatisfiable run with no assignment, so that last frame is drawn blank apart from its caption. Should it mark every clause Rejected instead? (The mockup's brute force ends on its last candidate, to show the Rejected rule.)</li>
+          <li><b>Generalized payload.</b> Approve <code>rows</code> / <code>equation</code>, expression trees and the operator table as the Formula contract? <code>tree</code> (nested formulas drawn as a tree) is reserved but not designed.</li>
+          <li><b>Which problems get it.</b> Prime Factorization, 0-1 Integer Linear Programming and Subset Sum are shown here as second views (their defaults stay Quantum Circuit, Table and Packing). Worth it for all three?</li>
+          <li><b>Formula steps for those solvers.</b> They record <code>QuantumProgress</code>, <code>Assignment</code> and <code>Placement</code> steps. Prime Factorization's would also need the divisor i and what is left; the frames builder would emit the <code>exprs</code> replacement and the row notes.</li>
+          <li><b>Group notes.</b> A note (like "total 6 &gt; 5") sits after a group's label. In the flowing layout a long note could reach the next box; keep notes to stacked rows and equations?</li>
         </ol>
       </section>
     </div>
@@ -2772,29 +2799,19 @@ bProblem("SETCOVER");
 /*@@FORMULA@@*/
 
 /* ---- Formula tab ---- */
-const FM_EX = {
-  SAT: [
-    ["Mixed widths", "(x1 | !x2 | x3 | !x4) & (!x1 | x2) & (!x3 | x4 | x5) & (!x2 | !x5) & (x4 | !x1)"],
-    ["A long formula (wraps)", "(x1 | x2 | !x3) & (!x1 | x4) & (x2 | !x4 | x5 | x6) & (!x2 | x3) & (!x5 | !x6) & (x3 | x6 | !x7) & (x7 | !x8) & (!x3 | x8 | x1) & (x5 | x7) & (!x6 | !x7 | x8) & (x4 | !x8) & (!x4 | x6 | x2)"],
-    ["Unsatisfiable", "(x1 | x2) & (x1 | !x2) & (!x1 | x2) & (!x1 | !x2)"],
-  ],
-  SAT3: [
-    ["Redux default", "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)"],
-    ["Needs backtracking", "(!x1 | x2 | x3) & (!x1 | !x2 | x4) & (!x1 | !x3 | !x4) & (!x1 | !x2 | x3) & (!x1 | x2 | x4) & (x1 | x2 | !x4) & (x1 | !x3 | x4)"],
-    ["Unsatisfiable", "(x1 | x2 | x3) & (x1 | x2 | !x3) & (x1 | !x2 | x3) & (x1 | !x2 | !x3) & (!x1 | x2 | x3) & (!x1 | x2 | !x3) & (!x1 | !x2 | x3) & (!x1 | !x2 | !x3)"],
-  ],
-};
-const FM_INFO = {
-  SAT: "Redux format: <code>(x1 | !x2 | x3 | x4) &amp; (…)</code>. Clauses of any width.",
-  SAT3: "Redux format: <code>(x1 | !x2 | x3) &amp; (…)</code>. At most three literals per clause.",
-};
-const FMV = FormulaView.create({ svg: $("fm-g") });
+// Problems, examples, solvers and formats come from FormulaView.PROBLEMS; the picture itself reads only the payload.
+const FMP = FormulaView.PROBLEMS;
+for (const [k, p] of Object.entries(FMP)) { const o = document.createElement("option"); o.value = k; o.textContent = p.label; $("fm-prob").appendChild(o); }
+// laid out at the card's width (320–800), so a phone wraps the formula instead of shrinking it
+const FMV = FormulaView.create({ svg: $("fm-g"), width: () => ($("fm-g").parentElement || {}).clientWidth });
+if (window.ResizeObserver) new ResizeObserver(() => FMV.relayout()).observe($("fm-g").parentElement);
 const FMS = { prob: "SAT", solver: "dpll", mode: "instance", step: 0, playing: null, run: null };
 function fmStop() { if (FMS.playing) { clearInterval(FMS.playing); FMS.playing = null; } }
 function fmLoad(str) {
   try {
     FMS.run = FMV.load(str, FMS.prob, FMS.solver); FMS.step = 0;
     $("fm-box").classList.remove("bad"); $("fm-err").hidden = true;
+    $("fm-legend").textContent = FMS.run.legend;
     fmSetMode(FMS.mode);
   } catch (e) { $("fm-box").classList.add("bad"); $("fm-err").hidden = false; $("fm-err").textContent = e.message; }
 }
@@ -2838,16 +2855,18 @@ $("fm-play").onclick = () => {
 };
 function fmProblem(p) {
   FMS.prob = p;
-  $("fm-fmt").innerHTML = FM_INFO[p];
+  const P = FMP[p];
+  $("fm-fmt").innerHTML = P.info;
+  $("fm-note").hidden = !P.note; $("fm-note").textContent = P.note || "";
   const sv = $("fm-solver-sel"); sv.innerHTML = "";
-  Object.entries(FormulaView.SOLVERS).forEach(([k, s]) => { const o = document.createElement("option"); o.value = k; o.textContent = s.label; sv.appendChild(o); });
-  FMS.solver = "dpll"; sv.value = "dpll";
-  $("fm-solver").textContent = FormulaView.SOLVERS.dpll.label;
+  Object.entries(P.solvers).forEach(([k, label]) => { const o = document.createElement("option"); o.value = k; o.textContent = label; sv.appendChild(o); });
+  FMS.solver = P.solver; sv.value = P.solver;
+  $("fm-solver").textContent = P.solvers[P.solver];
   const ex = $("fm-ex"); ex.innerHTML = "";
-  FM_EX[p].forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
+  P.examples.forEach(([name], i) => { const o = document.createElement("option"); o.value = i; o.textContent = name; ex.appendChild(o); });
   fmExample(0);
 }
-function fmExample(i) { const s = FM_EX[FMS.prob][i][1]; $("fm-inst").value = s; fmLoad(s); }
+function fmExample(i) { const s = FMP[FMS.prob].examples[i][1]; $("fm-inst").value = s; fmLoad(s); }
 $("fm-prob").addEventListener("change", e => fmProblem(e.target.value));
 $("fm-ex").addEventListener("change", e => fmExample(+e.target.value));
 $("fm-solver-sel").addEventListener("change", e => { FMS.solver = e.target.value; $("fm-solver").textContent = e.target.selectedOptions[0].textContent; fmLoad($("fm-inst").value); });
