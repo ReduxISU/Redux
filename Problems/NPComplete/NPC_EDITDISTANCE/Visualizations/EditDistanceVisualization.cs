@@ -13,7 +13,7 @@ namespace API.Problems.NPComplete.NPC_EDITDISTANCE.Visualizations;
 /// the neighbors it compares, then the cheapest edit path traced back from the corner. The list format draws the empty
 /// grid and the solved one. It is the problem's default visualization.
 /// </summary>
-class EditDistanceVisualization : IVisualization<EDITDISTANCE, API_TableJSON>, ITableVisualization<EDITDISTANCE, TableCells> {
+class EditDistanceVisualization : IVisualization<EDITDISTANCE, API_TableJSON>, ITableVisualization<EDITDISTANCE, TableCells>, IOptInVisualization {
     public string visualizationName { get; } = "Edit Distance Table Visualization";
     public string visualizationDefinition { get; } = "Draws the dynamic-programming grid, x down the side and y across the top. Each cell is the cost of turning a prefix of x into a prefix of y, worked out from the three cells before it; the cheapest path back from the corner spells out the edits.";
     public string source { get; } = "";
