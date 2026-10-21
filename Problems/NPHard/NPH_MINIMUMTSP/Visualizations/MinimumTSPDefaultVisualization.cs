@@ -8,7 +8,7 @@ using API.Problems.NPHard.NPH_MINIMUMTSP.Solvers;
 
 namespace API.Problems.NPHard.NPH_MINIMUMTSP.Visualizations;
 
-class MinimumTSPDefaultVisualization : IVisualization<MINIMUMTSP, API_GraphJSON>, IGraphTourVisualization<MINIMUMTSP> {
+class MinimumTSPDefaultVisualization : IVisualization<MINIMUMTSP, API_GraphJSON>, IGraphTourVisualization<MINIMUMTSP>, IOptInVisualization {
 
     // --- Fields ---
     public string visualizationName { get; } = "Minimum Traveling Salesperson Visualization";
