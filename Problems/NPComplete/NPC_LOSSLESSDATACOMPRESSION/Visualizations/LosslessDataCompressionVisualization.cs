@@ -13,6 +13,7 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Visualizations;
 /// edges, each character's code and the encoded bits. The list format is the code table (<c>DynamicTable</c>): one row per
 /// distinct character with how often it appears and, once solved, its code and the bits it takes, marked Solution.
 /// </summary>
+[LegacyVisualizationType(VisualizationType.Unimplemented)]
 class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESSION, API_TableJSON>, ICodeTreeVisualization<LOSSLESSDATACOMPRESSION> {
     public string visualizationName { get; } = "Lossless Data Compression Visualization";
     public string visualizationDefinition { get; } = "Lists each distinct character of the text with how often it appears. Once solved, each row shows the character's Huffman code and the bits it takes in the encoded text (its count times its code's length); the title gives the total.";
