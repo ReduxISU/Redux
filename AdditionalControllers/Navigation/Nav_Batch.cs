@@ -62,7 +62,8 @@ public class BatchController : ControllerBase {
     private static readonly Lazy<string>[] VisualizationTypesJson = ByOptIn(include =>
         JsonSerializer.Serialize(VisualizationTypeCatalog.ByClassName.Value
             .Where(p => VisualizationNavigationData.Listed(p.Key, include))
-            .ToDictionary(p => p.Key, p => p.Value, StringComparer.OrdinalIgnoreCase), Indented));
+            .ToDictionary(p => p.Key, p => include ? p.Value : VisualizationTypeCatalog.LegacyByClassName.Value.GetValueOrDefault(p.Key, p.Value),
+                StringComparer.OrdinalIgnoreCase), Indented));
 
     // Instances of every reflected interface type, mirroring ProblemProvider.info
     // (System.Text.Json with IncludeFields) but for all interfaces at once. Types that
@@ -79,7 +80,8 @@ public class BatchController : ControllerBase {
                 // failing the whole response.
             }
         }
-        return JsonSerializer.Serialize(result, ReflectedIndented);
+        // A client that has not opted in also sees each problem's pre-redesign default and each visualization's legacy type (GuiView).
+        return JsonSerializer.Serialize(result, GuiView.Options(ReflectedIndented, include));
     });
 
     // [0]: the default listing; [1]: the includePictures=true one. Each is built once, on first use.

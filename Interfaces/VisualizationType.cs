@@ -3,11 +3,13 @@ using System.Text.Json.Serialization;
 namespace API.Interfaces;
 
 /// <summary>
-/// The renderer contract between this API and the GUI. Every member except
-/// <see cref="Unimplemented"/> must have a matching key in
+/// The renderer contract between this API and the GUI. Every member Redux_GUI is shown
+/// (VisualizationTypeCatalog.GuiWireValues) except <see cref="Unimplemented"/> must have a matching key in
 /// Redux_GUI/components/Visualization/svgs/Visualizations.js, which the Redux_GUI repo checks
-/// with `npm run check:visualizations`. Every member must also appear in
-/// Documentation/visualization-types.json (checked by VisualizationType_Tests.ManifestMatchesEnum).
+/// with `npm run check:visualizations`, and those members are exactly the ones in
+/// Documentation/visualization-types.json (checked by VisualizationType_Tests.ManifestMatchesEnum). A picture type added
+/// for the visualization redesign stays out of both until Redux_GUI can draw it: it is listed only for clients that ask
+/// with includePictures=true.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<VisualizationType>))]
 public enum VisualizationType {

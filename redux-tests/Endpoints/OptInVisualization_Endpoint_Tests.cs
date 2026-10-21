@@ -33,15 +33,11 @@ public class OptInVisualization_Endpoint_Tests : IClassFixture<AppFactory> {
     private static HashSet<string> Names(IEnumerable<string> names) => names.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void TheFormulaViews_AreOptIn_AndNoProblemsDefaultIs() {
+    public void TheFormulaViews_AreOptIn() {
         Assert.Contains("SatFormulaVisualization", OptIn);
         Assert.Contains("Sat3FormulaVisualization", OptIn);
         Assert.DoesNotContain("SatDefaultVisualization", OptIn);
-        foreach (var (_, type) in ProblemProvider.Problems) {
-            if (Activator.CreateInstance(type) is not IProblem problem) continue;
-            var defaultVis = problem.defaultVisualization;
-            if (defaultVis != null) Assert.False(OptInVisualizations.IsOptIn(defaultVis.GetType()), $"{type.Name}'s default {defaultVis.GetType().Name} is opt-in");
-        }
+        // A problem's default may be opt-in: Redux_GUI is then shown the placeholder default (GuiView_Endpoint_Tests).
     }
 
     [Fact]
