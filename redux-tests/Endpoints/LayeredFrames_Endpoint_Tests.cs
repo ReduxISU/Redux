@@ -79,9 +79,11 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // Strongly Connected Components' default visualization moved off DummyVisualization to SCCVisualization. Its /info
     // snapshot was retaken after the rewire; the diff against the pre-change capture is only that nested object.
+    // The view is opt-in (IOptInVisualization), so it is the default only for a client that asks with includePictures=true;
+    // Redux_GUI still sees the placeholder (GuiView_Endpoint_Tests).
     [Fact]
     public async Task Rewire_SccInfo_ShowsSccVisualization_AndNothingElse() {
-        var response = await _client.GetAsync("/ProblemProvider/info?interface=stronglyconnectedcomponents", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/ProblemProvider/info?interface=stronglyconnectedcomponents&includePictures=true", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");
         Assert.Equal(ReadSnapshot("info.stronglyconnectedcomponents.json"), body);
