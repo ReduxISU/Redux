@@ -11,7 +11,7 @@ namespace API.Problems.NPComplete.NPC_SIMON.Visualizations;
 /// steps. Its list format is the quantum circuit payload with an empty QASM string, as Unstructured Search's is: no quantum
 /// server endpoint builds Simon's circuit. The problem's default visualization is still <c>DummyVisualization</c>.
 /// </summary>
-class SimonVisualization : IVisualization<SIMON, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<SIMON> {
+class SimonVisualization : IVisualization<SIMON, API_QUANTUMCIRCUIT>, IQuantumCircuitVisualization<SIMON>, IOptInVisualization {
     public string visualizationName { get; } = "Simon's Problem Quantum Circuit";
     public string visualizationDefinition { get; } = "Draws Simon's circuit for the table: Hadamards on the query qubits, one call to the oracle writing f(x) into the output qubits, Hadamards again, and a measurement whose every outcome y satisfies y · s = 0.";
     public string source { get; } = "Simon, Daniel R. On the power of quantum computation. SIAM journal on computing, 1997, 26. Jg., Nr. 5, S. 1474-1483.";
