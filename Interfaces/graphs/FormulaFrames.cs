@@ -6,18 +6,93 @@ namespace API.Interfaces.Graphs;
 // --- JSON shapes (explicit names so the contract does not depend on serializer naming options) ---
 
 /// <summary>
-/// The static part of a Formula picture, sent once per response: the Grouped Graph's groups (clauses), nodes (literal
-/// occurrences) and variables, without its edges. A frontend writes the clauses out as the formula reads, joined by ∧, with
-/// the literals of each joined by ∨.
+/// The static part of a Formula picture, sent once per response. For a CNF problem (<c>layout: "cnf"</c>, #925) it is the
+/// Grouped Graph's groups (clauses), nodes (literal occurrences) and variables, without its edges: a frontend writes the
+/// clauses out as the formula reads, joined by ∧, with the literals of each joined by ∨.
+/// <para>
+/// The payload drives the drawing (#929): <see cref="Layout"/> is <c>cnf</c> or <c>dnf</c> (presets of <c>rows</c>),
+/// <c>rows</c> (with <see cref="Outer"/>, <see cref="Inner"/> and <see cref="Arrange"/>) or <c>equation</c>; a group holds
+/// either today's literal list (<c>members</c>, naming <see cref="Nodes"/>) or an expression tree (<c>expr</c>); variables
+/// may carry a type. Every field #929 added is optional and left out of the JSON when unset, so a CNF payload is written
+/// exactly as before.
+/// </para>
 /// </summary>
 sealed record FormulaPayload(
     [property: JsonPropertyName("kind")] string Kind,
     [property: JsonPropertyName("layout")] string Layout,
     [property: JsonPropertyName("shape")] string Shape,
     [property: JsonPropertyName("rule")] string Rule,
-    [property: JsonPropertyName("groups")] IReadOnlyList<GroupedGraphGroupDto> Groups,
-    [property: JsonPropertyName("nodes")] IReadOnlyList<GroupedGraphNodeDto> Nodes,
-    [property: JsonPropertyName("variables")] IReadOnlyList<GroupedGraphVariableDto> Variables);
+    [property: JsonPropertyName("groups")] IReadOnlyList<FormulaGroupDto> Groups,
+    [property: JsonPropertyName("nodes")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<GroupedGraphNodeDto>? Nodes,
+    [property: JsonPropertyName("variables")] IReadOnlyList<FormulaVariableDto> Variables) {
+    /// <summary><c>rows</c> only: the operator joining the groups (<see cref="FormulaOps"/>; a frontend defaults to <c>and</c>).</summary>
+    [JsonPropertyName("outer")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Outer { get; init; }
+
+    /// <summary><c>rows</c> only: the operator joining a literal list's members (a frontend defaults to <c>or</c>).</summary>
+    [JsonPropertyName("inner")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Inner { get; init; }
+
+    /// <summary><c>rows</c> only: <c>flow</c> (boxes left to right, the default) or <c>stack</c> (a line each).</summary>
+    [JsonPropertyName("arrange")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Arrange { get; init; }
+
+    /// <summary>What a group is called in the legend ("constraint", "equation").</summary>
+    [JsonPropertyName("noun")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Noun { get; init; }
+}
+
+/// <summary>
+/// One group of a Formula: a box of <c>rows</c>, or a line of an <c>equation</c>. It holds either <see cref="Members"/>
+/// (literal ids, the CNF/DNF list, joined by the inner operator) or <see cref="Expr"/> (an expression tree); the unset one is
+/// left out of the JSON. A CNF clause writes exactly the Grouped Graph's group: <c>id</c>, <c>label</c>, <c>members</c>.
+/// </summary>
+sealed record FormulaGroupDto(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("label")] string Label) {
+    [JsonPropertyName("members")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? Members { get; init; }
+
+    [JsonPropertyName("expr")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public FormulaExpr? Expr { get; init; }
+
+    /// <summary>A CNF clause as the Grouped Graph writes it.</summary>
+    public static FormulaGroupDto Of(GroupedGraphGroupDto group) => new(group.Id, group.Label) { Members = group.Members };
+}
+
+/// <summary>
+/// A variable of the strip. <see cref="Type"/> is <c>bool</c> (a frontend's default: the chip shows T, F or –) or
+/// <c>int</c> (the chip shows its number), with an optional <see cref="Range"/> <c>[lo, hi]</c> a frontend sizes the chip
+/// from; both are left out of the JSON when unset, so a CNF variable writes exactly <c>id</c> and <c>label</c>.
+/// </summary>
+sealed record FormulaVariableDto(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("label")] string Label) {
+    [JsonPropertyName("type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Type { get; init; }
+
+    [JsonPropertyName("range")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long[]? Range { get; init; }
+
+    public const string Bool = "bool";
+    public const string Int = "int";
+
+    /// <summary>A CNF variable as the Grouped Graph writes it.</summary>
+    public static FormulaVariableDto Of(GroupedGraphVariableDto variable) => new(variable.Id, variable.Label);
+
+    /// <summary>An integer variable, optionally with its range.</summary>
+    public static FormulaVariableDto Integer(string id, string label, long? lo = null, long? hi = null) =>
+        new(id, label) { Type = Int, Range = lo is long l && hi is long h ? [l, h] : null };
+}
 
 /// <summary>
 /// One picture of the formula: the Grouped Graph frame (<c>nodes</c> = literal states, <c>groups</c> = clause states,
@@ -69,7 +144,8 @@ static class FormulaFrames {
 
     public static FormulaPayload Payload(GroupedGraphSpec spec) {
         var graph = GroupedGraphFrames.Payload(spec);
-        return new FormulaPayload(KindName, LayoutName, GroupedGraphFrames.ShapeName, GroupedGraphFrames.RuleName, graph.Groups, graph.Nodes, graph.Variables);
+        return new FormulaPayload(KindName, LayoutName, GroupedGraphFrames.ShapeName, GroupedGraphFrames.RuleName,
+            graph.Groups.Select(FormulaGroupDto.Of).ToList(), graph.Nodes, graph.Variables.Select(FormulaVariableDto.Of).ToList());
     }
 
     // ---- Frames ----
