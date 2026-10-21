@@ -11,7 +11,7 @@ using API.Problems.NPComplete.NPC_SAT3.Solvers;
 /// <c>SearchTree</c>). The list format, which old frontends read, is exactly <see cref="Sat3DefaultVisualization"/>'s, so
 /// this entry renders like the default 3SAT picture until a frontend draws the tree.
 /// </summary>
-class Sat3SearchTreeVisualization : IVisualization<SAT3>, ISearchTreeVisualization<SAT3, Assignment> {
+class Sat3SearchTreeVisualization : IVisualization<SAT3>, ISearchTreeVisualization<SAT3, Assignment>, IOptInVisualization {
     public string visualizationName { get; } = "3SAT Search Tree";
     public string visualizationDefinition { get; } = "The choices of 3SAT Backtracking as a tree: each level sets one variable, a red dashed node is a value that makes a clause false, and the numbers show the order in which queued branches were taken. With format=frames, the tree grows step by step and the path to the answer turns green.";
     public string source { get; } = "";
