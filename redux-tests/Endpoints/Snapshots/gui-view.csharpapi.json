@@ -1,0 +1,1014 @@
+{
+ "allVisualizationTypes": {
+  "ArcSetDefaultVisualization": "GraphD3",
+  "BernsteinVaziraniD3Visualization": "QuantumCircuitD3",
+  "BernsteinVaziraniDefaultVisualization": "QuantumCircuitQjs",
+  "CliqueCoverDefaultVisualization": "GraphD3",
+  "CliqueDefaultVisualization": "GraphD3",
+  "CliqueLatexVisualization": "GraphLaTeX",
+  "ConvexHullVisualization": "Unimplemented",
+  "CutDefaultVisualization": "GraphD3",
+  "DFATableVisualization": "DynamicTable",
+  "DFAVisualization": "GraphLaTeX",
+  "DeutschD3Visualization": "QuantumCircuitD3",
+  "DeutschDefaultVisualization": "QuantumCircuitQjs",
+  "DeutschJozsaD3Visualization": "QuantumCircuitD3",
+  "DeutschJozsaDefaultVisualization": "QuantumCircuitQjs",
+  "DirectedHamiltonianDefaultVisualization": "GraphD3",
+  "DominatingSetDefaultVisualization": "GraphD3",
+  "DummyVisualization": "Unimplemented",
+  "ExactCoverDefaultVisualization": "SetD3",
+  "GraphColoringDefaultVisualization": "GraphD3",
+  "HamiltonianDefaultVisualization": "GraphD3",
+  "HittingSetDefaultVisualization": "SetD3",
+  "IndependentSetDefaultVisualization": "GraphD3",
+  "LosslessDataCompressionVisualization": "Unimplemented",
+  "MaxCutVisualization": "GraphD3",
+  "MinCutVisualization": "GraphD3",
+  "MinSTCutVisualization": "GraphD3",
+  "MinimumSpanningTreeVisualization": "GraphD3",
+  "MinimumVertexCoverDefaultVisualization": "GraphD3",
+  "NFATableVisualization": "DynamicTable",
+  "NFAVisualization": "GraphLaTeX",
+  "NodeSetDefaultVisualization": "GraphD3",
+  "PartitionDefaultVisualization": "SetD3",
+  "PumpSchedulingCMVisualization": "PumpSchedule",
+  "PumpSchedulingEMVisualization": "PumpSchedule",
+  "SATGroverVisualization": "QuantumCircuitQjs",
+  "SPSPTableVisualization": "DynamicTable",
+  "SPSPVisualization": "GraphD3",
+  "SSSPTableVisualization": "DynamicTable",
+  "SSSPVisualization": "GraphD3",
+  "Sat3DefaultVisualization": "BooleanSatisfiability",
+  "SatDefaultVisualization": "BooleanSatisfiability",
+  "SetCoverDefaultVisualization": "SetD3",
+  "ShorsDefaultVisualization": "QuantumCircuitQjs",
+  "SteinerTreeDefaultVisualization": "GraphD3",
+  "SudokuVisualization": "Unimplemented",
+  "TSPDefaultVisualization": "GraphD3",
+  "TopologicalSortDefaultVisualization": "GraphD3",
+  "UnstructuredSearchVisualization": "QuantumCircuitQjs",
+  "VertexCoverDefaultVisualization": "GraphD3",
+  "WeightedCutDefaultVisualization": "GraphD3"
+ },
+ "allVisualizations": {
+  "ARCSET": [
+   "ArcSetDefaultVisualization"
+  ],
+  "BERNSTEINVAZIRANI": [
+   "BernsteinVaziraniD3Visualization",
+   "BernsteinVaziraniDefaultVisualization"
+  ],
+  "CLIQUE": [
+   "CliqueDefaultVisualization",
+   "CliqueLatexVisualization"
+  ],
+  "CLIQUECOVER": [
+   "CliqueCoverDefaultVisualization"
+  ],
+  "CONVEXHULL": [
+   "ConvexHullVisualization"
+  ],
+  "CUT": [
+   "CutDefaultVisualization"
+  ],
+  "DEUTSCH": [
+   "DeutschD3Visualization",
+   "DeutschDefaultVisualization"
+  ],
+  "DEUTSCHJOZSA": [
+   "DeutschJozsaD3Visualization",
+   "DeutschJozsaDefaultVisualization"
+  ],
+  "DFA": [
+   "DFATableVisualization",
+   "DFAVisualization"
+  ],
+  "DIRECTEDHAMILTONIAN": [
+   "DirectedHamiltonianDefaultVisualization"
+  ],
+  "DOMINATINGSET": [
+   "DominatingSetDefaultVisualization"
+  ],
+  "EXACTCOVER": [
+   "ExactCoverDefaultVisualization"
+  ],
+  "GRAPHCOLORING": [
+   "GraphColoringDefaultVisualization"
+  ],
+  "HAMILTONIAN": [
+   "HamiltonianDefaultVisualization"
+  ],
+  "HITTINGSET": [
+   "HittingSetDefaultVisualization"
+  ],
+  "INDEPENDENTSET": [
+   "IndependentSetDefaultVisualization"
+  ],
+  "IProblem": [
+   "DummyVisualization"
+  ],
+  "LOSSLESSDATACOMPRESSION": [
+   "LosslessDataCompressionVisualization"
+  ],
+  "MAXCUT": [
+   "MaxCutVisualization"
+  ],
+  "MINCUT": [
+   "MinCutVisualization"
+  ],
+  "MINIMUMSPANNINGTREE": [
+   "MinimumSpanningTreeVisualization"
+  ],
+  "MINIMUMVERTEXCOVER": [
+   "MinimumVertexCoverDefaultVisualization"
+  ],
+  "MINSTCUT": [
+   "MinSTCutVisualization"
+  ],
+  "NFA": [
+   "NFATableVisualization",
+   "NFAVisualization"
+  ],
+  "NODESET": [
+   "NodeSetDefaultVisualization"
+  ],
+  "PARTITION": [
+   "PartitionDefaultVisualization"
+  ],
+  "PRIMEFACTOR": [
+   "ShorsDefaultVisualization"
+  ],
+  "PUMPSCHEDULINGCM": [
+   "PumpSchedulingCMVisualization"
+  ],
+  "PUMPSCHEDULINGEM": [
+   "PumpSchedulingEMVisualization"
+  ],
+  "SAT": [
+   "SatDefaultVisualization",
+   "SATGroverVisualization"
+  ],
+  "SAT3": [
+   "Sat3DefaultVisualization"
+  ],
+  "SETCOVER": [
+   "SetCoverDefaultVisualization"
+  ],
+  "SPSP": [
+   "SPSPTableVisualization",
+   "SPSPVisualization"
+  ],
+  "SSSP": [
+   "SSSPTableVisualization",
+   "SSSPVisualization"
+  ],
+  "STEINERTREE": [
+   "SteinerTreeDefaultVisualization"
+  ],
+  "SUDOKU": [
+   "SudokuVisualization"
+  ],
+  "TOPOLOGICALSORT": [
+   "TopologicalSortDefaultVisualization"
+  ],
+  "TSP": [
+   "TSPDefaultVisualization"
+  ],
+  "UNSTRUCTUREDSEARCH": [
+   "UnstructuredSearchVisualization"
+  ],
+  "VERTEXCOVER": [
+   "VertexCoverDefaultVisualization"
+  ],
+  "WEIGHTEDCUT": [
+   "WeightedCutDefaultVisualization"
+  ]
+ },
+ "defaults": {
+  "ARCSET": {
+   "sourceFile": "Problems/NPComplete/NPC_ARCSET/Visualizations/ArcSetDefaultVisualization.cs",
+   "visualizationName": "Arc Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "BERNSTEINVAZIRANI": {
+   "sourceFile": "Problems/NPComplete/NPC_BERNSTEINVAZIRANI/Visualizations/BernsteinVaziraniDefaultVisualization.cs",
+   "visualizationName": "Bernstein-Vazirani Quantum Circuit (Q)",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "BINPACKING": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "CLIQUE": {
+   "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
+   "visualizationName": "Clique Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "CLIQUECOVER": {
+   "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Visualizations/CliqueCoverDefaultVisualization.cs",
+   "visualizationName": "Clique Cover Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "CONVEXHULL": {
+   "sourceFile": "Problems/NPComplete/NPC_CONVEXHULL/Visualizations/ConvexHullVisualization.cs",
+   "visualizationName": "Convex Hull Visualization",
+   "visualizationType": "Unimplemented"
+  },
+  "CUT": {
+   "sourceFile": "Problems/NPComplete/NPC_CUT/Visualizations/CutDefaultVisualization.cs",
+   "visualizationName": " Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "DEUTSCH": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "DEUTSCHJOZSA": {
+   "sourceFile": "Problems/NPComplete/NPC_DEUTSCHJOZSA/Visualizations/DeutschJozsaDefaultVisualization.cs",
+   "visualizationName": "Deutsch-Jozsa Quantum Circuit (Q)",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "DFA": {
+   "sourceFile": "Problems/P/P_DFA/Visualizations/DFAVisualization.cs",
+   "visualizationName": "Deterministic Finite Automata Visualization",
+   "visualizationType": "GraphLaTeX"
+  },
+  "DIRECTEDHAMILTONIAN": {
+   "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/Visualizations/DirectedHamiltonianDefaultVisualization.cs",
+   "visualizationName": "Directed Hamiltonian Cycle Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "DM3": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "DOMINATINGSET": {
+   "sourceFile": "Problems/NPComplete/NPC_DOMINATINGSET/Visualizations/DominatingSetDefaultVisualization.cs",
+   "visualizationName": "Dominating Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "EDITDISTANCE": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "EXACTCOVER": {
+   "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
+   "visualizationName": "Exact Cover Visualization",
+   "visualizationType": "SetD3"
+  },
+  "GRAPHCOLORING": {
+   "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Visualizations/GraphColoringDefaultVisualization.cs",
+   "visualizationName": "Graph Coloring Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "HAMILTONIAN": {
+   "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Visualizations/HamiltonianDefaultVisualization.cs",
+   "visualizationName": "Hamiltonian Cycle Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "HITTINGSET": {
+   "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Visualizations/HittingSetDefaultVisualization.cs",
+   "visualizationName": "Hitting Set Visualization",
+   "visualizationType": "SetD3"
+  },
+  "INDEPENDENTSET": {
+   "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Visualizations/IndependentSetDefaultVisualization.cs",
+   "visualizationName": "Independent Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "INTPROGRAMMING01": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "JOBSEQ": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "KNAPSACK": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "LOSSLESSDATACOMPRESSION": {
+   "sourceFile": "Problems/NPComplete/NPC_LOSSLESSDATACOMPRESSION/Visualizations/LosslessDataCompressionVisualization.cs",
+   "visualizationName": "Lossless Data Compression Visualization",
+   "visualizationType": "Unimplemented"
+  },
+  "MAXCUT": {
+   "sourceFile": "Problems/NPComplete/NPC_MAXCUT/Visualizations/MaxCutVisualization.cs",
+   "visualizationName": "Max Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MINCUT": {
+   "sourceFile": "Problems/P/P_MINCUT/Visualizations/MinCutVisualization.cs",
+   "visualizationName": "Minimum Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MINIMUMSPANNINGTREE": {
+   "sourceFile": "Problems/NPComplete/NPC_MINIMUMSPANNINGTREE/Visualizations/MinimumSpanningTreeVisualization.cs",
+   "visualizationName": "Minimum Spanning Tree Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MINIMUMVERTEXCOVER": {
+   "sourceFile": "Problems/NPHard/NPH_MINIMUMVERTEXCOVER/Visualizations/MinimumVertexCoverDefaultVisualization.cs",
+   "visualizationName": "Minimum Vertex Cover Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MINSTCUT": {
+   "sourceFile": "Problems/P/P_MINSTCUT/Visualizations/MinSTCutVisualization.cs",
+   "visualizationName": "Minimum S-T Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "NFA": {
+   "sourceFile": "Problems/P/P_NFA/Visualizations/NFAVisualization.cs",
+   "visualizationName": "Non-Deterministic Finite Automata Visualization",
+   "visualizationType": "GraphLaTeX"
+  },
+  "NODESET": {
+   "sourceFile": "Problems/NPComplete/NPC_NODESET/Visualizations/NodeSetDefaultVisualization.cs",
+   "visualizationName": "Node Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "NQUEENS": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "PARTITION": {
+   "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
+   "visualizationName": "Partition Visualization",
+   "visualizationType": "SetD3"
+  },
+  "PRIMEFACTOR": {
+   "sourceFile": "Problems/NPComplete/NPC_PRIMEFACTOR/Visualizations/ShorsDefaultVisualization.cs",
+   "visualizationName": "Shor's Algorithm Quantum Visualization",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "PUMPSCHEDULINGCM": {
+   "sourceFile": "Problems/NPHard/NPH_PUMPSCHEDULINGCM/Visualizations/PumpSchedulingCMVisualization.cs",
+   "visualizationName": "Pump Scheduling Cost Minimization — DAG Animation",
+   "visualizationType": "PumpSchedule"
+  },
+  "PUMPSCHEDULINGEM": {
+   "sourceFile": "Problems/NPHard/NPH_PUMPSCHEDULINGEM/Visualizations/PumpSchedulingEMVisualization.cs",
+   "visualizationName": "Pump Scheduling Emergency Resilience — DAG Animation",
+   "visualizationType": "PumpSchedule"
+  },
+  "SAT": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "SAT3": {
+   "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
+   "visualizationName": "3SAT Visualization",
+   "visualizationType": "BooleanSatisfiability"
+  },
+  "SETCOVER": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "SIMON": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "SPSP": {
+   "sourceFile": "Problems/P/P_SPSP/Visualizations/SPSPVisualization.cs",
+   "visualizationName": "Single Pair Shortest Path Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "SSSP": {
+   "sourceFile": "Problems/P/P_SSSP/Visualizations/SSSPVisualization.cs",
+   "visualizationName": "Single Source Shortest Path Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "STEINERTREE": {
+   "sourceFile": "Problems/NPComplete/NPC_STEINERTREE/Visualizations/SteinerTreeDefaultVisualization.cs",
+   "visualizationName": "Steiner Tree Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "STRONGLYCONNECTEDCOMPONENTS": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "SUBSETSUM": {
+   "sourceFile": "Interfaces/DummyClasses/DummyVisualization.cs",
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "SUDOKU": {
+   "sourceFile": "Problems/NPComplete/NPC_SUDOKU/Visualizations/SudokuVisualization.cs",
+   "visualizationName": "Sudoku Visualization",
+   "visualizationType": "Unimplemented"
+  },
+  "TOPOLOGICALSORT": {
+   "sourceFile": "Problems/NPComplete/NPC_TOPOLOGICALSORT/Visualizations/TopologicalSortDefaultVisualization.cs",
+   "visualizationName": "Topological Sort Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "TSP": {
+   "sourceFile": "Problems/NPComplete/NPC_TSP/Visualizations/TSPDefaultVisualization.cs",
+   "visualizationName": "Traveling Salesperson Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "UNSTRUCTUREDSEARCH": {
+   "sourceFile": "Problems/NPComplete/NPC_UNSTRUCTUREDSEARCH/Visualizations/UnstructuredSearchVisualization.cs",
+   "visualizationName": "Unstructured Search Quantum Circuit",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "VERTEXCOVER": {
+   "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
+   "visualizationName": "Vertex Cover Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "WEIGHTEDCUT": {
+   "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Visualizations/WeightedCutDefaultVisualization.cs",
+   "visualizationName": "Weighted Cut Visualization",
+   "visualizationType": "GraphD3"
+  }
+ },
+ "reductionDefaults": {
+  "FengReduction": {
+   "reductionFrom": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   },
+   "reductionTo": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   }
+  },
+  "GareyJohnson": {
+   "reductionFrom": {
+    "visualizationName": "3SAT Visualization",
+    "visualizationType": "BooleanSatisfiability"
+   },
+   "reductionTo": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   }
+  },
+  "GraphColoringToCliqueCover": {
+   "reductionFrom": {
+    "visualizationName": "Graph Coloring Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Clique Cover Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "KarpDirectedHamiltonianToUndirectedHamiltonian": {
+   "reductionFrom": {
+    "visualizationName": "Directed Hamiltonian Cycle Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Hamiltonian Cycle Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "KarpExactCoverToSubsetSum": {
+   "reductionFrom": {
+    "visualizationName": "Exact Cover Visualization",
+    "visualizationType": "SetD3"
+   },
+   "reductionTo": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   }
+  },
+  "KarpGraphColorToExactCover": {
+   "reductionFrom": {
+    "visualizationName": "Graph Coloring Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Exact Cover Visualization",
+    "visualizationType": "SetD3"
+   }
+  },
+  "KarpIntProgStandard": {
+   "reductionFrom": {
+    "visualizationName": "3SAT Visualization",
+    "visualizationType": "BooleanSatisfiability"
+   },
+   "reductionTo": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   }
+  },
+  "KarpReduceGRAPHCOLORING": {
+   "reductionFrom": {
+    "visualizationName": "3SAT Visualization",
+    "visualizationType": "BooleanSatisfiability"
+   },
+   "reductionTo": {
+    "visualizationName": "Graph Coloring Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "KarpReduceSAT": {
+   "reductionFrom": {
+    "visualizationName": "Graph Coloring Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   }
+  },
+  "KarpSATToSAT3": {
+   "reductionFrom": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   },
+   "reductionTo": {
+    "visualizationName": "3SAT Visualization",
+    "visualizationType": "BooleanSatisfiability"
+   }
+  },
+  "KarpVertexCoverToNodeSet": {
+   "reductionFrom": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Node Set Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "KarpVertexCoverToSetCover": {
+   "reductionFrom": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   }
+  },
+  "LawlerKarp": {
+   "reductionFrom": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Arc Set Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "SipserReduceToCliqueStandard": {
+   "reductionFrom": {
+    "visualizationName": "3SAT Visualization",
+    "visualizationType": "BooleanSatisfiability"
+   },
+   "reductionTo": {
+    "visualizationName": "Clique Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "SubsetSumToPartitionReduction": {
+   "reductionFrom": {
+    "visualizationName": "",
+    "visualizationType": "Unimplemented"
+   },
+   "reductionTo": {
+    "visualizationName": "Partition Visualization",
+    "visualizationType": "SetD3"
+   }
+  },
+  "WEIGHTEDCUTReduction": {
+   "reductionFrom": {
+    "visualizationName": "Partition Visualization",
+    "visualizationType": "SetD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Weighted Cut Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "reduceToCLIQUE": {
+   "reductionFrom": {
+    "visualizationName": "Independent Set Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Clique Visualization",
+    "visualizationType": "GraphD3"
+   }
+  },
+  "reduceToEXACTCOVER": {
+   "reductionFrom": {
+    "visualizationName": "Hitting Set Visualization",
+    "visualizationType": "SetD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Exact Cover Visualization",
+    "visualizationType": "SetD3"
+   }
+  },
+  "sipserReductionVertexCover": {
+   "reductionFrom": {
+    "visualizationName": "Clique Visualization",
+    "visualizationType": "GraphD3"
+   },
+   "reductionTo": {
+    "visualizationName": "Vertex Cover Visualization",
+    "visualizationType": "GraphD3"
+   }
+  }
+ },
+ "visualizationTypes": [
+  "BooleanSatisfiability",
+  "DynamicTable",
+  "GraphD3",
+  "GraphLaTeX",
+  "PumpSchedule",
+  "QuantumCircuitD3",
+  "QuantumCircuitQjs",
+  "SetD3",
+  "Unimplemented"
+ ],
+ "visualizations": {
+  "ArcSetDefaultVisualization": {
+   "visualizationName": "Arc Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "BernsteinVaziraniD3Visualization": {
+   "visualizationName": "Bernstein-Vazirani Quantum Circuit (D3)",
+   "visualizationType": "QuantumCircuitD3"
+  },
+  "BernsteinVaziraniDefaultVisualization": {
+   "visualizationName": "Bernstein-Vazirani Quantum Circuit (Q)",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "CliqueCoverDefaultVisualization": {
+   "visualizationName": "Clique Cover Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "CliqueDefaultVisualization": {
+   "visualizationName": "Clique Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "CliqueLatexVisualization": {
+   "visualizationName": "Clique LaTeX Visualization",
+   "visualizationType": "GraphLaTeX"
+  },
+  "ConvexHullVisualization": {
+   "visualizationName": "Convex Hull Visualization",
+   "visualizationType": "Unimplemented"
+  },
+  "CutDefaultVisualization": {
+   "visualizationName": " Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "DFATableVisualization": {
+   "visualizationName": "Deterministic Finite Automata Table Visualization",
+   "visualizationType": "DynamicTable"
+  },
+  "DFAVisualization": {
+   "visualizationName": "Deterministic Finite Automata Visualization",
+   "visualizationType": "GraphLaTeX"
+  },
+  "DeutschD3Visualization": {
+   "visualizationName": "Deutsch Quantum Circuit (D3)",
+   "visualizationType": "QuantumCircuitD3"
+  },
+  "DeutschDefaultVisualization": {
+   "visualizationName": "Deutsch Quantum Circuit (Q)",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "DeutschJozsaD3Visualization": {
+   "visualizationName": "Deutsch-Jozsa Quantum Circuit (D3)",
+   "visualizationType": "QuantumCircuitD3"
+  },
+  "DeutschJozsaDefaultVisualization": {
+   "visualizationName": "Deutsch-Jozsa Quantum Circuit (Q)",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "DirectedHamiltonianDefaultVisualization": {
+   "visualizationName": "Directed Hamiltonian Cycle Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "DominatingSetDefaultVisualization": {
+   "visualizationName": "Dominating Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "DummyVisualization": {
+   "visualizationName": "",
+   "visualizationType": "Unimplemented"
+  },
+  "ExactCoverDefaultVisualization": {
+   "visualizationName": "Exact Cover Visualization",
+   "visualizationType": "SetD3"
+  },
+  "GraphColoringDefaultVisualization": {
+   "visualizationName": "Graph Coloring Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "HamiltonianDefaultVisualization": {
+   "visualizationName": "Hamiltonian Cycle Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "HittingSetDefaultVisualization": {
+   "visualizationName": "Hitting Set Visualization",
+   "visualizationType": "SetD3"
+  },
+  "IndependentSetDefaultVisualization": {
+   "visualizationName": "Independent Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "LosslessDataCompressionVisualization": {
+   "visualizationName": "Lossless Data Compression Visualization",
+   "visualizationType": "Unimplemented"
+  },
+  "MaxCutVisualization": {
+   "visualizationName": "Max Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MinCutVisualization": {
+   "visualizationName": "Minimum Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MinSTCutVisualization": {
+   "visualizationName": "Minimum S-T Cut Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MinimumSpanningTreeVisualization": {
+   "visualizationName": "Minimum Spanning Tree Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "MinimumVertexCoverDefaultVisualization": {
+   "visualizationName": "Minimum Vertex Cover Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "NFATableVisualization": {
+   "visualizationName": "Non-Deterministic Finite Automata Table Visualization",
+   "visualizationType": "DynamicTable"
+  },
+  "NFAVisualization": {
+   "visualizationName": "Non-Deterministic Finite Automata Visualization",
+   "visualizationType": "GraphLaTeX"
+  },
+  "NodeSetDefaultVisualization": {
+   "visualizationName": "Node Set Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "PartitionDefaultVisualization": {
+   "visualizationName": "Partition Visualization",
+   "visualizationType": "SetD3"
+  },
+  "PumpSchedulingCMVisualization": {
+   "visualizationName": "Pump Scheduling Cost Minimization — DAG Animation",
+   "visualizationType": "PumpSchedule"
+  },
+  "PumpSchedulingEMVisualization": {
+   "visualizationName": "Pump Scheduling Emergency Resilience — DAG Animation",
+   "visualizationType": "PumpSchedule"
+  },
+  "SATGroverVisualization": {
+   "visualizationName": "SAT Grover Quantum Circuit (Q)",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "SPSPTableVisualization": {
+   "visualizationName": "Single Pair Shortest Path Table Visualization",
+   "visualizationType": "DynamicTable"
+  },
+  "SPSPVisualization": {
+   "visualizationName": "Single Pair Shortest Path Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "SSSPTableVisualization": {
+   "visualizationName": "SSSP Table Visualization",
+   "visualizationType": "DynamicTable"
+  },
+  "SSSPVisualization": {
+   "visualizationName": "Single Source Shortest Path Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "Sat3DefaultVisualization": {
+   "visualizationName": "3SAT Visualization",
+   "visualizationType": "BooleanSatisfiability"
+  },
+  "SatDefaultVisualization": {
+   "visualizationName": "SAT Visualization",
+   "visualizationType": "BooleanSatisfiability"
+  },
+  "SetCoverDefaultVisualization": {
+   "visualizationName": "Set Cover Visualization",
+   "visualizationType": "SetD3"
+  },
+  "ShorsDefaultVisualization": {
+   "visualizationName": "Shor's Algorithm Quantum Visualization",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "SteinerTreeDefaultVisualization": {
+   "visualizationName": "Steiner Tree Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "SudokuVisualization": {
+   "visualizationName": "Sudoku Visualization",
+   "visualizationType": "Unimplemented"
+  },
+  "TSPDefaultVisualization": {
+   "visualizationName": "Traveling Salesperson Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "TopologicalSortDefaultVisualization": {
+   "visualizationName": "Topological Sort Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "UnstructuredSearchVisualization": {
+   "visualizationName": "Unstructured Search Quantum Circuit",
+   "visualizationType": "QuantumCircuitQjs"
+  },
+  "VertexCoverDefaultVisualization": {
+   "visualizationName": "Vertex Cover Visualization",
+   "visualizationType": "GraphD3"
+  },
+  "WeightedCutDefaultVisualization": {
+   "visualizationName": "Weighted Cut Visualization",
+   "visualizationType": "GraphD3"
+  }
+ },
+ "visualizationsCreated": {
+  "Alex%20Diviney": [
+   "Clique Visualization"
+  ],
+  "Alex%20Svancara": [
+   "Unstructured Search Quantum Circuit"
+  ],
+  "Andreas%20Kramer": [
+   "Bernstein-Vazirani Quantum Circuit (D3)",
+   "Bernstein-Vazirani Quantum Circuit (Q)",
+   "Deutsch Quantum Circuit (D3)",
+   "Deutsch Quantum Circuit (Q)",
+   "Deutsch-Jozsa Quantum Circuit (D3)",
+   "Deutsch-Jozsa Quantum Circuit (Q)",
+   "Minimum Spanning Tree Visualization",
+   "SAT Grover Quantum Circuit (Q)"
+  ],
+  "Andrija%20Sevaljevic": [
+   " Cut Visualization",
+   "Clique Cover Visualization",
+   "Clique LaTeX Visualization",
+   "Clique Visualization",
+   "Directed Hamiltonian Cycle Visualization",
+   "Exact Cover Visualization",
+   "Graph Coloring Visualization",
+   "Hamiltonian Cycle Visualization",
+   "Hitting Set Visualization",
+   "Node Set Visualization",
+   "Partition Visualization",
+   "SAT Visualization",
+   "Set Cover Visualization",
+   "Steiner Tree Visualization",
+   "Traveling Salesperson Visualization",
+   "Weighted Cut Visualization"
+  ],
+  "Beau%20Williams": [],
+  "Bektur%20Akkabakov": [],
+  "Caleb%20Eardley": [],
+  "Calvin%20Condie": [],
+  "Carter%20Luker": [],
+  "Cole%20Campbell": [],
+  "Collin%20M%20Kress": [],
+  "Corbin%20Hay": [],
+  "Courtney%20Bodily": [
+   "Bernstein-Vazirani Quantum Circuit (D3)",
+   "Bernstein-Vazirani Quantum Circuit (Q)",
+   "Deutsch Quantum Circuit (D3)",
+   "Deutsch Quantum Circuit (Q)",
+   "Deutsch-Jozsa Quantum Circuit (D3)",
+   "Deutsch-Jozsa Quantum Circuit (Q)",
+   "SAT Grover Quantum Circuit (Q)"
+  ],
+  "Daniel%20Igbokwe": [],
+  "Daniel%20Whitaker": [],
+  "Danny%20Fawson": [],
+  "David%20Lindeman": [],
+  "Derek%20Winmill": [],
+  "Dinesh%20Khanal": [
+   "Topological Sort Visualization"
+  ],
+  "Diya%20Pandey": [],
+  "Eric%20Hill": [
+   "Sudoku Visualization"
+  ],
+  "Ethan%20Wilks": [],
+  "Garret%20Stouffer": [],
+  "George%20Lake": [
+   "Shor's Algorithm Quantum Visualization"
+  ],
+  "Grant%20Gardner": [
+   "Bernstein-Vazirani Quantum Circuit (Q)",
+   "Deutsch Quantum Circuit (Q)",
+   "Deutsch-Jozsa Quantum Circuit (Q)",
+   "SAT Grover Quantum Circuit (Q)",
+   "Shor's Algorithm Quantum Visualization"
+  ],
+  "Himanshu%20Jha": [],
+  "Ian%20Gonzalez": [],
+  "Janita%20Aamir": [],
+  "Jason%20L.%20Wright": [
+   "Deutsch Quantum Circuit (Q)",
+   "SAT Grover Quantum Circuit (Q)",
+   "Shor's Algorithm Quantum Visualization",
+   "Unstructured Search Quantum Circuit"
+  ],
+  "KURNIAWAN%20SATRIA": [],
+  "Kaden%20Marchetti": [
+   "3SAT Visualization",
+   "Clique Visualization"
+  ],
+  "Kaosi%20Ibeabuchi": [],
+  "Koras%20Koirala": [
+   "Topological Sort Visualization"
+  ],
+  "Luis%20Hernandez": [],
+  "Malaya%20Witt": [
+   "Single Pair Shortest Path Visualization"
+  ],
+  "Max%20Gr%C3%BCnwoldt": [
+   "Max Cut Visualization"
+  ],
+  "Michael%20Crapse": [],
+  "Michael%20Trosper": [
+   "Deterministic Finite Automata Table Visualization",
+   "Deterministic Finite Automata Visualization",
+   "Max Cut Visualization",
+   "Minimum Cut Visualization",
+   "Minimum S-T Cut Visualization",
+   "Non-Deterministic Finite Automata Table Visualization",
+   "Non-Deterministic Finite Automata Visualization",
+   "Pump Scheduling Cost Minimization — DAG Animation",
+   "Pump Scheduling Emergency Resilience — DAG Animation"
+  ],
+  "Musab%20Khan": [],
+  "Paul%20Bodily": [],
+  "Paul%20Gilbreath": [],
+  "Porter%20Glines": [],
+  "Pramesh%20Shah": [],
+  "Prashant%20Aguragai": [],
+  "Prashant%20Pant": [],
+  "Pratham%20Khanal": [],
+  "Pravesh%20Aryal": [
+   "Topological Sort Visualization"
+  ],
+  "Quinton%20Smith": [
+   "Dominating Set Visualization"
+  ],
+  "Rajit%20Nilkar": [
+   "SSSP Table Visualization",
+   "Single Pair Shortest Path Table Visualization",
+   "Single Pair Shortest Path Visualization",
+   "Single Source Shortest Path Visualization"
+  ],
+  "Rakesh%20Itani": [
+   "Bernstein-Vazirani Quantum Circuit (D3)",
+   "Bernstein-Vazirani Quantum Circuit (Q)",
+   "Deutsch Quantum Circuit (D3)",
+   "Deutsch Quantum Circuit (Q)",
+   "Deutsch-Jozsa Quantum Circuit (D3)",
+   "Deutsch-Jozsa Quantum Circuit (Q)",
+   "SAT Grover Quantum Circuit (Q)"
+  ],
+  "Rohan%20Shrestha": [],
+  "Russell%20Phillips": [
+   "Arc Set Visualization",
+   "Clique Cover Visualization",
+   "Exact Cover Visualization",
+   "Graph Coloring Visualization",
+   "Independent Set Visualization",
+   "Minimum Vertex Cover Visualization",
+   "Vertex Cover Visualization"
+  ],
+  "Ryan%20Davis": [],
+  "Sabal%20Subedi": [],
+  "Sansar%20Kharal": [],
+  "Saurav%20Bhusal": [],
+  "Scott%20Barfuss": [
+   "Single Pair Shortest Path Visualization"
+  ],
+  "Show%20Pratoomratana": [],
+  "Srijan%20Pant": [],
+  "Surendra%20Thapa": [],
+  "Tiger%20Sant": [
+   "Single Pair Shortest Path Visualization"
+  ],
+  "Val%20Kimbrough": [
+   "Minimum Spanning Tree Visualization"
+  ]
+ }
+}
