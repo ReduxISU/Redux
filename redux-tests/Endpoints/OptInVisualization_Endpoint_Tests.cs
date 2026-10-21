@@ -39,6 +39,9 @@ public class OptInVisualization_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("SetCoverNestedSetVisualization", OptIn);
         Assert.Contains("ExactCoverNestedSetVisualization", OptIn);
         Assert.Contains("HittingSetNestedSetVisualization", OptIn);
+        Assert.Contains("PrimeFactorFormulaVisualization", OptIn);
+        Assert.Contains("IntProgrammingFormulaVisualization", OptIn);
+        Assert.Contains("SubsetSumFormulaVisualization", OptIn);
         Assert.DoesNotContain("SatDefaultVisualization", OptIn);
         foreach (var (_, type) in ProblemProvider.Problems) {
             if (Activator.CreateInstance(type) is not IProblem problem) continue;
@@ -81,6 +84,9 @@ public class OptInVisualization_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData("SETCOVER", "SetCoverNestedSetVisualization")]
     [InlineData("EXACTCOVER", "ExactCoverNestedSetVisualization")]
     [InlineData("HITTINGSET", "HittingSetNestedSetVisualization")]
+    [InlineData("PRIMEFACTOR", "PrimeFactorFormulaVisualization")]
+    [InlineData("INTPROGRAMMING01", "IntProgrammingFormulaVisualization")]
+    [InlineData("SUBSETSUM", "SubsetSumFormulaVisualization")]
     public async Task ProblemVisualizations_LeavesTheOptInViewsOut_UnlessAskedFor(string problem, string vis) {
         var plain = (await Get($"/Navigation/Problem_VisualizationsRefactor?chosenProblem={problem}&problemType=NPC")).EnumerateArray().Select(e => e.GetString()!).ToList();
         var withPictures = (await Get($"/Navigation/Problem_VisualizationsRefactor?chosenProblem={problem}&includePictures=true")).EnumerateArray().Select(e => e.GetString()!).ToList();
