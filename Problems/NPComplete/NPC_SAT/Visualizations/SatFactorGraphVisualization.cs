@@ -11,7 +11,7 @@ using API.Problems.NPComplete.NPC_SAT.Solvers;
 /// frontends read, is exactly <see cref="SatDefaultVisualization"/>'s, so this entry renders like the default SAT
 /// picture until a frontend draws the factor graph.
 /// </summary>
-class SatFactorGraphVisualization : IVisualization<SAT, API_SAT>, IFactorGraphVisualization<SAT> {
+class SatFactorGraphVisualization : IVisualization<SAT, API_SAT>, IFactorGraphVisualization<SAT>, IOptInVisualization {
     public string visualizationName { get; } = "SAT Factor Graph";
     public string visualizationDefinition { get; } = "The factor graph of a SAT formula: variables on one side, clauses on the other, and an edge for every literal (dashed when negated). With format=frames, the edges an assignment makes true turn green, step by step.";
     public string source { get; } = "";
