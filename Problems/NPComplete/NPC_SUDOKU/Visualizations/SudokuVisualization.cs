@@ -16,6 +16,7 @@ namespace API.Problems.NPComplete.NPC_SUDOKU.Visualizations;
 /// grid row, one column per grid column, the clues as given and, once solved, every square the solver filled in marked
 /// Solution.
 /// </summary>
+[LegacyVisualizationType(VisualizationType.Unimplemented)]
 class SudokuVisualization : IVisualization<SUDOKU, API_TableJSON>, IBoardVisualization<SUDOKU> {
     public string visualizationName { get; } = "Sudoku Visualization";
     public string visualizationDefinition { get; } = "Draws the 9 x 9 grid as a table, rows and columns numbered from 1. The clues stand as given; once solved, every square the solver filled in is shown in the Solution color.";
