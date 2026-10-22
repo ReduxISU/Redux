@@ -52,6 +52,26 @@ public class Schoning_Tests {
         Assert.Equal(5, run.Seed);
     }
 
+    // (4/3)^n tries alone was 2 for 3 variables, so small formulas often came back without an answer.
+    [Theory]
+    [InlineData(1, 100)]
+    [InlineData(3, 124)]
+    [InlineData(6, 413)]
+    [InlineData(8, 848)]
+    [InlineData(10, 1_000)]
+    [InlineData(40, 1_000)]
+    public void Trials_AreThirtyTimesTheExpectedTries_BetweenAHundredAndAThousand(int n, int expected) {
+        Assert.Equal(expected, Schoning.Trials(n));
+    }
+
+    // With the default tries, every seed finds OneAnswer's single answer.
+    [Fact]
+    public void DefaultTries_FindTheOneAnswer_ForEverySeed() {
+        for (int seed = 0; seed < 60; seed++) {
+            Assert.True(new SAT3Verifier().verify(new SAT3(OneAnswer), Run(new Schoning(), OneAnswer, seed, withSteps: false).Answer));
+        }
+    }
+
     [Theory]
     [MemberData(nameof(SeededRuns))]
     public void TheSameSeed_GivesTheSameStepsAndAnswer_WithStepsOrWithout(string instance, int seed) {
@@ -127,8 +147,8 @@ public class Schoning_Tests {
 
     [Fact]
     public void GivingUp_SaysSo_AndNeverThatTheFormulaIsUnsatisfiable() {
-        // Two variables: (4/3)^2 rounds down to one try of 6 flips.
-        var run = Run(new Schoning(), Unsatisfiable, 3);
+        // Two variables, one try of 6 flips.
+        var run = Run(new Schoning(trials: 1, flipsPerVariable: 3), Unsatisfiable, 3);
         var steps = StepsOf(run);
         Assert.Equal("{}", run.Answer);
         var done = steps[^1];
@@ -137,6 +157,9 @@ public class Schoning_Tests {
         Assert.Equal("Gave up after 1 try: no answer found. Schöning's algorithm can miss an answer, so the formula may still have one.", done.Caption);
         Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Try 1 ends after 6 flips"));
         Assert.Equal(1 + 6 + 1 + 1, steps.Count);
+
+        // The default for two variables is the minimum, 100 tries.
+        Assert.StartsWith("Gave up after 100 tries: no answer found.", StepsOf(Run(new Schoning(), Unsatisfiable, 3))[^1].Caption);
 
         // With more tries, the tries after the first are one step.
         var many = StepsOf(Run(new Schoning(trials: 50, flipsPerVariable: 3), Unsatisfiable, 3));

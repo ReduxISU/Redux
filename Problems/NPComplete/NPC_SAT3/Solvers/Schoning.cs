@@ -26,6 +26,10 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
 
     // Hard cap on trials so an unsatisfiable or large instance cannot run for ~2^31 trials.
     private const int MaxTrials = 1_000;
+    // A try succeeds with probability about (3/4)^n / sqrt(n), so (4/3)^n tries alone often miss on small formulas (2 tries
+    // for 3 variables). Trials() makes 30 times the expected number, and never fewer than MinTrials.
+    private const int MinTrials = 100;
+    private const double TrialsPerExpectedTry = 30;
 
     // The seed of the next solve (#932); explicit, so it never appears in /info.
     int? IRandomizedSolver.Seed { get; set; }
@@ -42,6 +46,12 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
     internal Schoning(int trials, int flipsPerVariable) {
         _trials = trials;
         _flipsPerVariable = flipsPerVariable;
+    }
+
+    // How many tries a run of n variables makes (#932): enough that a satisfiable formula is very rarely missed.
+    internal static int Trials(int n) {
+        double needed = Math.Ceiling(TrialsPerExpectedTry * Math.Sqrt(n) * Math.Pow(4.0 / 3.0, n));
+        return (int)Math.Clamp(needed, MinTrials, MaxTrials);
     }
 
     // One step of a walk: the clause it picked (0-based, no true literal) and the variable of the literal it flips.
@@ -63,8 +73,7 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
         }
         var clauses = formula.Clauses;
 
-        double neededTrials = Math.Pow(4.0 / 3.0, n);
-        int trials = _trials ?? (neededTrials >= MaxTrials ? MaxTrials : (int)neededTrials);
+        int trials = _trials ?? Trials(n);
         int maxFlips = _flipsPerVariable * n;
         Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);
         var tries = new Tries(formula, rec.Enabled, maxFlips);
