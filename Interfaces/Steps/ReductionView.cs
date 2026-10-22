@@ -63,8 +63,16 @@ sealed class SolverAnswerUnmappableException(string solver, string answer, strin
 /// is while the steps' captions and focus still say what is built. A picture that has every node the steps add and no edges at
 /// all (the Formula, #925) is revealed by its nodes alone: <c>pieces</c>, with no edges in <c>buildOrder</c> and
 /// <c>builtEdges</c> 0. A search tree is empty until the solve. A picture of the
-/// search (one that cannot draw an answer alone) keeps the solve's last pane through the map phase. Ids in the gadgets and
-/// the focus lists are the default pictures' ids, so another picture may not have them all.
+/// search (one that cannot draw an answer alone) keeps the solve's last pane through the map phase.
+/// </para>
+/// <para>
+/// <b>Ids of another picture (#929).</b> A reduction names both sides' pieces by their default pictures' ids (in its gadgets,
+/// construction steps and backward map). A chosen picture that names them otherwise says how
+/// (<see cref="IFramesVisualization.IdsFromDefaultPicture"/>: the 0-1 program's Formula names the Table's <c>r1c0</c> as
+/// <c>r0-x0</c>), and every gadget id and focus id of that side, and the focus its panes are drawn with, is written in the
+/// chosen picture's ids. buildOrder stays in the steps' own ids, so the reveal rules above are unchanged. An edge a build step
+/// adds is focused only in a picture that draws it (the Formula has no edges), and a build step's source focus, in a source
+/// picture other than the default, keeps only the pieces that picture has. The default pictures' ids are never changed.
 /// </para>
 /// <para>
 /// <b>Solve.</b> The chosen solver runs on the target; each of its steps is drawn by the target's picture and the source pane
@@ -132,6 +140,13 @@ static class ReductionView {
 
         var frames = new JsonArray();
         var gadgets = red.gadgets;
+        // The ids the reduction names are its default pictures'; a chosen picture that names them otherwise maps them (#929).
+        var toSource = IdMap(sourceVis, red.reductionFrom, sourceInstance);
+        var toTarget = IdMap(targetVis, red.reductionTo, targetInstance);
+        bool defaultPicture = targetVis.GetType() == red.reductionTo.defaultVisualization?.GetType();
+        var pictureIds = PayloadIds(targetResponse.Payload);
+        // A source picture other than the default draws only the pieces it has: a build step's source focus keeps those (#929).
+        HashSet<string>? sourcePictureIds = sourceVis.GetType() == red.reductionFrom.defaultVisualization?.GetType() ? null : PayloadIds(sourceResponse.Payload);
 
         // ---- Build ----
         // buildOrder is exactly what the steps add, in their order. Nothing is filled in from the picture, so steps that miss an
@@ -144,6 +159,7 @@ static class ReductionView {
         var targetFocuses = new List<string[]>();
         var targetItems = new List<object>();
         var sourceItems = new List<object>();
+        var sourceFocuses = new List<string[]>();
         foreach (var step in buildSteps) {
             foreach (string n in step.Partial.Nodes)
                 if (nodeSeen.Add(n)) nodeOrder.Add(n);
@@ -151,18 +167,20 @@ static class ReductionView {
             foreach (var e in step.Partial.Edges)
                 if (edgeSeen.Add(e.Id)) { edgeOrder.Add(e.Id); added.Add(e.Id); }
             counts.Add((nodeOrder.Count, edgeOrder.Count));
-            string[] focus = step.Focus.Concat(added).Distinct(StringComparer.Ordinal).ToArray();
+            // An edge the step adds is focused only where the picture draws it: another picture may have no such edge (#929).
+            var addedShown = Translate(toTarget, added).Where(e => defaultPicture || pictureIds.Contains(e));
+            string[] focus = Translate(toTarget, step.Focus).Concat(addedShown).Distinct(StringComparer.Ordinal).ToArray();
             targetFocuses.Add(focus);
             targetItems.Add(AtRest(targetShape, emptyTarget, focus));
-            sourceItems.Add(AtRest(sourceShape, emptySource, step.Partial.SourceFocus));
+            string[] sourceFocus = Translate(toSource, step.Partial.SourceFocus).Where(id => sourcePictureIds?.Contains(id) ?? true).ToArray();
+            sourceFocuses.Add(sourceFocus);
+            sourceItems.Add(AtRest(sourceShape, emptySource, sourceFocus));
         }
 
         // The construction steps name the target's pieces by the ids of its problem's default picture. Another picture the
         // caller chose (#912) may draw other pieces (a factor graph has no literal nodes, a search tree none of the instance):
         // unless it has every piece the steps add, it cannot be revealed piece by piece, so it is shown whole during the build
         // (buildReveal "whole", an empty buildOrder and no counts) while the steps still say, and focus, what is built.
-        bool defaultPicture = targetVis.GetType() == red.reductionTo.defaultVisualization?.GetType();
-        var pictureIds = PayloadIds(targetResponse.Payload);
         // A picture with no edges at all (the Formula: clauses, literals and variables, #925) that has every node the steps add
         // is revealed by those nodes alone: the edges the steps add are not pieces of it, so buildOrder lists none of them and
         // builtEdges stays 0.
@@ -190,7 +208,7 @@ static class ReductionView {
                 target["skipped"] = new JsonArray(step.Partial.Skipped.Select(s => (JsonNode)new JsonObject { ["id"] = s.Id, ["a"] = s.A, ["b"] = s.B }).ToArray());
             // The construction's Done only says the target is built: drawn as a plain Accept, and no build frame has a verdict.
             var ev = step.Event == StepEvent.Done ? StepEvent.Accept : step.Event;
-            var frame = Frame(Build, ev, step.Caption, i, null, step.Partial.SourceFocus, targetFocuses[i], buildSourcePanes[i].Pane, target);
+            var frame = Frame(Build, ev, step.Caption, i, null, sourceFocuses[i], targetFocuses[i], buildSourcePanes[i].Pane, target);
             if (step.Partial.Bound is int bound) frame["bound"] = bound;
             if (step.Partial.Gadgets.Length > 0) frame["gadgets"] = ToArray(step.Partial.Gadgets);
             frames.Add(frame);
@@ -226,7 +244,8 @@ static class ReductionView {
         if (solved.TimedOut) {
             frames.Add(Frame(Map, StepEvent.Done, $"The solver had not finished, so there is no {red.reductionTo.problemName} answer to map back.",
                 null, false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
-            return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces, gadgets, frames);
+            return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces,
+                gadgets.Select(g => GadgetJson(g, toSource, toTarget)), frames);
         }
         SolveRun mapped;
         try {
@@ -242,14 +261,16 @@ static class ReductionView {
         // A focus id that no gadget lists as a target id names a source element no target element stands for (see
         // IReversibleReduction): it is drawn on the source side only.
         var gadgetTargets = new HashSet<string>(gadgets.SelectMany(g => g.targetIds), StringComparer.Ordinal);
-        var mapTargetFocuses = mapSteps.Select(s => s.Focus.Where(gadgetTargets.Contains).ToArray()).ToList();
-        var sourceFocuses = mapSteps.Select((s, i) => SourceIdsOf(gadgets, mapTargetFocuses[i])
-            .Concat(s.Focus.Where(id => !gadgetTargets.Contains(id))).Distinct(StringComparer.Ordinal).ToArray()).ToList();
+        var mapTargetDefault = mapSteps.Select(s => s.Focus.Where(gadgetTargets.Contains).ToArray()).ToList();
+        // Worked out in the default pictures' ids (the gadgets'), then written in the chosen pictures' (#929).
+        var mapSourceFocuses = mapSteps.Select((s, i) => Translate(toSource, SourceIdsOf(gadgets, mapTargetDefault[i])
+            .Concat(s.Focus.Where(id => !gadgetTargets.Contains(id))).Distinct(StringComparer.Ordinal))).ToList();
+        var mapTargetFocuses = mapTargetDefault.Select(ids => Translate(toTarget, ids)).ToList();
         // The backward map builds A's answer one element at a time, so it is drawn as an incremental run: what it has mapped so
         // far stays Committed in every step until the map ends on it (#886), and only the element being read is highlighted
         // (Rejected when it is left out).
         var mapSourceFrames = Render(sourceVis, sourceInstance,
-            mapSteps.Select((s, i) => NewStep(sourceShape, s.Partial, s.Event, sourceFocuses[i], s.Caption, s.Ok)).ToList(), sourceShape, mapped.Answer,
+            mapSteps.Select((s, i) => NewStep(sourceShape, s.Partial, s.Event, mapSourceFocuses[i], s.Caption, s.Ok)).ToList(), sourceShape, mapped.Answer,
             incremental: true).Frames;
         // A picture of the search itself (the Search Tree) draws nothing from an answer alone, so it keeps the solve's last pane.
         var mapTargetPanes = solvedPartial == null || mapSteps.Count == 0 || !targetVis.DrawsAnswerAlone() ? null
@@ -265,19 +286,20 @@ static class ReductionView {
             bool? ok = closes ? s.Ok ?? Verify(red.reductionFrom, sourceInstance, mapped.Answer) : null;
             var ev = s.Event == StepEvent.Done && !closes ? StepEvent.Accept : s.Event;
             JsonObject target = mapTargetPanes != null ? mapTargetPanes[i].Pane : solvedPane.DeepClone().AsObject();
-            frames.Add(Frame(Map, ev, s.Caption, i, ok, sourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
+            frames.Add(Frame(Map, ev, s.Caption, i, ok, mapSourceFocuses[i], mapTargetFocuses[i], mapSourceFrames[i].Pane, target));
         }
 
         if (mapSteps.Count == 0 || mapSteps[^1].Event != StepEvent.Done)
             frames.Add(Frame(Map, StepEvent.Done, $"{red.reductionFrom.problemName} has the answer {mapped.Answer}.",
                 null, Verify(red.reductionFrom, sourceInstance, mapped.Answer), [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
 
-        return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces, gadgets, frames);
+        return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces,
+                gadgets.Select(g => GadgetJson(g, toSource, toTarget)), frames);
     }
 
     private static JsonObject Result(IReduction red, string sourceInstance, string targetInstance, ISolver solver,
         FramesResponse sourceResponse, FramesResponse targetResponse, List<string> nodeOrder, List<string> edgeOrder, bool revealPieces,
-        IReadOnlyList<Gadget> gadgets, JsonArray frames) =>
+        IEnumerable<JsonNode> gadgets, JsonArray frames) =>
         new JsonObject {
             ["type"] = nameof(VisualizationType.Reduction),
             ["kind"] = "reduction",
@@ -297,7 +319,7 @@ static class ReductionView {
                 // "pieces" when buildOrder reveals the picture piece by piece, "whole" when it is shown whole (#912).
                 ["buildReveal"] = revealPieces ? "pieces" : "whole",
             },
-            ["gadgets"] = new JsonArray(gadgets.Select(GadgetJson).ToArray()),
+            ["gadgets"] = new JsonArray(gadgets.ToArray()),
             ["frames"] = frames,
         };
 
@@ -381,16 +403,30 @@ static class ReductionView {
         return frame;
     }
 
-    /// <summary>The gadget as the Reduction View reads it: its kind and stable ids, without the legacy fields.</summary>
-    private static JsonNode GadgetJson(Gadget g) {
+    /// <summary>
+    /// The gadget as the Reduction View reads it: its kind and stable ids, without the legacy fields, each side's ids in that
+    /// side's chosen picture (#929).
+    /// </summary>
+    private static JsonNode GadgetJson(Gadget g, Func<string, IReadOnlyList<string>>? toSource, Func<string, IReadOnlyList<string>>? toTarget) {
         var node = new JsonObject {
             ["gadgetKind"] = JsonSerializer.SerializeToNode(g.gadgetKind),
-            ["sourceIds"] = ToArray(g.sourceIds),
-            ["targetIds"] = ToArray(g.targetIds),
+            ["sourceIds"] = ToArray(Translate(toSource, g.sourceIds)),
+            ["targetIds"] = ToArray(Translate(toTarget, g.targetIds)),
         };
         if (g.note != null) node["note"] = g.note;
         return node;
     }
+
+    /// <summary>
+    /// How one side's chosen picture names the ids of its problem's default picture (#929): null for the default picture itself
+    /// and for a picture that shares its ids.
+    /// </summary>
+    private static Func<string, IReadOnlyList<string>>? IdMap(IFramesVisualization vis, IProblem problem, string instance) =>
+        vis.GetType() == problem.defaultVisualization?.GetType() ? null : vis.IdsFromDefaultPicture(instance);
+
+    /// <summary><paramref name="ids"/> (the default picture's) in the chosen picture's ids, in order and once each.</summary>
+    private static string[] Translate(Func<string, IReadOnlyList<string>>? map, IEnumerable<string> ids) =>
+        map == null ? ids.ToArray() : ids.SelectMany(map).Distinct(StringComparer.Ordinal).ToArray();
 
     // ---- Typed steps, by reflection (a step's TPartial is only known as a Type) ----
 

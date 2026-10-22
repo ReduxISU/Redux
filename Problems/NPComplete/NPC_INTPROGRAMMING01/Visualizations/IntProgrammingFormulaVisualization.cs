@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
@@ -53,6 +54,51 @@ class IntProgrammingFormulaVisualization : IVisualization<INTPROGRAMMING01, API_
     private static string Id(int i, string piece, int j) => $"{Row(i)}-{piece}{j.ToString(CultureInfo.InvariantCulture)}";
 
     FormulaPayload IFormulaExprVisualization<INTPROGRAMMING01, Assignment>.Describe(INTPROGRAMMING01 problem) => Payload(problem);
+
+    Func<string, IReadOnlyList<string>>? IFramesVisualization.IdsFromDefaultPicture(string instance) =>
+        TableIds(ParseGuard.CreateProblem<INTPROGRAMMING01>(instance));
+
+    private static readonly Regex TableId = new(@"^(?:r(?<row>\d+))?(?:c(?<column>\d+))?$", RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// The Table picture's ids (<see cref="IntProgrammingVisualization"/>) in this picture's (#929): the Table's row 0 (<c>x =</c>)
+    /// is the chips, its row i + 1 the group <c>r{i}</c>; the column of x_{j+1} is its chip and its occurrences, and the Total,
+    /// Bound and Holds columns are each row's relation, bound and relation. A cell is where its row and column meet: in row
+    /// 0 the chip, a coefficient cell the occurrence of x_{j+1} in that row (with its coefficient when it is written), or the
+    /// whole row when the coefficient is 0 and the row does not write x_{j+1} at all. An id the Table does not have is kept as it is.
+    /// </summary>
+    internal static Func<string, IReadOnlyList<string>> TableIds(INTPROGRAMMING01 problem) {
+        int n = Variables(problem), rows = problem.C.Count;
+        bool Bounded(int i) => i < problem.d.Count;
+        IEnumerable<string> Cell(int i, int column) {
+            if (column < n) {
+                int c = problem.C[i].Count > column ? problem.C[i][column] : 0;
+                if (c == 0) return [Row(i)];
+                return Math.Abs(c) == 1 ? [Id(i, "x", column)] : [Id(i, "x", column), Id(i, "c", column)];
+            }
+            // Total and Holds are the row's relation (its left side against its bound); Bound is its bound.
+            if (column == n + 1) return Bounded(i) ? [Row(i) + "-d"] : [];
+            return Bounded(i) ? [Row(i) + "-rel"] : [Row(i)];
+        }
+        return id => {
+            var m = TableId.Match(id);
+            if (!m.Success || id.Length == 0) return [id];
+            int? row = m.Groups["row"].Success ? int.Parse(m.Groups["row"].Value, CultureInfo.InvariantCulture) : null;
+            int? column = m.Groups["column"].Success ? int.Parse(m.Groups["column"].Value, CultureInfo.InvariantCulture) : null;
+            if (row > rows || column >= n + 3) return [id];
+            var chips = Enumerable.Range(0, n).Select(Var);
+            return (row, column) switch {
+                (0, null) => chips.ToList(),
+                (int r, null) => [Row(r - 1)],
+                (null, int c) when c < n => new[] { Var(c) }
+                    .Concat(Enumerable.Range(0, rows).Where(i => problem.C[i].Count > c && problem.C[i][c] != 0).SelectMany(i => Cell(i, c))).ToList(),
+                (null, int c) => Enumerable.Range(0, rows).SelectMany(i => Cell(i, c)).ToList(),
+                (0, int c) => c < n ? [Var(c)] : [],
+                (int r, int c) => Cell(r - 1, c).ToList(),
+                _ => [id],
+            };
+        };
+    }
 
     internal static FormulaPayload Payload(INTPROGRAMMING01 problem) =>
         new(FormulaFrames.KindName, FormulaLayouts.Rows, "assignment", "constraints",
