@@ -120,8 +120,10 @@ public class DM3_Tests {
 
     [Fact]
     public void DM3_Verifier_Rejects_Perfect_Matching_Plus_Extra_Triple_Outside_X_Y_Z() {
-        // M holds {D,E,F}, whose coordinates are outside X, Y and Z (the constructor allows that, #805).
-        DM3 problem = new DM3("{A}{B}{C}{A,B,C}{D,E,F}");
+        // M holds {D,E,F}, whose coordinates are outside X, Y and Z (#805). The instance parser refuses such a triple
+        // (DM3_Input_Tests), so it is added to M directly: the verifier must still refuse it on its own.
+        DM3 problem = new DM3("{A}{B}{C}{A,B,C}");
+        problem.M.Add(new List<string> { "D", "E", "F" });
         Assert.True(new GenericVerifierDM3().verify(problem, "{A,B,C}"));
         Assert.False(new GenericVerifierDM3().verify(problem, "{A,B,C}{D,E,F}"));
     }
