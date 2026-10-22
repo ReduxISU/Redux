@@ -817,8 +817,8 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(5 + 2, capped.Steps.Count);
         Assert.Equal(typed.Run(target, withSteps: false).Answer, capped.Answer);
 
-        // A legacy solver (WalkSAT, an untyped 3SAT solver) records no typed steps, so it has nothing to cap: the cap changes nothing.
-        var legacy = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["walksat"])!;
+        // A legacy solver (PPZ, an untyped 3SAT solver) records no typed steps, so it has nothing to cap: the cap changes nothing.
+        var legacy = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["ppz"])!;
         string formula = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
         var plain = legacy.Run(formula, withSteps: true);
         var legacyCapped = legacy.Run(formula, withSteps: true, stepCap: 1);

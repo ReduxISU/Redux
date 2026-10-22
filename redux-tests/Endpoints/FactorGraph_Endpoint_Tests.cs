@@ -144,7 +144,6 @@ public class FactorGraph_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Theory]
-    [InlineData("walksat")]
     [InlineData("ppz")]
     public async Task Frames_ASolverWithoutSteps_GivesOneDoneFrameBuiltFromItsAnswer(string solver) {
         var (status, body) = await Visualize($"visualization={Sat3Vis}&format=frames&solver={solver}", new API.Problems.NPComplete.NPC_SAT3.SAT3().defaultInstance);
