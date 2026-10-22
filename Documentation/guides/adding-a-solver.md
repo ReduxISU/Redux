@@ -124,7 +124,7 @@ The three **declared metadata** members are the ones people forget. "Declared" m
 
 You also need a **public constructor with no arguments** (`public SubsetSumBruteForce() { }`). Redux builds your class this way, and so do the tests.
 
-> **About quantum solvers.** Some solvers (`ShorsQuantumSolver`, `SATGroverSolver`, and a few others) do not solve anything themselves. They send the problem to a separate quantum-simulator service whose address is the `BaseURL` setting in [QuantumSolverSettings.cs](../../QuantumSolverSettings.cs) (default `http://localhost:27100`). Those are special cases with their own allowlist in the tests. If you add one, send its request through `QuantumServerAPI.Ask` and throw when the response has no answer, so a failing service becomes HTTP 503 `solver_unavailable` and never an answer (see [QUANTUM_API_README.md](../../Tools/QUANTUM_API_README.md)). If you are not adding one, you can ignore this.
+> **About quantum solvers.** Some solvers (`ShorsQuantumSolver`, `SATGroverSolver`, and a few others) do not solve anything themselves. They send the problem to a separate quantum-simulator service whose address is the `BaseURL` setting in [QuantumSolverSettings.cs](../../QuantumSolverSettings.cs) (default `http://localhost:27100`). Those are special cases with their own allowlist in the tests. If you add one, send its request through `QuantumServerAPI.Ask` and throw when the response has no answer, and declare `solverType = SolverType.Quantum`, so a failing service becomes HTTP 503 `solver_unavailable` (whose `hint` and `options` point at the problem's other solvers) and never an answer (see [QUANTUM_API_README.md](../../Tools/QUANTUM_API_README.md)). If you are not adding one, you can ignore this.
 
 ### Step 3. Write `solve()`
 

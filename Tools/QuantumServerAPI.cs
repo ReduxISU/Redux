@@ -99,7 +99,7 @@ public class QuantumServerAPI {
             string detail = QuantumSolverSettingsGlobal.QuantumSolver == null || QuantumSolverSettingsGlobal.HttpClientFactory == null
                 ? "The quantum service is not configured."
                 : $"The quantum service did not give an answer: {real.Message}";
-            throw new API.Interfaces.SolverUnavailableException(solver.GetType().Name, problemName, detail, real);
+            throw new API.Interfaces.SolverUnavailableException(solver.GetType().Name, solver.solverName, problemName, detail, real);
         }
     }
 

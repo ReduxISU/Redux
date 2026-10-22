@@ -13,12 +13,15 @@ namespace API.Interfaces;
 internal class SolverUnavailableException : Exception {
     /// <summary>The solver's class name, the key the endpoints take (e.g. <c>ShorsQuantumSolver</c>).</summary>
     public string Solver { get; }
+    /// <summary>The solver's friendly name (e.g. <c>Shor's Algorithm</c>), for <c>message</c>.</summary>
+    public string SolverName { get; }
     /// <summary>The friendly name of the problem the solver was solving.</summary>
     public string ProblemName { get; }
 
-    public SolverUnavailableException(string solver, string problemName, string detail, Exception? innerException = null)
+    public SolverUnavailableException(string solver, string solverName, string problemName, string detail, Exception? innerException = null)
         : base(detail, innerException) {
         Solver = solver;
+        SolverName = solverName;
         ProblemName = problemName;
     }
 
@@ -36,14 +39,53 @@ internal class SolverUnavailableException : Exception {
         return null;
     }
 
-    /// <summary>The response body: the same shape as the parse errors (an <c>error</c> code, what was asked, a
-    /// <c>detail</c>), so clients can read every structured error the same way.</summary>
-    public object Body() => new {
-        error = "solver_unavailable",
-        solver = Solver,
-        problem = ProblemName,
-        detail = Message,
-    };
+    /// <summary>The response body, in the error contract proposed in #933 (one shape for every error): a stable
+    /// <c>error</c> code, a plain-sentence <c>message</c>, the technical <c>detail</c>, context (<c>solver</c>,
+    /// <c>problem</c>), a <c>hint</c> saying what to do next, and the valid <c>options</c> (the problem's other solvers,
+    /// by class name, the key the endpoints take). The fields from before #933 keep their names and values.</summary>
+    public object Body() {
+        var others = OtherSolvers(Solver);
+        var local = others.Where(o => !o.quantum).ToList();
+        string hint = local.Count > 0
+            ? $"{string.Join(" or ", local.Select(o => $"{o.className} ({o.name})"))} "
+              + $"{(local.Count == 1 ? "runs" : "run")} without the quantum service; or try again later."
+            : "Try again later, or check that the quantum service is running and configured (see Tools/QUANTUM_API_README.md).";
+        return new {
+            error = "solver_unavailable",
+            message = $"{SolverName} couldn't get an answer from the quantum service, so {ProblemName} wasn't solved.",
+            solver = Solver,
+            problem = ProblemName,
+            detail = Message,
+            hint,
+            options = others.Select(o => o.className).ToArray(),
+        };
+    }
+
+    /// <summary>The other solvers of the problem <paramref name="solver"/> solves, from the same reflected catalog the
+    /// navigation endpoints list (Navigation/Problem_SolversRefactor, Navigation/Batch/allSolvers), sorted by class name,
+    /// each with its friendly name and whether it is a quantum solver (and so needs the quantum service too).</summary>
+    internal static List<(string className, string name, bool quantum)> OtherSolvers(string solver) {
+        string? problem = SolverNavigationData.Entries
+            .FirstOrDefault(e => string.Equals(e.className, solver, StringComparison.OrdinalIgnoreCase))?.problemName;
+        if (problem == null) return new();
+        return SolverNavigationData.FindWithoutExtension(problem, null)
+            .Where(c => !string.Equals(c, solver, StringComparison.OrdinalIgnoreCase))
+            .Select(c => {
+                string name = c;
+                bool quantum = false;
+                try {
+                    if (ProblemProvider.Solvers.TryGetValue(c.ToLower(), out var type)
+                        && Activator.CreateInstance(type) is ISolver s) {
+                        name = s.solverName;
+                        quantum = s.solverType == SolverType.Quantum;
+                    }
+                } catch {
+                    // A solver that can't be default-constructed is still listed, by class name.
+                }
+                return (c, name, quantum);
+            })
+            .ToList();
+    }
 }
 
 /// <summary>
