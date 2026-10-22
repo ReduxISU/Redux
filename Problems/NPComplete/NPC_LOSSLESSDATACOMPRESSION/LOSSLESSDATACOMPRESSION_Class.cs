@@ -14,7 +14,7 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Lossless_compression";
 
     public string formalDefinition { get; } =
-        "Given an input string S over some alphabet, find a binary encoding of S that uses a prefix-free code so that S can be decoded exactly back into the original string.";
+        "Given an input string S over some alphabet, find a prefix-free binary code for S of minimum total encoded length (an optimal code, as produced by Huffman's algorithm), so that S can be decoded exactly back into the original string.";
 
     public string problemDefinition { get; } =
         "Lossless Data Compression is the problem of reducing the size of data while still allowing the original data to be perfectly reconstructed. " +
@@ -22,7 +22,7 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
         "and characters that appear less often usually receive longer codes.";
 
     public string inputDescription { get; } = "S, a raw text string to compress";
-    public string outputDescription { get; } = "A prefix-free Huffman code table for S together with S encoded using it";
+    public string outputDescription { get; } = "A prefix-free binary code table for S together with S encoded using it; the encoding must be optimal, i.e. as short as any prefix-free code for S can make it (Huffman length)";
 
     public string source { get; } =
         "David A. Huffman, A Method for the Construction of Minimum-Redundancy Codes, Proceedings of the IRE, 1952.";
