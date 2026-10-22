@@ -51,10 +51,13 @@ public class SATGroverSolver_Tests {
     [InlineData(HttpStatusCode.OK, "{\"answer_bitstring\": \"10\"}")]
     [InlineData(HttpStatusCode.OK, "{\"answer_bitstring\": \"1x0\"}")]
     [InlineData(HttpStatusCode.OK, "not json")]
-    public void Solve_WithNoBitStringToRead_HasNoAnswer(HttpStatusCode status, string body) {
-        // Unreachable, no bit string, one of the wrong length or not of bits, or no JSON at all: "{}", never the reply itself.
+    public void Solve_WithNoBitStringToRead_ThrowsSolverUnavailable(HttpStatusCode status, string body) {
+        // Unreachable, no bit string, one of the wrong length or not of bits, or no JSON at all: no answer, never the reply
+        // itself. It was "{}" (#832); since #625 nothing stands in for an answer: the solver throws SolverUnavailableException,
+        // which the endpoints answer with 503 solver_unavailable.
         using var fake = Install(new FakeSatService(_ => (status, body)));
-        Assert.Equal("{}", new SATGroverSolver().solve(new SAT("(x1 | !x2 | x3) & (!x1 | x2)")));
+        var ex = Assert.Throws<API.Interfaces.SolverUnavailableException>(() => new SATGroverSolver().solve(new SAT("(x1 | !x2 | x3) & (!x1 | x2)")));
+        Assert.Equal("SATGroverSolver", ex.Solver);
     }
 
     [Fact]

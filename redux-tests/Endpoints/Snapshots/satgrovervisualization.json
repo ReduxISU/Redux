@@ -1,9 +1,9 @@
 [
   {
     "kind": "quantumCircuit",
-    "solution": "{}",
+    "solution": "(x1:False,x2:False,x3:False,x4:False)",
     "format": 0,
-    "qasm": "",
+    "qasm": "OPENQASM 2.0;",
     "d3": null,
     "metadata": null
   }

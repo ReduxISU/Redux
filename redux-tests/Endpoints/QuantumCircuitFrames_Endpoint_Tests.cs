@@ -253,48 +253,39 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("balanced", frames[^1].GetProperty("result").GetString());
     }
 
+    // #625: with no answer from the quantum server there is no answer: 503 solver_unavailable, never the server's error as
+    // the answer (which these tests used to pin, #838).
+    private static void AssertSolverUnavailable(HttpStatusCode status, string body, string solver, string detail) {
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, status);
+        var root = JsonDocument.Parse(body).RootElement;
+        Assert.Equal("solver_unavailable", root.GetProperty("error").GetString());
+        Assert.Equal(solver, root.GetProperty("solver").GetString());
+        Assert.Contains(detail, root.GetProperty("detail").GetString());
+    }
+
     [Fact]
-    public async Task Frames_ServerDown_StillDrawTheCircuit_AndEndNotOk() {
+    public async Task Frames_ServerDown_Is503SolverUnavailable() {
         using var fake = FakeQuantumServer.Install(out var server);
         server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
         var (status, body) = await Visualize("visualization=deutschjozsad3visualization&format=frames&solver=deutschjozsaquantumsolver", "(0,1,1,0)");
-        Assert.Equal(HttpStatusCode.OK, status);
-        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
-        Assert.Equal(["Try", "Try", "Try", "Try", "Try", "Reject", "Done"], frames.Select(f => f.GetProperty("event").GetString()));
-        Assert.All(frames.Take(5), f => Assert.True(f.TryGetProperty("bars", out _)));
-        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
-        // The result is the solver's answer as it has always been: the server's error.
-        Assert.StartsWith("{\"error\":", frames[^1].GetProperty("result").GetString());
-        Assert.Empty(frames[^1].GetProperty("qubits").EnumerateObject());
+        AssertSolverUnavailable(status, body, "DeutschJozsaQuantumSolver", "503");
+        Assert.Single(server.Requests);
     }
 
-    // #838: Grover's solver threw when the quantum service was down, so solve and both visualize formats answered an empty 500.
-    // Now it ends like the other server solvers: a Reject, then Done not ok, with the server's error as its answer.
     [Fact]
-    public async Task Frames_Grover_ServerDown_EndsNotOk_SayingTheServiceCouldNotBeReached() {
+    public async Task Frames_Grover_ServerDown_Is503SolverUnavailable() {
         using var fake = FakeQuantumServer.Install(out var server);
         server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
         var (status, body) = await Visualize("visualization=unstructuredsearchvisualization&format=frames&solver=unstructuredgroversolver", "(0, 1, 0, 0)");
-        Assert.Equal(HttpStatusCode.OK, status);
-        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
-        Assert.Equal("Reject", frames[^2].GetProperty("event").GetString());
-        Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
-        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
-        Assert.Equal("No answer: the quantum service could not be reached.", frames[^1].GetProperty("caption").GetString());
-        Assert.StartsWith("{\"error\":", frames[^1].GetProperty("result").GetString());
-        Assert.Empty(frames[^1].GetProperty("qubits").EnumerateObject());
+        AssertSolverUnavailable(status, body, "UnstructuredGroverSolver", "503");
     }
 
     [Fact]
-    public async Task Frames_Grover_NoBitString_EndsNotOk_SayingTheServerGaveNoAnswer() {
+    public async Task Frames_Grover_NoBitString_Is503SolverUnavailable() {
         using var fake = FakeQuantumServer.Install(out var server);
         server.Canned = (HttpStatusCode.OK, "{\"qasm\": \"OPENQASM 2.0;\"}");
         var (status, body) = await Visualize("visualization=unstructuredsearchvisualization&format=frames&solver=unstructuredgroversolver", "(0, 1, 0, 0)");
-        Assert.Equal(HttpStatusCode.OK, status);
-        var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
-        Assert.Equal(["Reject", "Done"], frames.TakeLast(2).Select(f => f.GetProperty("event").GetString()));
-        Assert.False(frames[^1].GetProperty("ok").GetBoolean());
-        Assert.Equal("No answer: the quantum server did not give one.", frames[^1].GetProperty("caption").GetString());
+        AssertSolverUnavailable(status, body, "UnstructuredGroverSolver", "answer_bitstring");
     }
 
     // #847: a measured item that is not marked is a Reject, its measured qubits and meters Rejected, never Solution. #848: the
@@ -338,16 +329,14 @@ public class QuantumCircuitFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task Grover_ServerDown_SolveAndListVisualize_AnswerTheServersError() {
+    public async Task Grover_ServerDown_SolveAndListVisualize_Are503SolverUnavailable() {
         using var fake = FakeQuantumServer.Install(out var server);
         server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
         var content = new StringContent(JsonSerializer.Serialize("(0, 1, 0, 0)"), Encoding.UTF8, "application/json");
         var response = await _client.PostAsync("/ProblemProvider/solve?solver=unstructuredgroversolver", content, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("error", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        AssertSolverUnavailable(response.StatusCode, await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken), "UnstructuredGroverSolver", "503");
         var (status, body) = await Visualize("visualization=unstructuredsearchvisualization&solver=unstructuredgroversolver", "(0, 1, 0, 0)");
-        Assert.Equal(HttpStatusCode.OK, status);
-        Assert.NotEmpty(body);
+        AssertSolverUnavailable(status, body, "UnstructuredGroverSolver", "503");
     }
 
     [Theory]

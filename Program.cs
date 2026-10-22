@@ -15,7 +15,8 @@ builder.Services.AddHttpClient("quantum", (sp, client) => {
     client.BaseAddress = new Uri(settings.BaseURL);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddControllers();
+// A solver whose outside service fails answers 503 solver_unavailable on every endpoint (#625).
+builder.Services.AddControllers(options => options.Filters.Add(new API.Interfaces.SolverUnavailableFilter()));
 // Compress responses for clients that ask (Accept-Encoding), Brotli first. Visualization and Reduction View responses run
 // to megabytes of JSON that compresses to a few percent, and the Fastest level costs a few milliseconds at most (#909).
 builder.Services.AddResponseCompression(options => {

@@ -13,7 +13,9 @@ namespace redux_tests;
 // picture existed:
 //   - quantum_solver_answers.tsv: the six that need no server (solver, instance, answer as JSON strings, tab separated);
 //   - quantum_server_answers.tsv: the five that call the server, against a fake server's canned reply (solver, instance,
-//     status, reply, then the path and body they sent and the answer, as JSON strings).
+//     status, reply, then the path and body they sent and the answer, as JSON strings). Where the server gave no answer
+//     the answer was its error or its reply; since #625 the solver throws SolverUnavailableException there instead, written
+//     "!solver_unavailable".
 public class QuantumSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -134,6 +136,11 @@ public class QuantumSolvers_Tests {
         foreach (bool withSteps in new[] { false, true }) {
             using var _ = FakeQuantumServer.Install(out var server);
             server.Canned = ((HttpStatusCode)status, reply);
+            if (answer == "!solver_unavailable") {
+                Assert.Throws<SolverUnavailableException>(() => Solver(solver).Run(instance, withSteps));
+                Assert.Equal((path, body), Assert.Single(server.Requests));
+                continue;
+            }
             var run = Solver(solver).Run(instance, withSteps);
             Assert.Equal(answer, run.Answer);
             var request = Assert.Single(server.Requests);
@@ -175,24 +182,23 @@ public class QuantumSolvers_Tests {
         Assert.Single(server.Requests);
     }
 
+    // #625: with the server down there is no answer, so there is no run to draw: the solver throws SolverUnavailableException
+    // (HTTP 503 solver_unavailable on the endpoints), with or without steps, after asking the server once. It used to record
+    // a Reject and Done not ok, with the server's error as the answer.
     [Theory]
     [InlineData("deutschquantumsolver", "(0,1)")]
     [InlineData("deutschjozsaquantumsolver", "(1, 1, 1, 1)")]
     [InlineData("bernsteinvaziraniquantumsolver", "(0,1,0,1,1,0,1,0)")]
     [InlineData("shorsquantumsolver", "15")]
-    public void ServerSolver_ServerDown_StillDrawsTheCircuit_ThenRejects(string solver, string instance) {
-        using var _ = FakeQuantumServer.Install(out var server);
-        server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
-        var run = Solver(solver).Run(instance, withSteps: true);
-        AssertWellFormed(solver, instance, run);
-        var steps = Steps(run);
-        Assert.Equal(StepEvent.Reject, steps[^2].Event);
-        Assert.StartsWith("The quantum server gave no", steps[^2].Caption);
-        Assert.False(steps[^1].Ok);
-        Assert.Equal("No answer: the quantum server did not give one.", steps[^1].Caption);
-        Assert.Null(steps[^1].Partial.Outcome);
-        var frames = Frames(solver, instance, run);
-        Assert.Empty(frames[^1].Qubits);
+    [InlineData("unstructuredgroversolver", "(0, 1, 0, 0)")]
+    public void ServerSolver_ServerDown_ThrowsSolverUnavailable(string solver, string instance) {
+        foreach (bool withSteps in new[] { false, true }) {
+            using var _ = FakeQuantumServer.Install(out var server);
+            server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
+            var ex = Assert.Throws<SolverUnavailableException>(() => Solver(solver).Run(instance, withSteps));
+            Assert.Equal(ProblemProvider.Solvers[solver].Name, ex.Solver);
+            Assert.Single(server.Requests);
+        }
     }
 
     // ---- What each solver says ----

@@ -21,6 +21,8 @@ public class FormulaProblems_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
     public FormulaProblems_Endpoint_Tests(AppFactory factory) {
+        // Before the client is made (its handler copies the setting), so a fake quantum server reaches the request.
+        factory.Server.PreserveExecutionContext = true;
         _client = factory.CreateClient();
     }
 
@@ -315,6 +317,8 @@ public class FormulaProblems_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task ShorsSteps_DoNotCarryTheDivisorFields() {
+        // A fake server that answers: with none, Shor's solver has no answer and the request is 503 solver_unavailable (#625).
+        using var fake = FakeQuantumServer.Install(out _);
         var (status, body) = await Post("visualize", "visualization=ShorsDefaultVisualization&format=frames&solver=ShorsQuantumSolver", new PRIMEFACTOR().defaultInstance);
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.DoesNotContain("\"divisor\"", body);

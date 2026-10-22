@@ -33,9 +33,12 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
 
     private async Task<(HttpStatusCode Status, string Body)> Visualize(string query, string instance) {
         // The quantum cases call a quantum server. None was reachable when their snapshots were taken; a fake one that refuses
-        // every call (503) fails the same way on every machine, and quickly (#809).
+        // every call (503) fails the same way on every machine, and quickly (#809). SAT's Grover visualization is the
+        // exception: its solver has no answer without a server and answers 503 solver_unavailable (#625), so it gets a fake
+        // that answers, and its snapshot is that answer.
         using var fake = FakeQuantumServer.Install(out var server);
-        server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
+        if (!query.Contains("satgrovervisualization", StringComparison.OrdinalIgnoreCase))
+            server.Canned = (HttpStatusCode.ServiceUnavailable, "{}");
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
         var response = await _client.PostAsync($"/ProblemProvider/visualize?{query}", content, TestContext.Current.CancellationToken);
         var body = (await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Replace("\r\n", "\n");

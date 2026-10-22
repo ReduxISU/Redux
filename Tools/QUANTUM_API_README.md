@@ -166,32 +166,33 @@ The client throws exceptions for:
 - **TimeoutException**: Request timeout (default 30s)
 - **JsonException**: JSON serialization/deserialization errors
 
-Example error handling in solver:
+A solver must never return an error text in place of its answer: the caller would take it for a certificate and pass
+it to a verifier, a visualization or a reduction (#625). Wrap the request in `QuantumServerAPI.Ask`, which turns any
+failure (service not configured, unreachable, timed out, an error status, or a response your code finds no answer in)
+into a `SolverUnavailableException`. Every endpoint answers that with HTTP 503 and
+`{"error": "solver_unavailable", "solver": ..., "problem": ..., "detail": ...}`.
 
 ```csharp
 public string solve(DEUTSCH problem)
 {
-    try
+    bool[] requestBody = problem.funcValues;
+
+    return QuantumServerAPI.Ask(this, problem.problemName, client =>
     {
-        bool[] requestBody = problem.funcValues;
-        var client = new QuantumServerAPI();
         string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
 
-        // Parse and return answer
         using JsonDocument doc = JsonDocument.Parse(response);
         JsonElement root = doc.RootElement;
 
-        if (root.TryGetProperty("answer", out JsonElement answerElement))
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer", out JsonElement answerElement)
+            && answerElement.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(answerElement.GetString()))
         {
-            return answerElement.GetString() ?? "No answer found";
+            return answerElement.GetString()!;
         }
 
-        return response;
-    }
-    catch (Exception ex)
-    {
-        return $"{{\"error\": \"{ex.Message}\"}}";
-    }
+        // No answer in the response: throw, never return the response itself.
+        throw QuantumServerAPI.MissingAnswer("answer", response);
+    });
 }
 ```
 

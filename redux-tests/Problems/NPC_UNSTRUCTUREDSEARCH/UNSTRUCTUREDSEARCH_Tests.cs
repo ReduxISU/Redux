@@ -225,20 +225,19 @@ public class UNSTRUCTUREDSEARCH_tests {
     }
 
     [Fact]
-    public void UnstructuredGroverSolver_Solve_Missing_AnswerBitstring_AnswersAClearError() {
+    public void UnstructuredGroverSolver_Solve_Missing_AnswerBitstring_ThrowsSolverUnavailable() {
         // Regression test for GitHub issue #538. When the quantum server's response has no
         // "answer_bitstring" field, the raw JSON response is not misread as bitstring data
-        // (which used to throw a confusing FormatException). Since #838 the answer is an error
-        // naming the missing field, as the other quantum solvers answer one, instead of a throw.
+        // (which used to throw a confusing FormatException). #838 made the answer an error naming
+        // the missing field; since #625 no error is an answer: SolveAsSat throws
+        // SolverUnavailableException, which the endpoints answer with 503 solver_unavailable.
         var problem = new UNSTRUCTUREDSEARCH("(0, 1, 0, 0)");
         var handler = new FakeQuantumHandler("{\"qasm\":\"c\"}");
         using var fake = InstallFakeQuantumServer(handler);
         var solver = new UnstructuredGroverSolver();
 
-        string answer = solver.solve(problem);
-        Assert.StartsWith("{\"error\":", answer);
-        Assert.Contains("answer_bitstring", answer);
-        Assert.Contains("\"qasm\"", System.Text.Json.JsonDocument.Parse(answer).RootElement.GetProperty("error").GetString());
+        var ex = Assert.Throws<API.Interfaces.SolverUnavailableException>(() => solver.solve(problem));
+        Assert.Contains("answer_bitstring", ex.Message);
     }
 
     [Fact]

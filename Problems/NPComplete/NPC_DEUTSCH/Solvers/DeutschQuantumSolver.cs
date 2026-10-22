@@ -39,7 +39,8 @@ class DeutschQuantumSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSolv
     public string solve(DEUTSCH problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
     // Steps: a Try per column of Deutsch's circuit (the one the server runs, drawn and simulated here, never asked of the
-    // server), then an Accept with what the server measured (a Reject when it gave no answer), and Done with the verdict.
+    // server), then an Accept with what the server measured (a Reject when its answer is not one; with no answer at all
+    // the solver throws SolverUnavailableException, #625), and Done with the verdict.
     public string Solve(DEUTSCH problem, StepRecorder<QuantumProgress> rec) {
         var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.Deutsch(problem.funcValues) : null;
         if (spec != null) QuantumSteps.Columns(rec, spec);
@@ -60,15 +61,13 @@ class DeutschQuantumSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSolv
         return answer;
     }
 
-    // The server's answer, as solve has always returned it; its counts, when it sends them, go into counts.
-    private static string Ask(DEUTSCH problem, List<KeyValuePair<string, long>> counts) {
-        try {
-            // Get the function values directly from the problem instance
-            bool[] requestBody = problem.funcValues;
+    // The server's answer; its counts, when it sends them, go into counts. On any failure of the quantum service this
+    // throws SolverUnavailableException (HTTP 503 solver_unavailable), never an error text in place of the answer (#625).
+    private string Ask(DEUTSCH problem, List<KeyValuePair<string, long>> counts) {
+        // Get the function values directly from the problem instance
+        bool[] requestBody = problem.funcValues;
 
-            // Create the API client
-            var client = new QuantumServerAPI();
-
+        return QuantumServerAPI.Ask(this, problem.problemName, client => {
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
 
@@ -77,15 +76,13 @@ class DeutschQuantumSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSolv
             JsonElement root = doc.RootElement;
 
             counts.AddRange(QuantumSteps.Counts(root));
-            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
-                return answerElement.GetString() ?? "No answer found";
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer", out JsonElement answerElement)
+                && answerElement.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(answerElement.GetString())) {
+                return answerElement.GetString()!;
             }
 
-            // If no answer field, return the whole response
-            return response;
-        } catch (Exception ex) {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
-        }
+            // No answer in the response: not an answer to pass on.
+            throw QuantumServerAPI.MissingAnswer("answer", response);
+        });
     }
 }

@@ -43,42 +43,35 @@ class SATGroverSolver : ISolver<SAT> {
 
     // --- Methods ---
 
-    // No answer: not "No solution exists", which would say the formula has none.
-    private const string NoAnswer = "{}";
-
     // The quantum service (ReduxISU/quantumsolver, sat_quantum.py) numbers the formula's variables by sorting their names
     // (every run of letters, digits and '_', which are exactly SAT's variable names) in code-point order, and sends
     // answer_bitstring with character i for variable i. That is read back as SAT's certificate, "(x1:True,x2:False)" (#832).
-    // With no bit string to read (the service could not be reached, or did not send one) there is no answer, "{}".
+    // With no bit string to read (the service is not configured, could not be reached, or did not send one bit per
+    // variable) there is no answer, and this throws SolverUnavailableException (HTTP 503 solver_unavailable) rather than
+    // return anything a verifier would take for a certificate (#625).
     public string solve(SAT problem) {
-        string response;
-        try {
-            var requestBody = new JSON_Sat_Problem(problem.instance);
+        var requestBody = new JSON_Sat_Problem(problem.instance);
 
-            // Create the API client
-            var client = new QuantumServerAPI();
-
+        return QuantumServerAPI.Ask(this, problem.problemName, client => {
             // Make the API call to the quantum endpoint
-            response = client.PostAsync("/sat-quantum", requestBody).Result;
-        } catch (Exception) {
-            return NoAnswer;
-        }
+            string response = client.PostAsync("/sat-quantum", requestBody).Result;
 
-        try {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("qasm", out JsonElement circuitElement) && circuitElement.ValueKind == JsonValueKind.String) {
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("qasm", out JsonElement circuitElement) && circuitElement.ValueKind == JsonValueKind.String) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
 
-            if (root.TryGetProperty("answer_bitstring", out JsonElement bitsElement) && bitsElement.ValueKind == JsonValueKind.String) {
-                return Assignment(problem.instance, bitsElement.GetString() ?? "") ?? NoAnswer;
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer_bitstring", out JsonElement bitsElement) && bitsElement.ValueKind == JsonValueKind.String) {
+                string bits = bitsElement.GetString() ?? "";
+                return Assignment(problem.instance, bits)
+                    ?? throw new InvalidDataException($"its bit string '{bits}' is not one bit per variable of the formula");
             }
-        } catch (JsonException) {
-            // Not JSON: no answer, as below.
-        }
-        return NoAnswer;
+
+            // No bit string in the response: not an answer to pass on.
+            throw QuantumServerAPI.MissingAnswer("answer_bitstring", response);
+        });
     }
 
     /// <summary>

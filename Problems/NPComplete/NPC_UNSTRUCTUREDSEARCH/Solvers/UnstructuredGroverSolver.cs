@@ -38,8 +38,9 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
 
     // Steps: a Try per column of Grover's circuit for the table (the textbook circuit, drawn and simulated here; the server
     // builds its own from the SAT expression and is never asked for these), then an Accept with the item the server
-    // measured when it is marked (a Reject when it is not, #847, or when the server gave no answer), and Done with the
-    // verdict. With no answer, the answer is the server's error, as the other quantum solvers give it (#838).
+    // measured when it is marked (a Reject when it is not, #847), and Done with the verdict. With no answer from the server
+    // there is no answer at all: SolveAsSat throws SolverUnavailableException (HTTP 503 solver_unavailable), never the
+    // server's error in place of an item (#625; it was the answer before, #838).
     public string Solve(UNSTRUCTUREDSEARCH problem, StepRecorder<QuantumProgress> rec) {
         // We have to convert the function values into a SAT problem
         int nbits = PowerOfTwo(problem.funcValues.Count);
@@ -64,16 +65,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
 
         var satproblem = String.Join(" | ", exprs);
         var counts = new List<KeyValuePair<string, long>>();
-        (string? measured, string error, bool reached) = SolveAsSat(problem, satproblem, counts);
-        if (measured == null) {
-            if (spec != null) {
-                int all = spec.Columns.Count;
-                rec.Reject(() => new QuantumProgress(all, counts: counts), () => $"The quantum server gave no answer: {error}");
-                QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, error), new QuantumProgress(all, counts: counts, result: error),
-                    _ => reached ? "No answer: the quantum server did not give one." : "No answer: the quantum service could not be reached.");
-            }
-            return error;
-        }
+        string measured = SolveAsSat(problem, satproblem, counts);
         int index = Item(satproblem, measured);
         string answer = index.ToString();
         if (spec != null) {
@@ -145,44 +137,32 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
         }
     }
 
-    // Text inside the error's JSON string.
-    private static string Escape(string text) => JsonEncodedText.Encode(text, System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping).ToString();
+    // The bits the server measured, in its variable order (see Item). On any failure of the quantum service, including a
+    // response with no bit string to read as an item (#538), this throws SolverUnavailableException (HTTP 503
+    // solver_unavailable) rather than handing Solve something that is not a bit string (#625).
+    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, List<KeyValuePair<string, long>> counts) {
+        var requestBody = new JSON_Sat_Problem(problemInstance);
 
-    // The bits the server measured, in its variable order (see Item); or null, with the error to answer instead and whether the server was reached
-    // at all (it answered, but with no bit string).
-    private (string? Measured, string Error, bool Reached) SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, List<KeyValuePair<string, long>> counts) {
-        string response;
-        try {
-            var requestBody = new JSON_Sat_Problem(problemInstance);
-
-            // Create the API client
-            var client = new QuantumServerAPI();
-
+        return QuantumServerAPI.Ask(this, problem.problemName, client => {
             // Make the API call to the quantum endpoint
-            response = client.PostAsync("/sat-quantum", requestBody).Result;
-        } catch (Exception ex) {
-            // Error information, as the other quantum solvers return it
-            return (null, $"{{\"error\": \"{Escape(ex.Message)}\"}}", false);
-        }
+            string response = client.PostAsync("/sat-quantum", requestBody).Result;
 
-        try {
             // Parse the JSON response and extract just the answer
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
             counts.AddRange(QuantumSteps.Counts(root));
-            if (root.TryGetProperty("qasm", out JsonElement circuitElement)) {
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("qasm", out JsonElement circuitElement) && circuitElement.ValueKind == JsonValueKind.String) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
-            if (root.TryGetProperty("answer_bitstring", out JsonElement answerElement) && answerElement.ValueKind == JsonValueKind.String
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer_bitstring", out JsonElement answerElement) && answerElement.ValueKind == JsonValueKind.String
                 && answerElement.GetString() is { Length: > 0 and <= 31 } bits && bits.All(c => c is '0' or '1')) {
-                return (bits, "", true);
+                return bits;
             }
-        } catch (JsonException) {
-            // Not JSON: no answer, as below.
-        }
-        // The quantum service responded, but with no bit string to read as an item.
-        return (null, $"{{\"error\": \"The quantum service gave no answer_bitstring: {Escape(response)}\"}}", true);
+
+            // No bit string to read as an item: not an answer to pass on.
+            throw QuantumServerAPI.MissingAnswer("answer_bitstring", response);
+        });
     }
 
 }
