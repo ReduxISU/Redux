@@ -155,6 +155,11 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
         // making one the default would put that network call on /info's default path.
         // Choosing Deutsch's default is a separate decision from #922.
         "DEUTSCH",
+        // Simon's only visualization is opt-in (IOptInVisualization): a Redux_Frontend picture
+        // (format=frames) whose list format is an empty QASM string, because no quantum server
+        // endpoint builds Simon's circuit. Making it the default would show Redux_GUI a new,
+        // empty circuit on /info, which GuiSnapshot_Endpoint_Tests pins as the placeholder.
+        "SIMON",
     };
 
     [Fact]
