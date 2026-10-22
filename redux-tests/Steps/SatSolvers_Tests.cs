@@ -17,7 +17,8 @@ namespace redux_tests;
 // it recorded steps, on its default instance and on hand-made and 12 seeded random formulas (satisfiable and not). Five brute
 // force rows changed with #754, which made the solver try the all-false assignment first: each now holds that all-false answer,
 // which those formulas accept but the old counter skipped. The three
-// randomized 3SAT solvers (PPZ, Schoning, WalkSAT) are not touched, and give a different answer on every run.
+// randomized 3SAT solvers (PPZ, Schoning, WalkSAT) are not here: they give a different answer on every run (WalkSAT records
+// steps and takes a seed since #932; see WalkSat_Tests).
 public class SatSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);

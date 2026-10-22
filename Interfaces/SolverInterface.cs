@@ -120,6 +120,12 @@ sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepSha
     public bool Incremental { get; init; }
 
     /// <summary>
+    /// The seed a randomized solver (<see cref="IRandomizedSolver"/>) ran with: the one it was given, or the one chosen for this
+    /// run. The same seed on the same instance gives the same steps and the same answer (#932). Null for every other solver.
+    /// </summary>
+    public int? Seed { get; init; }
+
+    /// <summary>
     /// Runs a typed solve: with recording off when <paramref name="withSteps"/> is false (no clock checks), else with
     /// a recorder that has <paramref name="timeLimit"/> and keeps <paramref name="stepCap"/> steps (null: the default cap). A run
     /// that exceeds the limit is returned as stopped (see <see cref="TimedOut"/>) instead of throwing.
@@ -183,7 +189,18 @@ interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
 
     SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit, int? stepCap) {
         T parsed = ParseGuard.CreateProblem<T>(instance);
-        return SolveRun.Record<TPartial>(withSteps, timeLimit, rec => Solve(parsed, rec), stepCap) with { Incremental = this is IIncrementalSolver };
+        // A randomized solver runs with the seed it was given, or one chosen here; the run reports it, so it can be repeated
+        // exactly (#932). The solver's own Seed is put back afterwards: choosing a seed for one run never fixes the next one.
+        if (this is not IRandomizedSolver randomized)
+            return SolveRun.Record<TPartial>(withSteps, timeLimit, rec => Solve(parsed, rec), stepCap) with { Incremental = this is IIncrementalSolver };
+        int? asked = randomized.Seed;
+        int seed = asked ?? RandomizedSolvers.NewSeed();
+        randomized.Seed = seed;
+        try {
+            return SolveRun.Record<TPartial>(withSteps, timeLimit, rec => Solve(parsed, rec), stepCap) with { Incremental = this is IIncrementalSolver, Seed = seed };
+        } finally {
+            randomized.Seed = asked;
+        }
     }
 
     List<Object> ISolver<T>.GetSteps(T problem) {
@@ -215,3 +232,40 @@ interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
 /// </para>
 /// </summary>
 interface IIncrementalSolver : ISolver { }
+
+/// <summary>
+/// Declares that a solver makes random choices (a random start, a random clause, a random flip) and takes them from a
+/// seeded <see cref="Random"/>, so one run can be repeated exactly (#932). The endpoints that draw a run (<c>visualize</c>,
+/// <c>visualizeRun</c>, <c>reductionView</c>) take an optional <c>seed</c> and set <see cref="Seed"/>; <see cref="ISolver{T, TPartial}"/>'s
+/// <c>Run</c> chooses one when none was given and reports the one used in <see cref="SolveRun.Seed"/>.
+/// <para>
+/// Implement <see cref="Seed"/> explicitly (<c>int? IRandomizedSolver.Seed { get; set; }</c>) so it never appears in /info,
+/// and make every random choice from <c>new Random(seed)</c> made once per solve, never from <see cref="Random.Shared"/> or a
+/// <c>new Random()</c>. Walk over the instance in a fixed order (a list, the order of first appearance), never a
+/// <see cref="HashSet{T}"/> of strings: string hash codes change from process to process, so the same seed would give another
+/// run after a restart. Recording must not draw from the generator, so a run with steps and one without give the same answer.
+/// </para>
+/// <para>
+/// A picture of a search (the Search Tree) does not draw a randomized solver's run: its tries are not a tree of choices, so
+/// it answers <c>solver_mismatch</c> (see <see cref="IFramesVisualization.DrawsSolver"/>).
+/// </para>
+/// </summary>
+interface IRandomizedSolver : ISolver {
+    /// <summary>The seed of the next solve; null means a new one each time.</summary>
+    int? Seed { get; set; }
+}
+
+/// <summary>Helpers for <see cref="IRandomizedSolver"/>.</summary>
+static class RandomizedSolvers {
+    /// <summary>A new seed, for a run that was given none: a non-negative int.</summary>
+    public static int NewSeed() => Random.Shared.Next();
+
+    /// <summary>The generator one solve draws from: seeded by <paramref name="seed"/>, or by a new seed when it is null.</summary>
+    public static Random Generator(int? seed) => new(seed ?? NewSeed());
+
+    /// <summary>Gives <paramref name="solver"/> the seed a caller asked for, if it is randomized and a seed was given; else does nothing.</summary>
+    public static void Apply(ISolver solver, int? seed) {
+        if (seed is int value && solver is IRandomizedSolver randomized)
+            randomized.Seed = value;
+    }
+}

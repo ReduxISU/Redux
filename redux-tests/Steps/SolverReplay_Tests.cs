@@ -17,7 +17,7 @@ namespace redux_tests;
 //
 // Note: a randomized solver must take a seed (or otherwise be deterministic) for the answer-equality
 // check (a) to hold across runs. A solver with a public constructor taking one int is built with a fixed seed here
-// (see CreateSolver); the only random ones so far are the two vertex cover 2-approximations.
+// (see CreateSolver): the two vertex cover 2-approximations by their seed constructor, WalkSAT by IRandomizedSolver (#932).
 public class SolverReplay_Tests {
     private static Type? TypedInterface(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>));
@@ -30,7 +30,10 @@ public class SolverReplay_Tests {
     // The solver as the replay should run it: seeded if it can be, so repeated runs make the same random choices.
     private static ISolver CreateSolver(Type solverType) {
         var seeded = solverType.GetConstructor([typeof(int)]);
-        return (ISolver)(seeded != null ? seeded.Invoke([Seed]) : Activator.CreateInstance(solverType)!);
+        var solver = (ISolver)(seeded != null ? seeded.Invoke([Seed]) : Activator.CreateInstance(solverType)!);
+        // A randomized solver (#932) takes its seed the way the endpoints give it, so every run of it here is the same run.
+        RandomizedSolvers.Apply(solver, Seed);
+        return solver;
     }
 
     // The certificate a verifier expects, taken from a solver's answer string: the answer itself (the DFA and NFA
@@ -265,7 +268,7 @@ public class SolverReplay_Tests {
     [Fact]
     public void LegacySolver_RunKeepsUntypedSteps() {
         // A solver that has not been converted reports no shape and keeps the untyped steps its GetSteps returns. The untyped
-        // solvers left in Redux (the quantum ones, WalkSAT, ...) record no steps, and the last untyped example used here was
+        // solvers left in Redux (the quantum ones, PPZ, Schoning, ...) record no steps, and the last untyped example used here was
         // typed (SSSP by #667, Pump Scheduling by #673, Convex Hull by #674), so this one is made up for the test.
         var legacy = (ISolver)new LegacyStepsSolver();
         string instance = new API.Problems.NPComplete.NPC_CLIQUE.CLIQUE().defaultInstance;

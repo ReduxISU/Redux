@@ -454,6 +454,9 @@ public partial class ProblemProvider : ControllerBase {
     internal static bool SolverMatchesVisualization(Type solverType, IVisualization vis) {
         if (!SolverCanRun(solverType))
             return false;
+        // A picture may refuse a solver of its own problem whose run it cannot draw (the Search Tree and a randomized solver, #932).
+        if (vis is IFramesVisualization frames && !frames.DrawsSolver(solverType))
+            return false;
         if (solverType == vis.solver.GetType())
             return true;
         Type? solverProblem = ProblemTypeOf(solverType, typeof(ISolver<>));
@@ -471,10 +474,11 @@ public partial class ProblemProvider : ControllerBase {
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <param name="solver" example = "Sat3BacktrackingSolver">Optional. The solver whose steps and solution are visualized. Defaults to the visualization's own solver. Must solve the same problem as the visualization</param>
     /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual). A picture type that builds its own frames (type "Graph") returns its own payload and frames instead</param>
+    /// <param name="seed" example = "12345">Optional. The seed of a randomized solver (WalkSAT): the same seed on the same instance gives the same steps and answer. Without it a seed is chosen. A picture type that builds its own frames reports the seed used as "seed" (randomized solvers only); the list format reports nothing. Other solvers ignore it (#932)</param>
     /// <returns>the basic visualization, any steps from the solver, and the solved visualization, shaped by <paramref name="format"/></returns>
     [HttpPost("visualize")]
     [ProducesResponseType(400)]
-    public IActionResult visualize(string visualization, [FromBody] string instance, string? solver = null, string? format = null) {
+    public IActionResult visualize(string visualization, [FromBody] string instance, string? solver = null, string? format = null, int? seed = null) {
         if (!Visualizers.TryGetValue(visualization.ToLower(), out _))
             return BadRequest(new { error = "unknown_visualization", received = visualization });
         bool asFrames;
@@ -493,6 +497,7 @@ public partial class ProblemProvider : ControllerBase {
                 return BadRequest(new { error = "solver_mismatch", received = solver, visualization });
             chosen = Solver(solver);
         }
+        RandomizedSolvers.Apply(chosen, seed);
         try {
             // A typed solver that runs past the time limit is stopped and its run comes back with TimedOut set; an
             // uninstrumented (legacy) solver never records a step, so it cannot be stopped here (see issue #523).
@@ -501,7 +506,7 @@ public partial class ProblemProvider : ControllerBase {
             var run = chosen.Run(instance, withSteps: true, limit);
             // A picture type that builds its own frames serves them only for format=frames.
             if (asFrames && vis is IFramesVisualization framesVis)
-                return Content(JsonSerializer.Serialize(framesVis.BuildFrames(instance, run), FramesResponse.JsonOptions), "application/json");
+                return Content(JsonSerializer.Serialize(framesVis.BuildFrames(instance, run) with { Seed = run.Seed }, FramesResponse.JsonOptions), "application/json");
             // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what is
             // left of the limit, so the whole request stays within it (#764).
             TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
@@ -667,11 +672,12 @@ public partial class ProblemProvider : ControllerBase {
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
     /// <param name="sourceVisualization" example = "Sat3DefaultVisualization">Optional. The visualization (class name) the SOURCE side is drawn with. Defaults to the source problem's default visualization. Must be a frames picture of the source problem that draws answers, not a solver's search (400 <c>unknown_visualization</c>, <c>visualization_mismatch</c>, <c>no_source_picture</c>)</param>
     /// <param name="targetVisualization" example = "CliqueDefaultVisualization">Optional. The visualization (class name) the TARGET side is drawn with. Defaults to the target problem's default visualization. Must be a frames picture of the target problem (400 <c>unknown_visualization</c>, <c>visualization_mismatch</c>, <c>no_target_picture</c>). Without <c>solver</c>, the solve phase runs that picture's own solver</param>
-    /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, source: { problem, instance, visualization, picture }, target: { ..., visualization, picture, buildOrder }, gadgets, frames }</returns>
+    /// <param name="seed" example = "12345">Optional. The seed of a randomized solver in the solve phase (WalkSAT): the same seed on the same instance gives the same view. Without it a seed is chosen; the view reports the seed used as "seed" (randomized solvers only). Other solvers ignore it (#932)</param>
+    /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, seed (randomized solvers only), source: { problem, instance, visualization, picture }, target: { ..., visualization, picture, buildOrder }, gadgets, frames }</returns>
     [HttpPost("reductionView")]
     [ProducesResponseType(400)]
     public IActionResult reductionView(string reduction, [FromBody] string instance, string? solver = null,
-        string? sourceVisualization = null, string? targetVisualization = null) {
+        string? sourceVisualization = null, string? targetVisualization = null, int? seed = null) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
@@ -695,6 +701,7 @@ public partial class ProblemProvider : ControllerBase {
                     return BadRequest(new { error = "solver_mismatch", received = solver, problem = red.reductionTo.problemName });
                 chosen = Solver(solver);
             }
+            RandomizedSolvers.Apply(chosen, seed);
             var view = ReductionView.Create(red, instance, buildSteps, chosen, sourceVis, targetVis, answer => MapSolutionsBack(red, answer, true), SolveTimeLimit,
                 ReductionView.SolveStepCap);
             // Which picture each side was drawn with, so a client that asked for one can tell it got it (#912).

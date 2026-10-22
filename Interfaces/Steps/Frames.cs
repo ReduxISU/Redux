@@ -62,6 +62,15 @@ sealed record FramesResponse(
     [property: JsonPropertyName("frames")] IReadOnlyList<object> Frames) {
 
     /// <summary>
+    /// The seed a randomized solver ran with (<see cref="SolveRun.Seed"/>, #932), so the run can be asked for again; absent for
+    /// every other solver. Only the endpoints set it (<c>visualize?format=frames</c>), never a builder; Redux_GUI reads no frames
+    /// response, so it never sees it.
+    /// </summary>
+    [JsonPropertyName("seed")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Seed { get; init; }
+
+    /// <summary>
     /// Serializer options for this response (camelCase names come from the records' attributes). Not indented: a frames
     /// response runs to hundreds of kilobytes, and indentation was over half of it (#909).
     /// </summary>
@@ -85,6 +94,14 @@ interface IFramesVisualization : IVisualization {
     /// since with no steps it has nothing to show. A method, not a property, so it never appears in /info.
     /// </summary>
     bool DrawsAnswerAlone() => true;
+
+    /// <summary>
+    /// Whether this picture can draw a run of <paramref name="solverType"/> (a solver of its problem). True by default. A picture
+    /// of a search (the Search Tree) returns false for a randomized solver (<see cref="IRandomizedSolver"/>): its tries are not a
+    /// tree of choices, so <c>visualize</c> and <c>reductionView</c> answer <c>solver_mismatch</c> and <c>visualizeRun</c> lists
+    /// the picture as <c>solver_mismatch</c> (#932). A method, not a property, so it never appears in /info.
+    /// </summary>
+    bool DrawsSolver(Type solverType) => true;
 
     /// <summary>
     /// How this picture names the pieces its problem's default picture names, for one instance: given an id of the default

@@ -219,7 +219,6 @@ public class FormulaFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Theory]
-    [InlineData("WalkSAT")]
     [InlineData("Schoning")]
     [InlineData("PPZ")]
     public async Task Frames_ASolverWithoutSteps_GivesOneDoneFrameBuiltFromItsAnswer(string solver) {

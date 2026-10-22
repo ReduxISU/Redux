@@ -53,6 +53,7 @@ public class IncrementalSolvers_Tests {
         // typed solver interface.
         ["satbruteforcesolver"] = false,
         ["sat3backtrackingsolver"] = true,
+        ["walksat"] = false,   // randomized: each step tries a whole assignment (#932)
         // ChosenSets and NodeSet (Bipartite pictures)
         ["setcoverbruteforce"] = false,
         ["greedysetcover"] = true,

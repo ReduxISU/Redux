@@ -367,7 +367,6 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Theory]
-    [InlineData(Sat3Vis, "walksat")]
     [InlineData(Sat3Vis, "schoning")]
     [InlineData(Sat3Vis, "ppz")]
     public async Task Frames_ASolverWithoutSteps_GivesOneDoneFrameBuiltFromItsAnswer(string vis, string solver) {
