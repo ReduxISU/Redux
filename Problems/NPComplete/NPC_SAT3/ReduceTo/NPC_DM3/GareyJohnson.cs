@@ -321,19 +321,26 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             }
         }
 
-        // mapping solution to clause gadgets
+        // mapping solution to clause gadgets. reduce() reserves one specific Z element for each
+        // literal occurrence of each clause (the first unused z_<literal>_* in order), and the
+        // only clause triples that exist in M are those reserved ones. Replay that reservation so
+        // the mapped triple is actually a member of reductionTo.M.
+        List<string> unusedLiterals = new List<string>(reductionTo.Z);
         for (int i = 0; i < reductionFrom.clauses.Count; i++) {
+            string? chosen = null;
             foreach (string literal in reductionFrom.clauses[i]) {
-                if (!solutionList.Contains(literal)) {
+                string? reserved = unusedLiterals.Find(z => IsElementOf(z, literal));
+                if (reserved is null) {
                     continue;
                 }
-                string? found = availableZ.Find(z => IsElementOf(z, literal));
-                if (found is null) {
-                    continue;
+                unusedLiterals.Remove(reserved);
+                if (chosen is null && solutionList.Contains(literal) && availableZ.Contains(reserved)) {
+                    chosen = reserved;
                 }
-                mappedSolutionList.Add(string.Format("{{x_clause_{0},y_clause{0},{1}}}", i, found));
-                availableZ.Remove(found);
-                break;
+            }
+            if (chosen is not null) {
+                mappedSolutionList.Add(string.Format("{{x_clause_{0},y_clause{0},{1}}}", i, chosen));
+                availableZ.Remove(chosen);
             }
         }
 
