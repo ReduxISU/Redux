@@ -17,7 +17,8 @@ namespace redux_tests;
 //
 // Note: a randomized solver must take a seed (or otherwise be deterministic) for the answer-equality
 // check (a) to hold across runs. A solver with a public constructor taking one int is built with a fixed seed here
-// (see CreateSolver): the two vertex cover 2-approximations by their seed constructor, WalkSAT by IRandomizedSolver (#932).
+// (see CreateSolver): the two vertex cover 2-approximations by their seed constructor, WalkSAT, Schoning and PPZ by
+// IRandomizedSolver (#932).
 public class SolverReplay_Tests {
     private static Type? TypedInterface(Type solver) =>
         solver.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISolver<,>));
@@ -268,7 +269,7 @@ public class SolverReplay_Tests {
     [Fact]
     public void LegacySolver_RunKeepsUntypedSteps() {
         // A solver that has not been converted reports no shape and keeps the untyped steps its GetSteps returns. The untyped
-        // solvers left in Redux (the quantum ones, PPZ, Schoning, ...) record no steps, and the last untyped example used here was
+        // solvers left in Redux (the quantum ones) record no steps, and the last untyped example used here was
         // typed (SSSP by #667, Pump Scheduling by #673, Convex Hull by #674), so this one is made up for the test.
         var legacy = (ISolver)new LegacyStepsSolver();
         string instance = new API.Problems.NPComplete.NPC_CLIQUE.CLIQUE().defaultInstance;

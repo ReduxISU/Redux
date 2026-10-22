@@ -643,7 +643,7 @@ public class SAT3_Tests {
             SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
             Stopwatch timer = Stopwatch.StartNew();
 
-            string result = new Schoning().solve(sat3);
+            string result = ((ISolver<SAT3>)new Schoning()).solve(sat3);
 
             Assert.Equal("{}", result);
             // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
@@ -658,7 +658,7 @@ public class SAT3_Tests {
             SAT3 sat3 = new SAT3(UnsatInstance(extraVariables));
             Stopwatch timer = Stopwatch.StartNew();
 
-            string result = new PPZ().solve(sat3);
+            string result = ((ISolver<SAT3>)new PPZ()).solve(sat3);
 
             Assert.Equal("{}", result);
             // Proves termination, not speed: without the trial cap this runs for ~2^31 trials. ~2 s alone,
@@ -673,8 +673,8 @@ public class SAT3_Tests {
         Schoning schoning = new Schoning { timerHasExpired = true };
         PPZ ppz = new PPZ { timerHasExpired = true };
 
-        Assert.Equal("{}", schoning.solve(sat3));
-        Assert.Equal("{}", ppz.solve(sat3));
+        Assert.Equal("{}", ((ISolver<SAT3>)schoning).solve(sat3));
+        Assert.Equal("{}", ((ISolver<SAT3>)ppz).solve(sat3));
     }
 
     // -------------------------------------------------------------------------

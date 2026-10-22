@@ -142,14 +142,4 @@ public class FactorGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Empty(last.GetProperty("assignment").EnumerateObject());
         Assert.Contains(Frames(body), f => f.GetProperty("event").GetString() == "Backtrack");
     }
-
-    [Theory]
-    [InlineData("ppz")]
-    public async Task Frames_ASolverWithoutSteps_GivesOneDoneFrameBuiltFromItsAnswer(string solver) {
-        var (status, body) = await Visualize($"visualization={Sat3Vis}&format=frames&solver={solver}", new API.Problems.NPComplete.NPC_SAT3.SAT3().defaultInstance);
-        Assert.Equal(HttpStatusCode.OK, status);
-        var done = Assert.Single(Frames(body));
-        Assert.Equal("Done", done.GetProperty("event").GetString());
-        Assert.True(done.GetProperty("ok").GetBoolean());
-    }
 }
