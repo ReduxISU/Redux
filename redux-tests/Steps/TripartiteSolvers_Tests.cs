@@ -13,7 +13,8 @@ namespace redux_tests;
 // The 3-Dimensional Matching brute force records steps for the Tripartite Matching picture. Recording must never change an
 // answer. Endpoints/Snapshots/tripartite_solver_answers.tsv holds what it returned (solver, instance and answer as JSON
 // strings; tab separated) BEFORE the picture existed (with the #745, #805 and #807 fixes in), on its default instance,
-// hand-picked edge cases and seeded random instances.
+// hand-picked edge cases and seeded random instances. Eight answers were updated for PR #742's perfect-matching verifier
+// (#710, #711): seven instances whose names repeat across X, Y and Z now have a matching, and {a}{b,c}{d,e}{a,b,d} has none.
 public class TripartiteSolvers_Tests {
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
@@ -153,23 +154,22 @@ public class TripartiteSolvers_Tests {
         Assert.Equal("Try T1, T2, T3 and T4: x1, x2, y1, y2 and 2 more are used twice.", Frames(Twelve)[0].Caption);
     }
 
-    // What the verifier says about a set that repeats no name depends on the verifier: today's accepts a set that leaves
-    // elements of Y or Z unused (#710) and refuses a name that is in more than one of X, Y and Z; the fix in PR #742 does the
-    // opposite. The captions say what the verifier decided either way.
+    // A set that repeats no name is captioned by what the verifier decides. Since PR #742 the verifier accepts only a perfect
+    // matching: it refuses a set that leaves elements of Y or Z unused (#710) and accepts names that are in more than one of
+    // X, Y and Z (the old verifier did the opposite).
     [Theory]
     [InlineData("{a}{b,c}{d,e}{a,b,d}")]
     [InlineData("{1,2}{1,2}{1,2}{1,1,1}{2,2,2}")]
     public void ASetThatRepeatsNoName_IsCaptionedByWhatTheVerifierDecides(string instance) {
         var steps = Steps(instance);
         var first = steps[0];
-        if (first.Event == StepEvent.Accept) {
-            Assert.EndsWith(": no element is used twice, so the verifier accepts it.", first.Caption);
-            Assert.Equal("The verifier accepts T1 (a, b, d), found on the first try, though c and e are never used.", steps[^1].Caption);
-        } else if (instance.StartsWith("{a}")) {
+        if (instance.StartsWith("{a}")) {
+            Assert.Equal(StepEvent.Reject, first.Event);
             Assert.Equal("Try T1: no element is used twice, but c and e are never used, so the verifier rejects it.", first.Caption);
         } else {
-            Assert.Equal("Try T1 and T2: no element is used twice, but the verifier rejects it.", first.Caption);
-            Assert.Equal("There is only one way to pick the triples, and the verifier rejects it, so there is no perfect matching.", steps[^1].Caption);
+            Assert.Equal(StepEvent.Accept, first.Event);
+            Assert.Equal("Try T1 and T2: every element of X, Y and Z is used exactly once, so the verifier accepts it.", first.Caption);
+            Assert.Equal("T1 (1, 1, 1) and T2 (2, 2, 2) use every element of X, Y and Z exactly once. Found on the first try.", steps[^1].Caption);
         }
         Assert.Empty(first.Focus);
     }

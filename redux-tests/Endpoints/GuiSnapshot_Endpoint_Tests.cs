@@ -18,6 +18,8 @@ namespace redux_tests;
 // - Problems, solvers, verifiers and reductions added since (Minimum TSP, the backtracking solvers, NFA Subset Simulation,
 //   Sipser's Clique to 3SAT once its default instance builds) are not visualizations and are not hidden; the test only checks
 //   that they bring no visualization Redux_GUI could see.
+// - "Hitting Set Visualization" is "Exact Hitting Set Visualization" in the snapshot: open PR #742 (fix/661) renames Hitting
+//   Set to Exact Hitting Set (#698) and ships that name to Redux_GUI itself.
 // - Fields only added (pictureType, #841) and text (definitions) are not compared.
 public class GuiSnapshot_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;

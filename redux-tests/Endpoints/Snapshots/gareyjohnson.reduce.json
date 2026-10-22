@@ -17,7 +17,7 @@
     ],
     "solver": {
       "solverName": "3-Dimensional Matching Brute Force",
-      "solverDefinition": "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.",
+      "solverDefinition": "This is a brute force solver for 3-Dimensional Matching. It enumerates every combination of |X| triples from M and returns the first one that is a perfect matching.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_DM3/Solvers/ThreeDimensionalMatchingBruteForce.cs",
       "contributors": [
@@ -818,7 +818,7 @@
     "defaultInstance": "{Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}",
     "instance": "{x_x1_0,x_x1_1,x_x1_2,x_x1_3,x_x2_0,x_x2_1,x_x3_0,x_x3_1,x_x3_2,x_clause_0,x_clause_1,x_clause_2,x_garb_0,x_garb_1,x_garb_2,x_garb_3,x_garb_4,x_garb_5}{y_x1_0,y_x1_1,y_x1_2,y_x1_3,y_x2_0,y_x2_1,y_x3_0,y_x3_1,y_x3_2,y_clause0,y_clause1,y_clause2,y_garb_0,y_garb_1,y_garb_2,y_garb_3,y_garb_4,y_garb_5}{z_x1_0,z_!x1_0,z_x1_1,z_!x1_1,z_x1_2,z_!x1_2,z_x1_3,z_!x1_3,z_x2_0,z_!x2_0,z_x2_1,z_!x2_1,z_x3_0,z_!x3_0,z_x3_1,z_!x3_1,z_x3_2,z_!x3_2}{x_x1_0,y_x1_0,z_x1_0}{x_x1_0,y_x1_1,z_!x1_0}{x_x1_1,y_x1_1,z_x1_1}{x_x1_1,y_x1_2,z_!x1_1}{x_x1_2,y_x1_2,z_x1_2}{x_x1_2,y_x1_3,z_!x1_2}{x_x1_3,y_x1_3,z_x1_3}{x_x1_3,y_x1_0,z_!x1_3}{x_x2_0,y_x2_0,z_x2_0}{x_x2_0,y_x2_1,z_!x2_0}{x_x2_1,y_x2_1,z_x2_1}{x_x2_1,y_x2_0,z_!x2_1}{x_x3_0,y_x3_0,z_x3_0}{x_x3_0,y_x3_1,z_!x3_0}{x_x3_1,y_x3_1,z_x3_1}{x_x3_1,y_x3_2,z_!x3_1}{x_x3_2,y_x3_2,z_x3_2}{x_x3_2,y_x3_0,z_!x3_2}{x_clause_0,y_clause0,z_x1_0}{x_clause_0,y_clause0,z_!x2_0}{x_clause_0,y_clause0,z_x3_0}{x_clause_1,y_clause1,z_!x1_0}{x_clause_1,y_clause1,z_x3_1}{x_clause_1,y_clause1,z_x1_1}{x_clause_2,y_clause2,z_x2_0}{x_clause_2,y_clause2,z_!x3_0}{x_clause_2,y_clause2,z_!x1_1}{x_garb_0,y_garb_0,z_x1_0}{x_garb_0,y_garb_0,z_!x1_0}{x_garb_0,y_garb_0,z_x1_1}{x_garb_0,y_garb_0,z_!x1_1}{x_garb_0,y_garb_0,z_x1_2}{x_garb_0,y_garb_0,z_!x1_2}{x_garb_0,y_garb_0,z_x1_3}{x_garb_0,y_garb_0,z_!x1_3}{x_garb_0,y_garb_0,z_x2_0}{x_garb_0,y_garb_0,z_!x2_0}{x_garb_0,y_garb_0,z_x2_1}{x_garb_0,y_garb_0,z_!x2_1}{x_garb_0,y_garb_0,z_x3_0}{x_garb_0,y_garb_0,z_!x3_0}{x_garb_0,y_garb_0,z_x3_1}{x_garb_0,y_garb_0,z_!x3_1}{x_garb_0,y_garb_0,z_x3_2}{x_garb_0,y_garb_0,z_!x3_2}{x_garb_1,y_garb_1,z_x1_0}{x_garb_1,y_garb_1,z_!x1_0}{x_garb_1,y_garb_1,z_x1_1}{x_garb_1,y_garb_1,z_!x1_1}{x_garb_1,y_garb_1,z_x1_2}{x_garb_1,y_garb_1,z_!x1_2}{x_garb_1,y_garb_1,z_x1_3}{x_garb_1,y_garb_1,z_!x1_3}{x_garb_1,y_garb_1,z_x2_0}{x_garb_1,y_garb_1,z_!x2_0}{x_garb_1,y_garb_1,z_x2_1}{x_garb_1,y_garb_1,z_!x2_1}{x_garb_1,y_garb_1,z_x3_0}{x_garb_1,y_garb_1,z_!x3_0}{x_garb_1,y_garb_1,z_x3_1}{x_garb_1,y_garb_1,z_!x3_1}{x_garb_1,y_garb_1,z_x3_2}{x_garb_1,y_garb_1,z_!x3_2}{x_garb_2,y_garb_2,z_x1_0}{x_garb_2,y_garb_2,z_!x1_0}{x_garb_2,y_garb_2,z_x1_1}{x_garb_2,y_garb_2,z_!x1_1}{x_garb_2,y_garb_2,z_x1_2}{x_garb_2,y_garb_2,z_!x1_2}{x_garb_2,y_garb_2,z_x1_3}{x_garb_2,y_garb_2,z_!x1_3}{x_garb_2,y_garb_2,z_x2_0}{x_garb_2,y_garb_2,z_!x2_0}{x_garb_2,y_garb_2,z_x2_1}{x_garb_2,y_garb_2,z_!x2_1}{x_garb_2,y_garb_2,z_x3_0}{x_garb_2,y_garb_2,z_!x3_0}{x_garb_2,y_garb_2,z_x3_1}{x_garb_2,y_garb_2,z_!x3_1}{x_garb_2,y_garb_2,z_x3_2}{x_garb_2,y_garb_2,z_!x3_2}{x_garb_3,y_garb_3,z_x1_0}{x_garb_3,y_garb_3,z_!x1_0}{x_garb_3,y_garb_3,z_x1_1}{x_garb_3,y_garb_3,z_!x1_1}{x_garb_3,y_garb_3,z_x1_2}{x_garb_3,y_garb_3,z_!x1_2}{x_garb_3,y_garb_3,z_x1_3}{x_garb_3,y_garb_3,z_!x1_3}{x_garb_3,y_garb_3,z_x2_0}{x_garb_3,y_garb_3,z_!x2_0}{x_garb_3,y_garb_3,z_x2_1}{x_garb_3,y_garb_3,z_!x2_1}{x_garb_3,y_garb_3,z_x3_0}{x_garb_3,y_garb_3,z_!x3_0}{x_garb_3,y_garb_3,z_x3_1}{x_garb_3,y_garb_3,z_!x3_1}{x_garb_3,y_garb_3,z_x3_2}{x_garb_3,y_garb_3,z_!x3_2}{x_garb_4,y_garb_4,z_x1_0}{x_garb_4,y_garb_4,z_!x1_0}{x_garb_4,y_garb_4,z_x1_1}{x_garb_4,y_garb_4,z_!x1_1}{x_garb_4,y_garb_4,z_x1_2}{x_garb_4,y_garb_4,z_!x1_2}{x_garb_4,y_garb_4,z_x1_3}{x_garb_4,y_garb_4,z_!x1_3}{x_garb_4,y_garb_4,z_x2_0}{x_garb_4,y_garb_4,z_!x2_0}{x_garb_4,y_garb_4,z_x2_1}{x_garb_4,y_garb_4,z_!x2_1}{x_garb_4,y_garb_4,z_x3_0}{x_garb_4,y_garb_4,z_!x3_0}{x_garb_4,y_garb_4,z_x3_1}{x_garb_4,y_garb_4,z_!x3_1}{x_garb_4,y_garb_4,z_x3_2}{x_garb_4,y_garb_4,z_!x3_2}{x_garb_5,y_garb_5,z_x1_0}{x_garb_5,y_garb_5,z_!x1_0}{x_garb_5,y_garb_5,z_x1_1}{x_garb_5,y_garb_5,z_!x1_1}{x_garb_5,y_garb_5,z_x1_2}{x_garb_5,y_garb_5,z_!x1_2}{x_garb_5,y_garb_5,z_x1_3}{x_garb_5,y_garb_5,z_!x1_3}{x_garb_5,y_garb_5,z_x2_0}{x_garb_5,y_garb_5,z_!x2_0}{x_garb_5,y_garb_5,z_x2_1}{x_garb_5,y_garb_5,z_!x2_1}{x_garb_5,y_garb_5,z_x3_0}{x_garb_5,y_garb_5,z_!x3_0}{x_garb_5,y_garb_5,z_x3_1}{x_garb_5,y_garb_5,z_!x3_1}{x_garb_5,y_garb_5,z_x3_2}{x_garb_5,y_garb_5,z_!x3_2}",
     "instanceFormat": "Format: {x1,...}{y1,...}{z1,...}{x,y,z},... | X,Y,Z are the three sets, followed by one 3-tuple per constraint in M Example: {Paul,Sally,Dave}{Madison,Austin,Bob}{Chloe,Frank,Jake}{Paul,Madison,Chloe}{Paul,Austin,Jake}{Sally,Bob,Chloe}{Sally,Madison,Frank}{Dave,Austin,Chloe}{Dave,Bob,Chloe}",
-    "certificateFormat": "Format: One or more 3-tuples {x,y,z} | each names one element of X, one of Y, one of Z, no value repeated across tuples Example: {Paul,Austin,Jake}",
+    "certificateFormat": "Format: {x,y,z}{x,y,z}... | tuples from M that together contain every element of X, Y and Z exactly once Example: {Paul,Austin,Jake}{Sally,Madison,Frank}{Dave,Bob,Chloe}",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
     "contributors": [
@@ -826,7 +826,7 @@
     ],
     "defaultSolver": {
       "solverName": "3-Dimensional Matching Brute Force",
-      "solverDefinition": "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.",
+      "solverDefinition": "This is a brute force solver for 3-Dimensional Matching. It enumerates every combination of |X| triples from M and returns the first one that is a perfect matching.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_DM3/Solvers/ThreeDimensionalMatchingBruteForce.cs",
       "contributors": [
@@ -847,7 +847,7 @@
     },
     "defaultVerifier": {
       "verifierName": "Default 3-Dimensional Matching Verifier",
-      "verifierDefinition": "This verifier checks that a given certificate is the correct size, and contains all elements of X, Y and Z",
+      "verifierDefinition": "This verifier checks that a certificate is a perfect matching: every triple is one of the constraints in M, no element of X, Y or Z is used twice, and every element of X, Y and Z is covered.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_DM3/Verifiers/GenericVerifierDM3.cs",
       "certificate": "",
@@ -866,7 +866,7 @@
       ],
       "solver": {
         "solverName": "3-Dimensional Matching Brute Force",
-        "solverDefinition": "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.",
+        "solverDefinition": "This is a brute force solver for 3-Dimensional Matching. It enumerates every combination of |X| triples from M and returns the first one that is a perfect matching.",
         "source": "",
         "sourceFile": "Problems/NPComplete/NPC_DM3/Solvers/ThreeDimensionalMatchingBruteForce.cs",
         "contributors": [

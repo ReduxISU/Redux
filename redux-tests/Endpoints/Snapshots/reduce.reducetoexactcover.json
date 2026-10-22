@@ -1,6 +1,6 @@
 {
   "reductionName": "Exact Cover Reduction",
-  "reductionDefinition": "Karp\u0027s Reduction from Hitting Set to Exact Cover",
+  "reductionDefinition": "Reduction from Exact Hitting Set to Exact Cover by transposing which elements belong to which subsets. Karp (1972, p. 99) gives the same transpose in the other direction, from Exact Cover to Hitting Set.",
   "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
   "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/ReduceTo/NPC_EXACTCOVER/reduceToEXACTCOVER.cs",
   "contributors": [
@@ -160,11 +160,11 @@
     }
   ],
   "reductionFrom": {
-    "problemName": "Hitting Set",
-    "formalDefinition": "Hitting set family of subsets {U_i} of a set {S_j} where there is a set W such that, for each i, |W union U_i| = 1.",
-    "problemDefinition": "Hitting set is the problem of finding a set where it shares exactly one element with each subset U_i. ",
+    "problemName": "Exact Hitting Set",
+    "formalDefinition": "Exact Hitting Set = {\u003CU, S\u003E | U is a set, S is a family of subsets {S_i} of U, and there is a set W subset of U such that, for each i, |W intersect S_i| = 1}.",
+    "problemDefinition": "Exact Hitting Set is the problem of finding a set W of elements of U that shares exactly one element with each subset S_i. This is the Hitting Set of Karp (1972, problem 15). It is stricter than the Hitting Set of most later texts, such as Garey and Johnson (SP8), which only requires W to share at least one element with each subset and to have at most k elements.",
     "inputDescription": "U, a universal set, and S, a collection of subsets of U",
-    "outputDescription": "True or False, whether a hitting set exists that shares exactly one element with each subset in S",
+    "outputDescription": "True or False, whether a set W exists that shares exactly one element with each subset in S",
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/HITTINGSET_Class.cs",
     "wikiName": "",
@@ -179,8 +179,8 @@
       "Michael Trosper"
     ],
     "defaultSolver": {
-      "solverName": "Hitting Set Brute Force",
-      "solverDefinition": "This is a brute force solver for Hitting Set",
+      "solverName": "Exact Hitting Set Brute Force",
+      "solverDefinition": "This is a brute force solver for Exact Hitting Set. It tests every subset of U and returns the first one that intersects every subset in S in exactly one element.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Solvers/HittingSetBruteForce.cs",
       "contributors": [
@@ -200,8 +200,8 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Hitting Set Verifier",
-      "verifierDefinition": "This is a verifier for Hitting Set",
+      "verifierName": "Default Exact Hitting Set Verifier",
+      "verifierDefinition": "This is a verifier for Exact Hitting Set. It checks that W is a subset of U and that W intersects every subset in S in exactly one element.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Verifiers/HittingSetVerifier.cs",
       "certificate": "",
@@ -210,8 +210,8 @@
       ]
     },
     "defaultVisualization": {
-      "visualizationName": "Hitting Set Visualization",
-      "visualizationDefinition": "This is a default visualization for Hitting Set",
+      "visualizationName": "Exact Hitting Set Visualization",
+      "visualizationDefinition": "This is a default visualization for Exact Hitting Set",
       "visualizationType": "SetD3",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Visualizations/HittingSetDefaultVisualization.cs",
@@ -219,8 +219,8 @@
         "Andrija Sevaljevic"
       ],
       "solver": {
-        "solverName": "Hitting Set Brute Force",
-        "solverDefinition": "This is a brute force solver for Hitting Set",
+        "solverName": "Exact Hitting Set Brute Force",
+        "solverDefinition": "This is a brute force solver for Exact Hitting Set. It tests every subset of U and returns the first one that intersects every subset in S in exactly one element.",
         "source": "",
         "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Solvers/HittingSetBruteForce.cs",
         "contributors": [

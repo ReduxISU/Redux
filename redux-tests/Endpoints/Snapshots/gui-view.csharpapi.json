@@ -273,7 +273,7 @@
   },
   "HITTINGSET": {
    "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Visualizations/HittingSetDefaultVisualization.cs",
-   "visualizationName": "Hitting Set Visualization",
+   "visualizationName": "Exact Hitting Set Visualization",
    "visualizationType": "SetD3"
   },
   "INDEPENDENTSET": {
@@ -610,7 +610,7 @@
   },
   "reduceToEXACTCOVER": {
    "reductionFrom": {
-    "visualizationName": "Hitting Set Visualization",
+    "visualizationName": "Exact Hitting Set Visualization",
     "visualizationType": "SetD3"
    },
    "reductionTo": {
@@ -722,7 +722,7 @@
    "visualizationType": "GraphD3"
   },
   "HittingSetDefaultVisualization": {
-   "visualizationName": "Hitting Set Visualization",
+   "visualizationName": "Exact Hitting Set Visualization",
    "visualizationType": "SetD3"
   },
   "IndependentSetDefaultVisualization": {
@@ -866,9 +866,9 @@
    "Clique Visualization",
    "Directed Hamiltonian Cycle Visualization",
    "Exact Cover Visualization",
+   "Exact Hitting Set Visualization",
    "Graph Coloring Visualization",
    "Hamiltonian Cycle Visualization",
-   "Hitting Set Visualization",
    "Node Set Visualization",
    "Partition Visualization",
    "SAT Visualization",

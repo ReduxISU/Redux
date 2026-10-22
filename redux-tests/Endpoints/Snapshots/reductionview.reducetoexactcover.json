@@ -5,7 +5,7 @@
   "reductionName": "Exact Cover Reduction",
   "solver": "Knuth\u0027s Algorithm X",
   "source": {
-    "problem": "Hitting Set",
+    "problem": "Exact Hitting Set",
     "instance": "({1,2,3,4},{{1,3},{2,3,4},{1,4}})",
     "picture": {
       "type": "BipartiteGraph",
@@ -972,7 +972,7 @@
     {
       "phase": "map",
       "event": "Done",
-      "caption": "{2,1} is a valid Hitting Set answer.",
+      "caption": "{2,1} is a valid Exact Hitting Set answer.",
       "step": 2,
       "ok": true,
       "sourceFocus": [],
