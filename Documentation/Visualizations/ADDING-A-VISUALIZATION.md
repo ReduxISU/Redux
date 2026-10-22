@@ -225,7 +225,7 @@ There is nothing to write per solver. `redux-tests/Steps/SolverReplay_Tests.cs` 
 
 ### 5.7 Randomized solvers: the seed, and which tries to show
 
-A randomized solver (WalkSAT now; Schöning and PPZ next, #932) records steps like any other, from inside the run that gives the answer. Two things are different: the run must be repeatable, and it can be far too long to show whole. `Problems/NPComplete/NPC_SAT3/Solvers/WalkSAT.cs` is the worked example.
+A randomized solver (WalkSAT, Schöning and PPZ, #932) records steps like any other, from inside the run that gives the answer. Two things are different: the run must be repeatable, and it can be far too long to show whole. The three 3SAT solvers in `Problems/NPComplete/NPC_SAT3/Solvers/` are the worked examples, and the try recording they share is `SatTries.cs` in the same folder.
 
 **Take every random choice from a seed.**
 
@@ -233,7 +233,7 @@ A randomized solver (WalkSAT now; Schöning and PPZ next, #932) records steps li
 - In `Solve`, make one generator per solve: `Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);`. Draw every random choice from it, never from `new Random()` or `Random.Shared`.
 - Go over the instance in a fixed order: a list in the order of first appearance, never a `HashSet<string>`. String hash codes change from process to process, so a hash set would give a different run for the same seed after a restart.
 - Recording must not draw from the generator. Then a run with steps and one without give the same answer.
-- Don't mark it `IIncrementalSolver`. Each step's partial is the whole assignment it is trying, so the picture highlights it as a candidate (§5.3).
+- Mark it `IIncrementalSolver` only if a try builds its answer piece by piece (§5.3). WalkSAT and Schöning are not incremental: each step's partial is the whole assignment they are trying, so the picture highlights it as a candidate. PPZ is: a try sets one variable per step, and the partial holds only the variables set so far.
 
 You don't handle the seed anywhere else. `ISolver<T, TPartial>.Run` uses the seed it was given, or picks one, and reports it in `SolveRun.Seed`. It then puts the solver's own seed back, so picking a seed for one run never fixes the next one. `RandomizedSolvers.Apply(solver, seed)` gives a solver the seed a caller asked for, and does nothing for a solver that isn't randomized.
 
@@ -248,11 +248,13 @@ You don't handle the seed anywhere else. `ISolver<T, TPartial>.Run` uses the see
 
 `"seed"` is only written for a randomized solver, so every other response looks exactly as it did. Redux_GUI reads none of the three responses that carry it, and sends no seed, so nothing changes for it. The same seed on the same instance gives the same steps, the same answer and the same bytes. Without `seed`, the response says which seed was picked, so a frontend can offer "run again with this seed".
 
-**Show the first try and the successful one.** A run can be 100 tries of 300n flips. Recording every flip would use up the 150-step cap inside the first try and hide the try that found the answer. So WalkSAT holds its steps back while it searches, which costs nothing when recording is off:
+**Show the first try and the successful one.** A run can be 100 tries of 300n flips. Recording every flip would use up the 150-step cap inside the first try and hide the try that found the answer. So the solver holds its steps back while it searches, which costs nothing when recording is off. `SatTries<TMove>` does the holding back and the recording; a solver reports its tries to it and says how a move reads:
 
-1. While the search runs, keep a small record of each try: its start and, for each flip, the clause, the variable and why that variable was picked. Keep the record only when `rec.Enabled`. Call `rec.CheckTime()` once per flip, so the time limit still stops a long run even though no step has been recorded yet.
-2. Once the search ends, record: the first try in full; the tries in between as one Reject ("Tries 2–37: no satisfying assignment (each ends after 900 flips)."); and the successful try in full. If every try failed, record the first try and one step for the rest.
-3. Fit the cap yourself. `rec.Cap` tells you how many steps it keeps (20 in the Reduction View's solve phase, 150 elsewhere). The successful try gets at least half the room. A try longer than its share keeps its start, its first and last flips, and one step for the flips in the middle ("Flips 9–592 of try 1 are not shown one by one. After them, C3 has no true literal."). Then the recorder never has to cut anything, and the Done caption needs no "(n not shown)".
+1. While the search runs, report each try: `tries.Begin(start)` with its starting values, `tries.Add(move)` for each move (WalkSAT's: the clause, the variable and why that variable was picked), and `tries.End(values, solved)`. `SatTries` keeps only the first try, the current one and the last failed one, and keeps nothing at all when recording is off. Call `rec.CheckTime()` once per move (or per try, if a try is short), so the time limit still stops a long run even though no step has been recorded yet.
+2. Once the search ends, call `tries.Record(rec)`. It records the first try in full; the tries in between as one Reject ("Tries 2–37: no satisfying assignment (each ends after 900 flips)."); and the successful try in full. If every try failed, it records the first try and one step for the rest.
+3. It fits the cap itself. `rec.Cap` tells it how many steps the recorder keeps (20 in the Reduction View's solve phase, 150 elsewhere). The successful try gets at least half the room. A try longer than its share keeps its start, its first and last moves, and one step for the moves in the middle ("Flips 9–592 of try 1 are not shown one by one. After them, C3 has no true literal."). Then the recorder never has to cut anything, and the Done caption needs no "(n not shown)".
+
+A solver subclasses `SatTries<TMove>` with its move type (a private nested `Tries` class in each of the three solvers). It must give `SolverLabel` (for the give-up caption), `MoveNoun` ("flip"), `EachTry` (the summary's "ends after 900 flips"), `Apply` (play a move on the values), `MoveCaption` and `MoveFocus`. The rest has defaults that read like a local search (the table below); a solver that judges its assignment only once its moves are done sets `ChecksAtEnd` and overrides `StartCaption` and `Close`, as PPZ does. `SatFormula` reads the formula the way all three need it: variables in order of first appearance, clauses as index pairs, and the certificate.
 
 The steps of one try:
 
@@ -266,12 +268,19 @@ The run ends with a Done. When it found an answer, the Done says where: "Every c
 
 **Pictures.** A randomized solver draws on the pictures of whole assignments: the Grouped Graph, the Formula and the factor graph. The Search Tree is not one of them, because tries are not a tree of choices. `ISearchTreeVisualization` refuses every `IRandomizedSolver` through `IFramesVisualization.DrawsSolver`, so `visualize` and `reductionView` answer 400 `solver_mismatch`, and `visualizeRun` lists the tree as `solver_mismatch`. A new picture that can't draw some solvers of its own problem overrides `DrawsSolver` the same way.
 
-**Schöning and PPZ.** These follow the same recipe; only the steps differ:
+**Schöning and PPZ.** These follow the same recipe through `SatTries`; only the moves differ:
 
-- **Schöning:** a try is a random start and up to 3n walk steps. Each step picks an unsatisfied clause and flips one of its literals at random. Use the same three rows as WalkSAT, and say "a random literal" in the flip caption. It makes many short tries, so the summary step matters more than it does for WalkSAT.
-- **PPZ:** a try takes the variables in a random order. A variable that a clause forces takes the forced value; any other variable takes a random value. Then the try checks the assignment. One step per variable it sets (focus: the variable, and the forcing clause if there is one), then an Accept or a Reject for the check. Variables not set yet stay out of the partial, so the picture leaves them Background.
-- Both take the generator from the seed, record the first and the successful try, summarize the rest, fit `rec.Cap`, and end with the same "Gave up after N tries: no answer found." Copy WalkSAT's `TryTrace` and `Record`. If a third solver needs them too, move them into a shared helper rather than copying them again.
-- Tests to copy from `redux-tests/Steps/WalkSat_Tests.cs`: the same seed gives the same steps, with or without recording; the steps match the answer; the give-up wording; the run fits a cap of 150, 20 and 7; a run that restarts keeps try 1 and the successful try. To reach a run that restarts, the test uses an internal constructor with fewer flips and then searches seeds. From `redux-tests/Endpoints/WalkSatSeed_Endpoint_Tests.cs`: the seed goes in and comes out on all three endpoints, and the Search Tree refuses the solver. Once a solver records steps, take it out of the "solver without steps" endpoint tests: WalkSAT came out of the Formula, Grouped Graph and factor graph ones.
+- **Schöning:** a try is a random start and up to 3n walk steps. Each step picks a clause with no true literal and flips the variable of one of its literals, chosen at random. It uses WalkSAT's three rows; the flip caption says "Pick one of its literals at random and flip its variable". It makes few, short tries ((4/3)^n of them, at most 1,000), so the summary step matters more than it does for WalkSAT. The assignment after the last flip of a try is checked too.
+- **PPZ:** a try takes the variables in a random order and sets them one per step. A variable that a clause forces (every other literal of the clause is set and false) takes the forced value, and the caption names that clause; any other variable takes a random value. Then the try checks the assignment. Its rows:
+
+| Step | Event | Partial | Focus |
+| --- | --- | --- | --- |
+| The try's order ("Try 1: take the variables in a random order: x3, x1, x2.", or "Restart. Try 5: …") | `Try` | Nothing set | none |
+| One variable ("Step 2: set x1. Every other literal of C3 (x1 \| !x2 \| x3) is false, so C3 forces x1 = True.", or "… No clause forces it, so it takes a random value: x1 = True.") | `Try` | The variables set so far; the rest are left out, so the picture draws them Background | The forcing clause, if there is one, and the variable |
+| The check ("Try 1 has set every variable, but C2 has no true literal.") | `Accept` if every clause has a true literal, else `Reject` | The whole assignment | A Reject: the clauses with no true literal |
+
+- All three end with the same Done: "found by try 3" (PPZ) or "found by try 3 after 4 flips", or "Gave up after N tries: no answer found. PPZ can miss an answer, so the formula may still have one."
+- Tests: `redux-tests/Steps/WalkSat_Tests.cs`, `Schoning_Tests.cs` and `Ppz_Tests.cs` check that the same seed gives the same steps, with or without recording; that the steps match the answer; the give-up wording; that the run fits a cap of 150, 20 and 7; and that a run that restarts keeps try 1 and the successful try. To reach a run that restarts, the tests use an internal constructor with fewer flips or tries and then search seeds. `redux-tests/Endpoints/WalkSatSeed_Endpoint_Tests.cs` and `SchoningPpzSeed_Endpoint_Tests.cs` check that the seed goes in and comes out on all three endpoints, and that the Search Tree refuses the solver. Once a solver records steps, take it out of any "solver without steps" endpoint test; no 3SAT solver without steps is left.
 
 ## 6. Reductions
 
