@@ -223,6 +223,56 @@ The caption is the only text that explains a step. Write it for a student watchi
 
 There is nothing to write per solver. `redux-tests/Steps/SolverReplay_Tests.cs` finds every typed solver by reflection, runs it on its problem's default instance, and checks that the last step is Done and that its partial matches the answer `solve` returns. If your answer string needs translating into the partial, add a case to `ExpectedFinalPartial` there. Add solver-specific checks to the matching `redux-tests/Steps/<Shape>Solvers_Tests.cs`.
 
+### 5.7 Randomized solvers: the seed, and which tries to show
+
+A randomized solver (WalkSAT now; Schöning and PPZ next, #932) records steps like any other, from inside the run that gives the answer. Two things are different: the run must be repeatable, and it can be far too long to show whole. `Problems/NPComplete/NPC_SAT3/Solvers/WalkSAT.cs` is the worked example.
+
+**Take every random choice from a seed.**
+
+- Implement the marker `IRandomizedSolver` next to `ISolver<TProblem, TPartial>`. Its one member is the seed. Implement it explicitly, `int? IRandomizedSolver.Seed { get; set; }`, so `/info` doesn't show it (the `/info` snapshots check this).
+- In `Solve`, make one generator per solve: `Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);`. Draw every random choice from it, never from `new Random()` or `Random.Shared`.
+- Go over the instance in a fixed order: a list in the order of first appearance, never a `HashSet<string>`. String hash codes change from process to process, so a hash set would give a different run for the same seed after a restart.
+- Recording must not draw from the generator. Then a run with steps and one without give the same answer.
+- Don't mark it `IIncrementalSolver`. Each step's partial is the whole assignment it is trying, so the picture highlights it as a candidate (§5.3).
+
+You don't handle the seed anywhere else. `ISolver<T, TPartial>.Run` uses the seed it was given, or picks one, and reports it in `SolveRun.Seed`. It then puts the solver's own seed back, so picking a seed for one run never fixes the next one. `RandomizedSolvers.Apply(solver, seed)` gives a solver the seed a caller asked for, and does nothing for a solver that isn't randomized.
+
+**Where the seed goes in and comes out.** Every endpoint that draws a run takes an optional `seed` query parameter (an int):
+
+| Endpoint | The seed used comes back as |
+| --- | --- |
+| `visualize?format=frames` (a picture type that builds its own frames) | `"seed"` at the top of the frames response |
+| `visualizeRun` | `"seed"` next to `"solver"` and `"answer"` |
+| `reductionView` (the solve phase) | `"seed"`, right after `"solver"` |
+| `visualize` in the list format, and the plain `solve` | not reported: the list is a bare array and `solve` a bare string, and Redux_GUI reads both |
+
+`"seed"` is only written for a randomized solver, so every other response looks exactly as it did. Redux_GUI reads none of the three responses that carry it, and sends no seed, so nothing changes for it. The same seed on the same instance gives the same steps, the same answer and the same bytes. Without `seed`, the response says which seed was picked, so a frontend can offer "run again with this seed".
+
+**Show the first try and the successful one.** A run can be 100 tries of 300n flips. Recording every flip would use up the 150-step cap inside the first try and hide the try that found the answer. So WalkSAT holds its steps back while it searches, which costs nothing when recording is off:
+
+1. While the search runs, keep a small record of each try: its start and, for each flip, the clause, the variable and why that variable was picked. Keep the record only when `rec.Enabled`. Call `rec.CheckTime()` once per flip, so the time limit still stops a long run even though no step has been recorded yet.
+2. Once the search ends, record: the first try in full; the tries in between as one Reject ("Tries 2–37: no satisfying assignment (each ends after 900 flips)."); and the successful try in full. If every try failed, record the first try and one step for the rest.
+3. Fit the cap yourself. `rec.Cap` tells you how many steps it keeps (20 in the Reduction View's solve phase, 150 elsewhere). The successful try gets at least half the room. A try longer than its share keeps its start, its first and last flips, and one step for the flips in the middle ("Flips 9–592 of try 1 are not shown one by one. After them, C3 has no true literal."). Then the recorder never has to cut anything, and the Done caption needs no "(n not shown)".
+
+The steps of one try:
+
+| Step | Event | Partial | Focus |
+| --- | --- | --- | --- |
+| The try's random start ("Try 1: start from a random assignment, …", or "Restart. Try 5: …") | `Try`; `Accept` if the start already satisfies every clause | The start assignment | none |
+| One flip ("Flip 3: C2 (x1 \| !x2 \| x3) has no true literal. Flip x2 to False: a free flip, no clause turns false. Now C4 has no true literal.") | `Try`; `Accept` for the flip that satisfies every clause | The whole assignment after the flip | The clause (`c1`) and the variable (`v:x2`) |
+| A failed try ends ("Try 1 ends after 900 flips: C2 has no true literal.") | `Reject` | Where it ended | none |
+
+The run ends with a Done. When it found an answer, the Done says where: "Every clause has a true literal under x1 = True, …: found by try 3 after 4 flips." When every try failed: **"Gave up after 100 tries: no answer found."** Its `ok` is false and its partial is empty. A heuristic that gives up has proved nothing, so its captions never say the formula is unsatisfiable or has no solution. Only an exact solver can say that (#877).
+
+**Pictures.** A randomized solver draws on the pictures of whole assignments: the Grouped Graph, the Formula and the factor graph. The Search Tree is not one of them, because tries are not a tree of choices. `ISearchTreeVisualization` refuses every `IRandomizedSolver` through `IFramesVisualization.DrawsSolver`, so `visualize` and `reductionView` answer 400 `solver_mismatch`, and `visualizeRun` lists the tree as `solver_mismatch`. A new picture that can't draw some solvers of its own problem overrides `DrawsSolver` the same way.
+
+**Schöning and PPZ.** These follow the same recipe; only the steps differ:
+
+- **Schöning:** a try is a random start and up to 3n walk steps. Each step picks an unsatisfied clause and flips one of its literals at random. Use the same three rows as WalkSAT, and say "a random literal" in the flip caption. It makes many short tries, so the summary step matters more than it does for WalkSAT.
+- **PPZ:** a try takes the variables in a random order. A variable that a clause forces takes the forced value; any other variable takes a random value. Then the try checks the assignment. One step per variable it sets (focus: the variable, and the forcing clause if there is one), then an Accept or a Reject for the check. Variables not set yet stay out of the partial, so the picture leaves them Background.
+- Both take the generator from the seed, record the first and the successful try, summarize the rest, fit `rec.Cap`, and end with the same "Gave up after N tries: no answer found." Copy WalkSAT's `TryTrace` and `Record`. If a third solver needs them too, move them into a shared helper rather than copying them again.
+- Tests to copy from `redux-tests/Steps/WalkSat_Tests.cs`: the same seed gives the same steps, with or without recording; the steps match the answer; the give-up wording; the run fits a cap of 150, 20 and 7; a run that restarts keeps try 1 and the successful try. To reach a run that restarts, the test uses an internal constructor with fewer flips and then searches seeds. From `redux-tests/Endpoints/WalkSatSeed_Endpoint_Tests.cs`: the seed goes in and comes out on all three endpoints, and the Search Tree refuses the solver. Once a solver records steps, take it out of the "solver without steps" endpoint tests: WalkSAT came out of the Formula, Grouped Graph and factor graph ones.
+
 ## 6. Reductions
 
 A reduction already builds the target instance. To appear in the Reduction View, it needs three more things.
@@ -626,6 +676,7 @@ What it takes beyond the class, as the code stands:
 - [ ] The visualization only implements `StepShape` and `Describe` (and `ParseAnswer` if needed), explicitly; no colors, coordinates or highlight loops.
 - [ ] Each solver with steps implements `ISolver<T, TPartial>`, records decisions inside the real algorithm, ends with `Done`, and captions every step.
 - [ ] Solvers that build answers piece by piece implement `IIncrementalSolver`, and their focus names only the piece under test.
+- [ ] A randomized solver implements `IRandomizedSolver` (explicitly), draws every choice from `RandomizedSolvers.Generator(seed)`, repeats with the same seed, fits `rec.Cap` itself, and says "gave up", never "unsatisfiable" (§5.7).
 - [ ] `SolverReplay_Tests` passes, and the picture's endpoint tests cover the problem.
 - [ ] You looked at the actual JSON from the endpoint (or in the frames viewer), not just the build.
 - [ ] A new frames builder sets `step` on every frame drawn from a step, and leaves it null on frames it adds (`FrameStep_Tests` passes).
@@ -645,6 +696,8 @@ What it takes beyond the class, as the code stands:
 **What if my solver's shape doesn't match the visualization's?** The response still has the payload and the solved frame (`step: null`), just no steps. `visualizeRun` returns that solved-only picture too, except for the Search Tree, which it lists as `shape_mismatch`.
 
 **How does a frontend switch pictures without rerunning the solver?** `POST visualizeRun?solver=…` runs it once and returns every picture of the problem built from that run. Frames line up by `step`, not by position.
+
+**My solver is random. How do I make a run repeatable?** Implement `IRandomizedSolver` and take every choice from a seeded generator (§5.7). The endpoints take `seed=` and report the seed they used, so a run can be asked for again.
 
 **What about very large instances?** Steps are capped and long solves are stopped, and both say so in the last caption. Very large drawings are a frontend concern.
 
