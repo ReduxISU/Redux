@@ -86,6 +86,16 @@ interface IFramesVisualization : IVisualization {
     /// </summary>
     bool DrawsAnswerAlone() => true;
 
+    /// <summary>
+    /// How this picture names the pieces its problem's default picture names, for one instance: given an id of the default
+    /// picture, the ids of this picture that stand for the same piece (none when it has no such piece). Reductions name their
+    /// target's (and source's) pieces by the default picture's ids, in their gadgets, construction steps and backward map; the
+    /// Reduction View passes every such id through this when the caller chose this picture instead (#929), so gadgets and
+    /// highlights land on its pieces. Null (the default) means this picture uses the default picture's ids as they are (the
+    /// CNF Formula shares the Grouped Graph's). A method, not a property, so it never appears in /info.
+    /// </summary>
+    Func<string, IReadOnlyList<string>>? IdsFromDefaultPicture(string instance) => null;
+
     /// <param name="instance">The problem instance string.</param>
     /// <param name="run">The solver's answer and steps (use <see cref="SolveRun.StepsFor"/> before reading steps).</param>
     FramesResponse BuildFrames(string instance, SolveRun run);

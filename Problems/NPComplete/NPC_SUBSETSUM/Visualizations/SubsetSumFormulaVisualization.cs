@@ -49,6 +49,20 @@ class SubsetSumFormulaVisualization : IVisualization<SUBSETSUM, API_SET>, IFormu
 
     FormulaPayload IFormulaExprVisualization<SUBSETSUM, Placement>.Describe(SUBSETSUM problem) => Payload(problem);
 
+    Func<string, IReadOnlyList<string>>? IFramesVisualization.IdsFromDefaultPicture(string instance) =>
+        PackingIds(ParseGuard.CreateProblem<SUBSETSUM>(instance));
+
+    /// <summary>
+    /// The Packing picture's ids (<see cref="SubsetSumVisualization"/>) in this picture's (#929): the item <c>I{i+1}</c> is the
+    /// number <c>s{i}</c> and its chip <c>v:x{i+1}</c>, and the container <c>C1</c> (the subset, against the line T) is the target
+    /// <c>T</c>. An id the Packing picture does not have is kept as it is.
+    /// </summary>
+    internal static Func<string, IReadOnlyList<string>> PackingIds(SUBSETSUM problem) {
+        var map = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal) { [PackingFrames.ContainerId(0)] = ["T"] };
+        for (int i = 0; i < problem.S.Count; i++) map[PackingFrames.ItemId(i)] = [Item(i), Var(i)];
+        return id => map.TryGetValue(id, out var ids) ? ids : [id];
+    }
+
     internal static FormulaPayload Payload(SUBSETSUM problem) =>
         new(FormulaFrames.KindName, FormulaLayouts.Equation, "assignment", "subsetSum",
             [new FormulaGroupDto(Group, "") {

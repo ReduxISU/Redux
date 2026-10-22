@@ -105,13 +105,16 @@ public class FormulaNestedSet_Integration_Tests : IClassFixture<AppFactory> {
         // The clause graph's own view still reveals its edges.
         Assert.NotEmpty(graphs.GetProperty("target").GetProperty("buildOrder").GetProperty("edges").EnumerateArray());
 
-        // Every frame says what the clause graphs' frame says; each pane is the clause graph's, plus the variables.
+        // Every frame says what the clause graphs' frame says; each pane is the clause graph's, plus the variables. The one
+        // difference is the edges a build step adds: the clause graph focuses them, the Formula has none to focus (#929).
         var f = Frames(view);
         var g2 = Frames(graphs);
         Assert.Equal(g2.Count, f.Count);
         for (int i = 0; i < f.Count; i++) {
-            foreach (var key in new[] { "phase", "event", "caption", "step", "sourceFocus", "targetFocus" })
+            foreach (var key in new[] { "phase", "event", "caption", "step", "sourceFocus" })
                 Assert.Equal(g2[i].GetProperty(key).GetRawText(), f[i].GetProperty(key).GetRawText());
+            Assert.Equal(g2[i].GetProperty("targetFocus").EnumerateArray().Select(e => e.GetString()!).Where(targetIds.Contains),
+                f[i].GetProperty("targetFocus").EnumerateArray().Select(e => e.GetString()!));
             foreach (var side in new[] { "source", "target" })
                 foreach (var key in new[] { "nodes", "groups", "assignment" })
                     Assert.Equal(g2[i].GetProperty(side).GetProperty(key).GetRawText(), f[i].GetProperty(side).GetProperty(key).GetRawText());
