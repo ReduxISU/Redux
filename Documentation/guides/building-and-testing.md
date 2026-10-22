@@ -17,22 +17,19 @@ Need the one-time setup (installing .NET, cloning, running the API)? Start with 
 
 ## 1. What CI checks on your PR
 
-PRs to the Redux repo target the branch `CSharpAPI`. Four automatic checks run.
+PRs to the Redux repo target the branch `CSharpAPI`. Two automatic checks run.
 
 | Check | Blocks merging? | What it does |
 | --- | --- | --- |
-| **dotnet build** ([main.yml](../../.github/workflows/main.yml)) | Yes | Restores packages, builds in Release mode, then runs the unit tests, then runs the "Performance" tests. |
-| **rbs** ([rbs.yml](../../.github/workflows/rbs.yml)) | **No, and it always shows green.** Read its report. | Runs a longer list of quality gates (see section 4). |
+| **rbs** ([rbs.yml](../../.github/workflows/rbs.yml)) | **Yes.** It is the required check. | Runs every quality gate in order (see section 4), builds the Docker image, tests it, and after a merge publishes it. Any red gate makes the check red. |
 | **CodeQL** ([codeql.yml](../../.github/workflows/codeql.yml)) | Look at its results | GitHub's security scanner for C# and the workflow files. You cannot run it on your laptop. Open the PR's "Code scanning" results to see any alerts. |
-| docker ([docker.yml](../../.github/workflows/docker.yml)) | Not applicable | Only runs after a merge. You do not need to do anything for it. |
 
-The commands inside the **dotnet build** check are exactly these:
+The build-and-test part of the rbs check is, in effect, these commands:
 
 ```bash
 dotnet restore Redux.slnx
-dotnet build Redux.slnx --no-restore --configuration Release
-dotnet test Redux.slnx --no-restore --no-build --configuration Release --filter "Category!=Performance"
-dotnet test Redux.slnx --no-restore --no-build --configuration Release --filter "Category=Performance"
+dotnet build Redux.slnx --configuration Release
+dotnet test Redux.slnx --configuration Release --collect "XPlat Code Coverage"
 ```
 
 Three things about them that surprise people:
@@ -41,7 +38,7 @@ Three things about them that surprise people:
 2. **Formatting is part of the build.** [Directory.Build.targets](../../Directory.Build.targets) runs `dotnet format Redux.slnx --verify-no-changes` as part of every Release build. Badly formatted code makes the **build** fail. The fix is to run `dotnet format Redux.slnx` first. Note that this check runs only *after* the code compiles. If your code has a compile error, you will see that error first, and the formatting errors only appear once it is fixed. So a build that fails, gets fixed, and then fails again with `WHITESPACE` errors is normal.
 3. **Warnings are errors.** [Directory.Build.props](../../Directory.Build.props) sets `TreatWarningsAsErrors`. So a compiler warning (an unused variable, say) fails the build. In practice the compiler is the linter.
 
-**Performance tests** are tests tagged `Category=Performance`. They run as their own step. If one fails, it means "too slow", not "wrong answer". Run it again once to rule out a slow moment on your computer, then look at the code you just added.
+**Performance tests** are tests tagged `Category=Performance`. They run with everything else. If one fails, it means "too slow", not "wrong answer". Run it again once to rule out a slow moment on your computer, then look at the code you just added.
 
 ## 2. The "before I push" routine
 
@@ -144,7 +141,7 @@ npm run build                  # builds the site
 
 Things worth knowing:
 
-- Unlike Redux, rbs on Redux_GUI is **not soft**. If any gate fails, the check goes red.
+- rbs on Redux_GUI works the same way as on Redux: if any gate fails, the check goes red.
 - `unit-test` and `typecheck` show as `skipped` there, because the repo has no `test` script and no `tsconfig.json`. Skipped is fine.
 - `npm run check:visualizations` is its own required check ("visualization coverage"). It fails when `components/Visualization/svgs/visualizationTypes.json` does not match the renderer keys in `components/Visualization/svgs/Visualizations.js`. If you add or rename a visualization, update both.
 - `npm run test:e2e` runs the Playwright browser tests. It needs the Redux API running (set `REDUX_BASE_URL`, and the API normally listens on port 27000).
@@ -169,7 +166,7 @@ If a failure looks unrelated to your change, say so in a PR comment and ask a ma
 
 ## 4. How to read the rbs report
 
-**This is important.** On Redux, rbs runs in "soft" mode, which means its check mark **always shows green, even when gates inside it fail**. So a green rbs check does not mean everything passed. You have to read the report. Do this on every PR.
+The rbs check is red whenever any gate inside it is red, but the check mark alone does not tell you *which* gate. The report does. Read it on every PR, red or green.
 
 Where to find it:
 
@@ -185,11 +182,13 @@ The report has one line per gate. For the Redux (dotnet) setup, configured in [r
 | `lint` | `dotnet build Redux.slnx -c Release` | Fix the compiler errors and warnings. |
 | `typecheck` | skipped | Nothing. The compiler already checked types in `lint`. |
 | `unit-test` | `dotnet test Redux.slnx -c Release --collect "XPlat Code Coverage"` | See the coverage note just below. |
-| `build`, `integration-test`, `push` | Build and test the Docker image (`push` is a dry run on Redux) | Rarely your fault. Ask a maintainer if these fail. |
+| `build` | `docker build` of the production image | Rarely your fault. Ask a maintainer if it fails. |
+| `integration-test` | Starts that image and runs [integration/](../../integration/) against it over HTTP | A route stopped answering, or the catalogue changed shape. The test names what it expected. |
+| `push` | After a merge to `CSharpAPI`, publishes the tested image to GHCR. Skipped on PRs. | Not your concern on a PR. |
 
 **About coverage.** `rbs.toml` asks for at least 80% coverage (`coverage-min = 80`). The project is currently at about 85%, so the `unit-test` line should be green. If it turns red on your PR, the coverage dropped below 80%, which usually means new code went in without tests. Add tests for the code you write, and coverage stays above the line.
 
-**CI does not check that you wrote tests.** The required build check only makes sure every test that exists passes. A new problem, solver, verifier, or reduction with no tests of its own can still pass it, because the shared tests only check the basics (metadata, names, bad input). Coverage won't catch it either: on Redux the coverage line is in the soft rbs report, and one new class barely moves the overall number. Your own tests are the only thing that checks your code gives the *right answers*. For example, a verifier that rejects every correct answer passes every shared test. Each task guide has a "Tests you write yourself" section and a checklist saying which tests to add, and reviewers will look for them.
+**CI does not check that you wrote tests.** The required build check only makes sure every test that exists passes. A new problem, solver, verifier, or reduction with no tests of its own can still pass it, because the shared tests only check the basics (metadata, names, bad input). Coverage won't catch it either: one new class barely moves the overall number. Your own tests are the only thing that checks your code gives the *right answers*. For example, a verifier that rejects every correct answer passes every shared test. Each task guide has a "Tests you write yourself" section and a checklist saying which tests to add, and reviewers will look for them.
 
 If a gate is red and you are not sure why, paste the line into a PR comment and ask. A format or lint failure is always worth fixing before you ask for review.
 

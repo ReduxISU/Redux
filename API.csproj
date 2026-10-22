@@ -37,5 +37,13 @@
     <None Remove="Tools/ContributorStatsSync/**" />
   </ItemGroup>
 
+  <!-- Integration tests against the built image live in integration/ (Redux.Integration.csproj),
+       outside the solution. Same reasoning again: keep them out of API.dll. -->
+  <ItemGroup>
+    <Compile Remove="integration/**" />
+    <Content Remove="integration/**" />
+    <None Remove="integration/**" />
+  </ItemGroup>
+
 
 </Project>
