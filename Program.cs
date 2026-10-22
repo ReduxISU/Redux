@@ -13,7 +13,8 @@ builder.Services.AddHttpClient("quantum", (sp, client) => {
     client.BaseAddress = new Uri(settings.BaseURL);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddControllers();
+// A solver whose outside service fails answers 503 solver_unavailable on every endpoint (#625).
+builder.Services.AddControllers(options => options.Filters.Add(new API.Interfaces.SolverUnavailableFilter()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {

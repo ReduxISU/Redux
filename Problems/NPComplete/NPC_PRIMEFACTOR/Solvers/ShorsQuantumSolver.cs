@@ -43,14 +43,13 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
 
     // --- Methods ---
 
+    // On any failure of the quantum service this throws SolverUnavailableException (HTTP 503 solver_unavailable), never
+    // an error text in place of the factors (#625).
     public string solve(PRIMEFACTOR problem) {
-        try {
-            // Parse the integer from the problem instance
-            int numberToFactor = int.Parse(problem.instance);
+        // Parse the integer from the problem instance
+        int numberToFactor = int.Parse(problem.instance);
 
-            // Create the API client
-            var client = new QuantumServerAPI();
-
+        return QuantumServerAPI.Ask(this, problem.problemName, client => {
             // Make the API call to the prime-factorization-quantum endpoint
             // The API expects just the raw number as the body (e.g., "15")
             string response = client.PostRawJsonAsync("/prime-factorization-quantum", numberToFactor.ToString()).Result;
@@ -59,24 +58,18 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer", out JsonElement answerElement)) {
                 // Check if answer is a string or an array
-                if (answerElement.ValueKind == JsonValueKind.String) {
-                    return answerElement.GetString() ?? "No answer found";
+                if (answerElement.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(answerElement.GetString())) {
+                    return answerElement.GetString()!;
                 } else if (answerElement.ValueKind == JsonValueKind.Array) {
-                    // If it's an array of factors, serialize it back to a JSON string
+                    // If it's an array of factors, write it in the certificate format
                     return "(" + string.Join(",", answerElement.EnumerateArray().Select(e => e.GetInt32())) + ")";
-                } else {
-                    // For any other type, convert to string
-                    return answerElement.ToString();
                 }
             }
 
-            // If no answer field, return the whole response
-            return response;
-        } catch (Exception ex) {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
-        }
+            // No answer in the response: not an answer to pass on.
+            throw QuantumServerAPI.MissingAnswer("answer", response);
+        });
     }
 }

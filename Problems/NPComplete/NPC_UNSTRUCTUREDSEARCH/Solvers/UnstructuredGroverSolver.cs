@@ -68,13 +68,13 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         }
     }
 
+    // On any failure of the quantum service, including a response with no `answer_bitstring` (#538), this throws
+    // SolverUnavailableException (HTTP 503 solver_unavailable) rather than handing solve() something that is not a
+    // bit string (#625).
     private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance) {
-        try {
-            var requestBody = new JSON_Sat_Problem(problemInstance);
+        var requestBody = new JSON_Sat_Problem(problemInstance);
 
-            // Create the API client
-            var client = new QuantumServerAPI();
-
+        return QuantumServerAPI.Ask(this, problem.problemName, client => {
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/sat-quantum", requestBody).Result;
 
@@ -82,26 +82,16 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("qasm", out JsonElement circuitElement)) {
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("qasm", out JsonElement circuitElement)) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
-            if (root.TryGetProperty("answer_bitstring", out JsonElement answerElement)) {
-                return answerElement.GetString() ?? "No answer found";
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer_bitstring", out JsonElement answerElement)
+                && answerElement.ValueKind == JsonValueKind.String) {
+                return answerElement.GetString() ?? "";
             }
 
-            // The quantum service responded, but its JSON has no `answer_bitstring` field.
-            // Returning the raw response here would let the caller misinterpret it as
-            // bitstring data (solve() reverses it and parses it as a base-2 integer),
-            // producing a confusing FormatException instead of a clear error.
-            throw new InvalidOperationException(
-                $"Quantum service response is missing the expected 'answer_bitstring' field: {response}");
-        } catch (Exception ex) when (ex is not InvalidOperationException) {
-            // Wrap failures from the HTTP call/setup (network errors, timeouts, JSON parse
-            // failures, etc.) in the same descriptive exception type instead of swallowing
-            // them into an error-JSON string that would hit the same missing-field case above.
-            throw new InvalidOperationException(
-                $"Failed to obtain an answer from the quantum service: {ex.Message}", ex);
-        }
+            throw QuantumServerAPI.MissingAnswer("answer_bitstring", response);
+        });
     }
 
 }

@@ -84,6 +84,30 @@ public class QuantumServerAPI {
     }
 
     /// <summary>
+    /// Runs one solver's request to the quantum service and returns the answer <paramref name="request"/> reads from it.
+    /// Any failure (the service is not configured, cannot be reached, times out, answers with an error status, or sends
+    /// a response <paramref name="request"/> cannot read an answer from) becomes a
+    /// <see cref="API.Interfaces.SolverUnavailableException"/> naming the solver, so the endpoints answer 503
+    /// solver_unavailable instead of passing an error on as if it were the answer (#625). <paramref name="request"/>
+    /// throws (any exception, e.g. <see cref="MissingAnswer"/>) when the response has no answer in it.
+    /// </summary>
+    internal static string Ask(API.Interfaces.ISolver solver, string problemName, Func<QuantumServerAPI, string> request) {
+        try {
+            return request(new QuantumServerAPI());
+        } catch (Exception ex) when (ex is not OutOfMemoryException and not API.Interfaces.SolverUnavailableException) {
+            Exception real = ex is AggregateException { InnerExceptions.Count: 1 } agg ? agg.InnerException! : ex;
+            string detail = QuantumSolverSettingsGlobal.QuantumSolver == null || QuantumSolverSettingsGlobal.HttpClientFactory == null
+                ? "The quantum service is not configured."
+                : $"The quantum service did not give an answer: {real.Message}";
+            throw new API.Interfaces.SolverUnavailableException(solver.GetType().Name, problemName, detail, real);
+        }
+    }
+
+    /// <summary>The exception a request passed to <see cref="Ask"/> throws when the response has no answer.</summary>
+    internal static InvalidDataException MissingAnswer(string field, string response) =>
+        new($"its response has no '{field}' field: {response}");
+
+    /// <summary>
     /// Gets the current base URL being used.
     /// </summary>
     public string GetBaseUrl() => _baseUrl;
