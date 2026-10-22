@@ -817,13 +817,28 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(5 + 2, capped.Steps.Count);
         Assert.Equal(typed.Run(target, withSteps: false).Answer, capped.Answer);
 
-        // A legacy solver (PPZ, an untyped 3SAT solver) records no typed steps, so it has nothing to cap: the cap changes nothing.
-        var legacy = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["ppz"])!;
+        // A legacy solver (an untyped 3SAT solver) records no typed steps, so it has nothing to cap: the cap changes nothing. The
+        // last registered ones that could run here (PPZ, Schoning, WalkSAT) record typed steps since #932, so this one is made up.
+        var legacy = (ISolver)new LegacySat3Solver();
         string formula = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)";
         var plain = legacy.Run(formula, withSteps: true);
         var legacyCapped = legacy.Run(formula, withSteps: true, stepCap: 1);
         Assert.Null(legacyCapped.StepShape);
+        Assert.Equal(3, plain.Steps.Count);
         Assert.Equal(plain.Steps.Count, legacyCapped.Steps.Count);
+    }
+
+    // A solver written before typed steps: only ISolver<T>, with untyped steps. A struct, so ProblemProvider (which registers
+    // every class implementing ISolver) does not list it.
+    private struct LegacySat3Solver : ISolver<API.Problems.NPComplete.NPC_SAT3.SAT3> {
+        public string solverName => "Legacy 3SAT";
+        public string solverDefinition => "Answers x1, x2 and x3 all true and records three untyped steps.";
+        public string source => "";
+        public string sourceFile => "";
+        public string[] contributors => [];
+        public bool timerHasExpired { get; set; }
+        public string solve(API.Problems.NPComplete.NPC_SAT3.SAT3 problem) => "(x1:True,x2:True,x3:True)";
+        public List<object> GetSteps(API.Problems.NPComplete.NPC_SAT3.SAT3 problem) => ["x1", "x2", "x3"];
     }
 
     // ---- Old endpoints are untouched ----

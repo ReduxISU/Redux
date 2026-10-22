@@ -44,27 +44,35 @@ public class VisualizeRun_Sat3_Tests : IClassFixture<AppFactory> {
         }
     }
 
-    [Fact]
-    public async Task RandomizedSolver_EveryPictureShowsTheOneAnswer() {
-        // PPZ makes random choices and records no typed steps: every picture draws its answer alone, and they must all draw the
-        // same answer, the one the response reports. Repeated, since one run could agree with another by chance.
-        for (int attempt = 0; attempt < 5; attempt++) {
-            var (status, body) = await Run("solver=PPZ");
-            Assert.Equal(HttpStatusCode.OK, status);
-            var answerOk = body.GetProperty("ok");
-            var assignments = new List<Dictionary<string, bool>>();
-            foreach (var picture in VisualizeRun_Endpoint_Tests.Pictures(body)) {
-                var frames = FramesOf(picture);
-                var done = Assert.Single(frames);
-                Assert.Equal(JsonValueKind.Null, done.GetProperty("step").ValueKind);
-                Assert.Equal("Done", done.GetProperty("event").GetString());
-                if (answerOk.ValueKind != JsonValueKind.Null)
-                    Assert.Equal(answerOk.GetBoolean(), done.GetProperty("ok").GetBoolean());
-                if (done.TryGetProperty("assignment", out var a))
-                    assignments.Add(a.EnumerateObject().ToDictionary(p => p.Name.StartsWith("v:") ? p.Name[2..] : p.Name, p => p.Value.GetBoolean()));
-            }
-            Assert.True(assignments.Count >= 2);
-            Assert.All(assignments, a => Assert.Equal(assignments[0].OrderBy(p => p.Key), a.OrderBy(p => p.Key)));
+    [Theory]
+    [InlineData("PPZ")]
+    [InlineData("Schoning")]
+    [InlineData("WalkSAT")]
+    public async Task RandomizedSolver_EveryPictureDrawsTheSeededRun_AndEndsOnTheOneAnswer(string solver) {
+        // A randomized solver records its steps and reports its seed (#932): a run made here with that seed is the run the
+        // endpoint made, every picture draws its steps in order, and every picture ends on the one answer the response reports.
+        var (status, body) = await Run($"solver={solver}");
+        Assert.Equal(HttpStatusCode.OK, status);
+        int seed = body.GetProperty("seed").GetInt32();
+        var again = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver.ToLowerInvariant()])!;
+        RandomizedSolvers.Apply(again, seed);
+        var run = again.Run(Instance, withSteps: true);
+        Assert.Equal(run.Answer, body.GetProperty("answer").GetString());
+        var expected = Enumerable.Range(0, run.Steps.Count).Select(i => (int?)i).ToList();
+        var answerOk = body.GetProperty("ok");
+        var assignments = new List<Dictionary<string, bool>>();
+        var pictures = VisualizeRun_Endpoint_Tests.Pictures(body);
+        Assert.True(pictures.Count >= 2);
+        foreach (var picture in pictures) {
+            Assert.Equal(expected, VisualizeRun_Endpoint_Tests.Steps(picture).Where(s => s != null).ToList());
+            var done = FramesOf(picture)[^1];
+            Assert.Equal("Done", done.GetProperty("event").GetString());
+            if (answerOk.ValueKind != JsonValueKind.Null)
+                Assert.Equal(answerOk.GetBoolean(), done.GetProperty("ok").GetBoolean());
+            if (done.TryGetProperty("assignment", out var a))
+                assignments.Add(a.EnumerateObject().ToDictionary(p => p.Name.StartsWith("v:") ? p.Name[2..] : p.Name, p => p.Value.GetBoolean()));
         }
+        Assert.True(assignments.Count >= 2);
+        Assert.All(assignments, a => Assert.Equal(assignments[0].OrderBy(p => p.Key), a.OrderBy(p => p.Key)));
     }
 }

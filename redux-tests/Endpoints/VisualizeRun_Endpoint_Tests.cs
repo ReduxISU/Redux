@@ -151,7 +151,8 @@ public class VisualizeRun_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
-    public async Task RandomizedLegacySolver_OkIsTheVerifierOnItsAnswer() {
+    public async Task RandomizedSolver_OkIsTheVerifierOnItsAnswer() {
+        // PPZ makes random choices (and records its steps and takes a seed since #932).
         string instance = DefaultInstance<SAT3>();
         var (status, body) = await Run("solver=PPZ", instance);
         Assert.Equal(HttpStatusCode.OK, status);

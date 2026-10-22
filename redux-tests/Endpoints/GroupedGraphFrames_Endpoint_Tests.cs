@@ -367,21 +367,6 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 
     [Theory]
-    [InlineData(Sat3Vis, "schoning")]
-    [InlineData(Sat3Vis, "ppz")]
-    public async Task Frames_ASolverWithoutSteps_GivesOneDoneFrameBuiltFromItsAnswer(string vis, string solver) {
-        // These solvers are randomized and record no steps: the frames are the solved picture alone, and ok is the verifier's word.
-        string instance = DefaultInstance(vis);
-        var (status, body) = await Visualize($"visualization={vis}&format=frames&solver={solver}", instance);
-        Assert.Equal(HttpStatusCode.OK, status);
-        var frame = Assert.Single(Frames(body));
-        Assert.Equal("Done", frame.GetProperty("event").GetString());
-        bool ok = frame.GetProperty("ok").GetBoolean();
-        Assert.Equal(Assignment(frame).Count > 0 && Verify(vis, instance, Certificate(frame)), ok);
-        if (ok) Assert.True(Satisfies(instance, Assignment(frame)));
-    }
-
-    [Theory]
     [InlineData(SatVis, "satbruteforcesolver", "(x1 | x2) & (!x1) & (!x2)")]
     [InlineData(Sat3Vis, "sat3backtrackingsolver", "(x1 | x2) & (!x1 | x2) & (x1 | !x2) & (!x1 | !x2)")]
     [InlineData(Sat3Vis, "sat3backtrackingsolver", "(x1) & (!x1)")]

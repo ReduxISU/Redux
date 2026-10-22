@@ -54,6 +54,8 @@ public class IncrementalSolvers_Tests {
         ["satbruteforcesolver"] = false,
         ["sat3backtrackingsolver"] = true,
         ["walksat"] = false,   // randomized: each step tries a whole assignment (#932)
+        ["schoning"] = false,  // randomized: each step tries a whole assignment (#932)
+        ["ppz"] = true,        // randomized, but each try sets the variables one at a time (#932)
         // ChosenSets and NodeSet (Bipartite pictures)
         ["setcoverbruteforce"] = false,
         ["greedysetcover"] = true,

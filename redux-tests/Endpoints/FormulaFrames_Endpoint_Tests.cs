@@ -218,17 +218,6 @@ public class FormulaFrames_Endpoint_Tests : IClassFixture<AppFactory> {
             .SelectMany(f => States(f, "nodes").Values.Concat(States(f, "variables").Values)));
     }
 
-    [Theory]
-    [InlineData("Schoning")]
-    [InlineData("PPZ")]
-    public async Task Frames_ASolverWithoutSteps_GivesOneDoneFrameBuiltFromItsAnswer(string solver) {
-        var frames = Frames(await Json("visualize", $"visualization={Sat3Vis}&format=frames&solver={solver}", new SAT3().defaultInstance));
-        var done = Assert.Single(frames);
-        Assert.Equal("Done", done.GetProperty("event").GetString());
-        Assert.Equal(JsonValueKind.Null, done.GetProperty("step").ValueKind);
-        Assert.True(done.GetProperty("ok").GetBoolean());
-        Assert.All(Assignment(done), p => Assert.Equal(p.Value ? "Solution" : "False", States(done, "variables")[p.Key]));
-    }
 
     [Fact]
     public async Task Frames_ARepeatedLiteral_IsDrawnAsWritten_OnePillPerOccurrence() {
