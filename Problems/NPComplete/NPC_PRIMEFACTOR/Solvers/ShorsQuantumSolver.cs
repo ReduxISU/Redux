@@ -65,6 +65,9 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR> {
                 } else if (answerElement.ValueKind == JsonValueKind.Array) {
                     // If it's an array of factors, write it in the certificate format
                     return "(" + string.Join(",", answerElement.EnumerateArray().Select(e => e.GetInt32())) + ")";
+                } else if (answerElement.ValueKind == JsonValueKind.Number) {
+                    // A bare number is passed on as the server sent it, as it always has been
+                    return answerElement.GetRawText();
                 }
             }
 

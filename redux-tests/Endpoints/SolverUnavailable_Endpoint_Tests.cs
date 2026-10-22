@@ -102,6 +102,17 @@ public class SolverUnavailable_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("'answer'", doc.RootElement.GetProperty("detail").GetString());
     }
 
+    // An answer the service did send is still passed on as before, even one the verifier will reject: only no answer is
+    // an error.
+    [Theory]
+    [InlineData("15", "{\"answer\":[3,5]}", "(3,5)")]
+    [InlineData("15", "{\"answer\":\"(3,5)\"}", "(3,5)")]
+    [InlineData("21", "{\"answer\":21}", "21")]
+    public void Shor_ServiceAnswers_PassesTheAnswerOn(string instance, string reply, string answer) {
+        using var service = FakeQuantumService.Answering(reply);
+        Assert.Equal(answer, new ShorsQuantumSolver().solve(new PRIMEFACTOR(instance)));
+    }
+
     // The solver throws before it has an answer, so nothing after it runs: the visualization's solved picture (which
     // would ask the service again for the circuit, and which receives the answer as the certificate) is never built.
     [Fact]
