@@ -63,6 +63,22 @@ sealed class StepRecorder<TPartial> {
     /// </summary>
     public bool Enabled => _enabled;
 
+    /// <summary>
+    /// How many non-Done steps this recorder keeps (0 for <see cref="Off"/>). A solver that chooses what to show itself (a
+    /// randomized solver that keeps its first and its successful try, #932) reads it to fit what it records within the cap.
+    /// </summary>
+    public int Cap => _enabled ? _cap : 0;
+
+    /// <summary>
+    /// Throws <see cref="StepBudgetExceededException"/> once the time limit has passed, like recording a step would, without
+    /// recording one. For a solver that holds its steps back while it runs (a randomized solver records its tries only once it
+    /// knows which one succeeds, #932), so that a long run is still stopped by the limit. Does nothing for <see cref="Off"/>.
+    /// </summary>
+    public void CheckTime() {
+        if (_enabled && Now() >= _deadline)
+            throw new StepBudgetExceededException(this);
+    }
+
     /// <summary>The kept steps, in order.</summary>
     public IReadOnlyList<SolverStep<TPartial>> Steps => _steps;
     /// <summary>Every step the solver reported, kept or not (including Done).</summary>

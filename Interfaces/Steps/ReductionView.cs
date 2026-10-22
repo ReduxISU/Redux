@@ -244,7 +244,7 @@ static class ReductionView {
         if (solved.TimedOut) {
             frames.Add(Frame(Map, StepEvent.Done, $"The solver had not finished, so there is no {red.reductionTo.problemName} answer to map back.",
                 null, false, [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
-            return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces,
+            return Result(red, sourceInstance, targetInstance, solver, solved.Seed, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces,
                 gadgets.Select(g => GadgetJson(g, toSource, toTarget)), frames);
         }
         SolveRun mapped;
@@ -293,14 +293,15 @@ static class ReductionView {
             frames.Add(Frame(Map, StepEvent.Done, $"{red.reductionFrom.problemName} has the answer {mapped.Answer}.",
                 null, Verify(red.reductionFrom, sourceInstance, mapped.Answer), [], [], neutralSource.DeepClone().AsObject(), solvedPane.DeepClone().AsObject()));
 
-        return Result(red, sourceInstance, targetInstance, solver, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces,
+        return Result(red, sourceInstance, targetInstance, solver, solved.Seed, sourceResponse, targetResponse, nodeOrder, edgeOrder, revealPieces,
                 gadgets.Select(g => GadgetJson(g, toSource, toTarget)), frames);
     }
 
-    private static JsonObject Result(IReduction red, string sourceInstance, string targetInstance, ISolver solver,
+    // seed: the seed a randomized solver ran with (SolveRun.Seed, #932), written after "solver"; no "seed" for any other solver.
+    private static JsonObject Result(IReduction red, string sourceInstance, string targetInstance, ISolver solver, int? seed,
         FramesResponse sourceResponse, FramesResponse targetResponse, List<string> nodeOrder, List<string> edgeOrder, bool revealPieces,
-        IEnumerable<JsonNode> gadgets, JsonArray frames) =>
-        new JsonObject {
+        IEnumerable<JsonNode> gadgets, JsonArray frames) {
+        var view = new JsonObject {
             ["type"] = nameof(VisualizationType.Reduction),
             ["kind"] = "reduction",
             ["reduction"] = red.GetType().Name,
@@ -322,6 +323,9 @@ static class ReductionView {
             ["gadgets"] = new JsonArray(gadgets.ToArray()),
             ["frames"] = frames,
         };
+        if (seed is int used) view.Insert(view.IndexOf("solver") + 1, "seed", used);
+        return view;
+    }
 
     // ---- Panes ----
 

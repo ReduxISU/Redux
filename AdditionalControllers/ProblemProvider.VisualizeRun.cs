@@ -38,7 +38,12 @@ public partial class ProblemProvider {
         [property: JsonPropertyName("ok")] bool? Ok,
         [property: JsonPropertyName("timedOut")] bool TimedOut,
         [property: JsonPropertyName("pictures")] IReadOnlyList<RunPicture> Pictures,
-        [property: JsonPropertyName("unavailable")] IReadOnlyList<RunUnavailable> Unavailable);
+        [property: JsonPropertyName("unavailable")] IReadOnlyList<RunUnavailable> Unavailable) {
+        /// <summary>The seed a randomized solver ran with (#932); absent for every other solver.</summary>
+        [JsonPropertyName("seed")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? Seed { get; init; }
+    }
 
     // Problem type -> the class names of its visualizations, the default first, then the rest by class name.
     private static readonly ConcurrentDictionary<Type, IReadOnlyList<string>> ProblemVisualizations = new();
@@ -94,11 +99,12 @@ public partial class ProblemProvider {
     /// <param name="solver" example = "Sat3BacktrackingSolver">The solver to run (class name)</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">The instance of the solver's problem</param>
     /// <param name="visualizations" example = "Sat3DefaultVisualization">Optional. Comma-separated visualization class names to draw; the default is every visualization of the problem. Another problem's visualization asked for by name is listed as solver_mismatch</param>
-    /// <returns>{ solver, solverName, answer, ok, timedOut, pictures: [{ visualization, type, payload, frames }], unavailable: [{ visualization, reason, detail }] }</returns>
+    /// <param name="seed" example = "12345">Optional. The seed of a randomized solver (WalkSAT): the same seed on the same instance gives the same run. Without it a seed is chosen; the response reports the seed used as "seed" (randomized solvers only). Other solvers ignore it (#932)</param>
+    /// <returns>{ solver, solverName, answer, ok, timedOut, seed (randomized solvers only), pictures: [{ visualization, type, payload, frames }], unavailable: [{ visualization, reason, detail }] }</returns>
     [HttpPost("visualizeRun")]
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(400)]
-    public IActionResult visualizeRun(string? solver, [FromBody] string instance, string? visualizations = null) {
+    public IActionResult visualizeRun(string? solver, [FromBody] string instance, string? visualizations = null, int? seed = null) {
         if (string.IsNullOrEmpty(solver) || !Solvers.TryGetValue(solver.ToLower(), out var solverType))
             return BadRequest(new { error = "unknown_solver", received = solver });
         Type? problemType = ProblemTypeOf(solverType, typeof(ISolver<>));
@@ -119,6 +125,7 @@ public partial class ProblemProvider {
         }
 
         ISolver chosen = Solver(solver);
+        RandomizedSolvers.Apply(chosen, seed);
         IProblem problem = (IProblem)Activator.CreateInstance(problemType)!;
         try {
             // One run for every picture, with the visualize endpoint's time limit and stop rules.
@@ -133,8 +140,11 @@ public partial class ProblemProvider {
             foreach (string name in names) {
                 var vis = Visualization(name);
                 if (!SolverMatchesVisualization(solverType, vis)) {
-                    unavailable.Add(new(name, UnavailableReason.SolverMismatch,
-                        $"{chosen.solverName} does not solve the problem {name} draws."));
+                    // A picture of the solver's own problem that refuses its run (the Search Tree and a randomized solver, #932).
+                    bool refused = vis is IFramesVisualization picture && !picture.DrawsSolver(solverType);
+                    unavailable.Add(new(name, UnavailableReason.SolverMismatch, refused
+                        ? $"{name} cannot draw {chosen.solverName}'s run."
+                        : $"{chosen.solverName} does not solve the problem {name} draws."));
                 } else if (vis is not IFramesVisualization frames) {
                     unavailable.Add(new(name, UnavailableReason.NoFrames,
                         $"{name} has no frames picture; it serves only the older list format."));
@@ -147,7 +157,7 @@ public partial class ProblemProvider {
                     pictures.Add(new(name, built.Type, built.Payload, built.Frames));
                 }
             }
-            var body = new RunResponse(solverType.Name, chosen.solverName, run.Answer, ok, run.TimedOut, pictures, unavailable);
+            var body = new RunResponse(solverType.Name, chosen.solverName, run.Answer, ok, run.TimedOut, pictures, unavailable) { Seed = run.Seed };
             return Content(JsonSerializer.Serialize(body, FramesResponse.JsonOptions), "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);

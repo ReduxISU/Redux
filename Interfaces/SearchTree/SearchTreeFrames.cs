@@ -377,6 +377,9 @@ interface ISearchTreeVisualization<TProblem, TPartial> : IFramesVisualization wh
     /// </summary>
     bool IFramesVisualization.DrawsAnswerAlone() => false;
 
+    /// <summary>A randomized solver's tries are not a tree of choices, so a search tree does not draw them (#932).</summary>
+    bool IFramesVisualization.DrawsSolver(Type solverType) => !typeof(IRandomizedSolver).IsAssignableFrom(solverType);
+
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
         return SearchTreeFrames.Build<TPartial>(Describe(problem), instance, run, answer => {
