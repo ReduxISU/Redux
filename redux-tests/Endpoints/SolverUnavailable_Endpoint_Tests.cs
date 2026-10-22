@@ -4,6 +4,7 @@ using System.Text.Json;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_PRIMEFACTOR;
 using API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
+using API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 using Xunit;
 
 namespace redux_tests;
@@ -139,6 +140,51 @@ public class SolverUnavailable_Endpoint_Tests : IClassFixture<AppFactory> {
 
         Assert.Throws<SolverUnavailableException>(() => certificate = new ShorsQuantumSolver().solve(problem));
         Assert.Null(certificate);
+    }
+
+    // --- The default solver is classical (#625) ----------------------------------------------------------------
+
+    [Fact]
+    public void PrimeFactor_DefaultSolver_IsClassical_Solves15_AndVerifies() {
+        var problem = new PRIMEFACTOR();
+        Assert.IsType<PrimeFactorSolver>(problem.defaultSolver);
+
+        string answer = problem.defaultSolver.solve(problem);
+
+        Assert.Equal("(3,5)", answer);
+        Assert.True(new PrimeFactorVerifier().verify(problem, answer));
+    }
+
+    [Fact]
+    public async Task PrimeFactor_DefaultSolver_WorksWithTheQuantumServiceDown() {
+        using var service = FakeQuantumService.Down();
+        string solver = new PRIMEFACTOR().defaultSolver.GetType().Name;
+
+        var solved = await _client.PostAsync($"/ProblemProvider/solve?solver={solver}", JsonBody("15"), TestContext.Current.CancellationToken);
+        string answer = JsonSerializer.Deserialize<string>(await solved.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))!;
+        Assert.Equal(HttpStatusCode.OK, solved.StatusCode);
+        Assert.Equal("(3,5)", answer);
+
+        string verifyJson = JsonSerializer.Serialize(new { Certificate = answer, ProblemInstance = "15" });
+        var verified = await _client.PostAsync("/ProblemProvider/verify?verifier=PrimeFactorVerifier",
+            new StringContent(verifyJson, Encoding.UTF8, "application/json"), TestContext.Current.CancellationToken);
+        Assert.Equal("True", JsonSerializer.Deserialize<string>(await verified.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)));
+        Assert.Equal(0, service.Handler.Requests);
+    }
+
+    // The default visualization stays Shor's circuit, and it still runs with the service down: its own solver has
+    // been the classical one since it was chosen per visualization, so the default-solver change does not reach it.
+    [Fact]
+    public async Task PrimeFactor_DefaultVisualization_IsShorsCircuit_AndRunsWithTheServiceDown() {
+        using var service = FakeQuantumService.Down();
+        var problem = new PRIMEFACTOR();
+        Assert.IsType<ShorsDefaultVisualization>(problem.defaultVisualization);
+
+        var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=ShorsDefaultVisualization",
+            JsonBody("15"), TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("(3,5)", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
     private static StringContent JsonBody(string value) =>
