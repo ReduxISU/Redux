@@ -2,6 +2,7 @@ using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_SAT;
 using API.Problems.NPComplete.NPC_SAT.ReduceTo.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Interfaces;
+using API.Interfaces.JSON_Objects;
 using Xunit;
 using API.Problems.NPComplete.NPC_SAT;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
@@ -133,6 +134,28 @@ public class SAT_Tests {
     [InlineData("(a | b) & (!a | b) & (a | !b) & (!a | !b)")]
     public void SAT_Solver_Reports_Unsatisfiable(string instance) {
         Assert.Equal("No solution exists", new SATBruteForceSolver().solve(instance));
+    }
+
+    // SAT's default visualization draws the solver's answer. "No solution exists" is what
+    // the solver returns for an unsatisfiable formula, and "" is what Graph Coloring to SAT
+    // maps a coloring to, so visualizeReduction into SAT passes it (#922).
+    [Theory]
+    [InlineData("No solution exists")]
+    [InlineData("")]
+    public void SAT_Default_Visualization_Draws_An_Answer_With_No_Assignments(string solution) {
+        SAT sat = new SAT("(x1) & (!x1)");
+        var solved = (API_SAT)sat.defaultVisualization.SolvedVisualization(sat, solution);
+        Assert.All(solved.clauses.SelectMany(c => c.literals), l => Assert.Equal("Background", l.color));
+    }
+
+    [Fact]
+    public void SAT_Default_Visualization_Highlights_The_Solution() {
+        SAT sat = new SAT("(x1 | x2) & (!x1)");
+        var solved = (API_SAT)sat.defaultVisualization.SolvedVisualization(sat, "(x1:False,x2:True)");
+        var colors = solved.clauses.SelectMany(c => c.literals).ToDictionary(l => l.literal, l => l.color);
+        Assert.Equal("Solution", colors["!x1"]);
+        Assert.Equal("Solution", colors["x2"]);
+        Assert.Equal("Background", colors["x1"]);
     }
 
     [Fact]
