@@ -86,6 +86,56 @@ public class SolverUnavailable_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.False(string.IsNullOrWhiteSpace(doc.RootElement.GetProperty("problem").GetString()));
         Assert.Contains("actively refused", doc.RootElement.GetProperty("detail").GetString());
         Assert.True(service.Handler.Requests >= 1);
+
+        // The #933 error contract: a plain sentence, what to do next, and the other solvers to choose from.
+        var s = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver.ToLower()])!;
+        Assert.Equal($"{s.solverName} couldn't get an answer from the quantum service, so {doc.RootElement.GetProperty("problem").GetString()} wasn't solved.",
+            doc.RootElement.GetProperty("message").GetString());
+        string[] options = doc.RootElement.GetProperty("options").EnumerateArray().Select(o => o.GetString()!).ToArray();
+        Assert.NotEmpty(options);
+        Assert.DoesNotContain(solver, options);
+        Assert.Contains("runs without the quantum service", doc.RootElement.GetProperty("hint").GetString());
+    }
+
+    // options are the problem's solvers as the navigation endpoints list them, minus the one that failed.
+    [Theory]
+    [MemberData(nameof(QuantumSolvers))]
+    public async Task Solve_ServiceDown_OptionsAreTheProblemsOtherSolvers_AsNavigationListsThem(string solver, string instance) {
+        using var service = FakeQuantumService.Down();
+        var ex = Assert.Throws<SolverUnavailableException>(() =>
+            ((ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver.ToLower()])!).solve(instance));
+        string problemClass = SolverNavigationData.Entries.Single(e => e.className == solver).problemName;
+
+        var nav = await _client.GetAsync($"/Navigation/Problem_SolversRefactor?chosenProblem={problemClass}&problemType=NPC", TestContext.Current.CancellationToken);
+        var listed = JsonSerializer.Deserialize<string[]>(await nav.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))!;
+
+        var body = JsonSerializer.SerializeToElement(ex.Body());
+        Assert.Equal(listed.Where(c => c != solver), body.GetProperty("options").EnumerateArray().Select(o => o.GetString()));
+    }
+
+    [Fact]
+    public async Task Solve_Shor_ServiceDown_HintNamesTrialDivision() {
+        using var service = FakeQuantumService.Down();
+
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=ShorsQuantumSolver", JsonBody("15"), TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+
+        Assert.Equal("Shor's Algorithm couldn't get an answer from the quantum service, so Prime Factorization wasn't solved.",
+            doc.RootElement.GetProperty("message").GetString());
+        Assert.Equal("PrimeFactorSolver (Prime Factorization Trial Division) runs without the quantum service; or try again later.",
+            doc.RootElement.GetProperty("hint").GetString());
+        Assert.Equal(new[] { "PrimeFactorSolver" }, doc.RootElement.GetProperty("options").EnumerateArray().Select(o => o.GetString()));
+    }
+
+    // With no solver that runs without the quantum service, the hint says how to get the service back instead.
+    [Fact]
+    public void Body_NoLocalAlternative_HintPointsAtTheQuantumService() {
+        var body = JsonSerializer.SerializeToElement(new SolverUnavailableException("NoSuchQuantumSolver", "Some Solver", "Some Problem", "down").Body());
+
+        Assert.Equal("Try again later, or check that the quantum service is running and configured (see Tools/QUANTUM_API_README.md).",
+            body.GetProperty("hint").GetString());
+        Assert.Empty(body.GetProperty("options").EnumerateArray());
+        Assert.Equal("down", body.GetProperty("detail").GetString());
     }
 
     [Fact]
