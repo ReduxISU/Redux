@@ -74,6 +74,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # One plain image manifest per tag (#939). With attestations on, the push is an image
+          # index whose image and attestation manifests GHCR lists as untagged versions, and the
+          # prune job below deletes them, leaving latest pointing at nothing.
+          provenance: false
+          sbom: false
 
   prune:
     needs: docker
