@@ -8,8 +8,8 @@ class HittingSetVerifier : IVerifier<HITTINGSET> {
     public const string CertificateExample = "{1,2}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Hitting Set Verifier";
-    public string verifierDefinition { get; } = "This is a verifier for Hitting Set";
+    public string verifierName { get; } = "Default Exact Hitting Set Verifier";
+    public string verifierDefinition { get; } = "This is a verifier for Exact Hitting Set. It checks that W is a subset of U and that W intersects every subset in S in exactly one element.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
@@ -29,6 +29,11 @@ class HittingSetVerifier : IVerifier<HITTINGSET> {
 
     public bool verify(HITTINGSET problem, string certificate) {
         UtilCollection choosenSet = new UtilCollection(certificate);
+        // W must be a subset of U.
+        foreach (UtilCollection element in choosenSet) {
+            if (!problem.universalSet.Contains(element))
+                return false;
+        }
         foreach (UtilCollection set in problem.subSets) {
             if (set.Intersect(choosenSet).Count() != 1)
                 return false;

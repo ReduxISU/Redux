@@ -1,12 +1,11 @@
 using API.Interfaces;
 using API.Interfaces.Logic;
-using API.DummyClasses;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SAT;
 
-class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
+class SAT : IProblem<SATBruteForceSolver, SATVerifier, SatDefaultVisualization> {
 
 
     #region Fields
@@ -46,7 +45,7 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, DummyVisualization> {
 
     public SATBruteForceSolver defaultSolver { get; } = new SATBruteForceSolver();
     public SATVerifier defaultVerifier { get; } = new SATVerifier();
-    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
+    public SatDefaultVisualization defaultVisualization { get; } = new SatDefaultVisualization();
     // Declared, not derived. SAT is the canonical NP-complete problem (Cook-Levin).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.Logic;
