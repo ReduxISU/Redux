@@ -34,15 +34,22 @@ class NFATableVisualization : IVisualization<NFA, API_empty> {
         return new API_empty();
     }
 
-    // One table per run, read from the solver's typed steps (no second run). When the recorder did not keep every
-    // step, the runs after the kept steps are missing, and a last, empty table says so.
+    // One table per run, read from the solver's typed steps (no second run). When the run was stopped by the time
+    // limit (#764), or the recorder did not keep every step, the runs after the kept steps are missing, and a last,
+    // empty table says so.
     public List<API_JSON> StepsVisualization(NFA problem, List<Object> steps) {
         var (tables, notShown) = NFASolver.TableStepsFrom(problem, steps);
         var frames = tables.Select(s => (API_JSON)TranslateToTableJSON(s)).ToList();
-        if (notShown > 0)
+        bool stopped = steps.OfType<SolverStep<ActiveStates>>().LastOrDefault() is { Event: StepEvent.Done } done
+            && StepCaptions.IsStopped(done.Caption);
+        if (stopped)
+            frames.Add(new API_TableJSON { title = StoppedTitle, columns = Columns() });
+        else if (notShown > 0)
             frames.Add(new API_TableJSON { title = NotAllRunsTitle(notShown), columns = Columns() });
         return frames;
     }
+
+    internal const string StoppedTitle = "Stopped: the time limit ran out before every run was listed.";
 
     internal static string NotAllRunsTitle(int notShown) =>
         $"Not every run is listed: {notShown} later steps of the search were not kept.";

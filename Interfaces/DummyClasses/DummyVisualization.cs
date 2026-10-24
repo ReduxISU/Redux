@@ -24,4 +24,11 @@ class DummyVisualization : IVisualization<IProblem, API_empty> {
     public API_empty visualize(IProblem independentSet) {
         return new API_empty();
     }
+
+    // The stand-in for problems that have no picture. Its problem type is the IProblem interface, which no instance
+    // string can be parsed into, so the default string entry points (which parse first) threw for every problem
+    // wired to it, e.g. visualizeReduction into SAT (#755). They answer "no picture" without parsing instead.
+    API_JSON IVisualization.visualize(string problem) => new API_empty();
+    API_JSON IVisualization.SolvedVisualization(string problem, string solution) => new API_empty();
+    List<API_JSON> IVisualization.StepsVisualization(string problem, List<Object> steps) => new List<API_JSON>();
 }
