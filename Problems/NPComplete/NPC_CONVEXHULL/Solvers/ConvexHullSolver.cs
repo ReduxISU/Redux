@@ -22,7 +22,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL> {
 
     public string solve(CONVEXHULL problem) {
         if (timerHasExpired)
-            return "timeout";
+            return SolveRun.TimedOutAnswer;
 
         // Sort a copy by (x, then y) and drop duplicate points; the problem's own list is left untouched.
         List<(double x, double y)> points = problem.points

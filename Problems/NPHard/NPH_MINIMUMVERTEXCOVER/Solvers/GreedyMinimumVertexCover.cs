@@ -21,6 +21,8 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
     public SolverType solverType { get; } = SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     public MathematicalFunction timeComplexity { get; } = new("n * (n + m)", ", n = |nodes|, m = |edges|");
+    // #935: set by a solver that calls this one (GreedyVertexCover), so it stops at the caller's time limit too.
+    internal Func<bool>? stop;
 
     // --- Methods Including Constructors ---
     public GreedyMinimumVertexCover() {
@@ -31,6 +33,7 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
         var cover = new List<string>();
 
         while (edges.Count > 0) {
+            if (timerHasExpired || (stop != null && stop())) return SolveRun.TimedOutAnswer;
             var degree = new Dictionary<string, int>();
             foreach (var e in edges) {
                 if (!degree.ContainsKey(e.Key)) degree[e.Key] = 0;

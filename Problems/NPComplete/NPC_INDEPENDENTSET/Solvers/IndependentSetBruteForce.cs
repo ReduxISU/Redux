@@ -59,6 +59,7 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET> {
         }
         long reps = factorial(independentSet.nodes.Count) / (factorial(independentSet.K) * factorial(independentSet.nodes.Count - independentSet.K));
         for (int i = 0; i < reps; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = indexListToCertificate(combination, independentSet.nodes);
             if (independentSet.defaultVerifier.verify(independentSet, certificate)) {
                 return certificate;

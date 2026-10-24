@@ -30,10 +30,15 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER> {
     public string solve(VERTEXCOVER G) {
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         var result = search(edges, G.K);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         return result == null ? "{}" : "{" + string.Join(",", result) + "}";
     }
 
     private List<string>? search(List<KeyValuePair<string, string>> edges, int k) {
+        // #935: at the time limit, unwind as a failed branch; solve() reports the stop.
+        if (timerHasExpired) {
+            return null;
+        }
         if (edges.Count == 0) {
             return new List<string>();
         }

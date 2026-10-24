@@ -44,6 +44,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
 
         // 2. For each vertex v, in order, look for a (k-1)-clique among its later neighbors.
         foreach (string v in order) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             HashSet<string> laterNeighbors = new HashSet<string>(
                 adj[v].Where(u => !removed.Contains(u) && positionOf[u] > positionOf[v])
             );
@@ -54,6 +55,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
 
             List<string> partial = new List<string> { v };
             HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj);
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             if (found != null) {
                 return "{" + string.Join(",", found) + "}";
@@ -88,6 +90,7 @@ class ChibaNishizeki : ISolver<CLIQUE> {
         }
 
         foreach (string u in candidates.OrderByDescending(v => adj[v].Count(n => candidates.Contains(n)))) {
+            if (timerHasExpired) return null; // unwind; solve() returns the timed-out answer
 
             HashSet<string> nextCandidates = new HashSet<string>(
                 candidates.Where(w => w != u && adj[u].Contains(w))

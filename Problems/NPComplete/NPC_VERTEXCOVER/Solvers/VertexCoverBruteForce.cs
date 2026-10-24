@@ -76,6 +76,7 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER> {
         }
         BigInteger reps = factorial(G.nodes.Count) / (factorial(G.K) * factorial(G.nodes.Count - G.K));
         for (int i = 0; i < reps; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = indexListToCertificate(combination, G.nodes);
             if (G.defaultVerifier.verify(G, certificate)) {
                 return certificate;

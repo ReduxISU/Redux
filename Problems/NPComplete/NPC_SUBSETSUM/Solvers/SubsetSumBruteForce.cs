@@ -42,7 +42,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
         // is skipped: with positive integers and T > 0 it is never a witness, and
         // "{}" doubles as the no-solution sentinel.
         for (int mask = 1; mask < (1 << n); mask++) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             string certificate = SubsetToCertificate(mask, subsetSum.S);
             if (subsetSum.defaultVerifier.verify(subsetSum, certificate)) {

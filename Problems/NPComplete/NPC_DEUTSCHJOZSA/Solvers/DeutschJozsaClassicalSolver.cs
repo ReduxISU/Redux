@@ -56,6 +56,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA> {
 
         // check the inputs
         for (int i = 1; i < queries_to_be_certain; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             // query the oracle
             int current_value = oracle[i];
 

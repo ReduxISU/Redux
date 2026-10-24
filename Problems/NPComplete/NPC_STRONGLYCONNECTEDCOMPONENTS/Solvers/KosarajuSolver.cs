@@ -52,6 +52,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS> {
         var order = new Stack<string>();
 
         foreach (var node in nodes) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             if (!visited.Contains(node))
                 FirstDfs(node, adj, visited, order);
         }
@@ -60,6 +61,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS> {
         var components = new List<List<string>>();
 
         while (order.Count > 0) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             var node = order.Pop();
 
             if (!visited.Contains(node)) {
