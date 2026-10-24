@@ -7,7 +7,7 @@ class WeightedMaxSatSolutionVerifier : IVerifier<WEIGHTEDMAXSAT> {
     internal const string CertificateGrammar = "{(A,V) | A is list, V is int}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Weighted Max-SAT Soluton Verifier";
+    public string verifierName { get; } = "Weighted Max-SAT Solution Verifier";
     public string verifierDefinition { get; } = "Checks that a certificate assigns every problem variable exactly once, contains no unknown variables, and reports the resulting satisfied clause weight. It does not check optimality.";
     public string source { get; } = "Direct certificate evaluation.";
     public string sourceFile { get; } = SourceFile.Path();
