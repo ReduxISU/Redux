@@ -21,6 +21,8 @@ namespace API.Interfaces.Steps;
 /// <para>
 /// A recorder made with a time limit checks the clock on every recorded step, kept or not, and throws
 /// <see cref="StepBudgetExceededException"/> once the limit has passed. <see cref="Off"/> never checks the clock.
+/// A <see cref="DeadlineOnly"/> recorder keeps no steps and invokes no lambda, like Off, but checks the clock on every
+/// <see cref="ClockCheckInterval"/>th step (the first included), so a solve that records nothing still stops (#935).
 /// </para>
 /// </summary>
 sealed class StepRecorder<TPartial> {
@@ -28,6 +30,21 @@ sealed class StepRecorder<TPartial> {
 
     /// <summary>A shared recorder that is disabled: every method does nothing and no lambda is invoked.</summary>
     public static readonly StepRecorder<TPartial> Off = new(enabled: false, cap: 0, timeLimit: null);
+
+    /// <summary>
+    /// A recorder that keeps no steps but stops the solve once <paramref name="timeLimit"/> has passed: the solve gets
+    /// <see cref="StepBudgetExceededException"/> at its next checked step. Used for plain solves (no picture), where
+    /// recording would be wasted work. Make a new one for each run; it counts calls, so it must not be shared.
+    /// </summary>
+    public static StepRecorder<TPartial> DeadlineOnly(TimeSpan timeLimit) => new(enabled: false, cap: 0, timeLimit, deadlineOnly: true);
+
+    /// <summary>
+    /// How often a <see cref="DeadlineOnly"/> recorder reads the clock: every this many steps (a power of two). Reading
+    /// Environment.TickCount64 costs a few nanoseconds, so this keeps the check far below the cost of the closures the
+    /// solver already allocates for each step, while a solver that reports a step every few microseconds still stops
+    /// within a millisecond of the limit.
+    /// </summary>
+    public const int ClockCheckInterval = 64;
 
     private readonly bool _enabled;
     private readonly int _cap;
@@ -41,14 +58,18 @@ sealed class StepRecorder<TPartial> {
     private readonly long _deadline;
     // A test's clock in milliseconds, read instead of Environment.TickCount64; null outside tests.
     private readonly Func<long>? _clock;
+    // A DeadlineOnly recorder: disabled, but checks the clock every ClockCheckInterval calls, counted in _calls.
+    private readonly bool _deadlineOnly;
+    private int _calls;
 
     public StepRecorder(int cap = DefaultCap, TimeSpan? timeLimit = null) : this(enabled: true, cap, timeLimit) { }
 
     /// <summary>A recorder that reads the time from <paramref name="clock"/> (milliseconds), so a test decides when the limit passes.</summary>
     internal StepRecorder(int cap, TimeSpan timeLimit, Func<long> clock) : this(enabled: true, cap, timeLimit, clock) { }
 
-    private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit, Func<long>? clock = null) {
+    private StepRecorder(bool enabled, int cap, TimeSpan? timeLimit, Func<long>? clock = null, bool deadlineOnly = false) {
         _enabled = enabled;
+        _deadlineOnly = deadlineOnly;
         _cap = cap;
         _timeLimit = timeLimit;
         _clock = clock;
@@ -70,7 +91,11 @@ sealed class StepRecorder<TPartial> {
     public void Backtrack(Func<TPartial> partial, Func<string> caption, params string[] focus) => Add(StepEvent.Backtrack, partial, caption, focus);
 
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, string[] focus) {
-        if (!_enabled) return;
+        if (!_enabled) {
+            if (_deadlineOnly && (_calls++ & (ClockCheckInterval - 1)) == 0 && Now() >= _deadline)
+                throw new StepBudgetExceededException(this);
+            return;
+        }
         _total++;
         if (_shownDecisions < _cap) {
             _shownDecisions++;
@@ -126,7 +151,7 @@ sealed class StepRecorder<TPartial> {
 sealed class StepBudgetExceededException : Exception {
     /// <summary>The recorder whose time limit ran out.</summary>
     public object Recorder { get; }
-    public StepBudgetExceededException(object recorder) : base("The solver ran past the time limit for recording steps.") {
+    public StepBudgetExceededException(object recorder) : base("The solver ran past its time limit.") {
         Recorder = recorder;
     }
 }
