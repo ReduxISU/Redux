@@ -48,9 +48,20 @@ public class StepTimeLimit_Tests {
     }
 
     [Fact]
-    public void RecordingOff_NeverTimesOut() {
-        // A budget far smaller than the solve takes: with recording off it must be ignored.
-        var run = ((ISolver)new NFASolver()).Run(SmallNfa, withSteps: false, TimeSpan.FromTicks(1));
+    public void RecordingOff_StillStopsAtTheLimit() {
+        // #935: a plain solve (no steps) is stopped too, by a recorder that keeps nothing but checks the clock.
+        var sw = Stopwatch.StartNew();
+        var run = ((ISolver)new NFASolver()).Run(SlowNfa, withSteps: false, TimeSpan.FromMilliseconds(50));
+        sw.Stop();
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+        Assert.True(run.TimedOut);
+        Assert.Equal(SolveRun.TimedOutAnswer, run.Answer);
+        Assert.Empty(run.Steps);
+    }
+
+    [Fact]
+    public void RecordingOff_WithinTheLimit_AnswersAsBefore() {
+        var run = ((ISolver)new NFASolver()).Run(SmallNfa, withSteps: false, TimeSpan.FromSeconds(60));
         Assert.False(run.TimedOut);
         Assert.Equal(new NFASolver().solve(new API.Problems.P.P_NFA.NFA(SmallNfa)), run.Answer);
         Assert.Empty(run.Steps);

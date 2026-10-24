@@ -256,17 +256,43 @@ public class StepRecorder_Tests {
     }
 
     [Fact]
-    public void Record_WithStepsOff_IgnoresTheTimeLimit() {
-        int calls = 0;
+    public void Record_WithStepsOff_StopsAtTheTimeLimit_WithoutRecording() {
+        // #935: with steps off the recorder keeps nothing and calls no lambda, but still stops the solve at the limit.
+        int lambdas = 0;
         var run = API.Interfaces.SolveRun.Record<NodeSet>(false, TimeSpan.FromMilliseconds(1), rec => {
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            while (sw.ElapsedMilliseconds < 40) { calls++; rec.Reject(() => Nodes("x"), () => "r"); }
-            return "{a}";
+            while (true) rec.Reject(() => { lambdas++; return Nodes("x"); }, () => { lambdas++; return "r"; });
         });
+        Assert.True(run.TimedOut);
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, run.Answer);
+        Assert.Empty(run.Steps);
+        Assert.Equal(0, lambdas);
+    }
+
+    [Fact]
+    public void Record_WithStepsOff_AndNoLimit_UsesTheOffRecorder() {
+        StepRecorder<NodeSet>? used = null;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(false, null, rec => { used = rec; return "{a}"; });
         Assert.False(run.TimedOut);
         Assert.Equal("{a}", run.Answer);
-        Assert.Empty(run.Steps);
-        Assert.True(calls > 0);
+        Assert.Same(StepRecorder<NodeSet>.Off, used);
+    }
+
+    [Fact]
+    public void DeadlineOnly_ChecksTheClockOnTheFirstStep_ThenEveryInterval() {
+        // A zero limit has passed at once: the first step stops the solve.
+        var rec = StepRecorder<NodeSet>.DeadlineOnly(TimeSpan.Zero);
+        Assert.Throws<StepBudgetExceededException>(() => rec.Reject(() => Nodes("x"), () => "r"));
+        Assert.Empty(rec.Steps);
+        Assert.Equal(0, rec.Total);
+    }
+
+    [Fact]
+    public void DeadlineOnly_WithinTheLimit_KeepsNothing() {
+        var rec = StepRecorder<NodeSet>.DeadlineOnly(TimeSpan.FromMinutes(5));
+        for (int i = 0; i < 10 * StepRecorder<NodeSet>.ClockCheckInterval; i++) rec.Reject(() => Nodes("x"), () => "r");
+        rec.Done(Nodes("x"), true, "done");
+        Assert.Empty(rec.Steps);
+        Assert.Equal(0, rec.Total);
     }
 
     [Fact]

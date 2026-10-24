@@ -662,13 +662,13 @@ public class SAT3_Tests {
     }
 
     [Fact]
-    public void Schoning_And_PPZ_ExpiredTimer_ReturnEmptySetImmediately() {
+    public void Schoning_And_PPZ_ExpiredTimer_StopImmediately() {
         SAT3 sat3 = new SAT3(UnsatInstance(40));
         Schoning schoning = new Schoning { timerHasExpired = true };
         PPZ ppz = new PPZ { timerHasExpired = true };
 
-        Assert.Equal("{}", schoning.solve(sat3));
-        Assert.Equal("{}", ppz.solve(sat3));
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, schoning.solve(sat3));
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, ppz.solve(sat3));
     }
 
     // -------------------------------------------------------------------------
