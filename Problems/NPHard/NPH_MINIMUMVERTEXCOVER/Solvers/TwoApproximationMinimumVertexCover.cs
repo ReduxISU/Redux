@@ -26,6 +26,12 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
 
     }
 
+    // #935: an outer solver's live time-limit flag (TwoApproximationVertexCover runs this solver).
+    private readonly Func<bool>? outerTimerHasExpired;
+    internal TwoApproximationMinimumVertexCover(Func<bool> outerTimerHasExpired) {
+        this.outerTimerHasExpired = outerTimerHasExpired;
+    }
+
     public string solve(MINIMUMVERTEXCOVER G) {
         //{{a,b,c,d,e,f,g} : {(a,b) & (a,c) & (c,d) & (c,e) & (d,f) & (e,f) & (e,g)}}
 
@@ -33,6 +39,7 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
         List<KeyValuePair<string, string>> C = new List<KeyValuePair<string, string>>(); //This becomes our maximal matching
         Random rnd = new Random();
         while (edges.Count > 0) {
+            if (timerHasExpired || outerTimerHasExpired?.Invoke() == true) return SolveRun.TimedOutAnswer;
             int index = rnd.Next(edges.Count); //gets a random edge index
             KeyValuePair<string, string> edge = edges[index]; //gets a random edge
             KeyValuePair<string, string> fullEdge = new KeyValuePair<string, string>(edge.Key, edge.Value); //makes previous line more explicit

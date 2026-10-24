@@ -133,12 +133,12 @@ public class SUBSETSUM_Tests {
     }
 
     [Fact]
-    public void SUBSETSUM_Solver_Returns_Empty_When_Timer_Has_Expired() {
-        // An expired timer makes the solver give up and return the "no solution" value.
+    public void SUBSETSUM_Solver_Stops_When_Timer_Has_Expired() {
+        // An expired timer makes the solver give up: it has no answer, so it says it was stopped (#935).
         SUBSETSUM problem = new SUBSETSUM();
         SubsetSumBruteForce solver = new SubsetSumBruteForce();
         solver.timerHasExpired = true;
-        Assert.Equal("{}", solver.solve(problem));
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, solver.solve(problem));
     }
 
     // -------------------------------------------------------------------------

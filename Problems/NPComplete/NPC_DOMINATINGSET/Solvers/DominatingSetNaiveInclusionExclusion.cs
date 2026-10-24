@@ -55,6 +55,7 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET> {
         List<int> solution = new List<int>();
 
         bool found = Branch(0, n, K, adj, chosen, ref solution);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (!found)
             return "{}";
@@ -65,6 +66,10 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET> {
 
     // Naive include/exclude recursion over vertex indices [i, n).
     private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution) {
+        // #935: unwind at the time limit; solve() then returns the timed-out answer.
+        if (timerHasExpired)
+            return false;
+
         if (chosen.Count > K)
             return false;
 

@@ -74,6 +74,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET> {
         var solution = new List<int>();
 
         bool ok = SearchExact(n, K, adj, closed, dominated, chosen, out solution);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (!ok)
             return "{}";
 
@@ -91,6 +92,10 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET> {
         out List<int> solution
     ) {
         solution = null!;
+
+        // #935: unwind at the time limit; solve() then returns the timed-out answer.
+        if (timerHasExpired)
+            return false;
 
         // Fast check: are we done?
         if (AllDominated(dominated)) {

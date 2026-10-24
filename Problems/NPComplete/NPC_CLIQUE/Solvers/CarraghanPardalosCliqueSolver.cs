@@ -42,6 +42,7 @@ class CarraghanPardalos : ISolver<CLIQUE> {
         List<string> partial = new List<string>();
 
         HashSet<string>? found = Expand(candidates, partial, clique.K, adj);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         return found != null ? "{" + string.Join(",", found) + "}" : "{}";
     }
@@ -71,6 +72,7 @@ class CarraghanPardalos : ISolver<CLIQUE> {
         }
 
         foreach (string v in candidates.ToList()) {
+            if (timerHasExpired) return null; // #935: unwind at the time limit; solve() returns the timed-out answer
 
             HashSet<string> newCandidates = new HashSet<string>(
                 candidates.Where(u => u != v && adj[v].Contains(u))
