@@ -15,7 +15,7 @@ namespace API.Problems.NPComplete.NPC_LOSSLESSDATACOMPRESSION.Verifiers {
         public const string CertificateGrammar = "({(asciiCode1,code1),(asciiCode2,code2),...},bitstring) | prefix-free binary code table paired with S encoded using it, whose total length is the minimum possible (optimal/Huffman); () if S is empty";
         public const string CertificateExample = "({(97,0),(98,10),(99,11)},01011)";
 
-        public string verifierName { get; } = "Default Lossless Data Compression Verifier";
+        public string verifierName { get; } = "Lossless Data Compression Optimality Verifier";
         public string verifierDefinition { get; } = "Verifies a proposed encoding by checking the prefix-free property, decoding the bitstring, comparing it with the original input, and checking that the encoded length equals the optimal (Huffman) length for the input's symbol frequencies.";
         public string source { get; } = "Sayood, K. (2018). Introduction to data compression (5th ed.). Morgan Kaufmann.";
         public string sourceFile { get; } = SourceFile.Path();
