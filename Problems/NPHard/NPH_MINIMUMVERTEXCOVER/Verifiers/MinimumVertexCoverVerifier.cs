@@ -7,7 +7,7 @@ namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Verifiers;
 class MinimumVertexCoverVerifier : IVerifier<MINIMUMVERTEXCOVER> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Minimum Vertex Cover Verifier";
+    public string verifierName { get; } = "Minimum Vertex Cover Solution Verifier";
     public string verifierDefinition { get; } = "This is a Minimum Vertex Cover Verifier.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

@@ -5,7 +5,7 @@ namespace API.Problems.NPComplete.NPC_DM3.Verifiers;
 class GenericVerifierDM3 : IVerifier<DM3> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default 3-Dimensional Matching Verifier";
+    public string verifierName { get; } = "3-Dimensional Matching Solution Verifier";
     public string verifierDefinition { get; } = "This verifier checks that a certificate is a perfect matching: every triple is one of the constraints in M, no element of X, Y or Z is used twice, and every element of X, Y and Z is covered.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

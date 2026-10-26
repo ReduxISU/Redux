@@ -89,7 +89,7 @@ The file should also include a function which takes a problem object and returns
 
 ### Verifiers
 The Verifiers folder should contain all verifier files for that problem. Each of which implements the `IVerifier` interface found in `Interfaces/VerifierInterface.cs`. This includes
-* `string verifierName` : Human readable name of verifier, this is what will appear in the GUI. It must be exactly `Default <Problem Name> Verifier` (checked by `NamingConvention_Tests`).
+* `string verifierName` : Human-readable name shown in the GUI. It must be exactly `<Problem Name> Solution Verifier` for a validity/feasibility check or `<Problem Name> Optimality Verifier` when it also proves optimality (checked by `NamingConvention_Tests`). Names are unique per problem, ignoring case. The problem's `defaultVerifier` property—not this display name—selects the default.
 * `string verifierDefinition` : A brief description of the algorithm used to verify the problem
 * `string source` : Formal citation of the source of the verifier algorithm
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.

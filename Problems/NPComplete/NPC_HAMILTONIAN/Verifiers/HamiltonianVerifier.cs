@@ -8,7 +8,7 @@ class HamiltonianVerifier : IVerifier<HAMILTONIAN> {
     public const string CertificateExample = "{1,2,4,5,3}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Hamiltonian Cycle Verifier";
+    public string verifierName { get; } = "Hamiltonian Cycle Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Hamiltonian Cycle";
     public string source { get; } = " ";
     public string sourceFile { get; } = SourceFile.Path();
