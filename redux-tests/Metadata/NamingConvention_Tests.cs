@@ -68,8 +68,12 @@ public class NamingConvention_Tests {
     // ── Verifiers ────────────────────────────────────────────────────────────
 
     public static IEnumerable<object[]> AllVerifiers() {
-        foreach (var (_, type) in ProblemProvider.Verifiers)
+        foreach (var (_, type) in ProblemProvider.Verifiers) {
+            // Placeholder for problems with no verifier (Interfaces/DummyClasses/DummyVerifier.cs); it
+            // belongs to no problem, so there is no name to match. Same precedent as AllSolvers below.
+            if (type.Name == "DummyVerifier") continue;
             yield return new object[] { type };
+        }
     }
 
     [Theory]
