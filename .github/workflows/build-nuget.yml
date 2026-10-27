@@ -1,4 +1,4 @@
-name: Build and Publish Redux NuGet Package
+name: Build and Publish ISU Redux NuGet Package
 
 on:
   push:
@@ -15,41 +15,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
+  package:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      - name: Set up .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
 
-      - name: Restore dependencies
+      - name: Restore library tests
         run: dotnet restore Redux.Library.Tests/Redux.Library.Tests.csproj
 
-      - name: Run library tests
+      - name: Test Redux library
         run: |
           dotnet test Redux.Library.Tests/Redux.Library.Tests.csproj \
             -c Release \
             --no-restore
 
-      - name: Build NuGet package
+      - name: Pack ISU.Redux.Library
         run: |
-          VERSION="1.1.${{ github.run_number }}"
-
           dotnet pack Redux.Library/Redux.Library.csproj \
             -c Release \
-            -o ./nupkgs \
-            -p:PackageVersion="$VERSION"
+            -p:PackageId=ISU.Redux.Library \
+            -p:PackageVersion=1.1.${{ github.run_number }} \
+            -o ./nupkgs
 
-      - name: Upload package artifact
+      - name: Upload NuGet artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Redux-NuGet-Package
+          name: ISU-Redux-NuGet-Package-${{ github.run_number }}
           path: ./nupkgs/*.nupkg
+          if-no-files-found: error
 
       - name: Authenticate with NuGet.org
         uses: NuGet/login@v1
@@ -57,7 +57,7 @@ jobs:
         with:
           user: prashant9711
 
-      - name: Publish to NuGet.org
+      - name: Publish ISU.Redux.Library to NuGet.org
         env:
           NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
