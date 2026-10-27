@@ -159,7 +159,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
         var entries = await GetZipEntries(ProblemUrl);
         var verifier = entries["NPC_TRAVELINGSALESPERSON/Verifiers/TravelingSalesPersonVerifier.cs"];
 
-        Assert.Contains("\"Default Traveling Sales Person Verifier\"", verifier);
+        Assert.Contains("\"Traveling Sales Person Solution Verifier\"", verifier);
         Assert.Contains("class TravelingSalesPersonVerifier", verifier);
     }
 
