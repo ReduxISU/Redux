@@ -32,6 +32,11 @@ interface IReduction {
     string source { get; }
     // Repo-relative path of the file declaring this class; see SourceFile.
     string sourceFile { get; }
+    // Link to the formal citation in `source`. Optional, so it defaults to "". [JsonIgnore] keeps it out
+    // of JSON written through an interface-typed member (e.g. /ProblemProvider/reduce), which never had
+    // it; a class that declares its own sourceLink still shows it in /info.
+    [System.Text.Json.Serialization.JsonIgnore]
+    string sourceLink { get => ""; }
     string[] contributors { get; }
     IVisualization visualization { get; }
     List<Gadget> gadgets { get; }
@@ -53,6 +58,12 @@ interface IReduction {
     ReductionType reductionType { get => ReductionType.Unclassified; }
 
     ReductionComplexityBucket complexityBucket { get => ReductionComplexityBucket.Unclassified; }
+
+    // Free-text Big-O note on how long the reduction takes, e.g. "O(n^2), n = |CLIQUE.nodes|". Every
+    // reduction declares it (the metadata tests require it non-empty), so it is required here. JsonIgnore
+    // as for sourceLink: /ProblemProvider/reduce, which writes the reduction as IReduction, never had it.
+    [System.Text.Json.Serialization.JsonIgnore]
+    string? complexity { get; }
 }
 
 interface IReduction<T, U> : IReduction where T : IProblem where U : IProblem {

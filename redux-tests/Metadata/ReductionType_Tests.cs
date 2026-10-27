@@ -284,6 +284,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
         public IProblem reductionTo => null!;
         public IProblem reduce() => throw new NotImplementedException();
         public string mapSolutions(string problemFromSolution) => "";
+        public string? complexity => null;
         public ReductionCost cost { get; init; } = ReductionCost.Unclassified;
         public ReductionComplexityBucket complexityBucket { get; init; } = ReductionComplexityBucket.Unclassified;
     }

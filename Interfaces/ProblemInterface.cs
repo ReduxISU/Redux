@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
 
@@ -5,6 +6,11 @@ namespace API.Interfaces;
 
 interface IProblem {
     string problemName { get; }
+    // Link to information on the problem. [JsonIgnore] here only affects JSON written through an
+    // IProblem-typed member (e.g. reductionFrom in /ProblemProvider/reduce), which never carried it;
+    // /info serializes the concrete class, whose own property is unaffected.
+    [JsonIgnore]
+    string problemLink { get; }
 
     string formalDefinition { get; }
     string problemDefinition { get; }
@@ -13,6 +19,10 @@ interface IProblem {
     string source { get; }
     // Repo-relative path of the file declaring this class; see SourceFile.
     string sourceFile { get; }
+    // Link to the formal citation in `source`. Optional; not every problem has one. A default
+    // interface member is left out of /info, so a problem without one serializes as it always has.
+    [JsonIgnore]
+    string sourceLink { get => ""; }
     string wikiName { get; }
     string defaultInstance { get; }
     string instance { get; }
