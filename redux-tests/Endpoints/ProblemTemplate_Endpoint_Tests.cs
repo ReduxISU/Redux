@@ -238,7 +238,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
 
         Assert.True(Declares(solver, "SolverType solverType"), "solverType must be declared");
         Assert.True(Declares(solver, "SolverComplexityBucket complexityBucket"), "complexityBucket must be declared");
-        Assert.True(Declares(solver, "string complexity"), "complexity must be declared");
+        Assert.True(Declares(solver, "MathematicalFunction? timeComplexity"), "timeComplexity must be declared");
         Assert.Contains("throw new NotImplementedException", solver);
     }
 
