@@ -38,6 +38,7 @@ class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, SetCoverDefaultV
     // Declared, not derived. SETCOVER is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // --- Properties ---
     public List<string> universal {
