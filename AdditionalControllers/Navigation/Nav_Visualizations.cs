@@ -12,7 +12,8 @@ internal static class VisualizationTypeCatalog {
     internal static string[] All() =>
         Enum.GetNames(typeof(VisualizationType)).OrderBy(n => n, StringComparer.Ordinal).ToArray();
 
-    // className -> declared visualizationType's wire value. Built by instantiating every
+    // className -> declared visualizationType's wire value: the first tag (Tags.First), the same value as the
+    // deprecated single field in /info, never the comma-joined flags string. Built by instantiating every
     // reflected visualizer inside a per-type try/catch, exactly like Nav_Batch.cs's
     // InfoJson: one visualizer with a throwing/missing default constructor must not take
     // down navigation at startup. Deliberately Lazy<>, never a static readonly field
@@ -24,7 +25,7 @@ internal static class VisualizationTypeCatalog {
         foreach (var (_, type) in ProblemProvider.Visualizers) {
             try {
                 if (Activator.CreateInstance(type) is IVisualization instance)
-                    result[type.Name] = instance.visualizationType.ToString();
+                    result[type.Name] = Tags.First(instance.visualizationType);
             } catch {
                 // Skip a visualizer that can't be default-constructed instead of
                 // failing the whole catalog.

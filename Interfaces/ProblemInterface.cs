@@ -41,8 +41,16 @@ interface IProblem {
     ComplexityClass complexityClass { get => ComplexityClass.Unclassified; }
 
     // Declared, not derived. Subject-matter category (Garey & Johnson's taxonomy) for
-    // filtering/discovery, independent of complexityClass.
+    // filtering/discovery, independent of complexityClass. A tag set: declare every category that
+    // fits, e.g. ProblemType.GraphTheory | ProblemType.NetworkDesign (see Tags). The JSON lists them as
+    // problemTypes; the single problemType field is deprecated and holds the first of them.
     ProblemType problemType { get => ProblemType.Unclassified; }
+
+    // Declared, not derived (#616): Decision, Optimization, or both if the class supports both. Same
+    // tag-set shape as problemType, but written only as the list problemVariants. [JsonIgnore] as for
+    // problemLink, so JSON written through an IProblem-typed member doesn't gain a single field.
+    [JsonIgnore]
+    ProblemVariant problemVariant { get => ProblemVariant.Unclassified; }
 
     string[] contributors { get; }
 

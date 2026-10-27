@@ -30,12 +30,13 @@ public class BatchController : ControllerBase {
     // fields serialize (System.Text.Json omits them by default, whereas the previous
     // Newtonsoft path serialized them), plus cycle handling to replace the old
     // ReferenceLoopHandling.Ignore now that arbitrary reflected instances are serialized. Also writes
-    // the defaults a plain-IProblem problem inherits, as /info does (see ProblemDefaultsJson).
-    private static readonly JsonSerializerOptions ReflectedIndented = API.Interfaces.ProblemDefaultsJson.Apply(new() {
+    // the defaults a plain-IProblem problem inherits and the tag lists, as /info does (see ProblemDefaultsJson
+    // and TagListJson).
+    private static readonly JsonSerializerOptions ReflectedIndented = API.Interfaces.TagListJson.Apply(API.Interfaces.ProblemDefaultsJson.Apply(new() {
         WriteIndented = true,
         IncludeFields = true,
         ReferenceHandler = ReferenceHandler.IgnoreCycles
-    });
+    }));
 
     // All top-level problem names, from the same reflected source as the singular
     // Navigation/*Problems* endpoints (see ProblemNavigationData in Nav_Problems.cs).
@@ -51,7 +52,7 @@ public class BatchController : ControllerBase {
     private static readonly Lazy<string> VisualizationsJson = new(() =>
         GroupedJson(VisualizationNavigationData.Entries.Select(e => (e.problemName, e.className))));
 
-    // className -> declared VisualizationType wire value, for every reflected
+    // className -> declared VisualizationType wire value (the deprecated single value, the first tag), for every reflected
     // visualizer. Backed by VisualizationTypeCatalog.ByClassName (see
     // Nav_Visualizations.cs), which already does the per-type try/catch instantiation.
     // Exists so the GUI can resolve renderability without walking allInfo, which would
