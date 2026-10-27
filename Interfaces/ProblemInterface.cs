@@ -19,8 +19,9 @@ interface IProblem {
     string source { get; }
     // Repo-relative path of the file declaring this class; see SourceFile.
     string sourceFile { get; }
-    // Link to the formal citation in `source`. Optional; not every problem has one. A default
-    // interface member is left out of /info, so a problem without one serializes as it always has.
+    // Link to the formal citation in `source`. Optional (not every problem has one), so it defaults to "".
+    // A default interface member is left out of /info, so a problem without one serializes as before;
+    // [JsonIgnore] as for problemLink.
     [JsonIgnore]
     string sourceLink { get => ""; }
     string wikiName { get; }
