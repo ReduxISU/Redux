@@ -115,12 +115,11 @@ public class {NAME_UPPERCASE}_Tests {
 
     [Fact]
     public void {NAME_UPPERCASE}_Solver_ReturnsDocumentedValueWhenTimerHasExpired() {
-        // The template returns "timeout". Many solvers return their no-solution value instead.
-        // Whichever you choose, write it here and in the solver's documentation.
+        // Every solver stops with SolveRun.TimedOutAnswer when the time limit has passed (#935).
         {NAME_UPPERCASE} problem = new {NAME_UPPERCASE}();
         {NAME_PASCAL_CASE}Solver solver = new {NAME_PASCAL_CASE}Solver();
         solver.timerHasExpired = true;
-        Assert.Equal("TODO: your timer-expired value", solver.solve(problem));
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
     }
 
     // -------------------------------------------------------------------------

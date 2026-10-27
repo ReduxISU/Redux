@@ -26,9 +26,10 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     public string solve({PROBLEM} problem) {
         // TODO: implement {SOLVER} for {PROBLEM}
 
-        // make sure to check timerHasExpired occasionally, and return if it has
+        // Check timerHasExpired inside every long loop: the API sets it when the request's time limit runs out (#935).
+        // When it is set, stop and return SolveRun.TimedOutAnswer (never a made-up answer).
         if (timerHasExpired)
-            return "timeout";
+            return SolveRun.TimedOutAnswer;
 
         // An unfinished solver must fail loudly, not silently claim "no solution".
         throw new NotImplementedException("TODO: implement {SOLVER} for {PROBLEM}");

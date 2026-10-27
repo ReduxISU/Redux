@@ -684,7 +684,7 @@ public class SAT3_Tests {
     }
 
     [Fact]
-    public void Schoning_And_PPZ_ExpiredTimer_ReturnEmptySetImmediately() {
+    public void Schoning_And_PPZ_ExpiredTimer_StopImmediately() {
         SAT3 sat3 = new SAT3(UnsatInstance(40));
         Schoning schoning = new Schoning { timerHasExpired = true };
         PPZ ppz = new PPZ { timerHasExpired = true };
