@@ -6,7 +6,7 @@ New problems go in the back end repository in the `Problems/NPComplete` folder. 
 * A file named `PROBLEMNAME_Class.cs`
 * A folder named "Solvers"
 * A folder named "Verifiers"
-* A folder named "Visualizations" (if the problem has a visualization; otherwise use `DummyVisualization`)
+* A folder named "Visualizations" (if the problem has a visualization; otherwise it uses `DummyVisualization`)
 * A folder named `ReduceTo/` (if the problem has reductions). Each reduction goes in `ReduceTo/NPC_<TO>/`, where `<TO>` is the problem it reduces **to**.
 
 ### Where each file in the zip goes
@@ -19,28 +19,30 @@ Do not unzip the download over the repo. Copy each file to the place below (path
 | `NPC_SUBSETSUM/SUBSETSUM_Class.cs` | `Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs` |
 | `NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` |
 | `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` |
-| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` (delete it, and the folder, if you use `DummyVisualization`) |
+| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` (delete it, and the folder, if you use `DummyVisualization`; with no `[DefaultFor]` visualization the problem uses it by itself) |
 | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` (some tests contain a `TODO` and fail on purpose until you fill them in) |
 
-The separate downloads work the same way. A solver zip has `NPC_<PROBLEM>/Solvers/<Name>.cs` (goes to `Problems/NPComplete/NPC_<PROBLEM>/Solvers/`), a verifier zip has `NPC_<PROBLEM>/Verifiers/<Name>.cs`, a visualization zip has `NPC_<PROBLEM>/Visualizations/<Name>.cs`, and a reduction zip has `NPC_<FROM>/ReduceTo/NPC_<TO>/<Name>.cs` (goes to `Problems/NPComplete/NPC_<FROM>/ReduceTo/NPC_<TO>/`). Use the `NPH_` or `P_` folder and prefix, and fix the namespaces, if the problem lives under `Problems/NPHard/` or `Problems/P/`.
+In the problem download, the solver, verifier, and visualization each start with `[DefaultFor(typeof(SUBSETSUM))]`, which makes them the problem's defaults. The problem class does not name them, so it compiles on its own.
+
+The separate downloads work the same way, except that a separately downloaded solver, verifier, or visualization is not marked as a default: it only has a comment showing the `[DefaultFor]` line to add. A problem has at most one default of each kind. A solver zip has `NPC_<PROBLEM>/Solvers/<Name>.cs` (goes to `Problems/NPComplete/NPC_<PROBLEM>/Solvers/`), a verifier zip has `NPC_<PROBLEM>/Verifiers/<Name>.cs`, a visualization zip has `NPC_<PROBLEM>/Visualizations/<Name>.cs`, and a reduction zip has `NPC_<FROM>/ReduceTo/NPC_<TO>/<Name>.cs` (goes to `Problems/NPComplete/NPC_<FROM>/ReduceTo/NPC_<TO>/`). Use the `NPH_` or `P_` folder and prefix, and fix the namespaces, if the problem lives under `Problems/NPHard/` or `Problems/P/`.
 
 The full explanation, with a table for each download, is in the guides: <https://github.com/ReduxISU/Redux/blob/CSharpAPI/Documentation/guides/adding-a-problem.md#where-each-file-in-the-zip-goes>. The tests to write are listed in <https://github.com/ReduxISU/Redux/blob/CSharpAPI/Documentation/guides/building-and-testing.md#5-required-tests-for-each-kind-of-change>.
 
 The generated files spell out every member you must decide. Metadata is declared as `Unclassified` (or an empty string) with a `TODO` comment, and unfinished methods throw `NotImplementedException`. Tests fail until you replace each of those, and that is intentional.
 
-Members that come from the interfaces are required, unless they are marked "optional" below. Members that are marked "convention" are not part of the interface, but every problem, solver, and so on carries them and the website shows them.
+Members that come from the interfaces are required, unless they are marked "optional" below.
 
 ### Problem Class
-The `PROBLEMNAME_Class.cs` should implement the `IProblem` interface or one of its variants, found in `Interfaces/ProblemInterface.cs`. This includes
+The `PROBLEMNAME_Class.cs` should implement the `IProblem` interface (or `IGraphProblem` for a graph problem), found in `Interfaces/ProblemInterface.cs`. Older problems implement `IProblem<Solver, Verifier, Visualization>`, which names their defaults; new problems leave that to `[DefaultFor]` on the solver, verifier, and visualization (see `Interfaces/DefaultFor.cs`). This includes
 * `string problemName` : Human readable problem name, this is what the problem will appear as in the GUI
-* `string problemLink` : (convention) Link to information on the problem, not necessarily a formal definition
+* `string problemLink` : Link to information on the problem, not necessarily a formal definition
 * `string formalDefinition` : Definition in the form of {[problem variables] | "definition" }
 * `string problemDefinition` : A more easily readable form of the above definition.
 * `string inputDescription` : A short plain-English name for the problem's input, e.g. "Φ, a boolean formula"
 * `string outputDescription` : A short plain-English description of the problem's output, e.g. "True or False"
 * `string source` : A formal citation of the source material for the problem definition
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
-* `string sourceLink` : (convention) A link to the formal citation
+* `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
 * `string wikiName` : Deprecated and unused, but still a required member of the interface. Declare it as an empty string (`= ""`) and do not put anything in it.
 * `string defaultInstance` : A reasonably sized example of the problem, and the necessary format. *If the problem is of a similar form to an existing problem, such as a directed graph, the format should match the existing problems.*
 * `string instance` : The instance string this object was built from.
@@ -49,9 +51,7 @@ The `PROBLEMNAME_Class.cs` should implement the `IProblem` interface or one of i
 * `ComplexityClass complexityClass` : Declared by a person, never guessed. The template declares it as `Unclassified`, and the metadata tests fail while it stays that way.
 * `ProblemType problemType` : Declared subject-matter category (Garey and Johnson's taxonomy). Same rule as `complexityClass`; the template declares it as `Unclassified` too.
 * `string[] contributors` : A list of names of all developers who have worked on the problem
-* `T defaultSolver` : An object of the default solver for the problem
-* `U defaultVerifier` : An object of the default verifier for the problem
-* `V defaultVisualization` : An object of the default visualization for the problem
+* `defaultSolver`, `defaultVerifier`, `defaultVisualization` : Supplied by the interface; do not declare them. They are the classes marked `[DefaultFor(typeof(PROBLEMNAME))]`, or a placeholder (`DummySolver`, `DummyVerifier`, `DummyVisualization`) for a kind with none
 
 The `PROBLEMNAME_Class.cs` should also include any necessary problem variables, any functions necessary for parsing string instances into a variable, and two constructors. One constructor that takes a string instance, and one which uses the default instance.
 
@@ -63,7 +63,7 @@ The `ReduceTo/NPC_<TO>/` folder contains the reduction files from this problem t
 * `string reductionDefinition` : A brief description of the algorithm used to reduce the problem
 * `string source` : Formal citation of the source of the reduction algorithm
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
-* `string sourceLink` : (convention) A link to the formal citation
+* `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
 * `string[] contributors` : A list of names of all developers who have worked on the reduction
 * `List<Gadget> gadgets` : (optional, defaults to an empty list) A list of gadgets used in the reduction to visually represent the reduction elements
 * `{FROM} reductionFrom` : An instance of the problem we are reducing from (the template keeps it in a private `_reductionFrom` field)
@@ -71,15 +71,16 @@ The `ReduceTo/NPC_<TO>/` folder contains the reduction files from this problem t
 * `{TO} reduce()` : The reduction algorithm itself
 * `string mapSolutions(string)` : Turns a solution of the FROM problem into the matching solution of the TO problem
 * `ReductionCost cost`, `ReductionType reductionType`, `ReductionComplexityBucket complexityBucket` : Declared by a person, never guessed. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way.
-* `string? complexity` : Free-text Big-O note about running time. It is not part of the interface, but the metadata tests require it to be non-empty, so the template declares it as `""` for you to fill in.
+* `string? complexity` : Free-text Big-O note about running time. The metadata tests require it to be non-empty, so the template declares it as `""` for you to fill in.
 
 ### Solvers
-The Solvers folder should contain all solver files for that problem. Each of which implements the `ISolver` interface found in `Interfaces/SolverInterface.cs`. This includes
+The Solvers folder should contain all solver files for that problem. Each of which implements the `ISolver` interface found in `Interfaces/SolverInterface.cs`. Mark the problem's default solver with `[DefaultFor(typeof(PROBLEMNAME))]`. This includes
 * `string solverName` : Human readable name of solving algorithm, this is what will appear in the GUI
 * `string solverDefinition` : A brief description of the algorithm used to solve the problem
 * `string source` : Formal citation of the source of the solving algorithm
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string[] contributors` : A list of names of all developers who have worked on the solver
+* `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
 * `bool timerHasExpired` : bool that says if the timer for a problem has expired. Check it now and then in long loops and return if it is true.
 * `SolverType solverType`, `SolverComplexityBucket complexityBucket` : Declared by a person. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way.
 * `string complexity` : A Big-O string. The template declares it as `""` and a metadata test fails until you fill it in. Only write one you are confident of.
@@ -88,12 +89,12 @@ The file should also include a function which takes a problem object and returns
 *Because for now, most problems are NP-Complete, solution algorithms should return a complete solution.*
 
 ### Verifiers
-The Verifiers folder should contain all verifier files for that problem. Each of which implements the `IVerifier` interface found in `Interfaces/VerifierInterface.cs`. This includes
-* `string verifierName` : Human-readable name shown in the GUI. It must be exactly `<Problem Name> Solution Verifier` for a validity/feasibility check or `<Problem Name> Optimality Verifier` when it also proves optimality (checked by `NamingConvention_Tests`). Names are unique per problem, ignoring case. The problem's `defaultVerifier` property—not this display name—selects the default.
+The Verifiers folder should contain all verifier files for that problem. Each of which implements the `IVerifier` interface found in `Interfaces/VerifierInterface.cs`. Mark the problem's default verifier with `[DefaultFor(typeof(PROBLEMNAME))]`. This includes
+* `string verifierName` : Human-readable name shown in the GUI. It must be exactly `<Problem Name> Solution Verifier` for a validity/feasibility check or `<Problem Name> Optimality Verifier` when it also proves optimality (checked by `NamingConvention_Tests`). Names are unique per problem, ignoring case. `[DefaultFor(typeof(PROBLEMNAME))]` on the class (or, for an older problem, its `defaultVerifier` property)—not this display name—selects the default.
 * `string verifierDefinition` : A brief description of the algorithm used to verify the problem
 * `string source` : Formal citation of the source of the verifier algorithm
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
-* `string sourceLink` : (convention) A link to the formal citation
+* `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
 * `string certificate` : The certificate this verifier was last given. The template supplies it.
 * `string[] contributors` : A list of names of all developers who have worked on the verifier
 
@@ -102,13 +103,13 @@ The file should also include a function which takes a problem object and certifi
 The verifier should **throw `CertificateParseException`** (defined in `Interfaces/ParseExceptions.cs`) on malformed certificate input rather than silently returning `false`. The controller catches it and returns HTTP 400 with `problem.certificateFormat` quoted back to the caller. Return `false` only when the certificate parses successfully but fails the verification predicate.
 
 ### Visualizations
-The Visualizations folder should contain all visualization files for that problem. Each of which implements the `IVisualization` interface found in `Interfaces/VisualizationInterface.cs`. This includes
+The Visualizations folder should contain all visualization files for that problem. Each of which implements the `IVisualization` interface found in `Interfaces/VisualizationInterface.cs`. Mark the problem's default visualization with `[DefaultFor(typeof(PROBLEMNAME))]`. This includes
 * `string visualizationName` : Human readable name of visualization, this is what will appear in the GUI
 * `string visualizationDefinition` : A brief description of the visualization used to visualize the problem
 * `string source` : Formal citation of the source of the visualization algorithm
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
-* `string sourceLink` : (convention) A link to the formal citation
-* `VisualizationType visualizationType` : Which renderer the GUI should use for the JSON you return. The template uses `Unimplemented`, and a test fails until you pick a real type. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead. Adding a new type means updating `Documentation/visualization-types.json` and adding a renderer in Redux_GUI.
+* `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
+* `VisualizationType visualizationType` : Which renderer the GUI should use for the JSON you return. The template uses `Unimplemented`, and a test fails until you pick a real type. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead (leave out the visualization class, or its `[DefaultFor]`). Adding a new type means updating `Documentation/visualization-types.json` and adding a renderer in Redux_GUI.
 * `string[] contributors` : A list of names of all developers who have worked on the visualization
 * `ISolver solver` : The solver to use for this visualization. The template uses the problem's default solver, which is fine if `StepsVisualization` is not implemented
 

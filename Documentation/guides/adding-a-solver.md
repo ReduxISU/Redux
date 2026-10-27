@@ -64,7 +64,7 @@ Rules that matter:
 - Your class name must be unique. Two classes with the same name (ignoring upper/lower case) crash startup.
 - You do not edit any list. Creating the class is enough.
 - The list of solvers for a problem, at `GET /Navigation/Problem_SolversRefactor?chosenProblem=SUBSETSUM` ([Nav_Solvers.cs](../../AdditionalControllers/Navigation/Nav_Solvers.cs)), is built from the type argument of `ISolver<PROBLEM>`. Pick it carefully. (`Problem_SolversRefactor` is the controller name with the word "Controller" dropped.)
-- Being **listed** is different from being the **default**. Every solver class for the problem shows up in that list. The one the problem class names in its `defaultSolver` property is the default. To make your solver the default, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra solver, leave `defaultSolver` alone. Subset Sum has two solvers: the brute force one is the default, and [FastApproximation.cs](../../Problems/NPComplete/NPC_SUBSETSUM/Solvers/FastApproximation.cs) is an extra.
+- Being **listed** is different from being the **default**. Every solver class for the problem shows up in that list. The default is the one marked `[DefaultFor(typeof(PROBLEM))]` ([Interfaces/DefaultFor.cs](../../Interfaces/DefaultFor.cs)), at most one per problem. Older problems on `IProblem<Solver, Verifier, Visualization>` name it in the problem class's `defaultSolver` instead; to change one of those, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra solver, add no attribute and leave `defaultSolver` alone. Subset Sum has two solvers: the brute force one is the default, and [FastApproximation.cs](../../Problems/NPComplete/NPC_SUBSETSUM/Solvers/FastApproximation.cs) is an extra.
 
 The API endpoint you get for free: `POST /ProblemProvider/solve?solver=<ClassName>`, with the instance as a JSON string in the body. Once the API is running (it normally listens on port 27000), try the worked example:
 
@@ -301,7 +301,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Solver"
 - [ ] `solve()` checks `timerHasExpired` inside its main loop.
 - [ ] The returned certificate matches the problem's `certificateFormat`, and a returned answer passes the problem's verifier.
 - [ ] The "no solution" and "timed out" results are documented in comments and tested.
-- [ ] If this is the problem's default solver, the problem class's `defaultSolver` points to it, and the problem's default instance solves quickly.
+- [ ] If this is the problem's default solver, it is marked `[DefaultFor(typeof(PROBLEM))]` (or, for an older `IProblem<...>` problem, the problem class's `defaultSolver` points to it), and the problem's default instance solves quickly.
 - [ ] You added tests for solved, no-solution, and timer cases.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).

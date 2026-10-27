@@ -23,19 +23,25 @@ Everyday analogy: a problem is a recipe card in a recipe box. The card says what
 
 In Redux:
 
-- A problem is one C# class, for example `SUBSETSUM`. It implements `IProblem<Solver, Verifier, Visualization>` ([Interfaces/ProblemInterface.cs](../../Interfaces/ProblemInterface.cs)). The three type parameters name its **default solver, default verifier, and default visualization**.
+- A problem is one C# class, for example `SUBSETSUM`. It implements `IProblem` ([Interfaces/ProblemInterface.cs](../../Interfaces/ProblemInterface.cs)).
+- The class does **not** name its default solver, verifier, or visualization. Each of those classes says which problem it is the default for, with an attribute: `[DefaultFor(typeof(SUBSETSUM))]` ([Interfaces/DefaultFor.cs](../../Interfaces/DefaultFor.cs)).
+- Older problems, including the worked example `SUBSETSUM`, name all three in the class instead, as type parameters: `IProblem<Solver, Verifier, Visualization>`. That still works, but new problems use plain `IProblem` and the attribute.
 - The class holds the problem's description (name, definitions, citation), its default instance, and the code that **parses** (reads) an instance string into C# fields.
 - You do not write a controller or register anything. Redux finds every problem class automatically (see section 3), and the API exposes it.
 
-### The minimum you need so it compiles
+### The minimum you need
 
-Because of those three type parameters, a problem cannot compile alone. You need at least:
+The problem class compiles on its own. Until a class declares `[DefaultFor(typeof(YourProblem))]`, the problem uses a placeholder for that kind ([Interfaces/DummyClasses/](../../Interfaces/DummyClasses/)): `DummySolver` answers `""`, `DummyVisualization` draws nothing, and with `DummyVerifier` the verify endpoint answers 400 `no_verifier`. So you can build and try the problem class first.
+
+Before you open a pull request you need at least:
 
 | Piece | Minimum | Where to learn how |
 | --- | --- | --- |
-| Default solver | One class implementing `ISolver<YourProblem>` | [adding-a-solver.md](adding-a-solver.md) |
-| Default verifier | One class implementing `IVerifier<YourProblem>` | [adding-a-verifier.md](adding-a-verifier.md) |
-| Default visualization | A real one, **or** the built-in `DummyVisualization` placeholder | [adding-a-visualization.md](adding-a-visualization.md) |
+| Default solver | One class implementing `ISolver<YourProblem>`, marked `[DefaultFor(typeof(YourProblem))]` | [adding-a-solver.md](adding-a-solver.md) |
+| Default verifier | One class implementing `IVerifier<YourProblem>`, marked `[DefaultFor(typeof(YourProblem))]` | [adding-a-verifier.md](adding-a-verifier.md) |
+| Default visualization | A real one marked `[DefaultFor(typeof(YourProblem))]`, **or** none, which leaves the `DummyVisualization` placeholder | [adding-a-visualization.md](adding-a-visualization.md) |
+
+A problem has at most one `[DefaultFor]` class of each kind; a test checks that (section 5).
 
 `DummyVisualization` ([Interfaces/DummyClasses/DummyVisualization.cs](../../Interfaces/DummyClasses/DummyVisualization.cs), namespace `API.DummyClasses`) is the official "no visualization yet" answer. The worked example below uses it. If you do write a real visualization that introduces a new drawing type, the extra steps (a manifest file and a GUI check) are in [adding-a-visualization.md](adding-a-visualization.md).
 
@@ -85,7 +91,7 @@ Rules that matter:
 | Namespace | Matches the folder path, see the table above | `API.Problems.NPComplete.NPC_SUBSETSUM` |
 | Class name | Unique across the project; **no** `NPC_`/`NPH_`/`P_` prefix | `SUBSETSUM` |
 | Sub-folders | `Solvers/`, `Verifiers/`, `Visualizations/`, `ReduceTo/`, each with its own sub-namespace | `...NPC_SUBSETSUM.Solvers` |
-| Implements | `IProblem<Solver, Verifier, Visualization>`, or `IGraphProblem<...>` for graph problems | `IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualization>` |
+| Implements | `IProblem`, or `IGraphProblem` for graph problems | `IProblem` (the older worked example uses `IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualization>`) |
 
 **The folder is a filing label, not the truth.** A problem's real complexity class is the `complexityClass` value you declare in the class ([Interfaces/ComplexityClass.cs](../../Interfaces/ComplexityClass.cs)). The API trusts that value, not the folder. A few existing problems sit in a folder that does not match their declared class (for example `NPC_MAXCUT` declares `NPHard`). Put yours in the folder that matches your declared class, and make the two agree.
 
@@ -150,12 +156,14 @@ Paths are from the repo root (the folder that contains `Redux.slnx`), shown for 
 | `NPC_SUBSETSUM/SUBSETSUM_Class.cs` | `Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs` | The problem class. Fill in the metadata and the constructor that parses the instance (Steps 2 and 3). |
 | `NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | The default solver. Throws `NotImplementedException` until you write it ([adding-a-solver.md](adding-a-solver.md)). |
 | `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | The default verifier, already named `"Subset Sum Solution Verifier"`. Throws `NotImplementedException` until you write it ([adding-a-verifier.md](adding-a-verifier.md)). |
-| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | A starting visualization ([adding-a-visualization.md](adding-a-visualization.md)). **If you use `DummyVisualization` instead, delete this file and the `Visualizations` folder**, and point the class's `defaultVisualization` at `DummyVisualization`. |
+| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | A starting visualization ([adding-a-visualization.md](adding-a-visualization.md)). **If you use `DummyVisualization` instead, delete this file and the `Visualizations` folder.** With no `[DefaultFor]` visualization, the problem uses `DummyVisualization` by itself. |
 | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | Your test file. Some tests are finished and some contain a `TODO` and fail on purpose until you fill them in (section 5 below). |
 
 The `NPC_` folders go under `Problems/NPComplete/`, as in the table. If your problem belongs in `Problems/NPHard/` or `Problems/P/`, put the folder there instead, rename it with the `NPH_` or `P_` prefix, and fix the namespaces in the class, solver, verifier, and visualization (see section 3). The test file's folder uses the same prefix, and its `using` lines need the same fix.
 
 There are separate download endpoints for just a solver, verifier, visualization, or reduction. Those are covered in the matching guides.
+
+The generated solver, verifier, and visualization each start with `[DefaultFor(typeof(SUBSETSUM))]`, which makes them the problem's defaults. The class file names none of them, so it compiles even before you copy the other three in.
 
 **The generated files are starting points, not finished code.** The template spells out every member you must decide. Tests fail until you replace each `Unclassified` or empty value and each `NotImplementedException`, and that is intentional. Look for the `TODO` comments:
 
@@ -172,14 +180,14 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 | Member | What it is for | Worked example value |
 | --- | --- | --- |
 | `problemName` | The name people see in the GUI. | `"Subset Sum"` |
-| `problemLink` | A link to a page that explains the problem. Not in the interface, but every template and problem has it. | the Wikipedia page |
+| `problemLink` | A link to a page that explains the problem. | the Wikipedia page |
 | `formalDefinition` | The problem written like math: `Name = <inputs> \| condition`. | `"Subset Sum = <S, T> \| S is a set of positive integers and ..."` |
 | `problemDefinition` | The same idea in plain English. | `"The problem is to determine whether there exists a sum of elements that totals to the number T."` |
 | `inputDescription` | A short name for the input. | `"S, a set of integers, and T, a target sum"` |
 | `outputDescription` | A short description of the answer. | `"True or False, whether some subset of S sums to T"` |
 | `source` | A proper citation for where the problem comes from. | Karp, "Reducibility among combinatorial problems", 1972 |
 | `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
-| `sourceLink` | A link to that citation. Not in the interface, but present in the template and in problems. | the Karp PDF link |
+| `sourceLink` | A link to that citation. Optional in the interface (it defaults to `""`), but the template has it; fill it in. | the Karp PDF link |
 | `defaultInstance` | A reasonably sized example instance. Used by the tests and the GUI. It **must** parse. | `"({1,7,12,15},28)"` |
 | `instance` | The instance string this object was built from. The constructor sets it. | set in the constructor |
 | `instanceFormat` | One sentence plus a real example that tells a human, the GUI, or an AI agent how to write an instance. Returned inside every parse-error response. | `"Format: {(S,T) \| S subset int, T is int} Example: ({1,7,12,15},28)"` |
@@ -188,9 +196,7 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 | `problemType` | The subject area you declare (see below). | `ProblemType.SetsAndPartitions` |
 | `contributors` | Full names of the people who wrote it (see below). | `{ "Garret Stouffer", "Caleb Eardley" }` |
 | `wikiName` | Deprecated, but still required by the interface. Set it to an empty string. | `""` |
-| `defaultSolver` | An object of the default solver. | `new SubsetSumBruteForce()` |
-| `defaultVerifier` | An object of the default verifier. | `new SubsetSumVerifier()` |
-| `defaultVisualization` | An object of the default visualization. | `new DummyVisualization()` |
+| `defaultSolver`, `defaultVerifier`, `defaultVisualization` | The defaults. **Do not declare them** in a new problem: the interface supplies them from the `[DefaultFor]` classes (or the placeholders). Older problems such as the worked example declare them, for example `new SubsetSumBruteForce()`. | not declared |
 
 Your class also needs the **fields that hold the parsed instance** (here a list `S` and a number `T`) and **two constructors** (see Step 3).
 
@@ -248,7 +254,7 @@ SPADE's own documentation lives in the [SPADE repository](https://github.com/Jet
 | Weighted undirected graph | `{(N,E) \| N is set, E subset {(e, w) \| e is N unorderedcross N, w is int}}` | [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs) |
 | Unweighted undirected graph | `{(N,E) \| N is set, E subset N unorderedcross N}` | the template's comments |
 
-**Match existing formats.** If your problem is a graph, a set, or a number list, use the same instance shape as the problems above, so the GUI and reductions can share code. For graph problems, implement `IGraphProblem<Solver, Verifier, Visualization, Graph>` and expose a `graph` property (see [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs) and the graph helpers in [Interfaces/graphs](../../Interfaces/graphs/)).
+**Match existing formats.** If your problem is a graph, a set, or a number list, use the same instance shape as the problems above, so the GUI and reductions can share code. For graph problems, implement `IGraphProblem` and expose a `Graph graph` property (see [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs), an older problem on `IGraphProblem<...>`, and the graph helpers in [Interfaces/graphs](../../Interfaces/graphs/)).
 
 **Throw `ProblemParseException` on bad input.** [Interfaces/ParseExceptions.cs](../../Interfaces/ParseExceptions.cs) defines it. Its arguments are the problem name, the text you received, and a short reason. The controllers catch it and answer with HTTP 400 and your `instanceFormat`, so a caller can fix the input. The worked example does it twice:
 
@@ -275,11 +281,11 @@ If you forget, the API still protects itself. `ParseGuard` ([ParseExceptions.cs]
 
 ### Step 4. Add the solver, verifier, and visualization
 
-Your class refers to these three by name, so they must exist before it compiles. Follow the matching guide for each:
+Your class does not refer to these, so it compiles without them, but the PR needs them. Mark the default one of each kind `[DefaultFor(typeof(YOURPROBLEM))]`. Follow the matching guide for each:
 
-1. [adding-a-solver.md](adding-a-solver.md): at least one solver, in `Solvers/`. It becomes `defaultSolver`.
-2. [adding-a-verifier.md](adding-a-verifier.md): at least one verifier, in `Verifiers/`. It becomes `defaultVerifier`. Its `CertificateGrammar` and `CertificateExample` constants are what your `certificateFormat` quotes, so the two stay in sync.
-3. [adding-a-visualization.md](adding-a-visualization.md): a real visualization in `Visualizations/`, or `DummyVisualization`.
+1. [adding-a-solver.md](adding-a-solver.md): at least one solver, in `Solvers/`. The one marked `[DefaultFor]` becomes `defaultSolver`.
+2. [adding-a-verifier.md](adding-a-verifier.md): at least one verifier, in `Verifiers/`. The one marked `[DefaultFor]` becomes `defaultVerifier`. Its `CertificateGrammar` and `CertificateExample` constants are what your `certificateFormat` quotes, so the two stay in sync.
+3. [adding-a-visualization.md](adding-a-visualization.md): a real visualization in `Visualizations/` marked `[DefaultFor]`, or none (the problem then uses `DummyVisualization`).
 
 Tip: get the problem class compiling with a very small solver and verifier first, then improve them.
 
@@ -297,6 +303,7 @@ You do not have to register your problem with these tests. They find it automati
 
 | Test file | What it checks about your problem |
 | --- | --- |
+| [Interfaces/DefaultFor_Tests.cs](../../redux-tests/Interfaces/DefaultFor_Tests.cs) | Each `[DefaultFor]` is on a solver, verifier, or visualization, names a problem that class handles, and appears at most once per problem and kind. |
 | [Metadata/ProblemInstantiation_Tests.cs](../../redux-tests/Metadata/ProblemInstantiation_Tests.cs) | Your class can be built with its empty constructor, which means `defaultInstance` parses. A problem that throws here silently disappears from several endpoints. |
 | [Metadata/ComplexityClass_Tests.cs](../../redux-tests/Metadata/ComplexityClass_Tests.cs) | `complexityClass` is not `Unclassified`, and the value is served as text (`"NPComplete"`) by the API. |
 | [Metadata/ProblemType_Tests.cs](../../redux-tests/Metadata/ProblemType_Tests.cs) | `problemType` is not `Unclassified`. |
@@ -412,13 +419,13 @@ A new problem is done when:
 
 - [ ] The folder is `Problems/<Folder>/<Prefix>_<NAME>/`, the file is `<NAME>_Class.cs`, and the namespace matches the folder.
 - [ ] The class name is unique in the whole project and has no `NPC_`/`NPH_`/`P_` prefix.
-- [ ] The class implements `IProblem<Solver, Verifier, Visualization>` (or `IGraphProblem<...>`) and has both constructors.
+- [ ] The class implements `IProblem` (or `IGraphProblem`) and has both constructors. It does not declare `defaultSolver`, `defaultVerifier`, or `defaultVisualization`.
 - [ ] `problemName`, `problemLink`, `formalDefinition`, `problemDefinition`, `inputDescription`, `outputDescription`, `source`, and `sourceLink` are filled in.
 - [ ] `defaultInstance` parses, and `instanceFormat` and `certificateFormat` each have a real example.
 - [ ] `complexityClass` and `problemType` are declared (not `Unclassified`), and the folder matches the class.
 - [ ] Your problem's class name is added to the matching hard-coded list in [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) (NP-complete, P, or NP-hard).
 - [ ] Bad instances throw `ProblemParseException`.
-- [ ] There is a default solver, verifier, and visualization (or `DummyVisualization`), each following its own guide.
+- [ ] There is a default solver and verifier, each marked `[DefaultFor(typeof(YOURPROBLEM))]`, and a default visualization marked the same way (or none, for `DummyVisualization`), each following its own guide.
 - [ ] Every name in every `contributors` list is in `wwwroot/contributorInfo.json`, with stats left at zero.
 - [ ] You added `redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs`.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
