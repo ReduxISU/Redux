@@ -167,7 +167,7 @@ The generated solver, verifier, and visualization each start with `[DefaultFor(t
 
 **The generated files are starting points, not finished code.** The template spells out every member you must decide. Tests fail until you replace each `Unclassified` or empty value and each `NotImplementedException`, and that is intentional. Look for the `TODO` comments:
 
-1. In the class, `complexityClass` and `problemType` are declared as `Unclassified` (Step 2).
+1. In the class, `complexityClass`, `problemType` and `problemVariant` are declared as `Unclassified` (Step 2).
 2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `complexity` are left for you to fill in. The verifier is already named `"<Problem Name> Solution Verifier"`; change it to the optimality form only if its implemented behavior proves optimality. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
 3. The generated visualization has `VisualizationType.Unimplemented`. A test rejects new classes that stay `Unimplemented`. Either finish it ([adding-a-visualization.md](adding-a-visualization.md)) or delete the generated visualization and use `DummyVisualization`.
 
@@ -193,17 +193,21 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 | `instanceFormat` | One sentence plus a real example that tells a human, the GUI, or an AI agent how to write an instance. Returned inside every parse-error response. | `"Format: {(S,T) \| S subset int, T is int} Example: ({1,7,12,15},28)"` |
 | `certificateFormat` | The same, for the certificate the **default verifier** accepts. | built from the verifier's `CertificateGrammar` and `CertificateExample` |
 | `complexityClass` | The complexity class you declare (see below). | `ComplexityClass.NPComplete` |
-| `problemType` | The subject area you declare (see below). | `ProblemType.SetsAndPartitions` |
+| `problemType` | The subject areas you declare (see below). | `ProblemType.SetsAndPartitions` |
+| `problemVariant` | Decision, optimization, or both (see below). | `ProblemVariant.Decision` |
 | `contributors` | Full names of the people who wrote it (see below). | `{ "Garret Stouffer", "Caleb Eardley" }` |
 | `wikiName` | Deprecated, but still required by the interface. Set it to an empty string. | `""` |
 | `defaultSolver`, `defaultVerifier`, `defaultVisualization` | The defaults. **Do not declare them** in a new problem: the interface supplies them from the `[DefaultFor]` classes (or the placeholders). Older problems such as the worked example declare them, for example `new SubsetSumBruteForce()`. | not declared |
 
 Your class also needs the **fields that hold the parsed instance** (here a list `S` and a number `T`) and **two constructors** (see Step 3).
 
-**The two declared metadata members** are the ones people forget. The template declares both as `Unclassified` with a `TODO` comment, and tests fail if you leave them that way (section 5):
+**The three declared metadata members** are the ones people forget. The template declares them as `Unclassified` with a `TODO` comment, and tests fail if you leave them that way (section 5):
 
 - `complexityClass`: pick from [Interfaces/ComplexityClass.cs](../../Interfaces/ComplexityClass.cs): `P`, `NPComplete`, `NPHard`, `NP`, or one of the quantum classes. It is a public correctness claim the API serves to callers, so check the literature.
-- `problemType`: pick the subject area from [Interfaces/ProblemType.cs](../../Interfaces/ProblemType.cs) (for example `GraphTheory`, `SetsAndPartitions`, `Logic`). Use `Miscellaneous` only when nothing else fits.
+- `problemType`: pick the subject area from [Interfaces/ProblemType.cs](../../Interfaces/ProblemType.cs) (for example `GraphTheory`, `SetsAndPartitions`, `Logic`). Use `Miscellaneous` only when nothing else fits. If several fit, declare each, joined with `|`: `ProblemType.GraphTheory | ProblemType.NetworkDesign`. There is no main one, and the order you write them in doesn't matter.
+- `problemVariant`: `Decision` if the instance carries a bound (like `K`) and the answer is yes/no, which the verifier checks; `Optimization` if the problem asks for the best value or object; `ProblemVariant.Decision | ProblemVariant.Optimization` only if your class really supports both. See [Interfaces/ProblemVariant.cs](../../Interfaces/ProblemVariant.cs).
+
+The API returns each of these as a list in the enum's order (`problemTypes`, `problemVariants`). The old single `problemType` field is still there for older clients, holding the first of the list; it is deprecated, so new code should read the list.
 
 "Declared" means a human decides. No tool computes them for you.
 
@@ -307,6 +311,7 @@ You do not have to register your problem with these tests. They find it automati
 | [Metadata/ProblemInstantiation_Tests.cs](../../redux-tests/Metadata/ProblemInstantiation_Tests.cs) | Your class can be built with its empty constructor, which means `defaultInstance` parses. A problem that throws here silently disappears from several endpoints. |
 | [Metadata/ComplexityClass_Tests.cs](../../redux-tests/Metadata/ComplexityClass_Tests.cs) | `complexityClass` is not `Unclassified`, and the value is served as text (`"NPComplete"`) by the API. |
 | [Metadata/ProblemType_Tests.cs](../../redux-tests/Metadata/ProblemType_Tests.cs) | `problemType` is not `Unclassified`. |
+| [Metadata/ProblemVariant_Tests.cs](../../redux-tests/Metadata/ProblemVariant_Tests.cs) | `problemVariant` is not `Unclassified`. |
 | [Metadata/NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | The class name has no `P_`, `NPC_`, or `NPH_` prefix. Also, your verifier uses the matching solution or optimality name and is unique within the problem ignoring case, and your solver and reduction names match the naming shapes (see their guides). |
 | [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs) | Your visualization's `visualizationType` is not `Unimplemented` (only a short list of existing classes, including `DummyVisualization`, is excused), and the list of visualization types matches the manifest [Documentation/visualization-types.json](../visualization-types.json) (only matters if you add a new type). |
 | [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and Big-O text (see [adding-a-solver.md](adding-a-solver.md)). |
@@ -413,7 +418,7 @@ A new problem is done when:
 - It implements the interfaces correctly.
 - It has at least one solver and one verifier.
 - Its tests pass (including the automatic ones above).
-- Every metadata field is filled in. No `"TODO"` is left, and `complexityClass` and `problemType` are declared.
+- Every metadata field is filled in. No `"TODO"` is left, and `complexityClass`, `problemType` and `problemVariant` are declared.
 
 ## 8. Checklist before opening the PR
 
@@ -422,7 +427,7 @@ A new problem is done when:
 - [ ] The class implements `IProblem` (or `IGraphProblem`) and has both constructors. It does not declare `defaultSolver`, `defaultVerifier`, or `defaultVisualization`.
 - [ ] `problemName`, `problemLink`, `formalDefinition`, `problemDefinition`, `inputDescription`, `outputDescription`, `source`, and `sourceLink` are filled in.
 - [ ] `defaultInstance` parses, and `instanceFormat` and `certificateFormat` each have a real example.
-- [ ] `complexityClass` and `problemType` are declared (not `Unclassified`), and the folder matches the class.
+- [ ] `complexityClass`, `problemType` and `problemVariant` are declared (not `Unclassified`), and the folder matches the class.
 - [ ] Your problem's class name is added to the matching hard-coded list in [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) (NP-complete, P, or NP-hard).
 - [ ] Bad instances throw `ProblemParseException`.
 - [ ] There is a default solver and verifier, each marked `[DefaultFor(typeof(YOURPROBLEM))]`, and a default visualization marked the same way (or none, for `DummyVisualization`), each following its own guide.
@@ -436,7 +441,7 @@ A new problem is done when:
 
 - **Running `dotnet build` with no file name.** It fails with `MSB1011`. Always add `Redux.slnx`.
 - **Skipping `dotnet format`.** Bad formatting fails the Release build itself, not only a separate check.
-- **Leaving `complexityClass` or `problemType` as `Unclassified`.** The generated template declares both as `Unclassified` on purpose. Tests fail with a message naming your class until you pick real values.
+- **Leaving `complexityClass`, `problemType` or `problemVariant` as `Unclassified`.** The generated template declares them as `Unclassified` on purpose. Tests fail with a message naming your class until you pick real values.
 - **Forgetting the hard-coded list in `Navigation_Endpoint_Tests.cs`.** This failure only appears *after* you declare `complexityClass`, so it can look like fixing one test broke another. The message says `NPC_ProblemsRefactor membership changed` (or the P / NP-hard version) and prints an Expected and an Actual list. Your problem is the one name in Actual that is missing from Expected. Add it to that test's list.
 - **A class name with a prefix** such as `NPC_MYPROBLEM`. The folder gets the prefix, the class does not.
 - **Reusing a class name**, even with different capitals. Names are keys, ignoring case. A duplicate crashes startup.

@@ -14,6 +14,7 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     // Declared, not derived: read the algorithm below and decide; don't guess from the
     // solver's name. Getting these wrong is a public correctness claim the API serves to callers.
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/SolverType.cs for what each value means.
+    // Declare every style the algorithm uses, joined with |, e.g. SolverType.Greedy | SolverType.Approximation.
     public SolverType solverType { get; } = SolverType.Unclassified;
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/SolverComplexityBucket.cs for what each value means.
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Unclassified;

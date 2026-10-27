@@ -229,6 +229,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
 
         Assert.True(Declares(classFile, "ComplexityClass complexityClass"), "complexityClass must be declared on an uncommented line");
         Assert.True(Declares(classFile, "ProblemType problemType"), "problemType must be declared on an uncommented line");
+        Assert.True(Declares(classFile, "ProblemVariant problemVariant"), "problemVariant must be declared on an uncommented line");
     }
 
     [Fact]
