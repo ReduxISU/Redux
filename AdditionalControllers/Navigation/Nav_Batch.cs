@@ -29,12 +29,13 @@ public class BatchController : ControllerBase {
     // Mirrors ProblemProvider's reflected-object serialization: IncludeFields so public
     // fields serialize (System.Text.Json omits them by default, whereas the previous
     // Newtonsoft path serialized them), plus cycle handling to replace the old
-    // ReferenceLoopHandling.Ignore now that arbitrary reflected instances are serialized.
-    private static readonly JsonSerializerOptions ReflectedIndented = new() {
+    // ReferenceLoopHandling.Ignore now that arbitrary reflected instances are serialized. Also writes
+    // the defaults a plain-IProblem problem inherits, as /info does (see ProblemDefaultsJson).
+    private static readonly JsonSerializerOptions ReflectedIndented = API.Interfaces.ProblemDefaultsJson.Apply(new() {
         WriteIndented = true,
         IncludeFields = true,
         ReferenceHandler = ReferenceHandler.IgnoreCycles
-    };
+    });
 
     // All top-level problem names, from the same reflected source as the singular
     // Navigation/*Problems* endpoints (see ProblemNavigationData in Nav_Problems.cs).

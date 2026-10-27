@@ -24,4 +24,16 @@ class DummyVisualization : IVisualization<IProblem, API_empty> {
     public API_empty visualize(IProblem independentSet) {
         return new API_empty();
     }
+
+    // Stands in for any problem, so there is nothing to parse the instance into (IProblem has no
+    // constructor). Draw nothing without trying, instead of a parse error about IProblem.
+    API_JSON IVisualization.visualize(string problem) {
+        return new API_empty();
+    }
+    API_JSON IVisualization.SolvedVisualization(string problem, string solution) {
+        return new API_empty();
+    }
+    List<API_JSON> IVisualization.StepsVisualization(string problem, List<Object> steps) {
+        return new List<API_JSON>();
+    }
 }

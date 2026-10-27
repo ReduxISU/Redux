@@ -83,7 +83,7 @@ public class ProblemProvider : ControllerBase {
     /// public fields (e.g. <c>ARCSET.K</c>, the <c>UtilCollectionGraph.Nodes</c>/<c>Edges</c> fields) are emitted,
     /// matching the previous Newtonsoft.Json output which serialized public fields by default.
     /// </summary>
-    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
+    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = ProblemDefaultsJson.Apply(new() { IncludeFields = true });
 
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
@@ -171,6 +171,8 @@ public class ProblemProvider : ControllerBase {
         } catch (CertificateParseException ex) {
             return BadRequest(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
                 ex.Problem.certificateFormat, ex.Received, ex.Message));
+        } catch (API.DummyClasses.NoVerifierException ex) {
+            return BadRequest(new { error = "no_verifier", received = verifier, detail = ex.Message });
         }
     }
 
