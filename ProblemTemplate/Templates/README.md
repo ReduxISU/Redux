@@ -84,7 +84,7 @@ The Solvers folder should contain all solver files for that problem. Each of whi
 * `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
 * `bool timerHasExpired` : bool that says if the timer for a problem has expired. Check it now and then in long loops and return if it is true.
 * `SolverType solverType`, `SolverComplexityBucket complexityBucket` : Declared by a person. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way. `solverType` is a tag set: declare every style the algorithm uses, joined with `|` (`SolverType.Greedy | SolverType.Approximation`). There is no primary tag; the API lists them all as `solverTypes`.
-* `string complexity` : A Big-O string. The template declares it as `""` and a metadata test fails until you fill it in. Only write one you are confident of.
+* `MathematicalFunction? timeComplexity` : The worst-case running time as a function the API can evaluate, written without the `O( )`, e.g. `new("n * W", ", n = items, W = capacity")` (see `Interfaces/MathematicalFunction.cs` for the notation). The template declares it as `null` and a metadata test fails until you fill it in. Only write one you are confident of.
 
 The file should also include a function which takes a problem object and returns a string of the solution, as well as any other necessary functions. Optionally it can provide `GetSteps` for step-by-step views.\
 *Because for now, most problems are NP-Complete, solution algorithms should return a complete solution.*
