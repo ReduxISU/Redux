@@ -8,7 +8,7 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
-    <PackageId>Redux.Library</PackageId>
+    <PackageId>ISU.Redux.Library</PackageId>
     <Version>1.0.101</Version>
     <Authors>Redux Contributors</Authors>
     <Description>A .NET library for computational problems, solvers, verifiers, reductions, and visualizations.</Description>
@@ -17,6 +17,8 @@
     <RepositoryUrl>https://github.com/prashant9711/Redux</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>algorithms;redux;computer-science;graph-theory</PackageTags>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +29,10 @@
     <Compile Include="../Tools/QuantumServerAPI.cs" />
     <Compile Include="../QuantumSolverSettings.cs" />
     <Compile Include="../ProjectSourcePath.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>

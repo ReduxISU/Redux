@@ -1,4 +1,4 @@
-name: Build Redux NuGet Package
+name: Build and Publish Redux NuGet Package
 
 on:
   push:
@@ -6,36 +6,62 @@ on:
       - CSharpAPI
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: nuget-publish
+  cancel-in-progress: false
+
 jobs:
-  package:
+  publish:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up .NET 10
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
 
-      - name: Restore library tests
+      - name: Restore dependencies
         run: dotnet restore Redux.Library.Tests/Redux.Library.Tests.csproj
 
-      - name: Test Redux library
-        run: dotnet test Redux.Library.Tests/Redux.Library.Tests.csproj -c Release --no-restore
-
-      - name: Pack library
+      - name: Run library tests
         run: |
+          dotnet test Redux.Library.Tests/Redux.Library.Tests.csproj \
+            -c Release \
+            --no-restore
+
+      - name: Build NuGet package
+        run: |
+          VERSION="1.1.${{ github.run_number }}"
+
           dotnet pack Redux.Library/Redux.Library.csproj \
             -c Release \
-            --no-restore \
-            -p:PackageVersion=1.0.${{ github.run_number }} \
-            -o ./nupkgs
+            -o ./nupkgs \
+            -p:PackageVersion="$VERSION"
 
-      - name: Upload NuGet artifact
+      - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Redux-NuGet-Package-${{ github.run_number }}
+          name: Redux-NuGet-Package
           path: ./nupkgs/*.nupkg
-          if-no-files-found: error
+
+      - name: Authenticate with NuGet.org
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: prashant9711
+
+      - name: Publish to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "./nupkgs/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
