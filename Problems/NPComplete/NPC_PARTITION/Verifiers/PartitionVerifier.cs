@@ -7,7 +7,7 @@ class PartitionVerifier : IVerifier<PARTITION> {
     public const string CertificateExample = "(33,21,15,6),(1,7,12,12,11,5,9,18)";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Partition Verifier";
+    public string verifierName { get; } = "Partition Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Partition problem";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

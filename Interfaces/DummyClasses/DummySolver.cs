@@ -12,4 +12,13 @@ class DummySolver : ISolver<IProblem> {
     public string solve(IProblem problem) {
         return "";
     }
+
+    // Stands in for any problem, so there is nothing to parse the instance into (IProblem has no
+    // constructor). Answer "" without trying, instead of a parse error about IProblem.
+    string ISolver.solve(string problem) {
+        return "";
+    }
+    List<Object> ISolver.GetSteps(string instance) {
+        return new List<Object>();
+    }
 }

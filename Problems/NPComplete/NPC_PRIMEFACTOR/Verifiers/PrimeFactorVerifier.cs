@@ -8,7 +8,7 @@ class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
     public const string CertificateExample = "(3,5)";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Prime Factorization Verifier";
+    public string verifierName { get; } = "Prime Factorization Solution Verifier";
     public string verifierDefinition { get; } = "Verifies that every proposed factor is prime and that their product equals the original input number.";
     public string source { get; } = " ";
     public string sourceFile { get; } = SourceFile.Path();

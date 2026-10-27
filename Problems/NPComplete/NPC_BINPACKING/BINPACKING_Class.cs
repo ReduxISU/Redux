@@ -81,6 +81,7 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, BinPacking
     // Declared, not derived. BINPACKING is NP-complete (Garey & Johnson, 1979, problem SR1).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.StorageAndRetrieval;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     public List<int> S {
         get { return _S; }

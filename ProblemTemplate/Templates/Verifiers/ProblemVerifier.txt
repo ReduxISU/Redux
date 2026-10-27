@@ -3,6 +3,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
 
+{DEFAULT_FOR}
 class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
 
     // --- Fields ---

@@ -10,7 +10,7 @@ class SteinerTreeVerifier : IVerifier<STEINERTREE> {
     public const string CertificateExample = "{{8,6},{6,1},{1,2},{2,3},{3,5}}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Steiner Tree Verifier";
+    public string verifierName { get; } = "Steiner Tree Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Steiner Tree";
     public string source { get; } = "Andrija Sevaljevic";
     public string sourceFile { get; } = SourceFile.Path();

@@ -49,6 +49,7 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
     // Declared, not derived. ARCSET (Feedback Arc Set) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.GraphTheory;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     public string[] contributors { get; } = { "Alex Diviney" };
 

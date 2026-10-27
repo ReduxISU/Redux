@@ -8,7 +8,7 @@ class TSPVerifier : IVerifier<TSP> {
     public const string CertificateExample = "{New York,Chicago,Denver,Los Angeles,Miami}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Traveling Salesperson Verifier";
+    public string verifierName { get; } = "Traveling Salesperson Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Traveling Salesperson problem";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

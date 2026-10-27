@@ -28,6 +28,7 @@ class TestOnlyReductionWithoutSteps : IReduction<SUBSETSUM, SUBSETSUM> {
     public string source => "";
     public string sourceFile => "";
     public string[] contributors => [];
+    public string? complexity => "O(n)";
     public SUBSETSUM reductionFrom { get; }
     public SUBSETSUM reductionTo { get; }
     public SUBSETSUM reduce() => new SUBSETSUM(reductionFrom.instance);
@@ -50,6 +51,7 @@ class TestOnlyReductionWithStepsButNoMap : IRecordedReduction<SUBSETSUM, SUBSETS
     public string source => "";
     public string sourceFile => "";
     public string[] contributors => [];
+    public string? complexity => "O(n)";
     public SUBSETSUM reductionFrom { get; }
     public SUBSETSUM reductionTo { get; }
     public SUBSETSUM reduce() => new SUBSETSUM(reductionFrom.instance);

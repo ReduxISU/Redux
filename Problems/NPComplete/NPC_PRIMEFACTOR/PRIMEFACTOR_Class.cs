@@ -38,6 +38,8 @@ class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, ShorsDefaul
     public ComplexityClass complexityClass { get; } = ComplexityClass.NP;
     // Declared, not derived. Number-theoretic decomposition problem.
     public ProblemType problemType { get; } = ProblemType.AlgebraAndNumberTheory;
+    // Variant (#616): Judgement call: a function problem with one answer and no bound or objective.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();

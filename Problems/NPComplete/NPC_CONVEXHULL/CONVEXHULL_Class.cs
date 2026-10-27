@@ -37,6 +37,8 @@ class CONVEXHULL : IProblem<ConvexHullSolver, ConvexHullVerifier, ConvexHullVisu
     public SolverType solverType { get; } = SolverType.DivideAndConquer;
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.ComputationalGeometry;
+    // Variant (#616): Judgement call: "the smallest convex polygon" containing the points, though the hull is unique.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
     public List<(double x, double y)> points { get; set; }
     public List<(double x, double y)> convexHull { get; set; }
     public string solution { get; set; }

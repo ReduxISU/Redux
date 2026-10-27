@@ -58,6 +58,8 @@ class PUMPSCHEDULINGEM : IProblem<PumpSchedulingEMSolver, PumpSchedulingEMVerifi
     // makes the folder's claim machine-checkable instead of implicit.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
     public ProblemType problemType { get; } = ProblemType.SequencingAndScheduling;
+    // Variant (#616): Judgement call: the budget is a constraint like a knapsack capacity; the objective (stored water) is maximized.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
 
     // 4-section tuple: Tank (capacity, currentLevel, minLevel), Demand config, Pumps, Budget.
     // Budget = 0 means auto-compute as 1.5× the cost-minimization optimum.

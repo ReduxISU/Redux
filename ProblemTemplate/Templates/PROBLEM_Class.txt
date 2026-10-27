@@ -1,11 +1,11 @@
 using API.Interfaces;
-using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Solvers;
-using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Verifiers;
-using API.Problems.NPComplete.NPC_{NAME_UPPERCASE}.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
 
-class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Verifier, {NAME_PASCAL_CASE}Visualization> {
+// This class does not name its solver, verifier or visualization. Each of those declares
+// [DefaultFor(typeof({NAME_UPPERCASE}))] instead, so this file compiles on its own. Until one
+// exists, the problem's default is a placeholder (DummySolver, DummyVerifier, DummyVisualization).
+class {NAME_UPPERCASE} : IProblem {
 
     // --- Fields ---
     public string problemName { get; } = "{NAME}";
@@ -27,9 +27,6 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Ve
     public string certificateFormat { get; } = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "";
-    public {NAME_PASCAL_CASE}Solver defaultSolver { get; } = new {NAME_PASCAL_CASE}Solver();
-    public {NAME_PASCAL_CASE}Verifier defaultVerifier { get; } = new {NAME_PASCAL_CASE}Verifier();
-    public {NAME_PASCAL_CASE}Visualization defaultVisualization { get; } = new {NAME_PASCAL_CASE}Visualization();
     public string[] contributors { get; } = { "TODO" };
     // Declared, not derived: do NOT infer these from the Problems/<Folder>/ this file lives
     // in (the folder is a filing convention and is wrong for many existing problems).
@@ -37,7 +34,12 @@ class {NAME_UPPERCASE} : IProblem<{NAME_PASCAL_CASE}Solver, {NAME_PASCAL_CASE}Ve
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ComplexityClass.cs for what each value means.
     public ComplexityClass complexityClass { get; } = ComplexityClass.Unclassified;
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ProblemType.cs for what each value means.
+    // Declare every category that fits, joined with |, e.g. ProblemType.GraphTheory | ProblemType.NetworkDesign.
     public ProblemType problemType { get; } = ProblemType.Unclassified;
+    // TODO: replace Unclassified with Decision (the instance carries a bound like K and the answer is yes/no),
+    // Optimization (it asks for the best value), or ProblemVariant.Decision | ProblemVariant.Optimization if
+    // this class supports both. A test in redux-tests/Metadata fails until you do. See Interfaces/ProblemVariant.cs.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Unclassified;
 
     // --- Properties ---
 
