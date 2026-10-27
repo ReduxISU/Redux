@@ -100,10 +100,10 @@ internal static class ProblemDefaultsJson {
     };
 
     /// <summary>Adds the modifier to <paramref name="options"/> and returns them.</summary>
+    // Added to any resolver the options already have, so other modifiers on the same options keep working.
     internal static JsonSerializerOptions Apply(JsonSerializerOptions options) {
-        options.TypeInfoResolver = new DefaultJsonTypeInfoResolver {
-            Modifiers = { AddInheritedDefaults },
-        };
+        options.TypeInfoResolver = (options.TypeInfoResolver ?? new DefaultJsonTypeInfoResolver())
+            .WithAddedModifier(AddInheritedDefaults);
         return options;
     }
 
