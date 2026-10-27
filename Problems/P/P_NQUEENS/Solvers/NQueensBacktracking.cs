@@ -13,8 +13,9 @@ class NQueensBacktracking : ISolver<NQUEENS> {
     public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact backtracking search WITH pruning over permutation-style placements
-    // -- factorial worst case (own complexity string above already says "O(N!)").
-    public SolverType solverType { get; } = SolverType.Backtracking;
+    // -- factorial worst case (own complexity string above already says "O(N!)"). Also
+    // DepthFirstSearch: backtrack() places row by row, recursing before trying the next column (#842).
+    public SolverType solverType { get; } = SolverType.Backtracking | SolverType.DepthFirstSearch;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
 
     public MathematicalFunction timeComplexity { get; } = new("N!", "");
