@@ -154,10 +154,10 @@ public partial class ProblemProvider : ControllerBase {
     /// </summary>
     private static readonly JsonSerializerOptions ReflectedObjectJsonOptions =
         TagListJson.Apply(ProblemDefaultsJson.Apply(new() {
-        IncludeFields = true,
-        // Every visualization also says which picture type it serves under format=frames (#841).
-        TypeInfoResolver = PictureTypes.Resolver(),
-    }));
+            IncludeFields = true,
+            // Every visualization also says which picture type it serves under format=frames (#841).
+            TypeInfoResolver = PictureTypes.Resolver(),
+        }));
 
     // The reduce endpoint's options, one object so GuiView.Options makes its copy once.
     private static readonly JsonSerializerOptions ReduceJsonOptions = new() { WriteIndented = true };
