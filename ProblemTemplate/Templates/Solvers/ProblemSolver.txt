@@ -2,6 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Solvers;
 
+{DEFAULT_FOR}
 class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
 
     // --- Fields ---

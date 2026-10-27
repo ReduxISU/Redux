@@ -23,7 +23,7 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
     // Placeholder tokens that must never survive substitution in generated files.
     private static readonly string[] Placeholders =
     {
-        "{NAME", "{PROBLEM", "{SOLVER", "{VERIFIER", "{VISUALIZATION", "{REDUCE", "{REDUCTION",
+        "{NAME", "{PROBLEM", "{SOLVER", "{VERIFIER", "{VISUALIZATION", "{REDUCE", "{REDUCTION", "{DEFAULT",
     };
 
     private async Task<Dictionary<string, string>> GetZipEntries(string url) {
@@ -67,8 +67,11 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
         var classFile = entries["NPC_TRAVELINGSALESPERSON/TRAVELINGSALESPERSON_Class.cs"];
 
         AssertNoPlaceholders(classFile);
-        Assert.Contains("TravelingSalesPerson", classFile); // pascal case substituted
         Assert.Contains("TRAVELINGSALESPERSON", classFile); // upper case substituted
+        // The class no longer names its solver (#919), so check pascal case where it is still used.
+        var solver = entries["NPC_TRAVELINGSALESPERSON/Solvers/TravelingSalesPersonSolver.cs"];
+        AssertNoPlaceholders(solver);
+        Assert.Contains("class TravelingSalesPersonSolver", solver); // pascal case substituted
     }
 
     [Fact]
@@ -180,7 +183,43 @@ public class ProblemTemplate_Endpoint_Tests : IClassFixture<AppFactory> {
         var visualization = entries["NPC_TRAVELINGSALESPERSON/Visualizations/TravelingSalesPersonVisualization.cs"];
 
         Assert.DoesNotContain("= null", visualization);
-        Assert.Contains("new TRAVELINGSALESPERSON().defaultSolver", visualization);
+        Assert.Contains("((IProblem)new TRAVELINGSALESPERSON()).defaultSolver", visualization);
+    }
+
+    // #919: the problem class compiles before its solver, verifier and visualization exist, because
+    // they name the problem ([DefaultFor]) instead of the problem naming them.
+    [Fact]
+    public async Task ProblemTemplate_ClassNamesNoSolverVerifierOrVisualization() {
+        var entries = await GetZipEntries(ProblemUrl);
+        var classFile = entries["NPC_TRAVELINGSALESPERSON/TRAVELINGSALESPERSON_Class.cs"];
+
+        Assert.Matches(@"class TRAVELINGSALESPERSON : IProblem \{", classFile);
+        foreach (var name in new[] { "TravelingSalesPersonSolver", "TravelingSalesPersonVerifier", "TravelingSalesPersonVisualization", ".Solvers", ".Verifiers", ".Visualizations" })
+            Assert.DoesNotContain(name, classFile);
+    }
+
+    [Theory]
+    [InlineData("NPC_TRAVELINGSALESPERSON/Solvers/TravelingSalesPersonSolver.cs")]
+    [InlineData("NPC_TRAVELINGSALESPERSON/Verifiers/TravelingSalesPersonVerifier.cs")]
+    [InlineData("NPC_TRAVELINGSALESPERSON/Visualizations/TravelingSalesPersonVisualization.cs")]
+    public async Task ProblemTemplate_DefaultsDeclareDefaultFor(string file) {
+        var entries = await GetZipEntries(ProblemUrl);
+
+        Assert.Matches(@"(?m)^\[DefaultFor\(typeof\(TRAVELINGSALESPERSON\)\)\]\s+class ", entries[file]);
+    }
+
+    // A solver/verifier/visualization downloaded on its own is usually an extra one, so it must not
+    // claim to be the default (a second [DefaultFor] for a problem fails DefaultFor_Tests).
+    [Theory]
+    [InlineData("/ProblemTemplate/solver?problemName=CLIQUE&solverName=My%20Clique%20Solver")]
+    [InlineData("/ProblemTemplate/verifier?problemName=CLIQUE&verifierName=Clique%20Solution%20Verifier")]
+    [InlineData("/ProblemTemplate/visualization?problemName=CLIQUE&visualizationName=My%20Clique%20Visualization")]
+    public async Task SeparateDownloads_OnlyMentionDefaultFor(string url) {
+        var entries = await GetZipEntries(url);
+        var file = entries.Single(e => e.Key.EndsWith(".cs")).Value;
+
+        Assert.Contains("[DefaultFor(typeof(CLIQUE))]", file);
+        Assert.DoesNotMatch(@"(?m)^\s*\[DefaultFor", file);
     }
 
     [Fact]

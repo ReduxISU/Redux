@@ -4,6 +4,7 @@ using API.Problems.NPComplete.NPC_{PROBLEM};
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Visualizations;
 
+{DEFAULT_FOR}
 class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}> {
     public string visualizationName { get; } = "{VISUALIZATION}";
     public string visualizationDefinition { get; } = "TODO";
@@ -14,16 +15,18 @@ class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}> {
     // TODO: replace Unimplemented with the VisualizationType matching the API_JSON shape you
     // return below. A test in redux-tests/Metadata (VisualizationType_Tests, NoNewUndeclared)
     // fails until you do, on purpose. If no existing renderer fits, make the problem's default
-    // visualization DummyVisualization instead of this class. Adding a NEW VisualizationType
+    // visualization DummyVisualization instead of this class (delete this file, or its [DefaultFor] line).
+    // Adding a NEW VisualizationType
     // member means updating Documentation/visualization-types.json (checked by
     // VisualizationType_Tests.ManifestMatchesEnum) and adding a renderer in the Redux_GUI repo
     // (checked there by `npm run check:visualizations`).
     public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
-    // The solver whose steps this visualization shows. Defaults to the problem's default solver.
-    // Replace it with a specific solver if you prefer, e.g. `new MyBruteForce()`. This must stay
-    // expression-bodied (=>): the problem's constructor builds its default visualization, so an
+    // The solver whose steps this visualization shows. Defaults to the problem's default solver
+    // (the cast is needed because defaultSolver comes from the IProblem interface). Replace it with a
+    // specific solver if you prefer, e.g. `new MyBruteForce()`. Keep it expression-bodied (=>): a
+    // problem that names its defaults itself builds its visualization in its constructor, so an
     // initializer (=) here would recurse forever.
-    public ISolver solver => new {PROBLEM}().defaultSolver;
+    public ISolver solver => ((IProblem)new {PROBLEM}()).defaultSolver;
 
     // --- Methods Including Constructors ---
     public {VISUALIZATION_PASCAL_CASE}() {
