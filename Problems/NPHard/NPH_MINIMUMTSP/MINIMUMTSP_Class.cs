@@ -53,6 +53,8 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
     // at most K?) for every K. No efficient check is known that a given tour is the cheapest, so it is not placed in NP.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
     public ProblemType problemType { get; } = ProblemType.NetworkDesign;
+    // Variant (#616): asks for the cheapest tour itself, not whether one of cost at most K exists.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
 
 
     // --- Properties ---
