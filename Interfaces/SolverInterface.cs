@@ -107,20 +107,32 @@ sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepSha
     /// <summary>
     /// Runs a typed solve: with recording off when <paramref name="withSteps"/> is false (no clock checks), else with
     /// a recorder that has <paramref name="timeLimit"/>. A run that exceeds the limit is returned as stopped (see
-    /// <see cref="TimedOut"/>) instead of throwing.
+    /// <see cref="TimedOut"/>) instead of throwing, including one whose solver returned after the limit had passed.
+    /// <paramref name="clock"/> (milliseconds) is for tests, which decide when the limit passes.
     /// </summary>
-    internal static SolveRun Record<TPartial>(bool withSteps, TimeSpan? timeLimit, Func<StepRecorder<TPartial>, string> solve) {
+    internal static SolveRun Record<TPartial>(bool withSteps, TimeSpan? timeLimit, Func<StepRecorder<TPartial>, string> solve,
+                                              Func<long>? clock = null) {
         if (!withSteps)
             return new SolveRun(solve(StepRecorder<TPartial>.Off), new List<object>(), typeof(TPartial));
-        var rec = new StepRecorder<TPartial>(timeLimit: timeLimit);
+        var rec = clock != null && timeLimit is { } limit
+            ? new StepRecorder<TPartial>(StepRecorder<TPartial>.DefaultCap, limit, clock)
+            : new StepRecorder<TPartial>(timeLimit: timeLimit);
         try {
             string answer = solve(rec);
+            // The last step can come in before the limit and the solver still finish after it.
+            if (rec.Expired) {
+                rec.ReplaceDoneWithStopped();
+                return Stopped(rec);
+            }
             return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
         } catch (StepBudgetExceededException ex) when (ex.Recorder == rec) {
             rec.DoneStopped();
-            return new SolveRun(TimedOutAnswer, rec.Steps.Cast<object>().ToList(), typeof(TPartial)) { TimedOut = true };
+            return Stopped(rec);
         }
     }
+
+    private static SolveRun Stopped<TPartial>(StepRecorder<TPartial> rec) =>
+        new(TimedOutAnswer, rec.Steps.Cast<object>().ToList(), typeof(TPartial)) { TimedOut = true };
 
     /// <summary>
     /// The steps to hand a visualization that draws <paramref name="visualizationShape"/>. If the shapes differ
