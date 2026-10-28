@@ -1,0 +1,44 @@
+name: close finished parent issues
+
+# An MVP item can need several PRs, often in different repos (backend, Redux_GUI,
+# Redux_Frontend, SPADE). Each piece is a sub-issue that its own PR closes. GitHub doesn't
+# close a parent when its last sub-issue closes, so this does, for parents labeled
+# `close-when-subissues-done`. The label keeps tracker issues, which only group work and
+# stay open, out of it. Closing the parent moves its row to Done in the Redux MVP project.
+on:
+  issues:
+    types: [closed]
+  schedule:
+    # Hourly, for sub-issues closed in other repos, which don't trigger this repo.
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close labeled parents whose sub-issues are all closed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          gh issue list -R "$OWNER/$REPO" --label close-when-subissues-done --state open \
+            --limit 100 --json number -q '.[].number' |
+          while read -r number; do
+            summary=$(gh api graphql \
+              -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){issue(number:$number){subIssuesSummary{total completed}}}}' \
+              -f owner="$OWNER" -f repo="$REPO" -F number="$number" \
+              -q '.data.repository.issue.subIssuesSummary | "\(.total) \(.completed)"')
+            read -r total completed <<< "$summary"
+            echo "#$number: $completed of $total sub-issues closed"
+            # A parent with no sub-issues yet is left alone.
+            if [ "$total" -gt 0 ] && [ "$completed" -eq "$total" ]; then
+              gh issue close "$number" -R "$OWNER/$REPO" --reason completed \
+                --comment "All $total sub-issues are closed, so this is done."
+            fi
+          done
