@@ -23,10 +23,11 @@ public class TinyComputeLimitAppFactory : AppFactory {
 
 // Large inputs that take far longer than 1 ms (but well under the default limit), built once.
 internal static class SlowInputs {
-    // A 3SAT formula of 15 clauses over 12 variables. Sipser's reduction turns it into a 45-node CLIQUE graph with
-    // about 900 edges, which takes far longer than 1 ms to build, serialize and parse, and well under a second
-    // (TimeLimit_NormalRequest_Tests checks both ends), so the work abandoned at the limit soon ends.
-    internal static readonly string Sat3 = string.Join(" & ", Enumerable.Range(0, 15).Select(i =>
+    // A 3SAT formula of 30 clauses over 12 variables. Sipser's reduction turns it into a 90-node CLIQUE graph with
+    // about 3,600 edges, which takes far longer than 1 ms to build, serialize and parse, even on a fast CI runner (15
+    // clauses took only 20 ms there), and well under a second (TimeLimit_NormalRequest_Tests checks both ends), so the
+    // work abandoned at the limit soon ends.
+    internal static readonly string Sat3 = string.Join(" & ", Enumerable.Range(0, 30).Select(i =>
         $"(x{i % 12 + 1} | !x{(i * 7 + 3) % 12 + 1} | x{(i * 13 + 5) % 12 + 1})"));
 
     internal static readonly Lazy<string> CliqueGraph = new(() =>
@@ -169,7 +170,9 @@ public class TimeLimit_NormalRequest_Tests : IClassFixture<AppFactory> {
         Assert.Contains(body, new[] { JsonSerializer.Serialize("True", Indented), JsonSerializer.Serialize("False", Indented) });
     }
 
-    // The slow inputs of TimeLimit_Endpoint_Tests finish within the default limit, and take far longer than its 1 ms.
+    // The slow inputs of TimeLimit_Endpoint_Tests finish within the default limit, and take far longer than its 1 ms:
+    // at least 10 ms, ten times the limit. A fixed floor much above that fails on a fast runner without telling us
+    // anything about the 1 ms tests.
     [Fact]
     public async Task SlowInputs_FinishWithinTheDefaultLimit_ButNotWithin1ms() {
         var sw = Stopwatch.StartNew();
@@ -181,8 +184,8 @@ public class TimeLimit_NormalRequest_Tests : IClassFixture<AppFactory> {
         (status, _) = await Post("/ProblemProvider/verify?verifier=CliqueVerifier", verify);
         var verifyTook = sw.Elapsed;
         Assert.Equal(HttpStatusCode.OK, status);
-        Assert.True(reduceTook > TimeSpan.FromMilliseconds(30) && reduceTook < TimeSpan.FromSeconds(5), $"reduce took {reduceTook}");
-        Assert.True(verifyTook > TimeSpan.FromMilliseconds(30) && verifyTook < TimeSpan.FromSeconds(5), $"verify took {verifyTook}");
+        Assert.True(reduceTook > TimeSpan.FromMilliseconds(10) && reduceTook < TimeSpan.FromSeconds(5), $"reduce took {reduceTook}");
+        Assert.True(verifyTook > TimeSpan.FromMilliseconds(10) && verifyTook < TimeSpan.FromSeconds(5), $"verify took {verifyTook}");
     }
 
     [Fact]
