@@ -13,7 +13,7 @@ class WeightedCutVerifier : IVerifier<WEIGHTEDCUT> {
     public const string CertificateExample = "{({2,4},4),({3,5},1)}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Weighted Cut Verifier";
+    public string verifierName { get; } = "Weighted Cut Solution Verifier";
     public string verifierDefinition { get; } = "Checks that the certificate edges all exist in G with the stated weights, are distinct, are exactly the edges crossing some partition of the vertices into two sets, and have total weight exactly K.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
