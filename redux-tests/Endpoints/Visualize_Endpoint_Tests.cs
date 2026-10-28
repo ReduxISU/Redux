@@ -85,12 +85,25 @@ public class Visualize_Endpoint_Tests : IClassFixture<AppFactory> {
             "({1,2,3,4},{({1,2},1),({2,3},2),({3,4},1),({1,4},2),({1,3},3)})"),
         ("vertexcoverdefaultvisualization", "vertexcoverbruteforce", "GraphD3",
             "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)"),
+        ("minimumvertexcoverdefaultvisualization", "bruteforceminimumvertexcover", "GraphD3",
+            "({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}})"),
+        ("independentsetdefaultvisualization", "independentsetbruteforce", "GraphD3",
+            "(({a,b,c,d,e,f,g},{{a,b},{b,c},{c,a},{a,d},{d,e},{e,a},{f,e},{f,d},{g,b},{g,a}}),3)"),
+        ("dominatingsetdefaultvisualization", "dominatingsetforcedvertex", "GraphD3",
+            "(({0,1,2,3,4},{{1,0},{0,3},{1,2},{2,4},{1,3},{3,4},{4,1}}),2)"),
+    };
+
+    // Visualizations that build their own frames (the Graph picture) are checked in GraphFrames_Endpoint_Tests;
+    // for the rest, format=frames is the list reshaped.
+    private static readonly string[] OwnFrames = {
+        "cliquedefaultvisualization", "vertexcoverdefaultvisualization", "minimumvertexcoverdefaultvisualization",
+        "independentsetdefaultvisualization", "dominatingsetdefaultvisualization",
     };
 
     private static string InstanceFor(string vis) => Cases.Single(c => c.Vis == vis).Instance;
 
     public static TheoryData<string, string> CaseSolvers => new(Cases.Select(c => (c.Vis, c.Solver)));
-    public static TheoryData<string, string> CaseTypes => new(Cases.Select(c => (c.Vis, c.Type)));
+    public static TheoryData<string, string> CaseTypes => new(Cases.Where(c => !OwnFrames.Contains(c.Vis)).Select(c => (c.Vis, c.Type)));
 
     [Fact]
     public void JsonEquivalent_IgnoresKeyOrderButNotArrayOrder() {
