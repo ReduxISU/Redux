@@ -49,6 +49,13 @@
       ],
       "reductionToIds": [
         "a"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "a"
+      ],
+      "targetIds": [
+        "a"
       ]
     },
     {
@@ -58,6 +65,13 @@
         "b"
       ],
       "reductionToIds": [
+        "b"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "b"
+      ],
+      "targetIds": [
         "b"
       ]
     },
@@ -68,6 +82,13 @@
         "c"
       ],
       "reductionToIds": [
+        "c"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c"
+      ],
+      "targetIds": [
         "c"
       ]
     },
@@ -78,6 +99,13 @@
         "d"
       ],
       "reductionToIds": [
+        "d"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d"
+      ],
+      "targetIds": [
         "d"
       ]
     },
@@ -88,6 +116,13 @@
         "e"
       ],
       "reductionToIds": [
+        "e"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e"
+      ],
+      "targetIds": [
         "e"
       ]
     },
@@ -98,6 +133,13 @@
         "f"
       ],
       "reductionToIds": [
+        "f"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "f"
+      ],
+      "targetIds": [
         "f"
       ]
     },
@@ -108,6 +150,13 @@
         "g"
       ],
       "reductionToIds": [
+        "g"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "g"
+      ],
+      "targetIds": [
         "g"
       ]
     }
@@ -152,7 +201,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Independent Set Verifier",
+      "verifierName": "Independent Set Solution Verifier",
       "verifierDefinition": "This is a verifier for Independent Set",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Verifiers/IndependentSetVerifier.cs",
@@ -235,7 +284,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Clique Verifier",
+      "verifierName": "Clique Solution Verifier",
       "verifierDefinition": "This is a verifier for Clique",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",

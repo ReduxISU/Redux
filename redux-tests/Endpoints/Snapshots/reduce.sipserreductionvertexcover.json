@@ -48,6 +48,13 @@
       ],
       "reductionToIds": [
         "1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "1"
+      ],
+      "targetIds": [
+        "1"
       ]
     },
     {
@@ -57,6 +64,13 @@
         "2"
       ],
       "reductionToIds": [
+        "2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "2"
+      ],
+      "targetIds": [
         "2"
       ]
     },
@@ -67,6 +81,13 @@
         "3"
       ],
       "reductionToIds": [
+        "3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "3"
+      ],
+      "targetIds": [
         "3"
       ]
     },
@@ -77,6 +98,13 @@
         "4"
       ],
       "reductionToIds": [
+        "4"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "4"
+      ],
+      "targetIds": [
         "4"
       ]
     },
@@ -87,6 +115,13 @@
         "5"
       ],
       "reductionToIds": [
+        "5"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "5"
+      ],
+      "targetIds": [
         "5"
       ]
     },
@@ -97,6 +132,13 @@
         "6"
       ],
       "reductionToIds": [
+        "6"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "6"
+      ],
+      "targetIds": [
         "6"
       ]
     }
@@ -143,7 +185,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Clique Verifier",
+      "verifierName": "Clique Solution Verifier",
       "verifierDefinition": "This is a verifier for Clique",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
@@ -229,7 +271,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Vertex Cover Verifier",
+      "verifierName": "Vertex Cover Solution Verifier",
       "verifierDefinition": "This is a Vertex Cover Verifier.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",

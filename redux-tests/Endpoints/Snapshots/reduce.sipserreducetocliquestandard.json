@@ -52,6 +52,13 @@
       ],
       "reductionToIds": [
         "x1_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-0"
+      ],
+      "targetIds": [
+        "x1_0"
       ]
     },
     {
@@ -62,6 +69,13 @@
       ],
       "reductionToIds": [
         "!x2_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-1"
+      ],
+      "targetIds": [
+        "!x2_0"
       ]
     },
     {
@@ -71,6 +85,13 @@
         "0-2"
       ],
       "reductionToIds": [
+        "x3_0"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c0-2"
+      ],
+      "targetIds": [
         "x3_0"
       ]
     },
@@ -84,6 +105,15 @@
         "x1_0",
         "!x2_0",
         "x3_0"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c0"
+      ],
+      "targetIds": [
+        "x1_0",
+        "!x2_0",
+        "x3_0"
       ]
     },
     {
@@ -93,6 +123,13 @@
         "1-0"
       ],
       "reductionToIds": [
+        "!x1_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-0"
+      ],
+      "targetIds": [
         "!x1_1"
       ]
     },
@@ -104,6 +141,13 @@
       ],
       "reductionToIds": [
         "x3_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-1"
+      ],
+      "targetIds": [
+        "x3_1"
       ]
     },
     {
@@ -113,6 +157,13 @@
         "1-2"
       ],
       "reductionToIds": [
+        "x1_1"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c1-2"
+      ],
+      "targetIds": [
         "x1_1"
       ]
     },
@@ -126,6 +177,15 @@
         "!x1_1",
         "x3_1",
         "x1_1"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c1"
+      ],
+      "targetIds": [
+        "!x1_1",
+        "x3_1",
+        "x1_1"
       ]
     },
     {
@@ -135,6 +195,13 @@
         "2-0"
       ],
       "reductionToIds": [
+        "x2_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-0"
+      ],
+      "targetIds": [
         "x2_2"
       ]
     },
@@ -146,6 +213,13 @@
       ],
       "reductionToIds": [
         "!x3_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
+        "!x3_2"
       ]
     },
     {
@@ -156,6 +230,13 @@
       ],
       "reductionToIds": [
         "!x1_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-2"
+      ],
+      "targetIds": [
+        "!x1_2"
       ]
     },
     {
@@ -165,6 +246,15 @@
         "2"
       ],
       "reductionToIds": [
+        "x2_2",
+        "!x3_2",
+        "!x1_2"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c2"
+      ],
+      "targetIds": [
         "x2_2",
         "!x3_2",
         "!x1_2"
@@ -212,7 +302,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default 3SAT Verifier",
+      "verifierName": "3SAT Solution Verifier",
       "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
@@ -296,7 +386,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Clique Verifier",
+      "verifierName": "Clique Solution Verifier",
       "verifierDefinition": "This is a verifier for Clique",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
