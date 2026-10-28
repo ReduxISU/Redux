@@ -34,6 +34,8 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
     // redux-tests/Metadata/ComplexityClass_Tests.cs.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
+    // Variant (#616): Judgement call: "can n queens be placed"; the solver builds a witness, there is nothing to optimize.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     public string[] contributors { get; } = { "Cole Campbell", "Luis Hernandez", "Ethan Wilks" };
 

@@ -7,6 +7,8 @@ namespace API.Interfaces;
 interface IVisualization {
     string visualizationName { get; }
     string visualizationDefinition { get; }
+    // A tag set (see Tags): every renderer that can draw this visualization's payload. The JSON lists them as
+    // visualizationTypes; the single visualizationType field is deprecated and holds the first.
     VisualizationType visualizationType { get; }
     string source { get; }
     // Repo-relative path of the file declaring this class; see SourceFile.

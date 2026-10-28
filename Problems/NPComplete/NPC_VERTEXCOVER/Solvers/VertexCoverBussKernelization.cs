@@ -20,7 +20,10 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
     public string sourceLink { get; } = "https://doi.org/10.1137/0222038";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
-    public SolverType solverType { get; } = SolverType.Parameterized;
+    // Declared, not derived. Parameterized by K (Buss's kernel), then bruteForceOnKernel() tries every
+    // subset of the kernel in size order without pruning, which is BruteForce rather than the
+    // Backtracking #842 suggested (#842).
+    public SolverType solverType { get; } = SolverType.BruteForce | SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     public MathematicalFunction timeComplexity { get; } = new("K * (n + m) + 2^(2K) * m", ", K = target cover size, n = |nodes|, m = |edges|");
 

@@ -19,9 +19,11 @@ interface ISolver {
     bool timerHasExpired { get; set; }
 
     /// <summary>
-    /// The algorithmic style this solver uses. Declared, not derived — see
-    /// <see cref="API.Interfaces.SolverType"/>. Defaults to
-    /// <see cref="API.Interfaces.SolverType.Unclassified"/> until a concrete solver
+    /// The algorithmic styles this solver uses. Declared, not derived — see
+    /// <see cref="API.Interfaces.SolverType"/>. A tag set: declare every style that fits, e.g.
+    /// <c>SolverType.Greedy | SolverType.Heuristic</c>. The JSON lists them as <c>solverTypes</c>; the single
+    /// <c>solverType</c> field is deprecated and holds the first of them (see <see cref="API.Interfaces.Tags"/>).
+    /// Defaults to <see cref="API.Interfaces.SolverType.Unclassified"/> until a concrete solver
     /// overrides it.
     /// </summary>
     SolverType solverType { get => SolverType.Unclassified; }

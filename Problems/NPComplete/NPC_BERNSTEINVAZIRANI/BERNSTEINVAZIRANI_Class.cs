@@ -36,6 +36,8 @@ class BERNSTEINVAZIRANI : IProblem<BernsteinVaziraniClassicalSolver, BernsteinVa
     // See ComplexityClass.EQP.
     public ComplexityClass complexityClass { get; } = ComplexityClass.EQP;
     public ProblemType problemType { get; } = ProblemType.Miscellaneous;
+    // Variant (#616): Judgement call: finds the hidden string, a promise function problem with nothing to optimize.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // --- Methods and Constructors ---
     public BERNSTEINVAZIRANI() : this(_defaultInstance) {

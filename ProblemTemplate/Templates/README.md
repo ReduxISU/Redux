@@ -49,7 +49,8 @@ The `PROBLEMNAME_Class.cs` should implement the `IProblem` interface (or `IGraph
 * `string instanceFormat` : Short descriptive sentence with a concrete embedded example of the instance string the problem accepts. Consumed by `/ProblemProvider/info` and by parse-error responses, so this is the canonical place to tell an LLM, the GUI, or a human what shape your instances take. Prefer a sentence + example over a formal grammar. (The interface supplies an empty default, but every problem should fill it in.)
 * `string certificateFormat` : Same shape as `instanceFormat`, but describes what the verifier accepts as a certificate. The default verifier defines this; if your problem has multiple verifiers, declare the format the *default* one expects here.
 * `ComplexityClass complexityClass` : Declared by a person, never guessed. The template declares it as `Unclassified`, and the metadata tests fail while it stays that way.
-* `ProblemType problemType` : Declared subject-matter category (Garey and Johnson's taxonomy). Same rule as `complexityClass`; the template declares it as `Unclassified` too.
+* `ProblemType problemType` : Declared subject-matter category (Garey and Johnson's taxonomy). Same rule as `complexityClass`; the template declares it as `Unclassified` too. A tag set: declare every category that fits, joined with `|` (`ProblemType.GraphTheory | ProblemType.NetworkDesign`). The API lists them as `problemTypes`, in the enum's order whatever order you write them.
+* `ProblemVariant problemVariant` : `Decision` if the instance carries a bound (like `K`) and the answer is yes/no, `Optimization` if it asks for the best value, or `ProblemVariant.Decision | ProblemVariant.Optimization` if the class supports both. Same rule as `complexityClass`. The API writes it only as the list `problemVariants`.
 * `string[] contributors` : A list of names of all developers who have worked on the problem
 * `defaultSolver`, `defaultVerifier`, `defaultVisualization` : Supplied by the interface; do not declare them. They are the classes marked `[DefaultFor(typeof(PROBLEMNAME))]`, or a placeholder (`DummySolver`, `DummyVerifier`, `DummyVisualization`) for a kind with none
 
@@ -70,7 +71,7 @@ The `ReduceTo/NPC_<TO>/` folder contains the reduction files from this problem t
 * `{TO} reductionTo` : An instance of the problem we are reducing to (the template keeps it in a private `_reductionTo` field)
 * `{TO} reduce()` : The reduction algorithm itself
 * `string mapSolutions(string)` : Turns a solution of the FROM problem into the matching solution of the TO problem
-* `ReductionCost cost`, `ReductionType reductionType`, `ReductionComplexityBucket complexityBucket` : Declared by a person, never guessed. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way.
+* `ReductionCost cost`, `ReductionType reductionType`, `ReductionComplexityBucket complexityBucket` : Declared by a person, never guessed. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way. `reductionType` is a tag set: declare every technique the construction uses, joined with `|`.
 * `string? complexity` : Free-text Big-O note about running time. The metadata tests require it to be non-empty, so the template declares it as `""` for you to fill in.
 
 ### Solvers
@@ -82,7 +83,7 @@ The Solvers folder should contain all solver files for that problem. Each of whi
 * `string[] contributors` : A list of names of all developers who have worked on the solver
 * `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
 * `bool timerHasExpired` : bool that says if the timer for a problem has expired. Check it now and then in long loops and return if it is true.
-* `SolverType solverType`, `SolverComplexityBucket complexityBucket` : Declared by a person. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way.
+* `SolverType solverType`, `SolverComplexityBucket complexityBucket` : Declared by a person. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way. `solverType` is a tag set: declare every style the algorithm uses, joined with `|` (`SolverType.Greedy | SolverType.Approximation`). There is no primary tag; the API lists them all as `solverTypes`.
 * `MathematicalFunction? timeComplexity` : The worst-case running time as a function the API can evaluate, written without the `O( )`, e.g. `new("n * W", ", n = items, W = capacity")` (see `Interfaces/MathematicalFunction.cs` for the notation). The template declares it as `null` and a metadata test fails until you fill it in. Only write one you are confident of.
 
 The file should also include a function which takes a problem object and returns a string of the solution, as well as any other necessary functions. Optionally it can provide `GetSteps` for step-by-step views.\
@@ -109,7 +110,7 @@ The Visualizations folder should contain all visualization files for that proble
 * `string source` : Formal citation of the source of the visualization algorithm
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string sourceLink` : (optional, defaults to `""`) A link to the formal citation
-* `VisualizationType visualizationType` : Which renderer the GUI should use for the JSON you return. The template uses `Unimplemented`, and a test fails until you pick a real type. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead (leave out the visualization class, or its `[DefaultFor]`). Adding a new type means updating `Documentation/visualization-types.json` and adding a renderer in Redux_GUI.
+* `VisualizationType visualizationType` : Which renderer the GUI should use for the JSON you return. The template uses `Unimplemented`, and a test fails until you pick a real type. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead (leave out the visualization class, or its `[DefaultFor]`). Adding a new type means updating `Documentation/visualization-types.json` and adding a renderer in Redux_GUI. If more than one renderer can draw your JSON, declare each, joined with `|`.
 * `string[] contributors` : A list of names of all developers who have worked on the visualization
 * `ISolver solver` : The solver to use for this visualization. The template uses the problem's default solver, which is fine if `StepsVisualization` is not implemented
 

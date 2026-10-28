@@ -55,6 +55,8 @@ interface IReduction {
     // the transformation is constructed, `complexityBucket` is how long constructing it
     // takes. Kept as separate members rather than folded into `cost` because a reduction
     // can be cheap on one axis and expensive on another — see the class docs on each enum.
+    // reductionType is a tag set (see Tags): declare every technique the construction uses. The JSON
+    // lists them as reductionTypes; the single reductionType field is deprecated and holds the first.
     ReductionType reductionType { get => ReductionType.Unclassified; }
 
     ReductionComplexityBucket complexityBucket { get => ReductionComplexityBucket.Unclassified; }

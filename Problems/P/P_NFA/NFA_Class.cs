@@ -45,6 +45,7 @@ class NFA : IGraphProblem<NFASolver, NFAVerifier, NFAVisualization, WeightedDire
     // doesn't require that conversion.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.AutomataAndLanguages;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // Edge Structures //
     public record NFAEdge(string From, char Symbol, string To);

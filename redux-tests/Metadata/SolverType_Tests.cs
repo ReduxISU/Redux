@@ -300,11 +300,11 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public void CharacterizationReport_DumpsPerSolverMetadata() {
-        var solverTypeByClassName = SolverTypeCatalog.SolverTypeByClassName.Value;
+        var solverTypesByClassName = SolverTypeCatalog.SolverTypesByClassName.Value;
         var complexityBucketByClassName = SolverTypeCatalog.ComplexityBucketByClassName.Value;
         var complexityByClassName = SolverTypeCatalog.ComplexityByClassName.Value;
 
-        var allClassNames = solverTypeByClassName.Keys
+        var allClassNames = solverTypesByClassName.Keys
             .Union(complexityBucketByClassName.Keys, StringComparer.OrdinalIgnoreCase)
             .Union(complexityByClassName.Keys, StringComparer.OrdinalIgnoreCase)
             .OrderBy(n => n, StringComparer.Ordinal)
@@ -315,7 +315,7 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
         _output.WriteLine("");
 
         foreach (var className in allClassNames) {
-            string solverType = solverTypeByClassName.TryGetValue(className, out var st) ? st : "<not instantiated>";
+            string solverType = solverTypesByClassName.TryGetValue(className, out var st) ? string.Join(" | ", st) : "<not instantiated>";
             string complexityBucket = complexityBucketByClassName.TryGetValue(className, out var cb) ? cb : "<not instantiated>";
             string complexity = complexityByClassName.TryGetValue(className, out var c)
                 ? (string.IsNullOrEmpty(c) ? "<empty>" : c)

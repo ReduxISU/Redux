@@ -109,7 +109,7 @@ Every reduction implements the members in [Interfaces/ReductionInterface.cs](../
 The four **declared metadata** members (`cost`, `reductionType`, `complexityBucket`, and `complexity`) are the ones people forget. Their rules are in [ReductionCost.cs](../../Interfaces/ReductionCost.cs), [ReductionType.cs](../../Interfaces/ReductionType.cs), and [ReductionComplexityBucket.cs](../../Interfaces/ReductionComplexityBucket.cs). The doc comments there explain every choice. Short version:
 
 - `cost`: read your `reduce()`. If the output has about as many numbers/nodes as the input, that is `Linear`. If it loops over all pairs, that is `Quadratic`. And so on.
-- `reductionType`: `Restriction` (the instance is mostly relabeled), `LocalReplacement` (each piece is swapped for a fixed piece), or `ComponentDesign` (gadgets that must work together).
+- `reductionType`: `Restriction` (the instance is mostly relabeled), `LocalReplacement` (each piece is swapped for a fixed piece), or `ComponentDesign` (gadgets that must work together). If the construction uses more than one, declare each, joined with `|`; the API lists them as `reductionTypes` (the single `reductionType` field is deprecated and holds the first).
 - `complexityBucket`: how long `reduce()` itself runs: `Linear`, `Polynomial`, and so on.
 - `complexity`: a Big-O string for `reduce()`, such as `"O(n), n = |SUBSETSUM.S|"`. Only write one you are confident about.
 

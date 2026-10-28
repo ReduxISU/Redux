@@ -25,7 +25,7 @@ In Redux:
   1. `visualize`: the plain picture of the instance.
   2. `SolvedVisualization`: the same picture with the solution highlighted. Optional.
   3. `StepsVisualization`: one picture per solver step, for animations. Optional.
-- It declares a `visualizationType`. The GUI looks that name up in its list of renderers and uses the matching one.
+- It declares a `visualizationType`. The GUI looks that name up in its list of renderers and uses the matching one. If more than one renderer can draw the payload, declare each, joined with `|`; the API lists them as `visualizationTypes`, and the deprecated single `visualizationType` field holds the first.
 - You do not write a controller or register anything on the API side. Redux finds every visualization class automatically (see section 3).
 
 ### Which case are you in?

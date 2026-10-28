@@ -36,6 +36,7 @@ class MINIMUMVERTEXCOVER : IGraphProblem<BruteForceMinimumVertexCover, MinimumVe
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
     public ProblemType problemType { get; } = ProblemType.GraphTheory;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
 
 
     // --- Properties ---

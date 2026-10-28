@@ -34,7 +34,12 @@ class {NAME_UPPERCASE} : IProblem {
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ComplexityClass.cs for what each value means.
     public ComplexityClass complexityClass { get; } = ComplexityClass.Unclassified;
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ProblemType.cs for what each value means.
+    // Declare every category that fits, joined with |, e.g. ProblemType.GraphTheory | ProblemType.NetworkDesign.
     public ProblemType problemType { get; } = ProblemType.Unclassified;
+    // TODO: replace Unclassified with Decision (the instance carries a bound like K and the answer is yes/no),
+    // Optimization (it asks for the best value), or ProblemVariant.Decision | ProblemVariant.Optimization if
+    // this class supports both. A test in redux-tests/Metadata fails until you do. See Interfaces/ProblemVariant.cs.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Unclassified;
 
     // --- Properties ---
 

@@ -30,6 +30,7 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     // most of this repo's NP-completeness reductions.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.Logic;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
     public string instance { get; set; } = string.Empty;
 
     public string wikiName { get; } = "";
