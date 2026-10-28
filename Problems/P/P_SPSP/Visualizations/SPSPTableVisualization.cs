@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -19,24 +20,26 @@ class SPSPTableVisualization : IVisualization<SPSP> {
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SPSPSolver();
 
+    // Implemented explicitly so it is not a public member (and so not part of /info).
+    Type? IVisualization.StepShape => typeof(Distances);
+
     public SPSPTableVisualization() { }
 
+    // The table before the search starts; it needs no run.
     public API_JSON visualize(SPSP problem) {
-        var spspSolver = new SPSPSolver();
-        var steps = spspSolver.GetTableSteps(problem);
-        return steps.Count > 0 ? TranslateToTableJSON((SPSPTableStep)steps[0], isFinalStep: false) : new API_empty();
+        var initial = SPSPSolver.InitialTableStep(problem);
+        return initial != null ? TranslateToTableJSON(initial, isFinalStep: false) : new API_empty();
     }
 
-    public API_JSON SolvedVisualization(SPSP problem, string solution) {
-        var spspSolver = new SPSPSolver();
-        var steps = spspSolver.GetTableSteps(problem);
-        return steps.Count > 0 ? TranslateToTableJSON((SPSPTableStep)steps[steps.Count - 1], isFinalStep: true) : new API_empty();
-    }
-
+    // The tables are made from the run's typed steps (no second run). The solved table is the last of them, and the
+    // picture has always shown it once more at the end; StepsVisualization adds that copy, since SolvedVisualization
+    // (the interface default, no frame) is not given the steps.
     public List<API_JSON> StepsVisualization(SPSP problem, List<Object> steps) {
-        var spspSolver = new SPSPSolver();
-        var tableSteps = spspSolver.GetTableSteps(problem);
-        return tableSteps.Select((s, i) => (API_JSON)TranslateToTableJSON((SPSPTableStep)s, isFinalStep: i == tableSteps.Count - 1)).ToList();
+        var tableSteps = SPSPSolver.TableSteps(problem, steps);
+        var frames = tableSteps.Select((s, i) => (API_JSON)TranslateToTableJSON(s, isFinalStep: i == tableSteps.Count - 1)).ToList();
+        if (tableSteps.Count > 0)
+            frames.Add(TranslateToTableJSON(tableSteps[^1], isFinalStep: true));
+        return frames;
     }
 
     private static API_TableJSON TranslateToTableJSON(SPSPTableStep step, bool isFinalStep) {

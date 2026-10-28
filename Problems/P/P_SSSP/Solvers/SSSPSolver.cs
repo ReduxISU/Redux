@@ -1,5 +1,6 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using SPADE;
 using System;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 
 namespace API.Problems.P.P_SSSP.Solvers;
 
-class SSSPSolver : ISolver<SSSP> {
+class SSSPSolver : ISolver<SSSP, Distances> {
     public string solverName { get; } = "Dijkstra's Algorithm";
     public string solverDefinition { get; } = "";
     public string source { get; } = "";
@@ -24,17 +25,27 @@ class SSSPSolver : ISolver<SSSP> {
     public MathematicalFunction timeComplexity { get; } = new("(V + E) log V", "");
     PriorityQueue<string, int>? pq;
 
-    public string solve(SSSP problem) {
+    public string solve(SSSP problem) => Solve(problem, StepRecorder<Distances>.Off);
+
+    // Steps: a Try for the start, then an Accept each time a node is settled (after its edges are relaxed), then Done.
+    // Each step's Partial is the search after that moment. The list and table pictures rebuild their frames from these
+    // steps (GraphSteps, TableSteps), so the visualize endpoint runs Dijkstra once.
+    public string Solve(SSSP problem, StepRecorder<Distances> rec) {
+        SolveProbe.Hit(GetType());
         UtilCollectionGraph graph = problem.graph;
         List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
 
-        if (nodes.Count == 0)
+        if (nodes.Count == 0) {
+            rec.Done(new Distances([], [], []), true, "The graph has no nodes, so there is nothing to reach.");
             return "{}"; // No nodes, return empty path
+        }
 
         string sourceNode = problem.sourceNode;
 
-        if (!nodes.Contains(sourceNode))
+        if (!nodes.Contains(sourceNode)) {
+            rec.Done(new Distances([], [], []), false, $"The source {sourceNode} is not a node of the graph.");
             return "{}";
+        }
 
         var adjacency = BuildAdjacencyList(graph);
 
@@ -42,13 +53,17 @@ class SSSPSolver : ISolver<SSSP> {
         var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
         pq = new PriorityQueue<string, int>();
+        Distances Partial() => Dijkstra.Partial(dist, prev, visited);
 
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
+        rec.Try(Partial, () => $"Start at {sourceNode} with distance 0. Every other node starts at ∞.", sourceNode);
 
         while (pq.Count > 0) {
-            if (timerHasExpired)
+            if (timerHasExpired) {
+                rec.Done(new Distances([], [], []), false, "The solver ran out of time.");
                 return "{}";
+            }
 
             string current = pq.Dequeue();
 
@@ -56,10 +71,8 @@ class SSSPSolver : ISolver<SSSP> {
                 continue;
             visited.Add(current);
 
-            if (!adjacency.TryGetValue(current, out var neighbors))
-                continue;
-
-            foreach (var (next, weight) in neighbors) {
+            var shorter = new List<string>();
+            foreach (var (next, weight) in adjacency.TryGetValue(current, out var neighbors) ? neighbors : []) {
                 if (visited.Contains(next))
                     continue;
 
@@ -68,13 +81,18 @@ class SSSPSolver : ISolver<SSSP> {
 
                 int candidate = dist[current] + weight;
                 if (candidate < dist[next]) {
+                    shorter.Add($"{next}: {Dijkstra.Show(dist[next])} → {candidate}");
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
                 }
             }
+            rec.Accept(Partial, () => Dijkstra.SettleCaption(current, dist[current], shorter), current);
         }
 
+        var lost = nodes.Where(n => dist[n] == int.MaxValue).ToList();
+        rec.Done(Partial(), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree."
+            + (lost.Count > 0 ? $" {string.Join(", ", lost)} can't be reached." : ""));
         return NodeListCertificate(nodes, sourceNode, prev);
     }
 
@@ -199,8 +217,10 @@ class SSSPSolver : ISolver<SSSP> {
         public List<(string from, string to)> treeEdges { get; set; } = new(); // accepted tree edges so far
     }
 
-    // GetSteps: The steps are returned as a list of string, where each string represents a path in the certificate format
-    public List<Object> GetSteps(SSSP problem) {
+    // LegacyGraphSteps: the list picture's steps as this solver made them in a second run before #734. The picture now
+    // builds them from the typed run (GraphSteps); this is kept as the reference the tests compare GraphSteps against.
+    internal List<Object> LegacyGraphSteps(SSSP problem) {
+        SolveProbe.Hit(GetType());
         var steps = new List<Object>();
         UtilCollectionGraph graph = problem.graph;
 
@@ -288,7 +308,10 @@ class SSSPSolver : ISolver<SSSP> {
         public string? sourceVertex { get; set; }
     }
 
+    // GetTableSteps: the table picture's steps from a separate run. The picture now builds them from the typed run
+    // (TableSteps); this is kept as the reference the tests compare TableSteps against.
     public List<Object> GetTableSteps(SSSP problem) {
+        SolveProbe.Hit(GetType());
         var steps = new List<Object>();
         UtilCollectionGraph graph = problem.graph;
 
@@ -374,5 +397,102 @@ class SSSPSolver : ISolver<SSSP> {
                 order = finalizationOrder.ContainsKey(n) ? finalizationOrder[n].ToString() : ""
             }).ToList()
         };
+    }
+
+    // ----- Frames from the typed run ----- //
+
+    private static List<string> NodesOf(SSSP problem) => problem.graph.Nodes.ToList().Select(n => n.ToString()).ToList();
+
+    // The search as dictionaries over every node: distance (int.MaxValue for ∞) and predecessor (null for none).
+    private static Dictionary<string, int> DistOf(List<string> nodes, Distances d) =>
+        nodes.ToDictionary(n => n, n => d.Dist.TryGetValue(n, out int v) ? v : int.MaxValue);
+    private static Dictionary<string, string?> PrevOf(List<string> nodes, Distances d) =>
+        nodes.ToDictionary(n => n, n => d.Pred.TryGetValue(n, out string? p) ? p : null);
+
+    /// <summary>
+    /// The run's settles: for each node settled, in order, the search just before it was settled and just after its
+    /// edges were relaxed. Read from the typed steps (the start Try, then one Accept per settled node), so steps the
+    /// recorder did not keep are not there; an Accept that does not settle exactly one more node (one kept out of order
+    /// past the step cap) is skipped. Shared with SPSP, whose Dijkstra records the same steps.
+    /// </summary>
+    internal static List<(string Node, Distances Before, Distances After)> Settles(IEnumerable<object> steps) {
+        var result = new List<(string, Distances, Distances)>();
+        Distances? before = null;
+        var settled = new HashSet<string>();
+        foreach (var step in steps.OfType<SolverStep<Distances>>()) {
+            if (step.Event == StepEvent.Try && before == null) {
+                before = step.Partial;
+            } else if (step.Event == StepEvent.Accept && before != null) {
+                if (step.Partial.Settled.Length != settled.Count + 1) continue;
+                string? node = step.Partial.Settled.FirstOrDefault(n => !settled.Contains(n));
+                if (node == null) continue;
+                settled.Add(node);
+                result.Add((node, before, step.Partial));
+                before = step.Partial;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// The list picture's steps (one per settled node), made from the typed run. The same as
+    /// <see cref="LegacyGraphSteps"/>, which ran Dijkstra a second time. (Its stop at a negative edge is not repeated:
+    /// the instance parser rejects negative weights.)
+    /// </summary>
+    internal static List<SSSPGraphStep> GraphSteps(SSSP problem, IEnumerable<object> steps) {
+        var nodes = NodesOf(problem);
+        var result = new List<SSSPGraphStep>();
+        var known = new List<string>();
+        foreach (var (node, before, _) in Settles(steps)) {
+            known.Add(node);
+            var prev = PrevOf(nodes, before);
+            result.Add(new SSSPGraphStep {
+                currentNode = node,
+                currentEdgeFrom = prev.GetValueOrDefault(node),
+                knownNodes = known.ToList(),
+                treeEdges = prev.Where(p => p.Value != null).Select(p => (p.Value!, p.Key)).ToList()
+            });
+        }
+        return result;
+    }
+
+    /// <summary>The table before the search starts, or null for a graph with no nodes. Needs no run.</summary>
+    internal static SSSPTableStep? InitialTableStep(SSSP problem) {
+        var nodes = NodesOf(problem);
+        if (nodes.Count == 0)
+            return null;
+        var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
+        dist[problem.sourceNode] = 0;
+        var prev = nodes.ToDictionary(n => n, _ => (string?)null);
+        return BuildTableStep(nodes, dist, prev, new HashSet<string>(), new Dictionary<string, int>(), currentVertex: null, sourceVertex: problem.sourceNode);
+    }
+
+    /// <summary>
+    /// The table picture's steps, made from the typed run: the start, then for each settled node the table once it is
+    /// known and again after its edges are relaxed. The same as <see cref="GetTableSteps"/>, which ran Dijkstra again.
+    /// </summary>
+    internal static List<SSSPTableStep> TableSteps(SSSP problem, IEnumerable<object> steps) {
+        var result = new List<SSSPTableStep>();
+        var nodes = NodesOf(problem);
+        var first = steps.OfType<SolverStep<Distances>>().FirstOrDefault(s => s.Event == StepEvent.Try);
+        if (nodes.Count == 0 || first == null)
+            return result;
+        string source = problem.sourceNode;
+        var adjacency = BuildAdjacencyList(problem.graph);
+        var visited = new HashSet<string>();
+        var order = new Dictionary<string, int>();
+        result.Add(BuildTableStep(nodes, DistOf(nodes, first.Partial), PrevOf(nodes, first.Partial), visited, order, currentVertex: null, sourceVertex: source));
+        foreach (var (node, before, after) in Settles(steps)) {
+            visited.Add(node);
+            order[node] = order.Count + 1;
+            result.Add(BuildTableStep(nodes, DistOf(nodes, before), PrevOf(nodes, before), visited, order, currentVertex: null, sourceVertex: source));
+            // A node with no edges at all has nothing to relax, and gets no second table.
+            if (!adjacency.ContainsKey(node))
+                continue;
+            // After the last node nothing reached is left unsettled, and no row is highlighted.
+            bool isLastVertex = !nodes.Any(n => after.Dist.ContainsKey(n) && !visited.Contains(n));
+            result.Add(BuildTableStep(nodes, DistOf(nodes, after), PrevOf(nodes, after), visited, order, currentVertex: isLastVertex ? null : node, sourceVertex: source));
+        }
+        return result;
     }
 }

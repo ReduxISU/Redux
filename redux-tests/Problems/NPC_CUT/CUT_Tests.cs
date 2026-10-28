@@ -38,17 +38,46 @@ public class CUT_Tests {
         Assert.Equal(expected, result);
     }
 
-    // BUG: CutVerifier only checks that the certificate is K real, distinct, non-self-loop edges. It
-    // never checks that those edges are consistent with an actual graph bipartition (every cycle must
-    // cross an even number of times -- the standard cut/cycle-space parity condition). In a triangle, no
-    // bipartition can produce a crossing set of exactly 1 edge, so this should be rejected, but the
-    // verifier accepts any single real edge as a valid "cut" of size 1.
-    [Fact(Skip = "BUG: CutVerifier accepts an edge set with no valid bipartition (e.g. one edge of a triangle) -- see comment")]
-    public void CUT_verifier_BUG_accepts_edge_set_with_no_valid_partition() {
+    [Fact] // a triangle is not bipartite, so one of its edges can never be a whole cut
+    public void CUT_verifier_rejects_edge_set_with_no_valid_partition() {
         CUT triangle = new CUT("(({x,y,z},{{x,y},{y,z},{z,x}}),1)");
         CutVerifier verifier = new CutVerifier();
-        bool result = verifier.verify(triangle, "{{x,y}}");
-        Assert.False(result); // currently returns true
+        Assert.False(verifier.verify(triangle, "{{x,y}}"));
+    }
+
+    [Fact] // all 3 triangle edges can't all cross one partition
+    public void CUT_verifier_rejects_triangle_edges() {
+        CUT triangle = new CUT("(({x,y,z},{{x,y},{y,z},{z,x}}),3)");
+        Assert.False(new CutVerifier().verify(triangle, "{{x,y},{y,z},{z,x}}"));
+    }
+
+    [Fact] // the 2 edges at a triangle vertex are the cut of S={x}
+    public void CUT_verifier_accepts_valid_triangle_cut() {
+        CUT triangle = new CUT("(({x,y,z},{{x,y},{y,z},{z,x}}),2)");
+        Assert.True(new CutVerifier().verify(triangle, "{{x,y},{z,x}}"));
+    }
+
+    [Fact] // on a path a-b-c, the bridge {a,b} is the cut of S={a}
+    public void CUT_verifier_accepts_single_bridge() {
+        CUT path = new CUT("(({a,b,c},{{a,b},{b,c}}),1)");
+        Assert.True(new CutVerifier().verify(path, "{{a,b}}"));
+    }
+
+    [Fact] // in a 4-cycle, one edge alone would cross while the other three stay uncut: a cycle crosses an even number of times
+    public void CUT_verifier_rejects_subset_of_crossing_edges() {
+        CUT square = new CUT("(({a,b,c,d},{{a,b},{b,c},{c,d},{d,a}}),1)");
+        Assert.False(new CutVerifier().verify(square, "{{a,b}}"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("garbage")]
+    [InlineData("{{a}}")]
+    [InlineData("{{a,b,c}}")]
+    [InlineData("{a,b}")]
+    public void CUT_verifier_malformed_certificate_returns_false(string certificate) {
+        CUT cut = new CUT("(({a,b,c},{{a,b},{b,c}}),1)");
+        Assert.False(new CutVerifier().verify(cut, certificate));
     }
 
     [Theory] // Solver: any certificate it emits must itself satisfy the verifier

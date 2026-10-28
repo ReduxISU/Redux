@@ -28,7 +28,7 @@ public class ProblemTemplate : ControllerBase {
                 {"README.md", System.IO.File.ReadAllText($"{templatePath}/README.md")},
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
                 {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
-                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"Default {problemName} Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"), $"{problemName} Verifier")},
+                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"{problemName} Solution Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"), $"{problemName} Verifier")},
                 {$"NPC_{problemNameUpper}/Visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))},
                 {$"redux-tests/Problems/NPC_{problemNameUpper}/{problemNameUpper}_Tests.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Tests/PROBLEM_Tests.txt"))}
             }
@@ -77,7 +77,7 @@ public class ProblemTemplate : ControllerBase {
 
     ///<summary>Returns generated files zipped together for the user to implement.</summary>
     ///<param name="problemName" example="CLIQUE">Problem name</param>
-    ///<param name="verifierName" example="Default Clique Verifier">Verifier name. A problem's default verifier must be named "Default &lt;problem name&gt; Verifier" (checked by NamingConvention_Tests).</param>
+    ///<param name="verifierName" example="Clique Solution Verifier">Verifier name. It must be "&lt;problem name&gt; Solution Verifier" or "&lt;problem name&gt; Optimality Verifier" (checked by NamingConvention_Tests).</param>
     ///<response code="200">Returns the verifier template with the given name.</response>
     [ProducesResponseType(typeof(ActionResult), 200)]
     [HttpGet("verifier")]

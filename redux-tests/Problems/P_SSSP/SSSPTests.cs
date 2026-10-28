@@ -1,3 +1,4 @@
+using API.Interfaces;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.P.P_SPSP;
 using API.Problems.P.P_SSSP;
@@ -136,7 +137,7 @@ public class SSSP_Tests {
     public void SSSPSolver_GetSteps_Returns_Empty_When_No_Nodes() {
         SSSP problem = new SSSP("({},{})");
         SSSPSolver solver = new SSSPSolver();
-        var steps = solver.GetSteps(problem);
+        var steps = SSSPSolver.GraphSteps(problem, ((ISolver<SSSP>)solver).GetSteps(problem));
         Assert.Empty(steps);
     }
 
@@ -145,7 +146,7 @@ public class SSSP_Tests {
         string instance = "({1,2,3,4,5},{((1,2),4),((1,3),2),((2,3),1),((3,5),7),((2,4),3),((4,5),9)},1)";
         SSSP problem = new SSSP(instance);
         SSSPSolver solver = new SSSPSolver();
-        var steps = solver.GetSteps(problem).Cast<SSSPSolver.SSSPGraphStep>().ToList();
+        var steps = SSSPSolver.GraphSteps(problem, ((ISolver<SSSP>)solver).GetSteps(problem)).Cast<SSSPSolver.SSSPGraphStep>().ToList();
 
         Assert.Equal(5, steps.Count);
 
@@ -303,8 +304,9 @@ public class SSSP_Tests {
         var solver = new SSSPSolver();
         var visualization = new SSSPVisualization();
 
-        var steps = solver.GetSteps(problem);
-        var visualSteps = visualization.StepsVisualization(problem, steps);
+        var typedSteps = ((ISolver<SSSP>)solver).GetSteps(problem);
+        var steps = SSSPSolver.GraphSteps(problem, typedSteps).Cast<object>().ToList();
+        var visualSteps = visualization.StepsVisualization(problem, typedSteps);
 
         Assert.True(steps.Count >= 2);
 

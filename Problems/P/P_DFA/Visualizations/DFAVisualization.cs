@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Problems.P.P_DFA;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -16,6 +17,9 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON> {
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX;
     public ISolver solver { get; } = new DFASolver();
+
+    // Implemented explicitly so it is not a public member (and so not part of /info).
+    Type? IVisualization.StepShape => typeof(ActiveStates);
 
     // --- Methods Including Constructors ---
     public DFAVisualization() { }
@@ -46,17 +50,21 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON> {
     }
 
     public List<API_JSON> StepsVisualization(DFA instance, List<Object> steps) {
-        List<string> solutionList = steps.Cast<string>().ToList();
-        List<API_GraphJSON> apiGraphs = Enumerable.Range(0, solutionList.Count)
+        // One frame per state the run entered: the start state and each transition taken (Try steps).
+        List<ActiveStates> visited = steps.Cast<SolverStep<ActiveStates>>()
+                                          .Where(s => s.Event == StepEvent.Try)
+                                          .Select(s => s.Partial)
+                                          .ToList();
+        List<API_GraphJSON> apiGraphs = Enumerable.Range(0, visited.Count)
                                                   .Select(_ => instance.graph.ToAPIGraph())
                                                   .ToList();
 
         for (int i = 0; i < apiGraphs.Count; i++) {
             API_GraphJSON apiGraph = apiGraphs[i];
-            string currNode = solutionList[i];
+            string[] active = visited[i].States;
 
             for (int j = 0; j < apiGraph.nodes.Count; j++) {
-                if (apiGraph.nodes[j].name == currNode) {
+                if (active.Contains(apiGraph.nodes[j].name)) {
                     apiGraph.nodes[j].color = "green";
                 } else { apiGraph.nodes[j].color = "white"; }
             }
