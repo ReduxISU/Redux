@@ -68,6 +68,7 @@ class CliqueBruteForce : ISolver<CLIQUE> {
         }
         BigInteger reps = factorial(clique.nodes.Count) / (factorial(clique.K) * factorial(clique.nodes.Count - clique.K));
         for (int i = 0; i < reps; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = indexListToCertificate(combination, clique.nodes);
             if (clique.defaultVerifier.verify(clique, certificate)) {
                 return certificate;

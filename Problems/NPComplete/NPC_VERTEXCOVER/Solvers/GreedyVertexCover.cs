@@ -34,7 +34,9 @@ class GreedyVertexCover : ISolver<VERTEXCOVER> {
         mvc.nodes = new List<string>(G.nodes);
         mvc.edges = new List<KeyValuePair<string, string>>(G.edges);
 
-        string certificate = new GreedyMinimumVertexCover().solve(mvc);
+        // #935: the inner solver's own flag is never set by the timer, so it watches this one's.
+        string certificate = new GreedyMinimumVertexCover { stop = () => timerHasExpired }.solve(mvc);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         int size = certificate == "{}" ? 0 : certificate.Trim('{', '}').Split(',').Length;
 

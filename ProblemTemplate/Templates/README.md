@@ -80,7 +80,7 @@ The Solvers folder should contain all solver files for that problem. Each of whi
 * `string source` : Formal citation of the source of the solving algorithm
 * `string sourceFile` : Repo-relative path of the class's own source file. Leave it as the template's `SourceFile.Path()`; the compiler fills in the path.
 * `string[] contributors` : A list of names of all developers who have worked on the solver
-* `bool timerHasExpired` : bool that says if the timer for a problem has expired. Check it now and then in long loops and return if it is true.
+* `bool timerHasExpired` : set by the API when the request's time limit runs out (#935). Check it in every long loop and, when it is true, return `SolveRun.TimedOutAnswer`.
 * `SolverType solverType`, `SolverComplexityBucket complexityBucket` : Declared by a person. The template declares them as `Unclassified`, and the metadata tests fail while they stay that way.
 * `string complexity` : A Big-O string. The template declares it as `""` and a metadata test fails until you fill it in. Only write one you are confident of.
 

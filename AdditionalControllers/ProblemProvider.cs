@@ -17,10 +17,14 @@ using System.Dynamic;
 [Route("[controller]")]
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase {
-    /// <summary>The configuration key for the time budget of a solve that records steps for a picture.</summary>
+    /// <summary>
+    /// The older configuration key for the time budget of a solve that records steps for a picture (#885). The one
+    /// limit for every compute request is now <see cref="ComputeLimits.TimeLimitKey"/>; this key, when it is set
+    /// explicitly, still decides the visualize limit, so a deployment that set it keeps what it chose.
+    /// </summary>
     public const string SolveTimeLimitKey = "Visualization:SolveTimeLimitSeconds";
-    /// <summary>The budget used when <see cref="SolveTimeLimitKey"/> is not set.</summary>
-    public const double DefaultSolveTimeLimitSeconds = 10;
+    /// <summary>The budget used when neither key is set.</summary>
+    public const double DefaultSolveTimeLimitSeconds = ComputeLimits.DefaultTimeLimitSeconds;
 
     private readonly IConfiguration? _configuration;
 
@@ -30,16 +34,49 @@ public class ProblemProvider : ControllerBase {
     }
 
     /// <summary>
-    /// The time budget for a solve that records steps (the visualize endpoint), from
-    /// <see cref="SolveTimeLimitKey"/> (seconds, default <see cref="DefaultSolveTimeLimitSeconds"/>). Zero or less
-    /// means no limit. Only typed solvers (those that record steps) can be stopped by it; see <see cref="ISolver.Run"/>.
+    /// The time budget for the visualize endpoint: <see cref="SolveTimeLimitKey"/> when it is set, else
+    /// <see cref="ComputeLimits.TimeLimitKey"/> (seconds, default <see cref="DefaultSolveTimeLimitSeconds"/>). Zero or
+    /// less means no limit. See <see cref="ISolver.Run"/> for how a solver is stopped.
     /// </summary>
     private TimeSpan? SolveTimeLimit {
         get {
-            double seconds = _configuration?.GetValue<double?>(SolveTimeLimitKey) ?? DefaultSolveTimeLimitSeconds;
-            return seconds > 0 ? TimeSpan.FromSeconds(seconds) : null;
+            double? old = _configuration?.GetValue<double?>(SolveTimeLimitKey);
+            return old is { } seconds ? ComputeLimits.FromSeconds(seconds) : ComputeLimit;
         }
     }
+
+    /// <summary>The time limit of every other compute request, from <see cref="ComputeLimits.TimeLimitKey"/>.</summary>
+    private TimeSpan? ComputeLimit => ComputeLimits.TimeLimit(_configuration);
+
+    /// <summary>The backstop for a request whose solver stops itself at <paramref name="limit"/> (see <see cref="ComputeLimits.SolverBackstopGrace"/>).</summary>
+    private static TimeSpan? SolverBackstop(TimeSpan? limit) => limit is { } l ? l + ComputeLimits.SolverBackstopGrace : null;
+
+    /// <summary>HTTP 422 with the <c>time_limit</c> body (#935); see <see cref="ComputeLimits.TimeLimitBody"/>.</summary>
+    private IActionResult TimeLimitError(string job, TimeSpan limit, string detail, string hint, IReadOnlyDictionary<string, object?>? context = null) =>
+        UnprocessableEntity(ComputeLimits.TimeLimitBody(job, limit, detail, hint, context));
+
+    /// <summary>The time-limit error of a solve, naming the solver, its problem and the problem's other solvers.</summary>
+    private IActionResult SolveTimeLimitError(string job, Type solverType, TimeSpan limit, string detail) {
+        Type? problemType = ProblemTypeOf(solverType, typeof(ISolver<>));
+        var others = problemType == null ? new List<string>() : Solvers.Values
+            .Where(t => t != solverType && ProblemTypeOf(t, typeof(ISolver<>)) == problemType)
+            .Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        string? problemName = null;
+        try { problemName = problemType == null ? null : (Activator.CreateInstance(problemType) as IProblem)?.problemName; } catch { /* unnamed */ }
+        string hint = others.Count > 0
+            ? $"Try a smaller instance, or a faster solver for this problem: {string.Join(", ", others)}."
+            : "Try a smaller instance.";
+        return TimeLimitError(job, limit, detail, hint, new Dictionary<string, object?> {
+            ["solver"] = solverType.Name,
+            ["problem"] = problemName,
+            ["options"] = others,
+        });
+    }
+
+    /// <summary>The time-limit error of a reduction (or a chain of them, separated by dashes).</summary>
+    private IActionResult ReductionTimeLimitError(TimeSpan limit, string reduction) =>
+        TimeLimitError("reduction", limit, ComputeLimits.BackstopDetail, "Try a smaller instance.",
+            new Dictionary<string, object?> { ["reduction"] = reduction });
 
     // Buckets every loaded type into its marker-interface dictionary in a single pass over
     // AppDomain.GetAssemblies().SelectMany(GetTypes()) instead of one full assembly scan per
@@ -181,11 +218,19 @@ public class ProblemProvider : ControllerBase {
     /// <returns>true or false</returns>
     [ProducesResponseType(typeof(bool), 200)]
     [ProducesResponseType(400)]
+    [ProducesResponseType(422)]
     [HttpPost("verify")]
-    public IActionResult verify(string verifier, [FromBody] Verify verify) {
+    public async Task<IActionResult> verify(string verifier, [FromBody] Verify verify) {
         try {
+            // Verifiers have no time checks of their own, so the backstop is the limit itself (see ComputeLimits).
+            TimeSpan? limit = ComputeLimit;
+            var (finished, verdict) = await ComputeLimits.WithBackstop(
+                () => Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate), limit);
+            if (!finished)
+                return TimeLimitError("verification", limit!.Value, ComputeLimits.BackstopDetail,
+                    "Try a smaller instance or a shorter certificate.", new Dictionary<string, object?> { ["verifier"] = verifier });
             string result = JsonSerializer.Serialize(
-                Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate).ToString(),
+                verdict.ToString(),
                 new JsonSerializerOptions { WriteIndented = true }
             );
             return Content(result, "application/json");
@@ -256,13 +301,26 @@ public class ProblemProvider : ControllerBase {
     /// <returns>solution certificate</returns>
     [HttpPost("solve")]
     [ProducesResponseType(400)]
-    public IActionResult solve(string solver, [FromBody] string problemInstance) {
-        if (!Solvers.TryGetValue(solver.ToLower(), out _))
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> solve(string solver, [FromBody] string problemInstance) {
+        if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
             return BadRequest(new { error = "unknown_solver", received = solver });
         try {
+            // The solver stops itself at the limit (ISolver.Run: the recorder of a typed solver, the timerHasExpired
+            // flag of a legacy one), and the run is then marked TimedOut; the backstop answers a little later for a
+            // solver that does not stop (#935). With no limit this is solve(problemInstance), as before.
+            TimeSpan? limit = ComputeLimit;
+            ISolver chosen = Solver(solver);
+            var (finished, run) = await ComputeLimits.WithBackstop(
+                () => limit == null ? new SolveRun(chosen.solve(problemInstance), new List<object>(), null)
+                                    : chosen.Run(problemInstance, withSteps: false, limit),
+                SolverBackstop(limit));
+            if (!finished || run!.TimedOut)
+                return SolveTimeLimitError("solve", solverType, limit!.Value,
+                    finished ? ComputeLimits.StoppedBySolverDetail : ComputeLimits.BackstopDetail);
             return Content(
                 JsonSerializer.Serialize(
-                    Solver(solver).solve(problemInstance),
+                    run.Answer,
                     new JsonSerializerOptions { WriteIndented = true }),
                 "application/json");
         } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
@@ -415,7 +473,8 @@ public class ProblemProvider : ControllerBase {
     /// <returns>the basic visualization, any steps from the solver, and the solved visualization, shaped by <paramref name="format"/></returns>
     [HttpPost("visualize")]
     [ProducesResponseType(400)]
-    public IActionResult visualize(string visualization, [FromBody] string instance, string? solver = null, string? format = null) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> visualize(string visualization, [FromBody] string instance, string? solver = null, string? format = null) {
         if (!Visualizers.TryGetValue(visualization.ToLower(), out _))
             return BadRequest(new { error = "unknown_visualization", received = visualization });
         bool asFrames;
@@ -435,19 +494,25 @@ public class ProblemProvider : ControllerBase {
             chosen = Solver(solver);
         }
         try {
-            // A typed solver that runs past the time limit is stopped and its run comes back with TimedOut set; an
-            // uninstrumented (legacy) solver never records a step, so it cannot be stopped here (see issue #523).
+            // A solver that runs past the time limit is stopped and its run comes back with TimedOut set (a typed one by
+            // its recorder, a legacy one by its timerHasExpired flag); the stopped run is drawn, not reported as an
+            // error (#885). Only a solve or a drawing that does not stop runs into the backstop, which answers time_limit.
             TimeSpan? limit = SolveTimeLimit;
-            var clock = System.Diagnostics.Stopwatch.StartNew();
-            var run = chosen.Run(instance, withSteps: true, limit);
-            // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what is
-            // left of the limit, so the whole request stays within it (#764).
-            TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
-            var steps = run.StepsFor(vis.StepShape);
-            var solution = run.Answer;
-            return Content(asFrames
-                ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
-                : getVisualize(vis, steps, solution, instance, run.TimedOut, left), "application/json");
+            var (finished, body) = await ComputeLimits.WithBackstop(() => {
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var run = chosen.Run(instance, withSteps: true, limit);
+                // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what
+                // is left of the limit, so the whole request stays within it (#764).
+                TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
+                var steps = run.StepsFor(vis.StepShape);
+                var solution = run.Answer;
+                return asFrames
+                    ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
+                    : getVisualize(vis, steps, solution, instance, run.TimedOut, left);
+            }, SolverBackstop(limit));
+            if (!finished)
+                return SolveTimeLimitError("visualization", chosen.GetType(), limit!.Value, ComputeLimits.BackstopDetail);
+            return Content(body!, "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
@@ -462,27 +527,37 @@ public class ProblemProvider : ControllerBase {
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
     [ProducesResponseType(400)]
-    public IActionResult visualizeReduction(string reduction, string solution, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> visualizeReduction(string reduction, string solution, [FromBody] string instance) {
         List<string> reds = reduction.Split("-").ToList();
         foreach (string r in reds)
             if (!Reductions.TryGetValue(r.ToLower(), out _))
                 return BadRequest(new { error = "unknown_reduction", received = r });
 
-        IReduction? red = null;
+        // Reductions have no time checks of their own, so the backstop is the limit itself (see ComputeLimits).
+        TimeSpan? limit = ComputeLimit;
+        bool finished;
+        string? body;
         try {
-            foreach (string reductionname in reds) {
-                red = Reduction(reductionname, instance);
-                solution = MapSolutions(red, solution);
-                instance = red.reductionTo.instance;
-            }
+            (finished, body) = await ComputeLimits.WithBackstop(() => {
+                IReduction? red = null;
+                foreach (string reductionname in reds) {
+                    red = Reduction(reductionname, instance);
+                    solution = MapSolutions(red, solution);
+                    instance = red.reductionTo.instance;
+                }
+                return red is null ? null : getVisualize(red.visualization, new List<Object>(), solution, instance);
+            }, limit);
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
+        if (!finished)
+            return ReductionTimeLimitError(limit!.Value, reduction);
 
-        if (red is null)
+        if (body is null)
             return BadRequest(new { error = "no_reductions_provided" });
 
-        return Content(getVisualize(red.visualization, new List<Object>(), solution, instance), "application/json");
+        return Content(body, "application/json");
     }
 
     /// <summary>
@@ -493,11 +568,19 @@ public class ProblemProvider : ControllerBase {
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
     [ProducesResponseType(400)]
-    public IActionResult reduce(string reduction, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> reduce(string reduction, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            return Content(JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+            // The reduction runs in its constructor, and serializing it can run more (computed members), so both are
+            // inside the backstop, which is the limit itself: reductions have no time checks (see ComputeLimits).
+            TimeSpan? limit = ComputeLimit;
+            var (finished, body) = await ComputeLimits.WithBackstop(
+                () => JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), limit);
+            if (!finished)
+                return ReductionTimeLimitError(limit!.Value, reduction);
+            return Content(body!, "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
@@ -512,12 +595,16 @@ public class ProblemProvider : ControllerBase {
     /// <returns>solution certificate of the reduction</returns>
     [HttpPost("mapSolution")]
     [ProducesResponseType(400)]
-    public IActionResult mapSolution(string reduction, string solution, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> mapSolution(string reduction, string solution, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            IReduction red = Reduction(reduction, instance);
-            string mappedSolution = MapSolutions(red, solution);
+            TimeSpan? limit = ComputeLimit;
+            var (finished, mappedSolution) = await ComputeLimits.WithBackstop(
+                () => MapSolutions(Reduction(reduction, instance), solution), limit);
+            if (!finished)
+                return ReductionTimeLimitError(limit!.Value, reduction);
             return Content(
                 JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }),
                 "application/json");
@@ -546,12 +633,17 @@ public class ProblemProvider : ControllerBase {
     /// <returns>gadget map</returns>
     [HttpPost("gadgets")]
     [ProducesResponseType(400)]
-    public IActionResult gadgets(string reduction, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> gadgets(string reduction, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            IReduction red = Reduction(reduction, instance);
-            return Content(JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+            TimeSpan? limit = ComputeLimit;
+            var (finished, body) = await ComputeLimits.WithBackstop(
+                () => JsonSerializer.Serialize(Reduction(reduction, instance).gadgets, new JsonSerializerOptions() { WriteIndented = true }), limit);
+            if (!finished)
+                return ReductionTimeLimitError(limit!.Value, reduction);
+            return Content(body!, "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }

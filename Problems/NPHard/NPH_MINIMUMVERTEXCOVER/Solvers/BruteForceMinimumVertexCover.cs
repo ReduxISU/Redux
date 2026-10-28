@@ -78,6 +78,7 @@ class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
             }
             BigInteger reps = factorial(n) / (factorial(k) * factorial(n - k));
             for (int i = 0; i < reps; i++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 if (isCover(G, combination)) {
                     return indexListToCertificate(combination, G.nodes);
                 }

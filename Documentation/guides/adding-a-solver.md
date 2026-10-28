@@ -139,7 +139,7 @@ The loop at the heart of the worked example:
 
 ```csharp
 for (int mask = 1; mask < (1 << n); mask++) {
-    if (timerHasExpired) return "{}";
+    if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
     string certificate = SubsetToCertificate(mask, subsetSum.S);
     if (subsetSum.defaultVerifier.verify(subsetSum, certificate)) {
@@ -156,12 +156,14 @@ Notice two good habits here:
 
 **Why small instances matter.** Brute force doubles its work with every extra number. The default instance `({1,7,12,15},28)` has 4 numbers, so 16 subsets: instant. With 40 numbers it would be about a trillion subsets: not instant. Keep the problem's `defaultInstance` small enough to solve in well under a second, and use small instances in your tests.
 
-**Timeouts: `timerHasExpired`.** The interface has a flag, `timerHasExpired`, and two helper methods that flip it (`TimerExpired()` sets it to `true`, `ResetTimer()` sets it back to `false`). The idea: something outside the solver can run a stopwatch and, when time is up, call `TimerExpired()`. A well-behaved solver checks the flag every so often inside its main loop and stops early if it is `true`. Rules:
+**Timeouts: `timerHasExpired`.** Every compute request has a time limit (`ComputeLimits:TimeLimitSeconds` in `appsettings.json`, 10 seconds by default; #935). The interface has a flag, `timerHasExpired`, and two helper methods that flip it (`TimerExpired()` sets it to `true`, `ResetTimer()` sets it back to `false`). The API starts a timer for every solve and calls `TimerExpired()` when the limit runs out. A solver must check the flag inside its main loops and stop when it is `true`. Rules:
 
-- Check it **inside your main loop**, not just once at the start. A check that never runs again cannot stop anything.
-- Check it often enough to matter, but not so often that the checks slow the real work down.
-- When it is `true`, return a value that is safe to hand to callers (see "What to return" below).
-- Note: at the time of writing, nothing inside this API calls `TimerExpired()` (the code that would start the stopwatch is not in the repo), so the flag is never set in a normal request. You still must write the check, so the solver is ready when a timer is added, and so your own tests can set `solver.timerHasExpired = true` to prove the solver stops.
+- Check it **inside your main loop** (and inside any recursion), not just once at the start. A check that never runs again cannot stop anything. If you build a big list of candidates up front, check while building it too.
+- Check it often enough to matter, but not so often that the checks slow the real work down. Reading the flag is cheap, so once per candidate or per recursive call is fine.
+- When it is `true`, return `SolveRun.TimedOutAnswer`. Never return a made-up answer, and not `"{}"`: that means "there is no solution", which the solver does not know. The API answers such a request with HTTP 422 and the error `time_limit`, whatever the solver returned.
+- [SolverTimeLimit_Tests.cs](../../redux-tests/Steps/SolverTimeLimit_Tests.cs) checks every solver: with the flag already set, `solve` on the problem's default instance must return `SolveRun.TimedOutAnswer`. A solver that never checks the flag fails it.
+- A typed solver (`ISolver<T, TPartial>`, which reports steps to a `StepRecorder`) is stopped by its recorder instead, at the next step it reports, so it must report steps inside its loops.
+- This is not true cancellation: a solver that never reaches a check runs on. Running each job in its own process (#936) and on its own threads (#937) will stop those too.
 
 **What to return.** The interface does not define a special "no solution" or "timed out" value. The solver's result is just a string, and today Redux uses these conventions:
 
@@ -169,7 +171,7 @@ Notice two good habits here:
 | --- | --- | --- |
 | A solution was found | the certificate, in the problem's `certificateFormat` | for example `{1,12,15}` |
 | There is no solution | `"{}"` (an empty certificate) | the worked example. About 60 solvers do this. Some return `""` or other text, so the convention is not universal. |
-| The timer expired | the same value as "no solution" in the worked example (`"{}"`) | the template returns the text `"timeout"` instead, and about 8 solvers do that. |
+| The timer expired | `SolveRun.TimedOutAnswer` | the same for every solver (#935). Callers check that the run timed out, not this text. |
 
 Whatever you pick, document it in a comment, and make sure the **verifier handles it** (an empty `{}` certificate must not crash it, it should just return `false` or, if your problem's format rejects it, throw `CertificateParseException`). Prefer `"{}"` or an empty certificate in the problem's own format for "no solution", because the GUI and verifier already understand that shape.
 
@@ -206,7 +208,9 @@ You do not have to register your solver with these tests. They find it automatic
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`Info_...` and `AllInfo_...` tests) | The three declared values appear in the API's JSON as words (`"BruteForce"`), not numbers. |
 | [ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) (`Solve_GarbageInstance_IsNever500`) | Sending garbage (`""`, `{{{`, `not an instance`, `{a,b}:::`) as the instance to `POST /ProblemProvider/solve` never produces an HTTP 500. A 400 with the instance format is the expected answer. Because your problem's constructor does the parsing, this normally passes without extra work. |
 
-Not checked for free: that your solver gives the **right** answer, that its answer passes the verifier, and that it stops when `timerHasExpired` is set. There is also no generic performance test over solvers (the Performance tests cover the API's endpoints and reductions), so a solver that is too slow on the default instance will only show up as a slow test of your own. Those are your job.
+Checked for free: that your solver stops when `timerHasExpired` is set, on the default instance ([SolverTimeLimit_Tests.cs](../../redux-tests/Steps/SolverTimeLimit_Tests.cs)).
+
+Not checked for free: that your solver gives the **right** answer, and that its answer passes the verifier. There is also no generic performance test over solvers (the Performance tests cover the API's endpoints and reductions), so a solver that is too slow on the default instance will only show up as a slow test of your own. Those are your job.
 
 > The three "Unclassified" tests work with an **allowlist** inside `SolverType_Tests.cs`. Do **not** add your class to it. The allowlists are meant to stay as short as possible and are only for special cases such as quantum solvers. Fix the declarations instead.
 
@@ -259,14 +263,14 @@ Things to copy from the existing tests:
 - [ ] An instance with **no solution**: the solver returns your documented "no solution" value (`"{}"` in the worked example).
 - [ ] A tricky small case: the answer is the first item only, or the last item only (the worked example has a regression test for exactly this, `SUBSETSUM_Solver_Finds_FirstElement_Only_Solution`).
 - [ ] The smallest allowed input (one item, or empty if the problem allows it).
-- [ ] The timer: set `solver.timerHasExpired = true;` before calling `solve`, and check that it returns quickly with your documented value instead of searching.
+- [ ] The timer: set `solver.timerHasExpired = true;` before calling `solve`, and check that it returns `SolveRun.TimedOutAnswer` instead of searching. (`SolverTimeLimit_Tests` already does this for every solver on the default instance; add a case of your own if the default instance does not reach your main loop.)
 
 For the timer case:
 
 ```csharp
 SubsetSumBruteForce solver = new SubsetSumBruteForce();
 solver.timerHasExpired = true;
-Assert.Equal("{}", solver.solve(new SUBSETSUM("({1,7,12,15},28)")));
+Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(new SUBSETSUM("({1,7,12,15},28)")));
 ```
 
 If you wrote an **approximation or heuristic** solver, it may legitimately return a wrong or empty answer. The worked example's second solver tests that rule: its answer is either `"{}"` or passes the verifier (`FastApproximation_NonEmptyResult_AlwaysPassesVerifier`). Copy that pattern.

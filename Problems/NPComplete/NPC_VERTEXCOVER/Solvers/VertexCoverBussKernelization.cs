@@ -29,6 +29,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
 
     }
     public string solve(VERTEXCOVER G) {
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         var mandatory = new List<string>();
         int k = G.K;
@@ -66,6 +67,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
 
         var kernelNodes = edges.SelectMany(e => new[] { e.Key, e.Value }).Distinct().ToList();
         var kernelCover = bruteForceOnKernel(kernelNodes, edges, k);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (kernelCover == null) {
             return "{}";
         }
@@ -82,6 +84,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER> {
         int limit = Math.Min(k, nodes.Count);
         for (int size = 0; size <= limit; size++) {
             foreach (var combo in combinations(nodes, size)) {
+                if (timerHasExpired) return null;
                 if (coversAll(combo, edges)) {
                     return combo;
                 }

@@ -50,7 +50,7 @@ public class SATBruteForceSolver : ISolver<SAT> {
 
         while (true) {
             if (timerHasExpired)
-                return "timeout";
+                return SolveRun.TimedOutAnswer;
 
             for (int i = 0; i < variables.Count; i++) {
                 assignment[variables[i]] = values[i];

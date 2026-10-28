@@ -91,11 +91,12 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
         dp[0, initB, 0] = 0.0;
 
         for (int h = 0; h < Hours; h++) {
-            if (timerHasExpired) return string.Empty;
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             double demand = problem.DemandGph[h];
 
             for (int b = 0; b < stateB; b++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: an hour can take long with many pumps
                 double levelNow = ToLevel(b);
 
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {

@@ -64,7 +64,7 @@ class TSPBranchAndBound : ISolver<TSP> {
 
     public string solve(TSP problem) {
         if (timerHasExpired)
-            return "timeout";
+            return SolveRun.TimedOutAnswer;
 
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
@@ -98,7 +98,7 @@ class TSPBranchAndBound : ISolver<TSP> {
 
         while (pq.Count > 0) {
             if (timerHasExpired)
-                return "timeout";
+                return SolveRun.TimedOutAnswer;
             SearchState current = pq.Dequeue();
             if (current.bound >= bestCost) {
                 continue; // Prune
@@ -263,14 +263,12 @@ class TSPBranchAndBound : ISolver<TSP> {
     }
 
     private List<int>? GetInitialBSSF(TSP problem, List<string> nodes) {
-        string greedyCertificate = new TSPGreedy() {
-            timerHasExpired = timerHasExpired
-        }.solve(problem);
+        string greedyCertificate = new TSPGreedy(() => timerHasExpired).solve(problem);
         return CertificateToPath(greedyCertificate, nodes);
     }
 
     private static List<int>? CertificateToPath(string certificate, List<string> nodes) {
-        if (string.IsNullOrWhiteSpace(certificate) || certificate == "{}" || certificate == "timeout")
+        if (string.IsNullOrWhiteSpace(certificate) || certificate == "{}" || certificate == SolveRun.TimedOutAnswer)
             return null;
         // Remove braces and split by commas
         string trimmed = certificate.Trim().TrimStart('{').TrimEnd('}');

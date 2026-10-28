@@ -37,6 +37,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
     public string solve(KNAPSACK knapsack) {
         List<UtilCollection> items = knapsack.items.ToList();
         foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             UtilCollection certificate = new UtilCollection("{}");
             for (int i = 0; i < knapsack.items.Count(); i++) {
                 if (possibleSolution[i] == 1) certificate.Add(items[i]);
