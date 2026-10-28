@@ -295,6 +295,106 @@ public class StepRecorder_Tests {
         Assert.Equal(0, rec.Total);
     }
 
+    // #885 review: the limit can pass after the last step and before the solver returns. The tests move the clock by
+    // hand (#837) so they decide exactly where.
+    [Fact]
+    public void Done_PastTheTimeLimit_Throws_AndRecordsNothing() {
+        long now = 0;
+        var rec = new StepRecorder<NodeSet>(cap: 5, timeLimit: TimeSpan.FromMilliseconds(30), clock: () => now);
+        rec.Accept(() => Nodes("a"), () => "accept");
+        now = 30;
+        Assert.Throws<StepBudgetExceededException>(() => rec.Done(Nodes("a"), true, "done"));
+        Assert.Single(rec.Steps);
+        Assert.Equal(1, rec.Total);
+    }
+
+    [Fact]
+    public void Record_LimitPassesJustBeforeDone_IsStopped() {
+        long now = 0;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(30), rec => {
+            rec.Accept(() => Nodes("a"), () => "accept");
+            now = 30;   // runs out while the solver works out its answer
+            rec.Done(Nodes("a"), true, "done");
+            return "{a}";
+        }, clock: () => now);
+        AssertStoppedWithOneDone(run, Nodes("a"));
+    }
+
+    [Fact]
+    public void Record_LimitPassesAfterDone_BeforeTheSolverReturns_IsStopped() {
+        long now = 0;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(30), rec => {
+            rec.Accept(() => Nodes("a"), () => "accept");
+            rec.Done(Nodes("a"), true, "done");
+            now = 30;   // runs out after Done, before the solver returns
+            return "{a}";
+        }, clock: () => now);
+        AssertStoppedWithOneDone(run, Nodes("a"));
+    }
+
+    [Fact]
+    public void Record_LimitPassesAfterDone_PastTheCap_KeepsTheWinningAcceptOnce() {
+        long now = 0;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(30), rec => {
+            for (int i = 0; i < StepRecorder<NodeSet>.DefaultCap; i++) rec.Reject(() => Nodes("x"), () => "reject");
+            rec.Accept(() => Nodes("win"), () => "accept");   // past the cap: held until Done
+            rec.Done(Nodes("win"), true, "done");
+            now = 30;
+            return "{win}";
+        }, clock: () => now);
+        Assert.True(run.TimedOut);
+        var steps = run.Steps.Cast<SolverStep<NodeSet>>().ToList();
+        Assert.Equal(1, steps.Count(s => s.Event == StepEvent.Accept));
+        Assert.Equal(StepEvent.Accept, steps[^2].Event);
+        Assert.Equal(1, steps.Count(s => s.Event == StepEvent.Done));
+        Assert.False(steps[^1].Ok);
+    }
+
+    [Fact]
+    public void Record_FinishingBeforeTheLimit_IsNotStopped() {
+        long now = 0;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(true, TimeSpan.FromMilliseconds(30), rec => {
+            rec.Accept(() => Nodes("a"), () => "accept");
+            now = 29;
+            rec.Done(Nodes("a"), true, "done");
+            return "{a}";
+        }, clock: () => now);
+        Assert.False(run.TimedOut);
+        Assert.Equal("{a}", run.Answer);
+        var done = (SolverStep<NodeSet>)run.Steps[^1];
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.True(done.Ok);
+    }
+
+    [Fact]
+    public void Record_WithoutSteps_SolverReturningAfterTheLimit_IsStopped() {
+        // A plain solve (no picture) uses a DeadlineOnly recorder, whose Done records nothing; the check after the
+        // solver returns still stops it.
+        long now = 0;
+        var run = API.Interfaces.SolveRun.Record<NodeSet>(false, TimeSpan.FromMilliseconds(30), rec => {
+            rec.Accept(() => Nodes("a"), () => "accept");
+            now = 30;
+            return "{a}";
+        }, clock: () => now);
+        Assert.True(run.TimedOut);
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, run.Answer);
+        Assert.Empty(run.Steps);
+    }
+
+    // A run stopped after one kept step: that step, then a single stopped Done with the empty answer.
+    private static void AssertStoppedWithOneDone(API.Interfaces.SolveRun run, NodeSet kept) {
+        Assert.True(run.TimedOut);
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, run.Answer);
+        var steps = run.Steps.Cast<SolverStep<NodeSet>>().ToList();
+        Assert.Equal(2, steps.Count);
+        Assert.Equal(kept, steps[0].Partial);
+        var done = steps[1];
+        Assert.Equal(StepEvent.Done, done.Event);
+        Assert.False(done.Ok);
+        Assert.Equal("Stopped after 0.03 s and 1 step; the solver had not finished.", done.Caption);
+        Assert.Equal(Nodes(), done.Partial);
+    }
+
     [Fact]
     public void Shapes_HaveValueEquality_IndependentOfOrder() {
         Assert.Equal(Nodes("b", "a", "a"), Nodes("a", "b"));
