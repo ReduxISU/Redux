@@ -234,6 +234,16 @@ public class MapSolutionBack_Tests : IClassFixture<AppFactory> {
         Assert.Contains("{a,b} is not a valid Clique answer", done.Caption);
     }
 
+    // The #749 review's example: a and b are adjacent, so {a,b} is not a clique of the complement graph, and the
+    // independent set it maps back to is invalid.
+    [Fact]
+    public void IndependentSet_ReviewExample_NonAdjacentInTheComplement_DoneIsNotOk() {
+        IReduction red = Build("reduceToCLIQUE", "(({a,b,c},{{a,b}}),2)");
+        SolveRun run = red.MapBackRun("{a,b}", true)!;
+        Assert.False(SourceAccepts(red, run.Answer));
+        Assert.False(Done<NodeSet>(run).Ok);
+    }
+
     // Done.ok agrees with A's verifier for every case (B's answer from B's solver).
     [Theory]
     [MemberData(nameof(Cases))]
