@@ -163,6 +163,43 @@ public class SolverUnavailable_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(answer, new ShorsQuantumSolver().solve(new PRIMEFACTOR(instance)));
     }
 
+    // #934 review: a reply with the field but no usable bit string is no answer either. It's checked inside Ask, so the
+    // endpoint answers 503 as for a missing answer, not 500 from converting it afterwards.
+    [Theory]
+    [InlineData("{\"answer_bitstring\":\"xyz\"}")]
+    [InlineData("{\"answer_bitstring\":\"\"}")]
+    [InlineData("{\"answer_bitstring\":\"1\"}")]     // (0, 1, 0, 0) is 4 values, so 2 bits
+    [InlineData("{\"answer_bitstring\":\"101\"}")]
+    [InlineData("{\"answer_bitstring\":\"12\"}")]
+    public async Task Solve_UnstructuredGrover_MalformedBitString_Returns503(string reply) {
+        using var service = FakeQuantumService.Answering(reply);
+
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=UnstructuredGroverSolver", JsonBody("(0, 1, 0, 0)"), TestContext.Current.CancellationToken);
+        string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal("solver_unavailable", doc.RootElement.GetProperty("error").GetString());
+        Assert.Equal("UnstructuredGroverSolver", doc.RootElement.GetProperty("solver").GetString());
+        Assert.Contains("'answer_bitstring' is not 2 binary digits", doc.RootElement.GetProperty("detail").GetString());
+    }
+
+    // The same for Bernstein-Vazirani, which used to wrap any characters into a certificate and pass that on.
+    [Theory]
+    [InlineData("{\"answer\":\"xyz\"}")]
+    [InlineData("{\"answer\":\"10a1\"}")]
+    public async Task Solve_BernsteinVazirani_NonBinaryAnswer_Returns503(string reply) {
+        using var service = FakeQuantumService.Answering(reply);
+
+        var response = await _client.PostAsync("/ProblemProvider/solve?solver=BernsteinVaziraniQuantumSolver", JsonBody("(0,1,0,1,1,0,1,0)"), TestContext.Current.CancellationToken);
+        string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal("solver_unavailable", doc.RootElement.GetProperty("error").GetString());
+        Assert.Contains("'answer' is not a bit string", doc.RootElement.GetProperty("detail").GetString());
+    }
+
     // The solver throws before it has an answer, so nothing after it runs: the visualization's solved picture (which
     // would ask the service again for the circuit, and which receives the answer as the certificate) is never built.
     [Fact]

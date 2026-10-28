@@ -51,8 +51,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         }
 
         var satproblem = String.Join(" | ", exprs);
-        var solution = ReverseString(SolveAsSat(problem, satproblem));
-        return Convert.ToInt32(solution, 2).ToString();
+        return SolveAsSat(problem, satproblem, nbits);
     }
 
     public static string ReverseString(string s) {
@@ -68,10 +67,11 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
         }
     }
 
-    // On any failure of the quantum service, including a response with no `answer_bitstring` (#538), this throws
-    // SolverUnavailableException (HTTP 503 solver_unavailable) rather than handing solve() something that is not a
-    // bit string (#625).
-    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance) {
+    // On any failure of the quantum service, including a response with no `answer_bitstring` (#538) or one that is not
+    // `nbits` binary digits, this throws SolverUnavailableException (HTTP 503 solver_unavailable) rather than an
+    // unhandled error or a made-up answer (#625). The bit string is checked and converted inside Ask, so a malformed one
+    // fails the same way as a missing one. Returns the index of the marked item.
+    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, int nbits) {
         var requestBody = new JSON_Sat_Problem(problemInstance);
 
         return QuantumServerAPI.Ask(this, problem.problemName, client => {
@@ -87,7 +87,10 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH> {
             }
             if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer_bitstring", out JsonElement answerElement)
                 && answerElement.ValueKind == JsonValueKind.String) {
-                return answerElement.GetString() ?? "";
+                string bits = answerElement.GetString() ?? "";
+                if (bits.Length == 0 || bits.Length != nbits || bits.Any(c => c != '0' && c != '1'))
+                    throw new InvalidDataException($"its 'answer_bitstring' is not {nbits} binary digits: {response}");
+                return Convert.ToInt32(ReverseString(bits), 2).ToString();
             }
 
             throw QuantumServerAPI.MissingAnswer("answer_bitstring", response);
