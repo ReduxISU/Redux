@@ -62,6 +62,8 @@ interface IReduction {
     // Free-text Big-O note on how long the reduction takes, e.g. "O(n^2), n = |CLIQUE.nodes|". Every
     // reduction declares it (the metadata tests require it non-empty), so it is required here. JsonIgnore
     // as for sourceLink: /ProblemProvider/reduce, which writes the reduction as IReduction, never had it.
+    // #615 replaces this string with timeComplexity/spaceComplexity (MathematicalFunction), as #614 did for
+    // solvers.
     [System.Text.Json.Serialization.JsonIgnore]
     string? complexity { get; }
 }
