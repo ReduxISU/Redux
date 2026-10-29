@@ -1,118 +1,129 @@
-using System.Text.Json;
-using API.DummyClasses;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Solvers;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Verifiers;
+using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION;
 
-class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionBruteForce, ConstraintSatisfactionVerifier, DummyVisualization> {
-    public string problemName { get; } = "Constraint Satisfaction";
+class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, ConstraintSatisfactionVerifier, ConstraintSatisfactionVisualization> {
+    public string problemName { get; } = "Constraint Satisfaction Problem";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Constraint_satisfaction_problem";
-    public string formalDefinition { get; } = "CSP = {<X,D,C> | there exists an assignment f with f(x) in D(x) for every x in X and (f(x1),...,f(xk)) in R for every constraint ((x1,...,xk),R) in C}.";
-    public string problemDefinition { get; } = "Given finitely many variables, a finite domain for each variable, and constraints represented by explicit tables of allowed tuples, decide whether an assignment satisfies every constraint. General finite-domain constraint satisfaction is NP-complete; individual restrictions can be tractable.";
-    public string inputDescription { get; } = "Variables with finite domains and constraints listing allowed tuples";
-    public string outputDescription { get; } = "A satisfying assignment, or No solution exists";
-    public string source { get; } = "Russell, Stuart J., and Peter Norvig. Artificial Intelligence: A Modern Approach. 4th edition, Chapter 6: Constraint Satisfaction Problems. Pearson, 2021.";
+    public string formalDefinition { get; } = "CONSTRAINTSATISFACTION = {<X,D,C> | there exists an assignment a with a(X[i]) in D[i] for every i, satisfying every constraint in C}";
+    public string problemDefinition { get; } = "Given distinct variables, an explicitly listed finite nonempty integer domain for each variable, and constraints, determine whether values can be assigned to all variables so that every constraint is satisfied.";
+    public string inputDescription { get; } = "X, an ordered list of distinct variables; D, their corresponding finite integer domains; and C, a set of quoted constraint expressions";
+    public string outputDescription { get; } = "True or False, whether a complete assignment from the specified domains satisfies all constraints";
+    public string source { get; } = "S. Russell and P. Norvig, Artificial Intelligence: A Modern Approach, 3rd ed., Chapter 6: Constraint Satisfaction Problems, 2010.";
     public string sourceFile { get; } = SourceFile.Path();
-    public string sourceLink { get; } = "https://aima.cs.berkeley.edu/";
-    public string[] contributors { get; } = Array.Empty<string>();
-    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
-    public ProblemType problemType { get; } = ProblemType.Logic;
-    public string wikiName { get; } = "";
+    public string sourceLink { get; } = "https://aima.cs.berkeley.edu/3rd-ed/";
+    public string[] contributors { get; } = { "Reece Foulkrod", "Gabriel Ory", "Ziming Wang" };
 
-    private const string DefaultInstance = """
-        {"domains":{"x":["0","1"],"y":["0","1"]},"constraints":[{"scope":["x","y"],"tuples":[["0","1"],["1","0"]]}]}
-        """;
+    private const string DefaultInstance = "((x,y),({1,2},{1,2}),{\"x!=y\"})";
     public string defaultInstance { get; } = DefaultInstance;
-    public string instanceFormat { get; } = "JSON with 'domains' mapping variable names to arrays of distinct string values, and 'constraints' containing objects with 'scope' (distinct variable names in tuple order) and 'tuples' (allowed value arrays). Names and values are case-sensitive. Empty domains/tables are allowed. Example: " + DefaultInstance;
-    public string certificateFormat { get; } = "JSON object assigning exactly one string value to each variable. Example: " + ConstraintSatisfactionVerifier.CertificateExample;
-    public string instance { get; set; }
-    public ConstraintSatisfactionBruteForce defaultSolver { get; } = new();
-    public ConstraintSatisfactionVerifier defaultVerifier { get; } = new();
-    public DummyVisualization defaultVisualization { get; } = new();
+    public string instanceFormat { get; } = "Format: (X,D,C). X is a parenthesized list of distinct identifiers; D is a parenthesized list of nonempty sets of 32-bit integers, one per variable in the same order; C is a set of double-quoted constraint expressions. Identifiers use letters, digits and underscores, starting with a letter or underscore. Example: " + DefaultInstance;
+    public string certificateFormat { get; } = "A set of (variable,value) pairs assigning every variable exactly once from its domain. Example: {(x,1),(y,2)}";
+    public string instance { get; set; } = string.Empty;
+    public string wikiName { get; } = "Constraint_satisfaction_problem";
+    public ConstraintSatisfactionSolver defaultSolver { get; } = new ConstraintSatisfactionSolver();
+    public ConstraintSatisfactionVerifier defaultVerifier { get; } = new ConstraintSatisfactionVerifier();
+    public ConstraintSatisfactionVisualization defaultVisualization { get; } = new ConstraintSatisfactionVisualization();
+    // General finite-domain CSP is NP-complete: graph 3-coloring is a special case.
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.MathematicalProgramming;
 
-    public IReadOnlyDictionary<string, IReadOnlyList<string>> domains { get; }
-    public IReadOnlyList<Constraint> constraints { get; }
-
-    public sealed record Constraint(IReadOnlyList<string> scope, IReadOnlyList<IReadOnlyList<string>> tuples);
+    public IReadOnlyList<string> X { get; }
+    public IReadOnlyList<IReadOnlyList<int>> D { get; }
+    public IReadOnlyList<string> C { get; }
 
     public CONSTRAINTSATISFACTION() : this(DefaultInstance) { }
 
     public CONSTRAINTSATISFACTION(string stringInstance) {
-        instance = stringInstance;
         if (string.IsNullOrWhiteSpace(stringInstance))
             throw new ProblemParseException(problemName, stringInstance, "instance is empty");
 
         try {
-            using var document = JsonDocument.Parse(stringInstance);
-            var root = ReadObject(document.RootElement, "domains", "constraints");
-            if (root["domains"].ValueKind != JsonValueKind.Object)
-                throw new FormatException("domains must be an object");
-            var parsedDomains = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
-            foreach (var variable in root["domains"].EnumerateObject()) {
-                if (string.IsNullOrWhiteSpace(variable.Name))
-                    throw new FormatException("variable names must not be blank");
-                var values = ReadStrings(variable.Value);
-                if (values.Distinct(StringComparer.Ordinal).Count() != values.Length)
-                    throw new FormatException($"domain of {variable.Name} contains duplicate values");
-                if (!parsedDomains.TryAdd(variable.Name, values))
-                    throw new FormatException($"duplicate variable {variable.Name}");
+            var sections = SplitCollection(stringInstance, '(', ')');
+            if (sections.Count != 3)
+                throw new FormatException("Instance must contain exactly three sections: (X,D,C).");
+
+            var variables = SplitCollection(sections[0], '(', ')');
+            if (variables.Any(v => !Regex.IsMatch(v, @"\A[A-Za-z_][A-Za-z0-9_]*\z")))
+                throw new FormatException("Each variable must be an identifier.");
+            if (variables.Distinct(StringComparer.Ordinal).Count() != variables.Count)
+                throw new FormatException("Variables must be distinct.");
+
+            var domains = SplitCollection(sections[1], '(', ')');
+            if (domains.Count != variables.Count)
+                throw new FormatException("There must be exactly one domain per variable.");
+            var parsedDomains = new List<IReadOnlyList<int>>();
+            foreach (string domain in domains) {
+                var values = SplitCollection(domain, '{', '}');
+                if (values.Count == 0)
+                    throw new FormatException("Variable domains must be nonempty.");
+                var integers = new HashSet<int>();
+                foreach (string value in values) {
+                    if (!int.TryParse(value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int integer))
+                        throw new FormatException($"'{value}' is not a 32-bit integer domain value.");
+                    if (!integers.Add(integer))
+                        throw new FormatException("Domain values must be distinct.");
+                }
+                parsedDomains.Add(integers.ToList().AsReadOnly());
             }
 
-            if (root["constraints"].ValueKind != JsonValueKind.Array)
-                throw new FormatException("constraints must be an array");
-            var parsedConstraints = new List<Constraint>();
-            foreach (var element in root["constraints"].EnumerateArray()) {
-                var constraint = ReadObject(element, "scope", "tuples");
-                var scope = ReadStrings(constraint["scope"]);
-                if (scope.Distinct(StringComparer.Ordinal).Count() != scope.Length || scope.Any(v => !parsedDomains.ContainsKey(v)))
-                    throw new FormatException("constraint scope must contain distinct declared variables");
-                if (constraint["tuples"].ValueKind != JsonValueKind.Array)
-                    throw new FormatException("tuples must be an array");
-                var tuples = new List<IReadOnlyList<string>>();
-                foreach (var elementTuple in constraint["tuples"].EnumerateArray()) {
-                    var tuple = ReadStrings(elementTuple);
-                    if (tuple.Length != scope.Length)
-                        throw new FormatException("tuple length must match scope length");
-                    for (int i = 0; i < tuple.Length; i++) {
-                        if (!parsedDomains[scope[i]].Contains(tuple[i]))
-                            throw new FormatException($"tuple value is outside the domain of {scope[i]}");
-                    }
-                    tuples.Add(tuple);
-                }
-                parsedConstraints.Add(new Constraint(scope, tuples));
+            var constraints = new List<string>();
+            foreach (string constraint in SplitCollection(sections[2], '{', '}')) {
+                if (constraint.Length < 3 || constraint[0] != '"' || constraint[^1] != '"' ||
+                    constraint[1..^1].Contains('"') || string.IsNullOrWhiteSpace(constraint[1..^1]))
+                    throw new FormatException("Each constraint must be a nonempty double-quoted expression without embedded quotes.");
+                constraints.Add(constraint[1..^1]);
             }
-            domains = parsedDomains;
-            constraints = parsedConstraints;
-        } catch (Exception ex) when (ex is JsonException or FormatException) {
+
+            // Preserve domain positions and constraint text for consumers and serialization.
+            // Expression evaluation belongs to the solver/verifier.
+            X = variables.AsReadOnly();
+            D = parsedDomains.AsReadOnly();
+            C = constraints.Distinct(StringComparer.Ordinal).ToList().AsReadOnly();
+            instance = stringInstance;
+        } catch (Exception ex) when (ex is not ProblemParseException) {
             throw new ProblemParseException(problemName, stringInstance, ex.Message, ex);
         }
     }
 
-    // Enforce the schema explicitly, including duplicate JSON property names.
-    private static Dictionary<string, JsonElement> ReadObject(JsonElement element, params string[] names) {
-        if (element.ValueKind != JsonValueKind.Object)
-            throw new FormatException("expected a JSON object");
-        var properties = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
-        foreach (var property in element.EnumerateObject()) {
-            if (!names.Contains(property.Name) || !properties.TryAdd(property.Name, property.Value))
-                throw new FormatException($"unexpected or duplicate property {property.Name}");
+    // Split top-level commas, preserving domain nesting and quoted expressions.
+    private static List<string> SplitCollection(string text, char open, char close) {
+        text = text.Trim();
+        if (text.Length < 2 || text[0] != open || text[^1] != close)
+            throw new FormatException($"Expected a collection enclosed in '{open}' and '{close}'.");
+
+        var result = new List<string>();
+        if (string.IsNullOrWhiteSpace(text[1..^1]))
+            return result;
+
+        var brackets = new Stack<char>();
+        bool quoted = false;
+        int start = 1;
+        for (int i = 1; i < text.Length - 1; i++) {
+            char current = text[i];
+            if (current == '"') {
+                quoted = !quoted;
+            } else if (!quoted) {
+                if (current is '(' or '{') {
+                    brackets.Push(current == '(' ? ')' : '}');
+                } else if (current is ')' or '}') {
+                    if (brackets.Count == 0 || brackets.Pop() != current)
+                        throw new FormatException("Mismatched collection delimiters.");
+                } else if (current == ',' && brackets.Count == 0) {
+                    result.Add(text[start..i].Trim());
+                    start = i + 1;
+                }
+            }
         }
-        if (properties.Count != names.Length)
-            throw new FormatException("missing required property: " + string.Join(", ", names.Where(n => !properties.ContainsKey(n))));
-        return properties;
+        if (quoted || brackets.Count != 0)
+            throw new FormatException("Unclosed quote or collection delimiter.");
+        result.Add(text[start..^1].Trim());
+        if (result.Any(string.IsNullOrEmpty))
+            throw new FormatException("Collection elements cannot be empty.");
+        return result;
     }
-
-    private static string[] ReadStrings(JsonElement element) {
-        if (element.ValueKind != JsonValueKind.Array)
-            throw new FormatException("expected an array of strings");
-        return element.EnumerateArray().Select(value => value.ValueKind == JsonValueKind.String
-            ? value.GetString()!
-            : throw new FormatException("domain values, scope variables, and tuple values must be strings")).ToArray();
-    }
-
-    // Callers first check that the assignment is complete and uses domain values.
-    internal bool SatisfiesConstraints(IReadOnlyDictionary<string, string> assignment) =>
-        constraints.All(c => c.tuples.Any(tuple => c.scope.Select((variable, i) => assignment[variable] == tuple[i]).All(equal => equal)));
 }
