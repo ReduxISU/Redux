@@ -1,107 +1,118 @@
+using System.Text.Json;
+using API.DummyClasses;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Solvers;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Verifiers;
-using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Visualizations;
-using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION;
 
-class CONSTRAINTSATISFACTION 
-    : IProblem<
-        ConstraintSatisfactionSolver, 
-        ConstraintSatisfactionVerifier, 
-        ConstraintSatisfactionVisualization
-    > {
-
-    // --- Fields ---
-    public string problemName {get;} = "Constraint Satisfaction Problem";
-    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Constraint_satisfaction_problem";
-    public string formalDefinition {get;} = "CONSTRAINTSATISFACTION = {<X, D, C> | there exists a complete and consistent assignment of values to all variables in X}";
-    public string problemDefinition {get;} = "The Constraint Satisfaction Problem is a problem in which, given a list of variables, a list of their respective nonempty domains of possible values, and a set of constraints, the goal is to determine whether there exists an assignment of values to all variables that satisfies every constraint.";
-    public string inputDescription {get;} = "X, a list of distinct variables; D, a list of nonempty domains where the ith domain corresponds to the ith variable in X; and C, a set of constraint strings";
-    public string outputDescription {get;} = "True or False, indicating whether there exists an assignment of values to all variables in X, such that each variable is assigned a value from its corresponding domain and all constraints are satisfied.";
-    public string source {get;} = "S. Russell and P. Norvig, “Constraint Satisfaction Problems,” in Artificial Intelligence: A Modern Approach, 3rd ed. New Jersey: Pearson, 2010, pp. 202–233.";
-    public string sourceLink {get;} = "https://aima.eecs.berkeley.edu/3rd-ed/";
+class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionBruteForce, ConstraintSatisfactionVerifier, DummyVisualization> {
+    public string problemName { get; } = "Constraint Satisfaction";
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Constraint_satisfaction_problem";
+    public string formalDefinition { get; } = "CSP = {<X,D,C> | there exists an assignment f with f(x) in D(x) for every x in X and (f(x1),...,f(xk)) in R for every constraint ((x1,...,xk),R) in C}.";
+    public string problemDefinition { get; } = "Given finitely many variables, a finite domain for each variable, and constraints represented by explicit tables of allowed tuples, decide whether an assignment satisfies every constraint. General finite-domain constraint satisfaction is NP-complete; individual restrictions can be tractable.";
+    public string inputDescription { get; } = "Variables with finite domains and constraints listing allowed tuples";
+    public string outputDescription { get; } = "A satisfying assignment, or No solution exists";
+    public string source { get; } = "Russell, Stuart J., and Peter Norvig. Artificial Intelligence: A Modern Approach. 4th edition, Chapter 6: Constraint Satisfaction Problems. Pearson, 2021.";
     public string sourceFile { get; } = SourceFile.Path();
-    private static readonly string _defaultInstance =
-    "((x,y),({1,2},{1,2}),{\"x!=y\"})";
-    public string defaultInstance {get;} = _defaultInstance;
-    // Short descriptive sentence with a concrete example. Consumed by
-    // /ProblemProvider/info and by parse-error responses; this is the
-    // canonical place to tell an LLM (or a human, or the GUI) what
-    // shape your instance/certificate strings take.
-    public string instanceFormat { get; } =
-        "Format: (X,D,C), where X is a list of variables, " +
-        "D is a list of sets where the ith set is the nonempty domain for the ith variable in X, and " +
-        "C is a set of constraints where each constraint is a string. " +
-        $"Example: {_defaultInstance}";
+    public string sourceLink { get; } = "https://aima.cs.berkeley.edu/";
+    public string[] contributors { get; } = Array.Empty<string>();
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.Logic;
+    public string wikiName { get; } = "";
 
-    public string certificateFormat { get; } =
-        "Format: a set of (variable,value) pairs representing a satisfying assignment. " +
-        "Each variable must be assigned exactly one value " +
-        "from its domain, and all constraints must be satisfied. " +
-        "Example: {(x,1),(y,2)}";
-    public string instance {get;set;} = string.Empty;
-    public string wikiName {get;} = "";
-    public ConstraintSatisfactionSolver defaultSolver {get;} = new ConstraintSatisfactionSolver();
-    public ConstraintSatisfactionVerifier defaultVerifier {get;} = new ConstraintSatisfactionVerifier();
-    public ConstraintSatisfactionVisualization defaultVisualization {get;} = new ConstraintSatisfactionVisualization();
-    public string[] contributors {get;} = { "Reece Foulkrod", "Gabriel Ory", "Ziming Wang" };
-    // Declared, not derived — do NOT infer this from which Problems/<Folder>/ this file
-    // lives under. The folder is a filing convention only and is wrong for a dozen-plus
-    // existing problems; declaring it explicitly here is the only source of truth the
-    // API trusts. Leave as Unclassified (the default — this line can simply be deleted)
-    // until someone has actually checked the literature/argued the class. Getting this
-    // wrong is a public correctness claim the API will serve to callers.
-    public ComplexityClass complexityClass {get;} = ComplexityClass.NPComplete;
-    public ProblemType problemType {get;} = ProblemType.MathematicalProgramming;
+    private const string DefaultInstance = """
+        {"domains":{"x":["0","1"],"y":["0","1"]},"constraints":[{"scope":["x","y"],"tuples":[["0","1"],["1","0"]]}]}
+        """;
+    public string defaultInstance { get; } = DefaultInstance;
+    public string instanceFormat { get; } = "JSON with 'domains' mapping variable names to arrays of distinct string values, and 'constraints' containing objects with 'scope' (distinct variable names in tuple order) and 'tuples' (allowed value arrays). Names and values are case-sensitive. Empty domains/tables are allowed. Example: " + DefaultInstance;
+    public string certificateFormat { get; } = "JSON object assigning exactly one string value to each variable. Example: " + ConstraintSatisfactionVerifier.CertificateExample;
+    public string instance { get; set; }
+    public ConstraintSatisfactionBruteForce defaultSolver { get; } = new();
+    public ConstraintSatisfactionVerifier defaultVerifier { get; } = new();
+    public DummyVisualization defaultVisualization { get; } = new();
 
-    // --- Properties ---
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> domains { get; }
+    public IReadOnlyList<Constraint> constraints { get; }
 
-    public const string InstanceGrammar = "{(X,D,C) | X is a list of variables, D is a list of sets, and C is a set of strings}";
-    public UtilCollection X { get; }
-    public UtilCollection D { get; }
-    public UtilCollection C { get; }
+    public sealed record Constraint(IReadOnlyList<string> scope, IReadOnlyList<IReadOnlyList<string>> tuples);
 
-    // --- Methods and Constructors ---
-    public CONSTRAINTSATISFACTION() : this(_defaultInstance) {
-
-    }
+    public CONSTRAINTSATISFACTION() : this(DefaultInstance) { }
 
     public CONSTRAINTSATISFACTION(string stringInstance) {
-        // On a malformed instance, throw `ProblemParseException` (see
-        // Interfaces/ParseExceptions.cs). The controller layer catches it
-        // and returns HTTP 400 with `instanceFormat` quoted back to the
-        // caller. Example:
-        //
-        //   if (string.IsNullOrWhiteSpace(stringInstance)) {
-        //       throw new ProblemParseException("constraintsatisfaction", stringInstance, "instance is empty");
-        //   }
-
-        if (string.IsNullOrWhiteSpace(stringInstance)) {
-            throw new ProblemParseException(problemName, stringInstance, "instance is empty");
-        }
-
         instance = stringInstance;
-        StringParser parser = new(InstanceGrammar);
-        parser.parse(instance);
-        X = parser["X"];
-        D = parser["D"];
-        C = parser["C"];
+        if (string.IsNullOrWhiteSpace(stringInstance))
+            throw new ProblemParseException(problemName, stringInstance, "instance is empty");
 
-        // TODO: implement parsing of string instance of constraintsatisfaction. SPADE is a class meant to help with this step, see https://github.com/Jetison333/SPADE/blob/main/Documentation/index.md for more information.
-        //
-        // StringParser parser = new("{(i, w, v) | i subset int cross int, w is int, v is int}");
-        // parser.parse(instance);
-        // items = parser["i"];
-        // W = int.Parse(parser["w"].ToString());
-        // V = int.Parse(parser["v"].ToString());
-        //
-        // Or a unidirected unweighted graph example using SPADE
-        // 
-        // StringParser parser = new("{(N,E) | N is set, E subset N unorderdcross N}");
-        // parser.parse(instance);
-        // edges = parser["E"];
-        // nodes = parser["N"];
+        try {
+            using var document = JsonDocument.Parse(stringInstance);
+            var root = ReadObject(document.RootElement, "domains", "constraints");
+            if (root["domains"].ValueKind != JsonValueKind.Object)
+                throw new FormatException("domains must be an object");
+            var parsedDomains = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+            foreach (var variable in root["domains"].EnumerateObject()) {
+                if (string.IsNullOrWhiteSpace(variable.Name))
+                    throw new FormatException("variable names must not be blank");
+                var values = ReadStrings(variable.Value);
+                if (values.Distinct(StringComparer.Ordinal).Count() != values.Length)
+                    throw new FormatException($"domain of {variable.Name} contains duplicate values");
+                if (!parsedDomains.TryAdd(variable.Name, values))
+                    throw new FormatException($"duplicate variable {variable.Name}");
+            }
+
+            if (root["constraints"].ValueKind != JsonValueKind.Array)
+                throw new FormatException("constraints must be an array");
+            var parsedConstraints = new List<Constraint>();
+            foreach (var element in root["constraints"].EnumerateArray()) {
+                var constraint = ReadObject(element, "scope", "tuples");
+                var scope = ReadStrings(constraint["scope"]);
+                if (scope.Distinct(StringComparer.Ordinal).Count() != scope.Length || scope.Any(v => !parsedDomains.ContainsKey(v)))
+                    throw new FormatException("constraint scope must contain distinct declared variables");
+                if (constraint["tuples"].ValueKind != JsonValueKind.Array)
+                    throw new FormatException("tuples must be an array");
+                var tuples = new List<IReadOnlyList<string>>();
+                foreach (var elementTuple in constraint["tuples"].EnumerateArray()) {
+                    var tuple = ReadStrings(elementTuple);
+                    if (tuple.Length != scope.Length)
+                        throw new FormatException("tuple length must match scope length");
+                    for (int i = 0; i < tuple.Length; i++) {
+                        if (!parsedDomains[scope[i]].Contains(tuple[i]))
+                            throw new FormatException($"tuple value is outside the domain of {scope[i]}");
+                    }
+                    tuples.Add(tuple);
+                }
+                parsedConstraints.Add(new Constraint(scope, tuples));
+            }
+            domains = parsedDomains;
+            constraints = parsedConstraints;
+        } catch (Exception ex) when (ex is JsonException or FormatException) {
+            throw new ProblemParseException(problemName, stringInstance, ex.Message, ex);
+        }
     }
+
+    // Enforce the schema explicitly, including duplicate JSON property names.
+    private static Dictionary<string, JsonElement> ReadObject(JsonElement element, params string[] names) {
+        if (element.ValueKind != JsonValueKind.Object)
+            throw new FormatException("expected a JSON object");
+        var properties = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        foreach (var property in element.EnumerateObject()) {
+            if (!names.Contains(property.Name) || !properties.TryAdd(property.Name, property.Value))
+                throw new FormatException($"unexpected or duplicate property {property.Name}");
+        }
+        if (properties.Count != names.Length)
+            throw new FormatException("missing required property: " + string.Join(", ", names.Where(n => !properties.ContainsKey(n))));
+        return properties;
+    }
+
+    private static string[] ReadStrings(JsonElement element) {
+        if (element.ValueKind != JsonValueKind.Array)
+            throw new FormatException("expected an array of strings");
+        return element.EnumerateArray().Select(value => value.ValueKind == JsonValueKind.String
+            ? value.GetString()!
+            : throw new FormatException("domain values, scope variables, and tuple values must be strings")).ToArray();
+    }
+
+    // Callers first check that the assignment is complete and uses domain values.
+    internal bool SatisfiesConstraints(IReadOnlyDictionary<string, string> assignment) =>
+        constraints.All(c => c.tuples.Any(tuple => c.scope.Select((variable, i) => assignment[variable] == tuple[i]).All(equal => equal)));
 }
