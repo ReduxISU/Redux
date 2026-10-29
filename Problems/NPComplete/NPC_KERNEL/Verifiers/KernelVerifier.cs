@@ -45,6 +45,10 @@ class KernelVerifier : IVerifier<KERNEL> {
 
         // TODO: implement {VERIFIER} for {PROBLEM}
         // An unfinished verifier must fail loudly, not accept every certificate.
-        throw new NotImplementedException("TODO: implement {VERIFIER} for {PROBLEM}");
+        throw new CertificateParseException(
+            problem,
+            certificate,
+            "Kernel verifier is not implemented yet"
+        );
     }
 }
