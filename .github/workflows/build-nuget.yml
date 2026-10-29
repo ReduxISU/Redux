@@ -55,7 +55,7 @@ jobs:
         uses: NuGet/login@v1
         id: nuget-login
         with:
-          user: prashant9711
+          user: isu-redux
 
       - name: Publish ISU.Redux.Library to NuGet.org
         env:
