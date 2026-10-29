@@ -43,12 +43,23 @@ sealed class StepRecorder<TPartial> {
     public void Reject(Func<TPartial> partial, Func<string> caption, params string[] focus) => Add(StepEvent.Reject, partial, caption, focus);
     public void Backtrack(Func<TPartial> partial, Func<string> caption, params string[] focus) => Add(StepEvent.Backtrack, partial, caption, focus);
 
+    // The same, with the focus built lazily too, for focus that is costly to build on every step of a hot loop.
+    public void Try(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Try, partial, caption, focus);
+    public void Accept(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Accept, partial, caption, focus);
+    public void Reject(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Reject, partial, caption, focus);
+    public void Backtrack(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Backtrack, partial, caption, focus);
+
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, string[] focus) {
+        if (!_enabled) return;
+        Add(kind, partial, caption, () => focus);
+    }
+
+    private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, Func<string[]> focus) {
         if (!_enabled) return;
         _total++;
         if (_shownDecisions >= _cap) return;
         _shownDecisions++;
-        _steps.Add(new SolverStep<TPartial>(partial(), kind, focus, caption()));
+        _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()));
     }
 
     /// <summary>Records the final step. Always kept; its caption gets " (n not shown)" when steps were hidden.</summary>

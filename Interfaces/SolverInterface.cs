@@ -83,6 +83,15 @@ interface ISolver {
 /// <param name="StepShape">The <c>TPartial</c> of the typed steps, or null for legacy untyped steps.</param>
 sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepShape) {
     /// <summary>
+    /// True when the solver builds its answer piece by piece (it implements <see cref="IIncrementalSolver"/>), so every
+    /// step's partial is what it has committed so far and the focus names the piece under test. A picture then draws the
+    /// partial as the answer so far in every event, and only the focus as tried or failed. False (the default) means each
+    /// Try and Reject judges a whole candidate, which a picture highlights as a candidate and never draws as the answer.
+    /// Set by <see cref="ISolver{T, TPartial}"/>'s <c>Run</c>; a run built by hand says it itself.
+    /// </summary>
+    public bool Incremental { get; init; }
+
+    /// <summary>
     /// The steps to hand a visualization that draws <paramref name="visualizationShape"/>. If the shapes differ
     /// (including one typed and one legacy) the steps cannot be drawn, so none are given: the response then
     /// shows the initial and solved pictures instead of failing.
@@ -129,7 +138,7 @@ interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
         T parsed = ParseGuard.CreateProblem<T>(instance);
         var rec = withSteps ? new StepRecorder<TPartial>() : StepRecorder<TPartial>.Off;
         string answer = Solve(parsed, rec);
-        return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
+        return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial)) { Incremental = this is IIncrementalSolver };
     }
 
     List<Object> ISolver<T>.GetSteps(T problem) {
@@ -138,3 +147,25 @@ interface ISolver<T, TPartial> : ISolver<T> where T : IProblem {
         return rec.Steps.Cast<object>().ToList();
     }
 }
+
+/// <summary>
+/// Declares that a typed solver builds its answer piece by piece (a greedy, a backtracking search, a branch and bound),
+/// rather than judging whole candidates one after another (a brute force). It is declared, never inferred: the frames
+/// builders read it from <see cref="SolveRun.Incremental"/> to decide how a step's partial is drawn.
+/// <para>
+/// The contract for the solver's steps:
+/// </para>
+/// <list type="bullet">
+/// <item>Accept and Backtrack: the partial is what the solver has committed after the move.</item>
+/// <item>Try and Reject: the partial is what the solver has committed, and may also hold the piece under test (the next
+/// node of a path, the value being tried for a variable).</item>
+/// <item>The focus names the piece under test, and only that: never the whole partial. A step that judges everything
+/// built so far (a closing check, out of budget) names the piece that failed, or nothing.</item>
+/// </list>
+/// <para>
+/// A picture then draws the partial as the answer so far (Solution) in every event, the focus as
+/// <c>ElementHighlight</c> in a Try and <c>Rejected</c> in a Reject. A solver without this marker gets the whole-candidate
+/// reading: its Try and Reject partials are highlighted as a candidate, never drawn as the answer.
+/// </para>
+/// </summary>
+interface IIncrementalSolver : ISolver { }

@@ -1,0 +1,402 @@
+[
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "a",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "a"
+      },
+      {
+        "name": "b",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "b"
+      },
+      {
+        "name": "c",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "c"
+      },
+      {
+        "name": "d",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "d"
+      },
+      {
+        "name": "e",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "e"
+      },
+      {
+        "name": "f",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "f"
+      },
+      {
+        "name": "g",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "g"
+      }
+    ],
+    "links": [
+      {
+        "source": "a",
+        "target": "b",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "a-b"
+      },
+      {
+        "source": "b",
+        "target": "c",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "b-c"
+      },
+      {
+        "source": "c",
+        "target": "a",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "c-a"
+      },
+      {
+        "source": "a",
+        "target": "d",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "a-d"
+      },
+      {
+        "source": "d",
+        "target": "e",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "d-e"
+      },
+      {
+        "source": "e",
+        "target": "a",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "e-a"
+      },
+      {
+        "source": "f",
+        "target": "e",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "f-e"
+      },
+      {
+        "source": "f",
+        "target": "d",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "f-d"
+      },
+      {
+        "source": "g",
+        "target": "b",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "g-b"
+      },
+      {
+        "source": "g",
+        "target": "a",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "g-a"
+      }
+    ]
+  },
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "a",
+        "color": "Background",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "a"
+      },
+      {
+        "name": "b",
+        "color": "Background",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "b"
+      },
+      {
+        "name": "c",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "c"
+      },
+      {
+        "name": "d",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "d"
+      },
+      {
+        "name": "e",
+        "color": "Background",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "e"
+      },
+      {
+        "name": "f",
+        "color": "Background",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "f"
+      },
+      {
+        "name": "g",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "g"
+      }
+    ],
+    "links": [
+      {
+        "source": "a",
+        "target": "b",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "a-b"
+      },
+      {
+        "source": "b",
+        "target": "c",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "b-c"
+      },
+      {
+        "source": "c",
+        "target": "a",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "c-a"
+      },
+      {
+        "source": "a",
+        "target": "d",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "a-d"
+      },
+      {
+        "source": "d",
+        "target": "e",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "d-e"
+      },
+      {
+        "source": "e",
+        "target": "a",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "e-a"
+      },
+      {
+        "source": "f",
+        "target": "e",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "f-e"
+      },
+      {
+        "source": "f",
+        "target": "d",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "f-d"
+      },
+      {
+        "source": "g",
+        "target": "b",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "g-b"
+      },
+      {
+        "source": "g",
+        "target": "a",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "g-a"
+      }
+    ]
+  }
+]

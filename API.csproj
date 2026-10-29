@@ -47,11 +47,14 @@
     <EmbeddedResource Remove="Redux.Library.Tests/**" />
   </ItemGroup>
 
-  <!-- Exclude demo application if created inside Redux -->
+
+  <!-- Integration tests against the built image live in integration/ (Redux.Integration.csproj),
+       outside the solution. Same reasoning again: keep them out of API.dll. -->
   <ItemGroup>
-    <Compile Remove="ReduxDemo/**" />
-    <Content Remove="ReduxDemo/**" />
-    <None Remove="ReduxDemo/**" />
+    <Compile Remove="integration/**" />
+    <Content Remove="integration/**" />
+    <None Remove="integration/**" />
   </ItemGroup>
+
 
 </Project>
