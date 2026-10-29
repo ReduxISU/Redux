@@ -1,10 +1,11 @@
 using System.Globalization;
 using System.Numerics;
 using API.Interfaces;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPHard.NPH_ILP.Solvers;
 
-class IntegerLinearProgrammingSolver : ISolver<INTEGERLINEARPROGRAMMING> {
+class IntegerLinearProgrammingSolver : ISolver<INTEGERLINEARPROGRAMMING, BigInteger[]> {
     public string solverName => "Exact Integer Linear Programming Solver";
     public string solverDefinition => "Exact Fourier-Motzkin relaxation, integer branching, and objective binary search. Returns an optimal vector, infeasible, unbounded, or timeout. A work limit also returns timeout.";
     public string source => "Lawler, E. L., and Wood, D. E. (1966). Branch-and-Bound Methods: A Survey. Operations Research.";
@@ -36,7 +37,9 @@ class IntegerLinearProgrammingSolver : ISolver<INTEGERLINEARPROGRAMMING> {
         return steps;
     }
 
-    private string Run(INTEGERLINEARPROGRAMMING problem, List<object>? steps) {
+    public string Solve(INTEGERLINEARPROGRAMMING problem, StepRecorder<BigInteger[]> rec) => Run(problem, null, rec);
+
+    private string Run(INTEGERLINEARPROGRAMMING problem, List<object>? steps, StepRecorder<BigInteger[]>? rec = null) {
         var budget = new Budget(this);
         steps?.Add(new Step("Instance", null));
         try {
@@ -46,6 +49,7 @@ class IntegerLinearProgrammingSolver : ISolver<INTEGERLINEARPROGRAMMING> {
             var best = FindInteger(rows, n, budget);
             if (best is null) return Finish("infeasible", null);
             steps?.Add(new Step("Feasible assignment", best));
+            rec?.Accept(() => (BigInteger[])best.Clone(), () => "Found a feasible integer assignment.");
 
             // Project z = c^T x onto z. An absent upper bound means the rational
             // program is unbounded. An integer feasible point and a rational
@@ -76,6 +80,7 @@ class IntegerLinearProgrammingSolver : ISolver<INTEGERLINEARPROGRAMMING> {
                     best = candidate;
                     lower = Dot(problem.c, best);
                     steps?.Add(new Step("Improved feasible assignment", best));
+                    rec?.Accept(() => (BigInteger[])best.Clone(), () => "Found a better feasible integer assignment.");
                 }
             }
             return Finish(Format(best), best);
@@ -85,6 +90,8 @@ class IntegerLinearProgrammingSolver : ISolver<INTEGERLINEARPROGRAMMING> {
 
         string Finish(string result, BigInteger[]? assignment) {
             steps?.Add(new Step(assignment is null ? result : "Optimal assignment", assignment));
+            rec?.Done(assignment is null ? Array.Empty<BigInteger>() : (BigInteger[])assignment.Clone(),
+                assignment is not null, assignment is null ? result : "Found an optimal integer assignment.");
             return result;
         }
     }

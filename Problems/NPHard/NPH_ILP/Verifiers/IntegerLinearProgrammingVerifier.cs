@@ -6,7 +6,7 @@ using SPADE;
 namespace API.Problems.NPHard.NPH_ILP.Verifiers;
 
 class IntegerLinearProgrammingVerifier : IVerifier<INTEGERLINEARPROGRAMMING> {
-    public string verifierName { get; } = "Default Integer Linear Programming Verifier";
+    public string verifierName { get; } = "Integer Linear Programming Solution Verifier";
     public string verifierDefinition { get; } =
         "Checks that an integer vector satisfies Ax <= b and achieves the maximum objective value c^T x.";
     public string source { get; } = "";
