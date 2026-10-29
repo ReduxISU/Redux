@@ -47,6 +47,11 @@ class KERNEL : IGraphProblem<KernelBruteForce, KernelVerifier, KernelDefaultVisu
     public KERNEL() : this(_defaultInstance) {
     }
     public KERNEL(string stringInstance) {
+
+        // Added validation to ensure that the input string is not null or empty.
+        if (string.IsNullOrWhiteSpace(stringInstance)) {
+            throw new ArgumentException("Graph input cannot be null or empty.");
+        }
         instance = stringInstance;
         UtilCollection parsedGraph = new UtilCollection(stringInstance.Replace(" ", ""));
         parsedGraph.assertPair();
@@ -55,7 +60,19 @@ class KERNEL : IGraphProblem<KernelBruteForce, KernelVerifier, KernelDefaultVisu
         UtilCollection vertexSet = parsedGraph[0];
         vertexSet.assertUnordered();
 
-        vertices = vertexSet.ToList().Select(v => int.Parse(v.ToString())).ToHashSet();
+        var parsedVertices = vertexSet.ToList().Select(v => int.Parse(v.ToString())).ToList();
+
+        // Reject negative vertices and duplicates
+        if (parsedVertices.Any(v => v < 0)) {
+            throw new ArgumentException("Vertices must be nonnegative integers.");
+        }
+
+        if (parsedVertices.Count != parsedVertices.Distinct().Count()) {
+            throw new ArgumentException("Duplicate vertices are not allowed.");
+        }
+
+        vertices = parsedVertices.ToHashSet();
+
 
         // Parse directed edges.
         UtilCollection edgeSet = parsedGraph[1];
@@ -68,6 +85,11 @@ class KERNEL : IGraphProblem<KernelBruteForce, KernelVerifier, KernelDefaultVisu
             int u = int.Parse(edge[0].ToString());
             int v = int.Parse(edge[1].ToString());
             edges.Add((u, v));
+        }
+
+        // Reject negative edge endpoints
+        if (edges.Any(e => e.u < 0 || e.v < 0)) {
+            throw new ArgumentException("Edge endpoints must be nonnegative integers.");
         }
 
         // Validate edge endpoints.
