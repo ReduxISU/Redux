@@ -8,7 +8,7 @@ using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Visualizations;
 namespace API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION;
 
 class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, ConstraintSatisfactionVerifier, ConstraintSatisfactionVisualization> {
-    public string problemName { get; } = "Constraint Satisfaction Problem";
+    public string problemName { get; } = "General Finite-Domain Constraint Satisfaction Problem";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Constraint_satisfaction_problem";
     public string formalDefinition { get; } = "CONSTRAINTSATISFACTION = {<X,D,C> | there exists an assignment a with a(X[i]) in D[i] for every i, satisfying every constraint in C}";
     public string problemDefinition { get; } = "Given distinct variables, an explicitly listed finite nonempty integer domain for each variable, and constraints, determine whether values can be assigned to all variables so that every constraint is satisfied.";
@@ -28,7 +28,6 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, Constraint
     public ConstraintSatisfactionSolver defaultSolver { get; } = new ConstraintSatisfactionSolver();
     public ConstraintSatisfactionVerifier defaultVerifier { get; } = new ConstraintSatisfactionVerifier();
     public ConstraintSatisfactionVisualization defaultVisualization { get; } = new ConstraintSatisfactionVisualization();
-    // General finite-domain CSP is NP-complete: graph 3-coloring is a special case.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.MathematicalProgramming;
 
