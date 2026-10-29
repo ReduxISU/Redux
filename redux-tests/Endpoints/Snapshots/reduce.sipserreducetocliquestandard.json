@@ -68,14 +68,14 @@
         "0-1"
       ],
       "reductionToIds": [
-        "!x2_0"
+        "x2_0"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c0-1"
       ],
       "targetIds": [
-        "!x2_0"
+        "x2_0"
       ]
     },
     {
@@ -103,7 +103,7 @@
       ],
       "reductionToIds": [
         "x1_0",
-        "!x2_0",
+        "x2_0",
         "x3_0"
       ],
       "gadgetKind": "group",
@@ -112,7 +112,7 @@
       ],
       "targetIds": [
         "x1_0",
-        "!x2_0",
+        "x2_0",
         "x3_0"
       ]
     },
@@ -140,14 +140,14 @@
         "1-1"
       ],
       "reductionToIds": [
-        "x3_1"
+        "!x2_1"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c1-1"
       ],
       "targetIds": [
-        "x3_1"
+        "!x2_1"
       ]
     },
     {
@@ -157,14 +157,14 @@
         "1-2"
       ],
       "reductionToIds": [
-        "x1_1"
+        "!x3_1"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c1-2"
       ],
       "targetIds": [
-        "x1_1"
+        "!x3_1"
       ]
     },
     {
@@ -175,8 +175,8 @@
       ],
       "reductionToIds": [
         "!x1_1",
-        "x3_1",
-        "x1_1"
+        "!x2_1",
+        "!x3_1"
       ],
       "gadgetKind": "group",
       "sourceIds": [
@@ -184,8 +184,8 @@
       ],
       "targetIds": [
         "!x1_1",
-        "x3_1",
-        "x1_1"
+        "!x2_1",
+        "!x3_1"
       ]
     },
     {
@@ -195,14 +195,14 @@
         "2-0"
       ],
       "reductionToIds": [
-        "x2_2"
+        "!x1_2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c2-0"
       ],
       "targetIds": [
-        "x2_2"
+        "!x1_2"
       ]
     },
     {
@@ -212,14 +212,14 @@
         "2-1"
       ],
       "reductionToIds": [
-        "!x3_2"
+        "x2_2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c2-1"
       ],
       "targetIds": [
-        "!x3_2"
+        "x2_2"
       ]
     },
     {
@@ -229,14 +229,14 @@
         "2-2"
       ],
       "reductionToIds": [
-        "!x1_2"
+        "x3_2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c2-2"
       ],
       "targetIds": [
-        "!x1_2"
+        "x3_2"
       ]
     },
     {
@@ -246,18 +246,90 @@
         "2"
       ],
       "reductionToIds": [
+        "!x1_2",
         "x2_2",
-        "!x3_2",
-        "!x1_2"
+        "x3_2"
       ],
       "gadgetKind": "group",
       "sourceIds": [
         "c2"
       ],
       "targetIds": [
+        "!x1_2",
         "x2_2",
-        "!x3_2",
-        "!x1_2"
+        "x3_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3-0"
+      ],
+      "reductionToIds": [
+        "x1_3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c3-0"
+      ],
+      "targetIds": [
+        "x1_3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3-1"
+      ],
+      "reductionToIds": [
+        "!x2_3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c3-1"
+      ],
+      "targetIds": [
+        "!x2_3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "3-2"
+      ],
+      "reductionToIds": [
+        "x3_3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c3-2"
+      ],
+      "targetIds": [
+        "x3_3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "3"
+      ],
+      "reductionToIds": [
+        "x1_3",
+        "!x2_3",
+        "x3_3"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c3"
+      ],
+      "targetIds": [
+        "x1_3",
+        "!x2_3",
+        "x3_3"
       ]
     }
   ],
@@ -270,9 +342,9 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
     "wikiName": "",
-    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
-    "instance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
-    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "defaultInstance": "(x1 | x2 | x3) \u0026 (!x1 | !x2 | !x3) \u0026 (!x1 | x2 | x3) \u0026 (x1 | !x2 | x3)",
+    "instance": "(x1 | x2 | x3) \u0026 (!x1 | !x2 | !x3) \u0026 (!x1 | x2 | x3) \u0026 (x1 | !x2 | x3)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027. Each clause has at most 3 literals. Example: (x1 | x2 | x3) \u0026 (!x1 | !x2 | !x3) \u0026 (!x1 | x2 | x3) \u0026 (x1 | !x2 | x3)",
     "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
     "complexityClass": "NPComplete",
     "problemType": "Logic",
@@ -354,7 +426,7 @@
     "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
     "wikiName": "",
     "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
-    "instance": "(({x1_0,!x2_0,x3_0,!x1_1,x3_1,x1_1,x2_2,!x3_2,!x1_2},{{x1_0,x3_1},{x1_0,x1_1},{x1_0,x2_2},{x1_0,!x3_2},{!x2_0,!x1_1},{!x2_0,x3_1},{!x2_0,x1_1},{!x2_0,!x3_2},{!x2_0,!x1_2},{x3_0,!x1_1},{x3_0,x3_1},{x3_0,x1_1},{x3_0,x2_2},{x3_0,!x1_2},{!x1_1,!x2_0},{!x1_1,x3_0},{!x1_1,x2_2},{!x1_1,!x3_2},{!x1_1,!x1_2},{x3_1,x1_0},{x3_1,!x2_0},{x3_1,x3_0},{x3_1,x2_2},{x3_1,!x1_2},{x1_1,x1_0},{x1_1,!x2_0},{x1_1,x3_0},{x1_1,x2_2},{x1_1,!x3_2},{x2_2,x1_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,x3_1},{x2_2,x1_1},{!x3_2,x1_0},{!x3_2,!x2_0},{!x3_2,!x1_1},{!x3_2,x1_1},{!x1_2,!x2_0},{!x1_2,x3_0},{!x1_2,!x1_1},{!x1_2,x3_1}}),3)",
+    "instance": "(({x1_0,x2_0,x3_0,!x1_1,!x2_1,!x3_1,!x1_2,x2_2,x3_2,x1_3,!x2_3,x3_3},{{x1_0,!x2_1},{x1_0,!x3_1},{x1_0,x2_2},{x1_0,x3_2},{x1_0,x1_3},{x1_0,!x2_3},{x1_0,x3_3},{x2_0,!x1_1},{x2_0,!x3_1},{x2_0,!x1_2},{x2_0,x2_2},{x2_0,x3_2},{x2_0,x1_3},{x2_0,x3_3},{x3_0,!x1_1},{x3_0,!x2_1},{x3_0,!x1_2},{x3_0,x2_2},{x3_0,x3_2},{x3_0,x1_3},{x3_0,!x2_3},{x3_0,x3_3},{!x1_1,x2_0},{!x1_1,x3_0},{!x1_1,!x1_2},{!x1_1,x2_2},{!x1_1,x3_2},{!x1_1,!x2_3},{!x1_1,x3_3},{!x2_1,x1_0},{!x2_1,x3_0},{!x2_1,!x1_2},{!x2_1,x3_2},{!x2_1,x1_3},{!x2_1,!x2_3},{!x2_1,x3_3},{!x3_1,x1_0},{!x3_1,x2_0},{!x3_1,!x1_2},{!x3_1,x2_2},{!x3_1,x1_3},{!x3_1,!x2_3},{!x1_2,x2_0},{!x1_2,x3_0},{!x1_2,!x1_1},{!x1_2,!x2_1},{!x1_2,!x3_1},{!x1_2,!x2_3},{!x1_2,x3_3},{x2_2,x1_0},{x2_2,x2_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,!x3_1},{x2_2,x1_3},{x2_2,x3_3},{x3_2,x1_0},{x3_2,x2_0},{x3_2,x3_0},{x3_2,!x1_1},{x3_2,!x2_1},{x3_2,x1_3},{x3_2,!x2_3},{x3_2,x3_3},{x1_3,x1_0},{x1_3,x2_0},{x1_3,x3_0},{x1_3,!x2_1},{x1_3,!x3_1},{x1_3,x2_2},{x1_3,x3_2},{!x2_3,x1_0},{!x2_3,x3_0},{!x2_3,!x1_1},{!x2_3,!x2_1},{!x2_3,!x3_1},{!x2_3,!x1_2},{!x2_3,x3_2},{x3_3,x1_0},{x3_3,x2_0},{x3_3,x3_0},{x3_3,!x1_1},{x3_3,!x2_1},{x3_3,!x1_2},{x3_3,x2_2},{x3_3,x3_2}}),4)",
     "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
     "certificateFormat": "Format: {K | K is set} Example: {2,3,4,5}",
     "complexityClass": "NPComplete",
