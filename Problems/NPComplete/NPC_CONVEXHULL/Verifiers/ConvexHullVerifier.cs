@@ -8,10 +8,10 @@ namespace API.Problems.NPComplete.NPC_CONVEXHULL.Verifiers;
 
 class ConvexHullVerifier : IVerifier<CONVEXHULL> {
     public const string CertificateGrammar = "(v1,...,vk) | vi are (x,y) points forming the convex hull's vertices in counterclockwise order, starting at any vertex";
-    public const string CertificateExample = "((0.2723211656942368,-0.8053758131859647), (0.7674622377407927,-0.21537444528240846), (0.6077591838324792,0.5288040272918157), (-0.32705115386597394,0.6744065707101621), (-0.6984449872706371,0.3857380723376367), (-0.9308276577586132,-0.1423800479224624), (-0.27394905790800017,-0.7488048223660126))";
+    public const string CertificateExample = "((-1,3), (0,0), (4,0), (6,3), (4,6), (1,5))";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Convex Hull Verifier";
+    public string verifierName { get; } = "Convex Hull Solution Verifier";
     public string verifierDefinition { get; } = "Verifies a proposed convex hull geometrically: the certificate must list distinct input points forming a strictly convex polygon in counterclockwise order (any starting vertex) with every input point on or inside it. Points lying on a hull edge are not vertices and must be omitted.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

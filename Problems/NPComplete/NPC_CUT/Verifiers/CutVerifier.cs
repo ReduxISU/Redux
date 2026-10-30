@@ -9,7 +9,7 @@ class CutVerifier : IVerifier<CUT> {
     public const string CertificateExample = "{{2,1},{2,3},{3,5},{2,4},{4,5}}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Cut Verifier";
+    public string verifierName { get; } = "Cut Solution Verifier";
     public string verifierDefinition { get; } = "Checks that the certificate edges all exist in G, are distinct, are exactly the edges crossing some partition of the vertices into two sets, and number exactly K.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
