@@ -83,7 +83,7 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory> {
         var expected = new HashSet<string>(
             new[]
             {
-                "ARCSET", "BINPACKING", "CLIQUE", "CLIQUECOVER", "CUT", "DIRECTEDHAMILTONIAN",
+                "AKARI", "ARCSET", "BINPACKING", "CLIQUE", "CLIQUECOVER", "CUT", "DIRECTEDHAMILTONIAN",
                 "DM3", "DOMINATINGSET", "EXACTCOVER", "GRAPHCOLORING", "HAMILTONIAN",
                 "HITTINGSET", "INDEPENDENTSET", "INTPROGRAMMING01", "JOBSEQ", "KNAPSACK",
                 "NODESET", "PARTITION", "SAT", "SAT3", "SETCOVER", "STEINERTREE",
