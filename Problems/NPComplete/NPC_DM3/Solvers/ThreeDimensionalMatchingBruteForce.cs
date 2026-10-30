@@ -7,7 +7,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
 
     // --- Fields ---
     public string solverName { get; } = "3-Dimensional Matching Brute Force";
-    public string solverDefinition { get; } = "This is a generic local search solver for 3-Dimensional Matching, which, while possible, removes one constraint from the current solution, and swaps in two more constraints.";
+    public string solverDefinition { get; } = "This is a brute force solver for 3-Dimensional Matching. It enumerates every combination of |X| triples from M and returns the first one that is a perfect matching.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Caleb Eardley" };

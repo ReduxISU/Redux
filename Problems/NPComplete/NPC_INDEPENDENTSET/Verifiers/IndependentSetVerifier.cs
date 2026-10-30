@@ -8,7 +8,7 @@ class IndependentSetVerifier : IVerifier<INDEPENDENTSET> {
     public const string CertificateExample = "{c,d,g}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Independent Set Verifier";
+    public string verifierName { get; } = "Independent Set Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Independent Set";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
