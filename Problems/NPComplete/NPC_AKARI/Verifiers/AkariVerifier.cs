@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_AKARI.Verifiers;
 class AkariVerifier : IVerifier<AKARI> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Akari Verifier";
+    public string verifierName { get; } = "Akari (Light Up Puzzle) Solution Verifier";
     public string verifierDefinition { get; } = "TODO";
     public string source { get; } = " ";
     public string sourceLink { get; } = "TODO";
