@@ -49,6 +49,22 @@ internal class ReductionInputException : Exception {
     }
 }
 
+// Thrown when an exact algorithm refuses an instance that exceeds its supported search size.
+// Controllers translate this to HTTP 400 without classifying it as an instance or certificate
+// parsing failure.
+internal class ExactSearchLimitExceededException : Exception {
+    public string ProblemName { get; }
+    public int VariableCount { get; }
+    public int MaxVariables { get; }
+
+    public ExactSearchLimitExceededException(string problemName, int variableCount, int maxVariables)
+        : base($"{problemName} exact search supports at most {maxVariables} variables; received {variableCount}.") {
+        ProblemName = problemName;
+        VariableCount = variableCount;
+        MaxVariables = maxVariables;
+    }
+}
+
 // Shared chokepoints that turn failures while parsing caller-supplied input into the parse
 // exceptions above, so the controller answers with a structured 400 instead of a raw 500 (#577).
 // Only the parse/construction step is guarded: the algorithm that runs afterwards (solve, reduce,
