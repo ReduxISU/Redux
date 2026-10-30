@@ -21,7 +21,7 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public const string InstanceGrammar = "{N | N subset int}";
-    private static string _defaultInstance = "{1,7,12,15,33,12,11,5,6,9,21,18}";
+    private static string _defaultInstance = "{3,5,7,8,9,10}";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } =
         $"Format: {InstanceGrammar} (a set of positive integers S; duplicate values in the input collapse to one) Example: {_defaultInstance}";
